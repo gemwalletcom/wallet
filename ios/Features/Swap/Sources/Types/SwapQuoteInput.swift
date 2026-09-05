@@ -3,6 +3,7 @@
 import BigInt
 import Foundation
 import Primitives
+import struct Gemstone.GemSwapRequest
 
 public struct SwapQuoteInput: Hashable, Sendable {
     public let fromAsset: Asset
@@ -10,6 +11,14 @@ public struct SwapQuoteInput: Hashable, Sendable {
     public let value: BigInt
     public let useMaxAmount: Bool
     public let slippage: SwapSlippage
+
+    var request: GemSwapRequest {
+        let slippageBps: UInt32? = switch slippage {
+        case .auto: nil
+        case let .manual(bps): bps
+        }
+        return GemSwapRequest(payAssetId: fromAsset.id.identifier, receiveAssetId: toAsset.id.identifier, value: BigUInt(value), slippageBps: slippageBps)
+    }
 }
 
 // MARK: - Identifiable

@@ -154,7 +154,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerContext.visibleBanners(banners, walletId: wallet.id, asset: .none)) ?? []
+        bannerContext.visibleBanners(banners, walletId: wallet.id, asset: .none)
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
@@ -163,7 +163,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     private var bannerContext: GemBannerContext {
         GemBannerContext(
-            wallet: wallet.json(),
+            wallet: wallet.map(),
             hasAsset: false,
             isStakeable: false,
             hasStakeBalance: false,
@@ -179,7 +179,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
 public extension WalletSceneViewModel {
     internal func load() async {
-        await updateWallet(for: wallet)
+        await updateWallet()
     }
 
     internal func loadOnce() async {
@@ -256,28 +256,28 @@ public extension WalletSceneViewModel {
 
 extension WalletSceneViewModel {
     private func loadOnce(wallet: Wallet) async {
-        let shouldShowLoadingAssets = shouldShowInitialLoadingAssets(for: wallet)
+        let shouldShowLoadingAssets = shouldShowInitialLoadingAssets
 
         if shouldShowLoadingAssets {
             isLoadingAssets = true
         }
 
-        await updateWallet(for: wallet)
+        await updateWallet()
 
         if shouldShowLoadingAssets, self.wallet.id == wallet.id {
             isLoadingAssets = false
         }
     }
 
-    private func updateWallet(for wallet: Wallet) async {
+    private func updateWallet() async {
         do {
-            try await service.refresh(assetIds: assets.map(\.asset.id))
+            try await service.refresh()
         } catch {
             debugLog("WalletSceneViewModel refresh error: \(error)")
         }
     }
 
-    private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
+    private var shouldShowInitialLoadingAssets: Bool {
         (try? service.showsInitialLoading()) ?? false
     }
 

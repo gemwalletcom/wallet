@@ -20,7 +20,7 @@ public struct WCTransferData: Identifiable, Sendable {
     public init(_ request: GemWalletConnectTransactionRequest) throws {
         try self.init(
             transferData: request.transfer,
-            wallet: Wallet(request.wallet),
+            wallet: request.wallet.map(),
             simulation: SimulationResult(request.simulation),
         )
     }

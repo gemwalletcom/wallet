@@ -1,4 +1,5 @@
 use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
 use primitives::{FiatQuote, FiatQuoteType};
 use rand::RngExt;
 
@@ -28,12 +29,17 @@ pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64,
             maximum: config.maximum_amount as u32,
         };
     }
-    match (quote_type, quote) {
-        (FiatQuoteType::Sell, Some(quote)) if quote.value > *available => GemFiatAmountCheck::InsufficientBalance {
-            requirement: GemBalanceRequirement::new(quote.value.clone().into(), available.clone().into()),
+    match (quote_type, quote.and_then(quote_value)) {
+        (FiatQuoteType::Sell, Some(value)) if value > *available => GemFiatAmountCheck::InsufficientBalance {
+            requirement: GemBalanceRequirement::new(value.into(), available.clone().into()),
         },
         _ => GemFiatAmountCheck::Valid,
     }
+}
+
+pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
+    let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
+    BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
 }
 
 #[cfg(test)]
@@ -44,9 +50,11 @@ mod tests {
     use primitives::{Asset, Chain, FiatProvider, FiatProviderName};
 
     fn quote(value: u32) -> FiatQuote {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let crypto_amount = value as f64 / 10f64.powi(asset.decimals);
         FiatQuote::new(
             "quote".to_string(),
-            Asset::from_chain(Chain::Ethereum),
+            asset,
             FiatProvider {
                 id: FiatProviderName::Transak,
                 name: "Provider".to_string(),
@@ -61,11 +69,19 @@ mod tests {
             FiatQuoteType::Sell,
             100.0,
             "USD".to_string(),
-            1.0,
+            crypto_amount,
             BigUint::from(value),
             10,
             vec![],
         )
+    }
+
+    #[test]
+    fn test_quote_value_is_derived_from_the_amount_and_the_asset_precision() {
+        assert_eq!(quote_value(&quote(200)), Some(BigUint::from(200u32)));
+        let mut whole = quote(1);
+        whole.crypto_amount = 1.5;
+        assert_eq!(quote_value(&whole), Some(BigUint::from(1_500_000_000_000_000_000u64)));
     }
 
     #[test]

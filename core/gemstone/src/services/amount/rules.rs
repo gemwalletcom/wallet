@@ -1,15 +1,21 @@
 use std::str::FromStr;
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, AutocloseEstimator, Chain, PerpetualDirection, StakeChain, TpslType};
+use primitives::{Asset, AutocloseEstimator, Chain, Delegation, EarnType, PerpetualDirection, StakeChain, StakeType, TpslType};
 
-use super::model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountType, GemPerpetualAutoclose};
+use super::model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
+use crate::models::GemTransactionInputType;
 use crate::models::custom_types::GemBigInt;
+use crate::perpetual::GemPerpetual;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
+use crate::services::error::GemServiceError;
+use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::transfer::rules as transfer_rules;
+use crate::services::transfer::{GemRecipient, GemTransferData};
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
+use primitives::PerpetualProvider;
 
 const USDC_SYMBOL: &str = "USDC";
 
@@ -32,6 +38,75 @@ impl GemAmountType {
     pub fn validate(&self, asset: &Asset, balance: &GemAssetBalance, value: GemBigInt) -> Result<(), GemAmountError> {
         validate(&value, &self.available_value(asset, balance), &minimum_value(self, asset))
     }
+
+    pub fn can_switch_input_type(&self) -> bool {
+        matches!(self, Self::Transfer)
+    }
+}
+
+pub fn perpetual_amount_type(action: &GemPerpetualPositionAction, leverage: u8) -> GemAmountType {
+    let data = action.data();
+    GemAmountType::Perpetual {
+        position: match action {
+            GemPerpetualPositionAction::Open { .. } => GemAmountPerpetualPosition::Open,
+            GemPerpetualPositionAction::Increase { .. } => GemAmountPerpetualPosition::Increase,
+            GemPerpetualPositionAction::Reduce { available, .. } => GemAmountPerpetualPosition::Reduce { available: available.clone() },
+        },
+        direction: data.direction.clone(),
+        price: data.price,
+        leverage,
+        size_decimals: data.asset.decimals,
+    }
+}
+
+pub fn stake_amount_type(stake_type: StakeType, delegations: Vec<Delegation>) -> GemAmountType {
+    let stake_type = match stake_type {
+        StakeType::Stake(_) => GemAmountStakeType::Stake,
+        StakeType::Unstake(delegation) => GemAmountStakeType::Unstake { delegation },
+        StakeType::Redelegate(data) => GemAmountStakeType::Redelegate { delegation: data.delegation },
+        StakeType::Withdraw(delegation) => GemAmountStakeType::Withdraw { delegation },
+        StakeType::Rewards(validators) => GemAmountStakeType::Rewards {
+            delegations: delegations
+                .into_iter()
+                .filter(|delegation| validators.iter().any(|validator| validator.id == delegation.validator.id))
+                .collect(),
+        },
+        StakeType::Freeze(resource) => GemAmountStakeType::Freeze { resource },
+        StakeType::Unfreeze(resource) => GemAmountStakeType::Unfreeze { resource },
+    };
+    GemAmountType::Stake { stake_type }
+}
+
+pub fn earn_amount_type(earn_type: EarnType) -> GemAmountType {
+    GemAmountType::Earn {
+        earn_type: match earn_type {
+            EarnType::Deposit(_) => GemAmountEarnType::Deposit,
+            EarnType::Withdraw(delegation) => GemAmountEarnType::Withdraw { delegation },
+        },
+    }
+}
+
+pub fn transfer_data(asset: Asset, transfer: GemAmountTransfer, owner: Option<GemRecipient>, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
+    let (input_type, recipient) = match transfer {
+        GemAmountTransfer::Send { recipient } => (GemTransactionInputType::Transfer { asset }, recipient),
+        GemAmountTransfer::Deposit => (
+            GemTransactionInputType::Deposit { asset },
+            GemPerpetual::new(PerpetualProvider::Hypercore).deposit_recipient(),
+        ),
+        GemAmountTransfer::Withdraw => {
+            let owner = owner.ok_or_else(|| GemServiceError::NotFound {
+                msg: format!("no {} account to withdraw to", asset.chain()),
+            })?;
+            (GemTransactionInputType::Withdrawal { asset }, owner)
+        }
+    };
+    Ok(GemTransferData {
+        input_type,
+        recipient,
+        value,
+        use_max_amount,
+        minimum_value: None,
+    })
 }
 
 impl GemAmountType {
@@ -159,6 +234,7 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
     use crate::models::custom_types::GemBigUint;
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
@@ -323,6 +399,7 @@ mod tests {
 
         let perpetual = |leverage: u8, size_decimals: i32| GemAmountType::Perpetual {
             position: GemAmountPerpetualPosition::Open,
+            direction: PerpetualDirection::Long,
             price: 4.0,
             leverage,
             size_decimals,
@@ -352,6 +429,7 @@ mod tests {
         assert_eq!(
             GemAmountType::Perpetual {
                 position: GemAmountPerpetualPosition::Reduce { available: BigUint::from(42u32) },
+                direction: PerpetualDirection::Long,
                 price: 1.0,
                 leverage: 1,
                 size_decimals: 0
@@ -426,5 +504,128 @@ mod tests {
     fn test_transfer_balance_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
         let _: fn(GemAssetBalance) -> (GemBigUint, GemBigUint, GemBigUint, GemBigUint) = |balance| (balance.available, balance.frozen, balance.locked, balance.withdrawable);
         assert_eq!(GemAmountType::Transfer.available_value(&asset(Chain::Ethereum), &balance(500, 0, 0, 0)), BigInt::from(500));
+    }
+
+    #[test]
+    fn test_only_a_transfer_switches_the_input_type() {
+        assert!(GemAmountType::Transfer.can_switch_input_type());
+        assert!(!GemAmountType::Deposit.can_switch_input_type());
+        assert!(!GemAmountType::Withdraw.can_switch_input_type());
+        assert!(!stake(GemAmountStakeType::Stake).can_switch_input_type());
+    }
+
+    #[test]
+    fn test_perpetual_amount_type_reads_the_position_from_the_action() {
+        let data = crate::services::perpetual::GemPerpetualTransferData {
+            provider: PerpetualProvider::Hypercore,
+            direction: PerpetualDirection::Short,
+            asset: usdc(),
+            base_asset: usdc(),
+            asset_index: 1,
+            price: 120.5,
+            leverage: 3,
+            margin_type: primitives::PerpetualMarginType::Cross,
+        };
+
+        let open = perpetual_amount_type(&GemPerpetualPositionAction::Open { data: data.clone() }, 10);
+        assert_eq!(
+            open,
+            GemAmountType::Perpetual {
+                position: GemAmountPerpetualPosition::Open,
+                direction: PerpetualDirection::Short,
+                price: 120.5,
+                leverage: 10,
+                size_decimals: 6,
+            }
+        );
+        let reduce = perpetual_amount_type(
+            &GemPerpetualPositionAction::Reduce {
+                data,
+                available: GemBigUint::from(1_000u32),
+            },
+            3,
+        );
+        assert!(
+            matches!(reduce, GemAmountType::Perpetual { position: GemAmountPerpetualPosition::Reduce { available }, leverage: 3, .. } if available == GemBigUint::from(1_000u32))
+        );
+    }
+
+    #[test]
+    fn test_stake_amount_type_mirrors_the_stake_type_and_keeps_only_the_rewarded_delegations() {
+        let delegation = delegation(100, 5);
+        let other = Delegation {
+            base: DelegationBase {
+                validator_id: "other".into(),
+                ..delegation.base.clone()
+            },
+            validator: DelegationValidator {
+                id: "other".into(),
+                ..delegation.validator.clone()
+            },
+            price: None,
+        };
+
+        assert_eq!(stake_amount_type(StakeType::Stake(delegation.validator.clone()), vec![]), stake(GemAmountStakeType::Stake));
+        assert_eq!(
+            stake_amount_type(StakeType::Unstake(delegation.clone()), vec![]),
+            stake(GemAmountStakeType::Unstake { delegation: delegation.clone() })
+        );
+        assert_eq!(
+            stake_amount_type(
+                StakeType::Redelegate(primitives::RedelegateData {
+                    delegation: delegation.clone(),
+                    to_validator: other.validator.clone(),
+                }),
+                vec![]
+            ),
+            stake(GemAmountStakeType::Redelegate { delegation: delegation.clone() })
+        );
+        assert_eq!(
+            stake_amount_type(StakeType::Rewards(vec![delegation.validator.clone()]), vec![other, delegation.clone()]),
+            stake(GemAmountStakeType::Rewards { delegations: vec![delegation] })
+        );
+        assert_eq!(
+            stake_amount_type(StakeType::Freeze(Resource::Energy), vec![]),
+            stake(GemAmountStakeType::Freeze { resource: Resource::Energy })
+        );
+    }
+
+    #[test]
+    fn test_earn_amount_type_keeps_the_withdrawn_delegation() {
+        let delegation = delegation(100, 0);
+
+        assert_eq!(
+            earn_amount_type(EarnType::Deposit(delegation.validator.clone())),
+            GemAmountType::Earn {
+                earn_type: GemAmountEarnType::Deposit
+            }
+        );
+        assert_eq!(
+            earn_amount_type(EarnType::Withdraw(delegation.clone())),
+            GemAmountType::Earn {
+                earn_type: GemAmountEarnType::Withdraw { delegation }
+            }
+        );
+    }
+
+    #[test]
+    fn test_transfer_data_addresses_a_send_a_deposit_and_a_withdrawal() {
+        let recipient = GemRecipient::named("to".into(), "friend".into());
+        let owner = GemRecipient::named("owner".into(), "wallet".into());
+
+        let send = transfer_data(usdc(), GemAmountTransfer::Send { recipient: recipient.clone() }, None, GemBigInt::from(1), false).unwrap();
+        assert!(matches!(send.input_type, GemTransactionInputType::Transfer { .. }));
+        assert_eq!(send.recipient, recipient);
+
+        let deposit = transfer_data(usdc(), GemAmountTransfer::Deposit, None, GemBigInt::from(2), true).unwrap();
+        assert!(matches!(deposit.input_type, GemTransactionInputType::Deposit { .. }));
+        assert_eq!(deposit.recipient.address, HYPERLIQUID_DEPOSIT_ADDRESS);
+        assert!(deposit.use_max_amount);
+
+        let withdraw = transfer_data(usdc(), GemAmountTransfer::Withdraw, Some(owner.clone()), GemBigInt::from(3), false).unwrap();
+        assert!(matches!(withdraw.input_type, GemTransactionInputType::Withdrawal { .. }));
+        assert_eq!(withdraw.recipient, owner);
+
+        assert!(transfer_data(usdc(), GemAmountTransfer::Withdraw, None, GemBigInt::from(3), false).is_err());
     }
 }

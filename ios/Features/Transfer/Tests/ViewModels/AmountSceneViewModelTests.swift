@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemPaymentRecipient
 import GemstoneServicesTestKit
 import GemstonePrimitivesTestKit
 import GemstonePrimitives
@@ -69,7 +70,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 10_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .transfer(recipient: .mock()),
+            type: .transfer(recipient: GemPaymentRecipient(recipient: .mock())),
             assetData: assetData,
         )
 
@@ -155,7 +156,7 @@ struct AmountSceneViewModelTests {
 
 extension AmountSceneViewModel {
     static func mock(
-        type: AmountType = .transfer(recipient: .mock()),
+        type: AmountType = .transfer(recipient: GemPaymentRecipient(recipient: .mock())),
         assetData: AssetData = .mock(balance: .mock()),
     ) -> AmountSceneViewModel {
         let model = AmountSceneViewModel(

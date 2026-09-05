@@ -39,12 +39,8 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         try store.updateBalances(balances, for: walletId)
     }
 
-    public func getEnabledAssetIds(walletId: String, assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
-        try store.getBalanceAssetIds(
-            walletId: WalletId.from(id: walletId),
-            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
-            filters: [.enabled],
-        ).map(\Primitives.AssetId.identifier)
+    public func getEnabledAssetIds(walletId: String) async throws -> [Gemstone.AssetId] {
+        try store.getEnabledAssetIds(walletId: WalletId.from(id: walletId)).map(\Primitives.AssetId.identifier)
     }
 
     public func setAssetsEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
@@ -68,7 +64,7 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
                 frozen: value(frozen),
                 locked: value(locked),
                 rewards: value(rewards),
-                metadata: metadata.map { try BalanceMetadata($0) },
+                metadata: metadata.map { $0.map() },
             ))
         case let .earn(balance):
             .earn(UpdateEarnBalance(balance: value(balance)))

@@ -36,23 +36,23 @@ impl GemWalletSessionService {
         self.store.set_current_wallet_id(wallet_id)
     }
 
-    pub fn get_current_wallet(&self) -> Result<Option<Wallet>, GemServiceError> {
+    pub async fn get_current_wallet(&self) -> Result<Option<Wallet>, GemServiceError> {
         match self.store.get_current_wallet_id()? {
-            Some(wallet_id) => self.wallets.get_wallet(wallet_id),
+            Some(wallet_id) => self.wallets.get_wallet(wallet_id).await,
             None => Ok(None),
         }
     }
 
-    pub fn shows_rewards(&self) -> Result<bool, GemServiceError> {
-        Ok(rules::shows_rewards(&self.get_wallets()?))
+    pub fn shows_rewards(&self, wallets: Vec<Wallet>) -> bool {
+        rules::shows_rewards(&wallets)
     }
 
-    pub fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        self.wallets.get_wallets()
+    pub async fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.wallets.get_wallets().await
     }
 
-    pub fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
-        self.wallets.get_wallet(wallet_id)
+    pub async fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
+        self.wallets.get_wallet(wallet_id).await
     }
 }
 
@@ -63,9 +63,9 @@ impl GemWalletSessionService {
         })
     }
 
-    pub fn current_wallet(&self) -> Result<Wallet, GemServiceError> {
+    pub async fn current_wallet(&self) -> Result<Wallet, GemServiceError> {
         let wallet_id = self.current_wallet_id()?;
-        self.wallets.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
+        self.wallets.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} not found", wallet_id.id()),
         })
     }

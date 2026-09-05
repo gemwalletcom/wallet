@@ -2,6 +2,7 @@
 
 import Foundation
 import enum Gemstone.GemWalletDeletion
+import enum Gemstone.GemWalletImportType
 import protocol Gemstone.GemWalletServiceProtocol
 import Primitives
 
@@ -15,23 +16,15 @@ public extension GemWalletServiceProtocol {
         }
     }
 
-    func nextWalletIndex() throws -> Int {
-        Int(try nextWalletIndex() as Int32)
-    }
-
     func sorted(wallets: [Wallet]) -> [Wallet] {
-        do {
-            return try sortedWallets(wallets: wallets.map { $0.json() }).map { try Wallet($0) }
-        } catch {
-            preconditionFailure("Undecodable sorted wallets: \(error)")
-        }
+        sortedWallets(wallets: wallets.map { $0.map() }).map { $0.map() }
     }
 
-    func importWallet(name: String, type: KeystoreImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
-        let walletImport = try type.walletImport.validated()
+    func importWallet(name: String, type: GemWalletImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
+        let walletImport = try type.validated()
         return switch try await importWallet(name: name, import: walletImport, source: source.map()) {
-        case let .new(wallet): try .new(Wallet(wallet))
-        case let .existing(wallet): try .existing(Wallet(wallet))
+        case let .new(wallet): .new(wallet.map())
+        case let .existing(wallet): .existing(wallet.map())
         }
     }
 
@@ -55,7 +48,7 @@ public extension GemWalletServiceProtocol {
         try await rename(walletId: walletId.id, name: newName)
     }
 
-    func getWallets() throws -> [Wallet] {
-        try wallets().map { try Wallet($0) }
+    func getWallets() async throws -> [Wallet] {
+        try await wallets().map { $0.map() }
     }
 }

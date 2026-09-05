@@ -1,4 +1,10 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import BigInt
 import Formatters
+import struct Gemstone.GemSwapRate
+import struct Gemstone.GemTransactionAmount
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -7,19 +13,14 @@ import Testing
 struct TransactionRateViewModelTests {
     @Test
     func itemModel() {
-        let ethereum = Asset.mockEthereum()
-        let usdt = Asset.mockEthereumUSDT()
-        let assets = [ethereum, usdt]
-        let swap = AnyCodableValue.encode(TransactionSwapMetadata.mock(
-            fromAsset: ethereum.id,
-            fromValue: "1000000000000000000",
-            toAsset: usdt.id,
-            toValue: "3000000000",
-        ))
+        let rate = GemSwapRate(
+            from: GemTransactionAmount(asset: Asset.mockEthereum().map(), value: BigUInt(1_000_000_000_000_000_000), sign: .outgoing, price: nil),
+            to: GemTransactionAmount(asset: Asset.mockEthereumUSDT().map(), value: BigUInt(3_000_000_000), sign: .incoming, price: nil),
+        )
 
         guard
-            case let .rate(_, direct) = makeItemModel(metadata: swap, assets: assets, direction: .direct),
-            case let .rate(_, inverse) = makeItemModel(metadata: swap, assets: assets, direction: .inverse)
+            case let .rate(_, direct) = TransactionRateViewModel(rate: rate, direction: .direct).itemModel,
+            case let .rate(_, inverse) = TransactionRateViewModel(rate: rate, direction: .inverse).itemModel
         else {
             Issue.record("Expected rate item")
             return
@@ -27,23 +28,9 @@ struct TransactionRateViewModelTests {
         #expect(direct.hasPrefix("1 ETH"))
         #expect(inverse.hasPrefix("1 USDT"))
 
-        if case .empty = makeItemModel(metadata: nil, assets: []) {
+        if case .empty = TransactionRateViewModel(rate: nil, direction: .direct).itemModel {
         } else {
-            Issue.record("Expected empty for non-swap transaction")
+            Issue.record("Expected empty without a rate")
         }
-    }
-
-    private func makeItemModel(
-        metadata: AnyCodableValue?,
-        assets: [Asset],
-        direction: AssetRateFormatter.Direction = .direct,
-    ) -> TransactionItemModel {
-        TransactionRateViewModel(
-            transaction: .mock(
-                transaction: .mock(type: .swap, metadata: metadata),
-                assets: assets,
-            ),
-            direction: direction,
-        ).itemModel
     }
 }

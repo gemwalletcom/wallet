@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -53,7 +54,7 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
     public var subtitle: String {
         switch field.fieldType {
         case .address:
-            let address = AddressFormatter(address: field.value, chain: chain).value()
+            let address = GemAddressService.shared.format(address: field.value, chain: chain)
             guard let addressName, addressName.name.isNotEmpty, addressName.name != field.value else {
                 return address
             }

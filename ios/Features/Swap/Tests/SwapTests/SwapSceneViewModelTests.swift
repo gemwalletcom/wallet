@@ -7,6 +7,8 @@ import protocol Gemstone.GemSwapQuoteServiceProtocol
 import enum Gemstone.GemSwapButtonAction
 import enum Gemstone.SwapperError
 import struct Gemstone.GemSwapPairSuggestion
+import struct Gemstone.GemSwapQuotesResult
+import struct Gemstone.GemSwapSession
 import struct Gemstone.SwapperQuote
 import GemstoneServices
 import Primitives
@@ -67,10 +69,10 @@ struct SwapSceneViewModelTests {
     func additionalInfoVisibility() {
         let model = SwapSceneViewModel.mock()
 
-        model.swapState.quotes = .loading
+        model.session = .mockLoading()
         #expect(model.shouldShowAdditionalInfo == false)
 
-        model.swapState.quotes = .data([.mock()])
+        model.session = .mockReady()
         #expect(model.shouldShowAdditionalInfo)
     }
 
@@ -78,22 +80,20 @@ struct SwapSceneViewModelTests {
     func buttonViewModelFlow() {
         let model = SwapSceneViewModel.mock()
 
-        model.swapState.quotes = .data([])
+        model.session = .mockReady()
         #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.swap)
         #expect(model.buttonViewModel.isVisible)
 
-        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.session = .mockFailed(.NoQuoteAvailable)
         #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryQuote)
 
-        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "1000"))
+        model.session = .mockFailed(.InputAmountError(minAmount: "1000"))
         #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.useMinimumAmount(value: 1000))
 
-        model.swapState.quotes = .data([])
-        model.swapState.swapTransferData = .error(SwapperError.NoQuoteAvailable)
+        model.session = .mockReady().failedTransfer(.NoQuoteAvailable)
         #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryTransfer)
 
-        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
-        model.swapState.swapTransferData = .error(SwapperError.NoQuoteAvailable)
+        model.session = model.session.onQuoteResults(results: GemSwapQuotesResult(request: .mock, quotes: [], error: .NoQuoteAvailable))
         #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryTransfer)
     }
 
@@ -101,14 +101,13 @@ struct SwapSceneViewModelTests {
     func loadingFlagsSeparateQuoteAndTransferDataStates() {
         let model = SwapSceneViewModel.mock()
 
-        model.swapState.quotes = .loading
+        model.session = .mockLoading()
         #expect(model.isQuoteLoading)
         #expect(model.isTransferDataLoading == false)
         #expect(model.isQuoteInteractionEnabled)
         #expect(model.isReceiveFieldLoading)
 
-        model.swapState.quotes = .data([.mock()])
-        model.swapState.swapTransferData = .loading
+        model.session = GemSwapSession.mockReady().startTransfer()!
         #expect(model.isQuoteLoading == false)
         #expect(model.isTransferDataLoading)
         #expect(model.isQuoteInteractionEnabled == false)
@@ -121,10 +120,10 @@ struct SwapSceneViewModelTests {
         let previousToValue = model.toValue
         let previousQuote = model.selectedSwapQuote
 
-        model.swapState.swapTransferData = .loading
+        model.session = model.session.startTransfer()!
         await model.load()
 
-        #expect(model.swapState.quotes.isLoading == false)
+        #expect(model.isQuoteLoading == false)
         #expect(model.toValue == previousToValue)
         #expect(model.selectedSwapQuote == previousQuote)
     }
@@ -133,13 +132,13 @@ struct SwapSceneViewModelTests {
     func quoteChangingActionsClearTransferStateAndDisableProviderSelection() async {
         let model = await model()
 
-        model.swapState.quotes = .data([.mock(), .mock(toValue: 260000000000)])
-        model.swapState.swapTransferData = .error(TestError())
+        model.session = model.session.failedTransfer(.TransactionError("nonce"))
+        #expect(model.session.transferError() != nil)
 
         model.onFinishSwapProviderSelection(.mock())
-        #expect(model.swapState.swapTransferData.isNoData)
+        #expect(model.session.transferError() == nil)
 
-        model.swapState.swapTransferData = .loading
+        model.session = model.session.startTransfer()!
         #expect(model.swapDetailsViewModel?.allowSelectProvider == false)
     }
 
@@ -159,7 +158,7 @@ struct SwapSceneViewModelTests {
         task.cancel()
         await task.value
 
-        if case .error = model.swapState.quotes {
+        if model.session.quoteError() != nil {
             Issue.record("State should not be .error when Task is cancelled")
         }
     }
@@ -182,7 +181,7 @@ struct SwapSceneViewModelTests {
 
         await task.value
 
-        #expect(model.swapState.quotes.isNoData)
+        #expect(model.session.isInputEmpty())
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
     }
@@ -197,7 +196,7 @@ struct SwapSceneViewModelTests {
         model.amountInputModel.text = .empty
         model.onChangeFromValue("1", .empty)
 
-        #expect(model.swapState.quotes.isNoData)
+        #expect(model.session.isInputEmpty())
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
     }
@@ -220,7 +219,7 @@ struct SwapSceneViewModelTests {
 
         await task.value
 
-        #expect(model.swapState.quotes.isNoData)
+        #expect(model.session.isInputEmpty())
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
     }
@@ -230,7 +229,7 @@ struct SwapSceneViewModelTests {
         let model = await model()
         let oldAsset = model.toAsset
 
-        model.swapState.swapTransferData = .error(TestError())
+        model.session = model.session.failedTransfer(.TransactionError("nonce"))
         model.loadTrigger = nil
         model.toAssetQuery.value = .mock(asset: .mockBNB())
         model.onChangeToAsset(old: oldAsset, new: model.toAsset)
@@ -238,7 +237,7 @@ struct SwapSceneViewModelTests {
         #expect(model.amountInputModel.text == "1")
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
-        #expect(model.swapState.swapTransferData.isNoData)
+        #expect(model.session.transferError() == nil)
         #expect(model.loadTrigger?.isImmediate == true)
     }
 
@@ -275,13 +274,13 @@ struct SwapSceneViewModelTests {
         #expect(model.loadTrigger?.isImmediate == true)
 
         model.loadTrigger = nil
-        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.session = .mockFailed(.NoQuoteAvailable)
         model.buttonViewModel.action()
 
         #expect(model.loadTrigger?.isImmediate == true)
 
         model.loadTrigger = nil
-        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "1000000000000000000"))
+        model.session = .mockFailed(.InputAmountError(minAmount: "1000000000000000000"))
         model.buttonViewModel.action()
 
         #expect(model.loadTrigger?.isImmediate == true)
@@ -291,9 +290,12 @@ struct SwapSceneViewModelTests {
     func retryQuoteUpdatesLoadTrigger() {
         let model = SwapSceneViewModel.mock()
 
-        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.session = .mockFailed(.NoQuoteAvailable)
         model.buttonViewModel.action()
         let firstRetry = model.loadTrigger
+        #expect(model.isQuoteLoading)
+
+        model.session = .mockFailed(.NoQuoteAvailable)
         model.buttonViewModel.action()
 
         #expect(model.loadTrigger != firstRetry)
@@ -338,8 +340,9 @@ struct SwapSceneViewModelTests {
     func selectedQuoteSurvivesQuotesReload() async {
         let model = await model()
 
-        model.swapState.quotes = .loading
+        model.session = model.session.onFetchStarted(request: .mock)
 
+        #expect(model.isQuoteLoading)
         #expect(model.selectedSwapQuote != nil)
         #expect(model.swapDetailsViewModel != nil)
     }
@@ -403,10 +406,10 @@ struct SwapSceneViewModelTests {
     func minimumAmountIsOfferedOnlyWhenTheBalanceCoversIt() async {
         let model = SwapSceneViewModel.mock()
 
-        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "900000000000000000"))
+        model.session = .mockFailed(.InputAmountError(minAmount: "900000000000000000"))
         #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(value: 900000000000000000))
 
-        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "2000000000000000000"))
+        model.session = .mockFailed(.InputAmountError(minAmount: "2000000000000000000"))
         #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
     }
 
@@ -416,7 +419,7 @@ struct SwapSceneViewModelTests {
 
         model.amountInputModel.text = "2"
 
-        #expect(model.swapState.quotes.isNoData)
+        #expect(model.session.isInputEmpty())
         #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
 
         model.amountInputModel.text = "1"
@@ -428,16 +431,16 @@ struct SwapSceneViewModelTests {
     func onlyRetryableFailuresOfferARetry() {
         let model = SwapSceneViewModel.mock()
 
-        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.session = .mockFailed(.NoQuoteAvailable)
         #expect(model.buttonViewModel.buttonAction == .retryQuote)
 
-        model.swapState.quotes = .error(SwapperError.NoAvailableProvider)
+        model.session = .mockFailed(.NoAvailableProvider)
         #expect(model.buttonViewModel.buttonAction == .swap)
 
-        model.swapState.swapTransferData = .error(SwapperError.TransactionError("nonce"))
+        model.session = GemSwapSession.mockReady().failedTransfer(.TransactionError("nonce"))
         #expect(model.buttonViewModel.buttonAction == .retryTransfer)
 
-        model.swapState.swapTransferData = .error(SwapperError.NotSupportedAsset)
+        model.session = GemSwapSession.mockReady().failedTransfer(.NotSupportedAsset)
         #expect(model.buttonViewModel.buttonAction == .swap)
     }
 
@@ -474,6 +477,13 @@ extension SwapSceneViewModel {
 }
 
 private struct TestError: Error {}
+
+extension GemSwapSession {
+    func failedTransfer(_ error: SwapperError) -> GemSwapSession {
+        let started = startTransfer()!
+        return started.onTransferFailed(transfer: started.transferPhase, error: error)
+    }
+}
 
 private let quotesByAmount: @Sendable (BigInt) -> [SwapperQuote] = { amount in
     guard amount > BigInt(2_000_000_000_000_000_000) else {

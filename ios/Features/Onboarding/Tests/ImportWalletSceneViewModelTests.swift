@@ -27,13 +27,13 @@ struct ImportWalletSceneViewModelTests {
 
         let walletA = try await service.importWallet(
             name: "Wallet A",
-            type: .single(words: LocalKeystore.words, chain: .ethereum),
+            type: .singlePhrase(words: LocalKeystore.words, chain: Primitives.Chain.ethereum.map()),
             source: .import,
         ).wallet
 
         let walletB = try await service.importWallet(
             name: "Wallet B",
-            type: .single(words: service.createWallet(), chain: .ethereum),
+            type: .singlePhrase(words: service.createWallet(), chain: Primitives.Chain.ethereum.map()),
             source: .import,
         ).wallet
         try await session.setCurrent(wallet: walletB)

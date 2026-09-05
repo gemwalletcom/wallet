@@ -21,34 +21,16 @@ class NativeProvider(
     private val nodeService: GemNodeServiceInterface,
     private val httpClient: OkHttpClient = OkHttpClient(),
 ) : AlienProvider {
-    private val cache = MemoryCache()
-
     override fun getEndpoint(chain: Chain): String = nodeService.nodeUrl(chain)
 
     override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
-        val cacheKey = target.nativeCacheKey()
-        if (cacheKey != null) {
-            cache.get(cacheKey)?.let {
-                return@withContext AlienResponse(200.toUShort(), it)
-            }
-        }
-
         val requestBuilder = Request.Builder()
             .url(target.url)
             .method(target.method.name, target.body?.toRequestBody())
-        target.headers?.forEach { (key, value) ->
-            if (key != NATIVE_PROVIDER_CACHE_HEADER) {
-                requestBuilder.addHeader(key, value)
-            }
-        }
+        target.headers?.forEach { (key, value) -> requestBuilder.addHeader(key, value) }
         try {
             httpClient.newCall(requestBuilder.build()).execute().use { response ->
-                val data = response.body.bytes()
-                val status = response.code.toUShort()
-                if (cacheKey != null) {
-                    cache.set(cacheKey, data)
-                }
-                AlienResponse(status, data)
+                AlienResponse(response.code.toUShort(), response.body.bytes())
             }
         } catch (err: IOException) {
             if (err.isNetworkUnavailable()) {

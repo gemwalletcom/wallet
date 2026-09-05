@@ -93,7 +93,7 @@ mod tests {
         let client = BitcoinClient::new(
             MockClient::new().with_post_with_headers(|path, body, headers| {
                 assert_eq!(path, "/api/v2/sendtx/");
-                assert_eq!(body, br#""0100beef""#);
+                assert_eq!(body, b"0100beef");
                 assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::TextPlain.as_str()));
                 Ok(br#"{"result":"txid"}"#.to_vec())
             }),

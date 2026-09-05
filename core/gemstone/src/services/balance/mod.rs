@@ -14,7 +14,6 @@ pub use model::{GemAssetBalance, GemBalanceRequirement, GemBalanceRow, GemBalanc
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
-use crate::services::assets::rules::default_balances;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
@@ -36,8 +35,8 @@ pub struct GemBalanceService {
 
 #[uniffi::export]
 impl GemBalanceService {
-    pub fn balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-        self.store.get_available_balances(wallet_id, asset_ids)
+    pub async fn balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
+        self.store.get_available_balances(wallet_id, asset_ids).await
     }
 
     #[uniffi::constructor]
@@ -71,7 +70,7 @@ impl GemBalanceService {
         if enabled {
             self.assets.sync_missing_assets(asset_ids.clone()).await?;
         }
-        let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone(), asset_ids.clone()).await?;
+        let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone()).await?;
         self.assets.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
         self.store.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), enabled).await?;
         if enabled {
@@ -91,6 +90,7 @@ impl GemBalanceService {
         let Some(wallet) = self
             .wallet_store
             .get_wallet(wallet_id.clone())
+            .await
             .map_err(|error| GemServiceError::Store { msg: error.to_string() })?
         else {
             return Ok(());
@@ -105,6 +105,7 @@ impl GemBalanceService {
             let assets = self
                 .asset_store
                 .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
+                .await
                 .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
             let updates = rules::balance_updates(&assets, balances);
             self.update_balances(wallet_id, updates).await?;
@@ -117,9 +118,13 @@ impl GemBalanceService {
 }
 
 impl GemBalanceService {
+    pub async fn update_enabled_balances(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        let asset_ids = self.store.get_enabled_asset_ids(wallet_id.clone()).await?;
+        self.update(wallet_id, asset_ids).await
+    }
+
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
-        let (defaults, _) = default_balances(&wallet);
-        let stored = self.store.get_enabled_asset_ids(wallet.id.clone(), defaults).await?;
+        let stored = self.store.get_enabled_asset_ids(wallet.id.clone()).await?;
         let enabled = self.assets.setup_wallet(wallet.clone()).await?;
         self.refresh_enabled_assets(wallet.id, rules::newly_enabled_asset_ids(&enabled, &stored)).await;
         Ok(())

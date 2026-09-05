@@ -119,3 +119,44 @@ mod tests {
         assert_eq!(GemAssetAction::Sell.filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Sellable]);
     }
 }
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletSearchLimits {
+    pub assets: u32,
+    pub fetch: u32,
+    pub perpetuals: u32,
+    pub nfts: u32,
+    pub results: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemHeaderButtonKind {
+    Send,
+    Receive,
+    Buy,
+    Swap,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemHeaderButton {
+    pub kind: GemHeaderButtonKind,
+    pub is_enabled: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetEmptyAction {
+    Buy,
+    Swap,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetDetailsState {
+    pub is_view_only: bool,
+    pub header_buttons: Vec<GemHeaderButton>,
+    pub shows_banners: bool,
+    pub shows_manage: bool,
+    pub shows_resources: bool,
+    pub shows_price_alerts: bool,
+    pub shows_earn: bool,
+    pub empty_transactions_action: Option<GemAssetEmptyAction>,
+}

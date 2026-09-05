@@ -1,5 +1,6 @@
 import Components
 import Foundation
+import class Gemstone.GemAddressService
 import protocol Gemstone.GemReceiveServiceProtocol
 import GemstonePrimitives
 import Localization
@@ -39,7 +40,7 @@ public final class ReceiveViewModel: Sendable {
         networkAssetIds = service.networkAssetIds(
             assetId: asset.id.identifier,
             associations: associations.map(\.assetId.identifier),
-            wallet: wallet.json(),
+            wallet: wallet.map(),
         ).map { AssetId(core: $0) }
     }
 
@@ -68,7 +69,7 @@ public final class ReceiveViewModel: Sendable {
     }
 
     var addressShort: String {
-        AddressFormatter(style: .short, address: address, chain: assetModel.asset.chain).value()
+        GemAddressService.shared.format(address: address, chain: assetModel.asset.chain)
     }
 
     var shareTitle: String {

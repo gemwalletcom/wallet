@@ -16,15 +16,15 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     static func make(from input: AmountInput, service: any GemAmountServiceProtocol) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient)))
-        case let .deposit(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient)))
-        case let .withdraw(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient), service: service))
+        case .deposit:
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit, service: service))
+        case .withdraw:
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw, service: service))
         case let .stake(stakeType):
             .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, service: service))
-        case let .perpetual(data):
-            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, service: service))
+        case let .perpetual(action):
+            .perpetual(AmountPerpetualViewModel(asset: input.asset, action: action, service: service))
         case let .earn(earnType):
             .earn(AmountEarnViewModel(asset: input.asset, action: earnType, service: service))
         }
@@ -46,8 +46,8 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.gemAmountType
     }
 
-    func recipientData() -> RecipientData {
-        provider.recipientData()
+    var prefilledAmount: String? {
+        provider.prefilledAmount
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {

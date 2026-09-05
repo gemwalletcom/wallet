@@ -4,16 +4,13 @@ import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferServiceInterface
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.perpetualType
 import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
-import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.domains.swap.providerId
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -25,11 +22,12 @@ import com.gemwallet.android.blockchain.services.toGem
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.blockchain.services.toSignerParams
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetPriceValue
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
-import uniffi.gemstone.GemConfirmSimulationState
+import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
@@ -70,6 +68,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -79,6 +78,7 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
+import com.gemwallet.android.domains.confirm.unpackTransferData
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -87,54 +87,53 @@ class ConfirmViewModel @Inject constructor(
     private val buildConfirmProperties: BuildConfirmProperties,
     private val confirmService: GemConfirmTransferServiceInterface,
     private val savedStateHandle: SavedStateHandle,
-    private val transferService: GemTransferServiceInterface,
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
     val feeSelection = MutableStateFlow<FeeSelection>(FeeSelection.Preset(FeePriority.Normal))
     private val feeAssetSelection = MutableStateFlow<FeeAssetSelection>(FeeAssetSelection.Automatic)
-    private val simulationResult = MutableStateFlow<SimulationResult?>(null)
+    private var requestSimulation: String? = null
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
         .filterNotNull()
-        .mapNotNull { paramsPack -> transferService.unpack(paramsPack) }
+        .mapNotNull { paramsPack -> unpackTransferData(paramsPack) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val preloadData = combine(
+    private val currency = flow { emit(confirmService.getCurrency().toCurrency()) }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val initialLoad = request.filterNotNull().map { transfer ->
+        runCatchingCancellable { confirmService.initialState(transfer, requestSimulation) }.getOrNull()
+    }
+    .flowOn(Dispatchers.IO)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val feeLoad = combine(
         request.filterNotNull(),
         feeSelection,
         feeAssetSelection,
         restart,
-    ) { request, feeSelection, feeAssetSelection, _ ->
+        session,
+    ) { request, feeSelection, feeAssetSelection, _, session ->
         state.update { ConfirmState.Prepare }
+        val wallet = session?.wallet ?: return@combine null
         val input = try {
-            confirmService.confirmInput(request)
+            confirmService.confirmInput(wallet.toGem(), request)
         } catch (_: GemConfirmException.AccountMissing) {
             state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
             return@combine null
         }
 
-        val preload = try {
-            val scene = confirmService.load(
+        val load = try {
+            confirmService.load(
                 input = input,
                 options = confirmLoadOptions(feeSelection, feeAssetSelection),
-                simulation = simulationResult.value?.toJson(),
-            )
-            scene.preload.confirmData.simulation?.let { simulationResult.value = it.decodeJson() }
-            val currency = confirmService.getCurrency().toCurrency()
-            Preload(
-                signerParams = scene.preload.toSignerParams(),
-                amount = scene.preload.amount,
-                currency = currency,
-                fromAsset = scene.preload.metadata.prices.toAssetPriceValue(request.inputType.asset, currency),
-                toAsset = request.inputType.toAsset?.let { scene.preload.metadata.prices.toAssetPriceValue(it, currency) },
-                feeAsset = FeeAssetUIModel.from(scene.preload.feeAsset.toPrimitives(), scene.preload.metadata.feeAssetBalance, scene.preload.metadata.feePrice(), currency),
-                feeAssets = scene.feeAssets.map { it.toFeeAssetUIModel(currency) },
-                simulation = scene.simulation,
+                simulation = requestSimulation,
             )
         } catch (error: CancellationException) {
             throw error
@@ -145,23 +144,24 @@ class ConfirmViewModel @Inject constructor(
 
         state.update { ConfirmState.Ready }
 
-        preload
+        load
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val simulation = combine(preloadData, simulationResult, request) { preload, result, params ->
-        preload?.simulation?.toSimulation(
-            warnings = result?.warnings.orEmpty(),
-            chain = params?.inputType?.asset?.id?.chain,
-            confirmService = confirmService,
-        ) ?: Simulation()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
+    private val content = combine(initialLoad, feeLoad, currency.filterNotNull()) { initial, fee, currency ->
+        (fee ?: initial)?.let { ConfirmContent(currency, it) }
+    }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val payloadAddressNames = preloadData
-        .map { preload ->
-            preload?.simulation?.addressNames.orEmpty()
-                .map { it.decodeJson<AddressName>() }
+    val simulation = content
+        .map { it?.load?.simulation?.toSimulation(confirmService) ?: Simulation() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
+
+    val payloadAddressNames = content
+        .map { content ->
+            content?.load?.simulation?.addressNames.orEmpty()
+                .map { it.toPrimitives() }
                 .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
                 .associate { it.address.lowercase() to it.name }
         }
@@ -176,15 +176,14 @@ class ConfirmViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
 
-    val feeAsset = preloadData.map { it?.feeAsset }
+    val feeAsset = content.map { it?.feeAssetUIModel }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val feeAssets = preloadData.map { it?.feeAssets.orEmpty() }
+    val feeAssets = content.map { it?.feeAssets.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val transferAmount = preloadData.map { preload ->
-        if (preload == null) return@map null
-        when (val amount = preload.amount) {
+    private val transferAmount = content.map { content ->
+        when (val amount = content?.load?.preload?.amount ?: return@map null) {
             is GemTransferAmountResult.Amount -> amount.amount.value
             is GemTransferAmountResult.Error -> {
                 state.update { ConfirmState.Error(amount.error) }
@@ -194,26 +193,22 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val amountUIModel = combine(request, preloadData, transferAmount) { request, preload, transferAmount ->
+    val amountUIModel = combine(request, content, transferAmount) { request, content, transferAmount ->
         val inputType = request?.inputType ?: return@combine null
-        preload ?: return@combine null
+        content ?: return@combine null
 
-        val amount = when {
-            transferAmount != null -> Crypto(transferAmount)
-            request.useMaxAmount -> return@combine null
-            else -> Crypto(request.value)
-        }
+        val amount = Crypto(transferAmount ?: request.value)
 
         AmountUIModel(
-            transactionType = inputType.transactionType().decodeJson<TransactionType>(),
+            transactionType = inputType.transactionType().toPrimitives(),
             headerKind = inputType.headerKind(),
             amount = amount.atomicValue,
-            fromAsset = preload.fromAsset,
+            fromAsset = content.assetPrice(inputType.asset),
             fromAmount = amount.atomicValue,
-            toAsset = preload.toAsset,
+            toAsset = inputType.toAsset?.let(content::assetPrice),
             toAmount = inputType.swapData?.quote?.toValue?.let(::BigInteger),
             nftAsset = inputType.nftAsset,
-            currency = preload.currency,
+            currency = content.currency,
         )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -222,39 +217,30 @@ class ConfirmViewModel @Inject constructor(
         .map { it?.inputType?.perpetualType }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val detailElements = combine(request, preloadData, ::buildDetailElements)
+    val detailElements = combine(request, content, ::buildDetailElements)
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val recipientAddressName = request
-        .filterNotNull()
-        .map { it.inputType.asset.id.chain to it.recipient.address.takeIf { address -> address.isNotEmpty() } }
-        .distinctUntilChanged()
-        .map { (chain, address) ->
-            address?.let { confirmService.addressName(chain.string, it)?.decodeJson<AddressName>() }
-        }
-        .flowOn(Dispatchers.IO)
-
-    val transactionProperties = combine(request, session, recipientAddressName) { request, session, addressName ->
+    val transactionProperties = combine(request, session, content) { request, session, content ->
         request ?: return@combine emptyList()
         session ?: return@combine emptyList()
-        buildConfirmProperties(request, session.wallet, addressName)
+        buildConfirmProperties(request, session.wallet, content?.addressName)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val feeUIModel = combine(preloadData, state) { preload, state ->
-        val signerParams = preload?.signerParams
+    val feeUIModel = combine(content, state) { content, state ->
+        val signerParams = content?.signerParams
         val amount = signerParams?.fee?.amount
         if (state is ConfirmState.Prepare) {
             FeeUIModel.Calculating
-        } else if (amount == null) {
+        } else if (content == null || amount == null) {
             if (state is ConfirmState.Error) FeeUIModel.Error else FeeUIModel.Calculating
         } else {
             FeeUIModel.FeeInfo(
                 amount = amount,
-                feeAsset = preload.feeAsset.asset,
-                price = preload.feeAsset.price?.price?.price,
-                currency = preload.currency,
+                feeAsset = content.feeAssetUIModel.asset,
+                price = content.feeAssetUIModel.price?.price?.price,
+                currency = content.currency,
                 priority = signerParams.fee.priority,
             )
         }
@@ -266,10 +252,10 @@ class ConfirmViewModel @Inject constructor(
 
 
     fun init(transfer: GemTransferData, simulationResult: SimulationResult? = null) {
-        this.simulationResult.value = simulationResult
+        requestSimulation = simulationResult?.toJson()
         feeSelection.value = FeeSelection.Preset(transfer.inputType.defaultFeePriority().toPrimitives())
         viewModelScope.launch(Dispatchers.IO) {
-            val pack = transferService.pack(transfer)
+            val pack = transfer.pack()
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
             }
@@ -279,7 +265,7 @@ class ConfirmViewModel @Inject constructor(
     }
 
     fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel, selection: FeeSelection): FeeDetailsModel? {
-        val confirmData = preloadData.value?.signerParams?.confirmData ?: return null
+        val confirmData = content.value?.signerParams?.confirmData ?: return null
         return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(selection.toGem(), feeAsset.asset.toGem()))
     }
 
@@ -304,11 +290,12 @@ class ConfirmViewModel @Inject constructor(
         }
         state.update { ConfirmState.Sending }
 
-        val preload = preloadData.value
-        val signerParams = preload?.signerParams
+        val loaded = content.value
+        val preload = loaded?.load?.preload
+        val signerParams = loaded?.signerParams
 
         try {
-            if (signerParams == null) {
+            if (preload == null || signerParams == null) {
                 error("confirm input is not loaded")
             }
             val amount = when (val calculated = preload.amount) {
@@ -334,7 +321,7 @@ class ConfirmViewModel @Inject constructor(
             confirm = signerParams.confirmData,
             value = signerParams.finalAmount,
             networkFee = signerParams.fee.amount,
-            simulation = simulationResult.value?.toJson(),
+            simulation = requestSimulation,
         )
         return when (result) {
             is GemExecuteResult.Signed -> result.data.first()
@@ -342,23 +329,28 @@ class ConfirmViewModel @Inject constructor(
         }
     }
 
-    private data class Preload(
-        val signerParams: SignerParams,
-        val amount: GemTransferAmountResult,
+    private data class ConfirmContent(
         val currency: Currency,
-        val fromAsset: AssetPriceValue,
-        val toAsset: AssetPriceValue?,
-        val feeAsset: FeeAssetUIModel,
-        val feeAssets: List<FeeAssetUIModel>,
-        val simulation: GemConfirmSimulationState,
-    )
+        val load: GemConfirmLoad,
+    ) {
+        val signerParams: SignerParams? = load.preload?.toSignerParams()
+
+        val feeAssetUIModel: FeeAssetUIModel =
+            FeeAssetUIModel.from(load.feeAsset.toPrimitives(), load.metadata.feeAssetBalance, load.metadata.feePrice(), currency)
+
+        val feeAssets: List<FeeAssetUIModel> = load.feeAssets.map { it.toFeeAssetUIModel(currency) }
+
+        val addressName: AddressName? = load.addressName?.toPrimitives()
+
+        fun assetPrice(asset: Asset): AssetPriceValue = load.metadata.prices.toAssetPriceValue(asset, currency)
+    }
 
     private fun buildDetailElements(
         request: GemTransferData?,
-        preload: Preload?,
+        content: ConfirmContent?,
     ): List<ConfirmDetailElement> {
         return listOfNotNull(
-            buildSwapDetailElement(request, preload),
+            buildSwapDetailElement(request, content),
             buildPerpetualDetailElement(request?.inputType?.perpetualType),
         )
     }
@@ -373,11 +365,12 @@ class ConfirmViewModel @Inject constructor(
 
     private fun buildSwapDetailElement(
         transfer: GemTransferData?,
-        preload: Preload?,
+        content: ConfirmContent?,
     ): ConfirmDetailElement.SwapDetails? {
         val swapData = transfer?.inputType?.swapData ?: return null
-        val fromAsset = preload?.fromAsset ?: return null
-        val toAsset = preload.toAsset ?: return null
+        content ?: return null
+        val fromAsset = content.assetPrice(transfer.inputType.asset)
+        val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
         val summary = GemSwapQuoteSummary(swapData.quote.toJson())
 
         val provider = SwapProviderUIModelFactory.create(
@@ -399,7 +392,7 @@ class ConfirmViewModel @Inject constructor(
                 isProviderSelectable = false,
                 priceImpact = fromAsset.swapValue(transfer.value)
                     .priceImpact(toAsset.swapValue(BigInteger(swapData.quote.toValue)))
-                    ?.decodeJson(),
+                    ?.toPrimitives(),
                 minReceiveValue = summary.minReceiveValue(),
                 etaMinutes = summary.etaMinutes(),
             ),

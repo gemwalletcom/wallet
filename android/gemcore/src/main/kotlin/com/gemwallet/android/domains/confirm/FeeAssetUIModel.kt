@@ -9,7 +9,7 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetBalance
-import uniffi.gemstone.GemAssetPrice
+import uniffi.gemstone.AssetPrice
 import uniffi.gemstone.GemFeeAsset
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -27,7 +27,7 @@ data class FeeAssetUIModel(
     private val amount: BigDecimal get() = Crypto(available).value(asset.decimals)
 
     companion object {
-        fun from(asset: Asset, balance: GemAssetBalance, price: GemAssetPrice?, currency: Currency) = FeeAssetUIModel(
+        fun from(asset: Asset, balance: GemAssetBalance, price: AssetPrice?, currency: Currency) = FeeAssetUIModel(
             asset = asset,
             price = price?.toAssetPriceInfo(currency),
             available = balance.available,

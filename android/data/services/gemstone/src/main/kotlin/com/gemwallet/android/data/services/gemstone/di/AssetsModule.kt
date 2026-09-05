@@ -28,6 +28,7 @@ import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemBalanceStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import com.gemwallet.android.data.service.store.database.PricesDao
 import uniffi.gemstone.GemPreferencesService
@@ -67,22 +68,28 @@ object AssetsModule {
 
     @Provides
     @Singleton
+    fun provideGemBalanceStore(
+        assetsDao: AssetsDao,
+        balancesDao: BalancesDao,
+        transactionRunner: StoreTransactionRunner,
+    ): GemBalanceStore = GemstoneBalanceStore(balancesDao, assetsDao, transactionRunner)
+
+    @Provides
+    @Singleton
     fun provideGemBalanceService(
         gateway: GemGateway,
         walletStore: GemstoneWalletStore,
         assetStore: GemAssetStore,
-        assetsDao: AssetsDao,
-        balancesDao: BalancesDao,
+        balanceStore: GemBalanceStore,
         assetsService: GemAssetsService,
         priceService: GemPriceService,
         streamSubscriptionService: GemStreamSubscriptionService,
         preferencesService: GemPreferencesService,
-        transactionRunner: StoreTransactionRunner,
     ): GemBalanceService = GemBalanceService(
         gateway,
         walletStore,
         assetStore,
-        GemstoneBalanceStore(balancesDao, assetsDao, transactionRunner),
+        balanceStore,
         assetsService,
         priceService,
         streamSubscriptionService,
@@ -140,11 +147,11 @@ object AssetsModule {
     @Provides
     @Singleton
     fun provideStreamSubscriptionService(
-        priceService: GemPriceService,
+        balanceStore: GemBalanceStore,
         priceAlertStore: GemPriceAlertStore,
         connection: WebSocketConnectable,
     ): GemStreamSubscriptionService = GemStreamSubscriptionService(
-        price = priceService,
+        balances = balanceStore,
         alerts = priceAlertStore,
         connection = GemstoneStreamConnection(connection),
     )

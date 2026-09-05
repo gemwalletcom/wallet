@@ -2,8 +2,8 @@
 
 import Foundation
 import protocol Gemstone.GemConnectionStore
-import typealias Gemstone.WalletConnection
-import typealias Gemstone.WalletConnectionSession
+import struct Gemstone.WalletConnection
+import struct Gemstone.WalletConnectionSession
 import GemstonePrimitives
 import Primitives
 import Store
@@ -16,19 +16,19 @@ public final class GemstoneConnectionStore: GemConnectionStore, @unchecked Senda
     }
 
     public func getConnection(sessionId: String) async throws -> Gemstone.WalletConnection? {
-        try store.getConnection(sessionId: sessionId).map { $0.json() }
+        try store.getConnection(sessionId: sessionId).map { $0.map() }
     }
 
     public func getSessions() async throws -> [Gemstone.WalletConnectionSession] {
-        try store.getSessions().map { $0.json() }
+        try store.getSessions().map { $0.map() }
     }
 
     public func addConnection(connection: Gemstone.WalletConnection) async throws {
-        try store.addConnection(Primitives.WalletConnection(connection))
+        try store.addConnection(connection.map())
     }
 
     public func updateSession(session: Gemstone.WalletConnectionSession) async throws {
-        try store.updateConnectionSession(Primitives.WalletConnectionSession(session))
+        try store.updateConnectionSession(session.map())
     }
 
     public func deleteSessions(sessionIds: [String]) async throws {

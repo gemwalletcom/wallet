@@ -22,7 +22,6 @@ fun AssetDetailsScreen(
     val priceAlertEnabled by priceAlertsViewModel.isEnabled.collectAsStateWithLifecycle()
     val priceAlertsCount by priceAlertsViewModel.alertsCount.collectAsStateWithLifecycle()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
-    val isOperationEnabled by viewModel.isOperationEnabled.collectAsStateWithLifecycle()
     val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = priceAlertsViewModel::onPushNotificationGranted)
 
     if (uiModel != null) {
@@ -32,7 +31,6 @@ fun AssetDetailsScreen(
             priceAlertEnabled = priceAlertEnabled == true,
             priceAlertsCount = priceAlertsCount,
             isRefreshing = isRefreshing,
-            isOperationEnabled = isOperationEnabled,
             requestNotificationPermission = requestNotificationPermission,
             onAction = { action ->
                 when (action) {

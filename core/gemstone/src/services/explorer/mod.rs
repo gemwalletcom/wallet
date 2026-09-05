@@ -7,7 +7,7 @@ use primitives::{
     block_explorer::{BlockExplorerLink, get_block_explorers_by_chain},
 };
 
-use crate::block_explorer::{Explorer, GemBlockExplorerLink, GemExplorerInput};
+use crate::block_explorer::{Explorer, GemExplorerInput};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 
@@ -34,12 +34,12 @@ impl GemExplorerService {
         self.preferences.set_explorer_name(chain, name)
     }
 
-    pub fn get_address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
+    pub fn get_address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         let name = self.get_explorer_name(chain);
         link(&name, Explorer { chain }.get_address_url(&name, &address))
     }
 
-    pub fn get_token_url(&self, chain: Chain, address: String) -> Option<GemBlockExplorerLink> {
+    pub fn get_token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
         let name = self.get_explorer_name(chain);
         Explorer { chain }.get_token_url(&name, &address).map(|url| link(&name, url))
     }
@@ -47,7 +47,7 @@ impl GemExplorerService {
     pub fn get_explorers(&self, chain: Chain) -> Vec<String> {
         get_block_explorers_by_chain(chain.as_ref()).into_iter().map(|explorer| explorer.name()).collect()
     }
-    pub fn get_transaction_link(&self, chain: Chain, hash: String, provider: Option<String>, recipient: Option<String>, memo: Option<String>) -> GemBlockExplorerLink {
+    pub fn get_transaction_link(&self, chain: Chain, hash: String, provider: Option<String>, recipient: Option<String>, memo: Option<String>) -> BlockExplorerLink {
         let name = self.get_explorer_name(chain);
         let explorer = Explorer { chain };
         provider
@@ -62,17 +62,17 @@ impl GemExplorerService {
             .map(|url| link(&url.name, url.url))
             .unwrap_or_else(|| link(&name, explorer.get_transaction_url(&name, &hash)))
     }
-    pub fn get_nft_url(&self, chain: Chain, contract_address: String, token_id: String) -> Option<GemBlockExplorerLink> {
+    pub fn get_nft_url(&self, chain: Chain, contract_address: String, token_id: String) -> Option<BlockExplorerLink> {
         let name = self.get_explorer_name(chain);
         Explorer { chain }.get_nft_url(&name, &contract_address, &token_id).map(|url| link(&name, url))
     }
-    pub fn get_validator_url(&self, chain: Chain, address: String) -> Option<GemBlockExplorerLink> {
+    pub fn get_validator_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
         let name = self.get_explorer_name(chain);
         Explorer { chain }.get_validator_url(&name, &address).map(|url| link(&name, url))
     }
 }
 
-fn link(name: &str, url: String) -> GemBlockExplorerLink {
+fn link(name: &str, url: String) -> BlockExplorerLink {
     BlockExplorerLink {
         name: name.to_string(),
         link: url,

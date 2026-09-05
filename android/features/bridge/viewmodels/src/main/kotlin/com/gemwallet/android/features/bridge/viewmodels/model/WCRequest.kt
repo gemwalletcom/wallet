@@ -2,7 +2,6 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.ext.getShortUrl
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.shortName
@@ -11,7 +10,6 @@ import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemSignMessagePreview
 import uniffi.gemstone.GemSignMessageServiceInterface
 import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationResult
@@ -62,7 +60,7 @@ sealed class WCRequest(
         override val secondaryPayloadFields: List<PayloadField> by lazy { preview.secondaryFields.fields() }
 
         suspend fun addressNames(): Map<String, String> = service.addressNames(chain.string, preview)
-            .map { it.decodeJson<AddressName>() }
+            .map { it.toPrimitives() }
             .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
             .associate { it.address.lowercase() to it.name }
 

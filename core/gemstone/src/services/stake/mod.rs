@@ -16,7 +16,6 @@ use crate::models::{GemContractCallData, GemEarnType};
 pub use model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemStakeAction, GemStakeActionItem};
 pub use store::GemStakeStore;
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::balance::GemAssetBalance;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemAddressStore;
@@ -24,6 +23,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::BlockExplorerLink;
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -67,18 +67,18 @@ impl GemStakeService {
         transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
     }
 
-    pub fn validator_url(&self, validator: DelegationValidator) -> Option<GemBlockExplorerLink> {
+    pub fn validator_url(&self, validator: DelegationValidator) -> Option<BlockExplorerLink> {
         let address = rules::validator_explorer_address(&validator)?;
         self.explorer.get_validator_url(validator.chain, address)
     }
 
     pub async fn sync(&self, chain: Chain) -> Result<(), GemServiceError> {
-        let (wallet_id, address) = self.current_account(chain)?;
+        let (wallet_id, address) = self.current_account(chain).await?;
         self.sync_wallet(wallet_id, chain, address).await
     }
 
     pub async fn sync_earn(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
-        let (wallet_id, address) = self.current_account(asset_id.chain)?;
+        let (wallet_id, address) = self.current_account(asset_id.chain).await?;
         self.sync_earn_wallet(wallet_id, asset_id, address).await
     }
 
@@ -140,8 +140,8 @@ impl GemStakeService {
         self.store.update_delegations(wallet_id, positions, delete_ids).await
     }
 
-    fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
-        let wallet = self.session.current_wallet()?;
+    async fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
+        let wallet = self.session.current_wallet().await?;
         let account = wallet.account(chain).ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} has no {chain} account", wallet.id.id()),
         })?;

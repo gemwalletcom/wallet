@@ -6,9 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.navigation.requireNftAssetId
-import com.wallet.core.primitives.ReportNft
 import com.wallet.core.primitives.ReportReason
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +17,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCollectibleServiceInterface
 import javax.inject.Inject
+import com.wallet.core.primitives.ReportNft
+import com.gemwallet.android.ext.toGem
 
 @HiltViewModel
 class NftDetailsViewModel @Inject constructor(
@@ -45,6 +45,6 @@ class NftDetailsViewModel @Inject constructor(
             assetId = nftAssetId.toIdentifier(),
             reason = reason.string,
         )
-        runCatchingCancellable { service.report(report.toJson()) }.isSuccess
+        runCatchingCancellable { service.report(report.toGem()) }.isSuccess
     }
 }

@@ -1,14 +1,19 @@
 use std::str::FromStr;
 
+use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, PerpetualDirection, Transaction, TransactionDirection, TransactionExtended, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState,
-    TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction,
+    Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended,
+    TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
+    TransactionWalletConnectMetadata, TransferDataOutputAction,
 };
 
 use super::model::{
-    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionDetails, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionSubtitle,
-    GemTransactionTitle, GemTransactionValue,
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRows, GemTransactionDetails, GemTransactionHeader,
+    GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
+    GemTransactionRowValue, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
+use crate::config::image::GemImage;
+use crate::models::asset::wallet_default_assets;
 use crate::services::collections::unique;
 use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
 
@@ -18,6 +23,211 @@ pub fn pending_transactions(transactions: &[Transaction]) -> Vec<Transaction> {
 
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
     unique(transactions.iter().flat_map(|transaction| transaction.associated_asset_ids()))
+}
+
+pub fn row(extended: &TransactionExtended) -> GemTransactionRow {
+    let transaction = &extended.transaction;
+    GemTransactionRow {
+        title: transaction_title(transaction),
+        subtitle: row_subtitle(extended),
+        value: row_value(extended, transaction_value(transaction)),
+        equivalent_value: row_value(extended, transaction_equivalent_value(transaction)),
+        nft_image_url: transaction.nft_asset_id().map(|asset_id| GemImage::NftAsset { asset_id: asset_id.to_string() }.url()),
+    }
+}
+
+pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> BlockExplorerLink) -> Option<GemTransactionParticipant> {
+    let transaction = &extended.transaction;
+    let (role, address) = transaction_participant(transaction)?;
+    let name = address_name(extended, &address);
+    let can_add_contact = name.is_none() && matches!(transaction.transaction_type, TransactionType::Transfer | TransactionType::TransferNFT);
+    Some(GemTransactionParticipant {
+        role,
+        link: link(&address),
+        name,
+        address,
+        can_add_contact,
+    })
+}
+
+pub fn detail_rows(extended: &TransactionExtended, participant: Option<GemTransactionParticipant>, explorer: BlockExplorerLink) -> GemTransactionDetailRows {
+    let transaction = &extended.transaction;
+    let details = details(extended);
+    GemTransactionDetailRows {
+        title: transaction_title(transaction),
+        header: header(extended),
+        header_action: header_action(transaction),
+        swap_progress: details.swap_progress,
+        swap_again: details.swap_again,
+        estimated_confirmation_seconds: details.estimated_confirmation_seconds,
+        participant,
+        provider_name: details.provider_name,
+        memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
+        resource: resource(transaction),
+        rate: swap_rate(extended),
+        pnl: details.pnl,
+        price: details.price,
+        fee: GemTransactionAmount {
+            asset: extended.fee_asset.clone(),
+            value: transaction.fee.clone(),
+            sign: GemAmountSign::None,
+            price: asset_price(extended.fee_price.as_ref(), &extended.fee_asset.id),
+        },
+        explorer,
+    }
+}
+
+fn row_subtitle(extended: &TransactionExtended) -> GemTransactionRowSubtitle {
+    match transaction_subtitle(&extended.transaction) {
+        GemTransactionSubtitle::None => GemTransactionRowSubtitle::None,
+        GemTransactionSubtitle::ToAddress { address } => GemTransactionRowSubtitle::ToAddress {
+            name: address_name(extended, &address).map(|name| name.name),
+            address,
+        },
+        GemTransactionSubtitle::FromAddress { address } => GemTransactionRowSubtitle::FromAddress {
+            name: address_name(extended, &address).map(|name| name.name),
+            address,
+        },
+        GemTransactionSubtitle::ToResource { resource } => GemTransactionRowSubtitle::ToResource { resource },
+        GemTransactionSubtitle::FromResource { resource } => GemTransactionRowSubtitle::FromResource { resource },
+        GemTransactionSubtitle::Price { value } => GemTransactionRowSubtitle::Price { value },
+    }
+}
+
+fn row_value(extended: &TransactionExtended, value: GemTransactionValue) -> GemTransactionRowValue {
+    let transaction = &extended.transaction;
+    match value {
+        GemTransactionValue::None => GemTransactionRowValue::None,
+        GemTransactionValue::AssetSymbol => GemTransactionRowValue::AssetSymbol { asset: extended.asset.clone() },
+        GemTransactionValue::Amount { sign } => GemTransactionRowValue::Amount {
+            amount: transaction_amount(extended, sign),
+        },
+        GemTransactionValue::SwapReceived => swap_leg(extended, SwapLeg::To).map_or(GemTransactionRowValue::None, |amount| GemTransactionRowValue::Amount { amount }),
+        GemTransactionValue::SwapSpent => swap_leg(extended, SwapLeg::From).map_or(GemTransactionRowValue::None, |amount| GemTransactionRowValue::Amount { amount }),
+        GemTransactionValue::PerpetualNotional => perpetual_collateral_asset()
+            .and_then(|asset| BigNumberFormatter::value_as_f64(&transaction.value.to_string(), asset.decimals as u32).ok())
+            .map_or(GemTransactionRowValue::None, |value| GemTransactionRowValue::Fiat { value }),
+        GemTransactionValue::PerpetualPnl { value } => GemTransactionRowValue::Pnl { value },
+    }
+}
+
+fn header(extended: &TransactionExtended) -> GemTransactionHeader {
+    let transaction = &extended.transaction;
+    let amount = |shows_fiat: bool| GemTransactionHeader::Amount {
+        amount: transaction_amount(extended, value_sign(transaction)),
+        shows_fiat,
+    };
+    match header_kind(transaction) {
+        GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
+        GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From), swap_leg(extended, SwapLeg::To)) {
+            (Some(from), Some(to)) => GemTransactionHeader::Swap { from, to },
+            _ => amount(true),
+        },
+        GemTransactionHeaderKind::Nft => match nft_metadata(transaction) {
+            Some(metadata) => GemTransactionHeader::Nft {
+                image_url: GemImage::NftAsset {
+                    asset_id: metadata.asset_id.to_string(),
+                }
+                .url(),
+                asset_id: metadata.asset_id,
+                name: metadata.name,
+            },
+            None => amount(false),
+        },
+        GemTransactionHeaderKind::Symbol => GemTransactionHeader::Symbol { asset: extended.asset.clone() },
+        GemTransactionHeaderKind::AssetImage => GemTransactionHeader::AssetImage { asset: extended.asset.clone() },
+    }
+}
+
+fn header_action(transaction: &Transaction) -> Option<GemTransactionHeaderAction> {
+    match transaction.transaction_type {
+        TransactionType::Transfer
+        | TransactionType::TokenApproval
+        | TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze => Some(GemTransactionHeaderAction::Asset {
+            asset_id: transaction.asset_id.clone(),
+        }),
+        TransactionType::TransferNFT => transaction.nft_asset_id().map(|asset_id| GemTransactionHeaderAction::Nft { asset_id }),
+        TransactionType::Swap => transaction.swap_metadata().map(|metadata| GemTransactionHeaderAction::Swap {
+            from_asset_id: metadata.from_asset,
+            to_asset_id: metadata.to_asset,
+        }),
+        TransactionType::PerpetualOpenPosition | TransactionType::PerpetualClosePosition | TransactionType::PerpetualModifyPosition => {
+            Some(GemTransactionHeaderAction::Perpetual {
+                asset_id: transaction.asset_id.clone(),
+            })
+        }
+        TransactionType::SmartContractCall | TransactionType::AssetActivation | TransactionType::EarnDeposit | TransactionType::EarnWithdraw => None,
+    }
+}
+
+fn swap_rate(extended: &TransactionExtended) -> Option<GemSwapRate> {
+    let from = swap_leg(extended, SwapLeg::From)?;
+    let to = swap_leg(extended, SwapLeg::To)?;
+    (from.value != 0u32.into() && to.value != 0u32.into()).then_some(GemSwapRate { from, to })
+}
+
+enum SwapLeg {
+    From,
+    To,
+}
+
+fn swap_leg(extended: &TransactionExtended, leg: SwapLeg) -> Option<GemTransactionAmount> {
+    let metadata = extended.transaction.swap_metadata()?;
+    let (asset_id, value, sign) = match leg {
+        SwapLeg::From => (metadata.from_asset, metadata.from_value, GemAmountSign::Outgoing),
+        SwapLeg::To => (metadata.to_asset, metadata.to_value, GemAmountSign::Incoming),
+    };
+    let asset = extended.assets.iter().chain([&extended.asset]).find(|asset| asset.id == asset_id)?.clone();
+    let price = extended.prices.iter().find(|price| price.asset_id == asset_id).cloned();
+    Some(GemTransactionAmount { asset, value, sign, price })
+}
+
+fn transaction_amount(extended: &TransactionExtended, sign: GemAmountSign) -> GemTransactionAmount {
+    GemTransactionAmount {
+        asset: extended.asset.clone(),
+        value: extended.transaction.value.clone(),
+        sign,
+        price: asset_price(extended.price.as_ref(), &extended.asset.id),
+    }
+}
+
+fn value_sign(transaction: &Transaction) -> GemAmountSign {
+    match transaction_value(transaction) {
+        GemTransactionValue::Amount { sign } => sign,
+        _ => GemAmountSign::None,
+    }
+}
+
+fn asset_price(price: Option<&Price>, asset_id: &AssetId) -> Option<AssetPrice> {
+    price.map(|price| AssetPrice {
+        asset_id: asset_id.clone(),
+        price: price.price,
+        price_change_percentage_24h: price.price_change_percentage_24h,
+        updated_at: price.updated_at,
+    })
+}
+
+fn address_name(extended: &TransactionExtended, address: &str) -> Option<primitives::AddressName> {
+    [extended.from_address.as_ref(), extended.to_address.as_ref()]
+        .into_iter()
+        .flatten()
+        .find(|name| name.address == address)
+        .cloned()
+}
+
+fn perpetual_collateral_asset() -> Option<Asset> {
+    wallet_default_assets(Chain::HyperCore).into_iter().find(|asset| asset.asset_type == AssetType::PERPETUAL)
+}
+
+fn nft_metadata(transaction: &Transaction) -> Option<TransactionNFTTransferMetadata> {
+    let metadata = transaction.metadata.clone()?;
+    serde_json::from_value::<TransactionNFTTransferMetadata>(metadata).ok()
 }
 
 pub fn transaction_title(transaction: &Transaction) -> GemTransactionTitle {
@@ -565,6 +775,167 @@ mod tests {
         let mut extended = TransactionExtended::mock_transaction(transaction);
         extended.confirmation_eta_seconds = eta;
         extended
+    }
+
+    fn extended_with(transaction: Transaction, assets: Vec<Asset>) -> TransactionExtended {
+        let mut extended = TransactionExtended::mock_transaction(transaction);
+        extended.assets = assets;
+        extended
+    }
+
+    fn named(address: &str, name: &str) -> primitives::AddressName {
+        primitives::AddressName::mock(address, name, primitives::AddressType::Address, primitives::VerificationStatus::Verified)
+    }
+
+    #[test]
+    fn test_row_resolves_the_swap_legs_from_the_metadata_and_the_known_assets() {
+        let extended = extended_with(swap(TransactionState::Confirmed, None, None).transaction, vec![Asset::mock_eth(), Asset::mock_btc()]);
+
+        let swap_row = row(&extended);
+
+        assert_eq!(swap_row.title, GemTransactionTitle::Swap);
+        match (&swap_row.value, &swap_row.equivalent_value) {
+            (GemTransactionRowValue::Amount { amount: received }, GemTransactionRowValue::Amount { amount: spent }) => {
+                assert_eq!(
+                    (received.asset.id.clone(), received.value.clone(), received.sign),
+                    (AssetId::from_chain(Chain::Bitcoin), 1u32.into(), GemAmountSign::Incoming)
+                );
+                assert_eq!(
+                    (spent.asset.id.clone(), spent.value.clone(), spent.sign),
+                    (AssetId::from_chain(Chain::Ethereum), 5u32.into(), GemAmountSign::Outgoing)
+                );
+            }
+            other => panic!("a swap row shows both legs, got {other:?}"),
+        }
+        assert_eq!(
+            row(&extended_with(swap(TransactionState::Confirmed, None, None).transaction, vec![])).value,
+            GemTransactionRowValue::None,
+            "a leg whose asset is unknown is not shown as a number"
+        );
+    }
+
+    #[test]
+    fn test_row_names_the_counterparty_when_the_wallet_knows_the_address() {
+        let mut incoming = extended_with(typed(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Incoming), vec![]);
+        incoming.from_address = Some(named("from", "Alice"));
+        assert_eq!(
+            row(&incoming).subtitle,
+            GemTransactionRowSubtitle::FromAddress {
+                address: "from".to_string(),
+                name: Some("Alice".to_string())
+            }
+        );
+
+        let outgoing = extended_with(typed(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Outgoing), vec![]);
+        assert_eq!(
+            row(&outgoing).subtitle,
+            GemTransactionRowSubtitle::ToAddress {
+                address: "to".to_string(),
+                name: None
+            }
+        );
+        match row(&outgoing).value {
+            GemTransactionRowValue::Amount { amount } => assert_eq!(
+                (amount.asset.id, amount.value, amount.sign),
+                (AssetId::from_chain(Chain::Ethereum), 1u32.into(), GemAmountSign::Outgoing)
+            ),
+            other => panic!("a transfer row shows its amount, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_row_carries_the_nft_image_and_the_perpetual_notional_in_collateral_units() {
+        let mut nft = typed(TransactionType::TransferNFT, TransactionState::Confirmed, TransactionDirection::Outgoing);
+        let asset_id = primitives::NFTAssetId::new(Chain::Ethereum, "0xcontract", "7");
+        nft.metadata = Some(serde_json::to_value(TransactionNFTTransferMetadata::new(asset_id.clone(), Some("Punk".to_string()))).unwrap());
+        let nft_row = row(&extended_with(nft, vec![]));
+        assert!(nft_row.nft_image_url.as_deref().is_some_and(|url| url.contains(&asset_id.to_string())));
+        assert_eq!(nft_row.value, GemTransactionRowValue::None);
+
+        let mut open = typed(TransactionType::PerpetualOpenPosition, TransactionState::Confirmed, TransactionDirection::Outgoing);
+        open.value = 1_500_000u32.into();
+        assert_eq!(
+            row(&extended_with(open, vec![])).value,
+            GemTransactionRowValue::Fiat { value: 1.5 },
+            "the notional is the value in collateral units"
+        );
+    }
+
+    #[test]
+    fn test_detail_rows_build_the_header_the_participant_the_rate_and_the_fee() {
+        let link = |address: &str| BlockExplorerLink {
+            name: "Explorer".to_string(),
+            link: format!("https://explorer/{address}"),
+        };
+        let explorer = BlockExplorerLink {
+            name: "Explorer".to_string(),
+            link: "https://explorer/tx".to_string(),
+        };
+
+        let swap = extended_with(swap(TransactionState::Confirmed, None, None).transaction, vec![Asset::mock_eth(), Asset::mock_btc()]);
+        let rows = detail_rows(&swap, participant(&swap, link), explorer.clone());
+        match rows.header {
+            GemTransactionHeader::Swap { from, to } => assert_eq!((from.asset.id, to.asset.id), (AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Bitcoin))),
+            other => panic!("a swap with both assets shows the swap header, got {other:?}"),
+        }
+        assert!(rows.rate.is_some());
+        assert!(rows.participant.is_none(), "a swap names its provider, not a participant");
+        assert_eq!(
+            rows.header_action,
+            Some(GemTransactionHeaderAction::Swap {
+                from_asset_id: AssetId::from_chain(Chain::Ethereum),
+                to_asset_id: AssetId::from_chain(Chain::Bitcoin)
+            })
+        );
+
+        let mut transfer = extended_with(typed(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Outgoing), vec![]);
+        transfer.transaction.memo = Some(String::new());
+        let unnamed = detail_rows(&transfer, participant(&transfer, link), explorer.clone());
+        let recipient = unnamed.participant.clone().unwrap();
+        assert_eq!(
+            (recipient.role, recipient.address.as_str(), recipient.can_add_contact),
+            (GemTransactionParticipantRole::Recipient, "to", true)
+        );
+        assert_eq!(recipient.link.link, "https://explorer/to");
+        assert_eq!(unnamed.memo, None, "an empty memo is not a row");
+        assert_eq!(
+            (unnamed.fee.asset.id.clone(), unnamed.fee.value.clone(), unnamed.fee.sign),
+            (transfer.fee_asset.id.clone(), 1u32.into(), GemAmountSign::None)
+        );
+        assert!(matches!(unnamed.header, GemTransactionHeader::Amount { shows_fiat: true, .. }));
+        assert_eq!(
+            unnamed.header_action,
+            Some(GemTransactionHeaderAction::Asset {
+                asset_id: AssetId::from_chain(Chain::Ethereum)
+            })
+        );
+
+        transfer.to_address = Some(named("to", "Bob"));
+        let named_rows = detail_rows(&transfer, participant(&transfer, link), explorer.clone());
+        let recipient = named_rows.participant.unwrap();
+        assert_eq!((recipient.name.map(|name| name.name), recipient.can_add_contact), (Some("Bob".to_string()), false));
+
+        let approval = extended_with(typed(TransactionType::TokenApproval, TransactionState::Confirmed, TransactionDirection::Outgoing), vec![]);
+        let approval_rows = detail_rows(&approval, participant(&approval, link), explorer);
+        assert!(matches!(approval_rows.header, GemTransactionHeader::AssetImage { .. }));
+        let contract = approval_rows.participant.unwrap();
+        assert_eq!((contract.role, contract.can_add_contact), (GemTransactionParticipantRole::Contract, false));
+    }
+
+    #[test]
+    fn test_swap_rate_needs_both_legs_to_have_a_value() {
+        let mut zero = swap(TransactionState::Confirmed, None, None).transaction;
+        zero.metadata = Some(
+            serde_json::to_value(TransactionSwapMetadata {
+                from_asset: AssetId::from_chain(Chain::Ethereum),
+                from_value: 0u32.into(),
+                to_asset: AssetId::from_chain(Chain::Bitcoin),
+                to_value: 1u32.into(),
+                provider: None,
+            })
+            .unwrap(),
+        );
+        assert!(swap_rate(&extended_with(zero, vec![Asset::mock_eth(), Asset::mock_btc()])).is_none());
     }
 
     #[test]

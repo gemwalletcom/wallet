@@ -1,7 +1,7 @@
 use crate::types::{ERROR_CLIENT_ERROR, ERROR_INTERNAL_ERROR, JsonRpcError, JsonRpcRequest, JsonRpcResult, JsonRpcResults, ToJsonRpcRequest};
-use gem_client::{Client, ClientError, ClientExt, X_CACHE_TTL};
+use gem_client::{Client, ClientError, ClientExt};
 use serde::de::DeserializeOwned;
-use std::{collections::HashMap, time::SystemTime};
+use std::time::SystemTime;
 
 #[derive(Clone, Debug)]
 pub struct JsonRpcClient<C: Client + Clone> {
@@ -24,13 +24,9 @@ impl<C: Client + Clone> JsonRpcClient<C> {
     }
 
     pub async fn request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, request: T) -> Result<U, JsonRpcError> {
-        self.request_with_cache(&request, None).await?.take()
-    }
-
-    pub async fn request_with_cache<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, request: &T, ttl: Option<u64>) -> Result<JsonRpcResult<U>, JsonRpcError> {
         let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
-        let request = request.to_jsonrpc_request(timestamp);
-        self.send_request(request, ttl).await
+        let result: JsonRpcResult<U> = self.send_request(request.to_jsonrpc_request(timestamp)).await?;
+        result.take()
     }
 
     pub async fn batch_request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, requests: Vec<T>) -> Result<JsonRpcResults<U>, JsonRpcError> {
@@ -53,14 +49,8 @@ impl<C: Client + Clone> JsonRpcClient<C> {
         Ok(JsonRpcResults(results))
     }
 
-    async fn send_request<T: DeserializeOwned + Send>(&self, request: JsonRpcRequest, ttl: Option<u64>) -> Result<JsonRpcResult<T>, JsonRpcError> {
-        let mut headers = HashMap::new();
-        if let Some(ttl_seconds) = ttl {
-            headers.insert(X_CACHE_TTL.to_string(), ttl_seconds.to_string());
-        }
-
-        let result: JsonRpcResult<T> = self.client.post("", &request).headers(headers).await?;
-        Ok(result)
+    async fn send_request<T: DeserializeOwned + Send>(&self, request: JsonRpcRequest) -> Result<JsonRpcResult<T>, JsonRpcError> {
+        Ok(self.client.post("", &request).await?)
     }
 }
 

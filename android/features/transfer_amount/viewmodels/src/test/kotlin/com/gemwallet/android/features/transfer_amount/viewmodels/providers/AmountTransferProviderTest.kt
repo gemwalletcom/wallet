@@ -1,14 +1,18 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
+import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -37,8 +41,16 @@ class AmountTransferProviderTest {
         memo = "memo",
     )
 
-    private fun makeProvider() = AmountTransferProvider(
+    private val transfers = mutableListOf<GemAmountTransfer>()
+    private val service = mockk<GemAmountServiceInterface> {
+        coEvery { transferData(any(), capture(transfers), any(), any()) } answers {
+            GemTransferData(inputType = GemTransactionInputType.Transfer(firstArg()), recipient = GemRecipient(address = "core"), value = thirdArg(), useMaxAmount = arg(3))
+        }
+    }
+
+    private fun makeProvider(params: AmountParams = this.params) = AmountTransferProvider(
         params = params,
+        service = service,
         getAssetInfo = getAssetInfo,
         scope = scope,
     )
@@ -49,39 +61,30 @@ class AmountTransferProviderTest {
     }
 
     @Test
-    fun `canSwitchInputType is true`() {
-        assertTrue(makeProvider().canSwitchInputType)
+    fun `only a send switches the input type`() {
+        assertTrue(makeProvider().amountType.value?.canSwitchInputType() == true)
+        assertEquals(false, makeProvider(AmountParams.Deposit(asset.id)).amountType.value?.canSwitchInputType())
     }
 
     @Test
-    fun `buildTransfer produces a transfer with destination and memo`() = runBlocking {
+    fun `buildTransfer hands Core a send with the destination and memo`() = runBlocking {
         val provider = makeProvider()
         provider.assetInfo.filterNotNull().first()
         val transfer = provider.buildTransfer(amount = Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
         assertEquals(BigInteger.ONE, transfer.value)
-        assertEquals("to", transfer.recipient.address)
-        assertEquals("memo", transfer.recipient.memo)
+        val send = transfers.single() as GemAmountTransfer.Send
+        assertEquals("to", send.recipient.address)
+        assertEquals("memo", send.recipient.memo)
     }
 
     @Test
     fun `deposit has Deposit title`() {
-        val provider = AmountTransferProvider(
-            params = AmountParams.Deposit(asset.id),
-            getAssetInfo = getAssetInfo,
-            scope = scope,
-        )
-        assertEquals(AmountTitle.Deposit, provider.title)
+        assertEquals(AmountTitle.Deposit, makeProvider(AmountParams.Deposit(asset.id)).title)
     }
 
     @Test
     fun `withdraw has Withdraw title`() {
-        val provider = AmountTransferProvider(
-            params = AmountParams.Withdraw(asset.id),
-            getAssetInfo = getAssetInfo,
-            scope = scope,
-        )
-        assertEquals(AmountTitle.Withdraw, provider.title)
+        assertEquals(AmountTitle.Withdraw, makeProvider(AmountParams.Withdraw(asset.id)).title)
     }
 
     @Test
@@ -95,6 +98,7 @@ class AmountTransferProviderTest {
         }
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
+            service = service,
             getAssetInfo = getInfo,
             scope = scope,
         )
@@ -102,15 +106,15 @@ class AmountTransferProviderTest {
     }
 
     @Test
-    fun `withdraw builds a withdrawal to the own address`() = runBlocking {
-        val provider = AmountTransferProvider(
-            params = AmountParams.Withdraw(asset.id),
-            getAssetInfo = getAssetInfo,
-            scope = scope,
-        )
-        val owner = provider.assetInfo.filterNotNull().first().owner
-        val transfer = provider.buildTransfer(amount = Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(transfer.inputType is GemTransactionInputType.Withdrawal)
-        assertEquals(owner?.address, transfer.recipient.address)
+    fun `deposit and withdraw hand Core their kind and the max flag`() = runBlocking {
+        val deposit = makeProvider(AmountParams.Deposit(asset.id))
+        deposit.assetInfo.filterNotNull().first()
+        deposit.buildTransfer(amount = Crypto(BigInteger.TEN), isMax = true)
+        val withdraw = makeProvider(AmountParams.Withdraw(asset.id))
+        withdraw.assetInfo.filterNotNull().first()
+        val transfer = withdraw.buildTransfer(amount = Crypto(BigInteger.ONE), isMax = false)
+
+        assertEquals(listOf(GemAmountTransfer.Deposit, GemAmountTransfer.Withdraw), transfers)
+        assertEquals(BigInteger.ONE, transfer.value)
     }
 }

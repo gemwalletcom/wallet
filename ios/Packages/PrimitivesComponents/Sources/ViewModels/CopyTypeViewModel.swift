@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -24,7 +25,7 @@ public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
                 String(
                     format: "%@ (%@) ",
                     asset.name,
-                    AddressFormatter(style: .short, address: address, chain: asset.chain).value(),
+                    GemAddressService.shared.format(address: address, chain: asset.chain),
                 ),
             )
         }

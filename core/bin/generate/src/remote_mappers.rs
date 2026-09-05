@@ -8,6 +8,8 @@ pub const REMOTE_TYPES_PATH: &str = "gemstone/src/models/remote_types.rs";
 const PRIMITIVES_SOURCE: &str = "crates/primitives/src";
 const CONFIG: &str = include_str!("../remote_types.yml");
 const SCALARS: &[&str] = &["String", "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "bool", "f32", "f64"];
+const DATE_TIME: &str = "DateTime<Utc>";
+const DATE_TIME_DECLARED: &str = "chrono::DateTime<chrono::Utc>";
 
 #[derive(Deserialize)]
 struct Config {
@@ -17,8 +19,8 @@ struct Config {
 }
 
 pub enum RemoteType {
-    Enum { name: String, variants: Vec<String> },
-    Record { name: String, fields: Vec<Field> },
+    Enum { name: String, module: String, variants: Vec<String> },
+    Record { name: String, module: String, fields: Vec<Field> },
     Code { name: String },
 }
 
@@ -26,12 +28,20 @@ pub struct Field {
     rust: String,
     serialized: String,
     type_name: String,
+    skipped: bool,
 }
 
 impl RemoteType {
     fn name(&self) -> &str {
         match self {
             Self::Enum { name, .. } | Self::Record { name, .. } | Self::Code { name } => name,
+        }
+    }
+
+    fn app_type(&self, app_module: &str) -> String {
+        match self {
+            Self::Enum { module, .. } | Self::Record { module, .. } if !module.is_empty() => format!("{app_module}.{module}.{}", self.name()),
+            _ => format!("{app_module}.{}", self.name()),
         }
     }
 }
@@ -47,14 +57,36 @@ fn config() -> Config {
 pub fn parse(root: &Path) -> Vec<RemoteType> {
     let config = config();
     let mut found = Vec::new();
-    let Ok(entries) = fs::read_dir(root.join(PRIMITIVES_SOURCE)) else {
-        return found;
-    };
-    for entry in entries.flatten() {
-        let Ok(source) = fs::read_to_string(entry.path()) else { continue };
+    let primitives = root.join(PRIMITIVES_SOURCE);
+    for path in source_files(&primitives) {
+        let Ok(source) = fs::read_to_string(&path) else { continue };
+        let module = path
+            .strip_prefix(&primitives)
+            .ok()
+            .and_then(Path::parent)
+            .map(|parent| {
+                parent
+                    .components()
+                    .map(|component| component.as_os_str().to_string_lossy().into_owned())
+                    .collect::<Vec<_>>()
+                    .join(".")
+            })
+            .unwrap_or_default();
         let mut lines = source.lines();
+        let mut typeshare = false;
+        let mut camel_case_fields = false;
         while let Some(line) = lines.next() {
-            let Some((keyword, name)) = declaration(line.trim()) else { continue };
+            let Some((keyword, name)) = declaration(line.trim()) else {
+                let attribute = line.trim().starts_with("#[");
+                typeshare = attribute && (typeshare || line.trim().starts_with("#[typeshare"));
+                camel_case_fields = attribute && (camel_case_fields || line.trim() == "#[serde(rename_all = \"camelCase\")]");
+                continue;
+            };
+            let declared = std::mem::take(&mut typeshare);
+            let camel = std::mem::take(&mut camel_case_fields);
+            if !declared {
+                continue;
+            }
             if config.codes.contains(&name) {
                 assert_eq!(keyword, "enum", "{name} crosses as a code but is not an enum");
                 found.push(RemoteType::Code { name });
@@ -67,17 +99,42 @@ pub fn parse(root: &Path) -> Vec<RemoteType> {
             found.push(match keyword {
                 "enum" => RemoteType::Enum {
                     name,
+                    module: module.clone(),
                     variants: body.iter().filter_map(|line| member(line).map(|(name, _)| name)).collect(),
                 },
-                _ => RemoteType::Record { name, fields: fields(&body) },
+                _ => RemoteType::Record {
+                    name,
+                    module: module.clone(),
+                    fields: fields(&body, camel),
+                },
             });
         }
     }
     for name in config.remote.iter().chain(&config.codes) {
-        assert!(found.iter().any(|remote| remote.name() == name), "{name} is not declared in {PRIMITIVES_SOURCE}");
+        let declarations = found.iter().filter(|remote| remote.name() == name).count();
+        assert!(
+            declarations == 1,
+            "{name} has {declarations} TypeShare declarations in {PRIMITIVES_SOURCE}, expected exactly one"
+        );
     }
     found.sort_by_key(|remote| (matches!(remote, RemoteType::Record { .. }), remote.name().to_string()));
     found
+}
+
+fn source_files(directory: &Path) -> Vec<std::path::PathBuf> {
+    let Ok(entries) = fs::read_dir(directory) else {
+        return Vec::new();
+    };
+    let mut files = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        match path.is_dir() {
+            true => files.extend(source_files(&path)),
+            false if path.extension().is_some_and(|extension| extension == "rs") => files.push(path),
+            false => {}
+        }
+    }
+    files
 }
 
 fn declaration(line: &str) -> Option<(&'static str, String)> {
@@ -101,17 +158,24 @@ fn member(line: &str) -> Option<(String, Option<String>)> {
     }
 }
 
-fn fields(body: &[&str]) -> Vec<Field> {
+fn fields(body: &[&str], camel_case_fields: bool) -> Vec<Field> {
     let mut fields = Vec::new();
     let mut rename = None;
+    let mut skipped = false;
     for line in body {
         if let Some(value) = serde_rename(line.trim()) {
             rename = Some(value);
+        } else if line.trim() == "#[typeshare(skip)]" {
+            skipped = true;
         } else if let Some((rust, Some(type_name))) = member(line) {
             fields.push(Field {
-                serialized: rename.take().unwrap_or_else(|| camel_case(&rust)),
+                serialized: rename.take().unwrap_or_else(|| match camel_case_fields {
+                    true => camel_case(&rust),
+                    false => rust.clone(),
+                }),
                 rust,
                 type_name,
+                skipped: std::mem::take(&mut skipped),
             });
         }
     }
@@ -138,22 +202,24 @@ pub fn remote_types(types: &[RemoteType]) -> String {
                 ));
                 continue;
             }
-            RemoteType::Enum { name, variants } => {
+            RemoteType::Enum { name, variants, .. } => {
                 out.push_str(&format!("\n#[uniffi::remote(Enum)]\npub enum {name} {{\n"));
                 out.push_str(&variants.iter().map(|variant| format!("    {variant},\n")).collect::<String>());
             }
-            RemoteType::Record { name, fields } => {
+            RemoteType::Record { name, fields, .. } => {
                 out.push_str(&format!("\n#[uniffi::remote(Record)]\npub struct {name} {{\n"));
                 for field in fields {
-                    let (inner, optional) = optional_inner(&field.type_name);
+                    let (inner, wrapper) = unwrap(&field.type_name);
                     let known = types.iter().any(|other| other.name() == inner) || SCALARS.contains(&inner);
-                    let declared = match known {
-                        true => inner.to_string(),
-                        false => format!("primitives::{inner}"),
+                    let declared = match (inner, known) {
+                        (DATE_TIME, _) => DATE_TIME_DECLARED.to_string(),
+                        (_, true) => inner.to_string(),
+                        (_, false) => format!("primitives::{inner}"),
                     };
-                    let declared = match optional {
-                        true => format!("Option<{declared}>"),
-                        false => declared,
+                    let declared = match wrapper {
+                        Wrapper::Option => format!("Option<{declared}>"),
+                        Wrapper::Vec => format!("Vec<{declared}>"),
+                        Wrapper::None => declared,
                     };
                     out.push_str(&format!("    pub {}: {declared},\n", field.rust));
                 }
@@ -164,11 +230,20 @@ pub fn remote_types(types: &[RemoteType]) -> String {
     out
 }
 
-fn optional_inner(type_name: &str) -> (&str, bool) {
-    match type_name.strip_prefix("Option<").and_then(|inner| inner.strip_suffix('>')) {
-        Some(inner) => (inner, true),
-        None => (type_name, false),
+#[derive(Debug, PartialEq)]
+enum Wrapper {
+    None,
+    Option,
+    Vec,
+}
+
+fn unwrap(type_name: &str) -> (&str, Wrapper) {
+    for (prefix, wrapper) in [("Option<", Wrapper::Option), ("Vec<", Wrapper::Vec)] {
+        if let Some(inner) = type_name.strip_prefix(prefix).and_then(|inner| inner.strip_suffix('>')) {
+            return (inner, wrapper);
+        }
     }
+    (type_name, Wrapper::None)
 }
 
 struct Language {
@@ -176,6 +251,9 @@ struct Language {
     codes: [&'static str; 2],
     identifiers: [&'static str; 2],
     optional: &'static str,
+    vec: &'static str,
+    none: &'static str,
+    empty_vec: &'static str,
     element: &'static str,
     core_module: &'static str,
     app_module: &'static str,
@@ -183,21 +261,38 @@ struct Language {
 
 impl Language {
     fn convert(&self, config: &Config, type_name: &str, expression: &str, index: usize) -> String {
-        let (inner, optional) = optional_inner(type_name);
-        if optional {
+        let (inner, wrapper) = unwrap(type_name);
+        let template = match wrapper {
+            Wrapper::Option => Some(self.optional),
+            Wrapper::Vec => Some(self.vec),
+            Wrapper::None => None,
+        };
+        if let Some(template) = template {
             let converted = self.convert(config, inner, self.element, index);
             return match converted == self.element {
                 true => expression.to_string(),
-                false => self.optional.replace("{}", expression).replace("{inner}", &converted),
+                false => template.replace("{}", expression).replace("{inner}", &converted),
             };
         }
         let template = match inner {
-            name if SCALARS.contains(&name) => return expression.to_string(),
+            name if SCALARS.contains(&name) || name == DATE_TIME => return expression.to_string(),
             name if config.codes.iter().any(|code| code == name) => self.codes[index],
             name if config.identifiers.iter().any(|identifier| identifier == name) => self.identifiers[index],
             _ => return format!("{expression}.{}()", self.functions[index]),
         };
         template.replace("{name}", inner).replace("{}", expression)
+    }
+
+    fn default_value(&self, record: &str, field: &Field) -> String {
+        match unwrap(&field.type_name) {
+            (_, Wrapper::Option) => self.none.to_string(),
+            (_, Wrapper::Vec) => self.empty_vec.to_string(),
+            ("String", _) => "\"\"".to_string(),
+            ("bool", _) => "false".to_string(),
+            ("f64", _) => "0.0".to_string(),
+            (name, _) if SCALARS.contains(&name) => "0".to_string(),
+            (name, _) => panic!("{record}.{} is skipped by TypeShare and {name} has no default the generator can emit", field.rust),
+        }
     }
 
     fn direction(&self, index: usize) -> (&'static str, &'static str, &'static str) {
@@ -248,6 +343,39 @@ fn swift_case(variant: &str) -> String {
         .collect()
 }
 
+/// UniFFI lowers a variant with `heck`, which treats a run of capitals as one word: `TransferNFT`
+/// becomes `transferNft`, where TypeShare keeps `transferNFT`. The two sides of a mapper therefore
+/// spell the same variant differently whenever it contains an acronym.
+fn uniffi_type_name(name: &str) -> String {
+    let camel = uniffi_swift_case(name);
+    camel[..1].to_ascii_uppercase() + &camel[1..]
+}
+
+fn uniffi_swift_case(variant: &str) -> String {
+    let mut words: Vec<String> = Vec::new();
+    let characters: Vec<char> = variant.chars().collect();
+    let mut word = String::new();
+    for (index, character) in characters.iter().enumerate() {
+        let starts_word =
+            character.is_ascii_uppercase() && !word.is_empty() && (characters[index - 1].is_ascii_lowercase() || characters.get(index + 1).is_some_and(char::is_ascii_lowercase));
+        if starts_word {
+            words.push(std::mem::take(&mut word));
+        }
+        word.push(*character);
+    }
+    if !word.is_empty() {
+        words.push(word);
+    }
+    words
+        .iter()
+        .enumerate()
+        .map(|(index, word)| match index {
+            0 => word.to_ascii_lowercase(),
+            _ => word[..1].to_ascii_uppercase() + &word[1..].to_ascii_lowercase(),
+        })
+        .collect()
+}
+
 fn field_names(field: &Field, index: usize) -> (String, String) {
     match index {
         0 => (field.serialized.clone(), camel_case(&field.rust)),
@@ -262,6 +390,9 @@ pub fn swift(types: &[RemoteType]) -> String {
         codes: ["Primitives.{name}(core: {})", "{}.rawValue"],
         identifiers: ["Primitives.{name}(core: {})", "{}.identifier"],
         optional: "{}.map { {inner} }",
+        vec: "{}.map { {inner} }",
+        none: "nil",
+        empty_vec: "[]",
         element: "$0",
         core_module: "Gemstone",
         app_module: "Primitives",
@@ -270,27 +401,42 @@ pub fn swift(types: &[RemoteType]) -> String {
     for remote in types {
         if let RemoteType::Code { name } = remote {
             out.push_str(&format!(
-                "\npublic extension Primitives.{name} {{\n    init(core: Gemstone.{name}) {{\n        guard let value = Primitives.{name}(rawValue: core) else {{\n            fatalError(\"Core returned a {name} this build does not know: \\(core)\")\n        }}\n        self = value\n    }}\n}}\n"
+                "\npublic extension Primitives.{name} {{\n    init(core: Gemstone.{name}) {{\n        guard let value = Primitives.{name}(rawValue: core) else {{\n            fatalError(\"Core returned a {name} this build does not know: \\(core)\")\n        }}\n        self = value\n    }}\n\n    func map() -> Gemstone.{name} {{\n        rawValue\n    }}\n}}\n"
             ));
             continue;
         }
         for index in 0..2 {
-            let (from, to, function) = language.direction(index);
+            let (_, _, function) = language.direction(index);
             let name = remote.name();
-            out.push_str(&format!("\npublic extension {from}.{name} {{\n    func {function}() -> {to}.{name} {{\n"));
+            let core_type = format!("{}.{}", language.core_module, uniffi_type_name(name));
+            let app_type = format!("{}.{name}", language.app_module);
+            let (from, to) = match index {
+                0 => (&core_type, &app_type),
+                _ => (&app_type, &core_type),
+            };
+            out.push_str(&format!("\npublic extension {from} {{\n    func {function}() -> {to} {{\n"));
             match remote {
                 RemoteType::Enum { variants, .. } => {
                     out.push_str("        switch self {\n");
                     for variant in variants {
-                        out.push_str(&format!("        case .{case}: .{case}\n", case = swift_case(variant)));
+                        let (core, app) = (uniffi_swift_case(variant), swift_case(variant));
+                        let (from_case, to_case) = match index {
+                            0 => (&core, &app),
+                            _ => (&app, &core),
+                        };
+                        out.push_str(&format!("        case .{from_case}: .{to_case}\n"));
                     }
                     out.push_str("        }\n");
                 }
                 RemoteType::Record { fields, .. } => {
-                    out.push_str(&format!("        {to}.{name}(\n"));
+                    out.push_str(&format!("        {to}(\n"));
                     for field in fields {
                         let (label, accessor) = field_names(field, index);
-                        out.push_str(&format!("            {label}: {},\n", language.convert(&config, &field.type_name, &accessor, index)));
+                        match (field.skipped, index) {
+                            (true, 0) => continue,
+                            (true, _) => out.push_str(&format!("            {label}: {},\n", language.default_value(name, field))),
+                            (false, _) => out.push_str(&format!("            {label}: {},\n", language.convert(&config, &field.type_name, &accessor, index))),
+                        }
                     }
                     out.push_str("        )\n");
                 }
@@ -307,8 +453,11 @@ pub fn kotlin(types: &[RemoteType]) -> String {
     let language = Language {
         functions: ["toPrimitives", "toGem"],
         codes: ["{}.to{name}()", "{}.toGem()"],
-        identifiers: ["{}.to{name}()!!", "{}.toIdentifier()"],
+        identifiers: ["com.wallet.core.primitives.{name}({})", "{}.toIdentifier()"],
         optional: "{}?.let { {inner} }",
+        vec: "{}.map { {inner} }",
+        none: "null",
+        empty_vec: "emptyList()",
         element: "it",
         core_module: "uniffi.gemstone",
         app_module: "com.wallet.core.primitives",
@@ -323,9 +472,15 @@ pub fn kotlin(types: &[RemoteType]) -> String {
             continue;
         }
         for index in 0..2 {
-            let (from, to, function) = language.direction(index);
+            let (_, _, function) = language.direction(index);
             let name = remote.name();
-            out.push_str(&format!("\nfun {from}.{name}.{function}(): {to}.{name} = "));
+            let core_type = format!("{core}.{}", uniffi_type_name(name));
+            let app_type = remote.app_type(app);
+            let (from, to) = match index {
+                0 => (&core_type, &app_type),
+                _ => (&app_type, &core_type),
+            };
+            out.push_str(&format!("\nfun {from}.{function}(): {to} = "));
             match remote {
                 RemoteType::Enum { variants, .. } => {
                     out.push_str("when (this) {\n");
@@ -334,14 +489,18 @@ pub fn kotlin(types: &[RemoteType]) -> String {
                             0 => (screaming_snake_case(variant), variant.clone()),
                             _ => (variant.clone(), screaming_snake_case(variant)),
                         };
-                        out.push_str(&format!("    {from}.{name}.{left} -> {to}.{name}.{right}\n"));
+                        out.push_str(&format!("    {from}.{left} -> {to}.{right}\n"));
                     }
                 }
                 RemoteType::Record { fields, .. } => {
-                    out.push_str(&format!("{to}.{name}(\n"));
+                    out.push_str(&format!("{to}(\n"));
                     for field in fields {
                         let (label, accessor) = field_names(field, index);
-                        out.push_str(&format!("    {label} = {},\n", language.convert(&config, &field.type_name, &accessor, index)));
+                        match (field.skipped, index) {
+                            (true, 0) => continue,
+                            (true, _) => out.push_str(&format!("    {label} = {},\n", language.default_value(name, field))),
+                            (false, _) => out.push_str(&format!("    {label} = {},\n", language.convert(&config, &field.type_name, &accessor, index))),
+                        }
                     }
                 }
                 RemoteType::Code { .. } => unreachable!(),
@@ -353,4 +512,198 @@ pub fn kotlin(types: &[RemoteType]) -> String {
         }
     }
     out
+}
+
+const JSON_BRIDGE_PATH: &str = "gemstone/src/models/json_bridge.rs";
+
+/// Types the JSON bridge carries whose Rust enum has data-carrying variants, so serde tags them.
+/// Kotlin infers the concrete subtype for a generic `T.toJson()`, which drops that tag, and Core
+/// rejects the payload at runtime. Each one needs an overload whose receiver is the base type.
+pub fn tagged_bridge_types(root: &Path) -> Vec<String> {
+    let sources: Vec<String> = source_files(&root.join(PRIMITIVES_SOURCE))
+        .iter()
+        .filter_map(|path| fs::read_to_string(path).ok())
+        .collect();
+
+    let mut tagged: Vec<String> = bridge_types(root)
+        .into_iter()
+        .filter(|name| {
+            sources
+                .iter()
+                .any(|source| enum_variants(source, name).is_some_and(|variants| variants.iter().any(|variant| !variant.chars().all(|c| c.is_alphanumeric() || c == '_'))))
+        })
+        .collect();
+    tagged.sort();
+    tagged.dedup();
+    tagged
+}
+
+/// Every type the JSON bridge carries as a serialized string, in declaration order.
+pub fn bridge_types(root: &Path) -> Vec<String> {
+    let Ok(bridge) = fs::read_to_string(root.join(JSON_BRIDGE_PATH)) else {
+        return Vec::new();
+    };
+    let Some(list) = bridge.split("json_bridge!(").nth(1).and_then(|rest| rest.split(");").next()) else {
+        return Vec::new();
+    };
+    list.lines()
+        .map(|line| line.trim().trim_end_matches(','))
+        .filter(|line| !line.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+pub fn swift_json_bridge(types: &[String]) -> String {
+    let header = HEADER.replace("core/bin/generate/remote_types.yml", JSON_BRIDGE_PATH);
+    let conformances: String = types.iter().map(|name| format!("extension Primitives.{name}: JsonCodable {{}}\n")).collect();
+    format!("{header}\nimport Primitives\n\n{conformances}")
+}
+
+fn enum_variants(source: &str, name: &str) -> Option<Vec<String>> {
+    let start = source.find(&format!("pub enum {name} {{"))?;
+    let body = source[start..].split_once('{')?.1.split_once("\n}")?.0;
+    Some(
+        body.lines()
+            .map(|line| line.trim().trim_end_matches(',').to_string())
+            .filter(|line| !line.is_empty() && !line.starts_with('#') && !line.starts_with("//"))
+            .collect(),
+    )
+}
+
+pub fn kotlin_tagged_bridge(types: &[String]) -> String {
+    let header = HEADER.replace("core/bin/generate/remote_types.yml", JSON_BRIDGE_PATH);
+    let imports: String = types.iter().map(|name| format!("import com.wallet.core.primitives.{name}\n")).collect();
+    let overloads: String = types
+        .iter()
+        .map(|name| format!("\nfun {name}.toJson(): String = jsonEncoder.encodeToString<{name}>(this)\n"))
+        .collect();
+    format!("{header}\npackage com.gemwallet.android.serializer\n\nimport kotlinx.serialization.encodeToString\n{imports}{overloads}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn wallet() -> RemoteType {
+        let field = |rust: &str, type_name: &str| Field {
+            rust: rust.to_string(),
+            serialized: camel_case(rust),
+            type_name: type_name.to_string(),
+            skipped: false,
+        };
+        RemoteType::Record {
+            name: "Wallet".to_string(),
+            module: String::new(),
+            fields: vec![field("id", "WalletId"), field("accounts", "Vec<Account>"), field("image_url", "Option<String>")],
+        }
+    }
+
+    fn price_alert() -> RemoteType {
+        let field = |rust: &str, type_name: &str, skipped: bool| Field {
+            rust: rust.to_string(),
+            serialized: camel_case(rust),
+            type_name: type_name.to_string(),
+            skipped,
+        };
+        RemoteType::Record {
+            name: "PriceAlert".to_string(),
+            module: String::new(),
+            fields: vec![
+                field("price", "Option<f64>", false),
+                field("last_notified_at", "Option<DateTime<Utc>>", false),
+                field("identifier", "String", true),
+            ],
+        }
+    }
+
+    #[test]
+    fn test_skipped_fields_are_declared_but_only_travel_from_core_with_a_default_on_the_way_back() {
+        let rust = remote_types(&[price_alert()]);
+        assert!(rust.contains("    pub last_notified_at: Option<chrono::DateTime<chrono::Utc>>,\n"));
+        assert!(rust.contains("    pub identifier: String,\n"));
+        let swift = swift(&[price_alert()]);
+        assert!(swift.contains("        Primitives.PriceAlert(\n            price: price,\n            lastNotifiedAt: lastNotifiedAt,\n        )\n"));
+        assert!(swift.contains("        Gemstone.PriceAlert(\n            price: price,\n            lastNotifiedAt: lastNotifiedAt,\n            identifier: \"\",\n        )\n"));
+        let kotlin = kotlin(&[price_alert()]);
+        assert!(kotlin.contains("    identifier = \"\",\n"));
+        assert_eq!(kotlin.matches("identifier").count(), 1);
+    }
+
+    #[test]
+    fn test_fields_keep_the_rust_name_unless_serde_renames_them() {
+        let snake = fields(&["    pub order_type: String,", "    #[serde(rename = \"type\")]", "    pub kind: String,"], false);
+        assert_eq!(snake.iter().map(|field| field.serialized.as_str()).collect::<Vec<_>>(), ["order_type", "type"]);
+        let camel = fields(&["    pub order_type: String,"], true);
+        assert_eq!(camel[0].serialized, "orderType");
+        let record = RemoteType::Record {
+            name: "Order".to_string(),
+            module: String::new(),
+            fields: snake,
+        };
+        assert!(swift(&[record]).contains("            order_type: orderType,\n"));
+    }
+
+    #[test]
+    fn test_kotlin_names_types_from_submodules_by_their_package() {
+        let impact = RemoteType::Record {
+            name: "SwapPriceImpact".to_string(),
+            module: "swap".to_string(),
+            fields: vec![Field {
+                rust: "percentage".to_string(),
+                serialized: "percentage".to_string(),
+                type_name: "f64".to_string(),
+                skipped: false,
+            }],
+        };
+        let kotlin = kotlin(&[impact]);
+        assert!(
+            kotlin.contains(
+                "fun uniffi.gemstone.SwapPriceImpact.toPrimitives(): com.wallet.core.primitives.swap.SwapPriceImpact = com.wallet.core.primitives.swap.SwapPriceImpact(\n"
+            )
+        );
+        assert!(kotlin.contains("fun com.wallet.core.primitives.swap.SwapPriceImpact.toGem(): uniffi.gemstone.SwapPriceImpact = uniffi.gemstone.SwapPriceImpact(\n"));
+    }
+
+    #[test]
+    fn test_core_type_names_follow_uniffi_casing() {
+        assert_eq!(uniffi_type_name("NFTAsset"), "NftAsset");
+        assert_eq!(uniffi_type_name("TPSLOrderData"), "TpslOrderData");
+        assert_eq!(uniffi_type_name("AssetId"), "AssetId");
+        assert_eq!(uniffi_type_name("UTXO"), "Utxo");
+        let record = RemoteType::Record {
+            name: "NFTImages".to_string(),
+            module: String::new(),
+            fields: vec![],
+        };
+        assert!(swift(&[record]).contains("public extension Gemstone.NftImages {\n    func map() -> Primitives.NFTImages {\n"));
+    }
+
+    #[test]
+    fn test_unwrap_recognises_option_and_vec() {
+        assert_eq!(unwrap("Vec<Account>"), ("Account", Wrapper::Vec));
+        assert_eq!(unwrap("Option<String>"), ("String", Wrapper::Option));
+        assert_eq!(unwrap("WalletId"), ("WalletId", Wrapper::None));
+    }
+
+    #[test]
+    fn test_record_declares_vec_fields_and_maps_each_element() {
+        let rust = remote_types(&[wallet()]);
+        assert!(rust.contains("    pub accounts: Vec<primitives::Account>,\n"));
+        let swift = swift(&[wallet()]);
+        assert!(swift.contains("            accounts: accounts.map { $0.map() },\n"));
+        assert!(swift.contains("            imageUrl: imageUrl,\n"));
+        let kotlin = kotlin(&[wallet()]);
+        assert!(kotlin.contains("    accounts = accounts.map { it.toPrimitives() },\n"));
+        assert!(kotlin.contains("    accounts = accounts.map { it.toGem() },\n"));
+    }
+
+    #[test]
+    fn test_identifiers_lift_through_the_app_parser_and_lower_through_identifier() {
+        let swift = swift(&[wallet()]);
+        assert!(swift.contains("            id: Primitives.WalletId(core: id),\n"));
+        assert!(swift.contains("            id: id.identifier,\n"));
+        let kotlin = kotlin(&[wallet()]);
+        assert!(kotlin.contains("    id = com.wallet.core.primitives.WalletId(id),\n"));
+        assert!(kotlin.contains("    id = id.toIdentifier(),\n"));
+    }
 }

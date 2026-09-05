@@ -3,19 +3,23 @@
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
+import struct Gemstone.AssetMetaData
 import typealias Gemstone.BannerEvent
 import typealias Gemstone.Chain
 import typealias Gemstone.Deeplink
+import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import struct Gemstone.GemAssetDetailsState
 import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemAssetRefreshFailure
 import enum Gemstone.GemBannerAction
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
-import struct Gemstone.GemBlockExplorerLink
+import struct Gemstone.BlockExplorerLink
 import class Gemstone.GemDeeplinkService
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.VerificationStatus
+import enum Gemstone.WalletType
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -56,6 +60,19 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         .none
     }
 
+    public func state(walletType: WalletType, chain _: Chain, metadata: AssetMetaData, balance _: GemAssetBalance, bannerEvents _: [BannerEvent], hasPrice _: Bool, priceAlertsCount _: UInt32) -> GemAssetDetailsState {
+        GemAssetDetailsState(
+            isViewOnly: walletType == .view,
+            headerButtons: [],
+            showsBanners: walletType != .view,
+            showsManage: !metadata.isBalanceEnabled,
+            showsResources: false,
+            showsPriceAlerts: false,
+            showsEarn: false,
+            emptyTransactionsAction: nil,
+        )
+    }
+
     public func swapPair(assetId: AssetId, hasBalance _: Bool) -> GemSwapPairSuggestion {
         assetPair ?? GemSwapPairSuggestion(payAssetId: assetId, receiveAssetId: nil)
     }
@@ -64,11 +81,11 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         "Explorer"
     }
 
-    public func addressUrl(chain _: Chain, address: String) -> GemBlockExplorerLink {
-        GemBlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(address)")
+    public func addressUrl(chain _: Chain, address: String) -> Gemstone.BlockExplorerLink {
+        Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(address)")
     }
 
-    public func tokenUrl(chain _: Chain, address _: String) -> GemBlockExplorerLink? {
+    public func tokenUrl(chain _: Chain, address _: String) -> Gemstone.BlockExplorerLink? {
         .none
     }
 

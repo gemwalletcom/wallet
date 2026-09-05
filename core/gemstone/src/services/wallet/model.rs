@@ -8,6 +8,12 @@ pub enum GemWalletImportType {
     Address { address: String, chain: Chain },
 }
 
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletDefaultName {
+    pub name: String,
+    pub has_existing_wallets: bool,
+}
+
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemWalletImportResult {
     New { wallet: Wallet },

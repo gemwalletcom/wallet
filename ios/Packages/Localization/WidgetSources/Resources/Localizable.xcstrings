@@ -181,13 +181,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "追踪顶级加密货币的价格"
+            "value": "追踪主流加密货币价格"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "追蹤頂級加密貨幣的價格"
+            "value": "追蹤主流加密貨幣價格"
           }
         }
       }
@@ -288,7 +288,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "トップ暗号通貨価格"
+            "value": "主要暗号通貨の価格"
           }
         },
         "ko": {
@@ -372,13 +372,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最高加密货币价格"
+            "value": "主流加密货币价格"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最高加密貨幣價格"
+            "value": "主流加密貨幣價格"
           }
         }
       }

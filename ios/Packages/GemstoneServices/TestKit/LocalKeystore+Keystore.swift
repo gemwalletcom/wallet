@@ -2,6 +2,9 @@
 
 import Foundation
 import enum Gemstone.GemImportType
+import struct Gemstone.GemKeystoreAccount
+import struct Gemstone.GemStoredWallet
+import enum Gemstone.GemWalletImportType
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
@@ -49,16 +52,16 @@ public extension LocalKeystore {
 }
 
 public extension LocalKeystore {
-    func importWallet(name: String, type: KeystoreImportType) throws -> Primitives.Wallet {
+    func importWallet(name: String, type: GemWalletImportType) throws -> Primitives.Wallet {
         switch type {
         case let .address(address, chain):
-            return viewWallet(name: name, chain: chain, address: address)
-        case let .phrase(words, chains):
-            return try importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains.map(\.rawValue)))
-        case let .single(words, chain):
-            return try importWallet(name: name, import: .singlePhrase(words: words, chain: chain.rawValue))
-        case let .privateKey(text, chain):
-            return try importWallet(name: name, import: .privateKey(value: text, chain: chain.rawValue))
+            return viewWallet(name: name, chain: Primitives.Chain(core: chain), address: address)
+        case let .multicoinPhrase(words, chains):
+            return try importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains))
+        case let .singlePhrase(words, chain):
+            return try importWallet(name: name, import: .singlePhrase(words: words, chain: chain))
+        case let .privateKey(value, chain):
+            return try importWallet(name: name, import: .privateKey(value: value, chain: chain))
         }
     }
 
@@ -80,4 +83,31 @@ private func viewWallet(name: String, chain: Chain, address: String) -> Primitiv
         imageUrl: nil,
         source: .import,
     )
+}
+
+private extension GemKeystoreAccount {
+    func mapToAccount() -> Primitives.Account {
+        Primitives.Account(
+            chain: Primitives.Chain(core: chain),
+            address: address,
+            derivationPath: derivationPath,
+            extendedPublicKey: publicKey ?? "",
+        )
+    }
+}
+
+private extension GemStoredWallet {
+    func mapToWallet(name: String, source: Primitives.WalletSource) throws -> Primitives.Wallet {
+        try Primitives.Wallet(
+            id: Primitives.WalletId.from(id: walletId),
+            externalId: nil,
+            name: name,
+            index: 0,
+            type: walletType.map(),
+            accounts: accounts.map { $0.mapToAccount() },
+            isPinned: false,
+            imageUrl: nil,
+            source: source,
+        )
+    }
 }

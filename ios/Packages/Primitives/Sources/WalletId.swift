@@ -49,6 +49,16 @@ public enum WalletId: Equatable, Hashable, Sendable {
         }
     }
 
+    public var identifier: String { id }
+
+    public init(core id: String) {
+        do {
+            self = try WalletId.from(id: id)
+        } catch {
+            preconditionFailure("failed to decode WalletId from Core: \(id)")
+        }
+    }
+
     public static func from(id: String) throws -> WalletId {
         let parts = id.split(separator: "_", maxSplits: 2).map(String.init)
         guard parts.count >= 2 else {

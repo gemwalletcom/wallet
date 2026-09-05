@@ -3,11 +3,12 @@
 public import struct Gemstone.GemSignedTransaction
 public import struct Gemstone.GemSignerInput
 public import protocol Gemstone.GemTransactionSigner
+public import struct Gemstone.Wallet
 public import GemstonePrimitives
 import Primitives
 
 public final class GemTransactionSignerMock: GemTransactionSigner {
-    public static let transferType = Primitives.TransactionType.transfer.json()
+    public static let transferType = Primitives.TransactionType.transfer.map()
 
     public let signedTransactions: [GemSignedTransaction]
 
@@ -15,13 +16,13 @@ public final class GemTransactionSignerMock: GemTransactionSigner {
         self.signedTransactions = signedTransactions
     }
 
-    public func sign(wallet _: String, input _: GemSignerInput) throws -> [GemSignedTransaction] {
+    public func sign(wallet _: Gemstone.Wallet, input _: GemSignerInput) throws -> [GemSignedTransaction] {
         signedTransactions
     }
 }
 
 public extension GemSignedTransaction {
     init(data: String, type: Primitives.TransactionType) {
-        self.init(data: data, transactionType: type.json())
+        self.init(data: data, transactionType: type.map())
     }
 }

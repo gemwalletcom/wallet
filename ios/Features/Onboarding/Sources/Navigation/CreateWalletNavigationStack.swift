@@ -86,12 +86,12 @@ extension CreateWalletNavigationStack {
     func onVerifyPhraseComplete(words: [String]) {
         Task {
             do {
-                let wallet = try await model.createWallet(words: words)
+                let created = try await model.createWallet(words: words)
 
-                if model.hasExistingWallets {
-                    navigate(to: .walletProfile(wallet: wallet))
+                if created.hasExistingWallets {
+                    navigate(to: .walletProfile(wallet: created.wallet))
                 } else {
-                    onSetupWalletComplete(wallet: wallet)
+                    onSetupWalletComplete(wallet: created.wallet)
                 }
             } catch {
                 debugLog("Failed to create wallet: \(error)")

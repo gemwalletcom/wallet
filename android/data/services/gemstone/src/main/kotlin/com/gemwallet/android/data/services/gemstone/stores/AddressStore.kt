@@ -1,11 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
-import com.wallet.core.primitives.AddressName
 import uniffi.gemstone.GemAddressStore
 import com.gemwallet.android.ext.requireChain
 
@@ -13,16 +12,16 @@ class GemstoneAddressStore(
     private val addressesDao: AddressesDao,
 ) : GemAddressStore {
 
-    override fun getAddressName(chain: String, address: String): String? =
-        addressesDao.get(chain.requireChain(), address)?.toDTO()?.toJson()
+    override suspend fun getAddressName(chain: String, address: String): uniffi.gemstone.AddressName? =
+        addressesDao.get(chain.requireChain(), address)?.toDTO()?.toGem()
 
-    override suspend fun saveAddressNames(names: List<String>) {
+    override suspend fun saveAddressNames(names: List<uniffi.gemstone.AddressName>) {
         if (names.isEmpty()) return
-        addressesDao.updateNames(names.map { it.decodeJson<AddressName>() }.toRecord())
+        addressesDao.updateNames(names.map { it.toPrimitives() }.toRecord())
     }
 
-    override suspend fun deleteAddressNames(names: List<String>) {
+    override suspend fun deleteAddressNames(names: List<uniffi.gemstone.AddressName>) {
         if (names.isEmpty()) return
-        addressesDao.deleteNames(names.map { it.decodeJson<AddressName>() }.toRecord())
+        addressesDao.deleteNames(names.map { it.toPrimitives() }.toRecord())
     }
 }

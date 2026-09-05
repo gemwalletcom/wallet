@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.perpetual
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.CancelOrderData
@@ -10,16 +11,12 @@ import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualModifyConfirmData
 import com.wallet.core.primitives.PerpetualModifyPositionType
 import com.wallet.core.primitives.PerpetualOrderType
-import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualReduceData
-import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.TPSLOrderData
 import uniffi.gemstone.PerpetualAccountMode as GemPerpetualAccountMode
 import uniffi.gemstone.PerpetualMarginType as GemPerpetualMarginType
 import uniffi.gemstone.PerpetualOrderType as GemPerpetualOrderType
-import uniffi.gemstone.PerpetualPosition as GemPerpetualPosition
-import uniffi.gemstone.PerpetualTriggerOrder as GemPerpetualTriggerOrder
 import uniffi.gemstone.CancelOrderData as GemCancelOrderData
 import uniffi.gemstone.PerpetualConfirmData as GemPerpetualConfirmData
 import uniffi.gemstone.PerpetualDirection as GemPerpetualDirection
@@ -41,11 +38,7 @@ fun TPSLOrderData.toGem(): GemTpslOrderData = toJson()
 
 fun CancelOrderData.toGem(): GemCancelOrderData = toJson()
 
-fun PerpetualPosition.toGem(): GemPerpetualPosition = toJson()
 
-fun PerpetualAccountMode.toGem(): GemPerpetualAccountMode = toJson()
-
-fun PerpetualTriggerOrder.toGem(): GemPerpetualTriggerOrder = toJson()
 
 
 

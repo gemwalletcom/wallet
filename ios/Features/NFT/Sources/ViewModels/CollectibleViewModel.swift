@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import class Gemstone.GemAddressService
 import struct Gemstone.GemCollectibleLinks
 import protocol Gemstone.GemCollectibleServiceProtocol
 import GemstonePrimitives
@@ -77,12 +78,12 @@ public final class CollectibleViewModel {
         if contractValue.isEmpty || contractValue == assetData.asset.tokenId {
             return .none
         }
-        let text = AddressFormatter(address: contractValue, chain: assetData.asset.chain).value()
+        let text = GemAddressService.shared.format(address: contractValue, chain: assetData.asset.chain)
         return ListItemField(title: Localized.Asset.contract, value: text)
     }
 
     var contractExplorerLink: BlockExplorerLink? {
-        links.contract.map { BlockExplorerLink($0) }
+        links.contract.map { $0.map() }
     }
 
     var contractExplorerContext: ExplorerContextData? {
@@ -106,7 +107,7 @@ public final class CollectibleViewModel {
 
     var tokenIdField: ListItemField {
         let text = if assetData.asset.tokenId.count > 16 {
-            AddressFormatter(address: assetData.asset.tokenId, chain: assetData.asset.chain).value()
+            GemAddressService.shared.format(address: assetData.asset.tokenId, chain: assetData.asset.chain)
         } else {
             "#\(assetData.asset.tokenId)"
         }
@@ -114,7 +115,7 @@ public final class CollectibleViewModel {
     }
 
     var tokenIdExplorerLink: BlockExplorerLink? {
-        links.token.map { BlockExplorerLink($0) }
+        links.token.map { $0.map() }
     }
 
     var tokenIdExplorerContext: ExplorerContextData? {
@@ -144,7 +145,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        (try? service.canSend(chain: assetData.asset.chain.map())) ?? false
+        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map())
     }
 
     var headerButtons: [HeaderButton] {

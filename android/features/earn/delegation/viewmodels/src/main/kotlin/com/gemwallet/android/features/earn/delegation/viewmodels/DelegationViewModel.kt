@@ -70,7 +70,7 @@ class DelegationViewModel @Inject constructor(
             return@combine emptyList()
         }
         val availableIn = availableIn(delegation)
-        val validatorUrl = stakeService.validatorUrl(delegation.validator.toJson())?.link
+        val validatorUrl = stakeService.validatorUrl(delegation.validator.toGem())?.link
         listOfNotNull(
             DelegationProperty.Name(delegation.validator.name, validatorUrl),
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },

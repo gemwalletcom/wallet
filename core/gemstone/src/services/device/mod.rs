@@ -116,12 +116,12 @@ impl GemDeviceService {
         if rules::device_changed(&pushed, &local) {
             return Ok(true);
         }
-        let signature = rules::subscriptions_signature(&self.wallet_store.get_wallets()?);
+        let signature = rules::subscriptions_signature(&self.wallet_store.get_wallets().await?);
         Ok(self.preferences.get_pushed_subscriptions() != Some(signature))
     }
 
     async fn sync(&self, device: Device) -> Result<Device, GemServiceError> {
-        let signature = rules::subscriptions_signature(&self.wallet_store.get_wallets()?);
+        let signature = rules::subscriptions_signature(&self.wallet_store.get_wallets().await?);
         let mut version = self.preferences.get_subscriptions_version();
         let remote = self.get_or_create(&device).await?;
 

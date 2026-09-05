@@ -5,11 +5,12 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
-use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::GemTransferAmount;
+use primitives::AssetPrice;
 use primitives::{
-    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
+    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, SimulationWarning,
+    Transaction, Wallet,
 };
 
 pub type GemAccount = Account;
@@ -18,14 +19,6 @@ pub type GemAccount = Account;
 pub struct GemConfirmInput {
     pub from: GemAccount,
     pub transfer: GemTransferData,
-}
-
-#[derive(uniffi::Record)]
-pub struct GemConfirmInitialState {
-    pub fee_priority: FeePriority,
-    pub fee_asset: Asset,
-    pub metadata: Option<GemConfirmMetadata>,
-    pub simulation: Option<GemConfirmSimulation>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -97,20 +90,20 @@ pub enum GemAcquireAssetFlow {
 pub struct GemConfirmMetadata {
     pub asset_balance: GemAssetBalance,
     pub fee_asset_balance: GemAssetBalance,
-    pub prices: Vec<GemAssetPrice>,
+    pub prices: Vec<AssetPrice>,
 }
 
 #[uniffi::export]
 impl GemConfirmMetadata {
-    pub fn price(&self, asset_id: AssetId) -> Option<GemAssetPrice> {
+    pub fn price(&self, asset_id: AssetId) -> Option<AssetPrice> {
         self.prices.iter().find(|price| price.asset_id == asset_id).cloned()
     }
 
-    pub fn asset_price(&self) -> Option<GemAssetPrice> {
+    pub fn asset_price(&self) -> Option<AssetPrice> {
         self.price(self.asset_balance.asset_id.clone())
     }
 
-    pub fn fee_price(&self) -> Option<GemAssetPrice> {
+    pub fn fee_price(&self) -> Option<AssetPrice> {
         self.price(self.fee_asset_balance.asset_id.clone())
     }
 }
@@ -136,7 +129,7 @@ pub struct GemFeeRateRows {
 pub struct GemFeeAsset {
     pub asset: Asset,
     pub balance: GemAssetBalance,
-    pub price: Option<GemAssetPrice>,
+    pub price: Option<AssetPrice>,
 }
 
 impl GemConfirmSimulation {
@@ -152,13 +145,19 @@ impl GemConfirmSimulation {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
+    pub fee_asset: Asset,
+    pub metadata: GemConfirmMetadata,
     pub fee_assets: Vec<GemFeeAsset>,
-    pub preload: GemConfirmPreload,
     pub simulation: GemConfirmSimulationState,
+    pub address_name: Option<AddressName>,
+    pub preload: Option<GemConfirmPreload>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulationState {
+    pub chain: Chain,
+    pub result: Option<SimulationResult>,
+    pub warnings: Vec<SimulationWarning>,
     pub simulation: Option<GemConfirmSimulation>,
     pub address_names: Vec<AddressName>,
 }
@@ -169,11 +168,15 @@ pub enum GemTransferAmountResult {
     Error { error: GemConfirmError },
 }
 
+pub struct GemConfirmFeeLoad {
+    pub fee_asset: Asset,
+    pub metadata: GemConfirmMetadata,
+    pub preload: GemConfirmPreload,
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmPreload {
     pub confirm_data: GemConfirmData,
-    pub metadata: GemConfirmMetadata,
-    pub fee_asset: Asset,
     pub amount: GemTransferAmountResult,
 }
 
@@ -214,7 +217,7 @@ mod tests {
             asset_id: AssetId::from_chain(chain),
             ..GemAssetBalance::mock()
         };
-        let price = |chain: primitives::Chain, value: f64| GemAssetPrice {
+        let price = |chain: primitives::Chain, value: f64| AssetPrice {
             asset_id: AssetId::from_chain(chain),
             price: value,
             price_change_percentage_24h: 0.0,

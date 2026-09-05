@@ -50,7 +50,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     currency: currency,
                     swapPriceImpact: fromAssetPrice.swapValue(BigUInt(quote.fromValueBigInt))
                         .priceImpact(receive: toAssetPrice.swapValue(BigUInt(quote.toValueBigInt)))
-                        .flatMap { try? Primitives.SwapPriceImpact($0) },
+                        .map { $0.map() },
                     minReceiveValue: BigInt(summary.minReceiveValue()),
                     etaMinutes: summary.etaMinutes(),
                 ),

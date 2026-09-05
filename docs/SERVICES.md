@@ -352,44 +352,34 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
-- **The amount providers still mirror each other.** `GemAmountType::validate` now checks a value
-  against the type's own available value and minimum, so neither app hands those in, and
-  `GemAmountService { stake, preferences }` answers the currency, the earn data and the perpetual
-  defaults on both apps: `perpetual_leverage(max_leverage)` picks the preferred option and
-  `perpetual_autoclose(price, direction, leverage)` turns the preference percents into target
-  prices, so neither app reads the perpetual preferences or runs the estimator itself (Android's
-  `AmountPerpetualProvider` took `UserConfig` for that, and `AmountViewModel` read the currency
-  off the price with a `USD` fallback). The stake and earn confirm transfers are Core's too:
-  `stake_transfer_data(asset, stake_type, value, use_max_amount)` (on `GemAmountService` and
-  `GemStakeService`, for the amount screen and the stake/delegation screens) names the validator
-  as the recipient, carries the resource for a freeze, and keeps max only for a new stake or a
-  freeze; `GemAmountService::earn_transfer_data(asset, earn_type, value, use_max_amount)` finds
-  the account on the session wallet, asks the gateway for the contract call and addresses it to
-  the contract under the provider name, so `get_earn_data` is no longer exported. Android's
-  `GemTransferData.stake` (with its `StakeType.validatorId` switch) and iOS's inline
-  `TransferData(...)` builders are gone. What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
-  `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
-  `providers/*` each build the type-specific confirm input; the screen state is one Core answer,
-  `GemAmountType::input(asset, balance) -> GemAmountInput { available_value, max_value,
-  reserved_fee: Option, can_change_value, shows_asset_balance }` (the former `rules` + `limits`
-  pair — `reserved_fee` is `Some` exactly when the max keeps a fee back, which is the note both
-  screens show at max; the minimum is Core's to validate, not the app's to read), so iOS's
-  `AmountDataProvidable` extension and Android's five derived provider flows are one `input`
-  each, and the perpetual order is Core's too:
-  `GemPerpetualDetailsService::position_action` builds the action the position screen hands over
-  and `GemAmountService::perpetual_transfer_data` turns it into the transfer, so the per-app
-  `PerpetualTransferData`, `PerpetualPositionAction`, `PerpetualOrderFactory` and
-  `PerpetualOrder+GemstonePrimitives` are gone; the chart takes the `Perpetual` itself —
-  `GemPerpetualDetailsService::{candlesticks, candle_subscription, market_subscription}` derive
-  the Hyperliquid symbol and `apply_candle_update(candles, update, perpetual, period)` answers
-  whether a socket candle belongs to this chart and merges it, so the per-app `coin` derivation
-  and the interval/coin filters are gone (`limits` is infallible — the available value exists for
-  every type — so neither app carries a catch that handed back zero limits; the balance they hand
-  in is the one `GemAssetBalance` record, bridged once per app). What is left per app is the
-  input text ↔ value conversion (both through Core converters) and the type-specific
-  `makeTransferData` / `buildTransfer` dispatch.
+- **The amount providers hand Core their inputs and take Core's types back.**
+  `GemAmountType::validate` checks a value against the type's own available value and minimum,
+  and `GemAmountService { stake, preferences, session }` answers the currency, the earn data and
+  the perpetual defaults on both apps: `perpetual_leverage(max_leverage)` picks the preferred
+  option and `perpetual_autoclose(price, direction, leverage)` turns the preference percents into
+  target prices. The confirm transfers are Core's: `stake_transfer_data(asset, stake_type, value,
+  use_max_amount)`, `earn_transfer_data(asset, earn_type, value, use_max_amount)`,
+  `perpetual_transfer_data(action, value, use_max_amount, leverage, take_profit, stop_loss)` and
+  `transfer_data(asset, GemAmountTransfer::{Send { recipient } | Deposit | Withdraw}, value,
+  use_max_amount)` — the last addresses a deposit to the Hypercore deposit address and a
+  withdrawal to the session wallet's own account (named after the wallet, as iOS did; Android
+  passed the bare address and iOS's callers built both recipients themselves). The screen state
+  is one Core answer, `GemAmountType::input(asset, balance) -> GemAmountInput`, and the type
+  itself is Core's to build: `perpetual_amount_type(action, leverage)` (position, direction,
+  price and size decimals from the action), `stake_amount_type(stake_type, delegations)` (the
+  rewards case keeps only the delegations of the chosen validators) and
+  `earn_amount_type(earn_type)`, so each app builds one `StakeType` and asks Core for the amount
+  type instead of keeping a second, parallel `GemAmountStakeType` builder; iOS's
+  `AmountStakeViewModel.getStakeType()` (throwing) and Android's `AmountStakeProvider` duplicate
+  `when (params)` are gone. `GemAmountType::can_switch_input_type()` is true for a send only —
+  Android let deposit and withdraw toggle fiat input, iOS did not. What is left on the apps: the
+  provider objects themselves (`AmountTransferViewModel`, `AmountStakeViewModel`,
+  `AmountPerpetualViewModel`, `AmountEarnViewModel`; Android's `providers/*`) that load the
+  delegations, validators and perpetual market the type needs, hold the validator/resource/
+  leverage/autoclose selection, and format titles.
 - **The generator is the way a duplicated type stops being duplicated.** Adding a fieldless enum or
-  a scalar-field record to `core/bin/generate/remote_types.yml` replaces a hand-written mapper on
+  a record of scalars, remote types, codes and identifiers (plain, `Option` or `Vec`) to
+  `core/bin/generate/remote_types.yml` replaces a hand-written mapper on
   both apps at once: `Account`, `Chain`, `ChainType`, `ConnectionStatus`, `ConnectionComponent`,
   `LinkType`, `PriceAlertDirection`, `PriceAlertNotificationType`, `AssetFiatValue`,
   `TotalFiatValue` and `SwapProvider` moved that way, each deleting an app-side copy and, in four
@@ -402,8 +392,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
   screen takes `GemTransactionLoadFee` and `GemTransferDataExtra` straight from Core, as Android
   always has. Teaching the generator about associated values is still what a data-carrying enum
   needs before it can cross typed.
-- **Screens read their rows from one Core answer.** `GemTransactionDetailsService::details`
-  (swap progress steps, swap-again, provider name, confirmation ETA, pnl, price) and
+- **Screens read their rows from one Core answer.** `GemTransactionDetailsService::detail_rows`
+  (header, header action, swap progress steps, swap-again, provider name, confirmation ETA,
+  participant, memo, resource, rate, pnl, price, fee, explorer link) and
   `GemAssetBalance::detail_rows` (available, staked, earn, pending, reserved) replaced the
   per-row predicates both apps kept — Android had mapped the transaction state to swap-progress
   step statuses a third time inside a Compose item. Left on the apps: formatting, titles, and the
@@ -665,6 +656,145 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `Wallet.onboardingBannerKey`, the home's `showWelcomeBanner`/`onHideWelcomeBanner` and
   `GemBannerService::shows_onboarding` are gone, and the DAO no longer pre-filters banner
   states in SQL — Core's `is_visible` decides.
+  The onboarding row itself is seeded first in `GemAppStartService::setup_wallet`, ahead of the
+  default-asset and balance setup that fetches prices; app-start banner seeding likewise runs
+  before the config fetch. The migration had queued both local writes behind a network round
+  trip, which surfaced as the "wallet is ready" banner appearing a second or two after a new
+  wallet's home screen on both apps.
+- **iOS consumes Core's URL action, address formatting and autoclose validation directly.**
+  `URLParser` and the hand-written `URLAction`/`DeepLink`/`WalletConnectAction` enums with their
+  three mappers are gone; `NavigationHandler` and the developer menu take `Gemstone.UrlAction` and
+  `Deeplink`. `AddressFormatter`, a struct around a module-level `GemAddressService`, is replaced by
+  `GemAddressService.shared` plus a `Primitives.Chain` overload in `GemstonePrimitives/Services`.
+  Both apps' `AutocloseValidator` forwarders are deleted: Core's `validate` takes an optional price,
+  so the "unset trigger is valid" rule Android kept in Kotlin lives in Core, and iOS's text
+  validator moved into the Perpetuals feature together with `PerpetualError`.
+- **A recipient with an optional amount is one Core record on both apps.** iOS's `RecipientData`
+  and Android's `PaymentRecipient` were the same `{ GemRecipient, amount? }` pair, each rebuilt by
+  hand from `GemPaymentDestination`'s loose fields. `GemPaymentRecipient` now sits inside
+  `GemPaymentDestination::{Recipient, SelectAsset}` and is the type both apps carry through the
+  send, stake, earn and perpetual amount flows (Android routes serialize it through
+  `GemPaymentRecipientSerializer`, registered contextually on `jsonEncoder`). iOS's
+  `PerpetualRecipientData` is gone: the perpetual sheet and amount scene carry the
+  `GemPerpetualPositionAction` itself, matching Android's `AmountParams.Perpetual`, and the
+  action's `recipient()` comes from Core.
+- **The generator owns the iOS JSON-bridge list, `map()` for code types, and three more remote
+  types.** `GemstonePrimitives/Sources/Generated/JsonBridge.swift` is emitted from Core's
+  `json_bridge!` list, so the hand-kept `JsonCodable` conformances (which had drifted to 22 types
+  Core no longer bridges) are gone; the generator also emits `map()` for `codes` types, replacing
+  the hand-written `Chain.map()`. `ApplicationMetadata`, `ApplicationMetadataSource` and
+  `BlockExplorerLink` moved into `remote_types.yml`: the block explorer link was a hand-declared
+  `#[uniffi::remote]` alias with an iOS init and a Kotlin constructor at every site, and
+  application metadata crossed as JSON into `short_name`, `GemTransactionInputType::Generic` and
+  the WalletConnect session. Deleted on iOS: the `GemConfirm`, `SwapperQuoteAsset`, `AssetScore`,
+  `Wallet.legacyV3Id` (now beside the v3 migration in `LocalKeystore`), `GemKeystore` (test-kit
+  only) and `KeystoreImportType` extensions plus the `KeystoreImportType` enum itself, whose
+  `walletType` rule was dead; the import scene builds `GemWalletImportType` directly.
+  `GemApplicationMetadataService` and `PriceAlertFormatter` gained `.shared` instances, and the
+  banner key and action accessors no longer pretend to throw.
+- **Asset links are ordered by Core on both apps.** iOS's `[AssetLink].sortedByType` and
+  Android's `sortedByDescending { it.linkType?.order }` were the same sort written twice around
+  the exported `link_type_order`. `GemSocialLinks::sorted` now does it in Core over the remote
+  `AssetLink` record, `link_type_order` is no longer exported, and the iOS `LinkType.order` and
+  `Asset(chain)` extensions are gone (the chain's asset comes from `Chain.asset`).
+- **One serializer carries any Core record through Android navigation.** Route payloads held
+  three hand-written `KSerializer`s: field-by-field surrogates for `GemRecipient` and
+  `GemPaymentRecipient`, and a `GemTransferService` JSON codec for the position action, with a
+  fourth codec pair (`encode_transfer_data`) behind `pack`/`unpack` for the confirm route. UniFFI
+  already generates a public `FfiConverter` per record, so `GemRecordSerializer` writes any record
+  through it as bytes, `gemRecordSerializers` registers the four route records contextually on
+  `jsonEncoder`, and a route field is just `@Contextual GemTransferData`. The Core codecs are gone,
+  and with them `GemTransferService`, which had nothing left; adding a record to a route is one
+  registry line.
+- **A primitives type Core accepts from an app lifts from the app's model.** Buying on Android
+  crashed in `amount_check(quote: FiatQuote)`: the app re-encodes its TypeShare model, which
+  lacks every `#[typeshare(skip)]` field, so Core's serde lift fails. `FiatQuote.asset` is now
+  visible (it was already in the API JSON), `value` and `latency` stay Core-side but default on
+  decode, and the sell check derives the value from `crypto_amount` and the asset decimals
+  (`rules::quote_value`, the backend's own formula) instead of trusting a field the app cannot
+  carry. Reporting an NFT would have failed the same way on `ReportNft.device_id`, which the
+  signed device request already carries; the field is gone and `ReportNft` crosses typed as a
+  remote record. Still bridged with required skipped fields, and therefore never to be accepted
+  from an app: `FiatQuoteRequest`, `Rewards`, `ScanTransaction`.
+- **Wallet search limits are one Core rule on both apps.** Each app had a `WalletSearchConfig`
+  wrapper that only cast the config integers, and the rules around them had drifted: iOS fetched
+  the results limit while searching where Android fetched the asset limit plus one, and iOS's
+  results screen hard-coded its own limit. `GemAssetSelectionService::wallet_search_limits(query)`
+  now returns the asset, fetch, perpetual, NFT and results limits for a query (fetch is always
+  one more than shown, so "has more" is answerable); the wrappers, Core's `WalletSearchConfig`
+  record and the iOS `WalletSearchMode` are gone.
+- **The add-contact sheet carries a `GemRecipient` and a `Chain`, not an iOS-only pair.** iOS
+  wrapped them in `ChainRecipient` for `AddContactType` and the two contact modes; the wrapper is
+  gone, the sheet id uses `GemRecipient::identifier`, and both modes build Core's
+  `GemContactAddressInput` from the recipient directly. Android has no add-contact-from-address
+  flow yet, so there is nothing to converge there.
+- **No fieldless enum crosses the FFI as JSON any more.** `AccountDataType`, `Appearance`,
+  `Platform` and `SolanaTokenProgramId` were the last ones still on the `json_bridge!` list while
+  crossing directly (the transaction input account type, the preferences appearance, the device
+  platform, the Solana load metadata); they are `remote_types.yml` entries now, so the apps pass
+  the generated `map()` / `toGem()` value instead of `json()` / `toJson()` and read it back with
+  `map()` / `toPrimitives()` instead of a JSON decode. `DeviceLocale`, `NFTAttributeType`,
+  `NFTType`, `SwapPriceImpactType` and `SwapQuoteDataType` only ever appeared nested inside other
+  bridged types, so their bridge entries and iOS `JsonCodable` conformances were dead and are gone.
+- **`Wallet` crosses the FFI typed.** It was the most-used JSON bridge type: about fifty call
+  sites per app encoded a wallet to JSON before every Core call and decoded every wallet Core
+  returned, including the wallet store callback and the transaction signer. The generator now
+  handles `Vec` fields and nested remote records, so `Wallet` (`WalletId` identifier, `WalletType`
+  and `WalletSource` enums, `Vec<Account>`) is a `remote_types.yml` record; the apps pass
+  `wallet.map()` / `wallet.toGem()` and read `.map()` / `.toPrimitives()`. Android identifiers
+  are lifted through the primitives constructor (`AssetId(id)`, `WalletId(id)`) instead of a
+  nullable parser plus `!!`; iOS `WalletId` gained the `init(core:)` / `identifier` pair the
+  identifier convention expects.
+- **`AssetPrice` and `PriceAlert` cross the FFI typed, and Core's `GemAssetPrice` is gone.**
+  `GemAssetPrice` duplicated `primitives::AssetPrice` field for field; the price store callback,
+  the confirm metadata and the fee assets now carry the primitives record. Two generator gaps
+  closed on the way: `DateTime<Utc>` fields are declared through Core's `DateTimeUtc` custom type,
+  which `uniffi.toml` now maps to `Date` on iOS and to epoch milliseconds (`Long`) on Android, the
+  same shapes TypeShare gives the primitives models, so timestamps map as identity and the
+  hand-written seconds/milliseconds conversions in both price stores are gone; and a
+  `#[typeshare(skip)]` field is declared on the Rust record, left out of the Core → app mapper, and
+  filled with the type's empty value on the way back (`PriceAlert.identifier`, a `#[serde(skip)]`
+  cache Core already received empty from the JSON bridge). The price alert service, formatter and
+  stores pass `map()` / `toGem()` values on both apps.
+- **Validators, address names, contacts, nodes, releases and chain addresses cross the FFI typed,
+  and `TransactionId` is an identifier.** `DelegationValidator`, `AddressName` (with
+  `AddressType`), `Contact`, `ContactAddress`, `Node` (with `NodeState`), `Release` and
+  `ChainAddress` are `remote_types.yml` records now, so the stake, address, contact and node store
+  callbacks, the contact and app-update service wrappers, the stake view models, the WalletConnect
+  and confirm address-name readers and the payment loader pass typed values instead of JSON on
+  both apps. `TransactionId` joins `AssetId` and `WalletId` as a string custom type (Core parses it
+  with `FromStr`), so the transaction-state store callbacks receive the identifier and build the
+  app's `TransactionId` from it; the Kotlin type gained the string constructor the identifier
+  convention expects. The generator now only considers `#[typeshare]` declarations and fails when a
+  configured name is declared more than once, because `primitives` had two `Node` structs.
+- **Perpetuals, charts, fiat rates, balance metadata and swap price impact cross the FFI typed.**
+  `Perpetual`, `PerpetualPosition` (with `PerpetualTriggerOrder`), `PerpetualBalance`,
+  `PerpetualMarketData`, `PerpetualData`, `PerpetualMetadata`, `PerpetualPositionsSummary`,
+  `ChartDateValue`, `ChartCandleStick`, `ChartCandleUpdate`, `FiatRate`, `BalanceMetadata` and
+  `SwapPriceImpact` (with `SwapPriceImpactType`) are `remote_types.yml` records, and `PerpetualId`
+  is an identifier, so the perpetual, price and balance store callbacks, the Hyperliquid socket
+  message payloads, the candle and market subscriptions, the chart scene, the swap price impact
+  readers and the fee-asset balance mapping pass typed values on both apps; the Kotlin
+  `PerpetualId` gained the string constructor and the iOS one the `init(core:)` the identifier
+  convention expects. The generator now walks `primitives/src` recursively and names Kotlin types
+  by the TypeShare package of their subdirectory (`com.wallet.core.primitives.swap` for the swap
+  types), and it keeps a field's Rust name when the struct has no `#[serde(rename_all)]`, because
+  TypeShare emits `order_type` for `PerpetualTriggerOrder` on both apps.
+- **WalletConnect sessions, connections, proposals and name records cross the FFI typed.**
+  `WalletConnectionSession` (with `WalletConnectionState`), `WalletConnection`,
+  `WalletConnectionSessionProposal` and `NameRecord` (with `NameProvider`) are `remote_types.yml`
+  records, so the connection store callbacks, the session sync and add-connection paths, the
+  pairing proposal, the message and transaction requests' session, the recipient validation and
+  the name lookup pass typed values on both apps; the Android pending request keeps the typed
+  session instead of a JSON string it decoded lazily.
+- **NFT collections, assets and the device record cross the FFI typed.** `NFTData`, `NFTAsset`,
+  `NFTCollection`, `NFTAssetData`, `NFTAttribute`, `NFTImages` and `NFTResource` (with the
+  `NFTType` and `NFTAttributeType` enums) and `Device` (with `DeviceLocale`) are `remote_types.yml`
+  records, and `NFTAssetId` / `NFTCollectionId` are identifiers, so the NFT store callbacks, the
+  collection sorting and filtering, the NFT search items, the transfer-NFT input and the
+  transaction header pass typed values on both apps; the Kotlin identifier types gained the string
+  constructors and the iOS ones the `init(core:)` the identifier convention expects, and the
+  hand-written Android NFT asset JSON mapper is gone.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per
@@ -682,11 +812,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
   view-model tests stub the mock's answer instead of the request's.
 - **Which quote the swap screen shows is Core's pick.** Both apps kept "the preferred provider's
   quote, else the first" — iOS inline in `performFetch`, Android as `SwapQuotesResult.getQuote`.
-  `GemSwapQuoteService::selected_quote(quotes, preferred)` (`rules::selected_quote`, tested)
-  answers it; iOS calls it when quotes arrive and Android's `SwapQuoteSession` stores
-  `selectedQuote` from it on `onQuoteResults` / `onProviderSelected`, the two transitions that
-  can change it. The mocks state the same premise so the provider-selection view-model tests
-  keep their meaning.
+  `rules::selected_quote(quotes, preferred)` (tested) answers it inside `GemSwapSession` on
+  `on_quote_results` / `on_provider_selected`, the two transitions that can change it; the
+  export the apps used to call is gone with their session copies.
 - **The recommended validators section is one Core answer.** Both validator-select screens
   asked `GemStakeService::recommended_validator_ids(chain)` and then ran the same
   `validators.filter { ids.contains(id) }` themselves; `recommended_validators(chain, validators)`
@@ -829,6 +957,81 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `refresh(assetIds)`, hide it in `finally`; the import screen no longer calls anything after
   `importWallet` + `setCurrentWalletId`. The five import-state files and their DI providers are
   deleted; `AssetsViewModelTest` covers the first-load and already-loaded answers.
+- **Transaction rows and details are one Core answer each.** `GemTransactionRow::new(extended)`
+  returns the list row (title, subtitle with the counterparty's address *and* its known name or the
+  resource or the perpetual price, value and equivalent value as `GemTransactionAmount { asset,
+  value, sign, price }` / fiat / pnl / symbol, NFT image URL), and
+  `GemTransactionDetailsService::detail_rows(extended)` returns the whole details screen
+  (`GemTransactionDetailRows`: header as amount-with-fiat-flag / swap legs / NFT / symbol / asset
+  image, header tap action, participant with name and `can_add_contact`, provider, memo, resource,
+  swap rate with both legs, pnl, price, fee with its price, explorer link). Each app used to
+  re-derive all of it — resolving swap legs against the transaction's asset list, deciding when a
+  swap has a rate, filtering empty memos, deriving the perpetual notional in collateral decimals,
+  mapping the header kind back to metadata, and choosing the header action by transaction type —
+  iOS in `TransactionViewModel` + `TransactionSceneViewModel` + `TransactionHeaderTypeBuilder`,
+  Android in `TransactionDataAggregateImpl` + `TransactionDetailsAggregateImpl` (which also
+  loaded the wallet assets a second time for the swap header). The app view models now format
+  `GemTransactionAmount` values and map Core enums to strings; Android's details coordinator lost
+  its `GetWalletAssets` dependency and its `Amount.None` state, and both apps' details tests feed
+  Core rows instead of re-encoding swap metadata. Core tests pin the swap-leg resolution, the
+  known-address name, the NFT image and perpetual notional, the detail header/participant/rate/fee
+  build, and the both-legs-non-zero rate rule.
+- **The rewards screen state is Core's answer.** `GemRewardsService::state(rewards)` returns
+  `GemRewardsState { has_referral_code, has_used_referral_code, can_invite,
+  can_use_referral_code, shows_info, is_unverified, has_pending_referral,
+  can_activate_pending_referral }` from the `Rewards` the same service fetched. The apps had
+  diverged: iOS offered the invite button to any wallet with a code that was not unverified
+  (including a disabled one), Android only for `Verified | Trusted | Attribution`; iOS hid the
+  "use a referral code" action once a code was used, Android dropped every `Rewards` without an
+  own code on the floor (so a wallet that had used a friend's code never saw its pending
+  referral); iOS activated a pending referral at `>=` verify-after, Android at `>`. Core keeps
+  the status-based invite rule, iOS's use-a-code and info rules, requires a used code for a
+  pending referral and activates at `>=`, each pinned by a test. `Rewards` now lifts from the
+  app-encoded JSON (the two non-typeshare fields default), pinned by a Core test on the app
+  shape. iOS `RewardsViewModel` lost seven booleans and Android `RewardsUIState` and its test
+  are deleted; both scenes read the one record.
+- **The asset screen's visibility is Core's answer.** `GemAssetDetailsService::state(wallet_type,
+  chain, metadata, balance, banner_events, has_price, price_alerts_count)` returns
+  `GemAssetDetailsState { is_view_only, header_buttons: [GemHeaderButton { kind, is_enabled }],
+  shows_banners, shows_manage, shows_resources, shows_price_alerts, shows_earn,
+  empty_transactions_action }`. `AssetMetaData` crosses typed for it (it was a typeshare-only
+  declaration; it is a `primitives` struct now). The apps had diverged: iOS disabled the header
+  buttons behind an `ActivateAsset` or multi-signature banner, Android only behind the wallet's
+  multi-signature banner; Android hid the manage section for a token not yet in the wallet,
+  iOS showed it (that is where "add to wallet" lives); Android showed the price-alerts row
+  whenever alerts existed, iOS only with a price; Android showed the Tron resources whenever
+  balance metadata existed, iOS only on a freeze-staking chain. Core keeps the banner-event
+  rule, iOS's manage, price-alerts and resources rules, hides buttons, banners and earn from a
+  view-only wallet, and picks the empty-transactions action (buy, then swap), each pinned by a
+  test. iOS `AssetSceneViewModel` lost `showResources`/`showManageToken`/`canSign`/
+  `showPriceAlerts` and `AssetHeaderViewModel` reads the buttons from the state; Android
+  `AssetDetailsViewModel` lost `HasMultiSign` and `isOperationEnabled`, observes the asset's
+  active banners and price alerts instead, `AccountInfoUIModel.walletType` is gone and
+  `AssetHeadActions` takes `GemHeaderButton`s (the home header builds them from its summary
+  until it moves to Core too).
+- **The swap screen's quote and transfer lifecycle is one Core value.** `GemSwapSession`
+  (from `GemSwapQuoteService::new_session()`) is an immutable record whose transitions return
+  the next session: `on_request_changed`, `on_refresh_requested`, `on_fetch_started`,
+  `on_quote_results`, `on_provider_selected`, `on_quote_invalidated`, `on_refresh_resumed`,
+  `start_transfer`, `on_transfer_failed`, `on_transfer_handed_off`, `on_transfer_abandoned`;
+  and whose answers are `quote()`, the quote and transfer errors, the loading flags,
+  `refreshes_quotes(is_screen_active)`, `action()` (none / quote loading / ready / transfer
+  loading / quote error / transfer error), `button_action(value, available)` and
+  `button_state(action)`. The rules it pins: results for a request that is no longer current, or
+  that arrive while a transfer is in flight, do not replace the quote the user is confirming;
+  the chosen provider survives an amount or slippage change and a refresh, falls back to the best
+  quote when it disappears, and is dropped when the pair changes; a transfer outcome applies only
+  to the transfer that started it; handing a transfer to the confirm screen pauses quote
+  refreshes until the screen resumes, and any quote-changing action clears a failed transfer.
+  Android's `SwapQuoteSession` (a hand-written copy of exactly this) and `SwapUiState`'s
+  derivations are deleted, its `SwapQuoteRequestKey` carries the atomic value so it maps to
+  `GemSwapRequest`, and `SwapViewModel` only forwards events; iOS's `SwapState` (two
+  `StateViewType`s plus `selectedSwapQuote`/`preferredProvider` and the "is the transfer still
+  loading / is the input still current" guards spread over `SwapSceneViewModel`) is gone, the
+  scene reads the session, and iOS now pauses refreshes after the confirm handoff like Android.
+  `GemSwapQuoteService::selected_quote` is un-exported: the session picks the quote itself.
+  Still open, and still product calls: the minimum-amount button copy and whether selecting a
+  swap asset enables it on the wallet.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

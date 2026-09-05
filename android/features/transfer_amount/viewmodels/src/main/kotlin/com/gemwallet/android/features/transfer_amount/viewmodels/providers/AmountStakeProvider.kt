@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemAmountStakeType
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemTransferData
 import com.wallet.core.primitives.RedelegateData
@@ -53,7 +52,6 @@ class AmountStakeProvider(
 ) : AmountDataProvider(scope) {
 
     override val title: AmountTitle = AmountTitle.Stake(params)
-    override val canSwitchInputType: Boolean = false
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)
@@ -164,37 +162,34 @@ class AmountStakeProvider(
     }
 
     override val amountType: StateFlow<GemAmountType?> =
-        combine(delegation, selectedResource) { currentDelegation, currentResource ->
-            val stakeType = when (params) {
-                is AmountParams.Stake.Delegate -> GemAmountStakeType.Stake
-                is AmountParams.Stake.Undelegate -> currentDelegation?.let { GemAmountStakeType.Unstake(it.toJson()) }
-                is AmountParams.Stake.Redelegate -> currentDelegation?.let { GemAmountStakeType.Redelegate(it.toJson()) }
-                is AmountParams.Stake.Withdraw -> currentDelegation?.let { GemAmountStakeType.Withdraw(it.toJson()) }
-                is AmountParams.Stake.Rewards -> GemAmountStakeType.Rewards(listOfNotNull(currentDelegation).map { it.toJson() })
-                is AmountParams.Stake.Freeze -> GemAmountStakeType.Freeze(currentResource.toGem())
-                is AmountParams.Stake.Unfreeze -> GemAmountStakeType.Unfreeze(currentResource.toGem())
-            }
-            stakeType?.let { GemAmountType.Stake(it) }
+        combine(delegation, validatorState, selectedResource, rewardsDelegations) { currentDelegation, currentValidator, currentResource, rewards ->
+            stakeType(currentDelegation, currentValidator, currentResource)?.let { service.stakeAmountType(it.toJson(), rewards.map { delegation -> delegation.toJson() }) }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         val current = assetInfo.value ?: error("assetInfo not loaded")
-        val stakeType: StakeType = when (params) {
-            is AmountParams.Stake.Delegate -> StakeType.Stake(currentValidator)
-            is AmountParams.Stake.Redelegate -> StakeType.Redelegate(RedelegateData(currentDelegation, currentValidator))
-            is AmountParams.Stake.Undelegate -> StakeType.Unstake(currentDelegation)
-            is AmountParams.Stake.Withdraw -> StakeType.Withdraw(currentDelegation)
-            is AmountParams.Stake.Rewards -> StakeType.Rewards(listOf(currentValidator))
-            is AmountParams.Stake.Freeze -> StakeType.Freeze(selectedResource.value)
-            is AmountParams.Stake.Unfreeze -> StakeType.Unfreeze(selectedResource.value)
-        }
+        val stakeType = stakeType(delegation.value, validatorState.value, selectedResource.value) ?: throw missingSelection()
         return service.stakeTransferData(current.asset.toGem(), stakeType.toJson(), amount.atomicValue, isMax)
     }
 
-    private val currentValidator: DelegationValidator
-        get() = validatorState.value ?: throw AmountError.NoValidatorSelected
+    private fun stakeType(delegation: Delegation?, validator: DelegationValidator?, resource: Resource): StakeType? = when (params) {
+        is AmountParams.Stake.Delegate -> validator?.let { StakeType.Stake(it) }
+        is AmountParams.Stake.Redelegate -> if (delegation != null && validator != null) StakeType.Redelegate(RedelegateData(delegation, validator)) else null
+        is AmountParams.Stake.Undelegate -> delegation?.let { StakeType.Unstake(it) }
+        is AmountParams.Stake.Withdraw -> delegation?.let { StakeType.Withdraw(it) }
+        is AmountParams.Stake.Rewards -> validator?.let { StakeType.Rewards(listOf(it)) }
+        is AmountParams.Stake.Freeze -> StakeType.Freeze(resource)
+        is AmountParams.Stake.Unfreeze -> StakeType.Unfreeze(resource)
+    }
 
-    private val currentDelegation: Delegation
-        get() = delegation.value ?: throw AmountError.NoDelegationSelected
+    private fun missingSelection(): AmountError = when (params) {
+        is AmountParams.Stake.Delegate,
+        is AmountParams.Stake.Rewards -> AmountError.NoValidatorSelected
+        is AmountParams.Stake.Redelegate -> if (delegation.value == null) AmountError.NoDelegationSelected else AmountError.NoValidatorSelected
+        is AmountParams.Stake.Undelegate,
+        is AmountParams.Stake.Withdraw,
+        is AmountParams.Stake.Freeze,
+        is AmountParams.Stake.Unfreeze -> AmountError.NoDelegationSelected
+    }
 
 }

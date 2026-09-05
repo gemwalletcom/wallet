@@ -2,7 +2,6 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
-import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmState
@@ -24,6 +23,7 @@ import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
+import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSession
@@ -58,7 +58,6 @@ import java.math.BigInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRetryTest {
 
-    private val transferService = GemTransferService()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
@@ -95,34 +94,32 @@ class ConfirmViewModelRetryTest {
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
-        every { confirmService.confirmInput(transfer) } returns input
+        every { confirmService.confirmInput(any(), transfer) } returns input
+        coEvery { confirmService.initialState(any(), any()) } returns mockGemConfirmLoad(asset)
         var calls = 0
         coEvery { confirmService.load(any(), any(), any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
             } else {
-                GemConfirmLoad(
-                    feeAssets = emptyList(),
-                    simulation = GemConfirmSimulationState(simulation = null, addressNames = emptyList()),
+                mockGemConfirmLoad(
+                    asset = asset,
                     preload = GemConfirmPreload(
-                    confirmData = GemConfirmData(
-                        fee = GemTransactionLoadFee(
-                            fee = BigInteger.ONE,
-                            gasPriceType = GemGasPriceType.Regular(gasPrice = BigInteger.ONE),
-                            gasLimit = BigInteger.ONE,
-                            options = GemFeeOptions(emptyMap()),
-                            feeAsset = asset.id.chain.string,
+                        confirmData = GemConfirmData(
+                            fee = GemTransactionLoadFee(
+                                fee = BigInteger.ONE,
+                                gasPriceType = GemGasPriceType.Regular(gasPrice = BigInteger.ONE),
+                                gasLimit = BigInteger.ONE,
+                                options = GemFeeOptions(emptyMap()),
+                                feeAsset = asset.id.chain.string,
+                            ),
+                            selectedPriority = FeePriority.Normal.toGem(),
+                            feeRates = emptyList(),
+                            metadata = GemTransactionLoadMetadata.None,
+                            simulation = null,
+                            input = input,
                         ),
-                        selectedPriority = FeePriority.Normal.toGem(),
-                        feeRates = emptyList(),
-                        metadata = GemTransactionLoadMetadata.None,
-                        simulation = null,
-                        input = input,
-                    ),
-                    metadata = mockGemConfirmMetadata(asset),
-                    feeAsset = asset.toGem(),
-                    amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
+                        amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
                     ),
                 )
             }
@@ -135,8 +132,7 @@ class ConfirmViewModelRetryTest {
             },
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(transfer)))),
-            transferService = uniffi.gemstone.GemTransferService(),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
         )
     }
 }

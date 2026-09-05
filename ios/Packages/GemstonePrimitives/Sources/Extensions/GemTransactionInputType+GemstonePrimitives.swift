@@ -15,7 +15,7 @@ public extension GemTransactionInputType {
 
     var applicationMetadata: Primitives.ApplicationMetadata? {
         guard case let .generic(_, metadata, _) = self else { return nil }
-        return Primitives.ApplicationMetadata(core: metadata)
+        return metadata.map()
     }
 }
 
@@ -33,7 +33,7 @@ public extension GemTransactionInputType {
     }
 
     static func transferNft(_ nftAsset: Primitives.NFTAsset) -> Self {
-        .transferNft(asset: Primitives.Asset(nftAsset.chain).map(), nftAsset: nftAsset.json())
+        .transferNft(asset: nftAsset.chain.asset.map(), nftAsset: nftAsset.map())
     }
 
     static func swap(_ fromAsset: Primitives.Asset, _ toAsset: Primitives.Asset, _ swapData: Primitives.SwapData) -> Self {
@@ -49,7 +49,7 @@ public extension GemTransactionInputType {
     }
 
     static func account(_ asset: Primitives.Asset, _ accountType: Primitives.AccountDataType) -> Self {
-        .account(asset: asset.map(), accountType: accountType.json())
+        .account(asset: asset.map(), accountType: accountType.map())
     }
 
     static func perpetual(_ asset: Primitives.Asset, _ perpetualType: Primitives.PerpetualType) -> Self {
@@ -61,6 +61,6 @@ public extension GemTransactionInputType {
     }
 
     static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: GemTransferDataExtra) -> Self {
-        .generic(asset: asset.map(), metadata: metadata.json(), extra: extra)
+        .generic(asset: asset.map(), metadata: metadata.map(), extra: extra)
     }
 }

@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.WalletConnectionSessionProposal
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -15,6 +15,7 @@ import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
+import com.gemwallet.android.ext.toGem
 
 class PrepareSessionProposalImplTest {
 
@@ -28,22 +29,22 @@ class PrepareSessionProposalImplTest {
         source = ApplicationMetadataSource.WalletConnect,
     )
     private val walletConnectService = mockk<GemWalletConnectServiceInterface> {
-        every { applicationMetadata(metadata.name, metadata.description, metadata.url, listOf(metadata.icon)) } returns metadata.toJson()
+        every { applicationMetadata(metadata.name, metadata.description, metadata.url, listOf(metadata.icon)) } returns metadata.toGem()
     }
     private val subject = PrepareSessionProposalImpl(walletConnectService)
 
     @Test
     fun prepareSessionProposal_mapsCoreProposal() = runTest {
         val proposal = WalletConnectionSessionProposal(defaultWallet = currentWallet, wallets = wallets, metadata = metadata)
-        every {
+        coEvery {
             walletConnectService.prepareSessionProposal(
                 requiredChainIds = listOf("eip155:1"),
                 optionalChainIds = emptyList(),
-                metadata = metadata.toJson(),
+                metadata = metadata.toGem(),
                 origin = "https://app.example",
                 validation = WalletConnectionVerificationStatus.VERIFIED,
             )
-        } returns GemSessionProposal(proposal.toJson(), WalletConnectionVerificationStatus.VERIFIED)
+        } returns GemSessionProposal(proposal.toGem(), WalletConnectionVerificationStatus.VERIFIED)
 
         val prepared = prepare(requiredChainIds = listOf("eip155:1"))
 
@@ -53,7 +54,7 @@ class PrepareSessionProposalImplTest {
 
     @Test
     fun prepareSessionProposal_failsWhenCoreRejects() = runTest {
-        every { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.UnsupportedWallets()
+        coEvery { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.UnsupportedWallets()
 
         assertTrue(runCatching { prepare(requiredChainIds = listOf("eip155:1", "cosmos:unknown-9")) }.isFailure)
     }

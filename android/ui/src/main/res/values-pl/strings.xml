@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s jest wymagane</string>
   <string name="errors_scan_transaction_malicious_description">Nie można ukończyć tej transakcji — adres portfela docelowego jest powiązany z podejrzaną lub szkodliwą aktywnością.</string>
   <string name="errors_scan_transaction_memo_required">%1$s adres portfela docelowego wymaga znacznika/notatki docelowej</string>
-  <string name="errors_wallets_limit_title">Osiągnięto limit portfeli</string>
-  <string name="errors_wallets_limit_description">Osiągnięto maksymalną liczbę dozwolonych portfeli ( %1$d ). Usuń istniejący portfel, aby dodać lub utworzyć nowy.</string>
   <string name="errors_scan_transaction_malicious_title">Podejrzana aktywność</string>
   <string name="errors_connections_malicious_origin">To połączenie pochodzi z niezaufanego źródła.</string>
   <string name="errors_no_data_available">Brak dostępnych danych</string>

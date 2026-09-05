@@ -15,6 +15,7 @@ Guidance for Coding Agents (Claude Code, Codex, etc.) collaborating in this mono
 - [Code Review](skills/code-review.md) — Review checklist for correctness, conventions, parity, and adversarial security hardening
 - [Security](skills/security.md) — Wallet-critical security rules for key material, signing, auth, and transaction handling
 - [Localization](skills/localization.md) — Fluent sources, generation, and generated output locations for both apps
+- [Translation Review](.agents/skills/translation-review/SKILL.md) — Context, approved terminology, compact labels, and scheduled localization audits
 - [Maestro UI Testing](skills/testing-maestro.md) — When to use Maestro flows vs unit or native UI tests, and cross-platform authoring rules
 - [Release Process](skills/release-process.md) — Branching, versioning, commits, publication boundaries, store builds, and removing or disabling support
 - [Guidance Refresh](.agents/skills/guidance-refresh/SKILL.md) — How lessons become shared guidance, budgets, skill format, and the local sweep each teammate runs

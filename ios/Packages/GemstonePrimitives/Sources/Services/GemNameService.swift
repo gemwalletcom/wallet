@@ -5,6 +5,6 @@ import Primitives
 
 public extension GemNameServiceProtocol {
     func getNameRecord(name: String, chain: Chain) async throws -> NameRecord? {
-        try await getNameRecord(name: name, chain: chain.rawValue).map { try NameRecord($0) }
+        try await getNameRecord(name: name, chain: chain.rawValue).map { $0.map() }
     }
 }

@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s je vyžadováno</string>
   <string name="errors_scan_transaction_malicious_description">Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.</string>
   <string name="errors_scan_transaction_memo_required">Cílová adresa peněženky %1$s vyžaduje cílovou značku / poznámku</string>
-  <string name="errors_wallets_limit_title">Dosažen limit peněženek</string>
-  <string name="errors_wallets_limit_description">Dosáhli jste maximálního povoleného počtu peněženek ( %1$d ). Chcete-li přidat nebo vytvořit novou peněženku, odeberte existující peněženku.</string>
   <string name="errors_scan_transaction_malicious_title">Podezřelá aktivita</string>
   <string name="errors_connections_malicious_origin">Toto spojení pochází z nedůvěryhodného zdroje.</string>
   <string name="errors_no_data_available">Nejsou k dispozici žádná data</string>

@@ -194,7 +194,7 @@ extension WalletConnectorService {
     }
 
     private func metadata(_ metadata: AppMetadata) throws -> ApplicationMetadata {
-        try service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
+        service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
     }
 
     private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext) async throws {
@@ -205,7 +205,7 @@ extension WalletConnectorService {
             return
         }
 
-        let (payload, status) = try service.prepareSessionProposal(
+        let (payload, status) = try await service.prepareSessionProposal(
             requiredChainIds: proposal.requiredNamespaces.chainIds,
             optionalChainIds: proposal.optionalNamespaces?.chainIds ?? [],
             metadata: metadata(proposal.proposer),
@@ -219,7 +219,7 @@ extension WalletConnectorService {
             verificationStatus: status.map(),
         )
         let approvedWalletId = try await walletConnectorInteractor.sessionApproval(payload: payloadTopic)
-        let selectedWallet = try walletSessionService.getWallet(walletId: approvedWalletId)
+        let selectedWallet = try await walletSessionService.getWallet(walletId: approvedWalletId)
 
         let session = try await acceptProposal(proposal: proposal, wallet: selectedWallet)
         try await service.addConnection(WalletConnection(session: connectionSession(session), wallet: selectedWallet))

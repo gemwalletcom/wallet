@@ -65,14 +65,14 @@ public final class AddressInputViewModel {
         try nameService.recipient(
             chain: chain.rawValue,
             input: text,
-            nameRecord: nameResolveState.result?.json(),
+            nameRecord: nameResolveState.result?.map(),
             memo: memo,
             references: references,
         )
     }
 
     private var validation: GemRecipientValidation {
-        nameService.validateRecipient(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
+        nameService.validateRecipient(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.map())
     }
 
     @discardableResult
@@ -141,6 +141,6 @@ extension AddressInputViewModel {
     }
 
     private static func validators(chain: Chain, placeholder: String, nameService: any GemNameServiceProtocol) -> [any TextValidator] {
-        [.required(requireName: placeholder), .address(Asset(chain), nameService: nameService)]
+        [.required(requireName: placeholder), .address(chain.asset, nameService: nameService)]
     }
 }

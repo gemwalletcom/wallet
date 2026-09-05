@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemPerpetualPositionAction
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -13,16 +14,16 @@ struct PerpetualPositionNavigationStack: View {
 
     @State private var navigationPath = NavigationPath()
 
-    let perpetualRecipientData: PerpetualRecipientData
+    let positionAction: GemPerpetualPositionAction
     let wallet: Wallet
     let onComplete: VoidAction
 
     init(
-        perpetualRecipientData: PerpetualRecipientData,
+        positionAction: GemPerpetualPositionAction,
         wallet: Wallet,
         onComplete: VoidAction,
     ) {
-        self.perpetualRecipientData = perpetualRecipientData
+        self.positionAction = positionAction
         self.wallet = wallet
         self.onComplete = onComplete
     }
@@ -32,7 +33,7 @@ struct PerpetualPositionNavigationStack: View {
             AmountNavigationView(
                 model: viewModelFactory.amountScene(
                     input: AmountInput(
-                        type: .perpetual(perpetualRecipientData),
+                        type: .perpetual(positionAction),
                         asset: Chain.hyperCore.defaultAsset(type: .perpetual),
                     ),
                     wallet: wallet,

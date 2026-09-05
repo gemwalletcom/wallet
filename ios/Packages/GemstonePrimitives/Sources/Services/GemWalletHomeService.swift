@@ -6,10 +6,6 @@ import protocol Gemstone.GemWalletHomeServiceProtocol
 import Primitives
 
 public extension GemWalletHomeServiceProtocol {
-    func refresh(assetIds: [AssetId]) async throws {
-        try await refresh(assetIds: assetIds.ids)
-    }
-
     func updateBalances(assetIds: [AssetId]) async throws {
         try await updateBalances(assetIds: assetIds.ids)
     }
@@ -23,7 +19,7 @@ public extension GemWalletHomeServiceProtocol {
     }
 
     func content(for banner: Banner) -> GemBannerContent {
-        bannerContent(event: banner.event.json(), asset: banner.asset?.map())
+        bannerContent(event: banner.event.map(), asset: banner.asset?.map())
     }
 
     func applyAction(_ action: BannerAction) async throws {

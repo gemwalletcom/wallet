@@ -27,3 +27,13 @@ type_name = "BigUInt"
 imports = ["BigInt"]
 lift = "BigUInt(stringLiteral: {})"
 lower = "{}.description"
+
+[bindings.kotlin.custom_types.DateTimeUtc]
+type_name = "Long"
+lift = "{} * 1000"
+lower = "{} / 1000"
+
+[bindings.swift.custom_types.DateTimeUtc]
+type_name = "Date"
+lift = "Date(timeIntervalSince1970: TimeInterval({}))"
+lower = "Int64({}.timeIntervalSince1970)"

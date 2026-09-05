@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
@@ -34,7 +34,7 @@ class NameRecordControllerTest {
             every { nameRecordDebounceMilliseconds() } returns 500u
             coEvery { getNameRecord(any(), any()) } answers {
                 requests.add(firstArg<String>() to Chain.entries.first { it.string == secondArg<String>() })
-                result?.toJson()
+                result?.toGem()
             }
         }
     }

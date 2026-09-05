@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s आवश्यक है</string>
   <string name="errors_scan_transaction_malicious_description">यह लेनदेन पूरा नहीं किया जा सकता - गंतव्य वॉलेट पता संदिग्ध या हानिकारक गतिविधि से जुड़ा हुआ है।</string>
   <string name="errors_scan_transaction_memo_required">%1$s गंतव्य वॉलेट पते के लिए गंतव्य टैग / मेमो की आवश्यकता है</string>
-  <string name="errors_wallets_limit_title">वॉलेट की सीमा पूरी हो गई</string>
-  <string name="errors_wallets_limit_description">आप अनुमत वॉलेट की अधिकतम संख्या ( %1$d ) तक पहुँच गए हैं। कृपया नया वॉलेट जोड़ने या बनाने के लिए मौजूदा वॉलेट हटाएँ।</string>
   <string name="errors_scan_transaction_malicious_title">संदिग्ध गतिविधि</string>
   <string name="errors_connections_malicious_origin">यह कनेक्शन एक अविश्वसनीय स्रोत से आता है।</string>
   <string name="errors_no_data_available">कोई डेटा मौजूद नहीं</string>

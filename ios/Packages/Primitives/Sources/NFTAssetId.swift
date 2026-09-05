@@ -17,6 +17,14 @@ public struct NFTAssetId: Equatable, Hashable, Sendable {
         "\(chain.rawValue)_\(contractAddress)\(AssetId.subTokenSeparator)\(tokenId)"
     }
 
+    public init(core id: String) {
+        do {
+            self = try NFTAssetId.from(id: id)
+        } catch {
+            preconditionFailure("failed to decode NFTAssetId from Core: \(id)")
+        }
+    }
+
     public static func from(id: String) throws -> NFTAssetId {
         guard let (chain, rest) = AssetId.getData(id: id), let rest else {
             throw AnyError("invalid nft asset id: \(id)")

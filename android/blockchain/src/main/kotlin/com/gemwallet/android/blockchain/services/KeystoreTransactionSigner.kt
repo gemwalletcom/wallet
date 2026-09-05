@@ -5,8 +5,6 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.blockchain.operators.gemstone.withGemKeystore
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSignerInput
@@ -16,13 +14,12 @@ class KeystoreTransactionSigner(
     private val baseDir: String,
     private val passwordStore: PasswordStore,
 ) : GemTransactionSigner {
-    override suspend fun sign(wallet: String, input: GemSignerInput): List<GemSignedTransaction> {
+    override suspend fun sign(wallet: uniffi.gemstone.Wallet, input: GemSignerInput): List<GemSignedTransaction> {
         return try {
-            val wallet = wallet.decodeJson<Wallet>()
             val password = passwordStore.getKeystorePassword()
             val chain = input.input.inputType.transactionAsset().toPrimitives().id.chain.string
             withGemKeystore(baseDir, password) { keystore, passwordBytes ->
-                keystore.sign(keystore.keystoreId(wallet.id.id), chain, input, passwordBytes)
+                keystore.sign(keystore.keystoreId(wallet.id), chain, input, passwordBytes)
             }
         } catch (error: CancellationException) {
             throw error

@@ -39,13 +39,13 @@ val GemTransactionInputType.toAsset: Asset?
     get() = (this as? GemTransactionInputType.Swap)?.toAsset?.toPrimitives()
 
 val GemTransactionInputType.applicationMetadata: ApplicationMetadata?
-    get() = (this as? GemTransactionInputType.Generic)?.metadata?.decodeJson<ApplicationMetadata>()
+    get() = (this as? GemTransactionInputType.Generic)?.metadata?.toPrimitives()
 
 val GemTransactionInputType.swapData: SwapData?
     get() = (this as? GemTransactionInputType.Swap)?.swapData?.decodeJson<SwapData>()
 
 val GemTransactionInputType.nftAsset: NFTAsset?
-    get() = (this as? GemTransactionInputType.TransferNft)?.nftAsset?.decodeJson<NFTAsset>()
+    get() = (this as? GemTransactionInputType.TransferNft)?.nftAsset?.toPrimitives()
 
 val GemTransactionInputType.stakeType: StakeType?
     get() = (this as? GemTransactionInputType.Stake)?.stakeType?.decodeJson<StakeType>()
@@ -69,4 +69,4 @@ fun GemTransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swa
     GemTransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData.toJson())
 
 fun GemTransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): GemTransactionInputType =
-    GemTransactionInputType.Account(asset.toGem(), accountType.toJson())
+    GemTransactionInputType.Account(asset.toGem(), accountType.toGem())

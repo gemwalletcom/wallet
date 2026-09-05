@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.services.gemstone.transactions.addSwapMetadata
@@ -29,12 +31,12 @@ class GemstoneTransactionStateStore(
         val wallets = walletStore.getAllNow().associateBy { it.id }
         return records.mapNotNull { record ->
             val wallet = wallets[record.walletId] ?: return@mapNotNull null
-            GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
+            GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toJson())
         }
     }
 
     override suspend fun getTransaction(walletId: String, transactionId: String): GemPendingTransaction? =
-        transactionsDao.getTransaction(transactionId.decodeJson(), WalletId(walletId))?.let { pendingTransaction(it) }
+        transactionsDao.getTransaction(TransactionId(transactionId), WalletId(walletId))?.let { pendingTransaction(it) }
 
     override suspend fun addTransactions(walletId: String, transactions: List<String>) {
         val records = transactions.map { it.decodeJson<Transaction>() }
@@ -44,18 +46,18 @@ class GemstoneTransactionStateStore(
         }
     }
 
-    private fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
+    private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
         val wallet = walletStore.getWalletNow(record.walletId) ?: return null
-        return GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
+        return GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toJson())
     }
 
 
-    override suspend fun getState(walletId: String, transactionId: String): String? =
-        transactionsDao.getTransactionState(transactionId.decodeJson(), WalletId(walletId))?.toJson()
+    override suspend fun getState(walletId: String, transactionId: String): uniffi.gemstone.TransactionState? =
+        transactionsDao.getTransactionState(TransactionId(transactionId), WalletId(walletId))?.toGem()
 
     override suspend fun renameTransaction(walletId: String, transactionId: String, newTransactionId: String) {
-        val oldId = transactionId.decodeJson<TransactionId>()
-        val newId = newTransactionId.decodeJson<TransactionId>()
+        val oldId = TransactionId(transactionId)
+        val newId = TransactionId(newTransactionId)
         val wallet = WalletId(walletId)
         transactionRunner.run {
             transactionsDao.updateTransactionId(oldId, newId, wallet, newId.hash)
@@ -65,7 +67,7 @@ class GemstoneTransactionStateStore(
     }
 
     override suspend fun deleteTransaction(walletId: String, transactionId: String) {
-        val id = transactionId.decodeJson<TransactionId>()
+        val id = TransactionId(transactionId)
         transactionRunner.run {
             transactionsDao.delete(id, WalletId(walletId))
             transactionsDao.deleteUnreferencedSwapMetadata(id.identifier)
@@ -73,13 +75,13 @@ class GemstoneTransactionStateStore(
     }
 
     override suspend fun updateTransaction(walletId: String, transactionId: String, update: GemTransactionStateUpdate): Boolean {
-        val id = transactionId.decodeJson<TransactionId>()
+        val id = TransactionId(transactionId)
         val wallet = WalletId(walletId)
         return transactionRunner.run {
             val updatedRows = transactionsDao.updateTransactionState(
                 id = id,
                 walletId = wallet,
-                state = update.state.decodeJson<TransactionState>(),
+                state = update.state.toPrimitives(),
                 fee = update.fee?.toString(),
                 blockNumber = update.blockNumber,
                 metadata = update.metadata,

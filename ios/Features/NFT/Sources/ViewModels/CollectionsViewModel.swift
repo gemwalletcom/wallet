@@ -59,9 +59,9 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     private func collections(verified: Bool) -> [NFTData] {
-        let data = nftDataList.map { $0.json() }
+        let data = nftDataList.map { $0.map() }
         let collections = verified ? service.verifiedCollections(data: data) : service.unverifiedCollections(data: data)
-        return service.sortedCollections(data: collections).compactMap { try? NFTData($0) }
+        return service.sortedCollections(data: collections).map { $0.map() }
     }
 
     // MARK: - Actions

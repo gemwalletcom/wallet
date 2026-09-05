@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s is vereist</string>
   <string name="errors_scan_transaction_malicious_description">Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.</string>
   <string name="errors_scan_transaction_memo_required">%1$s bestemmingswalletadres vereist een bestemmingstag / memo</string>
-  <string name="errors_wallets_limit_title">Portemonneelimiet bereikt</string>
-  <string name="errors_wallets_limit_description">Je hebt het maximale aantal toegestane wallets bereikt ( %1$d ). Verwijder een bestaande wallet om er een toe te voegen of een nieuwe aan te maken.</string>
   <string name="errors_scan_transaction_malicious_title">Verdachte activiteit</string>
   <string name="errors_connections_malicious_origin">Deze verbinding komt van een onbetrouwbare bron.</string>
   <string name="errors_no_data_available">Geen gegevens beschikbaar</string>

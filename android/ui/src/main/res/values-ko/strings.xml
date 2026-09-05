@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s 가 필요합니다</string>
   <string name="errors_scan_transaction_malicious_description">이 거래를 완료할 수 없습니다. 대상 지갑 주소가 의심스럽거나 유해한 활동과 연결되어 있습니다.</string>
   <string name="errors_scan_transaction_memo_required">%1$s 대상 지갑 주소에는 대상 태그/메모가 필요합니다.</string>
-  <string name="errors_wallets_limit_title">지갑 한도에 도달했습니다</string>
-  <string name="errors_wallets_limit_description">허용된 최대 지갑 수( %1$d )에 도달했습니다. 기존 지갑을 제거한 후 추가하거나 새 지갑을 만드세요.</string>
   <string name="errors_scan_transaction_malicious_title">의심스러운 활동</string>
   <string name="errors_connections_malicious_origin">이 연결은 신뢰할 수 없는 출처에서 나왔습니다.</string>
   <string name="errors_no_data_available">사용 가능한 데이터가 없습니다</string>

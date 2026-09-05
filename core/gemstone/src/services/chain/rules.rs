@@ -54,6 +54,7 @@ pub fn node_verification_address(chain: Chain) -> Option<String> {
 mod tests {
     use super::*;
     use primitives::Account;
+    use primitives::Wallet;
 
     #[test]
     fn test_wallet_chains_by_rank_orders_the_wallet_accounts() {

@@ -33,12 +33,12 @@ import com.gemwallet.android.features.asset.presents.details.components.AssetHea
 import com.gemwallet.android.features.asset.presents.details.components.BalancePropertyItem
 import com.gemwallet.android.features.asset.presents.details.components.BannerItem
 import com.gemwallet.android.features.asset.presents.details.components.EmptyTransactionsItem
+import uniffi.gemstone.GemAssetEmptyAction
 import com.gemwallet.android.features.asset.presents.details.components.balancesHeader
 import com.gemwallet.android.features.asset.presents.details.components.manageAssetItem
 import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,6 @@ internal fun AssetDetailsScene(
     priceAlertsCount: Int,
     requestNotificationPermission: (() -> Unit) -> Unit,
     isRefreshing: Boolean,
-    isOperationEnabled: Boolean,
     onAction: (AssetDetailsAction) -> Unit,
 ) {
     val context = LocalContext.current
@@ -62,17 +61,14 @@ internal fun AssetDetailsScene(
         uiState.asset.name,
     )
     val addToastMessage = stringResource(R.string.asset_added_to_wallet)
-    val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
-        {
-            onAction(
-                AssetDetailsAction.Swap(
-                    fromAssetId = uiState.swapPayAssetId ?: uiState.asset.id,
-                    toAssetId = uiState.swapReceiveAssetId,
-                )
+    val detailsState = uiState.detailsState
+    val swapAction = {
+        onAction(
+            AssetDetailsAction.Swap(
+                fromAssetId = uiState.swapPayAssetId ?: uiState.asset.id,
+                toAssetId = uiState.swapReceiveAssetId,
             )
-        }
-    } else {
-        null
+        )
     }
 
     Scene(
@@ -109,23 +105,24 @@ internal fun AssetDetailsScene(
                 item {
                     AssetHeadItem(
                         uiState = uiState,
-                        isOperationEnabled = isOperationEnabled,
                         onTransfer = { onAction(AssetDetailsAction.Transfer(it)) },
                         onReceive = { onAction(AssetDetailsAction.Receive(it)) },
                         onBuy = { onAction(AssetDetailsAction.Buy(it)) },
                         onSwap = swapAction,
                     )
                 }
-                item {
-                    BannerItem(
-                        assetInfo = uiState.assetInfo,
-                        onStake = { onAction(AssetDetailsAction.Stake(it)) },
-                        onConfirm = { onAction(AssetDetailsAction.Confirm(it)) },
-                        onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
-                    )
+                if (detailsState.showsBanners) {
+                    item {
+                        BannerItem(
+                            assetInfo = uiState.assetInfo,
+                            onStake = { onAction(AssetDetailsAction.Stake(it)) },
+                            onConfirm = { onAction(AssetDetailsAction.Confirm(it)) },
+                            onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
+                        )
+                    }
                 }
                 manageAssetItem(
-                    assetInfo = uiState.assetInfo,
+                    uiState = uiState,
                     onPin = {
                         onAction(AssetDetailsAction.Pin)
                         scope.launch {
@@ -162,14 +159,16 @@ internal fun AssetDetailsScene(
                         }
                     )
                 }
-                energyItem(uiState.accountInfoUIModel.balanceMetadata)
+                if (detailsState.showsResources) {
+                    energyItem(uiState.accountInfoUIModel.balanceMetadata)
+                }
                 item {
                     EmptyTransactionsItem(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
-                        isViewOnly = uiState.accountInfoUIModel.walletType == WalletType.View,
-                        onBuy = if (uiState.isBuyEnabled) { { onAction(AssetDetailsAction.Buy(uiState.asset.id)) } } else null,
-                        onSwap = if (!uiState.isBuyEnabled) swapAction else null,
+                        isViewOnly = detailsState.isViewOnly,
+                        onBuy = if (detailsState.emptyTransactionsAction == GemAssetEmptyAction.BUY) { { onAction(AssetDetailsAction.Buy(uiState.asset.id)) } } else null,
+                        onSwap = if (detailsState.emptyTransactionsAction == GemAssetEmptyAction.SWAP) swapAction else null,
                     )
                 }
                 transactionsList(transactions) { onAction(AssetDetailsAction.OpenTransaction(it)) }

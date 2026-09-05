@@ -22,6 +22,8 @@ pub mod auth_status;
 pub use self::auth_status::AuthStatus;
 pub mod chain;
 pub use self::chain::Chain;
+pub mod asset_metadata;
+pub use self::asset_metadata::AssetMetaData;
 pub mod chain_request;
 pub use self::chain_request::{ChainRequest, ChainRequestProtocol, ChainRequestType};
 pub mod chain_config;
@@ -38,9 +40,9 @@ pub use self::chain_evm::EVMChain;
 pub mod chain_bitcoin;
 pub use self::chain_bitcoin::{BITCOINCASH_PREFIX, BitcoinChain};
 pub mod name;
-pub use self::name::NameProvider;
+pub use self::name::{NameProvider, NameRecord};
 pub mod node;
-pub use self::node::Node;
+pub use self::node::{Node, NodeState};
 pub mod node_check;
 pub use self::node_check::{NodeCheckProfile, NodeCheckReport, NodeCheckRequest, NodeCheckResult, NodeCheckStatus, node_check_request};
 pub mod node_status;
@@ -130,7 +132,7 @@ pub use self::payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest};
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
-pub use self::contact::Contact;
+pub use self::contact::{Contact, ContactAddress};
 pub mod device;
 pub use self::device::Device;
 pub mod device_locale;
@@ -240,6 +242,7 @@ pub use self::payment_decoder::PaymentURLDecoder;
 pub mod image_formatter;
 pub use self::image_formatter::ImageFormatter;
 pub mod block_explorer;
+pub use block_explorer::BlockExplorerLink;
 pub mod explorers;
 pub mod validator;
 pub use self::validator::StakeValidator;
@@ -271,6 +274,7 @@ pub use self::priority::{PrioritizedProvider, sort_by_priority_then_amount};
 pub mod swap_provider;
 pub use self::swap_provider::SwapProvider;
 pub mod swap;
+pub use self::swap::{SwapPriceImpact, SwapPriceImpactType};
 pub mod websocket;
 pub use self::websocket::WebSocketPricePayload;
 pub mod stream;
@@ -281,7 +285,7 @@ pub use self::support::{
     SupportTypingStatus,
 };
 pub mod asset_balance;
-pub use self::asset_balance::{AddressBalances, AssetBalance, Balance};
+pub use self::asset_balance::{AddressBalances, AssetBalance, Balance, BalanceMetadata};
 pub mod chain_address;
 pub use self::chain_address::ChainAddress;
 pub mod json_rpc;
@@ -296,9 +300,9 @@ pub use self::asset_address::AssetAddress;
 pub mod graphql;
 pub mod perpetual;
 pub use self::perpetual::{
-    AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualDirection, PerpetualMarketData,
-    PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData, PerpetualSearchData, PerpetualType,
-    TPSLOrderData,
+    AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection,
+    PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData,
+    PerpetualSearchData, PerpetualType, TPSLOrderData,
 };
 pub mod search;
 pub use self::search::{AssetList, SearchResponse};
@@ -319,7 +323,7 @@ pub use self::tpsl_type::TpslType;
 pub mod autoclose_validator;
 pub use self::autoclose_validator::{AutocloseEstimator, AutocloseValidation, AutocloseValidator};
 pub mod chart;
-pub use self::chart::{ChartCandleStick, ChartDateValue};
+pub use self::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 pub mod delegation;
 pub use self::delegation::{Delegation, DelegationBase, DelegationState, DelegationValidator};
 pub mod contract_call_data;

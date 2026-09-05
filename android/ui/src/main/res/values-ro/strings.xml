@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s este obligatoriu</string>
   <string name="errors_scan_transaction_malicious_description">Această tranzacție nu poate fi finalizată — adresa portofelului de destinație este legată de o activitate suspectă sau dăunătoare.</string>
   <string name="errors_scan_transaction_memo_required">Adresa portofelului de destinație %1$s necesită o etichetă/un memo de destinație</string>
-  <string name="errors_wallets_limit_title">Limita de portofele a fost atinsă</string>
-  <string name="errors_wallets_limit_description">Ați atins numărul maxim de portofele permise ( %1$d ). Vă rugăm să eliminați un portofel existent pentru a adăuga sau a crea unul nou.</string>
   <string name="errors_scan_transaction_malicious_title">Activitate suspectă</string>
   <string name="errors_connections_malicious_origin">Această conexiune provine dintr-o sursă nesigură.</string>
   <string name="errors_no_data_available">Nu sunt disponibile date</string>

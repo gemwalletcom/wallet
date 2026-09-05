@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemPaymentRecipient
+import enum Gemstone.GemPerpetualPositionAction
 import Support
 import class Gemstone.GemDeveloperService
 import class Gemstone.GemDeviceService
@@ -54,7 +56,6 @@ import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSwapService
 import class Gemstone.GemTransactionDetailsService
 import class Gemstone.GemTransactionStateService
-import class Gemstone.GemTransferService
 import class Gemstone.GemWalletHomeService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
@@ -126,7 +127,6 @@ public struct ViewModelFactory: Sendable {
     let swapService: GemSwapService
     let transactionStateService: GemTransactionStateService
     let transactionsService: GemTransactionsService
-    let transferService: GemTransferService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService
     let serviceStatusService: GemServiceStatus
@@ -201,8 +201,8 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
-    public func settingsScene(walletId: WalletId) -> SettingsViewModel {
-        SettingsViewModel(walletId: walletId, service: walletSessionService, observablePreferences: observablePreferences)
+    public func settingsScene() -> SettingsViewModel {
+        SettingsViewModel(service: walletSessionService, observablePreferences: observablePreferences)
     }
 
     @MainActor
@@ -242,7 +242,7 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func inAppNotificationsScene() -> InAppNotificationsViewModel? {
-        walletSessionService.currentWallet.map { InAppNotificationsViewModel(wallet: $0, service: inAppNotificationService) }
+        currentWallet(in: currentWallets()).map { InAppNotificationsViewModel(wallet: $0, service: inAppNotificationService) }
     }
 
     @MainActor
@@ -474,7 +474,7 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetViewModel? {
-        walletSessionService.currentWallet.map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
+        currentWallet(in: currentWallets()).map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
     }
 
     @MainActor
@@ -552,7 +552,7 @@ public struct ViewModelFactory: Sendable {
         asset: Asset,
         wallet: Wallet,
         onTransferData: TransferDataAction,
-        onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?,
+        onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)?,
     ) -> PerpetualSceneViewModel {
         PerpetualSceneViewModel(
             wallet: wallet,
@@ -560,7 +560,7 @@ public struct ViewModelFactory: Sendable {
             service: GemPerpetualDetailsService(perpetuals: perpetualService, transactions: transactionsService, preferences: preferencesService, session: walletSessionService),
             observerService: hyperliquidObserverService,
             onTransferData: onTransferData,
-            onPerpetualRecipientData: onPerpetualRecipientData,
+            onPerpetualPosition: onPerpetualPosition,
         )
     }
 
@@ -576,7 +576,21 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func rewardsScene(activateCode: String?) -> RewardsViewModel? {
-        try? RewardsViewModel(service: rewardsService, activateCode: activateCode)
+        let wallets = currentWallets()
+        return RewardsViewModel(
+            service: rewardsService,
+            wallets: wallets,
+            currentWallet: currentWallet(in: wallets),
+            activateCode: activateCode,
+        )
+    }
+
+    private func currentWallets() -> [Wallet] {
+        (try? storeManager.walletStore.getWallets()) ?? []
+    }
+
+    private func currentWallet(in wallets: [Wallet]) -> Wallet? {
+        walletSessionService.currentWalletId.flatMap { walletId in wallets.first { $0.id == walletId } }
     }
 
     @MainActor
@@ -603,7 +617,7 @@ public struct ViewModelFactory: Sendable {
         wallet: Wallet,
         asset: Asset,
         type: RecipientAssetType,
-        recipient: RecipientData? = .none,
+        recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
     ) -> RecipientSceneViewModel {

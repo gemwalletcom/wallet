@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s é necessário</string>
   <string name="errors_scan_transaction_malicious_description">Esta transação não pode ser concluída — o endereço da carteira de destino está vinculado a atividades suspeitas ou prejudiciais.</string>
   <string name="errors_scan_transaction_memo_required">%1$s O endereço da carteira de destino requer uma etiqueta/memorando de destino</string>
-  <string name="errors_wallets_limit_title">Limite de carteiras atingido</string>
-  <string name="errors_wallets_limit_description">Você atingiu o número máximo de carteiras permitidas ( %1$d ). Remova uma carteira existente para adicionar ou criar uma nova.</string>
   <string name="errors_scan_transaction_malicious_title">Atividade suspeita</string>
   <string name="errors_connections_malicious_origin">Esta conexão provém de uma fonte não confiável.</string>
   <string name="errors_no_data_available">Não há dados disponíveis.</string>

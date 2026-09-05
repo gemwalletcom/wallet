@@ -80,16 +80,6 @@ public struct PriceStore: Sendable {
         }
     }
 
-    public func enabledPriceAssets(walletId: WalletId) throws -> [AssetId] {
-        try db.read { db in
-            try BalanceRecord
-                .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(BalanceRecord.Columns.isEnabled == true)
-                .fetchAll(db)
-                .compactMap(\.assetId)
-        }
-    }
-
     @discardableResult
     public func convertPrices(rate: Double) throws -> Int {
         try db.write { db in

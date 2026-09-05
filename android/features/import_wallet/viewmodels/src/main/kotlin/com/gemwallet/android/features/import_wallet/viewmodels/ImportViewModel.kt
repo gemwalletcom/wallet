@@ -1,10 +1,11 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.domains.wallet_import.toGemImport
-import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemNameServiceInterface
 import com.gemwallet.android.ext.words
@@ -67,14 +68,14 @@ class ImportViewModel @Inject constructor(
     }
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
-        val generatedNameIndex = withContext(Dispatchers.IO) {
-            service.nextWalletIndex()
+        val defaultName = withContext(Dispatchers.IO) {
+            service.defaultWalletName(importType.chain?.string)
         }
         val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
         state.update {
             it.copy(
                 importType = importType,
-                generatedNameIndex = generatedNameIndex,
+                defaultWalletName = defaultName.name,
                 chainName = chainName,
             )
         }
@@ -98,8 +99,8 @@ class ImportViewModel @Inject constructor(
                 ).validated()
                 val walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName
                 val result = when (val imported = service.importWallet(walletName, import, WalletSource.Import.toGem())) {
-                    is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.decodeJson())
-                    is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.decodeJson())
+                    is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.toPrimitives())
+                    is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.toPrimitives())
                 }
                 service.setCurrentWalletId(result.wallet.id.id)
                 state.update { it.copy(dataError = null, loading = false) }
@@ -126,7 +127,7 @@ data class ImportViewModelState(
     val loading: Boolean = false,
     val error: String = "",
     val importType: ImportType = ImportType(WalletType.Multicoin),
-    val generatedNameIndex: Int = 0,
+    val defaultWalletName: String = "",
     val chainName: String = "",
     val data: String = "",
     val dataError: Throwable? = null,
@@ -136,7 +137,7 @@ data class ImportViewModelState(
         return ImportUIState(
             loading = loading,
             error = error,
-            generatedNameIndex = generatedNameIndex,
+            defaultWalletName = defaultWalletName,
             chainName = chainName,
             importType = importType,
             dataError = dataError,
@@ -149,8 +150,9 @@ data class ImportUIState(
     val loading: Boolean = false,
     val error: String = "",
     val importType: ImportType = ImportType(WalletType.Multicoin),
-    val generatedNameIndex: Int = 0,
+    val defaultWalletName: String = "",
     val chainName: String = "",
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )
+

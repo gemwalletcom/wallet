@@ -1,12 +1,9 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.serializer.packRouteString
-import com.gemwallet.android.serializer.unpackRouteString
+import com.gemwallet.android.serializer.packRoutePayload
+import com.gemwallet.android.serializer.unpackRoutePayload
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferServiceInterface
 
-fun GemTransferServiceInterface.pack(transfer: GemTransferData): String? =
-    runCatching { encodeTransferData(transfer).packRouteString() }.getOrNull()
+fun GemTransferData.pack(): String? = packRoutePayload()
 
-fun GemTransferServiceInterface.unpack(packed: String): GemTransferData? =
-    runCatching { decodeTransferData(packed.unpackRouteString()) }.getOrNull()
+fun unpackTransferData(packed: String): GemTransferData? = unpackRoutePayload(packed)

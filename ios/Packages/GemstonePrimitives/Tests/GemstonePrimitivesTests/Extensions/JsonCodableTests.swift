@@ -3,6 +3,7 @@
 import Foundation
 @testable import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 import Testing
 
 struct JsonCodableTests {
@@ -15,21 +16,16 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsDate() throws {
-        let value = Primitives.ChartDateValue(date: Date(timeIntervalSince1970: 1_700_000_000), value: 42)
+        let message = Primitives.SupportMessage.mock(createdAt: Date(timeIntervalSince1970: 1_700_000_000))
 
-        #expect(try Primitives.ChartDateValue(value.json()).date == value.date)
+        #expect(try Primitives.SupportMessage(message.json()).createdAt == message.createdAt)
     }
 
     @Test
     func roundTripsNestedRecord() throws {
-        let field = Primitives.SimulationPayloadField(
-            kind: .value,
-            label: "Amount",
-            value: "1.0",
-            fieldType: .text,
-            display: .primary,
-        )
-
-        #expect(try Primitives.SimulationPayloadField(field.json()) == field)
+        let delegation = Primitives.Delegation.mock()
+        let decoded = try Primitives.Delegation(delegation.json())
+        #expect(decoded.base.delegationId == delegation.base.delegationId)
+        #expect(decoded.validator.id == delegation.validator.id)
     }
 }

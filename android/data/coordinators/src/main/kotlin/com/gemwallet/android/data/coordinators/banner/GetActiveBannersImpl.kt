@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.coordinators.banner
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
@@ -11,7 +13,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerEvent
@@ -54,18 +55,18 @@ class GetActiveBannersImpl(
             combine(stored, assetInfo, isWalletEmpty) { records, assetInfo, isWalletEmpty ->
                 val banners = records.map { it.toDTO(asset) }.distinctBy { it.event }
                 bannerContext(wallet, assetInfo, isWalletEmpty).visibleBanners(
-                    stored = banners.map { GemBannerItem(event = it.event.toJson(), state = it.state.toJson()) },
+                    stored = banners.map { GemBannerItem(event = it.event.toGem(), state = it.state.toGem()) },
                 ).map { item ->
-                    val event = item.event.decodeJson<BannerEvent>()
+                    val event = item.event.toPrimitives()
                     banners.firstOrNull { it.event == event }
-                        ?: Banner(walletId = sceneWallet?.id, asset = assetInfo?.asset, state = item.state.decodeJson(), event = event)
+                        ?: Banner(walletId = sceneWallet?.id, asset = assetInfo?.asset, state = item.state.toPrimitives(), event = event)
                 }
             }
         }
         .flowOn(Dispatchers.IO)
 
     private fun bannerContext(wallet: Wallet?, assetInfo: AssetInfo?, isWalletEmpty: Boolean) = GemBannerContext(
-        wallet = wallet?.toJson(),
+        wallet = wallet?.toGem(),
         hasAsset = assetInfo != null,
         isStakeable = assetInfo?.metadata?.isStakeEnabled == true,
         hasStakeBalance = hasStakeBalance(assetInfo),

@@ -132,6 +132,8 @@ fn map_token_id(asset: &Asset, chain: Option<Chain>) -> Option<String> {
 fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: Vec<FiatAssetLimits>) -> Option<FiatProviderAsset> {
     let chain = map_asset_chain(asset.network.clone());
     let token_id = map_token_id(&asset, chain);
+    let buy_limits = if asset.widget_onramp_enabled { buy_limits } else { vec![] };
+    let sell_limits = if asset.widget_offramp_enabled { sell_limits } else { vec![] };
     let is_buy_enabled = !buy_limits.is_empty();
     let is_sell_enabled = !sell_limits.is_empty();
     Some(FiatProviderAsset {
@@ -141,7 +143,7 @@ fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: V
         token_id,
         symbol: asset.clone().currency,
         network: Some(asset.network),
-        enabled: true,
+        enabled: is_buy_enabled || is_sell_enabled,
         is_buy_enabled,
         is_sell_enabled,
         unsupported_countries: None,
@@ -267,9 +269,28 @@ mod tests {
     }
 
     #[test]
+    fn test_map_asset_availability() {
+        let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json")).unwrap().data;
+        let limits = map_asset_limits(None, Currency::USD, &currencies.fiat_payment_methods);
+        assert_eq!(limits.is_empty(), false);
+
+        for (buy, sell) in [(false, false), (false, true), (true, false), (true, true)] {
+            let mut asset = currencies.config.crypto_currencies[0].clone();
+            asset.widget_onramp_enabled = buy;
+            asset.widget_offramp_enabled = sell;
+            let mapped = map_asset_with_limits(asset, limits.clone(), limits.clone()).unwrap();
+            assert_eq!((mapped.enabled, mapped.is_buy_enabled, mapped.is_sell_enabled), (buy || sell, buy, sell));
+            assert_eq!(mapped.buy_limits.len(), if buy { limits.len() } else { 0 });
+            assert_eq!(mapped.sell_limits.len(), if sell { limits.len() } else { 0 });
+        }
+    }
+
+    #[test]
     fn test_map_stellar_asset_id() {
         let result = map_asset(Asset {
             currency: "USDC".to_string(),
+            widget_onramp_enabled: true,
+            widget_offramp_enabled: true,
             network: "STELLAR".to_string(),
             contract: "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string(),
         })

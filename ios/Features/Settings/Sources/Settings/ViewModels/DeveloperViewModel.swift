@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.Deeplink
 import protocol Gemstone.GemDeveloperServiceProtocol
 import GemstoneServices
 import BigInt
@@ -279,9 +280,9 @@ public final class DeveloperViewModel {
         try? transactionStore.addTransactions(walletId: walletId, transactions: transactions)
     }
 
-    func deeplink(deeplink: DeepLink) {
+    func deeplink(deeplink: Deeplink) {
         Task { @MainActor in
-            await UIApplication.shared.open(service.deeplinkUrl(deeplink: deeplink.map()).asURL!, options: [:])
+            await UIApplication.shared.open(service.deeplinkUrl(deeplink: deeplink).asURL!, options: [:])
         }
     }
 }

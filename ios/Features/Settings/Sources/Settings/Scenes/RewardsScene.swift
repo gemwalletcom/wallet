@@ -22,19 +22,19 @@ public struct RewardsScene: View {
             case let .error(error):
                 stateErrorView(error: error)
             case let .data(rewards):
-                inviteFriendsSection(code: rewards.code)
+                inviteFriendsSection
                 if let disableReason = model.disableReason {
                     disableReasonSection(reason: disableReason)
                 }
                 statusSection
-                if model.isInfoEnabled {
+                if model.rewardsState.showsInfo {
                     infoSection(rewards: rewards)
                 }
                 if rewards.redemptionOptions.isNotEmpty {
                     redemptionOptionsSection(options: rewards.redemptionOptions)
                 }
             case .noData:
-                inviteFriendsSection(code: nil)
+                inviteFriendsSection
             }
         }
         .refreshable { await model.load() }
@@ -113,7 +113,7 @@ public struct RewardsScene: View {
     }
 
     @ViewBuilder
-    private func inviteFriendsSection(code: String?) -> some View {
+    private var inviteFriendsSection: some View {
         Section {
             VStack(spacing: Spacing.large) {
                 Text("🎁")
@@ -136,7 +136,7 @@ public struct RewardsScene: View {
                     featureItem(emoji: "🎉", text: Localized.Rewards.GetRewards.title)
                 }
 
-                if code != nil, !model.isUnverified {
+                if model.rewardsState.canInvite {
                     Button {
                         model.isPresentingSheet = .share
                     } label: {
@@ -146,7 +146,7 @@ public struct RewardsScene: View {
                         }
                     }
                     .buttonStyle(.blue())
-                } else if code == nil {
+                } else if !model.rewardsState.hasReferralCode {
                     Button {
                         model.isPresentingSheet = .createCode
                     } label: {
@@ -159,7 +159,7 @@ public struct RewardsScene: View {
             .padding(.vertical, Spacing.small)
         }
 
-        if model.canUseReferralCode {
+        if model.rewardsState.canUseReferralCode {
             Section {
                 Button {
                     model.isPresentingSheet = .activateCode(code: "")
@@ -246,14 +246,14 @@ public struct RewardsScene: View {
 
     @ViewBuilder
     private var statusSection: some View {
-        if model.isUnverified {
+        if model.rewardsState.isUnverified {
             Section {
                 ListItemInfoView(
                     title: model.unverifiedTitle,
                     description: model.unverifiedDescription,
                 )
             }
-        } else if model.hasPendingReferral {
+        } else if model.rewardsState.hasPendingReferral {
             Section {
                 ListItemInfoView(
                     title: model.pendingReferralTitle,

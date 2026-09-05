@@ -1,38 +1,100 @@
 remote:
   - Account
+  - AccountDataType
+  - AddressName
+  - AddressType
+  - Appearance
+  - ApplicationMetadata
+  - ApplicationMetadataSource
+  - BlockExplorerLink
   - AssetFiatValue
   - AssetType
+  - BannerEvent
+  - BalanceMetadata
+  - BannerState
+  - ChainAddress
   - ChainType
+  - ChartCandleStick
+  - ChartCandleUpdate
+  - ChartDateValue
   - ChartPeriod
+  - DelegationState
   - ConnectionComponent
   - ConnectionStatus
+  - Contact
+  - ContactAddress
+  - DelegationValidator
+  - Device
+  - DeviceLocale
   - Asset
+  - AssetLink
+  - AssetMetaData
+  - AssetPrice
   - FeePriority
   - FeeUnitType
+  - FiatRate
   - FiatQuoteType
+  - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
+  - Perpetual
+  - PerpetualBalance
+  - PerpetualData
+  - PerpetualMarketData
+  - PerpetualMetadata
   - PerpetualOrderType
+  - PerpetualPosition
+  - PerpetualPositionsSummary
   - PerpetualProvider
+  - PerpetualTriggerOrder
+  - Platform
+  - PlatformStore
+  - Wallet
   - WalletType
   - WalletSource
   - TpslType
+  - WalletConnection
+  - WalletConnectionSession
+  - WalletConnectionSessionProposal
+  - WalletConnectionState
   - WalletConnectionVerificationStatus
   - VerificationStatus
   - RecentActivityType
+  - Release
   - Resource
   - SimulationPayloadFieldType
+  - SolanaTokenProgramId
+  - StakeProviderType
+  - SwapPriceImpact
+  - SwapPriceImpactType
   - SwapProvider
   - SimulationPayloadFieldDisplay
   - SimulationPayloadFieldKind
   - SimulationPayloadField
   - LatencyType
   - LinkType
+  - NameProvider
+  - NameRecord
+  - NFTAsset
+  - NFTAssetData
+  - NFTAttribute
+  - NFTAttributeType
+  - NFTCollection
+  - NFTData
+  - NFTImages
+  - NFTResource
+  - NFTType
+  - Node
+  - NodeState
   - Latency
   - PortfolioType
+  - PriceAlert
   - PriceAlertDirection
   - PriceAlertNotificationType
+  - ReportNft
   - TotalFiatValue
+  - TransactionState
+  - TransactionType
   - TransferDataOutputAction
   - TransferDataOutputType
 codes:
@@ -40,3 +102,8 @@ codes:
   - Currency
 identifiers:
   - AssetId
+  - NFTAssetId
+  - NFTCollectionId
+  - PerpetualId
+  - TransactionId
+  - WalletId

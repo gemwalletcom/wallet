@@ -99,17 +99,13 @@ private extension PerpetualChartModel {
     func observeCandles(perpetual: Perpetual) async {
         for await update in await observerService.chartService.makeStream() {
             if Task.isCancelled { break }
-            do {
-                try handleChartUpdate(update, perpetual: perpetual)
-            } catch {
-                debugLog("Chart update failed: \(error)")
-            }
+            handleChartUpdate(update, perpetual: perpetual)
         }
     }
 
-    func handleChartUpdate(_ update: ChartCandleUpdate, perpetual: Perpetual) throws {
+    func handleChartUpdate(_ update: ChartCandleUpdate, perpetual: Perpetual) {
         guard case let .data(candlesticks) = state,
-              let merged = try service.apply(update: update, to: candlesticks, perpetual: perpetual, period: currentPeriod)
+              let merged = service.apply(update: update, to: candlesticks, perpetual: perpetual, period: currentPeriod)
         else {
             return
         }

@@ -41,7 +41,7 @@ public final class ReportNftViewModel {
                     collectionId: assetData.collection.id.identifier,
                     assetId: assetData.asset.id.identifier,
                     reason: reason,
-                ).json())
+                ).map())
                 state = .data(true)
                 onComplete?()
             } catch {

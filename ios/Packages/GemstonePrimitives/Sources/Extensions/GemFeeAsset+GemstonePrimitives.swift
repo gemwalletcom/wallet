@@ -4,14 +4,13 @@ import BigInt
 import Foundation
 import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemAssetBalance
-import struct Gemstone.GemAssetPrice
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemFeeAsset
 import Primitives
 
 public extension Primitives.Balance {
-    init(_ balance: GemAssetBalance) throws {
-        try self.init(
+    init(_ balance: GemAssetBalance) {
+        self.init(
             available: BigInt(balance.available),
             frozen: BigInt(balance.frozen),
             locked: BigInt(balance.locked),
@@ -22,27 +21,17 @@ public extension Primitives.Balance {
             reserved: BigInt(balance.reserved),
             withdrawable: BigInt(balance.withdrawable),
             earn: BigInt(balance.earn),
-            metadata: balance.metadata.map { try BalanceMetadata($0) },
+            metadata: balance.metadata.map { $0.map() },
         )
     }
 }
 
 public extension GemFeeAsset {
-    func map() throws -> (asset: Primitives.Asset, balance: Primitives.Balance, price: Primitives.Price?) {
-        try (
+    func map() -> (asset: Primitives.Asset, balance: Primitives.Balance, price: Primitives.Price?) {
+        (
             asset: asset.map(),
             balance: Primitives.Balance(balance),
-            price: price.map { Primitives.Price(price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval($0.updatedAt))) },
-        )
-    }
-}
-
-public extension Primitives.Price {
-    init(_ price: GemAssetPrice) {
-        self.init(
-            price: price.price,
-            priceChangePercentage24h: price.priceChangePercentage24h,
-            updatedAt: Date(timeIntervalSince1970: TimeInterval(price.updatedAt)),
+            price: price.map { $0.map().mapToPrice() },
         )
     }
 }
@@ -57,18 +46,18 @@ public extension GemApprovalValue {
 }
 
 public extension GemConfirmMetadata {
-    var assetId: Primitives.AssetId? { try? Primitives.AssetId(id: assetBalance.assetId) }
-    var feeAssetId: Primitives.AssetId? { try? Primitives.AssetId(id: feeAssetBalance.assetId) }
+    var assetId: Primitives.AssetId { Primitives.AssetId(core: assetBalance.assetId) }
+    var feeAssetId: Primitives.AssetId { Primitives.AssetId(core: feeAssetBalance.assetId) }
 
     var available: BigInt { BigInt(assetBalance.available) }
 
-    var assetPrice: Primitives.Price? { assetPrice().map { Primitives.Price($0) } }
-    var feePrice: Primitives.Price? { feePrice().map { Primitives.Price($0) } }
+    var assetPrice: Primitives.Price? { assetPrice().map { $0.map().mapToPrice() } }
+    var feePrice: Primitives.Price? { feePrice().map { $0.map().mapToPrice() } }
 
-    var balance: Primitives.Balance? { try? Primitives.Balance(assetBalance) }
+    var balance: Primitives.Balance { Primitives.Balance(assetBalance) }
 
     func price(for assetId: String) -> Primitives.Price? {
-        price(assetId: assetId).map { Primitives.Price($0) }
+        price(assetId: assetId).map { $0.map().mapToPrice() }
     }
 
     func price(for assetId: Primitives.AssetId) -> Primitives.Price? {
@@ -76,8 +65,6 @@ public extension GemConfirmMetadata {
     }
 
     var assetPrices: [Primitives.AssetId: Primitives.Price] {
-        Dictionary(uniqueKeysWithValues: prices.compactMap { price in
-            (try? Primitives.AssetId(id: price.assetId)).map { ($0, Primitives.Price(price)) }
-        })
+        Dictionary(uniqueKeysWithValues: prices.map { (Primitives.AssetId(core: $0.assetId), $0.map().mapToPrice()) })
     }
 }

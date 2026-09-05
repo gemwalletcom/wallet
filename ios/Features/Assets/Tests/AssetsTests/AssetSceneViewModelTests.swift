@@ -19,12 +19,6 @@ import Testing
 @MainActor
 struct AssetSceneViewModelTests {
     @Test
-    func showManageToken() {
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isBalanceEnabled: true))).showManageToken == false)
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isBalanceEnabled: false))).showManageToken == true)
-    }
-
-    @Test
     func swapAssetTypeUsesTheAssetWhenCoreSuggestsNoReceiveAsset() {
         let asset = Asset.mockEthereumUSDT()
         let model = AssetSceneViewModel.mock(
@@ -65,13 +59,6 @@ struct AssetSceneViewModelTests {
         #expect(ethereum.stakeBalanceText(staked) == "6 ETH")
         #expect(ethereum.balanceText(earn) == "4 ETH")
         #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false))).balanceRows.isEmpty)
-    }
-
-    @Test
-    func showEarnButton() {
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isEarnEnabled: true))).showEarnButton == true)
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isEarnEnabled: false))).showEarnButton == false)
-        #expect(AssetSceneViewModel.mock(.mock(balance: .mock(earn: BigInt(100)), metadata: .mock(isEarnEnabled: true))).showEarnButton == false)
     }
 
     @Test

@@ -1,17 +1,17 @@
 use std::sync::Arc;
 
-use primitives::{Chain, NFTAssetId, ReportNft};
+use primitives::{Chain, NFTAssetId, ReportNft, Wallet};
 
 use super::{GemNftService, rules};
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::avatar::GemAvatarService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
+use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCollectibleLinks {
-    pub contract: Option<GemBlockExplorerLink>,
-    pub token: Option<GemBlockExplorerLink>,
+    pub contract: Option<BlockExplorerLink>,
+    pub token: Option<BlockExplorerLink>,
 }
 
 #[derive(uniffi::Object)]
@@ -28,8 +28,8 @@ impl GemCollectibleService {
         Self { nfts, avatars, explorer }
     }
 
-    pub fn can_send(&self, chain: Chain) -> Result<bool, GemServiceError> {
-        Ok(rules::can_send(&self.nfts.session.current_wallet()?.wallet_type, chain))
+    pub fn can_send(&self, wallet: Wallet, chain: Chain) -> bool {
+        rules::can_send(&wallet.wallet_type, chain)
     }
 
     pub fn links(&self, chain: Chain, contract_address: String, token_id: String) -> GemCollectibleLinks {

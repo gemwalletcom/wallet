@@ -38,7 +38,9 @@ final class RootSceneViewModel {
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
 
-    var currentWallet: Wallet? { walletSessionService.currentWallet }
+    var currentWallet: Wallet? {
+        walletSessionService.currentWalletId.flatMap { try? viewModelFactory.storeManager.walletStore.getWallet(id: $0) }
+    }
     var currentWalletId: WalletId? { walletSessionService.currentWalletId }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
@@ -166,7 +168,7 @@ extension RootSceneViewModel {
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
         Task {
-            for failure in await appStartService.setupWallet(wallet: wallet.json()) {
+            for failure in await appStartService.setupWallet(wallet: wallet.map()) {
                 debugLog("wallet start \(failure.step) failed: \(failure.message)")
             }
             await appLifecycleService.updateWalletConnections()

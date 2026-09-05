@@ -15,8 +15,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinActions {
-    public static let defaultLimit = 100
-
     private let service: any GemAssetSelectionServiceProtocol
     let wallet: Wallet
 
@@ -41,6 +39,8 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         self.wallet = wallet
         self.service = service
         self.title = title
+        var request = request
+        request.limit = Int(service.walletSearchLimits(query: request.searchBy).results)
         searchQuery = ObservableQuery(request, initialValue: .empty)
         onSelectAssetAction = onSelectAsset
     }
@@ -70,7 +70,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var showPerpetuals: Bool {
-        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals()
+        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
     }
 
     var showEmpty: Bool {

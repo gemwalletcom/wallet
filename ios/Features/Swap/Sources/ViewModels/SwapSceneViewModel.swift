@@ -6,11 +6,11 @@ import Formatters
 import Foundation
 import class Gemstone.Config
 import enum Gemstone.GemSwapButtonAction
-import struct Gemstone.GemSwapButtonInput
+import struct Gemstone.GemSwapQuotesResult
+import struct Gemstone.GemSwapSession
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import class Gemstone.GemSwapQuoteSummary
 import enum Gemstone.SwapperError
-import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Localization
@@ -26,7 +26,7 @@ public final class SwapSceneViewModel {
 
     public let wallet: Wallet
 
-    public var swapState: SwapState = .init()
+    public var session: GemSwapSession
     public var isPresentingInfoSheet: SwapSheetType?
 
     public let fromAssetQuery: ObservableQuery<AssetRequestOptional>
@@ -44,8 +44,9 @@ public final class SwapSceneViewModel {
     var isPresentingPriceImpactConfirmation: String?
     var pairSelectorModel: SwapPairSelectorViewModel
 
-    var selectedSwapQuote: SwapperQuote?
-    private var preferredProvider: SwapProvider?
+    var selectedSwapQuote: SwapperQuote? {
+        session.quote()
+    }
 
     var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
     var toValue: String = ""
@@ -81,6 +82,7 @@ public final class SwapSceneViewModel {
         toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.onSwap = onSwap
         selectedSlippage = service.slippage
+        session = service.newSession()
     }
 
     var title: String {
@@ -106,7 +108,7 @@ public final class SwapSceneViewModel {
         let fromAssetPrice = AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price)
         let toAssetPrice = AssetPriceValue(asset: toAsset.asset, price: toAsset.price)
         return SwapDetailsViewModel(
-            state: swapState.quotes.map { providerItems($0, selectedQuote: selectedQuote, toAssetPrice: toAssetPrice) },
+            state: quotesState.map { providerItems($0, selectedQuote: selectedQuote, toAssetPrice: toAssetPrice) },
             fromAssetPrice: fromAssetPrice,
             toAssetPrice: toAssetPrice,
             selectedQuote: selectedQuote,
@@ -115,7 +117,7 @@ public final class SwapSceneViewModel {
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapPriceImpact: fromAssetPrice.swapValue(BigUInt(selectedQuote.fromValueBigInt))
                 .priceImpact(receive: toAssetPrice.swapValue(BigUInt(selectedQuote.toValueBigInt)))
-                .flatMap { try? Primitives.SwapPriceImpact($0) },
+                .map { $0.map() },
             minReceiveValue: BigInt(summary.minReceiveValue()),
             etaMinutes: summary.etaMinutes(),
             swapProviderSelectAction: { [weak self] quote in
@@ -154,7 +156,7 @@ public final class SwapSceneViewModel {
 
     var buttonViewModel: SwapButtonViewModel {
         SwapButtonViewModel(
-            swapState: swapState,
+            session: session,
             buttonAction: buttonAction,
             fromAsset: fromAsset,
             onAction: onSelectActionButton,
@@ -162,15 +164,19 @@ public final class SwapSceneViewModel {
     }
 
     var shouldShowAdditionalInfo: Bool {
-        swapState.quotes.isLoading == false
+        !session.isQuoteLoading()
     }
 
     var isQuoteLoading: Bool {
-        swapState.quotes.isLoading
+        session.isQuoteLoading()
     }
 
     var isTransferDataLoading: Bool {
-        swapState.swapTransferData.isLoading
+        session.isTransferLoading()
+    }
+
+    var error: (any Error)? {
+        session.transferError() ?? session.quoteError()
     }
 
     var isQuoteInteractionEnabled: Bool {
@@ -186,9 +192,7 @@ public final class SwapSceneViewModel {
     }
 
     var errorInfoAction: VoidAction {
-        guard case let .error(error) = swapState.quotes,
-              case .NoQuoteAvailable = error.swapperError
-        else {
+        guard let error = session.quoteError(), case .NoQuoteAvailable = error else {
             return nil
         }
         return VoidAction { [weak self] in
@@ -241,8 +245,12 @@ extension SwapSceneViewModel {
     }
 
     func load() async {
-        guard !isTransferDataLoading, let currentInput else { return }
+        guard !isTransferDataLoading, !session.refreshPausedUntilRestart, let currentInput else { return }
         await performFetch(input: currentInput)
+    }
+
+    func onAppear() {
+        session = session.onRefreshResumed()
     }
 
     func onChangePair(_ _: SwapPairSelectorViewModel, _ newModel: SwapPairSelectorViewModel) {
@@ -259,25 +267,20 @@ extension SwapSceneViewModel {
         if let input = loadTrigger?.input, input == currentInput {
             return
         }
-        resetTransferDataState()
         setLoadTrigger(isImmediate: false)
     }
 
     func onChangeFromAsset(old: AssetData?, new: AssetData?) {
         guard old?.asset.id != new?.asset.id else { return }
 
-        resetTransferDataState()
         resetValues()
-        resetQuoteSelection()
         setLoadTrigger(isImmediate: true)
     }
 
     func onChangeToAsset(old: AssetData?, new: AssetData?) {
         guard old?.asset.id != new?.asset.id else { return }
 
-        resetTransferDataState()
         resetToValue()
-        resetQuoteSelection()
         setLoadTrigger(isImmediate: true)
     }
 
@@ -287,7 +290,6 @@ extension SwapSceneViewModel {
 
     func onSelectPercent(_ percent: Int) {
         guard let fromAsset else { return }
-        resetTransferDataState()
         applyPercentToFromValue(percent: percent, assetData: fromAsset)
         setLoadTrigger(isImmediate: true)
     }
@@ -315,9 +317,7 @@ extension SwapSceneViewModel {
     }
 
     func onFinishSwapProviderSelection(_ quote: SwapperQuote) {
-        resetTransferDataState()
-        preferredProvider = quote.data.provider.id
-        selectedSwapQuote = quote
+        session = session.onProviderSelected(provider: quote.data.provider.id)
     }
 
     func onSelectSlippage(_ slippage: SwapSlippage) {
@@ -328,7 +328,6 @@ extension SwapSceneViewModel {
         } catch {
             debugLog("set swap slippage error: \(error)")
         }
-        resetTransferDataState()
         setLoadTrigger(isImmediate: true)
     }
 
@@ -354,12 +353,20 @@ extension SwapSceneViewModel {
 
 extension SwapSceneViewModel {
     private var buttonAction: GemSwapButtonAction {
-        GemSwapButtonInput(
-            value: currentInput?.value ?? .zero,
-            availableBalance: fromAsset?.balance.available ?? .zero,
-            quoteError: swapState.quotes.swapperError,
-            transferError: swapState.swapTransferData.swapperError,
-        ).action()
+        session.buttonAction(value: currentInput?.value ?? .zero, availableBalance: fromAsset?.balance.available ?? .zero)
+    }
+
+    private var quotesState: StateViewType<[SwapperQuote]> {
+        if session.isQuoteLoading() {
+            return .loading
+        }
+        if let error = session.quoteError() {
+            return .error(error)
+        }
+        if let quotes = session.quotes?.quotes {
+            return .data(quotes)
+        }
+        return .noData
     }
 
     private var currentInput: SwapQuoteInput? {
@@ -394,7 +401,6 @@ extension SwapSceneViewModel {
 
     private func applyMinAmount(_ value: BigInt) {
         guard let fromAsset else { return }
-        resetTransferDataState()
         amountInputModel.text = formatter.format(value: value, decimals: fromAsset.asset.decimals.asInt)
         setLoadTrigger(isImmediate: true)
     }
@@ -402,13 +408,12 @@ extension SwapSceneViewModel {
     private func setLoadTrigger(isImmediate: Bool) {
         guard let input = currentInput else {
             resetToValue()
-            swapState.quotes = .noData
-            resetTransferDataState()
-            resetQuoteSelection()
+            session = session.onRequestChanged(request: nil)
             loadTrigger = nil
             return
         }
         guard !isTransferDataLoading else { return }
+        session = session.onRequestChanged(request: input.request)
         loadTrigger = SwapLoadTrigger(input: input, isImmediate: isImmediate)
 
         Task {
@@ -418,23 +423,24 @@ extension SwapSceneViewModel {
     }
 
     private func swap() {
-        guard !isTransferDataLoading else { return }
-        guard let fromAsset, let toAsset, let quote = selectedSwapQuote else {
+        guard let fromAsset, let toAsset, let started = session.startTransfer(), let quote = started.quote() else {
             return
         }
+        let transfer = started.transferPhase
+        session = started
 
         Task {
             do {
-                swapState.swapTransferData = .loading
                 let transferData = try await service.getTransferData(
                     fromAsset: fromAsset.asset,
                     toAsset: toAsset.asset,
                     quote: quote,
                 )
+                guard session.transferPhase == transfer else { return }
                 onSwap?(transferData)
-                swapState.swapTransferData = .noData
+                session = session.onTransferHandedOff(transfer: transfer)
             } catch {
-                swapState.swapTransferData.setError(error)
+                session = session.onTransferFailed(transfer: transfer, error: error.swapperError ?? .ComputeQuoteError(error.localizedDescription))
                 debugLog("SwapScene get swap data error: \(error)")
             }
         }
@@ -442,9 +448,9 @@ extension SwapSceneViewModel {
 
     private func performFetch(input: SwapQuoteInput) async {
         guard !isTransferDataLoading else { return }
+        session = session.onFetchStarted(request: input.request)
+        resetToValue()
         do {
-            swapState.quotes = .loading
-            resetToValue()
             let swapQuotes = try await service.getQuotes(
                 fromAsset: input.fromAsset,
                 toAsset: input.toAsset,
@@ -453,17 +459,16 @@ extension SwapSceneViewModel {
                 slippage: input.slippage,
             )
 
-            guard !isTransferDataLoading, currentInput == input else { return }
-            swapState.quotes = .data(swapQuotes)
-            selectedSwapQuote = service.selectedQuote(quotes: swapQuotes, preferred: preferredProvider)
+            guard currentInput == input else { return }
+            session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
             if let selectedSwapQuote, let asset = toAsset?.asset {
                 applyQuote(selectedSwapQuote, asset: asset)
             }
         } catch {
             if !error.isCancelled, !Task.isCancelled {
-                guard !isTransferDataLoading, currentInput == input else { return }
-                swapState.quotes = .error(error)
-                selectedSwapQuote = nil
+                guard currentInput == input else { return }
+                let failure = error.swapperError ?? .ComputeQuoteError(error.localizedDescription)
+                session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: failure))
                 debugLog("SwapScene get quotes error: \(error)")
             }
         }
@@ -475,15 +480,6 @@ extension SwapSceneViewModel {
         } catch {
             debugLog("SwapScene balance update error: \(error)")
         }
-    }
-
-    private func resetQuoteSelection() {
-        selectedSwapQuote = nil
-        preferredProvider = nil
-    }
-
-    private func resetTransferDataState() {
-        swapState.swapTransferData = .noData
     }
 
     private func onSelectActionButton() {
@@ -508,12 +504,5 @@ extension SwapSceneViewModel {
 extension Error {
     var swapperError: Gemstone.SwapperError? {
         self as? Gemstone.SwapperError
-    }
-}
-
-extension StateViewType {
-    var swapperError: Gemstone.SwapperError? {
-        guard case let .error(error) = self else { return nil }
-        return error.swapperError
     }
 }

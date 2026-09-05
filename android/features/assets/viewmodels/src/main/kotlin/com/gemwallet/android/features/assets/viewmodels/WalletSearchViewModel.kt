@@ -1,7 +1,8 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import androidx.lifecycle.viewModelScope
@@ -13,7 +14,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.domains.search.WalletSearchConfig
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
@@ -27,8 +27,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.NFTData
 import uniffi.gemstone.GemNftSearchItem
-import com.wallet.core.primitives.NFTAssetData
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +63,7 @@ class WalletSearchViewModel @Inject constructor(
         service.search(query, GemSearchScope.All)
     }
 
-    private val showPerpetuals = getSession().map { service.showPerpetuals() }
+    private val showPerpetuals = getSession().map { service.showPerpetuals(it?.wallet?.toGem()) }
 
     private val visiblePerpetuals = combine(
         getPerpetuals.getPerpetuals(currentQuery.map { it.takeIf(String::isNotEmpty) }),
@@ -85,11 +83,11 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = perpetuals
-        .map { items -> items.take(WalletSearchConfig.perpetualsPreviewLimit) }
+        .map { items -> items.take(limits().perpetuals.toInt()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hasMorePerpetuals: StateFlow<Boolean> = visiblePerpetuals
-        .map { items -> items.size > WalletSearchConfig.perpetualsPreviewLimit }
+        .map { items -> items.size > limits().perpetuals.toInt() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val nftData: Flow<List<NFTData>> = getNftCollections(null)
@@ -105,11 +103,11 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewNfts: StateFlow<List<NftItemUIModel>> = nfts
-        .map { items -> items.take(WalletSearchConfig.nftsPreviewLimit) }
+        .map { items -> items.take(limits().nfts.toInt()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hasMoreNfts: StateFlow<Boolean> = nfts
-        .map { items -> items.size > WalletSearchConfig.nftsPreviewLimit }
+        .map { items -> items.size > limits().nfts.toInt() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val lists: StateFlow<List<AssetList>> = currentQuery
@@ -138,24 +136,22 @@ class WalletSearchViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
-    private fun assetsLimit(query: String): Int = if (query.isNotEmpty()) {
-        WalletSearchConfig.assetsSearchLimit
-    } else {
-        WalletSearchConfig.assetsInitialLimit
-    }
+    private fun limits(query: String = queryState.text.toString()) = service.walletSearchLimits(query)
+
+    private fun assetsLimit(query: String): Int = limits(query).assets.toInt()
 
     private fun searchNfts(data: List<NFTData>, query: String): List<NftItemUIModel> =
-        service.searchCollections(data.map { it.toJson() }, query).map { item ->
+        service.searchCollections(data.map { it.toGem() }, query).map { item ->
             when (item) {
-                is GemNftSearchItem.Collection -> item.data.decodeJson<NFTData>().toNftItem()
-                is GemNftSearchItem.Asset -> item.data.decodeJson<NFTAssetData>().let { NftItemUIModel(it.collection, it.asset) }
+                is GemNftSearchItem.Collection -> item.data.toPrimitives().toNftItem()
+                is GemNftSearchItem.Asset -> item.data.toPrimitives().let { NftItemUIModel(it.collection, it.asset) }
             }
         }
 
     private fun NFTData.toNftItem(): NftItemUIModel =
         if (assets.size == 1) NftItemUIModel(collection, assets.first()) else NftItemUIModel(collection, null, assets.size)
 
-    override fun assetsSearchLimit(query: String): Int = assetsLimit(query) + 1
+    override fun assetsSearchLimit(query: String): Int = limits(query).fetch.toInt()
 
     fun onPinAsset(assetId: AssetId) {
         val willPin = (pinned.value + unpinned.value).firstOrNull { it.asset.id == assetId }?.pinned != true

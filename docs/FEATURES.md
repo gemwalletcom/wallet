@@ -156,6 +156,20 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 
 <sub>Reviewed 2026-09-02. Sources: [advertised chains](../core/gemstone/src/config/wallet_connect.rs), [session method list](../core/gemstone/src/services/wallet_connect/rules.rs), [method identifiers](../core/crates/primitives/src/wallet_connector.rs), [Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs), [Android approval](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_connect/WalletConnectCoordinator.kt), [Android auth namespace](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Namespace.kt), and [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift).</sub>
 
+## Security providers
+
+Backend transaction scanning checks the transaction target rather than the sender. Provider failures make the scan incomplete instead of treating the missing result as safe.
+
+| Provider | Address security | Address poisoning | Website security | EVM token security | Solana token security |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| [GoPlus](../core/crates/security_provider/src/providers/goplus/provider.rs) | ✅ | ❌ | ❌ | ✅ | ❌ |
+| [HashDit](../core/crates/security_provider/src/providers/hashdit/provider.rs) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [Jupiter](../core/crates/security_provider/src/providers/jupiter/provider.rs) | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+Address and EVM token coverage follows each provider's mapped chains. HashDit address poisoning covers its mapped EVM chains and Tron; website security is chain-independent.
+
+<sub>Reviewed 2026-09-05. Sources: [provider factory](../core/crates/security_provider/src/factory.rs), [HashDit chain mapping](../core/crates/security_provider/src/providers/hashdit/mapper.rs), [HashDit Address Security](https://docs.hashdit.io/api-reference/endpoint/address-security-v2/supported-chains), [Address Poisoning](https://docs.hashdit.io/api-reference/endpoint/address-poisoning/supported-chains), [Domain Security](https://docs.hashdit.io/api-reference/endpoint/domain-security), and [Solana Token Security](https://docs.hashdit.io/api-reference/endpoint/solana-token-security).</sub>
+
 ## Transaction-indexing providers
 
 The EVM route configured by [`settings_chain`](../core/crates/settings_chain/src/lib.rs) uses the ordered lists in [`EVMIndexer`](../core/crates/gem_evm/src/rpc/indexer/mod.rs). Blockscout PRO is first for its 12 supported Gem chains, followed by Ankr or Alchemy when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../core/crates/gem_evm/src/rpc/alchemy.rs) is only called on explicitly supported chains. Other EVM chains return an empty address history. Dedicated indexers for Algorand, EVM, NEAR, Polkadot, Solana, Sui, and Tron are composed only by `settings_chain`; [gemstone](../core/gemstone/src/gateway/chain_factory.rs) uses RPC-only providers, and swapper uses raw RPC clients.

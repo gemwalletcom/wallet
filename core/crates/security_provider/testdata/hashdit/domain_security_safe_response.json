@@ -1,0 +1,12 @@
+{
+  "code": "0",
+  "status": "ok",
+  "data": {
+    "request_id": "7644f1c1-15f1-498c-93cb-5b522da49adf",
+    "has_result": true,
+    "polling_interval": 0,
+    "risk_level": 1,
+    "risk_name": "No Obvious Risk",
+    "risk_detail": []
+  }
+}

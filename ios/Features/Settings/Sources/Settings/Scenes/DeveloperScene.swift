@@ -97,7 +97,7 @@ public struct DeveloperScene: View {
                 NavigationCustomLink(
                     with: ListItemView(title: "Open Asset (Bitcoin)"),
                     action: {
-                        model.deeplink(deeplink: .asset(AssetId(chain: .bitcoin, tokenId: .none)))
+                        model.deeplink(deeplink: .asset(assetId: AssetId(chain: .bitcoin, tokenId: .none).identifier))
                     },
                 )
                 NavigationCustomLink(

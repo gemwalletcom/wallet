@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Currency};
-use swapper::{AssetList, Quote, SwapperError, SwapperProvider, SwapperSlippage};
+use swapper::{AssetList, Quote, SwapperError, SwapperSlippage};
 
 use super::rules;
-use super::{GemSwapPairSuggestion, GemSwapService, GemSwapTransfer};
+use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
 use crate::config::swap_config::{get_default_slippage, get_swap_config};
 use crate::models::custom_types::GemBigUint;
 use crate::models::swap::GemSlippageCheck;
@@ -46,6 +46,10 @@ impl GemSwapQuoteService {
         self.preferences.get_currency()
     }
 
+    pub fn new_session(&self) -> GemSwapSession {
+        GemSwapSession::default()
+    }
+
     pub fn slippage_bps(&self) -> Option<u32> {
         self.preferences.get_swap_slippage_bps()
     }
@@ -75,7 +79,7 @@ impl GemSwapQuoteService {
     }
 
     pub async fn get_quotes(&self, from_asset: Asset, to_asset: Asset, value: GemBigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<Vec<Quote>, SwapperError> {
-        let wallet = self.session.current_wallet().map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
+        let wallet = self.session.current_wallet().await.map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
         self.swap.get_quotes(wallet, from_asset, to_asset, value, use_max_amount, slippage_bps).await
     }
 
@@ -83,12 +87,8 @@ impl GemSwapQuoteService {
         self.swap.suggest_pair(self.session.current_wallet_id()?, pay_asset_id).await
     }
 
-    pub fn selected_quote(&self, quotes: Vec<Quote>, preferred: Option<SwapperProvider>) -> Option<Quote> {
-        rules::selected_quote(&quotes, preferred)
-    }
-
     pub async fn get_transfer(&self, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {
-        let wallet = self.session.current_wallet().map_err(|error| SwapperError::TransactionError(error.to_string()))?;
+        let wallet = self.session.current_wallet().await.map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         self.swap.get_transfer(wallet, quote).await
     }
 

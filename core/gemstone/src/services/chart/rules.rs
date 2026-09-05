@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{ChartDateValue, ChartValue};
 
-use crate::services::price::GemAssetPrice;
+use primitives::AssetPrice;
 
 pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValue> {
     let mut values: Vec<ChartDateValue> = prices
@@ -17,7 +17,7 @@ pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValu
     values
 }
 
-pub fn current_value(values: &[ChartDateValue], latest: Option<GemAssetPrice>, now: DateTime<Utc>) -> Option<ChartDateValue> {
+pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now: DateTime<Utc>) -> Option<ChartDateValue> {
     let latest = latest?;
     let is_newer = values.last().is_none_or(|last| latest.updated_at > last.date);
     is_newer.then_some(ChartDateValue { date: now, value: latest.price })
@@ -41,7 +41,7 @@ mod tests {
             date: DateTime::from_timestamp(seconds, 0).unwrap(),
             value: 1.0,
         };
-        let price = |seconds: i64| GemAssetPrice {
+        let price = |seconds: i64| AssetPrice {
             asset_id: AssetId::from_chain(primitives::Chain::Bitcoin),
             price: 9.0,
             price_change_percentage_24h: 0.0,

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
+import enum Gemstone.GemPerpetualPositionAction
 import GemstoneServices
 import Components
 import InfoSheet
@@ -150,7 +151,6 @@ struct WalletNavigationView: View {
                         walletId: model.wallet.id,
                         searchBy: destination.searchQuery,
                         scope: destination.scope,
-                        limit: AssetsResultsSceneViewModel.defaultLimit,
                     ),
                     title: destination.title ?? Localized.Assets.title,
                     onSelectAsset: navigationState.openAsset,
@@ -163,7 +163,7 @@ struct WalletNavigationView: View {
                     asset: $0.asset,
                     wallet: model.wallet,
                     onTransferData: { model.isPresentingSheet = .transferData($0) },
-                    onPerpetualRecipientData: { model.isPresentingSheet = .perpetualRecipientData($0) },
+                    onPerpetualPosition: { model.isPresentingSheet = .perpetualPosition($0) },
                 ),
                 isPresentingSheet: $model.isPresentingSheet,
             )
@@ -193,9 +193,9 @@ struct WalletNavigationView: View {
                         transferData: data,
                         onComplete: model.onTransferComplete,
                     )
-                case let .perpetualRecipientData(data):
+                case let .perpetualPosition(action):
                     PerpetualPositionNavigationStack(
-                        perpetualRecipientData: data,
+                        positionAction: action,
                         wallet: model.wallet,
                         onComplete: { model.isPresentingSheet = nil },
                     )

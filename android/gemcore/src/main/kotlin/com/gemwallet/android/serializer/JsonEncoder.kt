@@ -7,5 +7,6 @@ val jsonEncoder by lazy {
         ignoreUnknownKeys = true
         coerceInputValues = true
         explicitNulls = false
+        serializersModule = gemRecordSerializers
     }
 }

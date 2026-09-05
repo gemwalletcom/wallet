@@ -7,12 +7,12 @@ use primitives::currency::Currency;
 use primitives::{AssetId, Chain, ChartDateValue, ChartPeriod};
 
 use crate::api::{GemApiClient, GemApiError};
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
+use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
@@ -48,7 +48,7 @@ impl GemChartService {
         }
     }
 
-    pub fn token_url(&self, chain: Chain, address: String) -> Option<GemBlockExplorerLink> {
+    pub fn token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
         self.explorer.get_token_url(chain, address)
     }
 
@@ -73,7 +73,7 @@ impl GemChartService {
         let rate = self.price.rate(currency.clone()).await?.ok_or(GemServiceError::InvalidInput {
             msg: format!("unknown currency: {currency}"),
         })?;
-        let latest = self.price.prices(vec![asset_id])?.into_iter().next();
+        let latest = self.price.prices(vec![asset_id]).await?.into_iter().next();
         let values = rules::converted_values(charts.prices, rate.rate);
         let current = rules::current_value(&values, latest, Utc::now());
         Ok(GemChart { values, current })

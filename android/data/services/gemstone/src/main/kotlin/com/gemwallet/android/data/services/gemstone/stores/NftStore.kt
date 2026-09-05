@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.nft.toAssetModel
 import com.gemwallet.android.data.services.gemstone.nft.toAssetModels
 import com.gemwallet.android.data.services.gemstone.nft.toCollectionModel
@@ -9,8 +11,6 @@ import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
 import com.gemwallet.android.ext.toNftAssetId
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTCollection
@@ -26,8 +26,8 @@ class GemstoneNftStore(
     private val nftDao: NftDao,
 ) : GemNftStore {
 
-    override suspend fun saveNfts(walletId: String, data: List<String>) {
-        val nftData = data.map { it.decodeJson<NFTData>() }
+    override suspend fun saveNfts(walletId: String, data: List<uniffi.gemstone.NftData>) {
+        val nftData = data.map { it.toPrimitives() }
         val assets = nftData.flatMap { it.assets }.map { it.toDb() }
         nftDao.updateNft(
             walletId = walletId,
@@ -37,15 +37,15 @@ class GemstoneNftStore(
         )
     }
 
-    override suspend fun getAssetData(assetId: String): String? {
-        val id = requireNotNull(assetId.toNftAssetId()) { "invalid nft asset id: $assetId" }
+    override suspend fun getAssetData(assetId: String): uniffi.gemstone.NftAssetData? {
+        val id = NFTAssetId(assetId)
         val asset = nftDao.getAsset(id).first() ?: return null
         val collection = nftDao.getCollection(asset.collectionId).first() ?: return null
-        return NFTAssetData(collection = collection.toCollectionModel(), asset = asset.toAssetModel()).toJson()
+        return NFTAssetData(collection = collection.toCollectionModel(), asset = asset.toAssetModel()).toGem()
     }
 
-    override suspend fun saveAsset(data: String) {
-        val assetData = data.decodeJson<NFTAssetData>()
+    override suspend fun saveAsset(data: uniffi.gemstone.NftAssetData) {
+        val assetData = data.toPrimitives()
         nftDao.add(collection = assetData.collection.toDb(), asset = assetData.asset.toDb())
     }
 

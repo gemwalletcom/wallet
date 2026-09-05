@@ -181,13 +181,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem Wallet 需要访问您的相机来扫描二维码。"
+            "value": "Gem Wallet 需要访问相机来扫描二维码。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem Wallet 需要存取您的相機來掃描二維碼。"
+            "value": "Gem Wallet 需要存取相機，以掃描 QR 碼。"
           }
         }
       }
@@ -372,13 +372,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "启用 Face ID 有助于 Gem Wallet 保证您的资产安全。"
+            "value": "启用 Face ID 有助于 Gem Wallet 保护资产安全。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "啟用 Face ID 有助於 Gem Wallet 保證您的資產安全。"
+            "value": "啟用 Face ID 有助於 Gem Wallet 保護資產安全。"
           }
         }
       }
@@ -563,13 +563,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此应用程序需要访问您的照片库来保存 NFT。"
+            "value": "此应用程序需要访问照片库来保存 NFT。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此應用程式需要存取您的照片庫來保存 NFT。"
+            "value": "此 App 需要存取照片圖庫，以儲存 NFT。"
           }
         }
       }
@@ -754,13 +754,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我们需要访问您的照片库以便您选择照片。"
+            "value": "需要访问照片库才能选择照片。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我們需要存取您的照片庫以便您選擇照片。"
+            "value": "需要存取照片圖庫才能選取照片。"
           }
         }
       }

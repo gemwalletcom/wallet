@@ -7,7 +7,6 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.domains.confirm.transfer
-import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -31,13 +30,11 @@ import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemTransferDataExtra
-import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
+import com.gemwallet.android.domains.confirm.unpackTransferData
 
 @RunWith(AndroidJUnit4::class)
 class TransferDataCodecTest {
-
-    private val transferService = GemTransferService()
 
     companion object {
         init {
@@ -46,7 +43,7 @@ class TransferDataCodecTest {
     }
 
     private fun roundTrip(transfer: GemTransferData): GemTransferData =
-        requireNotNull(transferService.unpack(requireNotNull(transferService.pack(transfer))))
+        requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))
 
     private fun generic(
         asset: Asset,
@@ -61,7 +58,7 @@ class TransferDataCodecTest {
     ) = GemTransferData(
         inputType = GemTransactionInputType.Generic(
             asset = asset.toGem(),
-            metadata = metadata.toJson(),
+            metadata = metadata.toGem(),
             extra = GemTransferDataExtra(
                 to = recipient.address,
                 gasLimit = gasLimit,
@@ -69,7 +66,7 @@ class TransferDataCodecTest {
                 data = data.toTransactionData(),
                 outputType = outputType.toGem(),
                 outputAction = outputAction.toGem(),
-                transactionType = transactionType.toJson(),
+                transactionType = transactionType.toGem(),
                 approval = approval?.toJson(),
             ),
         ),
@@ -124,7 +121,7 @@ class TransferDataCodecTest {
         val transfer = roundTrip(original)
         val assetId = transfer.inputType.asset.id
         val generic = transfer.inputType as GemTransactionInputType.Generic
-        val metadata = generic.metadata.decodeJson<ApplicationMetadata>()
+        val metadata = generic.metadata.toPrimitives()
 
         assertEquals(asset.id, assetId)
         assertEquals("merchant", transfer.recipient.address)
@@ -135,7 +132,7 @@ class TransferDataCodecTest {
         assertEquals(ApplicationMetadataSource.Payment, metadata.source)
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
         assertEquals(BigInteger("21000"), generic.extra.gasLimit)
-        assertEquals(TransactionType.Transfer, generic.extra.transactionType.decodeJson<TransactionType>())
+        assertEquals(TransactionType.Transfer, generic.extra.transactionType.toPrimitives())
         assertEquals(approval, requireNotNull(generic.extra.approval).decodeJson<ApprovalData>())
     }
 

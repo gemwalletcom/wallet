@@ -1,8 +1,9 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::services::balance::GemBalanceRequirement;
-use primitives::{Delegation, Resource};
+use crate::services::transfer::GemRecipient;
+use primitives::{Delegation, PerpetualDirection, Resource};
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountType {
     Transfer,
     Deposit,
@@ -15,13 +16,21 @@ pub enum GemAmountType {
     },
     Perpetual {
         position: GemAmountPerpetualPosition,
+        direction: PerpetualDirection,
         price: f64,
         leverage: u8,
         size_decimals: i32,
     },
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountTransfer {
+    Send { recipient: GemRecipient },
+    Deposit,
+    Withdraw,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountStakeType {
     Stake,
     Unstake { delegation: Delegation },
@@ -32,14 +41,14 @@ pub enum GemAmountStakeType {
     Unfreeze { resource: Resource },
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemAmountEarnType {
     Deposit,
     Withdraw { delegation: Delegation },
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountPerpetualPosition {
     Open,
     Increase,

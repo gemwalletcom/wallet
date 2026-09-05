@@ -2,12 +2,16 @@
 
 import Components
 import Foundation
+import enum Gemstone.Deeplink
 import protocol Gemstone.GemAssetsServiceProtocol
+import class Gemstone.GemDeeplinkService
 import class Gemstone.GemPaymentService
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
+import enum Gemstone.UrlAction
+import enum Gemstone.WalletConnectLink
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -30,7 +34,7 @@ final class NavigationHandler: Sendable {
     private let toastPresenter: ToastPresenter
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
-    private let urlParser: URLParser
+    private let deeplinkService: GemDeeplinkService
     private let paymentService: GemPaymentService
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
@@ -45,7 +49,7 @@ final class NavigationHandler: Sendable {
         toastPresenter: ToastPresenter,
         pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
-        urlParser: URLParser,
+        deeplinkService: GemDeeplinkService,
         paymentService: GemPaymentService,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
@@ -59,7 +63,7 @@ final class NavigationHandler: Sendable {
         self.toastPresenter = toastPresenter
         self.pushNotificationService = pushNotificationService
         self.transactionStore = transactionStore
-        self.urlParser = urlParser
+        self.deeplinkService = deeplinkService
         self.paymentService = paymentService
         self.transactionStateService = transactionStateService
         self.walletConnectorPresenter = walletConnectorPresenter
@@ -96,14 +100,14 @@ final class NavigationHandler: Sendable {
 
     @MainActor
     func handle(code: String) async {
-        guard let action = try? urlParser.from(code: code) else {
+        guard let action = deeplinkService.urlAction(url: code) else {
             return showError(AnyError(Localized.Errors.notSupported))
         }
         await handle(action)
     }
 
     @MainActor
-    func handle(_ action: URLAction) async {
+    func handle(_ action: UrlAction) async {
         do {
             try await handleURLAction(action)
         } catch {
@@ -114,28 +118,28 @@ final class NavigationHandler: Sendable {
 
     @MainActor
     func open(url: URL) -> Bool {
-        guard let action = try? urlParser.from(url: url) else { return false }
+        guard let action = deeplinkService.urlAction(url: url.absoluteString) else { return false }
         Task { await handle(action) }
         return true
     }
 }
 
-// MARK: - URLAction
+// MARK: - UrlAction
 
 @MainActor
 extension NavigationHandler {
-    private func handleURLAction(_ action: URLAction) async throws {
+    private func handleURLAction(_ action: UrlAction) async throws {
         switch action {
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
-        case let .payment(payment): try await handlePayment(payment)
-        case let .walletConnect(action): await handleWalletConnect(action)
+        case let .payment(payment): try await handlePayment(Payment(payment))
+        case let .walletConnect(link): await handleWalletConnect(link)
         }
     }
 
-    private func handleDeepLink(_ deeplink: DeepLink) async throws {
+    private func handleDeepLink(_ deeplink: Deeplink) async throws {
         switch deeplink {
         case let .asset(assetId):
-            try await navigateToAsset(assetId)
+            try await navigateToAsset(AssetId(id: assetId))
 
         case .perpetuals:
             navigationState.wallet.append(Scenes.Perpetuals())
@@ -144,16 +148,16 @@ extension NavigationHandler {
             navigationState.settings.append(Scenes.Referral(code: code))
 
         case let .receive(assetId):
-            try await presentReceive(assetId: assetId)
+            try await presentReceive(assetId: AssetId(id: assetId))
 
         case let .buy(assetId, amount):
-            try await presentFiat(type: .buy, assetId: assetId, amount: amount)
+            try await presentFiat(type: .buy, assetId: AssetId(id: assetId), amount: amount.map(\.asInt))
 
         case let .sell(assetId, amount):
-            try await presentFiat(type: .sell, assetId: assetId, amount: amount)
+            try await presentFiat(type: .sell, assetId: AssetId(id: assetId), amount: amount.map(\.asInt))
 
         case let .swap(assetId):
-            try await presentSwap(from: assetId, to: .none)
+            try await presentSwap(from: AssetId(id: assetId), to: .none)
         }
 
         selectTab(for: deeplink.selectTab)
@@ -165,7 +169,7 @@ extension NavigationHandler {
 @MainActor
 extension NavigationHandler {
     private func handlePayment(_ payment: Payment) async throws {
-        guard let wallet = walletSessionService.currentWallet else { return }
+        guard let wallet = await walletSessionService.currentWallet else { return }
         switch payment {
         case let .request(request):
             let assets = try assetStore.getAssetsData(walletId: wallet.id, filters: [])
@@ -185,11 +189,11 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handleWalletConnect(_ action: WalletConnectAction) async {
+    private func handleWalletConnect(_ link: WalletConnectLink) async {
         walletConnectorPresenter.isPresentingConnectionBar = true
 
         do {
-            switch action {
+            switch link {
             case let .connect(uri):
                 try await walletConnector.pair(uri: uri)
             case .request:
@@ -257,7 +261,7 @@ extension NavigationHandler {
     }
 
     private func navigateToAsset(walletId: WalletId, assetId: AssetId) async throws {
-        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+        guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
               let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
         else {
             return
@@ -278,9 +282,9 @@ extension NavigationHandler {
     }
 
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
-        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+        guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
               let asset = try await transactionStateService.addNotificationTransaction(
-                  wallet: wallet.json(),
+                  wallet: wallet.map(),
                   assetId: assetId.identifier,
                   transaction: transaction.json(),
               ).map({ $0.map() })
@@ -320,7 +324,7 @@ extension NavigationHandler {
     }
 
     private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
-        guard let wallet = walletSessionService.currentWallet else { return }
+        guard let wallet = await walletSessionService.currentWallet else { return }
         try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet)
     }
 
@@ -330,16 +334,16 @@ extension NavigationHandler {
         case .buy: .buy(asset, amount: amount)
         case .sell: .sell(asset, amount: amount)
         }
-        try presentAssetInput(type: selectedType, for: asset)
+        try await presentAssetInput(type: selectedType, for: asset)
     }
 
     private func presentReceive(assetId: AssetId) async throws {
         let asset = try await assetsService.ensureAsset(for: assetId)
-        try presentAssetInput(type: .receive(.asset), for: asset)
+        try await presentAssetInput(type: .receive(.asset), for: asset)
     }
 
-    private func presentAssetInput(type: SelectedAssetType, for asset: Asset) throws {
-        guard let wallet = walletSessionService.currentWallet else { return }
+    private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {
+        guard let wallet = await walletSessionService.currentWallet else { return }
         try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
     }
 
@@ -351,7 +355,7 @@ extension NavigationHandler {
 
 // MARK: - TabItem Selection
 
-private extension DeepLink {
+private extension Deeplink {
     var selectTab: TabItem? {
         switch self {
         case .asset, .perpetuals: .wallet

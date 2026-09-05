@@ -152,7 +152,7 @@ mod tests {
     async fn test_broadcast_transaction() {
         let client = StellarClient::new(MockClient::new().with_post_with_headers(|path, body, headers| {
             assert_eq!(path, "/transactions_async");
-            assert_eq!(body, br#""tx=AAAA%2B%2F%3D%3D""#);
+            assert_eq!(body, b"tx=AAAA%2B%2F%3D%3D");
             assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::ApplicationFormUrlEncoded.as_str()));
             Ok(br#"{"hash":"abc","tx_status":"PENDING"}"#.to_vec())
         }));

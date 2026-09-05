@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s es obligatorio</string>
   <string name="errors_scan_transaction_malicious_description">Esta transacción no se puede completar: la dirección de la billetera de destino está vinculada a actividades sospechosas o dañinas.</string>
   <string name="errors_scan_transaction_memo_required">%1$s La dirección de la billetera de destino requiere una etiqueta/nota de destino.</string>
-  <string name="errors_wallets_limit_title">Límite de billeteras alcanzado</string>
-  <string name="errors_wallets_limit_description">Has alcanzado el número máximo de billeteras permitidas ( %1$d ). Elimina una billetera existente para agregar o crear una nueva.</string>
   <string name="errors_scan_transaction_malicious_title">Actividad sospechosa</string>
   <string name="errors_connections_malicious_origin">Esta conexión proviene de una fuente no confiable.</string>
   <string name="errors_no_data_available">No hay datos disponibles</string>

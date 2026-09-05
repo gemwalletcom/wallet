@@ -74,7 +74,7 @@ public final class ChartSceneViewModel: ChartListViewable {
             priceData: priceData,
             currency: currencyCode,
             contractExplorerLink: (try? priceData.asset.getTokenId()).flatMap {
-                service.tokenUrl(chain: priceData.asset.chain.rawValue, address: $0).map { BlockExplorerLink($0) }
+                service.tokenUrl(chain: priceData.asset.chain.rawValue, address: $0).map { $0.map() }
             },
         )
     }
@@ -87,7 +87,7 @@ public extension ChartSceneViewModel {
         chartState = .loading
         do {
             let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.map())
-            let charts = try (chart.values + [chart.current].compactMap { $0 }).map { try ChartDateValue($0) }
+            let charts = (chart.values + [chart.current].compactMap { $0 }).map { $0.map() }
             let chartValues = try ChartValues.from(charts: charts)
             let formatter = CurrencyFormatter(currencyCode: currencyCode)
             let model = ChartValuesViewModel(

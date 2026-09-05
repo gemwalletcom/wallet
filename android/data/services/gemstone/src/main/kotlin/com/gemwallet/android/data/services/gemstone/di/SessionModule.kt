@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import com.gemwallet.android.data.service.store.database.SessionDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,7 +10,6 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import javax.inject.Singleton
-import uniffi.gemstone.GemPreferencesService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -18,9 +17,8 @@ object SessionModule {
     @Singleton
     @Provides
     fun provideGemstoneWalletSessionStore(
-        sessionDao: SessionDao,
-        preferencesService: GemPreferencesService,
-    ): GemstoneWalletSessionStore = GemstoneWalletSessionStore(sessionDao, preferencesService)
+        preferences: GemstonePreferencesStore,
+    ): GemstoneWalletSessionStore = GemstoneWalletSessionStore(preferences)
 
     @Singleton
     @Provides

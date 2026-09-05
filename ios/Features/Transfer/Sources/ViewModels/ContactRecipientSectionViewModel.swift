@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
 import struct Gemstone.GemRecipient
 import Components
 import Foundation
@@ -18,7 +19,7 @@ struct ContactRecipientSectionViewModel {
             contactData.addresses.map { address in
                 ListItemValue(
                     title: contactData.contact.name,
-                    subtitle: AddressFormatter(address: address.address, chain: address.chain).value(),
+                    subtitle: GemAddressService.shared.format(address: address.address, chain: address.chain),
                     value: GemRecipient(address: address.address, name: contactData.contact.name, memo: address.memo),
                 )
             }

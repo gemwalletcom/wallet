@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import struct Gemstone.GemWalletSearchLimits
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -60,7 +61,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         searchQuery = ObservableQuery(
             WalletSearchRequest(
                 walletId: wallet.id,
-                limit: WalletSearchModel.initialFetchLimit,
+                limit: Int(service.walletSearchLimits(query: .empty).fetch),
                 types: WalletSearchModel.searchItemTypes,
             ),
             initialValue: .empty,
@@ -97,8 +98,8 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     private var nftSearchItems: [NFTSearchItem] {
-        service.searchCollections(data: searchResult.collections.map { $0.json() }, query: searchQuery.request.searchBy)
-            .compactMap { try? $0.map() }
+        service.searchCollections(data: searchResult.collections.map { $0.map() }, query: searchQuery.request.searchBy)
+            .map { $0.map() }
     }
 
     var currencyCode: String {
@@ -110,7 +111,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPerpetuals: Bool {
-        sections.perpetuals.isNotEmpty && service.showPerpetuals()
+        sections.perpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
     }
 
     var searchState: SearchContentState {
@@ -131,7 +132,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPinnedPerpetuals: Bool {
-        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals()
+        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
     }
 
     var showAssets: Bool {
@@ -147,31 +148,35 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showAddToken: Bool {
-        service.supportsTokens()
+        service.supportsTokens(wallet: wallet.map())
+    }
+
+    private var limits: GemWalletSearchLimits {
+        service.walletSearchLimits(query: searchModel.searchableQuery)
     }
 
     var previewAssets: [AssetData] {
-        sections.assets.prefix(searchModel.assetsLimit).asArray()
+        sections.assets.prefix(Int(limits.assets)).asArray()
     }
 
     var previewPerpetuals: [PerpetualData] {
-        sections.perpetuals.prefix(searchModel.perpetualsLimit).asArray()
+        sections.perpetuals.prefix(Int(limits.perpetuals)).asArray()
     }
 
     var previewNFTs: [NFTSearchItem] {
-        sections.nfts.prefix(searchModel.nftsLimit).asArray()
+        sections.nfts.prefix(Int(limits.nfts)).asArray()
     }
 
     var hasMoreAssets: Bool {
-        searchResult.assets.count > searchModel.assetsLimit
+        searchResult.assets.count > Int(limits.assets)
     }
 
     var hasMorePerpetuals: Bool {
-        searchResult.perpetuals.count > searchModel.perpetualsLimit
+        searchResult.perpetuals.count > Int(limits.perpetuals)
     }
 
     var hasMoreNFTs: Bool {
-        sections.nfts.count > searchModel.nftsLimit
+        sections.nfts.count > Int(limits.nfts)
     }
 
     var assetsResultsDestination: Scenes.AssetsResults {
@@ -271,7 +276,7 @@ extension WalletSearchSceneViewModel {
 
     private func updateRequest() {
         searchQuery.request.searchBy = searchModel.searchableQuery
-        searchQuery.request.limit = searchModel.fetchLimit
+        searchQuery.request.limit = Int(limits.fetch)
         state = searchModel.searchableQuery.isNotEmpty ? .loading : .noData
     }
 

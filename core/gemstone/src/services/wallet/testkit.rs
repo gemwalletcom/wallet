@@ -17,10 +17,10 @@ pub struct MemoryWalletStore {
 
 #[async_trait::async_trait]
 impl GemWalletStore for MemoryWalletStore {
-    fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+    async fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
         Ok(self.wallets.lock().unwrap().clone())
     }
-    fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
+    async fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
         Ok(self.wallets.lock().unwrap().iter().find(|wallet| wallet.id == wallet_id).cloned())
     }
     async fn add_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
@@ -76,7 +76,7 @@ pub struct MemoryAddressStore {
 
 #[async_trait::async_trait]
 impl GemAddressStore for MemoryAddressStore {
-    fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
+    async fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
         Ok(self.names.lock().unwrap().get(&(chain, address)).cloned())
     }
     async fn save_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {

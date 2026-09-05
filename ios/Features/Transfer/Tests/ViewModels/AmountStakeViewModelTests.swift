@@ -98,23 +98,23 @@ struct AmountStakeViewModelTests {
     }
 
     @Test
-    func makeTransferData() throws {
+    func makeTransferData() {
         let validator = DelegationValidator.mock(id: "validator1")
         let delegation = Delegation.mock(validator: validator)
 
-        let stake = try AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [validator], recommended: nil), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let unstake = try AmountStakeViewModel(asset: .mockBNB(), type: .unstake(delegation), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let redelegate = try AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(delegation, validators: [validator], recommended: nil), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let withdraw = try AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(delegation), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let freeze = try AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let unfreeze = try AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
+        let stake = AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [validator], recommended: nil), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
+        let unstake = AmountStakeViewModel(asset: .mockBNB(), type: .unstake(delegation), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
+        let redelegate = AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(delegation, validators: [validator], recommended: nil), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
+        let withdraw = AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(delegation), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
+        let freeze = AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
+        let unfreeze = AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
 
-        #expect(TransactionType(core: stake.inputType.transactionType()) == .stakeDelegate)
-        #expect(TransactionType(core: unstake.inputType.transactionType()) == .stakeUndelegate)
-        #expect(TransactionType(core: redelegate.inputType.transactionType()) == .stakeRedelegate)
-        #expect(TransactionType(core: withdraw.inputType.transactionType()) == .stakeWithdraw)
-        #expect(TransactionType(core: freeze.inputType.transactionType()) == .stakeFreeze)
-        #expect(TransactionType(core: unfreeze.inputType.transactionType()) == .stakeUnfreeze)
+        #expect(stake.inputType.transactionType().map() == .stakeDelegate)
+        #expect(unstake.inputType.transactionType().map() == .stakeUndelegate)
+        #expect(redelegate.inputType.transactionType().map() == .stakeRedelegate)
+        #expect(withdraw.inputType.transactionType().map() == .stakeWithdraw)
+        #expect(freeze.inputType.transactionType().map() == .stakeFreeze)
+        #expect(unfreeze.inputType.transactionType().map() == .stakeUnfreeze)
         #expect(stake.value == "100")
         #expect(unstake.value == "100")
         #expect(redelegate.value == "100")

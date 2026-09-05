@@ -2,6 +2,7 @@
 
 import Formatters
 import Foundation
+import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -24,7 +25,7 @@ struct SimulationPayloadFieldViewModelTests {
             addressName: .mock(address: field.value, name: "Hyperliquid"),
         )
 
-        #expect(viewModel.subtitle == "Hyperliquid (\(AddressFormatter(address: field.value, chain: .ethereum).value()))")
+        #expect(viewModel.subtitle == "Hyperliquid (\(GemAddressService.shared.format(address: field.value, chain: .ethereum)))")
     }
 
     @Test

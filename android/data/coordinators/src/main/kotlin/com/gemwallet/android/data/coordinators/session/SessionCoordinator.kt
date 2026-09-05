@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.session
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
@@ -10,8 +11,6 @@ import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
@@ -47,10 +46,10 @@ class SessionCoordinator(
 
     private val currencyState = MutableStateFlow(preferencesService.getCurrency().toCurrency())
 
-    private val currentWallet: Flow<Wallet?> = sessionStore.observeSession()
-        .flatMapLatest { record ->
-            val walletId = record?.walletId ?: return@flatMapLatest flow { emit(null) }
-            walletStore.observeWallet(WalletId(walletId))
+    private val currentWallet: Flow<Wallet?> = sessionStore.observeWalletId()
+        .flatMapLatest { walletId ->
+            val id = walletId ?: return@flatMapLatest flow { emit(null) }
+            walletStore.observeWallet(WalletId(id))
         }
 
     private val session: StateFlow<Session?> = combine(currentWallet, currencyState) { wallet, currency ->
@@ -59,14 +58,14 @@ class SessionCoordinator(
 
     init {
         scope.launch {
-            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.toGem() ?: localeCurrencyCode()).toCurrency())
+            setCurrency(preferencesService.setupCurrency(localeCurrencyCode()).toCurrency())
         }
     }
 
     override fun invoke(): StateFlow<Session?> = session
 
     override suspend fun getCurrentWallet(): Wallet? = withContext(Dispatchers.IO) {
-        walletSessionService.getCurrentWallet()?.decodeJson<Wallet>()
+        walletSessionService.getCurrentWallet()?.toPrimitives()
     }
 
     override fun observe(): Flow<Wallet?> = session.map { it?.wallet }.distinctUntilChanged()

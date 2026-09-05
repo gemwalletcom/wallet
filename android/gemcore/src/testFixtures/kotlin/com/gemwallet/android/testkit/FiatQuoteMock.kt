@@ -24,6 +24,7 @@ fun mockFiatQuote(
     cryptoAmount: Double = 0.17,
 ) = FiatQuote(
     id = id,
+    asset = mockAsset(),
     provider = provider,
     type = type,
     fiatAmount = fiatAmount,

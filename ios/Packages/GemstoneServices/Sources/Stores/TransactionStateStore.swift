@@ -19,12 +19,12 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
     }
 
     public func getPendingTransactions() async throws -> [GemPendingTransaction] {
-        try store.getTransactionWallets(states: [.pending, .inTransit]).map { GemPendingTransaction(wallet: $0.wallet.json(), transaction: $0.transaction.json()) }
+        try store.getTransactionWallets(states: [.pending, .inTransit]).map { GemPendingTransaction(wallet: $0.wallet.map(), transaction: $0.transaction.json()) }
     }
 
     public func getTransaction(walletId: String, transactionId: Gemstone.TransactionId) async throws -> GemPendingTransaction? {
-        try store.getTransactionWallet(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId))
-            .map { GemPendingTransaction(wallet: $0.wallet.json(), transaction: $0.transaction.json()) }
+        try store.getTransactionWallet(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(id: transactionId))
+            .map { GemPendingTransaction(wallet: $0.wallet.map(), transaction: $0.transaction.json()) }
     }
 
     public func addTransactions(walletId: String, transactions: [Gemstone.Transaction]) async throws {
@@ -32,26 +32,26 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
     }
 
     public func getState(walletId: String, transactionId: Gemstone.TransactionId) async throws -> Gemstone.TransactionState? {
-        try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId)).map { $0.json() }
+        try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(id: transactionId)).map { $0.map() }
     }
 
     public func renameTransaction(walletId: String, transactionId: Gemstone.TransactionId, newTransactionId: Gemstone.TransactionId) async throws {
         try store.renameTransaction(
             walletId: WalletId.from(id: walletId),
-            transactionId: Primitives.TransactionId(transactionId),
-            newTransactionId: Primitives.TransactionId(newTransactionId),
+            transactionId: Primitives.TransactionId(id: transactionId),
+            newTransactionId: Primitives.TransactionId(id: newTransactionId),
         )
     }
 
     public func deleteTransaction(walletId: String, transactionId: Gemstone.TransactionId) async throws {
-        try store.deleteTransaction(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId))
+        try store.deleteTransaction(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(id: transactionId))
     }
 
     public func updateTransaction(walletId: String, transactionId: Gemstone.TransactionId, update: GemTransactionStateUpdate) async throws -> Bool {
         try store.updateTransaction(
             walletId: WalletId.from(id: walletId),
-            transactionId: Primitives.TransactionId(transactionId),
-            state: Primitives.TransactionState(update.state),
+            transactionId: Primitives.TransactionId(id: transactionId),
+            state: update.state.map(),
             fee: update.fee?.description,
             blockNumber: update.blockNumber.flatMap { Int($0) },
             metadata: update.metadata,

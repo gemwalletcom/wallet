@@ -73,7 +73,7 @@ impl<C: Client> HyperCoreClient<C> {
     where
         T: DeserializeOwned + Send,
     {
-        Ok(self.client.post(HyperCoreTarget::Info { request: request.clone() }, &request).await?)
+        Ok(self.client.post(HyperCoreTarget::Info, &request).await?)
     }
 
     pub async fn exchange(&self, payload: serde_json::Value) -> Result<serde_json::Value, Box<dyn Error + Send + Sync>> {
@@ -234,42 +234,25 @@ impl<C: Client> chain_traits::ChainProvider for HyperCoreClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_client::Target;
     use gem_client::testkit::MockClient;
     use serde_json::json;
-    use std::sync::Mutex;
 
     #[tokio::test]
-    async fn test_get_user_abstraction_sets_cache_ttl_header() {
-        let seen_headers = Arc::new(Mutex::new(Vec::new()));
-        let seen_headers_clone = Arc::clone(&seen_headers);
-        let client = MockClient::new().with_post_with_headers(move |path, body, headers| {
+    async fn test_get_user_abstraction() {
+        let client = MockClient::new().with_post(|path, body| {
             assert_eq!(path, "/info");
-            let request: serde_json::Value = serde_json::from_slice(body).unwrap();
             assert_eq!(
-                request,
+                serde_json::from_slice::<serde_json::Value>(body).unwrap(),
                 json!({
                     "type": "userAbstraction",
                     "user": "0x123"
                 })
             );
-            seen_headers_clone.lock().unwrap().push(headers.clone());
             Ok(br#""default""#.to_vec())
         });
-        let client = HyperCoreClient::new(client);
 
-        let mode = client.get_user_abstraction("0x123").await.unwrap();
-        let recorded_headers = seen_headers.lock().unwrap().clone();
+        let mode = HyperCoreClient::new(client).get_user_abstraction("0x123").await.unwrap();
 
         assert_eq!(mode, UserAbstractionMode::Default);
-        assert_eq!(
-            recorded_headers,
-            vec![
-                HyperCoreTarget::Info {
-                    request: InfoRequest::UserAbstraction { user: "0x123".to_string() }
-                }
-                .headers()
-            ]
-        );
     }
 }

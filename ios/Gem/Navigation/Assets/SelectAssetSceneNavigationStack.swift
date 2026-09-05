@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemRecipient
 import Assets
 import Components
 import FiatConnect
@@ -85,10 +84,7 @@ struct SelectAssetSceneNavigationStack: View {
                     case .deposit:
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
-                                input: AmountInput(
-                                    type: .deposit(recipient: RecipientData(recipient: PerpetualFormatter(provider: .hypercore).depositRecipient, amount: .none)),
-                                    asset: input.asset,
-                                ),
+                                input: AmountInput(type: .deposit, asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: {
                                     navigationPath.append($0)
@@ -96,18 +92,9 @@ struct SelectAssetSceneNavigationStack: View {
                             ),
                         )
                     case .withdraw:
-                        let withdrawRecipient = GemRecipient(address: input.assetAddress.address, name: model.wallet.name)
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
-                                input: AmountInput(
-                                    type: .withdraw(
-                                        recipient: RecipientData(
-                                            recipient: withdrawRecipient,
-                                            amount: .none,
-                                        ),
-                                    ),
-                                    asset: input.asset,
-                                ),
+                                input: AmountInput(type: .withdraw, asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: {
                                     navigationPath.append($0)

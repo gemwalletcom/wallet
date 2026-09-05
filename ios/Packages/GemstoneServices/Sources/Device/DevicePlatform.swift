@@ -37,8 +37,8 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
 
     public func deviceInfo() async throws -> GemDeviceInfo {
         GemDeviceInfo(
-            platform: Platform.ios.json(),
-            platformStore: PlatformStore.current.json(),
+            platform: Platform.ios.map(),
+            platformStore: PlatformStore.current.map(),
             os: os,
             model: model,
             version: Bundle.main.releaseVersionNumber,

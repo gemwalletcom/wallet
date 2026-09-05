@@ -138,9 +138,9 @@ public final class PerpetualsSceneViewModel {
 
 extension PerpetualsSceneViewModel {
     func load(source: RefreshSource = .timer) async {
-        async let positions: () = syncPositions()
-        async let refreshMarkets: () = updateMarkets(source: source)
-        _ = await (positions, refreshMarkets)
+        for failure in await service.refresh(trigger: source.marketsRefreshTrigger) {
+            debugLog("Perpetuals refresh failed at \(failure.step): \(failure.message)")
+        }
     }
 
     func onAppear() async {
@@ -156,22 +156,6 @@ extension PerpetualsSceneViewModel {
             try await observerService.unsubscribe(.marketPrices)
         } catch {
             debugLog("Market prices unsubscribe failed: \(error)")
-        }
-    }
-
-    func syncPositions() async {
-        do {
-            try await service.syncCurrentPositions()
-        } catch {
-            debugLog("Failed to sync positions: \(error)")
-        }
-    }
-
-    func updateMarkets(source: RefreshSource) async {
-        do {
-            try await service.updateMarkets(trigger: source.marketsRefreshTrigger)
-        } catch {
-            debugLog("Failed to update markets: \(error)")
         }
     }
 

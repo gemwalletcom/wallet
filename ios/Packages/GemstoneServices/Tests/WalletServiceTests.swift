@@ -33,7 +33,7 @@ struct WalletServiceTests {
 
         let wallet = try await service.importWallet(
             name: "Wallet",
-            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+            type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }),
             source: .import,
         ).wallet
         try await session.setCurrent(wallet: wallet)
@@ -61,7 +61,7 @@ struct WalletServiceTests {
 
         _ = try await service.importWallet(
             name: "Wallet",
-            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+            type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }),
             source: .import,
         )
 
@@ -86,7 +86,7 @@ struct WalletServiceTests {
 
         _ = try await service.importWallet(
             name: "First Wallet",
-            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+            type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }),
             source: .import,
         )
 
@@ -98,7 +98,7 @@ struct WalletServiceTests {
         let db = DB.mockWithChains([.ethereum, .solana])
         let walletStore = WalletStore.mock(db: db)
         let service = makeService(db: db)
-        _ = try await service.importWallet(name: "ETH only", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]), source: .import)
+        _ = try await service.importWallet(name: "ETH only", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }), source: .import)
 
         try await service.setup(chains: [.ethereum, .solana])
 
@@ -113,7 +113,7 @@ struct WalletServiceTests {
         let db = DB.mockWithChains([.ethereum, .solana])
         let walletStore = WalletStore.mock(db: db)
         let service = makeService(keystore: keystore, db: db)
-        let wallet = try await service.importWallet(name: "ETH only", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]), source: .import).wallet
+        let wallet = try await service.importWallet(name: "ETH only", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }), source: .import).wallet
         _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: wallet.id.id))
         let passwordReadsBefore = mockPassword.getPasswordCallsCount
 
@@ -128,7 +128,7 @@ struct WalletServiceTests {
         let mockPassword = MockKeystorePassword()
         let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
         let service = makeService(keystore: keystore, db: .mockWithChains([.ethereum, .solana]))
-        _ = try await service.importWallet(name: "Complete", type: .phrase(words: LocalKeystore.words, chains: [.ethereum, .solana]), source: .import)
+        _ = try await service.importWallet(name: "Complete", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum, .solana].map { $0.map() }), source: .import)
         let passwordReadsBefore = mockPassword.getPasswordCallsCount
 
         try await service.setup(chains: [.ethereum, .solana])
@@ -149,7 +149,7 @@ struct WalletServiceTests {
         let wallets = try await withThrowingTaskGroup(of: Primitives.Wallet.self) { group in
             for (index, words) in words.enumerated() {
                 group.addTask {
-                    try await service.importWallet(name: "Wallet \(index)", type: .phrase(words: words, chains: [.ethereum]), source: .import).wallet
+                    try await service.importWallet(name: "Wallet \(index)", type: .multicoinPhrase(words: words, chains: [Primitives.Chain.ethereum].map { $0.map() }), source: .import).wallet
                 }
             }
             var wallets: [Primitives.Wallet] = []

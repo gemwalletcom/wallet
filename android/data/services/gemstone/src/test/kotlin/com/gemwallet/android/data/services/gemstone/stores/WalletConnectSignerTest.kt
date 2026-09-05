@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
@@ -52,9 +53,9 @@ class WalletConnectSignerTest {
     private fun messageRequest(message: SignMessage) = GemWalletConnectMessageRequest(
         sessionId = "topic",
         chain = Chain.Ethereum.string,
-        wallet = wallet.toJson(),
+        wallet = wallet.toGem(),
         account = account.toGem(),
-        session = session.toJson(),
+        session = session.toGem(),
         simulation = simulation,
         message = message,
     )
@@ -62,9 +63,9 @@ class WalletConnectSignerTest {
     private fun transactionRequest(transfer: GemTransferData, action: GemWalletConnectTransactionAction) = GemWalletConnectTransactionRequest(
         sessionId = "topic",
         chain = Chain.Ethereum.string,
-        wallet = wallet.toJson(),
+        wallet = wallet.toGem(),
         account = account.toGem(),
-        session = session.toJson(),
+        session = session.toGem(),
         simulation = simulation,
         transfer = transfer,
         action = action,
@@ -87,7 +88,7 @@ class WalletConnectSignerTest {
         val transfer = GemTransferData(
             inputType = GemTransactionInputType.Generic(
                 asset = Chain.Solana.asset().toGem(),
-                metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toJson(),
+                metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toGem(),
                 extra = GemTransferDataExtra(
                     to = "",
                     gasLimit = null,
@@ -95,7 +96,7 @@ class WalletConnectSignerTest {
                     data = "tx".toByteArray(),
                     outputType = TransferDataOutputType.EncodedTransaction.toGem(),
                     outputAction = TransferDataOutputAction.Send.toGem(),
-                    transactionType = "\"smartContractCall\"",
+                    transactionType = TransactionType.SmartContractCall.toGem(),
                     approval = null,
                 ),
             ),

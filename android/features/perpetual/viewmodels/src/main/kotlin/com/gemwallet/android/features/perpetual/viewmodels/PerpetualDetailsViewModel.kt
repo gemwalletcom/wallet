@@ -21,8 +21,6 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartCandleStick
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionType
@@ -124,14 +122,14 @@ class PerpetualDetailsViewModel @Inject constructor(
                 emit(StateViewType.Loading)
                 try {
                     val market = perpetual.value?.perpetual
-                    var candles = market?.let { service.candlesticks(it.toJson(), period.toGem()).map { candle -> candle.decodeJson<ChartCandleStick>() } }.orEmpty()
+                    var candles = market?.let { service.candlesticks(it.toGem(), period.toGem()).map { candle -> candle.toPrimitives() } }.orEmpty()
                     refreshState.value = false
                     emit(candles.toChartState())
                     if (market == null) return@flow
                     perpetualObserver.chartUpdates
                         .collect { update ->
-                            candles = service.applyCandleUpdate(candles.map { it.toJson() }, update.toJson(), market.toJson(), period.toGem())
-                                ?.map { it.decodeJson<ChartCandleStick>() } ?: return@collect
+                            candles = service.applyCandleUpdate(candles.map { it.toGem() }, update.toGem(), market.toGem(), period.toGem())
+                                ?.map { it.toPrimitives() } ?: return@collect
                             emit(candles.toChartState())
                         }
                 } catch (e: Exception) {
@@ -159,8 +157,8 @@ class PerpetualDetailsViewModel @Inject constructor(
                 .collectLatest { subscriptionKey ->
                     val (market, period) = subscriptionKey ?: return@collectLatest
                     val subscriptions = listOf(
-                        service.candleSubscription(market.toJson(), period.toGem()),
-                        service.marketSubscription(market.toJson()),
+                        service.candleSubscription(market.toGem(), period.toGem()),
+                        service.marketSubscription(market.toGem()),
                     )
                     subscriptions.forEach(perpetualObserver::subscribe)
                     try {

@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.perpetual
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
@@ -10,7 +12,6 @@ import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
-import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPerpetualStreamService
@@ -53,10 +53,10 @@ class HyperliquidObserverService(
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     wallet ?: return@collectLatest
-                    val connection = runCatchingCancellable { perpetualService.connection(wallet.toJson()) }
+                    val connection = runCatchingCancellable { perpetualService.connection(wallet.toGem()) }
                         .onFailure { Log.e(TAG, "Perpetual connection failed", it) }
                         .getOrNull() ?: return@collectLatest
-                    observeConnection(wallet.id, connection.address, connection.mode.decodeJson())
+                    observeConnection(wallet.id, connection.address, connection.mode.toPrimitives())
                 }
         }
         scope.launch {
@@ -64,7 +64,7 @@ class HyperliquidObserverService(
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     if (wallet == null) return@collectLatest
-                    runCatchingCancellable { perpetualService.syncEnablement(GemMarketsRefreshTrigger.SCHEDULED) }
+                    runCatchingCancellable { perpetualService.syncEnablement(wallet.toGem(), GemMarketsRefreshTrigger.SCHEDULED) }
                         .onFailure { Log.e(TAG, "perpetual markets sync failed", it) }
                 }
         }
@@ -98,7 +98,7 @@ class HyperliquidObserverService(
 
     private suspend fun handle(walletId: WalletId, mode: PerpetualAccountMode, text: String) {
         runCatchingCancellable { streamService.handle(walletId.id, mode.toGem(), text.encodeToByteArray()) }
-            .onSuccess { candle -> candle?.decodeJson<ChartCandleUpdate>()?.let { chartFlow.emit(it) } }
+            .onSuccess { candle -> candle?.toPrimitives()?.let { chartFlow.emit(it) } }
             .onFailure { Log.e(TAG, "Handle message error: ${text.take(MESSAGE_LOG_LIMIT)}", it) }
     }
 

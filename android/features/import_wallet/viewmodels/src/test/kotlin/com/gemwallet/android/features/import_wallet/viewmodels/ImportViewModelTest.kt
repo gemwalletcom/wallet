@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemMnemonic
-import com.gemwallet.android.serializer.toJson
 import io.mockk.coEvery
 import uniffi.gemstone.GemNameServiceInterface
 import com.gemwallet.android.ext.networkName
@@ -46,7 +46,7 @@ class ImportViewModelTest {
             every { nameRecordDebounceMilliseconds() } returns 500u
             coEvery { getNameRecord(any(), any()) } answers {
                 requests.add(firstArg<String>() to Chain.entries.first { it.string == secondArg<String>() })
-                result?.toJson()
+                result?.toGem()
             }
         }
     }

@@ -24,8 +24,9 @@ struct CreateWalletModelTests {
             onComplete: nil,
         )
 
-        let wallet = try await model.createWallet(words: LocalKeystore.words)
-        #expect(wallet.source == .create)
+        let created = try await model.createWallet(words: LocalKeystore.words)
+        #expect(created.wallet.source == .create)
+        #expect(created.hasExistingWallets == false)
     }
 
     @Test

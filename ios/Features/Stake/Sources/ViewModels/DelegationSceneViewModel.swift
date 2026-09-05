@@ -189,9 +189,9 @@ extension DelegationSceneViewModel {
     }
 
     private var recommendedValidator: DelegationValidator? {
-        (try? service.recommendedValidator(
+        service.recommendedValidator(
             chain: model.delegation.base.assetId.chain.rawValue,
-            validators: validators.map { $0.json() },
-        ).map { try DelegationValidator($0) }) ?? .none
+            validators: validators.map { $0.map() },
+        ).map { $0.map() }
     }
 }

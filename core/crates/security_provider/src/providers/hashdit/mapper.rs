@@ -22,6 +22,13 @@ pub fn map_chain(chain: Chain) -> Result<&'static str, String> {
     }
 }
 
+pub fn map_poisoning_chain(chain: Chain) -> Result<&'static str, String> {
+    match chain {
+        Chain::Tron => Ok("tron"),
+        _ => map_chain(chain),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemRewardsServiceProtocol
+import struct Gemstone.GemRewardsState
 import GemstonePrimitives
 import GemstoneServices
 import Components
@@ -33,11 +34,12 @@ public final class RewardsViewModel: Sendable {
     var isPresentingSheet: RewardsSheetType?
     var isPresentingAlert: AlertMessage?
 
-    public init?(service: any GemRewardsServiceProtocol, activateCode: String? = nil) throws {
-        guard let wallet = try service.selectedWallet().map({ try Wallet($0) }) else { return nil }
+    public init?(service: any GemRewardsServiceProtocol, wallets: [Wallet], currentWallet: Wallet?, activateCode: String? = nil) {
+        let core = wallets.map { $0.map() }
+        guard let wallet = service.selectedWallet(current: currentWallet?.map(), wallets: core).map({ $0.map() }) else { return nil }
         self.service = service
         selectedWallet = wallet
-        wallets = try service.wallets().map { try Wallet($0) }
+        self.wallets = service.wallets(wallets: core).map { $0.map() }
         self.activateCode = activateCode
     }
 
@@ -117,28 +119,8 @@ public final class RewardsViewModel: Sendable {
         return (try? service.referralLink(code: code).absoluteString) ?? ""
     }
 
-    var hasReferralCode: Bool {
-        guard let code = rewards?.code else { return false }
-        return !code.isEmpty
-    }
-
-    var hasUsedReferralCode: Bool {
-        if let usedCode = rewards?.usedReferralCode, !usedCode.isEmpty {
-            return true
-        }
-        return false
-    }
-
-    var canUseReferralCode: Bool {
-        !hasReferralCode && !hasUsedReferralCode
-    }
-
-    var isInfoEnabled: Bool {
-        hasReferralCode || hasUsedReferralCode
-    }
-
-    var isUnverified: Bool {
-        hasReferralCode && rewards?.status == .unverified && !hasPendingReferral
+    var rewardsState: GemRewardsState {
+        service.state(rewards: rewards)
     }
 
     var unverifiedTitle: String {
@@ -157,22 +139,13 @@ public final class RewardsViewModel: Sendable {
         rewards?.verifyAfter
     }
 
-    var hasPendingReferral: Bool {
-        pendingVerificationAfter != nil
-    }
-
-    var canActivatePendingReferral: Bool {
-        guard let pendingDate = pendingVerificationAfter else { return false }
-        return Date() >= pendingDate
-    }
-
     var pendingReferralTitle: String {
         Localized.Rewards.Pending.title
     }
 
     var pendingReferralDescription: String? {
         guard let pendingDate = pendingVerificationAfter else { return nil }
-        if canActivatePendingReferral {
+        if rewardsState.canActivatePendingReferral {
             return Localized.Rewards.Pending.descriptionReady
         }
         guard let timeString = Self.dateFormatter.string(from: .now, to: pendingDate) else { return nil }
@@ -184,7 +157,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var activatePendingButtonType: ButtonType {
-        canActivatePendingReferral ? .primary() : .primary(.disabled)
+        rewardsState.canActivatePendingReferral ? .primary() : .primary(.disabled)
     }
 
     var walletBarViewModel: WalletBarViewViewModel {

@@ -113,8 +113,8 @@ impl AutocloseValidator {
         }
     }
 
-    pub fn validate(&self, price: f64) -> AutocloseValidation {
-        self.inner.validate(price)
+    pub fn validate(&self, price: Option<f64>) -> AutocloseValidation {
+        price.map_or(AutocloseValidation::Valid, |price| self.inner.validate(price))
     }
 }
 
@@ -235,6 +235,14 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+
+    #[test]
+    fn test_autoclose_validator_treats_an_unset_price_as_valid() {
+        let validator = AutocloseValidator::new(TpslType::TakeProfit, PerpetualDirection::Long, 100.0);
+
+        assert_eq!(validator.validate(None), AutocloseValidation::Valid);
+        assert_eq!(validator.validate(Some(90.0)), AutocloseValidation::TriggerMustBeHigher);
+    }
 
     #[test]
     fn test_connected_subscribes_account_subscriptions() {

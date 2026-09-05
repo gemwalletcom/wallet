@@ -133,7 +133,7 @@ public extension SignMessageSceneViewModel {
     func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
         payloadModel.contextMenuItems(
             for: field,
-            explorerLink: { BlockExplorerLink(service.addressUrl(chain: payload.chain.rawValue, address: $0)) },
+            explorerLink: { service.addressUrl(chain: payload.chain.rawValue, address: $0).map() },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
     }

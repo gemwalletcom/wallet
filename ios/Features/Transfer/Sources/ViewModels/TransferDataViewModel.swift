@@ -59,7 +59,7 @@ struct TransferDataViewModel {
             case .unfreeze: Localized.Transfer.Unfreeze.title
             }
         case let .account(_, type):
-            switch Primitives.AccountDataType(core: type) {
+            switch type {
             case .activate: Localized.Transfer.ActivateAsset.title
             }
         case let .perpetual(_, type):
@@ -91,7 +91,7 @@ struct TransferDataViewModel {
              .perpetual,
              .earn: .none
         case let .generic(_, metadata, _):
-            URL(string: Primitives.ApplicationMetadata(core: metadata).url)
+            URL(string: metadata.map().url)
         }
     }
 

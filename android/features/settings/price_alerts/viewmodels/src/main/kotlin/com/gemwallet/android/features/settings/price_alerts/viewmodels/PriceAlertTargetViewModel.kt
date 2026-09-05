@@ -21,8 +21,6 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PriceAlert
 import com.gemwallet.android.ext.toGem
@@ -136,7 +134,7 @@ class PriceAlertTargetViewModel @Inject constructor(
             priceDirection = direction,
         )
         viewModelScope.launch(Dispatchers.IO) {
-            runCatchingCancellable { service.enablePriceAlert(priceAlert.toJson()) }
+            runCatchingCancellable { service.enablePriceAlert(priceAlert.toGem()) }
                 .onFailure { Log.e(TAG, "enabling the price alert for ${assetId.toIdentifier()} failed", it) }
         }
         return PriceAlertConfirmResult(type, direction, type.formatAmount(inputValue, currency))

@@ -129,38 +129,15 @@ public struct BalanceStore: Sendable {
         }
     }
 
-    @discardableResult
-    func getBalances(
-        walletId: WalletId,
-        assetIds: [AssetId],
-        filters: [BalanceRequestFilter] = []
-    ) throws -> [BalanceRecord] {
+    public func getEnabledAssetIds(walletId: WalletId) throws -> [AssetId] {
         try db.read { db in
-            var request = BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
-
-            for filter in filters {
-                switch filter {
-                case .enabled:
-                    request = request.filter(BalanceRecord.Columns.isEnabled == true)
-                }
-            }
-
-            return try request
+                .filter(BalanceRecord.Columns.isEnabled == true)
                 .distinct()
                 .fetchAll(db)
+                .map(\.assetId)
         }
-    }
-
-    @discardableResult
-    public func getBalanceAssetIds(
-        walletId: WalletId,
-        assetIds: [AssetId],
-        filters: [BalanceRequestFilter] = []
-    ) throws -> [AssetId] {
-        try getBalances(walletId: walletId, assetIds: assetIds, filters: filters)
-            .map(\.assetId)
     }
 
     @discardableResult

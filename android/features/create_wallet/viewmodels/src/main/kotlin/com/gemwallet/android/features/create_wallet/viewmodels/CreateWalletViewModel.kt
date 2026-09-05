@@ -1,11 +1,12 @@
 package com.gemwallet.android.features.create_wallet.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.domains.wallet_import.multicoinImport
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
@@ -31,7 +32,7 @@ class CreateWalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            state.update { it.copy(generatedNameIndex = service.nextWalletIndex()) }
+            state.update { it.copy(defaultName = service.defaultWalletName(null)) }
             runCatchingCancellable { service.createWallet() }
                 .onSuccess { words -> state.update { it.copy(data = words) } }
                 .onFailure { err -> state.update { it.copy(dataError = err.message.orEmpty()) } }
@@ -76,8 +77,8 @@ class CreateWalletViewModel @Inject constructor(
 
     private suspend fun createWallet(name: String, phrase: String): Wallet {
         val wallet = when (val result = service.importWallet(name, multicoinImport(phrase).validated(), WalletSource.Create.toGem())) {
-            is GemWalletImportResult.Existing -> result.wallet.decodeJson<Wallet>()
-            is GemWalletImportResult.New -> result.wallet.decodeJson<Wallet>()
+            is GemWalletImportResult.Existing -> result.wallet.toPrimitives()
+            is GemWalletImportResult.New -> result.wallet.toPrimitives()
         }
         service.setCurrentWalletId(wallet.id.id)
         return wallet
@@ -86,11 +87,12 @@ class CreateWalletViewModel @Inject constructor(
 
 data class CreateWalletViewModelState(
     val loading: Boolean = false,
-    val generatedNameIndex: Int = 0,
+    val defaultName: GemWalletDefaultName? = null,
     val name: String = "",
     val data: List<String> = emptyList(),
     val dataError: String? = null,
     val isShowSafeMessage: Boolean = false,
 ) {
-    fun isExistingWallets() = generatedNameIndex > 1
+    fun isExistingWallets() = defaultName?.hasExistingWallets == true
 }
+

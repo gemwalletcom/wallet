@@ -11,7 +11,6 @@ import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemFeeRate
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemTransferData
-import class Gemstone.GemTransferService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -125,19 +124,16 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func recipientNameItemModel() {
-        let db = DB.mockAssets()
+    func recipientNameItemModel() async {
         let address = "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw"
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mock()),
                 recipient: .mock(address: address),
             ),
-            nameService: GemNameServiceMock(addressNames: [
-                .mock(chain: .ethereum, address: "0x1234567890123456789012345678901234567890", name: "Ethereum"),
-                .mock(chain: .bitcoin, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", name: "Bitcoin"),
-            ]),
+            load: .success(.mock(addressName: .mock(chain: .bitcoin, address: address, name: "Bitcoin"))),
         )
+        await model.load()
         let recipientItem = model.itemModel(for: .recipient) as? ConfirmRecipientViewModel
 
         if case let .recipient(addressViewModel) = recipientItem?.itemModel {
@@ -149,19 +145,16 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func recipientNameItemModelUsesStoredAddress() {
-        let db = DB.mockAssets()
+    func recipientNameItemModelUsesStoredAddress() async {
         let checksummedAddress = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4"
-        let nameService = GemNameServiceMock(addressNames: [
-            .mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap"),
-        ])
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mockEthereum()),
                 recipient: .mock(address: checksummedAddress),
             ),
-            nameService: nameService,
+            load: .success(.mock(addressName: .mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap"))),
         )
+        await model.load()
         let recipientItem = model.itemModel(for: .recipient) as? ConfirmRecipientViewModel
 
         if case let .recipient(addressViewModel) = recipientItem?.itemModel {
@@ -241,10 +234,10 @@ struct ConfirmTransferSceneViewModelTests {
     func networkFeeStaysSelectableWhileReloading() {
         let model = ConfirmTransferSceneViewModel.mock()
 
-        model.state = .mock(transaction: .loading, confirmData: .mock(feeRates: [
+        model.state = .mock(transaction: .loading, load: .mock(preload: .mock(confirmData: .mock(feeRates: [
             GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
             GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
-        ]))
+        ]))))
         let reloadingFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = reloadingFeeItem?.itemModel {
@@ -260,7 +253,7 @@ struct ConfirmTransferSceneViewModelTests {
     func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
         let priorities: [Gemstone.FeePriority] = [.normal, .fast]
         let model = ConfirmTransferSceneViewModel.mock(
-            gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
+            load: .success(.mock(preload: .mock(confirmData: .mock(feeRates: [
                 GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
                 GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
             ])))),
@@ -280,7 +273,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func fetchIgnoresErrorAfterCancellation() async {
         let model = ConfirmTransferSceneViewModel.mock(
-            gemConfirmService: GemConfirmServiceMock(preload: .failure(AnyError("network"))),
+            load: .failure(AnyError("network")),
         )
 
         let task = Task { await model.load() }
@@ -378,7 +371,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func walletConnectSectionsStructure() {
+    func walletConnectSectionsStructure() async {
         let payload = [
             SimulationPayloadField.standard(kind: .contract, value: "0x1111111111111111111111111111111111111111", fieldType: .address, display: .primary),
             SimulationPayloadField.standard(kind: .method, value: "Approve", fieldType: .text, display: .primary),
@@ -393,10 +386,16 @@ struct ConfirmTransferSceneViewModelTests {
                 )],
                 payload: payload,
             ),
-            gemConfirmService: GemConfirmServiceMock(
+            load: .success(.mock(
                 simulation: GemConfirmSimulation(primaryFields: payload.map { $0.map() }, secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
-            ),
+                warnings: [SimulationWarning(
+                    severity: .warning,
+                    warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111"), value: "1000")),
+                    message: nil,
+                )],
+            )),
         )
+        await model.load()
         let sections = model.sections
 
         #expect(sections.count == 6)
@@ -413,13 +412,15 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func buttonDisabledWithCriticalWarnings() {
+    func buttonDisabledWithCriticalWarnings() async {
         let model = ConfirmTransferSceneViewModel.mock(
             simulation: .mock(warnings: [SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil)]),
-            gemConfirmService: GemConfirmServiceMock(
+            load: .success(.mock(
                 simulation: GemConfirmSimulation(primaryFields: [], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: true),
-            ),
+            )),
         )
+        await model.load()
+
         #expect(model.isButtonDisabled)
     }
 

@@ -71,6 +71,7 @@ let package = Package(
                 "Store",
                 "Perpetuals",
                 "PerpetualsTestKit",
+                "Formatters",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "Tests",

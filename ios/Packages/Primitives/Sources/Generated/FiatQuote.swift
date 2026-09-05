@@ -6,6 +6,7 @@ import Foundation
 
 public struct FiatQuote: Codable, Equatable, Hashable, Sendable {
 	public let id: String
+	public let asset: Asset
 	public let provider: FiatProvider
 	public let type: FiatQuoteType
 	public let fiatAmount: Double
@@ -13,8 +14,9 @@ public struct FiatQuote: Codable, Equatable, Hashable, Sendable {
 	public let cryptoAmount: Double
 	public let paymentMethods: [PaymentType]
 
-	public init(id: String, provider: FiatProvider, type: FiatQuoteType, fiatAmount: Double, fiatCurrency: String, cryptoAmount: Double, paymentMethods: [PaymentType]) {
+	public init(id: String, asset: Asset, provider: FiatProvider, type: FiatQuoteType, fiatAmount: Double, fiatCurrency: String, cryptoAmount: Double, paymentMethods: [PaymentType]) {
 		self.id = id
+		self.asset = asset
 		self.provider = provider
 		self.type = type
 		self.fiatAmount = fiatAmount

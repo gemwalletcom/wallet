@@ -68,7 +68,6 @@ class AmountViewModelTest {
         every { amountType } returns MutableStateFlow(GemAmountType.Transfer)
         every { balance } returns balanceFlow
         every { input } returns inputFlow
-        every { canSwitchInputType } returns true
         coEvery { buildTransfer(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }

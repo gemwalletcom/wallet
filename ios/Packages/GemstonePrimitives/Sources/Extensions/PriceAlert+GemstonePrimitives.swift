@@ -4,11 +4,9 @@ import Foundation
 import class Gemstone.PriceAlertFormatter
 import Primitives
 
-private let priceAlertFormatter = PriceAlertFormatter()
-
 extension PriceAlert: @retroactive Identifiable {
     public var id: String {
-        priceAlertFormatter.alertId(alert: json())
+        PriceAlertFormatter.shared.alertId(alert: map())
     }
 }
 
@@ -20,22 +18,22 @@ extension PriceAlertData: @retroactive Identifiable {
 
 public extension PriceAlert {
     var type: PriceAlertNotificationType {
-        priceAlertFormatter.notificationType(alert: json()).map()
+        PriceAlertFormatter.shared.notificationType(alert: map()).map()
     }
 }
 
 public extension [PriceAlert] {
     var displayedAlerts: [PriceAlert] {
-        priceAlertFormatter
-            .displayedAlertIds(alerts: map { $0.json() })
+        PriceAlertFormatter.shared
+            .displayedAlertIds(alerts: map { $0.map() })
             .compactMap { id in first { $0.id == id } }
     }
 }
 
 public extension [PriceAlertData] {
     var displayedAlerts: [PriceAlertData] {
-        priceAlertFormatter
-            .displayedAlertIds(alerts: map { $0.priceAlert.json() })
+        PriceAlertFormatter.shared
+            .displayedAlertIds(alerts: map { $0.priceAlert.map() })
             .compactMap { id in first { $0.priceAlert.id == id } }
     }
 }

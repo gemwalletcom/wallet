@@ -216,8 +216,6 @@
   <string name="errors_required">נדרש %1$s</string>
   <string name="errors_scan_transaction_malicious_description">לא ניתן להשלים עסקה זו - כתובת ארנק היעד מקושרת לפעילות חשודה או מזיקה.</string>
   <string name="errors_scan_transaction_memo_required">כתובת ארנק היעד %1$s דורשת תגית יעד / תזכיר</string>
-  <string name="errors_wallets_limit_title">הגעת למגבלת הארנקים</string>
-  <string name="errors_wallets_limit_description">הגעת למספר הארנקים המרבי המותר ( %1$d ). אנא הסר ארנק קיים כדי להוסיף או ליצור ארנק חדש.</string>
   <string name="errors_scan_transaction_malicious_title">פעילות חשודה</string>
   <string name="errors_connections_malicious_origin">קשר זה מגיע ממקור לא אמין.</string>
   <string name="errors_no_data_available">אין נתונים זמינים</string>

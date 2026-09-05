@@ -53,8 +53,8 @@ impl GemNameService {
         Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
     }
 
-    pub fn address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
-        self.store.get_address_name(chain, address)
+    pub async fn address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
+        self.store.get_address_name(chain, address).await
     }
 }
 
@@ -68,7 +68,7 @@ impl GemNameService {
         let mut cached = Vec::new();
         let mut missing = Vec::new();
         for request in requests {
-            match self.store.get_address_name(request.chain, request.address.clone())? {
+            match self.store.get_address_name(request.chain, request.address.clone()).await? {
                 Some(name) => cached.push(name),
                 None => missing.push(request),
             }

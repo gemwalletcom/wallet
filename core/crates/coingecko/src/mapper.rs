@@ -30,7 +30,7 @@ const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Near, "near"),
     (Chain::Ton, "the-open-network"),
     (Chain::Algorand, "algorand"),
-    (Chain::Berachain, "berachain-bera"),
+    (Chain::Berachain, "berachain"),
     (Chain::Ink, "ink"),
     (Chain::Unichain, "unichain"),
     (Chain::SeiEvm, "sei-network"),

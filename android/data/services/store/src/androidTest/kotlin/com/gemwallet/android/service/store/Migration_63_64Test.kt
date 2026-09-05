@@ -388,5 +388,7 @@ class Migration_63_64Test {
         override fun removePassword(key: String): Boolean {
             return passwords.remove(key) != null
         }
+
+        override fun hasPassword(key: String): Boolean = passwords.containsKey(key)
     }
 }

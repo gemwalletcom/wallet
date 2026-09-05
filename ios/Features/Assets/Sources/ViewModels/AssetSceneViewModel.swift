@@ -3,6 +3,7 @@
 import BigInt
 import Components
 import struct Gemstone.GemAssetBalance
+import struct Gemstone.GemAssetDetailsState
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
 import enum Gemstone.GemBalanceRow
@@ -121,20 +122,20 @@ public final class AssetSceneViewModel: Sendable {
         #endif
     }
 
-    var showResources: Bool {
-        assetDataModel.showResources
+    var detailsState: GemAssetDetailsState {
+        service.state(
+            walletType: wallet.type.map(),
+            chain: asset.chain.rawValue,
+            metadata: assetData.metadata.map(),
+            balance: stakeBalance,
+            bannerEvents: visibleBanners.map { $0.event.map() },
+            hasPrice: assetDataModel.isPriceAvailable,
+            priceAlertsCount: UInt32(assetData.priceAlerts.count),
+        )
     }
 
     var showTransactions: Bool {
         transactions.isNotEmpty
-    }
-
-    var showManageToken: Bool {
-        !assetData.metadata.isBalanceEnabled
-    }
-
-    var canSign: Bool {
-        wallet.canSign
     }
 
     var pinText: String {
@@ -163,7 +164,7 @@ public final class AssetSceneViewModel: Sendable {
 
     var showEarnButton: Bool {
         #if DEBUG
-            assetData.metadata.isEarnEnabled && !wallet.isViewOnly && !balanceRows.contains { if case .earn = $0 { true } else { false } }
+            detailsState.showsEarn
         #else
             false
         #endif
@@ -181,10 +182,11 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
-        let buy = assetData.metadata.isBuyEnabled ? onSelectBuy : nil
-        let swap = buy == nil && assetData.metadata.isSwapEnabled ? onSelectSwap : nil
+        let state = detailsState
+        let buy: (() -> Void)? = state.emptyTransactionsAction == .buy ? { self.onSelectBuy() } : nil
+        let swap: (() -> Void)? = state.emptyTransactionsAction == .swap ? { self.onSelectSwap() } : nil
         return EmptyContentTypeViewModel(
-            type: .asset(symbol: assetModel.symbol, buy: buy, swap: swap, isViewOnly: wallet.isViewOnly),
+            type: .asset(symbol: assetModel.symbol, buy: buy, swap: swap, isViewOnly: state.isViewOnly),
         )
     }
 
@@ -197,21 +199,16 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var visibleBanners: [Banner] {
-        do {
-            return try bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
-        } catch {
-            debugLog("asset scene: visible banners error \(error)")
-            return []
-        }
+        bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
-        service.bannerContent(event: banner.event.json(), asset: banner.asset?.map())
+        service.bannerContent(event: banner.event.map(), asset: banner.asset?.map())
     }
 
     private var bannerContext: GemBannerContext {
         GemBannerContext(
-            wallet: wallet.json(),
+            wallet: wallet.map(),
             hasAsset: true,
             isStakeable: assetData.metadata.isStakeEnabled,
             hasStakeBalance: stakedValue > .zero,
@@ -223,15 +220,11 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var assetHeaderModel: AssetHeaderViewModel {
-        AssetHeaderViewModel(
-            assetDataModel: assetDataModel,
-            walletModel: walletModel,
-            bannerEventsViewModel: HeaderBannerEventViewModel(events: visibleBanners.map(\.event)),
-        )
+        AssetHeaderViewModel(assetDataModel: assetDataModel, state: detailsState)
     }
 
     public var shareAssetUrl: URL {
-        service.deeplinkUrl(deeplink: DeepLink.asset(assetDataModel.asset.id).map()).asURL!
+        service.deeplinkUrl(deeplink: .asset(assetId: assetDataModel.asset.id.identifier)).asURL!
     }
 
     public var assetModel: AssetViewModel {
@@ -252,10 +245,6 @@ public final class AssetSceneViewModel: Sendable {
 
     public var priceAlertsImage: Image {
         Image(systemName: priceAlertsSystemImage)
-    }
-
-    public var showPriceAlerts: Bool {
-        priceAlertsViewModel.hasPriceAlerts && assetDataModel.isPriceAvailable
     }
 
     public var menuItems: [ActionMenuItemType] {
@@ -359,7 +348,7 @@ public extension AssetSceneViewModel {
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
-                UIApplication.shared.open(service.deeplinkGemUrl(deeplink: DeepLink.perpetuals.map()).asURL!)
+                UIApplication.shared.open(service.deeplinkGemUrl(deeplink: .perpetuals).asURL!)
                 preferences.isPerpetualEnabled = true
             }
         case let .button(bannerButton):
@@ -470,11 +459,11 @@ extension AssetSceneViewModel {
         guard let tokenId = assetModel.asset.tokenId else {
             return .none
         }
-        return service.tokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
+        return service.tokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { $0.map() }
     }
 
     private var addressLink: BlockExplorerLink {
-        BlockExplorerLink(service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
+        service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address).map()
     }
 
     private var stakeBalance: GemAssetBalance {

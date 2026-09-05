@@ -93,16 +93,10 @@ extension WalletsSceneViewModel {
 
 extension WalletsSceneViewModel {
     func onSelectCreateWallet() {
-        guard validate() else {
-            return
-        }
         isPresentingCreateWalletSheet.wrappedValue.toggle()
     }
 
     func onSelectImportWallet() {
-        guard validate() else {
-            return
-        }
         isPresentingImportWalletSheet.wrappedValue.toggle()
     }
 
@@ -134,18 +128,5 @@ extension WalletsSceneViewModel {
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }
-    }
-}
-
-// MARK: - Private
-
-extension WalletsSceneViewModel {
-    private func validate() -> Bool {
-        guard (try? service.canAddWallet()) == false else { return true }
-        isPresentingAlertMessage = AlertMessage(
-            title: Localized.Errors.Wallets.Limit.title,
-            message: Localized.Errors.Wallets.Limit.description(Int(service.walletsLimit())),
-        )
-        return false
     }
 }

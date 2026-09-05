@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import struct Gemstone.Account
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
 import protocol Gemstone.GemAddAssetServiceProtocol
-import struct Gemstone.GemBlockExplorerLink
-import typealias Gemstone.Wallet
+import struct Gemstone.BlockExplorerLink
+import struct Gemstone.Wallet
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -19,10 +20,10 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
         self.asset = asset
     }
 
-    public func chains(wallet: Wallet) -> [Chain] { chains.map(\.rawValue) }
+    public func chains(wallet _: Wallet) -> [Chain] { chains.map(\.rawValue) }
     public func defaultChain(chains: [Chain]) -> Chain? { chains.first }
     public func matchingChains(chains: [Chain], query: String) -> [Chain] { chains }
-    public func tokenUrl(chain: Chain, tokenId: String) -> GemBlockExplorerLink? { nil }
+    public func tokenUrl(chain: Chain, tokenId: String) -> Gemstone.BlockExplorerLink? { nil }
     public func token(chain: Chain, address: String) async throws -> Asset { asset.map() }
     public func add(wallet: Wallet, assetId: AssetId) async throws {}
 }

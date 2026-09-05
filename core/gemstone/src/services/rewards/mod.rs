@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use chrono::Utc;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AuthenticatedRequest, ReferralCode, Rewards, Wallet, WalletId};
 
@@ -8,33 +9,41 @@ use crate::config::rewards::get_referral_url;
 use crate::services::auth::GemAuthService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
-use crate::services::wallet_session::{GemWalletSessionService, rules as session_rules};
+use crate::services::wallet_session::rules as session_rules;
+
+pub mod model;
+pub mod rules;
+
+pub use model::GemRewardsState;
 
 #[derive(uniffi::Object)]
 pub struct GemRewardsService {
     api: Arc<GemDeviceApiClient>,
     auth: Arc<GemAuthService>,
     balance: Arc<GemBalanceService>,
-    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemRewardsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>) -> Self {
-        Self { api, auth, balance, session }
+    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>) -> Self {
+        Self { api, auth, balance }
     }
 
-    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        Ok(session_rules::rewards_wallets(self.session.get_wallets()?))
+    pub fn wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
+        session_rules::rewards_wallets(wallets)
     }
 
-    pub fn selected_wallet(&self) -> Result<Option<Wallet>, GemServiceError> {
-        Ok(session_rules::rewards_wallet(self.session.get_current_wallet()?, &self.wallets()?))
+    pub fn selected_wallet(&self, current: Option<Wallet>, wallets: Vec<Wallet>) -> Option<Wallet> {
+        session_rules::rewards_wallet(current, &self.wallets(wallets))
     }
 
     pub fn referral_link(&self, code: String) -> String {
         get_referral_url(&code)
+    }
+
+    pub fn state(&self, rewards: Option<Rewards>) -> GemRewardsState {
+        rules::state(rewards.as_ref(), Utc::now())
     }
 
     pub async fn get_rewards(&self, wallet_id: WalletId) -> Result<Rewards, GemServiceError> {

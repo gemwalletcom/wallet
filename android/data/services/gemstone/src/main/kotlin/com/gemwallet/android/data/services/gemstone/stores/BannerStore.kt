@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.serializer.decodeJson
@@ -16,17 +18,17 @@ class GemstoneBannerStore(
     private val bannersDao: BannersDao,
 ) : GemBannerStore {
 
-    override suspend fun getState(key: GemBannerKey): BannerState? =
-        bannersDao.getBanner(key.identifier())?.state?.toJson()
+    override suspend fun getState(key: GemBannerKey): uniffi.gemstone.BannerState? =
+        bannersDao.getBanner(key.identifier())?.state?.toGem()
 
-    override suspend fun setState(key: GemBannerKey, state: BannerState) {
+    override suspend fun setState(key: GemBannerKey, state: uniffi.gemstone.BannerState) {
         val record = key.toRecord(state)
         if (bannersDao.getBanner(record.id)?.state != record.state) {
             bannersDao.saveBanner(record)
         }
     }
 
-    override suspend fun addBanners(keys: List<GemBannerKey>, state: BannerState) {
+    override suspend fun addBanners(keys: List<GemBannerKey>, state: uniffi.gemstone.BannerState) {
         bannersDao.addBanners(keys.map { it.toRecord(state) })
     }
 
@@ -36,11 +38,11 @@ class GemstoneBannerStore(
 
     fun observeMultiSign(walletId: String): Flow<Boolean> = bannersDao.getMultisign(walletId).map { it.isNotEmpty() }
 
-    private fun GemBannerKey.toRecord(state: BannerState) = DbBanner(
+    private fun GemBannerKey.toRecord(state: uniffi.gemstone.BannerState) = DbBanner(
         id = identifier(),
         walletId = walletId,
         assetId = assetId,
-        event = event.decodeJson<BannerEvent>(),
-        state = state.decodeJson(),
+        event = event.toPrimitives(),
+        state = state.toPrimitives(),
     )
 }

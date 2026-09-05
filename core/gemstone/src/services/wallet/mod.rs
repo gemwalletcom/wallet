@@ -32,19 +32,20 @@ use std::sync::Arc;
 use gem_keystore::Mnemonic;
 use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
+use crate::services::localization::{GemLocalizedText, GemLocalizer};
 use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::BlockExplorerLink;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -67,6 +68,7 @@ pub struct GemWalletService {
     preferences: Arc<GemWalletPreferencesService>,
     explorer: Arc<GemExplorerService>,
     addresses: Arc<dyn GemAddressStore>,
+    localizer: Arc<dyn GemLocalizer>,
 }
 
 #[uniffi::export]
@@ -82,6 +84,7 @@ impl GemWalletService {
         preferences: Arc<GemWalletPreferencesService>,
         explorer: Arc<GemExplorerService>,
         addresses: Arc<dyn GemAddressStore>,
+        localizer: Arc<dyn GemLocalizer>,
     ) -> Self {
         Self {
             keystore,
@@ -93,6 +96,7 @@ impl GemWalletService {
             preferences,
             explorer,
             addresses,
+            localizer,
         }
     }
 
@@ -104,7 +108,7 @@ impl GemWalletService {
         self.session.set_current_wallet_id(Some(wallet_id))
     }
 
-    pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
+    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }
 
@@ -112,16 +116,16 @@ impl GemWalletService {
         Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })
     }
 
-    pub fn next_wallet_index(&self) -> Result<i32, GemServiceError> {
-        Ok(rules::next_wallet_index(&self.store.get_wallets()?))
-    }
-
-    pub fn wallets_limit(&self) -> u32 {
-        rules::WALLETS_LIMIT
-    }
-
-    pub fn can_add_wallet(&self) -> Result<bool, GemServiceError> {
-        Ok(rules::can_add_wallet(self.store.get_wallets()?.len()))
+    pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemWalletDefaultName, GemServiceError> {
+        let index = rules::next_wallet_index(&self.store.get_wallets().await?);
+        let text = match chain {
+            Some(chain) => GemLocalizedText::WalletDefaultNameChain { chain, index },
+            None => GemLocalizedText::WalletDefaultName { index },
+        };
+        Ok(GemWalletDefaultName {
+            name: self.localizer.text(text),
+            has_existing_wallets: index > 1,
+        })
     }
 
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
@@ -130,7 +134,7 @@ impl GemWalletService {
         let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Core {
             msg: format!("invalid wallet id {}", preview.wallet_id),
         })?;
-        let wallets = self.store.get_wallets()?;
+        let wallets = self.store.get_wallets().await?;
         if let Some(wallet) = rules::existing_wallet(&wallets, &wallet_id, preview.wallet_type) {
             return Ok(GemWalletImportResult::Existing { wallet });
         }
@@ -165,7 +169,7 @@ impl GemWalletService {
     }
 
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
+        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
         if wallet.wallet_type != WalletType::View {
@@ -177,7 +181,7 @@ impl GemWalletService {
             self.files.remove(image_url)?;
         }
         self.preferences.delete_preferences(wallet.id.clone())?;
-        let remaining = self.store.get_wallets()?;
+        let remaining = self.store.get_wallets().await?;
         if remaining.is_empty() || self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;
         }
@@ -189,7 +193,7 @@ impl GemWalletService {
     }
 
     pub async fn export_secret(&self, wallet_id: WalletId) -> Result<GemWalletSecret, GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
+        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
         let keystore_id = keystore_id_for_wallet(wallet.id.id());
@@ -215,10 +219,11 @@ impl GemWalletService {
         }
     }
 
-    pub fn migrate_to_shared_password(&self) -> Result<u32, GemServiceError> {
+    pub async fn migrate_to_shared_password(&self) -> Result<u32, GemServiceError> {
         let legacy: Vec<(Wallet, String)> = self
             .store
-            .get_wallets()?
+            .get_wallets()
+            .await?
             .into_iter()
             .filter(|wallet| wallet.wallet_type != WalletType::View)
             .filter_map(|wallet| match self.password.get_wallet_password(wallet.id.clone()) {
@@ -251,7 +256,7 @@ impl GemWalletService {
     }
 
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
+        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
         self.store.set_name(wallet_id, name.clone()).await?;
@@ -262,8 +267,8 @@ impl GemWalletService {
         rules::sorted_wallets(wallets)
     }
 
-    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        self.store.get_wallets()
+    pub async fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.store.get_wallets().await
     }
 }
 
@@ -283,7 +288,7 @@ impl GemWalletService {
     }
 
     pub async fn setup_chains_outcome(&self, chains: Vec<Chain>) -> Result<SetupChainsOutcome, GemServiceError> {
-        let candidates: Vec<(Wallet, Vec<Chain>)> = rules::wallets_missing_chains(self.store.get_wallets()?, &chains)
+        let candidates: Vec<(Wallet, Vec<Chain>)> = rules::wallets_missing_chains(self.store.get_wallets().await?, &chains)
             .into_iter()
             .filter(|(wallet, _)| self.keystore.exists(keystore_id_for_wallet(wallet.id.id())))
             .take(SETUP_CHAINS_WALLETS_LIMIT)
@@ -342,6 +347,7 @@ mod tests {
     use super::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
     use super::*;
     use crate::services::file::testkit::NoopFileStore;
+    use crate::services::localization::testkit::EnglishLocalizer;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
     use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
     use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
@@ -380,6 +386,7 @@ mod tests {
                 Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
                 Arc::new(GemExplorerService::new(app_preferences)),
                 addresses.clone(),
+                Arc::new(EnglishLocalizer),
             );
             Self {
                 service,
@@ -448,16 +455,16 @@ mod tests {
             let context = TestContext::new();
             let wallet = context.import("Savings", PHRASE).await;
             let account = wallet.accounts[0].clone();
-            let name = |context: &TestContext| context.addresses.get_address_name(account.chain, account.address.clone()).unwrap();
+            let name = async |context: &TestContext| context.addresses.get_address_name(account.chain, account.address.clone()).await.unwrap();
 
-            let stored = name(&context).unwrap();
+            let stored = name(&context).await.unwrap();
             assert_eq!((stored.name.as_str(), stored.address_type), ("Savings", AddressType::InternalWallet));
 
             context.service.rename(wallet.id.clone(), "Spending".to_string()).await.unwrap();
-            assert_eq!(name(&context).unwrap().name, "Spending");
+            assert_eq!(name(&context).await.unwrap().name, "Spending");
 
             context.service.delete_wallet(wallet.id.clone()).await.unwrap();
-            assert!(name(&context).is_none());
+            assert!(name(&context).await.is_none());
         });
     }
 
@@ -513,7 +520,7 @@ mod tests {
             assert_eq!(outcome.failures[0].0, broken.id);
             assert_eq!(outcome.wallets.len(), 1, "the healthy wallet must still be set up");
             assert_eq!(outcome.wallets[0].id, healthy.id);
-            let stored = context.service.wallets().unwrap();
+            let stored = context.service.wallets().await.unwrap();
             let stored_healthy = stored.iter().find(|wallet| wallet.id == healthy.id).unwrap();
             assert!(stored_healthy.accounts.iter().any(|account| account.chain == Chain::Solana));
         });
@@ -585,11 +592,11 @@ mod tests {
                 .unwrap();
             context.passwords.wallet_passwords.lock().unwrap().insert(wallet.id.id(), legacy.to_string());
 
-            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 1);
+            assert_eq!(context.service.migrate_to_shared_password().await.unwrap(), 1);
             assert!(context.service.keystore.opens_with(keystore_id.clone(), decode_password(TEST_PASSWORD)));
             assert!(context.passwords.wallet_passwords.lock().unwrap().is_empty());
 
-            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert_eq!(context.service.migrate_to_shared_password().await.unwrap(), 0);
             assert!(context.service.keystore.opens_with(keystore_id, decode_password(TEST_PASSWORD)));
         });
     }
@@ -601,7 +608,7 @@ mod tests {
             let wallet = context.import("Aliased", PHRASE).await;
             context.passwords.wallet_passwords.lock().unwrap().insert(wallet.id.id(), TEST_PASSWORD.to_string());
 
-            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert_eq!(context.service.migrate_to_shared_password().await.unwrap(), 0);
             assert!(context.passwords.wallet_passwords.lock().unwrap().is_empty());
             assert!(context.service.keystore.opens_with(keystore_id_for_wallet(wallet.id.id()), decode_password(TEST_PASSWORD)));
         });
@@ -630,7 +637,7 @@ mod tests {
                 .unwrap();
             context.passwords.wallet_passwords.lock().unwrap().insert(other.id.id(), actual.to_string());
 
-            assert!(context.service.migrate_to_shared_password().is_err());
+            assert!(context.service.migrate_to_shared_password().await.is_err());
             assert_eq!(context.passwords.wallet_passwords.lock().unwrap().get(&wallet.id.id()).map(String::as_str), Some(wrong));
             assert!(context.service.keystore.opens_with(keystore_id, decode_password(actual)));
             assert!(
@@ -651,7 +658,7 @@ mod tests {
             context.passwords.wallet_passwords.lock().unwrap().insert(wallet.id.id(), legacy.to_string());
             context.service.keystore.delete(keystore_id.clone()).unwrap();
 
-            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert_eq!(context.service.migrate_to_shared_password().await.unwrap(), 0);
             assert_eq!(context.passwords.wallet_passwords.lock().unwrap().get(&wallet.id.id()).map(String::as_str), Some(legacy));
         });
     }
@@ -664,7 +671,7 @@ mod tests {
             let stale = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
             context.passwords.wallet_passwords.lock().unwrap().insert(wallet.id.id(), stale.to_string());
 
-            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert_eq!(context.service.migrate_to_shared_password().await.unwrap(), 0);
             assert!(context.passwords.wallet_passwords.lock().unwrap().is_empty());
             assert!(context.service.keystore.opens_with(keystore_id_for_wallet(wallet.id.id()), decode_password(TEST_PASSWORD)));
         });
@@ -681,7 +688,7 @@ mod tests {
             let error = context.service.delete_wallet(wallet.id.clone()).await.unwrap_err();
 
             assert!(matches!(error, GemServiceError::Core { .. }), "{error:?}");
-            assert_eq!(context.service.wallets().unwrap().len(), 1);
+            assert_eq!(context.service.wallets().await.unwrap().len(), 1);
         });
     }
 }

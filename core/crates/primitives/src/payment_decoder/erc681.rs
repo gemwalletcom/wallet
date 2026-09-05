@@ -6,7 +6,6 @@ use crate::{
     payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
-pub const ETHEREUM_SCHEME: &str = "ethereum";
 const PAY_PREFIX: &str = "pay-";
 const HEXADECIMAL_PREFIX: &str = "0x";
 const TRANSFER_FUNCTION: &str = "transfer";
@@ -38,10 +37,12 @@ pub fn decode(path: &str) -> Result<Payment> {
                 .and_then(|value| amount::atomic(&value))
                 .map(PaymentAmount::AtomicValue),
             memo,
+            label: None,
             references: None,
             asset_id: Some(AssetId::from(chain, Some(target.to_string()))),
         })),
         Some(function) => Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}"))),
+        None if target.is_empty() => Err(PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string())),
         None => Ok(Payment::Request(PaymentRequest {
             address: target.to_string(),
             amount: query::value(&parameters, QUERY_VALUE)
@@ -49,6 +50,7 @@ pub fn decode(path: &str) -> Result<Payment> {
                 .or_else(|| query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)))
                 .map(PaymentAmount::ExactValue),
             memo,
+            label: None,
             references: None,
             asset_id: Some(AssetId::from_chain(chain)),
         })),

@@ -5,6 +5,6 @@ import Primitives
 
 public extension Primitives.ApplicationMetadata {
     var shortName: String {
-        GemApplicationMetadataService().shortName(metadata: json())
+        GemApplicationMetadataService.shared.shortName(metadata: map())
     }
 }

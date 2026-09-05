@@ -110,7 +110,7 @@ fun ImportScreen(
     ImportScene(
         inputState = inputState,
         importType = uiState.importType,
-        generatedNameIndex = uiState.generatedNameIndex,
+        defaultWalletName = uiState.defaultWalletName,
         chainName = uiState.chainName,
         nameResolveState = nameResolveState,
         dataError = uiState.dataError,
@@ -166,7 +166,7 @@ fun ImportScreen(
 private fun ImportScene(
     inputState: MutableState<TextFieldValue>,
     importType: ImportType,
-    generatedNameIndex: Int,
+    defaultWalletName: String,
     chainName: String,
     nameResolveState: NameRecordState,
     dataError: Throwable?,
@@ -182,15 +182,7 @@ private fun ImportScene(
         is ImportSceneTitle.Resource -> stringResource(sceneTitle.resId)
         is ImportSceneTitle.Text -> sceneTitle.value
     }
-    val chainWalletName = stringResource(id = R.string.wallet_default_name_chain, chainName, generatedNameIndex)
-    val mainWalletName = stringResource(id = R.string.wallet_default_name, generatedNameIndex)
-    val generatedName = remember(key1 = importType.walletType, key2 = generatedNameIndex) {
-        if (generatedNameIndex == 0 || importType.walletType == WalletType.Multicoin) {
-            mainWalletName
-        } else {
-            chainWalletName
-        }
-    }
+    val generatedName = defaultWalletName
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
     Scene(
@@ -374,7 +366,7 @@ fun PreviewImportAddress() {
             ImportScene(
                 inputState = remember { mutableStateOf(TextFieldValue()) },
                 importType = ImportType(chain = Chain.Bitcoin, walletType = WalletType.View),
-                generatedNameIndex = 1,
+                defaultWalletName = "Wallet #1",
                 chainName = "Ethereum",
                 nameResolveState = NameRecordState.None,
                 dataError = null,

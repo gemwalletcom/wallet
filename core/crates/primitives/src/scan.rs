@@ -10,6 +10,7 @@ use crate::{AssetId, Chain, ChainAddress, TransactionType};
 pub struct ScanTransactionPayload {
     pub origin: ScanAddressTarget,
     pub target: ScanAddressTarget,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub website: Option<String>,
     #[serde(rename = "type")]
     pub transaction_type: TransactionType,
@@ -86,6 +87,28 @@ impl ScanAddress {
             is_malicious: Some(false),
             is_memo_required: Some(false),
             is_verified: Some(true),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::Value;
+
+    use super::ScanTransactionPayload;
+
+    #[test]
+    fn test_scan_transaction_payload_optional_website() {
+        for website in [None, Some("https://gemwallet.com/")] {
+            let mut payload: ScanTransactionPayload = serde_json::from_str(include_str!("../testdata/scan_transaction_payload.json")).unwrap();
+            payload.website = website.map(str::to_string);
+
+            let serialized = serde_json::to_value(&payload).unwrap();
+            let expected = website.map(|website| Value::String(website.to_string()));
+            assert_eq!(serialized.get("website"), expected.as_ref());
+
+            let decoded: ScanTransactionPayload = serde_json::from_value(serialized).unwrap();
+            assert_eq!(decoded.website.as_deref(), website);
         }
     }
 }

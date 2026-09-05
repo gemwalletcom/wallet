@@ -14,7 +14,6 @@ struct ConfirmRecipientViewModel {
     private let memo: String?
     private let addressName: AddressName?
     private let addressLink: BlockExplorerLink
-    private let onAddContact: ((AddContactType) -> Void)?
 
     init(
         destination: GemConfirmDestination?,
@@ -22,14 +21,12 @@ struct ConfirmRecipientViewModel {
         memo: String?,
         addressName: AddressName?,
         addressLink: BlockExplorerLink,
-        onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.destination = destination
         self.chain = chain
         self.memo = memo
         self.addressName = addressName
         self.addressLink = addressLink
-        self.onAddContact = onAddContact
     }
 }
 
@@ -58,7 +55,6 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
                 ),
                 mode: .nameOrAddress,
                 addressLink: addressLink,
-                onAddContact: addressName?.type == nil ? onAddContact : nil,
             ),
         )
     }

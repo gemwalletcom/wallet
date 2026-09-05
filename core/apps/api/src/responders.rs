@@ -1,5 +1,6 @@
 use cacher::CacheError;
 use fiat::error::FiatQuoteError;
+use gem_client::ClientError;
 use gem_rewards::{RewardsError, RewardsRedemptionError, UsernameError};
 use primitives::{RequestError, ResponseResult};
 use rocket::response::{Responder, Response};
@@ -137,6 +138,9 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             if let Some(fiat_error) = current_error.downcast_ref::<FiatQuoteError>() {
                 return fiat_error.clone().into();
             }
+            if let Some(ClientError::Http { status, body }) = current_error.downcast_ref::<ClientError>() {
+                return ApiError::InternalServerError(format!("upstream status {status}: {}", String::from_utf8_lossy(body)));
+            }
             if let Some(message) = ok_error_message(current_error) {
                 return ApiError::OkError(message);
             }
@@ -168,6 +172,7 @@ impl<'r, T: Serialize> Responder<'r, 'static> for ApiResponse<T> {
 mod tests {
     use super::ApiError;
     use cacher::CacheError;
+    use gem_client::ClientError;
     use gem_rewards::{RewardsError, RewardsRedemptionError};
     use primitives::RequestError;
     use storage::DatabaseError;
@@ -200,6 +205,19 @@ mod tests {
     fn test_boxed_rewards_redemption_error_maps_to_ok_error() {
         let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RewardsRedemptionError::LimitReached);
         assert_eq!(ApiError::from(error), ApiError::OkError("Redemption limit reached".to_string()));
+    }
+
+    #[test]
+    fn test_boxed_upstream_failure_keeps_the_response_that_named_the_cause() {
+        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(ClientError::Http {
+            status: 500,
+            body: b"NoMethodError (undefined method '[]' for nil)".to_vec(),
+        });
+
+        assert_eq!(
+            ApiError::from(error),
+            ApiError::InternalServerError("upstream status 500: NoMethodError (undefined method '[]' for nil)".to_string())
+        );
     }
 
     #[test]

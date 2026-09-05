@@ -13,7 +13,9 @@ use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, Confi
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
-pub use model::{AssetList, GemAssetAction, GemAssetFilter, GemAssetNetworkDestination};
+pub use model::{
+    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemWalletSearchLimits,
+};
 pub use selection::GemAssetSelectionService;
 pub use store::GemAssetStore;
 
@@ -55,17 +57,17 @@ impl GemAssetsService {
     }
 
     pub async fn ensure_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
-        if let Some(asset) = self.stored_asset(&asset_id)? {
+        if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);
         }
         self.sync_missing_assets(vec![asset_id.clone()]).await?;
-        self.stored_asset(&asset_id)?.ok_or_else(|| GemServiceError::NotFound {
+        self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("asset not found: {asset_id}"),
         })
     }
 
     pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
-        if let Some(asset) = self.stored_asset(&asset_id)? {
+        if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);
         }
         let Some(token_id) = asset_id.token_id.clone() else {
@@ -108,7 +110,7 @@ impl GemAssetsService {
     }
 
     pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
-        let wallet = self.session.current_wallet()?;
+        let wallet = self.session.current_wallet().await?;
         self.open_wallet_asset(wallet, asset_id).await
     }
 
@@ -138,11 +140,11 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+    pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
-        let missing = rules::missing_asset_ids(asset_ids, existing);
+        let missing = rules::missing_asset_ids(asset_ids.clone(), existing);
         if missing.is_empty() {
-            return Ok(());
+            return self.assets(asset_ids).await;
         }
         // Simulation assets may not exist in the backend; fall back to the node.
         if let Ok(assets) = self.get_assets(missing.clone(), None).await {
@@ -151,7 +153,7 @@ impl GemAssetsService {
         for asset_id in missing {
             self.ensure_token_asset(asset_id).await?;
         }
-        Ok(())
+        self.assets(asset_ids).await
     }
 
     pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
@@ -169,8 +171,8 @@ impl GemAssetsService {
         Ok(enabled)
     }
 
-    pub fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
-        self.store.get_assets(asset_ids)
+    pub async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
+        self.store.get_assets(asset_ids).await
     }
 
     pub async fn get_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemApiError> {
@@ -270,8 +272,8 @@ impl GemAssetsService {
         Ok(self.api.client.get_swap_assets().await?)
     }
 
-    fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
-        Ok(self.assets(vec![asset_id.clone()])?.into_iter().next())
+    async fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
+        Ok(self.assets(vec![asset_id.clone()]).await?.into_iter().next())
     }
 }
 

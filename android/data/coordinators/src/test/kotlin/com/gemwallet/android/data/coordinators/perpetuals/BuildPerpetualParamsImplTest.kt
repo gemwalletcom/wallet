@@ -1,10 +1,9 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.wallet.core.primitives.PerpetualPosition
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
@@ -83,7 +82,7 @@ class BuildPerpetualParamsImplTest {
             getSession = getSession,
             service = mockk<GemPerpetualDetailsServiceInterface> {
                 every { positionAction(any(), any(), any(), any()) } answers {
-                    val position = thirdArg<String?>()?.decodeJson<PerpetualPosition>()
+                    val position = thirdArg<uniffi.gemstone.PerpetualPosition?>()?.toPrimitives()
                     GemPerpetualPositionAction.Reduce(
                         mockGemPerpetualTransferData(direction = requireNotNull(position).direction),
                         BigInteger.valueOf((position.marginAmount * 1_000_000).toLong()),

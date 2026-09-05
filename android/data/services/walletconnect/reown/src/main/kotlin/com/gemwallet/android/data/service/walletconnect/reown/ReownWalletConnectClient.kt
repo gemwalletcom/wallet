@@ -31,9 +31,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemWalletConnectService
-import com.gemwallet.android.serializer.decodeJson
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.gemwallet.android.ext.toPrimitives
 
 @Singleton
 class ReownWalletConnectClient @Inject constructor(
@@ -297,7 +297,7 @@ class ReownWalletConnectClient @Inject constructor(
     }
 
     private fun Core.Model.AppMetaData.toApplicationMetadata(): ApplicationMetadata =
-        walletConnectService.applicationMetadata(name, description, url, icons).decodeJson()
+        walletConnectService.applicationMetadata(name, description, url, icons).toPrimitives()
 
     private fun WalletConnectSessionProposal.pendingReownProposal(): Wallet.Model.SessionProposal? {
         return WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposerPublicKey }

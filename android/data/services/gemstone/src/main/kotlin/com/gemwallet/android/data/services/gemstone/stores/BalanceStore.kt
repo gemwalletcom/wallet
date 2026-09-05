@@ -1,11 +1,12 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemBalanceStore
 import uniffi.gemstone.GemBalanceUpdate
 import uniffi.gemstone.GemBalanceUpdateType
@@ -16,11 +17,11 @@ class GemstoneBalanceStore(
     private val transactionRunner: StoreTransactionRunner,
 ) : GemBalanceStore {
 
-    override fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> =
+    override suspend fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> = withContext(Dispatchers.IO) {
         assetIds.mapNotNull { balancesDao.getByAsset(walletId, it)?.toGemAssetBalance() }
+    }
 
-    override suspend fun getEnabledAssetIds(walletId: String, assetIds: List<String>): List<String> =
-        balancesDao.getVisibleAssetIds(walletId, assetIds)
+    override suspend fun getEnabledAssetIds(walletId: String): List<String> = balancesDao.getEnabledAssetIds(walletId)
 
     override suspend fun setAssetsEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) =
         assetsDao.setWalletAssetsVisibility(walletId, assetIds, enabled)
@@ -57,7 +58,7 @@ class GemstoneBalanceStore(
                     updatedAt = updatedAt,
                 )
                 is GemBalanceUpdateType.Stake -> {
-                    val metadata = type.metadata?.decodeJson<BalanceMetadata>()
+                    val metadata = type.metadata?.toPrimitives()
                     balancesDao.updateStakeBalance(
                         walletId = walletId,
                         assetId = update.assetId,
