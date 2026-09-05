@@ -1,4 +1,6 @@
-use primitives::LinkType;
+use std::str::FromStr;
+
+use primitives::{AssetLink, LinkType};
 
 #[derive(uniffi::Enum, Clone)]
 pub enum SocialUrl {
@@ -27,7 +29,20 @@ impl SocialUrl {
     }
 }
 
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSocialLinks {
+    pub links: Vec<AssetLink>,
+}
+
 #[uniffi::export]
+impl GemSocialLinks {
+    pub fn sorted(&self) -> Vec<AssetLink> {
+        let mut links = self.links.clone();
+        links.sort_by_key(|link| std::cmp::Reverse(LinkType::from_str(&link.name).map(link_type_order).unwrap_or(0)));
+        links
+    }
+}
+
 fn link_type_order(link_type: LinkType) -> i32 {
     match link_type {
         LinkType::Website => 120,
@@ -44,5 +59,27 @@ fn link_type_order(link_type: LinkType) -> i32 {
         LinkType::Discord => 1,
         LinkType::GitHub => 20,
         LinkType::YouTube => 30,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sorted_links_put_the_website_first_and_unknown_links_last() {
+        let links = vec![
+            AssetLink::new("https://t.me/gem", LinkType::Telegram),
+            AssetLink {
+                name: "unknown".to_string(),
+                url: "https://unknown".to_string(),
+            },
+            AssetLink::new("https://x.com/gem", LinkType::X),
+            AssetLink::new("https://gem.com", LinkType::Website),
+        ];
+
+        let names: Vec<String> = GemSocialLinks { links }.sorted().into_iter().map(|link| link.name).collect();
+
+        assert_eq!(names, vec!["website", "x", "telegram", "unknown"]);
     }
 }

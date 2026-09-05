@@ -701,6 +701,16 @@ fun com.wallet.core.primitives.AssetFiatValue.toGem(): uniffi.gemstone.AssetFiat
     priceChangePercentage24h = priceChangePercentage24h,
 )
 
+fun uniffi.gemstone.AssetLink.toPrimitives(): com.wallet.core.primitives.AssetLink = com.wallet.core.primitives.AssetLink(
+    name = name,
+    url = url,
+)
+
+fun com.wallet.core.primitives.AssetLink.toGem(): uniffi.gemstone.AssetLink = uniffi.gemstone.AssetLink(
+    name = name,
+    url = url,
+)
+
 fun uniffi.gemstone.BlockExplorerLink.toPrimitives(): com.wallet.core.primitives.BlockExplorerLink = com.wallet.core.primitives.BlockExplorerLink(
     name = name,
     link = link,

@@ -1062,6 +1062,24 @@ public extension Primitives.AssetFiatValue {
     }
 }
 
+public extension Gemstone.AssetLink {
+    func map() -> Primitives.AssetLink {
+        Primitives.AssetLink(
+            name: name,
+            url: url,
+        )
+    }
+}
+
+public extension Primitives.AssetLink {
+    func map() -> Gemstone.AssetLink {
+        Gemstone.AssetLink(
+            name: name,
+            url: url,
+        )
+    }
+}
+
 public extension Gemstone.BlockExplorerLink {
     func map() -> Primitives.BlockExplorerLink {
         Primitives.BlockExplorerLink(

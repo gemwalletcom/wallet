@@ -52,8 +52,8 @@ public struct TransactionView: View {
     )
     let pendingTransactionExtendedMock = TransactionExtended(
         transaction: pendingTransactionMock,
-        asset: .init(.smartChain),
-        feeAsset: .init(.smartChain),
+        asset: Primitives.Chain.smartChain.asset,
+        feeAsset: Primitives.Chain.smartChain.asset,
         price: nil,
         feePrice: nil,
         assets: [],

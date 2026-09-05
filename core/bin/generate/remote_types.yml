@@ -13,6 +13,7 @@ remote:
   - ConnectionComponent
   - ConnectionStatus
   - Asset
+  - AssetLink
   - FeePriority
   - FeeUnitType
   - FiatQuoteType

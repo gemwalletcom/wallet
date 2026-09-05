@@ -20,7 +20,7 @@ struct GemTransactionInputTypeAssetTests {
     func localAssetIsTheNativeAssetForAnNftTransfer() {
         let nftAsset = NFTAsset.mock()
 
-        #expect(GemTransactionInputType.transferNft(nftAsset).asset == Asset(nftAsset.chain))
+        #expect(GemTransactionInputType.transferNft(nftAsset).asset == nftAsset.chain.asset)
     }
 
     private var cases: [GemTransactionInputType] {

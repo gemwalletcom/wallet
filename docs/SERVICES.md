@@ -701,6 +701,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `walletType` rule was dead; the import scene builds `GemWalletImportType` directly.
   `GemApplicationMetadataService` and `PriceAlertFormatter` gained `.shared` instances, and the
   banner key and action accessors no longer pretend to throw.
+- **Asset links are ordered by Core on both apps.** iOS's `[AssetLink].sortedByType` and
+  Android's `sortedByDescending { it.linkType?.order }` were the same sort written twice around
+  the exported `link_type_order`. `GemSocialLinks::sorted` now does it in Core over the remote
+  `AssetLink` record, `link_type_order` is no longer exported, and the iOS `LinkType.order` and
+  `Asset(chain)` extensions are gone (the chain's asset comes from `Chain.asset`).
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per
