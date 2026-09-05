@@ -1116,6 +1116,26 @@ public extension Primitives.Latency {
     }
 }
 
+public extension Gemstone.ReportNft {
+    func map() -> Primitives.ReportNft {
+        Primitives.ReportNft(
+            collectionId: collectionId,
+            assetId: assetId,
+            reason: reason,
+        )
+    }
+}
+
+public extension Primitives.ReportNft {
+    func map() -> Gemstone.ReportNft {
+        Gemstone.ReportNft(
+            collectionId: collectionId,
+            assetId: assetId,
+            reason: reason,
+        )
+    }
+}
+
 public extension Gemstone.SimulationPayloadField {
     func map() -> Primitives.SimulationPayloadField {
         Primitives.SimulationPayloadField(

@@ -715,6 +715,16 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `jsonEncoder`, and a route field is just `@Contextual GemTransferData`. The Core codecs are gone,
   and with them `GemTransferService`, which had nothing left; adding a record to a route is one
   registry line.
+- **A primitives type Core accepts from an app lifts from the app's model.** Buying on Android
+  crashed in `amount_check(quote: FiatQuote)`: the app re-encodes its TypeShare model, which
+  lacks every `#[typeshare(skip)]` field, so Core's serde lift fails. `FiatQuote.asset` is now
+  visible (it was already in the API JSON), `value` and `latency` stay Core-side but default on
+  decode, and the sell check derives the value from `crypto_amount` and the asset decimals
+  (`rules::quote_value`, the backend's own formula) instead of trusting a field the app cannot
+  carry. Reporting an NFT would have failed the same way on `ReportNft.device_id`, which the
+  signed device request already carries; the field is gone and `ReportNft` crosses typed as a
+  remote record. Still bridged with required skipped fields, and therefore never to be accepted
+  from an app: `FiatQuoteRequest`, `Rewards`, `ScanTransaction`.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

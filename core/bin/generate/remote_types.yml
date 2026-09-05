@@ -42,6 +42,7 @@ remote:
   - PortfolioType
   - PriceAlertDirection
   - PriceAlertNotificationType
+  - ReportNft
   - TotalFiatValue
   - TransactionState
   - TransactionType

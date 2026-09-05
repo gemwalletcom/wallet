@@ -13,6 +13,7 @@ public extension FiatQuote {
     ) -> FiatQuote {
         FiatQuote(
             id: id,
+            asset: .mock(),
             provider: FiatProvider(id: "moonpay", name: "", imageUrl: "", paymentMethods: []),
             type: type,
             fiatAmount: fiatAmount,

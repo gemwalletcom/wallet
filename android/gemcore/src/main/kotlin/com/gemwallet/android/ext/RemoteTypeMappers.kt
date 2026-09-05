@@ -731,6 +731,18 @@ fun com.wallet.core.primitives.Latency.toGem(): uniffi.gemstone.Latency = uniffi
     value = value,
 )
 
+fun uniffi.gemstone.ReportNft.toPrimitives(): com.wallet.core.primitives.ReportNft = com.wallet.core.primitives.ReportNft(
+    collectionId = collectionId,
+    assetId = assetId,
+    reason = reason,
+)
+
+fun com.wallet.core.primitives.ReportNft.toGem(): uniffi.gemstone.ReportNft = uniffi.gemstone.ReportNft(
+    collectionId = collectionId,
+    assetId = assetId,
+    reason = reason,
+)
+
 fun uniffi.gemstone.SimulationPayloadField.toPrimitives(): com.wallet.core.primitives.SimulationPayloadField = com.wallet.core.primitives.SimulationPayloadField(
     kind = kind.toPrimitives(),
     label = label,

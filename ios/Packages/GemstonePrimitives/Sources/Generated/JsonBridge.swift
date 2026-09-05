@@ -84,7 +84,6 @@ extension Primitives.PriceAlert: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
 extension Primitives.ReferralCode: JsonCodable {}
-extension Primitives.ReportNft: JsonCodable {}
 extension Primitives.Rewards: JsonCodable {}
 extension Primitives.ScanAddressTarget: JsonCodable {}
 extension Primitives.ScanTransaction: JsonCodable {}
