@@ -15,7 +15,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.RecentActivityType
@@ -83,7 +82,7 @@ open class BaseAssetSelectViewModel(
     private val isSearching = MutableStateFlow(false)
 
     val availableChains = session
-        .map { session -> session?.wallet?.let { service.filterChains(it.toJson()).map { chain -> chain.requireChain() } } ?: emptyList() }
+        .map { session -> session?.wallet?.let { service.filterChains(it.toGem()).map { chain -> chain.requireChain() } } ?: emptyList() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
@@ -162,7 +161,7 @@ open class BaseAssetSelectViewModel(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
-    val isAddAssetAvailable = getSession().map { service.supportsTokens(it?.wallet?.toJson()) }
+    val isAddAssetAvailable = getSession().map { service.supportsTokens(it?.wallet?.toGem()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {

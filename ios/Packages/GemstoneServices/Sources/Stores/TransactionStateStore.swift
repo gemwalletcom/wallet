@@ -19,12 +19,12 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
     }
 
     public func getPendingTransactions() async throws -> [GemPendingTransaction] {
-        try store.getTransactionWallets(states: [.pending, .inTransit]).map { GemPendingTransaction(wallet: $0.wallet.json(), transaction: $0.transaction.json()) }
+        try store.getTransactionWallets(states: [.pending, .inTransit]).map { GemPendingTransaction(wallet: $0.wallet.map(), transaction: $0.transaction.json()) }
     }
 
     public func getTransaction(walletId: String, transactionId: Gemstone.TransactionId) async throws -> GemPendingTransaction? {
         try store.getTransactionWallet(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(transactionId))
-            .map { GemPendingTransaction(wallet: $0.wallet.json(), transaction: $0.transaction.json()) }
+            .map { GemPendingTransaction(wallet: $0.wallet.map(), transaction: $0.transaction.json()) }
     }
 
     public func addTransactions(walletId: String, transactions: [Gemstone.Transaction]) async throws {

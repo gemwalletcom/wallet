@@ -24,6 +24,7 @@ public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 public import typealias Gemstone.SimulationResult
 public import typealias Gemstone.Transaction
+public import struct Gemstone.Wallet
 import Foundation
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -36,11 +37,11 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     private let transactionState: any GemTransactionStateServiceProtocol
     private let signer: any GemTransactionSigner
     private let authenticationValue: GemKeystoreAuthentication
-    private let wallet: Wallet
+    private let wallet: Primitives.Wallet
     private let assetConfig = GemAssetConfigService()
 
     public init(
-        wallet: Wallet = .mock(),
+        wallet: Primitives.Wallet = .mock(),
         confirm: GemConfirmServiceMock = GemConfirmServiceMock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
         transactionState: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
@@ -63,7 +64,7 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         authenticationValue
     }
 
-    public func confirmInput(wallet _: String, transfer: GemTransferData) throws -> GemConfirmInput {
+    public func confirmInput(wallet _: Gemstone.Wallet, transfer: GemTransferData) throws -> GemConfirmInput {
         try GemConfirmInput(from: wallet.account(for: transfer.chain).map(), transfer: transfer)
     }
 

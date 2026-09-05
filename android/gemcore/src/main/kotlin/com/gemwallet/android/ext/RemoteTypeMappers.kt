@@ -714,7 +714,7 @@ fun com.wallet.core.primitives.ApplicationMetadata.toGem(): uniffi.gemstone.Appl
 )
 
 fun uniffi.gemstone.Asset.toPrimitives(): com.wallet.core.primitives.Asset = com.wallet.core.primitives.Asset(
-    id = id.toAssetId()!!,
+    id = com.wallet.core.primitives.AssetId(id),
     name = name,
     symbol = symbol,
     decimals = decimals,
@@ -809,4 +809,28 @@ fun com.wallet.core.primitives.TotalFiatValue.toGem(): uniffi.gemstone.TotalFiat
     value = value,
     pnlAmount = pnlAmount,
     pnlPercentage = pnlPercentage,
+)
+
+fun uniffi.gemstone.Wallet.toPrimitives(): com.wallet.core.primitives.Wallet = com.wallet.core.primitives.Wallet(
+    id = com.wallet.core.primitives.WalletId(id),
+    externalId = externalId,
+    name = name,
+    index = index,
+    type = walletType.toPrimitives(),
+    accounts = accounts.map { it.toPrimitives() },
+    isPinned = isPinned,
+    imageUrl = imageUrl,
+    source = source.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.Wallet.toGem(): uniffi.gemstone.Wallet = uniffi.gemstone.Wallet(
+    id = id.toIdentifier(),
+    externalId = externalId,
+    name = name,
+    index = index,
+    walletType = type.toGem(),
+    accounts = accounts.map { it.toGem() },
+    isPinned = isPinned,
+    imageUrl = imageUrl,
+    source = source.toGem(),
 )

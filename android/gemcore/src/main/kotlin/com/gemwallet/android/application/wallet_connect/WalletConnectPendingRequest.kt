@@ -1,5 +1,6 @@
 package com.gemwallet.android.application.wallet_connect
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.serializer.decodeJson
@@ -24,14 +25,13 @@ import uniffi.gemstone.SignMessage as GemSignMessage
 sealed class WalletConnectPendingRequest(
     val sessionId: String,
     chainId: String,
-    walletJson: String,
+    val wallet: Wallet,
     sessionJson: String,
     simulationJson: String,
 ) {
     internal val result = CompletableDeferred<String>()
 
     val chain: Chain by lazy { chainId.requireChain() }
-    val wallet: Wallet by lazy { walletJson.decodeJson() }
     val account: Account by lazy { checkNotNull(wallet.getAccount(chain)) { "Wallet has no $chain account" } }
     val appMetadata: ApplicationMetadata by lazy { sessionJson.decodeJson<WalletConnectionSession>().metadata }
     val simulation: SimulationResult by lazy { simulationJson.decodeJson() }
@@ -46,13 +46,13 @@ sealed class WalletConnectPendingRequest(
 
     class SignMessage(
         private val request: GemWalletConnectMessageRequest,
-    ) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet, request.session, request.simulation) {
+    ) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val message: GemSignMessage get() = request.message
     }
 
     class Transaction(
         private val request: GemWalletConnectTransactionRequest,
-    ) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet, request.session, request.simulation) {
+    ) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val transfer: GemTransferData get() = request.transfer
         val isSendable: Boolean get() = request.action == GemWalletConnectTransactionAction.SEND
     }

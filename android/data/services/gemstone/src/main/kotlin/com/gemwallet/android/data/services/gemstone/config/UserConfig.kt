@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Wallet
@@ -50,9 +49,9 @@ class UserConfig(
 
     fun setRateApplicationShown() = preferencesService.setRateApplicationShown()
 
-    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.toJson())
+    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.toGem())
 
-    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.toJson())
+    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.toGem())
 
     fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().toPrimitives()
 

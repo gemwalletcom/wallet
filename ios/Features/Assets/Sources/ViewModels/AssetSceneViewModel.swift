@@ -206,7 +206,7 @@ public final class AssetSceneViewModel: Sendable {
 
     private var bannerContext: GemBannerContext {
         GemBannerContext(
-            wallet: wallet.json(),
+            wallet: wallet.map(),
             hasAsset: true,
             isStakeable: assetData.metadata.isStakeEnabled,
             hasStakeBalance: stakedValue > .zero,

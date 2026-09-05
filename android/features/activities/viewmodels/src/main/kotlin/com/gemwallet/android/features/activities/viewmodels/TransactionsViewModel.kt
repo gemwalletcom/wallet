@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.activities.viewmodels
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.cases.GetTransactions
@@ -58,7 +57,7 @@ class TransactionsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableChains: StateFlow<List<Chain>> = session
-        .map { session -> session?.wallet?.let { service.filterChains(it.toJson()).map { chain -> chain.requireChain() } } ?: emptyList() }
+        .map { session -> session?.wallet?.let { service.filterChains(it.toGem()).map { chain -> chain.requireChain() } } ?: emptyList() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private var syncedWalletId: WalletId? = null

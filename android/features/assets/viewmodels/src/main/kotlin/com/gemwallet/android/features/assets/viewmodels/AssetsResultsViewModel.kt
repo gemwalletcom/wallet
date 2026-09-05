@@ -3,7 +3,6 @@ package com.gemwallet.android.features.assets.viewmodels
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.search.toGem
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import android.content.Context
@@ -84,7 +83,7 @@ class AssetsResultsViewModel @Inject constructor(
         is WalletSearchTag.List ->
             combine(
                 getPerpetuals.getPerpetuals(listPriorityQuery(scope.id)),
-                getSession().map { service.showPerpetuals(it?.wallet?.toJson()) },
+                getSession().map { service.showPerpetuals(it?.wallet?.toGem()) },
             ) { items, show ->
                 if (show) items.take(resultsLimit()) else emptyList()
             }

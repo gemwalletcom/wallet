@@ -31,7 +31,7 @@ public struct SignMessagePayload: Sendable {
         try self.init(
             chain: Primitives.Chain(core: request.chain),
             session: WalletConnectionSession(request.session),
-            wallet: Wallet(request.wallet),
+            wallet: request.wallet.map(),
             message: request.message,
             simulation: SimulationResult(request.simulation),
         )

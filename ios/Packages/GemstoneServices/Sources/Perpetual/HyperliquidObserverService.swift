@@ -70,7 +70,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         let connection: GemPerpetualConnection?
         do {
-            connection = try await perpetualService.connection(wallet: wallet.json())
+            connection = try await perpetualService.connection(wallet: wallet.map())
         } catch {
             debugLog("HyperliquidObserver: connection failed: \(error)")
             return

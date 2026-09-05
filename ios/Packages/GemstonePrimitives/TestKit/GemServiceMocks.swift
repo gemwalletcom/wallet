@@ -713,7 +713,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
             connectionFailures -= 1
             throw AnyError("connection unavailable")
         }
-        guard let account = try Primitives.Wallet(wallet).hyperliquidAccount else { return nil }
+        guard let account = wallet.map().hyperliquidAccount else { return nil }
         return try Gemstone.GemPerpetualConnection(
             address: account.address,
             mode: Primitives.PerpetualAccountMode.standard.map(),

@@ -389,7 +389,8 @@ Three gotchas if you repeat the sweep, all met on this pass:
   input text ↔ value conversion (both through Core converters) and the type-specific
   `makeTransferData` / `buildTransfer` dispatch.
 - **The generator is the way a duplicated type stops being duplicated.** Adding a fieldless enum or
-  a scalar-field record to `core/bin/generate/remote_types.yml` replaces a hand-written mapper on
+  a record of scalars, remote types, codes and identifiers (plain, `Option` or `Vec`) to
+  `core/bin/generate/remote_types.yml` replaces a hand-written mapper on
   both apps at once: `Account`, `Chain`, `ChainType`, `ConnectionStatus`, `ConnectionComponent`,
   `LinkType`, `PriceAlertDirection`, `PriceAlertNotificationType`, `AssetFiatValue`,
   `TotalFiatValue` and `SwapProvider` moved that way, each deleting an app-side copy and, in four
@@ -745,6 +746,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `map()` / `toPrimitives()` instead of a JSON decode. `DeviceLocale`, `NFTAttributeType`,
   `NFTType`, `SwapPriceImpactType` and `SwapQuoteDataType` only ever appeared nested inside other
   bridged types, so their bridge entries and iOS `JsonCodable` conformances were dead and are gone.
+- **`Wallet` crosses the FFI typed.** It was the most-used JSON bridge type: about fifty call
+  sites per app encoded a wallet to JSON before every Core call and decoded every wallet Core
+  returned, including the wallet store callback and the transaction signer. The generator now
+  handles `Vec` fields and nested remote records, so `Wallet` (`WalletId` identifier, `WalletType`
+  and `WalletSource` enums, `Vec<Account>`) is a `remote_types.yml` record; the apps pass
+  `wallet.map()` / `wallet.toGem()` and read `.map()` / `.toPrimitives()`. Android identifiers
+  are lifted through the primitives constructor (`AssetId(id)`, `WalletId(id)`) instead of a
+  nullable parser plus `!!`; iOS `WalletId` gained the `init(core:)` / `identifier` pair the
+  identifier convention expects.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

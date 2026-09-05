@@ -35,7 +35,7 @@ public extension GemWalletConnectServiceProtocol {
     }
 
     func sessionApproval(wallet: Wallet) throws -> WalletConnectSessionApproval {
-        let approval = sessionApproval(wallet: wallet.json())
+        let approval = sessionApproval(wallet: wallet.map())
         return WalletConnectSessionApproval(
             chains: approval.chains.map { Primitives.Chain(core: $0) },
             accounts: approval.accounts.map { $0.map() },

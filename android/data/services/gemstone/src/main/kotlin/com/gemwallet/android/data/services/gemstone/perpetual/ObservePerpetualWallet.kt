@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.perpetual
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.wallet.core.primitives.Wallet
@@ -20,6 +19,6 @@ class ObservePerpetualWallet @Inject constructor(
         getCurrentWallet.observe(),
         userConfig.isPerpetualEnabled(),
     ) { wallet, _ ->
-        wallet?.takeIf { perpetualService.shouldConnectPerpetuals(it.toJson()) }
+        wallet?.takeIf { perpetualService.shouldConnectPerpetuals(it.toGem()) }
     }.distinctUntilChanged()
 }

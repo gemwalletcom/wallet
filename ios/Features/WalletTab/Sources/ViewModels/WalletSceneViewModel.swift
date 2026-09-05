@@ -163,7 +163,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     private var bannerContext: GemBannerContext {
         GemBannerContext(
-            wallet: wallet.json(),
+            wallet: wallet.map(),
             hasAsset: false,
             isStakeable: false,
             hasStakeBalance: false,

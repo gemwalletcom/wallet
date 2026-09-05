@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import androidx.core.net.toUri
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthObject
@@ -123,7 +124,7 @@ class WalletConnectCoordinator(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        val approval = walletConnectService.sessionApproval(wallet = wallet.toJson())
+        val approval = walletConnectService.sessionApproval(wallet = wallet.toGem())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
             supportedNamespaces = approval.toSupportedNamespaces(chainService),

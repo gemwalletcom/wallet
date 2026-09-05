@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
-import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
@@ -46,7 +46,7 @@ class SettingsViewModel @Inject constructor(
     val uiState = state.asStateFlow()
 
     val isRewardsAvailable = wallets
-        .map { wallets -> walletSessionService.showsRewards(wallets.map { it.toJson() }) }
+        .map { wallets -> walletSessionService.showsRewards(wallets.map { it.toGem() }) }
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,

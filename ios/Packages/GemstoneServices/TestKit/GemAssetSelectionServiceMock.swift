@@ -11,6 +11,7 @@ import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemNftSearchItem
 import struct Gemstone.GemWalletSearchLimits
+import struct Gemstone.Wallet
 import typealias Gemstone.NftData
 import enum Gemstone.GemSearchScope
 import Primitives
@@ -47,7 +48,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         Primitives.Currency.usd.rawValue
     }
 
-    public func showPerpetuals(wallet _: String?) -> Bool {
+    public func showPerpetuals(wallet _: Gemstone.Wallet?) -> Bool {
         perpetualsShown
     }
 
@@ -55,11 +56,11 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         nftSearchItems
     }
 
-    public func supportsTokens(wallet _: String?) -> Bool {
+    public func supportsTokens(wallet _: Gemstone.Wallet?) -> Bool {
         tokensSupported
     }
 
-    public func filterChains(wallet _: String) -> [Gemstone.Chain] {
+    public func filterChains(wallet _: Gemstone.Wallet) -> [Gemstone.Chain] {
         filterChainsResult
     }
 

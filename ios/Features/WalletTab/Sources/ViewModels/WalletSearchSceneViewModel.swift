@@ -111,7 +111,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPerpetuals: Bool {
-        sections.perpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.json())
+        sections.perpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
     }
 
     var searchState: SearchContentState {
@@ -132,7 +132,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPinnedPerpetuals: Bool {
-        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.json())
+        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
     }
 
     var showAssets: Bool {
@@ -148,7 +148,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showAddToken: Bool {
-        service.supportsTokens(wallet: wallet.json())
+        service.supportsTokens(wallet: wallet.map())
     }
 
     private var limits: GemWalletSearchLimits {

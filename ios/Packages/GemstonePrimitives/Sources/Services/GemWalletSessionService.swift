@@ -19,7 +19,7 @@ public extension GemWalletSessionServiceProtocol {
     var currentWallet: Wallet? {
         get async {
             do {
-                return try await getCurrentWallet().map { try Wallet($0) }
+                return try await getCurrentWallet().map { $0.map() }
             } catch {
                 debugLog("current wallet unavailable: \(error)")
                 return .none
@@ -37,14 +37,14 @@ public extension GemWalletSessionServiceProtocol {
     }
 
     func getWallets() async throws -> [Wallet] {
-        try await getWallets().map { try Wallet($0) }
+        try await getWallets().map { $0.map() }
     }
 
     func getWallet(walletId: WalletId) async throws -> Wallet {
         guard let wallet = try await getWallet(walletId: walletId.id) else {
             throw WalletSessionServiceError.noWalletId
         }
-        return try Wallet(wallet)
+        return wallet.map()
     }
 
     func setCurrent(walletId: WalletId?) throws {
@@ -58,7 +58,7 @@ public extension GemWalletSessionServiceProtocol {
     }
 
     func showsRewards(wallets: [Wallet]) -> Bool {
-        showsRewards(wallets: wallets.map { $0.json() })
+        showsRewards(wallets: wallets.map { $0.map() })
     }
 
     func walletsCount() async throws -> Int {

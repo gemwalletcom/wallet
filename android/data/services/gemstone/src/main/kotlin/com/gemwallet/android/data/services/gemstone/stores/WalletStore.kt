@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
@@ -8,8 +10,6 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
@@ -28,12 +28,12 @@ class GemstoneWalletStore(
     private val transactionRunner: StoreTransactionRunner,
 ) : GemWalletStore {
 
-    override suspend fun getWallets(): List<String> = getAllNow().map { it.toJson() }
+    override suspend fun getWallets(): List<uniffi.gemstone.Wallet> = getAllNow().map { it.toGem() }
 
-    override suspend fun getWallet(walletId: String): String? = getWalletNow(WalletId(walletId))?.toJson()
+    override suspend fun getWallet(walletId: String): uniffi.gemstone.Wallet? = getWalletNow(WalletId(walletId))?.toGem()
 
-    override suspend fun addWallet(wallet: String) {
-        addWallet(wallet.decodeJson<Wallet>())
+    override suspend fun addWallet(wallet: uniffi.gemstone.Wallet) {
+        addWallet(wallet.toPrimitives())
     }
 
     override suspend fun deleteWallet(walletId: String): Boolean = removeWallet(WalletId(walletId))

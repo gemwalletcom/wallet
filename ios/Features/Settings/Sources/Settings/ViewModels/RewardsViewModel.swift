@@ -33,12 +33,12 @@ public final class RewardsViewModel: Sendable {
     var isPresentingSheet: RewardsSheetType?
     var isPresentingAlert: AlertMessage?
 
-    public init?(service: any GemRewardsServiceProtocol, wallets: [Wallet], currentWallet: Wallet?, activateCode: String? = nil) throws {
-        let core = wallets.map { $0.json() }
-        guard let wallet = try service.selectedWallet(current: currentWallet?.json(), wallets: core).map({ try Wallet($0) }) else { return nil }
+    public init?(service: any GemRewardsServiceProtocol, wallets: [Wallet], currentWallet: Wallet?, activateCode: String? = nil) {
+        let core = wallets.map { $0.map() }
+        guard let wallet = service.selectedWallet(current: currentWallet?.map(), wallets: core).map({ $0.map() }) else { return nil }
         self.service = service
         selectedWallet = wallet
-        self.wallets = try service.wallets(wallets: core).map { try Wallet($0) }
+        self.wallets = service.wallets(wallets: core).map { $0.map() }
         self.activateCode = activateCode
     }
 

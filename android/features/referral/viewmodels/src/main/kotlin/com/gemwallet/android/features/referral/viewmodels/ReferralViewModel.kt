@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.referral.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,7 +9,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
@@ -50,12 +51,12 @@ class ReferralViewModel @Inject constructor(
     val referralLink = rewards.mapLatest { it?.code?.let(service::referralLink) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableWallets = getWallets().mapLatest { wallets -> service.wallets(wallets.map { it.toJson() }).map { it.decodeJson<Wallet>() } }
+    val availableWallets = getWallets().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val session = getSession()
         .filterNotNull()
-        .combine(availableWallets) { session, wallets -> service.selectedWallet(session?.wallet?.toJson(), wallets.map { it.toJson() })?.decodeJson<Wallet>() }
+        .combine(availableWallets) { session, wallets -> service.selectedWallet(session?.wallet?.toGem(), wallets.map { it.toGem() })?.toPrimitives() }
         .onEach { wallet ->
             currentWallet.update {
                 if (it?.id == null || it.id == wallet?.id) {
@@ -93,7 +94,7 @@ class ReferralViewModel @Inject constructor(
     fun createReferral(username: String, callback: (Exception?) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         val rewards = try {
             val wallet = currentWallet.value ?: return@launch
-            val response = service.createReferral(wallet.toJson(), username).decodeJson<Rewards>()
+            val response = service.createReferral(wallet.toGem(), username).decodeJson<Rewards>()
             withContext(Dispatchers.Main) {
                 callback(null)
             }
@@ -110,7 +111,7 @@ class ReferralViewModel @Inject constructor(
     fun useCode(code: String, callback: (Exception?) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         try {
             val wallet = currentWallet.value ?: return@launch
-            service.useReferralCode(wallet.toJson(), code)
+            service.useReferralCode(wallet.toGem(), code)
             withContext(Dispatchers.Main) {
                 callback(null)
             }
@@ -127,7 +128,7 @@ class ReferralViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (rewards.points < option.points) throw ReferralError.InsufficientPoints
-                service.redeem(wallet.toJson(), option.id)
+                service.redeem(wallet.toGem(), option.id)
                 sync()
                 withContext(Dispatchers.Main) {
                     callback(null)

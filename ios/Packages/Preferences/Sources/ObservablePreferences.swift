@@ -105,7 +105,7 @@ public final class ObservablePreferences: Sendable {
     }
 
     public func showCollections(for wallet: Wallet) -> Bool {
-        preferencesService.showCollections(wallet: wallet.json())
+        preferencesService.showCollections(wallet: wallet.map())
     }
 
     private func write(_ operation: () throws -> Void) {

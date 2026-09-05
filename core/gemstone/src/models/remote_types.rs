@@ -7,7 +7,7 @@ use primitives::{
     PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, Platform, PlatformStore, PortfolioType, PriceAlertDirection,
     PriceAlertNotificationType, RecentActivityType, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind,
     SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction,
-    TransferDataOutputType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    TransferDataOutputType, VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -473,4 +473,17 @@ pub struct TotalFiatValue {
     pub value: f64,
     pub pnl_amount: f64,
     pub pnl_percentage: f64,
+}
+
+#[uniffi::remote(Record)]
+pub struct Wallet {
+    pub id: primitives::WalletId,
+    pub external_id: Option<String>,
+    pub name: String,
+    pub index: i32,
+    pub wallet_type: WalletType,
+    pub accounts: Vec<Account>,
+    pub is_pinned: bool,
+    pub image_url: Option<String>,
+    pub source: WalletSource,
 }

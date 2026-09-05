@@ -1,8 +1,8 @@
 package com.gemwallet.android.blockchain.services
 
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockWallet
 import io.mockk.every
 import io.mockk.mockk
@@ -37,7 +37,7 @@ class KeystoreTransactionSignerTest {
         val wallet = mockWallet()
 
         val error = runCatching {
-            signer.sign(wallet.toJson(), mockk<GemSignerInput>())
+            signer.sign(wallet.toGem(), mockk<GemSignerInput>())
         }.exceptionOrNull()
 
         assertSame(failure, error)
@@ -54,7 +54,7 @@ class KeystoreTransactionSignerTest {
         val signer = KeystoreTransactionSigner(baseDir = "unused", passwordStore = passwordStore)
 
         val error = runCatching {
-            signer.sign(mockWallet().toJson(), mockk<GemSignerInput>())
+            signer.sign(mockWallet().toGem(), mockk<GemSignerInput>())
         }.exceptionOrNull()
 
         assertSame(cancellation, error)

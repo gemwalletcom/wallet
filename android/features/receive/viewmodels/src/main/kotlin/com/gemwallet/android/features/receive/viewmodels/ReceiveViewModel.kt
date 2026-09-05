@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.receive.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
@@ -7,7 +8,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -53,7 +53,7 @@ class ReceiveViewModel @AssistedInject constructor(
         service.networkAssetIds(
             assetInfo.asset.id.toIdentifier(),
             assetInfo.associations.map { it.assetId.toIdentifier() },
-            session.wallet.toJson(),
+            session.wallet.toGem(),
         ).map { it.toAssetId()!! }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(sourceAssetId))

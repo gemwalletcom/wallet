@@ -577,7 +577,7 @@ public struct ViewModelFactory: Sendable {
     @MainActor
     public func rewardsScene(activateCode: String?) -> RewardsViewModel? {
         let wallets = currentWallets()
-        return try? RewardsViewModel(
+        return RewardsViewModel(
             service: rewardsService,
             wallets: wallets,
             currentWallet: currentWallet(in: wallets),

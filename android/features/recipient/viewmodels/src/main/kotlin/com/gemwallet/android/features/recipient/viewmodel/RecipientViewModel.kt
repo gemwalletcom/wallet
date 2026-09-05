@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
+import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemRecipient
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -32,10 +33,8 @@ import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAsset
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
-import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipientException
@@ -119,7 +118,7 @@ class RecipientViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
 
     val wallets = combine(session, getWallets()) { _, wallets ->
-        service.recipientWallets(wallets.map { it.toJson() }).map { it.decodeJson<Wallet>() }
+        service.recipientWallets(wallets.map { it.toGem() }).map { it.toPrimitives() }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

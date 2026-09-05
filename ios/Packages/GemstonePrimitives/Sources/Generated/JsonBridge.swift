@@ -113,6 +113,5 @@ extension Primitives.WalletConfigurationResult: JsonCodable {}
 extension Primitives.WalletConnection: JsonCodable {}
 extension Primitives.WalletConnectionSession: JsonCodable {}
 extension Primitives.WalletConnectionSessionProposal: JsonCodable {}
-extension Primitives.Wallet: JsonCodable {}
 extension Primitives.WalletSubscription: JsonCodable {}
 extension Primitives.WalletSubscriptionChains: JsonCodable {}

@@ -53,7 +53,7 @@ class WalletConnectSignerTest {
     private fun messageRequest(message: SignMessage) = GemWalletConnectMessageRequest(
         sessionId = "topic",
         chain = Chain.Ethereum.string,
-        wallet = wallet.toJson(),
+        wallet = wallet.toGem(),
         account = account.toGem(),
         session = session.toJson(),
         simulation = simulation,
@@ -63,7 +63,7 @@ class WalletConnectSignerTest {
     private fun transactionRequest(transfer: GemTransferData, action: GemWalletConnectTransactionAction) = GemWalletConnectTransactionRequest(
         sessionId = "topic",
         chain = Chain.Ethereum.string,
-        wallet = wallet.toJson(),
+        wallet = wallet.toGem(),
         account = account.toGem(),
         session = session.toJson(),
         simulation = simulation,

@@ -26,6 +26,7 @@ remote:
   - PerpetualProvider
   - Platform
   - PlatformStore
+  - Wallet
   - WalletType
   - WalletSource
   - TpslType
@@ -57,3 +58,4 @@ codes:
   - Currency
 identifiers:
   - AssetId
+  - WalletId

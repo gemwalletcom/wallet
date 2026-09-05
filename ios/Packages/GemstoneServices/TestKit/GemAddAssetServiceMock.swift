@@ -6,7 +6,7 @@ import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
 import protocol Gemstone.GemAddAssetServiceProtocol
 import struct Gemstone.BlockExplorerLink
-import typealias Gemstone.Wallet
+import struct Gemstone.Wallet
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit

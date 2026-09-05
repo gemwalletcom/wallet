@@ -31,7 +31,7 @@ class GemstoneTransactionStateStore(
         val wallets = walletStore.getAllNow().associateBy { it.id }
         return records.mapNotNull { record ->
             val wallet = wallets[record.walletId] ?: return@mapNotNull null
-            GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
+            GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toJson())
         }
     }
 
@@ -48,7 +48,7 @@ class GemstoneTransactionStateStore(
 
     private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
         val wallet = walletStore.getWalletNow(record.walletId) ?: return null
-        return GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
+        return GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toJson())
     }
 
 

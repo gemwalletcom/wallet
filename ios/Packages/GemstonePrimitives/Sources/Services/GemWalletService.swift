@@ -17,18 +17,14 @@ public extension GemWalletServiceProtocol {
     }
 
     func sorted(wallets: [Wallet]) -> [Wallet] {
-        do {
-            return try sortedWallets(wallets: wallets.map { $0.json() }).map { try Wallet($0) }
-        } catch {
-            preconditionFailure("Undecodable sorted wallets: \(error)")
-        }
+        sortedWallets(wallets: wallets.map { $0.map() }).map { $0.map() }
     }
 
     func importWallet(name: String, type: GemWalletImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
         let walletImport = try type.validated()
         return switch try await importWallet(name: name, import: walletImport, source: source.map()) {
-        case let .new(wallet): try .new(Wallet(wallet))
-        case let .existing(wallet): try .existing(Wallet(wallet))
+        case let .new(wallet): .new(wallet.map())
+        case let .existing(wallet): .existing(wallet.map())
         }
     }
 
@@ -53,6 +49,6 @@ public extension GemWalletServiceProtocol {
     }
 
     func getWallets() async throws -> [Wallet] {
-        try await wallets().map { try Wallet($0) }
+        try await wallets().map { $0.map() }
     }
 }

@@ -295,7 +295,7 @@ extension ConfirmTransferSceneViewModel {
             )
             state = try ConfirmTransferState(
                 await service.load(
-                    input: service.confirmInput(wallet: wallet.json(), transfer: request.data),
+                    input: service.confirmInput(wallet: wallet.map(), transfer: request.data),
                     options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection),
                     simulation: request.simulation?.json(),
                 ),
@@ -362,7 +362,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private var senderAddress: String {
-        (try? service.confirmInput(wallet: wallet.json(), transfer: request.data).from.address) ?? ""
+        (try? service.confirmInput(wallet: wallet.map(), transfer: request.data).from.address) ?? ""
     }
 
     public func assetAddress(_ asset: Asset) -> AssetAddress {

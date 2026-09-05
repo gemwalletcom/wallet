@@ -328,12 +328,14 @@ Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remo
 lists what `just generate-models` maps: `remote` types get `#[uniffi::remote]` and structural
 mappers on both apps; `codes` are string-backed enums that cross as their code and get
 `Primitives.X(core:)` / `.rawValue` on iOS and `toX()` / `toGem()` on Android; `identifiers` are
-hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier`,
-`toX()` / `toIdentifier()`). Before adding a `remote` type, verify that the generator can represent
-its full shape and inspect both generated mappers. It handles fieldless enums; `StakeType` has
-data-carrying variants, so adding it mechanically would produce an incomplete mapping. Keep a single
-JSON bridge at the boundary until the generator supports the type; never add a second app-side
-model or copy policy to avoid that bridge.
+hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier` on iOS,
+the `X(identifier)` constructor / `toIdentifier()` on Android). Before adding a `remote` type,
+verify that the generator can represent its full shape and inspect both generated mappers. It
+handles fieldless enums and records whose fields are scalars, other remote types, codes or
+identifiers, plain or wrapped in `Option` / `Vec`; `StakeType` has data-carrying variants, so
+adding it mechanically would produce an incomplete mapping. Keep a single JSON bridge at the
+boundary until the generator supports the type; never add a second app-side model or copy policy
+to avoid that bridge.
 
 ## 7. At most one Core service on iOS; narrow cases on Android
 

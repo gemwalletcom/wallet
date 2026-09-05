@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Asset
@@ -54,7 +53,7 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableChains = wallet.map { wallet ->
-        wallet?.let { service.chains(it.toJson()).map { chain -> chain.requireChain() } }
+        wallet?.let { service.chains(it.toGem()).map { chain -> chain.requireChain() } }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -138,7 +137,7 @@ class AddAssetViewModel @Inject constructor(
         state.update { it.copy(isImporting = true) }
         val added = runCatchingCancellable {
             withContext(Dispatchers.IO) {
-                service.add(wallet.toJson(), asset.id.toIdentifier())
+                service.add(wallet.toGem(), asset.id.toIdentifier())
             }
         }.onFailure { Log.e(TAG, "add custom token failed for ${asset.id.toIdentifier()}", it) }
         state.update { it.copy(isImporting = false) }

@@ -166,7 +166,7 @@ class NotificationNavigationTest {
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
         every { getWallet(wallet.id) } returns flowOf(wallet)
-        coEvery { assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier()) } returns asset.toGem()
+        coEvery { assetsService.openWalletAsset(wallet.toGem(), assetId.toIdentifier()) } returns asset.toGem()
 
         val route = subject.prepareNavigation(
             GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier())

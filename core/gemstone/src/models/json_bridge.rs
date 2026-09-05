@@ -1,7 +1,6 @@
 use primitives::Charts;
 use primitives::FiatRate;
 use primitives::TransactionId;
-use primitives::Wallet;
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 use primitives::contact::ContactAddress;
@@ -159,7 +158,6 @@ json_bridge!(
     WalletConnection,
     WalletConnectionSession,
     WalletConnectionSessionProposal,
-    Wallet,
     WalletSubscription,
     WalletSubscriptionChains,
 );

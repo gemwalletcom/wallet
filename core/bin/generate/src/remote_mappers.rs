@@ -145,15 +145,16 @@ pub fn remote_types(types: &[RemoteType]) -> String {
             RemoteType::Record { name, fields } => {
                 out.push_str(&format!("\n#[uniffi::remote(Record)]\npub struct {name} {{\n"));
                 for field in fields {
-                    let (inner, optional) = optional_inner(&field.type_name);
+                    let (inner, wrapper) = unwrap(&field.type_name);
                     let known = types.iter().any(|other| other.name() == inner) || SCALARS.contains(&inner);
                     let declared = match known {
                         true => inner.to_string(),
                         false => format!("primitives::{inner}"),
                     };
-                    let declared = match optional {
-                        true => format!("Option<{declared}>"),
-                        false => declared,
+                    let declared = match wrapper {
+                        Wrapper::Option => format!("Option<{declared}>"),
+                        Wrapper::Vec => format!("Vec<{declared}>"),
+                        Wrapper::None => declared,
                     };
                     out.push_str(&format!("    pub {}: {declared},\n", field.rust));
                 }
@@ -164,11 +165,20 @@ pub fn remote_types(types: &[RemoteType]) -> String {
     out
 }
 
-fn optional_inner(type_name: &str) -> (&str, bool) {
-    match type_name.strip_prefix("Option<").and_then(|inner| inner.strip_suffix('>')) {
-        Some(inner) => (inner, true),
-        None => (type_name, false),
+#[derive(Debug, PartialEq)]
+enum Wrapper {
+    None,
+    Option,
+    Vec,
+}
+
+fn unwrap(type_name: &str) -> (&str, Wrapper) {
+    for (prefix, wrapper) in [("Option<", Wrapper::Option), ("Vec<", Wrapper::Vec)] {
+        if let Some(inner) = type_name.strip_prefix(prefix).and_then(|inner| inner.strip_suffix('>')) {
+            return (inner, wrapper);
+        }
     }
+    (type_name, Wrapper::None)
 }
 
 struct Language {
@@ -176,6 +186,7 @@ struct Language {
     codes: [&'static str; 2],
     identifiers: [&'static str; 2],
     optional: &'static str,
+    vec: &'static str,
     element: &'static str,
     core_module: &'static str,
     app_module: &'static str,
@@ -183,12 +194,17 @@ struct Language {
 
 impl Language {
     fn convert(&self, config: &Config, type_name: &str, expression: &str, index: usize) -> String {
-        let (inner, optional) = optional_inner(type_name);
-        if optional {
+        let (inner, wrapper) = unwrap(type_name);
+        let template = match wrapper {
+            Wrapper::Option => Some(self.optional),
+            Wrapper::Vec => Some(self.vec),
+            Wrapper::None => None,
+        };
+        if let Some(template) = template {
             let converted = self.convert(config, inner, self.element, index);
             return match converted == self.element {
                 true => expression.to_string(),
-                false => self.optional.replace("{}", expression).replace("{inner}", &converted),
+                false => template.replace("{}", expression).replace("{inner}", &converted),
             };
         }
         let template = match inner {
@@ -290,6 +306,7 @@ pub fn swift(types: &[RemoteType]) -> String {
         codes: ["Primitives.{name}(core: {})", "{}.rawValue"],
         identifiers: ["Primitives.{name}(core: {})", "{}.identifier"],
         optional: "{}.map { {inner} }",
+        vec: "{}.map { {inner} }",
         element: "$0",
         core_module: "Gemstone",
         app_module: "Primitives",
@@ -340,8 +357,9 @@ pub fn kotlin(types: &[RemoteType]) -> String {
     let language = Language {
         functions: ["toPrimitives", "toGem"],
         codes: ["{}.to{name}()", "{}.toGem()"],
-        identifiers: ["{}.to{name}()!!", "{}.toIdentifier()"],
+        identifiers: ["com.wallet.core.primitives.{name}({})", "{}.toIdentifier()"],
         optional: "{}?.let { {inner} }",
+        vec: "{}.map { {inner} }",
         element: "it",
         core_module: "uniffi.gemstone",
         app_module: "com.wallet.core.primitives",
@@ -420,7 +438,11 @@ pub fn bridge_types(root: &Path) -> Vec<String> {
     let Some(list) = bridge.split("json_bridge!(").nth(1).and_then(|rest| rest.split(");").next()) else {
         return Vec::new();
     };
-    list.lines().map(|line| line.trim().trim_end_matches(',')).filter(|line| !line.is_empty()).map(str::to_string).collect()
+    list.lines()
+        .map(|line| line.trim().trim_end_matches(','))
+        .filter(|line| !line.is_empty())
+        .map(str::to_string)
+        .collect()
 }
 
 pub fn swift_json_bridge(types: &[String]) -> String {
@@ -448,4 +470,50 @@ pub fn kotlin_tagged_bridge(types: &[String]) -> String {
         .map(|name| format!("\nfun {name}.toJson(): String = jsonEncoder.encodeToString<{name}>(this)\n"))
         .collect();
     format!("{header}\npackage com.gemwallet.android.serializer\n\nimport kotlinx.serialization.encodeToString\n{imports}{overloads}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn wallet() -> RemoteType {
+        let field = |rust: &str, type_name: &str| Field {
+            rust: rust.to_string(),
+            serialized: camel_case(rust),
+            type_name: type_name.to_string(),
+        };
+        RemoteType::Record {
+            name: "Wallet".to_string(),
+            fields: vec![field("id", "WalletId"), field("accounts", "Vec<Account>"), field("image_url", "Option<String>")],
+        }
+    }
+
+    #[test]
+    fn test_unwrap_recognises_option_and_vec() {
+        assert_eq!(unwrap("Vec<Account>"), ("Account", Wrapper::Vec));
+        assert_eq!(unwrap("Option<String>"), ("String", Wrapper::Option));
+        assert_eq!(unwrap("WalletId"), ("WalletId", Wrapper::None));
+    }
+
+    #[test]
+    fn test_record_declares_vec_fields_and_maps_each_element() {
+        let rust = remote_types(&[wallet()]);
+        assert!(rust.contains("    pub accounts: Vec<primitives::Account>,\n"));
+        let swift = swift(&[wallet()]);
+        assert!(swift.contains("            accounts: accounts.map { $0.map() },\n"));
+        assert!(swift.contains("            imageUrl: imageUrl,\n"));
+        let kotlin = kotlin(&[wallet()]);
+        assert!(kotlin.contains("    accounts = accounts.map { it.toPrimitives() },\n"));
+        assert!(kotlin.contains("    accounts = accounts.map { it.toGem() },\n"));
+    }
+
+    #[test]
+    fn test_identifiers_lift_through_the_app_parser_and_lower_through_identifier() {
+        let swift = swift(&[wallet()]);
+        assert!(swift.contains("            id: Primitives.WalletId(core: id),\n"));
+        assert!(swift.contains("            id: id.identifier,\n"));
+        let kotlin = kotlin(&[wallet()]);
+        assert!(kotlin.contains("    id = com.wallet.core.primitives.WalletId(id),\n"));
+        assert!(kotlin.contains("    id = id.toIdentifier(),\n"));
+    }
 }

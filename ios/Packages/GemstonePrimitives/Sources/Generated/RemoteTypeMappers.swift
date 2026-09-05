@@ -1251,3 +1251,35 @@ public extension Primitives.TotalFiatValue {
         )
     }
 }
+
+public extension Gemstone.Wallet {
+    func map() -> Primitives.Wallet {
+        Primitives.Wallet(
+            id: Primitives.WalletId(core: id),
+            externalId: externalId,
+            name: name,
+            index: index,
+            type: walletType.map(),
+            accounts: accounts.map { $0.map() },
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+            source: source.map(),
+        )
+    }
+}
+
+public extension Primitives.Wallet {
+    func map() -> Gemstone.Wallet {
+        Gemstone.Wallet(
+            id: id.identifier,
+            externalId: externalId,
+            name: name,
+            index: index,
+            walletType: type.map(),
+            accounts: accounts.map { $0.map() },
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+            source: source.map(),
+        )
+    }
+}

@@ -10,15 +10,15 @@ public extension GemRewardsServiceProtocol {
     }
 
     func createReferral(wallet: Primitives.Wallet, code: String) async throws -> Primitives.Rewards {
-        try await Primitives.Rewards(createReferral(wallet: wallet.json(), code: code))
+        try await Primitives.Rewards(createReferral(wallet: wallet.map(), code: code))
     }
 
     func useReferralCode(wallet: Primitives.Wallet, code: String) async throws {
-        try await useReferralCode(wallet: wallet.json(), code: code)
+        try await useReferralCode(wallet: wallet.map(), code: code)
     }
 
     func redeem(wallet: Primitives.Wallet, redemptionId: String) async throws -> Primitives.RedemptionResult {
-        try await Primitives.RedemptionResult(redeem(wallet: wallet.json(), redemptionId: redemptionId))
+        try await Primitives.RedemptionResult(redeem(wallet: wallet.map(), redemptionId: redemptionId))
     }
 
     func referralLink(code: String) throws -> URL {
