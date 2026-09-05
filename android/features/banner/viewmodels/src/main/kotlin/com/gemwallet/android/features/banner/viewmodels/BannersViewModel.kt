@@ -44,7 +44,7 @@ class BannersViewModel @Inject constructor(
 
     val banners = scene.filterNotNull()
         .flatMapLatest { getActiveBanners(it.asset, it.isGlobal) }
-        .map { items -> items.map { BannerUIModel(it, service.bannerContent(it.event.toJson(), it.asset?.toGem())) } }
+        .map { items -> items.map { BannerUIModel(it, service.bannerContent(it.event.toGem(), it.asset?.toGem())) } }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -52,7 +52,7 @@ class BannersViewModel @Inject constructor(
         scene.value = BannerScene(asset, isGlobal)
     }
 
-    fun onSelect(banner: Banner) = apply(banner, GemBannerAction.Event(banner.event.toJson()))
+    fun onSelect(banner: Banner) = apply(banner, GemBannerAction.Event(banner.event.toGem()))
 
     fun onCancel(banner: Banner) = apply(banner, GemBannerAction.Close)
 

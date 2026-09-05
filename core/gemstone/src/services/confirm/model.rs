@@ -9,7 +9,8 @@ use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::{
-    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, SimulationWarning, Transaction, Wallet,
+    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, SimulationWarning,
+    Transaction, Wallet,
 };
 
 pub type GemAccount = Account;

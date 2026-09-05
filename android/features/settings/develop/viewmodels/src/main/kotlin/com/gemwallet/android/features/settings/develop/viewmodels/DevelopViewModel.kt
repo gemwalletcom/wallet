@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.develop.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.model.NotificationsAvailable
@@ -29,7 +30,7 @@ class DevelopViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             _deviceId.value = service.deviceId()
-            _platformStore.value = service.platformStore().decodeJson<PlatformStore>()
+            _platformStore.value = service.platformStore().toPrimitives()
             if (notificationsAvailable) {
                 _pushToken.value = service.pushToken()
             }

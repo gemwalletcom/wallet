@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.device
 
+import com.gemwallet.android.ext.toGem
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import com.gemwallet.android.application.device.cases.GetPushToken
@@ -33,7 +34,7 @@ class GemstoneDevicePlatform(
 
     override suspend fun deviceInfo(): GemDeviceInfo = GemDeviceInfo(
         platform = Platform.Android.toJson(),
-        platformStore = platformStore.toJson(),
+        platformStore = platformStore.toGem(),
         os = Platform.os,
         model = Platform.model,
         version = versionName,

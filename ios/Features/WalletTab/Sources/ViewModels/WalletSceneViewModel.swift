@@ -154,7 +154,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerContext.visibleBanners(banners, walletId: wallet.id, asset: .none)) ?? []
+        bannerContext.visibleBanners(banners, walletId: wallet.id, asset: .none)
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {

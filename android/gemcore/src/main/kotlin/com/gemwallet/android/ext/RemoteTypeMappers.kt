@@ -37,6 +37,38 @@ fun com.wallet.core.primitives.AssetType.toGem(): uniffi.gemstone.AssetType = wh
     com.wallet.core.primitives.AssetType.SPOT -> uniffi.gemstone.AssetType.SPOT
 }
 
+fun uniffi.gemstone.BannerEvent.toPrimitives(): com.wallet.core.primitives.BannerEvent = when (this) {
+    uniffi.gemstone.BannerEvent.STAKE -> com.wallet.core.primitives.BannerEvent.Stake
+    uniffi.gemstone.BannerEvent.ACCOUNT_ACTIVATION -> com.wallet.core.primitives.BannerEvent.AccountActivation
+    uniffi.gemstone.BannerEvent.ACCOUNT_BLOCKED_MULTI_SIGNATURE -> com.wallet.core.primitives.BannerEvent.AccountBlockedMultiSignature
+    uniffi.gemstone.BannerEvent.ACTIVATE_ASSET -> com.wallet.core.primitives.BannerEvent.ActivateAsset
+    uniffi.gemstone.BannerEvent.SUSPICIOUS_ASSET -> com.wallet.core.primitives.BannerEvent.SuspiciousAsset
+    uniffi.gemstone.BannerEvent.ONBOARDING -> com.wallet.core.primitives.BannerEvent.Onboarding
+    uniffi.gemstone.BannerEvent.TRADE_PERPETUALS -> com.wallet.core.primitives.BannerEvent.TradePerpetuals
+}
+
+fun com.wallet.core.primitives.BannerEvent.toGem(): uniffi.gemstone.BannerEvent = when (this) {
+    com.wallet.core.primitives.BannerEvent.Stake -> uniffi.gemstone.BannerEvent.STAKE
+    com.wallet.core.primitives.BannerEvent.AccountActivation -> uniffi.gemstone.BannerEvent.ACCOUNT_ACTIVATION
+    com.wallet.core.primitives.BannerEvent.AccountBlockedMultiSignature -> uniffi.gemstone.BannerEvent.ACCOUNT_BLOCKED_MULTI_SIGNATURE
+    com.wallet.core.primitives.BannerEvent.ActivateAsset -> uniffi.gemstone.BannerEvent.ACTIVATE_ASSET
+    com.wallet.core.primitives.BannerEvent.SuspiciousAsset -> uniffi.gemstone.BannerEvent.SUSPICIOUS_ASSET
+    com.wallet.core.primitives.BannerEvent.Onboarding -> uniffi.gemstone.BannerEvent.ONBOARDING
+    com.wallet.core.primitives.BannerEvent.TradePerpetuals -> uniffi.gemstone.BannerEvent.TRADE_PERPETUALS
+}
+
+fun uniffi.gemstone.BannerState.toPrimitives(): com.wallet.core.primitives.BannerState = when (this) {
+    uniffi.gemstone.BannerState.ACTIVE -> com.wallet.core.primitives.BannerState.Active
+    uniffi.gemstone.BannerState.CANCELLED -> com.wallet.core.primitives.BannerState.Cancelled
+    uniffi.gemstone.BannerState.ALWAYS_ACTIVE -> com.wallet.core.primitives.BannerState.AlwaysActive
+}
+
+fun com.wallet.core.primitives.BannerState.toGem(): uniffi.gemstone.BannerState = when (this) {
+    com.wallet.core.primitives.BannerState.Active -> uniffi.gemstone.BannerState.ACTIVE
+    com.wallet.core.primitives.BannerState.Cancelled -> uniffi.gemstone.BannerState.CANCELLED
+    com.wallet.core.primitives.BannerState.AlwaysActive -> uniffi.gemstone.BannerState.ALWAYS_ACTIVE
+}
+
 fun uniffi.gemstone.Chain.toChain(): com.wallet.core.primitives.Chain = com.wallet.core.primitives.Chain.entries.firstOrNull { it.string == this }
     ?: throw IllegalStateException("Core returned a Chain this build does not know: $this")
 
@@ -127,6 +159,24 @@ fun uniffi.gemstone.Currency.toCurrency(): com.wallet.core.primitives.Currency =
 
 fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = string
 
+fun uniffi.gemstone.DelegationState.toPrimitives(): com.wallet.core.primitives.DelegationState = when (this) {
+    uniffi.gemstone.DelegationState.ACTIVE -> com.wallet.core.primitives.DelegationState.Active
+    uniffi.gemstone.DelegationState.PENDING -> com.wallet.core.primitives.DelegationState.Pending
+    uniffi.gemstone.DelegationState.INACTIVE -> com.wallet.core.primitives.DelegationState.Inactive
+    uniffi.gemstone.DelegationState.ACTIVATING -> com.wallet.core.primitives.DelegationState.Activating
+    uniffi.gemstone.DelegationState.DEACTIVATING -> com.wallet.core.primitives.DelegationState.Deactivating
+    uniffi.gemstone.DelegationState.AWAITING_WITHDRAWAL -> com.wallet.core.primitives.DelegationState.AwaitingWithdrawal
+}
+
+fun com.wallet.core.primitives.DelegationState.toGem(): uniffi.gemstone.DelegationState = when (this) {
+    com.wallet.core.primitives.DelegationState.Active -> uniffi.gemstone.DelegationState.ACTIVE
+    com.wallet.core.primitives.DelegationState.Pending -> uniffi.gemstone.DelegationState.PENDING
+    com.wallet.core.primitives.DelegationState.Inactive -> uniffi.gemstone.DelegationState.INACTIVE
+    com.wallet.core.primitives.DelegationState.Activating -> uniffi.gemstone.DelegationState.ACTIVATING
+    com.wallet.core.primitives.DelegationState.Deactivating -> uniffi.gemstone.DelegationState.DEACTIVATING
+    com.wallet.core.primitives.DelegationState.AwaitingWithdrawal -> uniffi.gemstone.DelegationState.AWAITING_WITHDRAWAL
+}
+
 fun uniffi.gemstone.FeePriority.toPrimitives(): com.wallet.core.primitives.FeePriority = when (this) {
     uniffi.gemstone.FeePriority.NORMAL -> com.wallet.core.primitives.FeePriority.Normal
     uniffi.gemstone.FeePriority.FAST -> com.wallet.core.primitives.FeePriority.Fast
@@ -205,6 +255,16 @@ fun com.wallet.core.primitives.LinkType.toGem(): uniffi.gemstone.LinkType = when
     com.wallet.core.primitives.LinkType.TikTok -> uniffi.gemstone.LinkType.TIK_TOK
 }
 
+fun uniffi.gemstone.PerpetualAccountMode.toPrimitives(): com.wallet.core.primitives.PerpetualAccountMode = when (this) {
+    uniffi.gemstone.PerpetualAccountMode.STANDARD -> com.wallet.core.primitives.PerpetualAccountMode.Standard
+    uniffi.gemstone.PerpetualAccountMode.UNIFIED -> com.wallet.core.primitives.PerpetualAccountMode.Unified
+}
+
+fun com.wallet.core.primitives.PerpetualAccountMode.toGem(): uniffi.gemstone.PerpetualAccountMode = when (this) {
+    com.wallet.core.primitives.PerpetualAccountMode.Standard -> uniffi.gemstone.PerpetualAccountMode.STANDARD
+    com.wallet.core.primitives.PerpetualAccountMode.Unified -> uniffi.gemstone.PerpetualAccountMode.UNIFIED
+}
+
 fun uniffi.gemstone.PerpetualDirection.toPrimitives(): com.wallet.core.primitives.PerpetualDirection = when (this) {
     uniffi.gemstone.PerpetualDirection.SHORT -> com.wallet.core.primitives.PerpetualDirection.Short
     uniffi.gemstone.PerpetualDirection.LONG -> com.wallet.core.primitives.PerpetualDirection.Long
@@ -241,6 +301,30 @@ fun uniffi.gemstone.PerpetualProvider.toPrimitives(): com.wallet.core.primitives
 
 fun com.wallet.core.primitives.PerpetualProvider.toGem(): uniffi.gemstone.PerpetualProvider = when (this) {
     com.wallet.core.primitives.PerpetualProvider.Hypercore -> uniffi.gemstone.PerpetualProvider.HYPERCORE
+}
+
+fun uniffi.gemstone.PlatformStore.toPrimitives(): com.wallet.core.primitives.PlatformStore = when (this) {
+    uniffi.gemstone.PlatformStore.APP_STORE -> com.wallet.core.primitives.PlatformStore.AppStore
+    uniffi.gemstone.PlatformStore.GOOGLE_PLAY -> com.wallet.core.primitives.PlatformStore.GooglePlay
+    uniffi.gemstone.PlatformStore.FDROID -> com.wallet.core.primitives.PlatformStore.Fdroid
+    uniffi.gemstone.PlatformStore.HUAWEI -> com.wallet.core.primitives.PlatformStore.Huawei
+    uniffi.gemstone.PlatformStore.SOLANA_STORE -> com.wallet.core.primitives.PlatformStore.SolanaStore
+    uniffi.gemstone.PlatformStore.SAMSUNG_STORE -> com.wallet.core.primitives.PlatformStore.SamsungStore
+    uniffi.gemstone.PlatformStore.APK_UNIVERSAL -> com.wallet.core.primitives.PlatformStore.ApkUniversal
+    uniffi.gemstone.PlatformStore.EMERALD -> com.wallet.core.primitives.PlatformStore.Emerald
+    uniffi.gemstone.PlatformStore.LOCAL -> com.wallet.core.primitives.PlatformStore.Local
+}
+
+fun com.wallet.core.primitives.PlatformStore.toGem(): uniffi.gemstone.PlatformStore = when (this) {
+    com.wallet.core.primitives.PlatformStore.AppStore -> uniffi.gemstone.PlatformStore.APP_STORE
+    com.wallet.core.primitives.PlatformStore.GooglePlay -> uniffi.gemstone.PlatformStore.GOOGLE_PLAY
+    com.wallet.core.primitives.PlatformStore.Fdroid -> uniffi.gemstone.PlatformStore.FDROID
+    com.wallet.core.primitives.PlatformStore.Huawei -> uniffi.gemstone.PlatformStore.HUAWEI
+    com.wallet.core.primitives.PlatformStore.SolanaStore -> uniffi.gemstone.PlatformStore.SOLANA_STORE
+    com.wallet.core.primitives.PlatformStore.SamsungStore -> uniffi.gemstone.PlatformStore.SAMSUNG_STORE
+    com.wallet.core.primitives.PlatformStore.ApkUniversal -> uniffi.gemstone.PlatformStore.APK_UNIVERSAL
+    com.wallet.core.primitives.PlatformStore.Emerald -> uniffi.gemstone.PlatformStore.EMERALD
+    com.wallet.core.primitives.PlatformStore.Local -> uniffi.gemstone.PlatformStore.LOCAL
 }
 
 fun uniffi.gemstone.PortfolioType.toPrimitives(): com.wallet.core.primitives.PortfolioType = when (this) {
@@ -345,6 +429,16 @@ fun com.wallet.core.primitives.SimulationPayloadFieldType.toGem(): uniffi.gemsto
     com.wallet.core.primitives.SimulationPayloadFieldType.Text -> uniffi.gemstone.SimulationPayloadFieldType.TEXT
     com.wallet.core.primitives.SimulationPayloadFieldType.Address -> uniffi.gemstone.SimulationPayloadFieldType.ADDRESS
     com.wallet.core.primitives.SimulationPayloadFieldType.Timestamp -> uniffi.gemstone.SimulationPayloadFieldType.TIMESTAMP
+}
+
+fun uniffi.gemstone.StakeProviderType.toPrimitives(): com.wallet.core.primitives.StakeProviderType = when (this) {
+    uniffi.gemstone.StakeProviderType.STAKE -> com.wallet.core.primitives.StakeProviderType.Stake
+    uniffi.gemstone.StakeProviderType.EARN -> com.wallet.core.primitives.StakeProviderType.Earn
+}
+
+fun com.wallet.core.primitives.StakeProviderType.toGem(): uniffi.gemstone.StakeProviderType = when (this) {
+    com.wallet.core.primitives.StakeProviderType.Stake -> uniffi.gemstone.StakeProviderType.STAKE
+    com.wallet.core.primitives.StakeProviderType.Earn -> uniffi.gemstone.StakeProviderType.EARN
 }
 
 fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.SwapProvider = when (this) {

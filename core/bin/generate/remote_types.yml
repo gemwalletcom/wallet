@@ -2,18 +2,23 @@ remote:
   - Account
   - AssetFiatValue
   - AssetType
+  - BannerEvent
+  - BannerState
   - ChainType
   - ChartPeriod
+  - DelegationState
   - ConnectionComponent
   - ConnectionStatus
   - Asset
   - FeePriority
   - FeeUnitType
   - FiatQuoteType
+  - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
   - PerpetualOrderType
   - PerpetualProvider
+  - PlatformStore
   - WalletType
   - WalletSource
   - TpslType
@@ -22,6 +27,7 @@ remote:
   - RecentActivityType
   - Resource
   - SimulationPayloadFieldType
+  - StakeProviderType
   - SwapProvider
   - SimulationPayloadFieldDisplay
   - SimulationPayloadFieldKind

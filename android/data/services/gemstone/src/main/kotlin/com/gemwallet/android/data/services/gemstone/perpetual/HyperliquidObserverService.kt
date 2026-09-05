@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.perpetual
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import android.util.Log
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
@@ -57,7 +58,7 @@ class HyperliquidObserverService(
                     val connection = runCatchingCancellable { perpetualService.connection(wallet.toJson()) }
                         .onFailure { Log.e(TAG, "Perpetual connection failed", it) }
                         .getOrNull() ?: return@collectLatest
-                    observeConnection(wallet.id, connection.address, connection.mode.decodeJson())
+                    observeConnection(wallet.id, connection.address, connection.mode.toPrimitives())
                 }
         }
         scope.launch {

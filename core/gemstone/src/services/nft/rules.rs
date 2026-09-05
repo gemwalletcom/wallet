@@ -82,8 +82,8 @@ fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::Wallet;
     use primitives::NFTData;
+    use primitives::Wallet;
 
     #[test]
     fn test_receive_accounts_keeps_nft_chains_matching_the_query() {

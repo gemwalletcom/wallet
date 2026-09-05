@@ -7,6 +7,6 @@ import uniffi.gemstone.GemBannerKey
 fun Banner.toGemKey() = GemBannerKey(
     walletId = walletId?.id,
     assetId = asset?.id?.toIdentifier(),
-    event = event.toJson(),
+    event = event.toGem(),
 )
 

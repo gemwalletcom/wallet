@@ -2,11 +2,11 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, FiatQuoteType, Latency,
-    LatencyType, LinkType, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType,
-    RecentActivityType, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SwapProvider, TotalFiatValue,
-    TpslType, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource,
-    WalletType,
+    Account, Asset, AssetFiatValue, AssetType, BannerEvent, BannerState, Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, DelegationState,
+    FeePriority, FeeUnitType, FiatQuoteType, Latency, LatencyType, LinkType, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider,
+    PlatformStore, PortfolioType, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay,
+    SimulationPayloadFieldKind, SimulationPayloadFieldType, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction,
+    TransferDataOutputType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -26,6 +26,24 @@ pub enum AssetType {
     ASA,
     PERPETUAL,
     SPOT,
+}
+
+#[uniffi::remote(Enum)]
+pub enum BannerEvent {
+    Stake,
+    AccountActivation,
+    AccountBlockedMultiSignature,
+    ActivateAsset,
+    SuspiciousAsset,
+    Onboarding,
+    TradePerpetuals,
+}
+
+#[uniffi::remote(Enum)]
+pub enum BannerState {
+    Active,
+    Cancelled,
+    AlwaysActive,
 }
 
 uniffi::custom_type!(Chain, String, {
@@ -85,6 +103,16 @@ uniffi::custom_type!(Currency, String, {
 });
 
 #[uniffi::remote(Enum)]
+pub enum DelegationState {
+    Active,
+    Pending,
+    Inactive,
+    Activating,
+    Deactivating,
+    AwaitingWithdrawal,
+}
+
+#[uniffi::remote(Enum)]
 pub enum FeePriority {
     Normal,
     Fast,
@@ -129,6 +157,12 @@ pub enum LinkType {
 }
 
 #[uniffi::remote(Enum)]
+pub enum PerpetualAccountMode {
+    Standard,
+    Unified,
+}
+
+#[uniffi::remote(Enum)]
 pub enum PerpetualDirection {
     Short,
     Long,
@@ -149,6 +183,19 @@ pub enum PerpetualOrderType {
 #[uniffi::remote(Enum)]
 pub enum PerpetualProvider {
     Hypercore,
+}
+
+#[uniffi::remote(Enum)]
+pub enum PlatformStore {
+    AppStore,
+    GooglePlay,
+    Fdroid,
+    Huawei,
+    SolanaStore,
+    SamsungStore,
+    ApkUniversal,
+    Emerald,
+    Local,
 }
 
 #[uniffi::remote(Enum)]
@@ -209,6 +256,12 @@ pub enum SimulationPayloadFieldType {
     Text,
     Address,
     Timestamp,
+}
+
+#[uniffi::remote(Enum)]
+pub enum StakeProviderType {
+    Stake,
+    Earn,
 }
 
 #[uniffi::remote(Enum)]

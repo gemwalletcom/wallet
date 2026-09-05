@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.update
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -34,7 +35,7 @@ class AppUpdateCoordinator(
 
     private suspend fun check(): AppUpdateOffer? {
         val release = withContext(Dispatchers.IO) {
-            runCatching { appUpdateService.check(buildInfo.platformStore.toJson(), buildInfo.versionName) }.getOrNull()
+            runCatching { appUpdateService.check(buildInfo.platformStore.toGem(), buildInfo.versionName) }.getOrNull()
         }?.decodeJson<Release>() ?: return null
         return AppUpdateOffer(
             version = release.version,

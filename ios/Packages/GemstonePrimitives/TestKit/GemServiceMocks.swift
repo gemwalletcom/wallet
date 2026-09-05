@@ -716,7 +716,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         guard let account = try Primitives.Wallet(wallet).hyperliquidAccount else { return nil }
         return try Gemstone.GemPerpetualConnection(
             address: account.address,
-            mode: Primitives.PerpetualAccountMode.standard.json(),
+            mode: Primitives.PerpetualAccountMode.standard.map(),
         )
     }
 

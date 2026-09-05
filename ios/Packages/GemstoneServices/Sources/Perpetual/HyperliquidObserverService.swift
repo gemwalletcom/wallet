@@ -75,7 +75,8 @@ public actor HyperliquidObserverService: PerpetualObservable {
             debugLog("HyperliquidObserver: connection failed: \(error)")
             return
         }
-        guard let connection, let mode = try? PerpetualAccountMode(connection.mode) else { return }
+        guard let connection else { return }
+        let mode = connection.mode.map()
 
         currentWallet = wallet
         observeTask = Task { [weak self] in
@@ -101,7 +102,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func handleConnected(address: String, mode: PerpetualAccountMode) async {
         do {
-            try await streamService.connected(address: address, mode: mode.json())
+            try await streamService.connected(address: address, mode: mode.map())
         } catch {
             debugLog("HyperliquidObserver: subscribe failed: \(error)")
         }
@@ -109,7 +110,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func handle(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
         do {
-            guard let candle = try await streamService.handle(walletId: walletId.id, mode: mode.json(), data: data) else { return }
+            guard let candle = try await streamService.handle(walletId: walletId.id, mode: mode.map(), data: data) else { return }
             try await chartService.yield(Primitives.ChartCandleUpdate(candle))
         } catch {
             debugLog("HyperliquidObserver: handle message failed: \(error)")

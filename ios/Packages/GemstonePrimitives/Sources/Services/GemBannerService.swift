@@ -7,6 +7,6 @@ import Primitives
 
 public extension GemBannerServiceProtocol {
     func content(for banner: Banner) -> GemBannerContent {
-        bannerContent(event: banner.event.json(), asset: banner.asset?.map())
+        bannerContent(event: banner.event.map(), asset: banner.asset?.map())
     }
 }

@@ -9,15 +9,15 @@ use primitives::contact::ContactAddress;
 use primitives::name::NameRecord;
 use primitives::node::Node;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
-use primitives::perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
+use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 use primitives::{
-    AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationState, DelegationValidator, NFTAsset,
-    NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData,
-    PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SimulationWarning, SolanaNftStandard,
-    SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationValidator, NFTAsset, NFTAssetData,
+    NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData,
+    PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SimulationWarning,
+    SolanaNftStandard, SolanaTokenProgramId, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
@@ -25,8 +25,8 @@ use primitives::{
     WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{
-    AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, Markets, PlatformStore, Release, SearchResponse,
-    StreamEvent, StreamMessage, SupportTyping,
+    AssetBasic, AssetFull, AssetMarket, AssetPrice, ConfigResponse, ConfigVersions, Contact, FiatAssets, Markets, Release, SearchResponse, StreamEvent, StreamMessage,
+    SupportTyping,
 };
 use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended};
 use primitives::{DeviceLocale, Platform};
@@ -66,8 +66,6 @@ json_bridge!(
     AuthNonce,
     AuthPayload,
     BalanceMetadata,
-    BannerEvent,
-    BannerState,
     CancelOrderData,
     ChainAddress,
     ChainAsset,
@@ -83,7 +81,6 @@ json_bridge!(
     ContractCallData,
     Delegation,
     DelegationBase,
-    DelegationState,
     DelegationValidator,
     Device,
     DeviceLocale,
@@ -111,7 +108,6 @@ json_bridge!(
     PaymentAmount,
     PaymentLink,
     PaymentRequest,
-    PerpetualAccountMode,
     PerpetualAccountSummary,
     PerpetualBalance,
     PerpetualConfirmData,
@@ -124,7 +120,6 @@ json_bridge!(
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
     Platform,
-    PlatformStore,
     Release,
     PerpetualPosition,
     PerpetualPositionsSummary,
@@ -153,7 +148,6 @@ json_bridge!(
     SimulationWarning,
     SolanaNftStandard,
     SolanaTokenProgramId,
-    StakeProviderType,
     StakeType,
     StakeValidator,
     SupportMessage,

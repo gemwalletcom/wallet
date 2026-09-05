@@ -197,16 +197,11 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var visibleBanners: [Banner] {
-        do {
-            return try bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
-        } catch {
-            debugLog("asset scene: visible banners error \(error)")
-            return []
-        }
+        bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
-        service.bannerContent(event: banner.event.json(), asset: banner.asset?.map())
+        service.bannerContent(event: banner.event.map(), asset: banner.asset?.map())
     }
 
     private var bannerContext: GemBannerContext {

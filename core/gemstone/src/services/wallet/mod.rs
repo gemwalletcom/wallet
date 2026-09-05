@@ -36,16 +36,16 @@ use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
-use crate::services::localization::{GemLocalizedText, GemLocalizer};
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
+use crate::services::localization::{GemLocalizedText, GemLocalizer};
 use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletDefaultName, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -346,8 +346,8 @@ mod tests {
 
     use super::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
     use super::*;
-    use crate::services::localization::testkit::EnglishLocalizer;
     use crate::services::file::testkit::NoopFileStore;
+    use crate::services::localization::testkit::EnglishLocalizer;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
     use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
     use crate::services::wallet_session::testkit::MemoryWalletSessionStore;

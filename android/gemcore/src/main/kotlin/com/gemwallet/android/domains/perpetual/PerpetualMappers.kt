@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.perpetual
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.CancelOrderData
@@ -42,8 +43,6 @@ fun TPSLOrderData.toGem(): GemTpslOrderData = toJson()
 fun CancelOrderData.toGem(): GemCancelOrderData = toJson()
 
 fun PerpetualPosition.toGem(): GemPerpetualPosition = toJson()
-
-fun PerpetualAccountMode.toGem(): GemPerpetualAccountMode = toJson()
 
 fun PerpetualTriggerOrder.toGem(): GemPerpetualTriggerOrder = toJson()
 

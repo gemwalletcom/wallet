@@ -46,6 +46,54 @@ public extension Primitives.AssetType {
     }
 }
 
+public extension Gemstone.BannerEvent {
+    func map() -> Primitives.BannerEvent {
+        switch self {
+        case .stake: .stake
+        case .accountActivation: .accountActivation
+        case .accountBlockedMultiSignature: .accountBlockedMultiSignature
+        case .activateAsset: .activateAsset
+        case .suspiciousAsset: .suspiciousAsset
+        case .onboarding: .onboarding
+        case .tradePerpetuals: .tradePerpetuals
+        }
+    }
+}
+
+public extension Primitives.BannerEvent {
+    func map() -> Gemstone.BannerEvent {
+        switch self {
+        case .stake: .stake
+        case .accountActivation: .accountActivation
+        case .accountBlockedMultiSignature: .accountBlockedMultiSignature
+        case .activateAsset: .activateAsset
+        case .suspiciousAsset: .suspiciousAsset
+        case .onboarding: .onboarding
+        case .tradePerpetuals: .tradePerpetuals
+        }
+    }
+}
+
+public extension Gemstone.BannerState {
+    func map() -> Primitives.BannerState {
+        switch self {
+        case .active: .active
+        case .cancelled: .cancelled
+        case .alwaysActive: .alwaysActive
+        }
+    }
+}
+
+public extension Primitives.BannerState {
+    func map() -> Gemstone.BannerState {
+        switch self {
+        case .active: .active
+        case .cancelled: .cancelled
+        case .alwaysActive: .alwaysActive
+        }
+    }
+}
+
 public extension Primitives.Chain {
     init(core: Gemstone.Chain) {
         guard let value = Primitives.Chain(rawValue: core) else {
@@ -176,6 +224,32 @@ public extension Primitives.Currency {
     }
 }
 
+public extension Gemstone.DelegationState {
+    func map() -> Primitives.DelegationState {
+        switch self {
+        case .active: .active
+        case .pending: .pending
+        case .inactive: .inactive
+        case .activating: .activating
+        case .deactivating: .deactivating
+        case .awaitingWithdrawal: .awaitingWithdrawal
+        }
+    }
+}
+
+public extension Primitives.DelegationState {
+    func map() -> Gemstone.DelegationState {
+        switch self {
+        case .active: .active
+        case .pending: .pending
+        case .inactive: .inactive
+        case .activating: .activating
+        case .deactivating: .deactivating
+        case .awaitingWithdrawal: .awaitingWithdrawal
+        }
+    }
+}
+
 public extension Gemstone.FeePriority {
     func map() -> Primitives.FeePriority {
         switch self {
@@ -294,6 +368,24 @@ public extension Primitives.LinkType {
     }
 }
 
+public extension Gemstone.PerpetualAccountMode {
+    func map() -> Primitives.PerpetualAccountMode {
+        switch self {
+        case .standard: .standard
+        case .unified: .unified
+        }
+    }
+}
+
+public extension Primitives.PerpetualAccountMode {
+    func map() -> Gemstone.PerpetualAccountMode {
+        switch self {
+        case .standard: .standard
+        case .unified: .unified
+        }
+    }
+}
+
 public extension Gemstone.PerpetualDirection {
     func map() -> Primitives.PerpetualDirection {
         switch self {
@@ -360,6 +452,38 @@ public extension Primitives.PerpetualProvider {
     func map() -> Gemstone.PerpetualProvider {
         switch self {
         case .hypercore: .hypercore
+        }
+    }
+}
+
+public extension Gemstone.PlatformStore {
+    func map() -> Primitives.PlatformStore {
+        switch self {
+        case .appStore: .appStore
+        case .googlePlay: .googlePlay
+        case .fdroid: .fdroid
+        case .huawei: .huawei
+        case .solanaStore: .solanaStore
+        case .samsungStore: .samsungStore
+        case .apkUniversal: .apkUniversal
+        case .emerald: .emerald
+        case .local: .local
+        }
+    }
+}
+
+public extension Primitives.PlatformStore {
+    func map() -> Gemstone.PlatformStore {
+        switch self {
+        case .appStore: .appStore
+        case .googlePlay: .googlePlay
+        case .fdroid: .fdroid
+        case .huawei: .huawei
+        case .solanaStore: .solanaStore
+        case .samsungStore: .samsungStore
+        case .apkUniversal: .apkUniversal
+        case .emerald: .emerald
+        case .local: .local
         }
     }
 }
@@ -528,6 +652,24 @@ public extension Primitives.SimulationPayloadFieldType {
         case .text: .text
         case .address: .address
         case .timestamp: .timestamp
+        }
+    }
+}
+
+public extension Gemstone.StakeProviderType {
+    func map() -> Primitives.StakeProviderType {
+        switch self {
+        case .stake: .stake
+        case .earn: .earn
+        }
+    }
+}
+
+public extension Primitives.StakeProviderType {
+    func map() -> Gemstone.StakeProviderType {
+        switch self {
+        case .stake: .stake
+        case .earn: .earn
         }
     }
 }

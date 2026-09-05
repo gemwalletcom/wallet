@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -23,16 +24,16 @@ class GemstoneStakeStore(
     private val assetsDao: AssetsDao,
 ) : GemStakeStore {
 
-    override suspend fun getApr(assetId: String, providerType: String): Double? {
+    override suspend fun getApr(assetId: String, providerType: uniffi.gemstone.StakeProviderType): Double? {
         val asset = assetsDao.getAsset(assetId).first() ?: return null
-        return when (providerType.decodeJson<StakeProviderType>()) {
+        return when (providerType.toPrimitives()) {
             StakeProviderType.Stake -> asset.stakingApr
             StakeProviderType.Earn -> asset.earnApr
         }
     }
 
-    override suspend fun getValidators(assetId: String, providerType: String): List<String> {
-        return stakeDao.getValidators(AssetId(assetId), providerType.decodeJson<StakeProviderType>()).first().toDTO().map { it.toJson() }
+    override suspend fun getValidators(assetId: String, providerType: uniffi.gemstone.StakeProviderType): List<String> {
+        return stakeDao.getValidators(AssetId(assetId), providerType.toPrimitives()).first().toDTO().map { it.toJson() }
     }
 
     override suspend fun saveValidators(validators: List<String>) =
@@ -45,8 +46,8 @@ class GemstoneStakeStore(
         stakeDao.deactivateValidators(AssetId(assetId), validatorIds)
     }
 
-    override suspend fun getDelegationIds(walletId: String, assetId: String, providerType: String): List<String> {
-        return stakeDao.getDelegationIds(WalletId(walletId), AssetId(assetId), providerType.decodeJson<StakeProviderType>())
+    override suspend fun getDelegationIds(walletId: String, assetId: String, providerType: uniffi.gemstone.StakeProviderType): List<String> {
+        return stakeDao.getDelegationIds(WalletId(walletId), AssetId(assetId), providerType.toPrimitives())
     }
 
     override suspend fun updateDelegations(walletId: String, delegations: List<String>, deleteIds: List<String>) {
