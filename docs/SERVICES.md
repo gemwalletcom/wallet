@@ -1196,6 +1196,13 @@ concept. Changing them needs a Room migration.
 
 Do not re-add these from a survey; each was checked against the code and found wrong or already done: **V5, N4, N6, V7, T4, S5, S6, V6**, backlog rows **1, 2, 4, 5, 7**, **T8**, the swap-pay recents row, and the `Transaction` typeshare model (`com.wallet.core.primitives.Transaction` is used across Android — do not drop its attribute).
 
+Checked on 2026-09-05 and left alone: the autoclose confirm button (Android enables it on any
+pending change and reveals validation errors after a tap; iOS keeps it disabled until the modify can
+build — both read `GemAutocloseModify::can_build` for the outcome, the difference is when errors
+show), the contact save and address-confirm rules (identical on both apps), and `FiatQuote` crossing
+as JSON (its `FiatProvider.id` is a `FiatProviderName` typeshared as a plain `String`, which the
+remote-type generator cannot map without a new code-type kind).
+
 Two warnings worth keeping:
 - **The reconnect cap was a decision.** Android's 30 s was set deliberately (`d1cdb74`) so the price stream resumes within half a minute; iOS's 60 s was the untouched import default. Core took 30 s — do not "restore" 60 s.
 - **Count the copies before adding one.** The candle interval mapping looked like two app-side copies; it was three — `candle_interval` in `gem_hypercore` has always driven the REST fetch, and the subscribed interval must equal the fetched one or the chart never updates. Check `core/crates/` before writing a rule that sounds new.
