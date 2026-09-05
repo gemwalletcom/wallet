@@ -467,6 +467,7 @@ mod tests {
                 address: SOLANA_ADDRESS.to_string(),
                 amount: None,
                 memo: None,
+                label: None,
                 references: None,
                 asset_id,
             }),

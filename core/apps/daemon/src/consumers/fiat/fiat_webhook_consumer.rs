@@ -47,7 +47,7 @@ impl FiatWebhookConsumer {
             return Ok(());
         };
         let provider = updated.provider_id.0;
-        let quote_type = updated.transaction_type.0.clone();
+        let quote_type = updated.transaction_type.0;
         let notifications: Vec<GorushNotification> = devices
             .iter()
             .filter_map(|device| {

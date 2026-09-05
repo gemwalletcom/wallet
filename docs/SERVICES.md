@@ -1032,6 +1032,30 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemSwapQuoteService::selected_quote` is un-exported: the session picks the quote itself.
   Still open, and still product calls: the minimum-amount button copy and whether selecting a
   swap asset enables it on the wallet.
+- **The fiat buy/sell screen's quote lifecycle is one Core value.** `GemFiatSession` (from
+  `GemFiatQuoteService::new_session(quote_type, amount)`) holds a `GemFiatOperation` per quote
+  type (amount text, quotes, chosen provider, phase) plus the available balance, and its
+  transitions return the next session: `on_type_changed`, `on_sell_enabled_changed`,
+  `on_amount_changed`, `on_balance_changed`, `on_fetch_started`, `on_quote_results`,
+  `on_provider_selected`. Its answers are `quote_request()` (what to fetch, or nothing while the
+  amount is empty, unparseable or outside the configured range), `current()`, `selected_quote()`,
+  `can_select_provider()`, `is_loading()`, `amount_check()`, `button_action()` (continue / retry)
+  and `button_state(is_url_loading)`. The phase is `NoInput`, `InvalidInput`, `Invalid { check }`,
+  `Loading { amount }`, `Ready`, `NoQuotes` or `Failed { error }`. Rules it pins: the same amount
+  text is a no-op and any other clears the quotes and starts loading; the default amount comes per
+  type from the fiat config and a routed amount applies only to the routed type; results and fetch
+  starts apply only to the amount still loading; a failure clears quotes and offers a retry, an
+  empty list does not; the chosen provider survives a refresh and falls back to the first quote
+  when it disappears; a sell quote above the balance keeps the quotes but disables the button until
+  the balance covers it; losing sell support moves the screen to buy carrying the sell amount.
+  Divergences resolved: iOS kept the quotes when the amount left the range and Android cleared
+  them (Core clears, and neither fetches); Android re-selected the first quote on every refresh
+  (Core keeps the provider, as the swap session does); iOS had no retry button after a failed
+  fetch (both apps now show Core's `RetryQuote`); Android's button ignored the balance check after
+  a provider change (both read `button_state`). Deleted: iOS `FiatOperationViewModel`,
+  `FiatQuotes` and their tests; Android `FiatOperationState`, `FiatSceneState` and `BuyError`.
+  Left on the apps: the debounce/refresh scheduling that calls `load`, formatting, the
+  field-level validation message on iOS, and the URL opening.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
