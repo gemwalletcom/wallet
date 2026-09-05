@@ -298,7 +298,7 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             pushNotificationService: pushNotificationService,
             transactionStore: storeManager.transactionStore,
-            urlParser: URLParser(deeplinkService: Gemstone.GemDeeplinkService()),
+            deeplinkService: Gemstone.GemDeeplinkService(),
             paymentService: paymentService,
             transactionStateService: transactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,

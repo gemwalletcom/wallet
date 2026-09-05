@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
 import enum Gemstone.Resource
 import BigInt
 import Components
@@ -220,7 +221,7 @@ public struct TransactionViewModel: Sendable {
         if let name = getAddressName(address: address)?.name {
             return name
         }
-        return AddressFormatter(address: address, chain: chain).value()
+        return GemAddressService.shared.format(address: address, chain: chain)
     }
 
     private func participantTitle(prefix: String, address: String, chain: Chain) -> String? {

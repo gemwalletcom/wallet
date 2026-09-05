@@ -670,6 +670,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   before the config fetch. The migration had queued both local writes behind a network round
   trip, which surfaced as the "wallet is ready" banner appearing a second or two after a new
   wallet's home screen on both apps.
+- **iOS consumes Core's URL action, address formatting and autoclose validation directly.**
+  `URLParser` and the hand-written `URLAction`/`DeepLink`/`WalletConnectAction` enums with their
+  three mappers are gone; `NavigationHandler` and the developer menu take `Gemstone.UrlAction` and
+  `Deeplink`. `AddressFormatter`, a struct around a module-level `GemAddressService`, is replaced by
+  `GemAddressService.shared` plus a `Primitives.Chain` overload in `GemstonePrimitives/Services`.
+  Both apps' `AutocloseValidator` forwarders are deleted: Core's `validate` takes an optional price,
+  so the "unset trigger is valid" rule Android kept in Kotlin lives in Core, and iOS's text
+  validator moved into the Perpetuals feature together with `PerpetualError`.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

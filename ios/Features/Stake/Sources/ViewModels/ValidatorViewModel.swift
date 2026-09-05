@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -20,7 +21,7 @@ public struct ValidatorViewModel {
         switch validator.providerType {
         case .stake:
             if validator.name.isEmpty {
-                return AddressFormatter(style: .short, address: validator.id, chain: validator.chain).value()
+                return GemAddressService.shared.format(address: validator.id, chain: validator.chain)
             }
             return validator.name
         case .earn:

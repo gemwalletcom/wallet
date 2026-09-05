@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
 import struct Gemstone.GemRecipient
 import Components
 import Foundation
@@ -26,7 +27,7 @@ struct WalletRecipientSectionViewModel {
                 }
                 return ListItemValue(
                     title: wallet.name,
-                    subtitle: AddressFormatter(address: account.address, chain: account.chain).value(),
+                    subtitle: GemAddressService.shared.format(address: account.address, chain: account.chain),
                     value: GemRecipient(address: account.address, name: wallet.name),
                 )
             }

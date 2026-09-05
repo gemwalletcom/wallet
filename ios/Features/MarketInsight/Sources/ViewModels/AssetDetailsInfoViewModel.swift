@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -72,6 +73,6 @@ struct AssetDetailsInfoViewModel {
     }
 
     private var contractText: String? {
-        contract.map { AddressFormatter(address: $0, chain: priceData.asset.chain).value() }
+        contract.map { GemAddressService.shared.format(address: $0, chain: priceData.asset.chain) }
     }
 }

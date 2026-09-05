@@ -1,5 +1,6 @@
 import Components
 import Foundation
+import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -23,7 +24,7 @@ public struct WalletViewModel: Sendable {
             return Localized.Wallet.multicoin
         case .view, .single, .privateKey:
             guard let account = wallet.accounts.first else { return .none }
-            return AddressFormatter(style: .extra(extra: 1), address: account.address, chain: account.chain).value()
+            return GemAddressService.shared.format(address: account.address, chain: account.chain, style: .extra(extra: 1))
         }
     }
 

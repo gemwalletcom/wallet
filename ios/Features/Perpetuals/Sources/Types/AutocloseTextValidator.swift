@@ -2,34 +2,27 @@
 
 import Formatters
 import Foundation
+import class Gemstone.AutocloseValidator
 import GemstonePrimitives
 import Primitives
+import Validators
 
-public struct AutocloseValidator: TextValidator {
-    private let type: TpslType
-    private let direction: PerpetualDirection
-    private let marketPrice: Double
+struct AutocloseTextValidator: TextValidator {
+    private let validator: AutocloseValidator
     private let formatter = NumericFormatter()
 
-    public init(
-        type: TpslType,
-        direction: PerpetualDirection,
-        marketPrice: Double,
-    ) {
-        self.type = type
-        self.direction = direction
-        self.marketPrice = marketPrice
+    init(type: TpslType, direction: PerpetualDirection, marketPrice: Double) {
+        validator = AutocloseValidator(triggerType: type.map(), direction: direction.map(), marketPrice: marketPrice)
     }
 
-    public func validate(_ text: String) throws {
+    func validate(_ text: String) throws {
         guard !text.isEmpty else { return }
 
         guard let price = formatter.double(from: text) else {
             throw TransferError.invalidAmount
         }
 
-        let validator = try GemstonePrimitives.AutocloseValidator(type: type, direction: direction, marketPrice: marketPrice)
-        switch validator.validate(price) {
+        switch validator.validate(price: price) {
         case .valid:
             break
         case .invalidAmount:
@@ -41,7 +34,7 @@ public struct AutocloseValidator: TextValidator {
         }
     }
 
-    public var id: String {
-        "AutocloseValidator"
+    var id: String {
+        "AutocloseTextValidator"
     }
 }

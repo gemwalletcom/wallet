@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemAddressFormatStyle
+import class Gemstone.GemAddressService
 import struct Gemstone.GemRecipient
 import Components
 import Foundation
@@ -108,6 +109,6 @@ public struct AddressListItemViewModel {
     }
 
     private func address(for style: GemAddressFormatStyle) -> String {
-        AddressFormatter(style: style, address: account.address, chain: account.chain).value()
+        GemAddressService.shared.format(address: account.address, chain: account.chain, style: style)
     }
 }

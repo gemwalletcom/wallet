@@ -3,13 +3,13 @@
 import Formatters
 import Primitives
 import Testing
-@testable import Validators
+@testable import Perpetuals
 
-struct AutocloseValidatorTests {
+struct AutocloseTextValidatorTests {
     @Test
     func validatesTheSameNumberThatWouldBeSubmitted() {
         let text = "1,234.5"
-        let validator = AutocloseValidator(type: .takeProfit, direction: .long, marketPrice: 100)
+        let validator = AutocloseTextValidator(type: .takeProfit, direction: .long, marketPrice: 100)
 
         #expect(throws: (any Error).self) {
             try validator.validate(text)
@@ -19,7 +19,7 @@ struct AutocloseValidatorTests {
 
     @Test
     func acceptsATriggerAboveTheMarketPriceForALongTakeProfit() throws {
-        let validator = AutocloseValidator(type: .takeProfit, direction: .long, marketPrice: 100)
+        let validator = AutocloseTextValidator(type: .takeProfit, direction: .long, marketPrice: 100)
 
         try validator.validate("150")
     }

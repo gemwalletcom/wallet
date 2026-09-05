@@ -226,7 +226,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     public var shareAssetUrl: URL {
-        service.deeplinkUrl(deeplink: DeepLink.asset(assetDataModel.asset.id).map()).asURL!
+        service.deeplinkUrl(deeplink: .asset(assetId: assetDataModel.asset.id.identifier)).asURL!
     }
 
     public var assetModel: AssetViewModel {
@@ -354,7 +354,7 @@ public extension AssetSceneViewModel {
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
-                UIApplication.shared.open(service.deeplinkGemUrl(deeplink: DeepLink.perpetuals.map()).asURL!)
+                UIApplication.shared.open(service.deeplinkGemUrl(deeplink: .perpetuals).asURL!)
                 preferences.isPerpetualEnabled = true
             }
         case let .button(bannerButton):

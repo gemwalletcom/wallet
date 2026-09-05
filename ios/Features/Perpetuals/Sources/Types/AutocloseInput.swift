@@ -4,7 +4,6 @@ import Foundation
 import struct Gemstone.GemAutocloseField
 import Primitives
 import PrimitivesComponents
-import Validators
 
 @MainActor
 struct AutocloseInput {
@@ -15,11 +14,11 @@ struct AutocloseInput {
     init(type: AutocloseType, takeProfitText: String?, stopLossText: String?) {
         takeProfit = InputValidationViewModel(
             mode: .manual,
-            validators: [AutocloseValidator(type: .takeProfit, direction: type.direction, marketPrice: type.marketPrice)],
+            validators: [AutocloseTextValidator(type: .takeProfit, direction: type.direction, marketPrice: type.marketPrice)],
         )
         stopLoss = InputValidationViewModel(
             mode: .manual,
-            validators: [AutocloseValidator(type: .stopLoss, direction: type.direction, marketPrice: type.marketPrice)],
+            validators: [AutocloseTextValidator(type: .stopLoss, direction: type.direction, marketPrice: type.marketPrice)],
         )
 
         takeProfitText.map { takeProfit.text = $0 }

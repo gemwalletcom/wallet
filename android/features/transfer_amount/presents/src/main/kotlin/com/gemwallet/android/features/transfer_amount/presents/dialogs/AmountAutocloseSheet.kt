@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
+import uniffi.gemstone.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
 import com.gemwallet.android.math.parseInputNumberOrNull
@@ -74,8 +74,8 @@ internal fun AmountAutocloseSheet(
     val estimator = provider.estimatorFor(amount)
     val takeProfitPrice = numericFormatter.double(takeProfitText)
     val stopLossPrice = numericFormatter.double(stopLossText)
-    val takeProfitValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.TakeProfit, direction, marketPrice) }
-    val stopLossValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.StopLoss, direction, marketPrice) }
+    val takeProfitValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.TakeProfit.toGem(), direction.toGem(), marketPrice) }
+    val stopLossValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.StopLoss.toGem(), direction.toGem(), marketPrice) }
     val takeProfitValidation = takeProfitValidator.validate(takeProfitPrice)
     val stopLossValidation = stopLossValidator.validate(stopLossPrice)
     val takeProfitField = buildField(TpslType.TakeProfit, takeProfitPrice, takeProfitValidation, estimator, submitAttempted)

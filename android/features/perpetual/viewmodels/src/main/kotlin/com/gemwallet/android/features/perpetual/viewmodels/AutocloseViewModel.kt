@@ -8,7 +8,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByA
 import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import uniffi.gemstone.GemAutocloseModify
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
+import uniffi.gemstone.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.NumericFormatter
@@ -150,11 +150,7 @@ class AutocloseViewModel @Inject constructor(
             TpslType.TakeProfit -> position.position.takeProfit
             TpslType.StopLoss -> position.position.stopLoss
         }
-        val validator = AutocloseValidator(
-            type = type,
-            direction = position.position.direction,
-            marketPrice = position.perpetual.price,
-        )
+        val validator = AutocloseValidator(type.toGem(), position.position.direction.toGem(), position.perpetual.price)
         return AutocloseField(
             type = type,
             price = price,
