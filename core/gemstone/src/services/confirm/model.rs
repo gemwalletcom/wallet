@@ -208,6 +208,58 @@ pub struct GemConfirmSimulation {
     pub has_critical_warning: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmPhase {
+    Loading,
+    Ready,
+    Confirming,
+    Failed,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmScreen {
+    pub phase: GemConfirmPhase,
+    pub amount_failed: bool,
+    pub has_critical_warning: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmButtonKind {
+    Confirm,
+    Retry,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmButtonState {
+    Disabled,
+    Loading,
+    Enabled,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmButton {
+    pub kind: GemConfirmButtonKind,
+    pub state: GemConfirmButtonState,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmFeeRow {
+    Loading,
+    Ready,
+    Unavailable,
+}
+
+#[uniffi::export]
+impl GemConfirmScreen {
+    pub fn button(&self) -> GemConfirmButton {
+        super::rules::confirm_button(self)
+    }
+
+    pub fn fee_row(&self) -> GemConfirmFeeRow {
+        super::rules::confirm_fee_row(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

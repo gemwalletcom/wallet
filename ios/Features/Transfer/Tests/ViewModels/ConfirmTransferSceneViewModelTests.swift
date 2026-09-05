@@ -485,12 +485,12 @@ struct ConfirmTransferSceneViewModelTests {
         )
         await model.load()
 
-        #expect(model.isButtonDisabled)
+        #expect(model.state.screen.button().state == .disabled)
     }
 
     @Test
     func buttonEnabledWithNoWarnings() {
-        #expect(!ConfirmTransferSceneViewModel.mock().isButtonDisabled)
+        #expect(ConfirmTransferSceneViewModel.mock().state.screen.button().state == .loading)
     }
 
     @Test
@@ -512,7 +512,7 @@ struct ConfirmTransferSceneViewModelTests {
 
         #expect(model.simulationWarnings.count == 2)
         #expect(model.simulationWarnings.last?.warning == .externallyOwnedSpender)
-        #expect(!model.isButtonDisabled)
+        #expect(model.state.screen.button().state != .disabled)
     }
 
     @Test

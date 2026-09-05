@@ -26,7 +26,13 @@ import com.gemwallet.android.ext.toAssetPriceValue
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
+import uniffi.gemstone.GemConfirmButton
+import uniffi.gemstone.GemConfirmButtonKind
+import uniffi.gemstone.GemConfirmButtonState
+import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmLoad
+import uniffi.gemstone.GemConfirmPhase
+import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
@@ -41,8 +47,6 @@ import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
-import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.domains.confirm.AmountUIModel
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
@@ -158,14 +162,16 @@ class ConfirmViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    val buttonState = combine(state, simulation) { state, simulation ->
-        buttonState(
-            enabled = state !is ConfirmState.Prepare
-                && state !is ConfirmState.Sending
-                && !simulation.hasCriticalWarning,
-            loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
+    private val screen = combine(state, content, simulation) { state, content, simulation ->
+        GemConfirmScreen(
+            phase = state.phase(content),
+            amountFailed = content?.load?.preload?.amount is GemTransferAmountResult.Error,
+            hasCriticalWarning = simulation.hasCriticalWarning,
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
+    }
+
+    val button = screen.map { it.button() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemConfirmButtonState.LOADING))
 
     val feeAsset = content.map { it?.feeAssetUIModel }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -219,21 +225,23 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val feeUIModel = combine(content, state) { content, state ->
+    val feeUIModel = combine(content, screen) { content, screen ->
         val signerParams = content?.signerParams
         val amount = signerParams?.fee?.amount
-        if (state is ConfirmState.Prepare) {
-            FeeUIModel.Calculating
-        } else if (content == null || amount == null) {
-            if (state is ConfirmState.Error) FeeUIModel.Error else FeeUIModel.Calculating
-        } else {
-            FeeUIModel.FeeInfo(
-                amount = amount,
-                feeAsset = content.feeAssetUIModel.asset,
-                price = content.feeAssetUIModel.price?.price?.price,
-                currency = content.currency,
-                priority = signerParams.fee.priority,
-            )
+        when (screen.feeRow()) {
+            GemConfirmFeeRow.LOADING -> FeeUIModel.Calculating
+            GemConfirmFeeRow.UNAVAILABLE -> FeeUIModel.Error
+            GemConfirmFeeRow.READY -> if (content == null || amount == null) {
+                FeeUIModel.Calculating
+            } else {
+                FeeUIModel.FeeInfo(
+                    amount = amount,
+                    feeAsset = content.feeAssetUIModel.asset,
+                    price = content.feeAssetUIModel.price?.price?.price,
+                    currency = content.currency,
+                    priority = signerParams.fee.priority,
+                )
+            }
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -393,5 +401,12 @@ class ConfirmViewModel @Inject constructor(
     }
 
     fun acquireFlow(asset: Asset): GemAcquireAssetFlow = confirmService.acquireAssetFlow(asset.chain.string)
-}
 
+    private fun ConfirmState.phase(content: ConfirmContent?): GemConfirmPhase = when (this) {
+        ConfirmState.Prepare -> GemConfirmPhase.LOADING
+        ConfirmState.Ready -> GemConfirmPhase.READY
+        ConfirmState.Sending, is ConfirmState.Result -> GemConfirmPhase.CONFIRMING
+        is ConfirmState.Error -> if (content?.load?.preload?.amount is GemTransferAmountResult.Error) GemConfirmPhase.READY else GemConfirmPhase.FAILED
+        is ConfirmState.BroadcastError, is ConfirmState.FatalError -> GemConfirmPhase.FAILED
+    }
+}

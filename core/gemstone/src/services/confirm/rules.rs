@@ -5,8 +5,8 @@ use primitives::{
 
 use super::error::GemConfirmError;
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemConfirmPreload, GemFeeAsset, GemFeeRateRow,
-    GemFeeRateRows, GemTransferAmountResult, SendInput,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmData, GemConfirmFeeRow, GemConfirmFeeSelection,
+    GemConfirmInput, GemConfirmMetadata, GemConfirmPhase, GemConfirmPreload, GemConfirmScreen, GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
@@ -151,6 +151,25 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
 
 pub fn confirm_simulation(request: Option<SimulationResult>, preload: Option<&GemConfirmPreload>) -> Option<SimulationResult> {
     request.or_else(|| preload.and_then(|preload| preload.confirm_data.simulation.clone()))
+}
+
+pub fn confirm_button(screen: &GemConfirmScreen) -> GemConfirmButton {
+    let button = |kind, state| GemConfirmButton { kind, state };
+    match screen.phase {
+        GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading),
+        GemConfirmPhase::Failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
+        GemConfirmPhase::Ready if screen.amount_failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
+        GemConfirmPhase::Ready if screen.has_critical_warning => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled),
+        GemConfirmPhase::Ready => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled),
+    }
+}
+
+pub fn confirm_fee_row(screen: &GemConfirmScreen) -> GemConfirmFeeRow {
+    match screen.phase {
+        GemConfirmPhase::Loading => GemConfirmFeeRow::Loading,
+        GemConfirmPhase::Failed => GemConfirmFeeRow::Unavailable,
+        GemConfirmPhase::Ready | GemConfirmPhase::Confirming => GemConfirmFeeRow::Ready,
+    }
 }
 
 pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>) -> Vec<GemFeeAsset> {
@@ -1065,5 +1084,54 @@ mod tests {
         );
         assert_eq!(confirm_simulation(None, Some(&preload)).unwrap().warnings[0].message.as_deref(), Some("preload"));
         assert!(confirm_simulation(None, None).is_none());
+    }
+
+    #[test]
+    fn test_confirm_button_follows_the_phase_and_the_ready_checks() {
+        let screen = |phase, amount_failed, has_critical_warning| GemConfirmScreen {
+            phase,
+            amount_failed,
+            has_critical_warning,
+        };
+        let button = |kind, state| GemConfirmButton { kind, state };
+
+        assert_eq!(
+            confirm_button(&screen(GemConfirmPhase::Loading, false, false)),
+            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
+        );
+        assert_eq!(
+            confirm_button(&screen(GemConfirmPhase::Confirming, false, false)),
+            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
+        );
+        assert_eq!(
+            confirm_button(&screen(GemConfirmPhase::Failed, false, true)),
+            button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled)
+        );
+        assert_eq!(
+            confirm_button(&screen(GemConfirmPhase::Ready, true, true)),
+            button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled)
+        );
+        assert_eq!(
+            confirm_button(&screen(GemConfirmPhase::Ready, false, true)),
+            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled)
+        );
+        assert_eq!(
+            confirm_button(&screen(GemConfirmPhase::Ready, false, false)),
+            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled)
+        );
+    }
+
+    #[test]
+    fn test_confirm_fee_row_waits_for_the_preload_and_gives_up_on_failure() {
+        let screen = |phase| GemConfirmScreen {
+            phase,
+            amount_failed: true,
+            has_critical_warning: true,
+        };
+
+        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Loading)), GemConfirmFeeRow::Loading);
+        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Ready)), GemConfirmFeeRow::Ready);
+        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Confirming)), GemConfirmFeeRow::Ready);
+        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Failed)), GemConfirmFeeRow::Unavailable);
     }
 }

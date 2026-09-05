@@ -19,7 +19,7 @@ struct ConfirmNetworkFeeViewModelTests {
     func loaded() {
         let feeModel = feeModel(feeAssetPrice: Price(price: 2500, priceChangePercentage24h: 0, updatedAt: Date()))
         let model = ConfirmNetworkFeeViewModel(
-            state: .data(.mock()),
+            feeRow: .ready,
             feeModel: feeModel,
             infoAction: {},
         )
@@ -34,7 +34,7 @@ struct ConfirmNetworkFeeViewModelTests {
     func loadedWithoutFiat() {
         let feeModel = feeModel()
         let model = ConfirmNetworkFeeViewModel(
-            state: .data(.mock()),
+            feeRow: .ready,
             feeModel: feeModel,
             infoAction: {},
         )
@@ -59,7 +59,7 @@ struct ConfirmNetworkFeeViewModelTests {
             onSelectFeeAsset: { _ in },
         )
         let model = ConfirmNetworkFeeViewModel(
-            state: .data(.mock()),
+            feeRow: .ready,
             feeModel: feeModel,
             infoAction: {},
         )
@@ -78,7 +78,7 @@ struct ConfirmNetworkFeeViewModelTests {
         let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
         let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let model = ConfirmNetworkFeeViewModel(
-            state: .error(AnyError("test")),
+            feeRow: .unavailable,
             feeModel: NetworkFeeSceneViewModel(
                 feeAsset: pathUSD.asset,
                 currency: .usd,
@@ -105,7 +105,7 @@ struct ConfirmNetworkFeeViewModelTests {
         let input = ConfirmTransferInput.mock(transferAmount: .failure(.InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: 1, available: 0, shortfall: 1))))
         let feeModel = feeModel(feeAssetPrice: Price(price: 2500, priceChangePercentage24h: 0, updatedAt: Date()))
         let model = ConfirmNetworkFeeViewModel(
-            state: .data(input),
+            feeRow: .ready,
             feeModel: feeModel,
             infoAction: {},
         )

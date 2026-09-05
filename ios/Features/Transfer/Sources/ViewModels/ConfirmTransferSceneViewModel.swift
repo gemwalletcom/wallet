@@ -129,15 +129,10 @@ public final class ConfirmTransferSceneViewModel {
 
     public var payloadModel: SimulationPayloadModel { state.simulation.payload }
 
-    var isButtonDisabled: Bool {
-        state.simulation.hasCriticalWarning
-    }
-
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
-            state: state.transaction,
+            button: state.screen.button(),
             authentication: service.authentication(),
-            isDisabled: isButtonDisabled,
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
     }
@@ -222,7 +217,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
-                state: state.transaction,
+                feeRow: state.screen.feeRow(),
                 feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
             )

@@ -36,6 +36,9 @@ import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.ext.toGemNetworkError
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.GemNetworkError
+import com.gemwallet.android.ui.models.ButtonState
+import uniffi.gemstone.GemConfirmButtonKind
+import uniffi.gemstone.GemConfirmButtonState
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemSignerError
 import com.gemwallet.android.domains.confirm.ConfirmProperty
@@ -116,7 +119,7 @@ fun ConfirmScreen(
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
-    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val button by viewModel.button.collectAsStateWithLifecycle()
     val applicationMetadata = input?.inputType?.applicationMetadata
     val isExternalRequest = applicationMetadata != null
     val isPayment = applicationMetadata?.source == ApplicationMetadataSource.Payment
@@ -151,8 +154,8 @@ fun ConfirmScreen(
         onClose = { cancelAction() },
         mainAction = {
             MainActionButton(
-                title = state.buttonLabel(),
-                state = buttonState,
+                title = state.buttonLabel(button.kind),
+                state = button.state.toButtonState(),
                 onClick = {
                     context.requestAuth(AuthRequest.Confirmation) {
                         viewModel.send(finishAction)
@@ -400,16 +403,16 @@ private fun ConfirmDetailElementBottomSheet(
 }
 
 @Composable
-fun ConfirmState.buttonLabel(): String {
-    return when (this) {
-        is ConfirmState.BroadcastError,
-        is ConfirmState.Error -> stringResource(R.string.common_try_again)
-        is ConfirmState.FatalError -> stringResource(messageRes)
-        ConfirmState.Prepare,
-        ConfirmState.Ready,
-        is ConfirmState.Result,
-        ConfirmState.Sending -> stringResource(id = R.string.transfer_confirm)
-    }
+fun ConfirmState.buttonLabel(kind: GemConfirmButtonKind): String = when {
+    this is ConfirmState.FatalError -> stringResource(messageRes)
+    kind == GemConfirmButtonKind.RETRY -> stringResource(R.string.common_try_again)
+    else -> stringResource(R.string.transfer_confirm)
+}
+
+private fun GemConfirmButtonState.toButtonState(): ButtonState = when (this) {
+    GemConfirmButtonState.DISABLED -> ButtonState.Disabled
+    GemConfirmButtonState.LOADING -> ButtonState.Loading
+    GemConfirmButtonState.ENABLED -> ButtonState.Enabled
 }
 
 @Composable

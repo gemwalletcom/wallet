@@ -3,6 +3,8 @@
 import struct Gemstone.GemConfirmData
 import struct Gemstone.GemConfirmLoad
 import struct Gemstone.GemConfirmMetadata
+import enum Gemstone.GemConfirmPhase
+import struct Gemstone.GemConfirmScreen
 import struct Gemstone.GemFeeAsset
 import enum Gemstone.GemTransactionInputType
 import Components
@@ -49,9 +51,25 @@ extension ConfirmTransferState {
         )
     }
 
+    var screen: GemConfirmScreen {
+        GemConfirmScreen(
+            phase: phase,
+            amountFailed: transaction.value?.transferAmount.isFailure == true,
+            hasCriticalWarning: simulation.hasCriticalWarning,
+        )
+    }
+
     var transactionError: ConfirmTransferError? {
         if case let .error(error) = transaction { return ConfirmTransferError(error: error) }
         if case let .failure(error)? = transaction.value?.transferAmount { return ConfirmTransferError(error: error) }
         return nil
+    }
+
+    private var phase: GemConfirmPhase {
+        switch transaction {
+        case .noData, .loading: .loading
+        case .error: .failed
+        case .data: confirmation.isConfirming ? .confirming : .ready
+        }
     }
 }
