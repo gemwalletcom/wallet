@@ -58,7 +58,7 @@ extension TransactionParticipantViewModel {
             TransactionParticipantItemModel(
                 title: title(for: participant.role),
                 account: account,
-                addressLink: BlockExplorerLink(participant.link),
+                addressLink: participant.link.map(),
                 onAddContact: canAddContact(addressName: addressName) ? onAddContact : nil,
             ),
         )

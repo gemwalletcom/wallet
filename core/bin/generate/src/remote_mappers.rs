@@ -298,7 +298,7 @@ pub fn swift(types: &[RemoteType]) -> String {
     for remote in types {
         if let RemoteType::Code { name } = remote {
             out.push_str(&format!(
-                "\npublic extension Primitives.{name} {{\n    init(core: Gemstone.{name}) {{\n        guard let value = Primitives.{name}(rawValue: core) else {{\n            fatalError(\"Core returned a {name} this build does not know: \\(core)\")\n        }}\n        self = value\n    }}\n}}\n"
+                "\npublic extension Primitives.{name} {{\n    init(core: Gemstone.{name}) {{\n        guard let value = Primitives.{name}(rawValue: core) else {{\n            fatalError(\"Core returned a {name} this build does not know: \\(core)\")\n        }}\n        self = value\n    }}\n\n    func map() -> Gemstone.{name} {{\n        rawValue\n    }}\n}}\n"
             ));
             continue;
         }
@@ -394,31 +394,39 @@ const JSON_BRIDGE_PATH: &str = "gemstone/src/models/json_bridge.rs";
 /// Kotlin infers the concrete subtype for a generic `T.toJson()`, which drops that tag, and Core
 /// rejects the payload at runtime. Each one needs an overload whose receiver is the base type.
 pub fn tagged_bridge_types(root: &Path) -> Vec<String> {
-    let Ok(bridge) = fs::read_to_string(root.join(JSON_BRIDGE_PATH)) else {
-        return Vec::new();
-    };
-    let Some(list) = bridge.split("json_bridge!(").nth(1).and_then(|rest| rest.split(");").next()) else {
-        return Vec::new();
-    };
-    let names: Vec<&str> = list.lines().map(|line| line.trim().trim_end_matches(',')).filter(|line| !line.is_empty()).collect();
-
     let Ok(entries) = fs::read_dir(root.join(PRIMITIVES_SOURCE)) else {
         return Vec::new();
     };
     let sources: Vec<String> = entries.flatten().filter_map(|entry| fs::read_to_string(entry.path()).ok()).collect();
 
-    let mut tagged: Vec<String> = names
+    let mut tagged: Vec<String> = bridge_types(root)
         .into_iter()
         .filter(|name| {
             sources
                 .iter()
                 .any(|source| enum_variants(source, name).is_some_and(|variants| variants.iter().any(|variant| !variant.chars().all(|c| c.is_alphanumeric() || c == '_'))))
         })
-        .map(str::to_string)
         .collect();
     tagged.sort();
     tagged.dedup();
     tagged
+}
+
+/// Every type the JSON bridge carries as a serialized string, in declaration order.
+pub fn bridge_types(root: &Path) -> Vec<String> {
+    let Ok(bridge) = fs::read_to_string(root.join(JSON_BRIDGE_PATH)) else {
+        return Vec::new();
+    };
+    let Some(list) = bridge.split("json_bridge!(").nth(1).and_then(|rest| rest.split(");").next()) else {
+        return Vec::new();
+    };
+    list.lines().map(|line| line.trim().trim_end_matches(',')).filter(|line| !line.is_empty()).map(str::to_string).collect()
+}
+
+pub fn swift_json_bridge(types: &[String]) -> String {
+    let header = HEADER.replace("core/bin/generate/remote_types.yml", JSON_BRIDGE_PATH);
+    let conformances: String = types.iter().map(|name| format!("extension Primitives.{name}: JsonCodable {{}}\n")).collect();
+    format!("{header}\nimport Primitives\n\n{conformances}")
 }
 
 fn enum_variants(source: &str, name: &str) -> Option<Vec<String>> {

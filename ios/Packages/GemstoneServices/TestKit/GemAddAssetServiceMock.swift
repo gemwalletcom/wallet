@@ -5,7 +5,7 @@ import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
 import protocol Gemstone.GemAddAssetServiceProtocol
-import struct Gemstone.GemBlockExplorerLink
+import struct Gemstone.BlockExplorerLink
 import typealias Gemstone.Wallet
 import GemstonePrimitives
 import Primitives
@@ -23,7 +23,7 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
     public func chains(wallet _: Wallet) -> [Chain] { chains.map(\.rawValue) }
     public func defaultChain(chains: [Chain]) -> Chain? { chains.first }
     public func matchingChains(chains: [Chain], query: String) -> [Chain] { chains }
-    public func tokenUrl(chain: Chain, tokenId: String) -> GemBlockExplorerLink? { nil }
+    public func tokenUrl(chain: Chain, tokenId: String) -> Gemstone.BlockExplorerLink? { nil }
     public func token(chain: Chain, address: String) async throws -> Asset { asset.map() }
     public func add(wallet: Wallet, assetId: AssetId) async throws {}
 }

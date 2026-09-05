@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.ext.hash
-import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.BlockExplorerLink as GemBlockExplorerLink
 import uniffi.gemstone.GemTransactionDetailsService
 import uniffi.gemstone.GemTransactionHeaderKind
 import com.gemwallet.android.application.assets.cases.GetWalletAssets

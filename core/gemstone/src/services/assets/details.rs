@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use primitives::{Asset, AssetId, BannerEvent, Chain, Deeplink, VerificationStatus};
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::deeplink::GemDeeplinkService;
 use crate::services::balance::GemBalanceService;
 use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerKey, GemBannerService};
@@ -14,6 +13,7 @@ use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::swap::{GemSwapPairSuggestion, GemSwapService};
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::BlockExplorerLink;
 
 use crate::services::failures::{StepFailure, record};
 
@@ -168,11 +168,11 @@ impl GemAssetDetailsService {
         self.explorer.get_explorer_name(chain)
     }
 
-    pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
+    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }
 
-    pub fn token_url(&self, chain: Chain, address: String) -> Option<GemBlockExplorerLink> {
+    pub fn token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
         self.explorer.get_token_url(chain, address)
     }
 

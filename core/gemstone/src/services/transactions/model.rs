@@ -2,7 +2,7 @@ use crate::models::custom_types::GemBigUint;
 use primitives::{Asset, AssetId, PerpetualDirection, Resource, Transaction};
 
 use super::rules;
-use crate::block_explorer::GemBlockExplorerLink;
+use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionTitle {
@@ -67,7 +67,7 @@ pub enum GemTransactionParticipantRole {
 pub struct GemTransactionParticipant {
     pub role: GemTransactionParticipantRole,
     pub address: String,
-    pub link: GemBlockExplorerLink,
+    pub link: BlockExplorerLink,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Object)]

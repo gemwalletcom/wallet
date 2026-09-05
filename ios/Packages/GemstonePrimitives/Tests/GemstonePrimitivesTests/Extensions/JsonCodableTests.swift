@@ -22,14 +22,9 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsNestedRecord() throws {
-        let field = Primitives.SimulationPayloadField(
-            kind: .value,
-            label: "Amount",
-            value: "1.0",
-            fieldType: .text,
-            display: .primary,
-        )
-
-        #expect(try Primitives.SimulationPayloadField(field.json()) == field)
+        let address = Primitives.ChainAddress(chain: .ethereum, address: "0x1")
+        let decoded = try Primitives.ChainAddress(address.json())
+        #expect(decoded.chain == address.chain)
+        #expect(decoded.address == address.address)
     }
 }

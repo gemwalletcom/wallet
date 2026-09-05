@@ -541,8 +541,8 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         Primitives.Currency.usd.rawValue
     }
 
-    public func validatorUrl(validator _: Gemstone.DelegationValidator) -> GemBlockExplorerLink? {
-        explorerAddress.map { GemBlockExplorerLink(name: "MockExplorer", link: "https://explorer.mock/validator/\($0)") }
+    public func validatorUrl(validator _: Gemstone.DelegationValidator) -> Gemstone.BlockExplorerLink? {
+        explorerAddress.map { Gemstone.BlockExplorerLink(name: "MockExplorer", link: "https://explorer.mock/validator/\($0)") }
     }
 
     public func showsCompletionDate(delegation _: Gemstone.DelegationBase) -> Bool {

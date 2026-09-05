@@ -14,10 +14,10 @@ use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, Perpetu
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 use primitives::{
-    AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationValidator, NFTAsset, NFTAssetData,
-    NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData,
-    PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SimulationWarning,
-    SolanaNftStandard, SolanaTokenProgramId, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    AccountDataType, AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationValidator, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages,
+    NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData, PerpetualPosition, PerpetualTriggerOrder, ReportNft,
+    ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SimulationWarning, SolanaNftStandard, SolanaTokenProgramId, StakeValidator,
+    TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
@@ -55,8 +55,6 @@ json_bridge!(
     AccountDataType,
     AddressName,
     Appearance,
-    ApplicationMetadata,
-    ApplicationMetadataSource,
     ApprovalData,
     AssetBasic,
     AssetFull,

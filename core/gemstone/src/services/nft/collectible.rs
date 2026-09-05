@@ -3,15 +3,15 @@ use std::sync::Arc;
 use primitives::{Chain, NFTAssetId, ReportNft, Wallet};
 
 use super::{GemNftService, rules};
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::avatar::GemAvatarService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
+use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCollectibleLinks {
-    pub contract: Option<GemBlockExplorerLink>,
-    pub token: Option<GemBlockExplorerLink>,
+    pub contract: Option<BlockExplorerLink>,
+    pub token: Option<BlockExplorerLink>,
 }
 
 #[derive(uniffi::Object)]

@@ -3,6 +3,16 @@
 
 package com.gemwallet.android.ext
 
+fun uniffi.gemstone.ApplicationMetadataSource.toPrimitives(): com.wallet.core.primitives.ApplicationMetadataSource = when (this) {
+    uniffi.gemstone.ApplicationMetadataSource.WALLET_CONNECT -> com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect
+    uniffi.gemstone.ApplicationMetadataSource.PAYMENT -> com.wallet.core.primitives.ApplicationMetadataSource.Payment
+}
+
+fun com.wallet.core.primitives.ApplicationMetadataSource.toGem(): uniffi.gemstone.ApplicationMetadataSource = when (this) {
+    com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect -> uniffi.gemstone.ApplicationMetadataSource.WALLET_CONNECT
+    com.wallet.core.primitives.ApplicationMetadataSource.Payment -> uniffi.gemstone.ApplicationMetadataSource.PAYMENT
+}
+
 fun uniffi.gemstone.AssetType.toPrimitives(): com.wallet.core.primitives.AssetType = when (this) {
     uniffi.gemstone.AssetType.NATIVE -> com.wallet.core.primitives.AssetType.NATIVE
     uniffi.gemstone.AssetType.ERC20 -> com.wallet.core.primitives.AssetType.ERC20
@@ -647,6 +657,22 @@ fun com.wallet.core.primitives.Account.toGem(): uniffi.gemstone.Account = uniffi
     extendedPublicKey = extendedPublicKey,
 )
 
+fun uniffi.gemstone.ApplicationMetadata.toPrimitives(): com.wallet.core.primitives.ApplicationMetadata = com.wallet.core.primitives.ApplicationMetadata(
+    name = name,
+    description = description,
+    url = url,
+    icon = icon,
+    source = source.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.ApplicationMetadata.toGem(): uniffi.gemstone.ApplicationMetadata = uniffi.gemstone.ApplicationMetadata(
+    name = name,
+    description = description,
+    url = url,
+    icon = icon,
+    source = source.toGem(),
+)
+
 fun uniffi.gemstone.Asset.toPrimitives(): com.wallet.core.primitives.Asset = com.wallet.core.primitives.Asset(
     id = id.toAssetId()!!,
     name = name,
@@ -673,6 +699,16 @@ fun com.wallet.core.primitives.AssetFiatValue.toGem(): uniffi.gemstone.AssetFiat
     amount = amount,
     price = price,
     priceChangePercentage24h = priceChangePercentage24h,
+)
+
+fun uniffi.gemstone.BlockExplorerLink.toPrimitives(): com.wallet.core.primitives.BlockExplorerLink = com.wallet.core.primitives.BlockExplorerLink(
+    name = name,
+    link = link,
+)
+
+fun com.wallet.core.primitives.BlockExplorerLink.toGem(): uniffi.gemstone.BlockExplorerLink = uniffi.gemstone.BlockExplorerLink(
+    name = name,
+    link = link,
 )
 
 fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency = com.wallet.core.primitives.Latency(

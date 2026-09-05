@@ -7,7 +7,7 @@ public import enum Gemstone.GemAcquireAssetFlow
 public import class Gemstone.GemAssetConfigService
 public import struct Gemstone.GemAutocloseSummary
 public import typealias Gemstone.GemBigInt
-public import struct Gemstone.GemBlockExplorerLink
+public import struct Gemstone.BlockExplorerLink
 public import struct Gemstone.GemConfirmData
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemConfirmLoad
@@ -90,8 +90,8 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         try await transactionState.trackPending()
     }
 
-    public func addressUrl(chain: Chain, address: String) -> GemBlockExplorerLink {
-        GemBlockExplorerLink(name: "Explorer", link: "https://explorer.test/\(chain)/\(address)")
+    public func addressUrl(chain: Chain, address: String) -> Gemstone.BlockExplorerLink {
+        Gemstone.BlockExplorerLink(name: "Explorer", link: "https://explorer.test/\(chain)/\(address)")
     }
 
     public func autocloseSummary(data _: PerpetualModifyConfirmData) -> GemAutocloseSummary? {

@@ -201,3 +201,9 @@ func withV4Password<T>(
     defer { passwordBytes.zeroize() }
     return try operation(passwordBytes)
 }
+
+extension Primitives.Wallet {
+    var legacyV3Id: String {
+        externalId ?? id.id
+    }
+}

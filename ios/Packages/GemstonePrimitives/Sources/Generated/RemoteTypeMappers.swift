@@ -4,6 +4,24 @@
 import Gemstone
 import Primitives
 
+public extension Gemstone.ApplicationMetadataSource {
+    func map() -> Primitives.ApplicationMetadataSource {
+        switch self {
+        case .walletConnect: .walletConnect
+        case .payment: .payment
+        }
+    }
+}
+
+public extension Primitives.ApplicationMetadataSource {
+    func map() -> Gemstone.ApplicationMetadataSource {
+        switch self {
+        case .walletConnect: .walletConnect
+        case .payment: .payment
+        }
+    }
+}
+
 public extension Gemstone.AssetType {
     func map() -> Primitives.AssetType {
         switch self {
@@ -100,6 +118,10 @@ public extension Primitives.Chain {
             fatalError("Core returned a Chain this build does not know: \(core)")
         }
         self = value
+    }
+
+    func map() -> Gemstone.Chain {
+        rawValue
     }
 }
 
@@ -221,6 +243,10 @@ public extension Primitives.Currency {
             fatalError("Core returned a Currency this build does not know: \(core)")
         }
         self = value
+    }
+
+    func map() -> Gemstone.Currency {
+        rawValue
     }
 }
 
@@ -968,6 +994,30 @@ public extension Primitives.Account {
     }
 }
 
+public extension Gemstone.ApplicationMetadata {
+    func map() -> Primitives.ApplicationMetadata {
+        Primitives.ApplicationMetadata(
+            name: name,
+            description: description,
+            url: url,
+            icon: icon,
+            source: source.map(),
+        )
+    }
+}
+
+public extension Primitives.ApplicationMetadata {
+    func map() -> Gemstone.ApplicationMetadata {
+        Gemstone.ApplicationMetadata(
+            name: name,
+            description: description,
+            url: url,
+            icon: icon,
+            source: source.map(),
+        )
+    }
+}
+
 public extension Gemstone.Asset {
     func map() -> Primitives.Asset {
         Primitives.Asset(
@@ -1008,6 +1058,24 @@ public extension Primitives.AssetFiatValue {
             amount: amount,
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
+        )
+    }
+}
+
+public extension Gemstone.BlockExplorerLink {
+    func map() -> Primitives.BlockExplorerLink {
+        Primitives.BlockExplorerLink(
+            name: name,
+            link: link,
+        )
+    }
+}
+
+public extension Primitives.BlockExplorerLink {
+    func map() -> Gemstone.BlockExplorerLink {
+        Gemstone.BlockExplorerLink(
+            name: name,
+            link: link,
         )
     }
 }

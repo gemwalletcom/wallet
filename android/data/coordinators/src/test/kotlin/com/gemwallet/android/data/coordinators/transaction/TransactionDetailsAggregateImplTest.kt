@@ -31,7 +31,7 @@ import java.util.Date
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockGemTransactionDetails
-import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.BlockExplorerLink as GemBlockExplorerLink
 import uniffi.gemstone.GemSwapAgain
 import uniffi.gemstone.GemSwapProgress
 import uniffi.gemstone.GemSwapProgressStep

@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use primitives::{AddressName, Chain, ChainAddress, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, WalletId};
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::message::sign_type::SignMessage;
 use crate::message::signer::MessageSigner;
@@ -10,6 +9,7 @@ use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
 use crate::services::wallet::GemKeystorePassword;
+use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSignMessagePreview {
@@ -70,7 +70,7 @@ impl GemSignMessageService {
         self.names.get_address_names(requests).await.unwrap_or_default()
     }
 
-    pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
+    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }
 }

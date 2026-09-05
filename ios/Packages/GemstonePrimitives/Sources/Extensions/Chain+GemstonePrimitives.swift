@@ -14,9 +14,6 @@ private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.
 }
 
 public extension Primitives.Chain {
-    func map() -> Gemstone.Chain {
-        rawValue
-    }
 
     var asset: Primitives.Asset {
         chainAsset.asset

@@ -70,7 +70,7 @@ public final class WalletDetailViewModel {
     }
 
     func addressLink(account: SimpleAccount) -> BlockExplorerLink {
-        BlockExplorerLink(service.addressUrl(chain: account.chain.rawValue, address: account.address))
+        service.addressUrl(chain: account.chain.rawValue, address: account.address).map()
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {

@@ -13,8 +13,8 @@ public struct WalletConnectSessionApproval: Sendable {
 }
 
 public extension GemWalletConnectServiceProtocol {
-    func metadata(name: String, description: String, url: String, icons: [String]) throws -> Primitives.ApplicationMetadata {
-        try Primitives.ApplicationMetadata(applicationMetadata(name: name, description: description, url: url, icons: icons))
+    func metadata(name: String, description: String, url: String, icons: [String]) -> Primitives.ApplicationMetadata {
+        applicationMetadata(name: name, description: description, url: url, icons: icons).map()
     }
 
     func prepareSessionProposal(
@@ -27,7 +27,7 @@ public extension GemWalletConnectServiceProtocol {
         let result = try await prepareSessionProposal(
             requiredChainIds: requiredChainIds,
             optionalChainIds: optionalChainIds,
-            metadata: metadata.json(),
+            metadata: metadata.map(),
             origin: origin,
             validation: validation,
         )
@@ -45,7 +45,7 @@ public extension GemWalletConnectServiceProtocol {
     }
 
     func session(topic: String, accounts: [String], expireAt: Date, metadata: Primitives.ApplicationMetadata) throws -> WalletConnectionSession {
-        try WalletConnectionSession(session(topic: topic, accounts: accounts, expireAt: Int64(expireAt.timeIntervalSince1970), metadata: metadata.json()))
+        try WalletConnectionSession(session(topic: topic, accounts: accounts, expireAt: Int64(expireAt.timeIntervalSince1970), metadata: metadata.map()))
     }
 
     func addConnection(_ connection: WalletConnection) async throws {

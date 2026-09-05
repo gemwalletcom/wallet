@@ -74,7 +74,7 @@ public final class ChartSceneViewModel: ChartListViewable {
             priceData: priceData,
             currency: currencyCode,
             contractExplorerLink: (try? priceData.asset.getTokenId()).flatMap {
-                service.tokenUrl(chain: priceData.asset.chain.rawValue, address: $0).map { BlockExplorerLink($0) }
+                service.tokenUrl(chain: priceData.asset.chain.rawValue, address: $0).map { $0.map() }
             },
         )
     }

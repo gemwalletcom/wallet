@@ -687,6 +687,20 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `PerpetualRecipientData` is gone: the perpetual sheet and amount scene carry the
   `GemPerpetualPositionAction` itself, matching Android's `AmountParams.Perpetual`, and the
   action's `recipient()` comes from Core.
+- **The generator owns the iOS JSON-bridge list, `map()` for code types, and three more remote
+  types.** `GemstonePrimitives/Sources/Generated/JsonBridge.swift` is emitted from Core's
+  `json_bridge!` list, so the hand-kept `JsonCodable` conformances (which had drifted to 22 types
+  Core no longer bridges) are gone; the generator also emits `map()` for `codes` types, replacing
+  the hand-written `Chain.map()`. `ApplicationMetadata`, `ApplicationMetadataSource` and
+  `BlockExplorerLink` moved into `remote_types.yml`: the block explorer link was a hand-declared
+  `#[uniffi::remote]` alias with an iOS init and a Kotlin constructor at every site, and
+  application metadata crossed as JSON into `short_name`, `GemTransactionInputType::Generic` and
+  the WalletConnect session. Deleted on iOS: the `GemConfirm`, `SwapperQuoteAsset`, `AssetScore`,
+  `Wallet.legacyV3Id` (now beside the v3 migration in `LocalKeystore`), `GemKeystore` (test-kit
+  only) and `KeystoreImportType` extensions plus the `KeystoreImportType` enum itself, whose
+  `walletType` rule was dead; the import scene builds `GemWalletImportType` directly.
+  `GemApplicationMetadataService` and `PriceAlertFormatter` gained `.shared` instances, and the
+  banner key and action accessors no longer pretend to throw.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

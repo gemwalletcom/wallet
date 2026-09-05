@@ -16,6 +16,7 @@ import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
+import com.gemwallet.android.ext.toGem
 
 class PrepareSessionProposalImplTest {
 
@@ -29,7 +30,7 @@ class PrepareSessionProposalImplTest {
         source = ApplicationMetadataSource.WalletConnect,
     )
     private val walletConnectService = mockk<GemWalletConnectServiceInterface> {
-        every { applicationMetadata(metadata.name, metadata.description, metadata.url, listOf(metadata.icon)) } returns metadata.toJson()
+        every { applicationMetadata(metadata.name, metadata.description, metadata.url, listOf(metadata.icon)) } returns metadata.toGem()
     }
     private val subject = PrepareSessionProposalImpl(walletConnectService)
 
@@ -40,7 +41,7 @@ class PrepareSessionProposalImplTest {
             walletConnectService.prepareSessionProposal(
                 requiredChainIds = listOf("eip155:1"),
                 optionalChainIds = emptyList(),
-                metadata = metadata.toJson(),
+                metadata = metadata.toGem(),
                 origin = "https://app.example",
                 validation = WalletConnectionVerificationStatus.VERIFIED,
             )

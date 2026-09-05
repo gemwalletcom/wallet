@@ -4,12 +4,12 @@ use primitives::{Asset, AssetId, Chain, Wallet};
 
 use super::rules;
 use crate::address::checksum_address;
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::chain::rules::matching_chains;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
+use primitives::BlockExplorerLink;
 
 #[derive(uniffi::Object)]
 pub struct GemAddAssetService {
@@ -37,7 +37,7 @@ impl GemAddAssetService {
         matching_chains(chains, &query)
     }
 
-    pub fn token_url(&self, chain: Chain, token_id: String) -> Option<GemBlockExplorerLink> {
+    pub fn token_url(&self, chain: Chain, token_id: String) -> Option<BlockExplorerLink> {
         self.explorer.get_token_url(chain, token_id)
     }
 

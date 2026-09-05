@@ -83,7 +83,7 @@ public final class CollectibleViewModel {
     }
 
     var contractExplorerLink: BlockExplorerLink? {
-        links.contract.map { BlockExplorerLink($0) }
+        links.contract.map { $0.map() }
     }
 
     var contractExplorerContext: ExplorerContextData? {
@@ -115,7 +115,7 @@ public final class CollectibleViewModel {
     }
 
     var tokenIdExplorerLink: BlockExplorerLink? {
-        links.token.map { BlockExplorerLink($0) }
+        links.token.map { $0.map() }
     }
 
     var tokenIdExplorerContext: ExplorerContextData? {

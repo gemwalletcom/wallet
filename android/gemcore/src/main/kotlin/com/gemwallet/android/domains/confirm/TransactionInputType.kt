@@ -39,7 +39,7 @@ val GemTransactionInputType.toAsset: Asset?
     get() = (this as? GemTransactionInputType.Swap)?.toAsset?.toPrimitives()
 
 val GemTransactionInputType.applicationMetadata: ApplicationMetadata?
-    get() = (this as? GemTransactionInputType.Generic)?.metadata?.decodeJson<ApplicationMetadata>()
+    get() = (this as? GemTransactionInputType.Generic)?.metadata?.toPrimitives()
 
 val GemTransactionInputType.swapData: SwapData?
     get() = (this as? GemTransactionInputType.Swap)?.swapData?.decodeJson<SwapData>()

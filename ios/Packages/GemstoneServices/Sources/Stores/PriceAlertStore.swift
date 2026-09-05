@@ -10,7 +10,6 @@ import Store
 
 public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Sendable {
     private let store: PriceAlertStore
-    private let priceAlertFormatter = PriceAlertFormatter()
 
     public init(store: PriceAlertStore) {
         self.store = store
@@ -24,7 +23,7 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
     public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
         try store.diffPriceAlerts(
             deleteIds: deleteIds,
-            alerts: alerts.map { try (id: priceAlertFormatter.alertId(alert: $0), alert: Primitives.PriceAlert($0)) },
+            alerts: alerts.map { try (id: PriceAlertFormatter.shared.alertId(alert: $0), alert: Primitives.PriceAlert($0)) },
         )
     }
 }

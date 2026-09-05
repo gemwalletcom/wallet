@@ -18,7 +18,6 @@ import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -98,7 +97,7 @@ class AddAssetViewModel @Inject constructor(
     val explorerLink = token.map { token ->
         val tokenId = token?.id?.tokenId ?: return@map null
         val link = service.tokenUrl(token.id.chain.string, tokenId) ?: return@map null
-        BlockExplorerLink(name = link.name, link = link.link)
+        link.toPrimitives()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)

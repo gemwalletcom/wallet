@@ -65,7 +65,7 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
-        service.validatorUrl(validator: validator.json()).map { BlockExplorerLink($0) }
+        service.validatorUrl(validator: validator.json()).map { $0.map() }
     }
 
     public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {

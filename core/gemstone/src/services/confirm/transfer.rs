@@ -3,7 +3,6 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet, WalletId};
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
@@ -20,6 +19,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::{GemRecentActivityService, GemTransferData};
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::BlockExplorerLink;
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmTransferService {
@@ -110,7 +110,7 @@ impl GemConfirmTransferService {
         self.state(transfer, simulation, Some(fee)).await
     }
 
-    pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
+    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }
 

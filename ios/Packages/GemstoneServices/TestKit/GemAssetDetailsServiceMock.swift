@@ -12,7 +12,7 @@ import struct Gemstone.GemAssetRefreshFailure
 import enum Gemstone.GemBannerAction
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
-import struct Gemstone.GemBlockExplorerLink
+import struct Gemstone.BlockExplorerLink
 import class Gemstone.GemDeeplinkService
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.VerificationStatus
@@ -64,11 +64,11 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         "Explorer"
     }
 
-    public func addressUrl(chain _: Chain, address: String) -> GemBlockExplorerLink {
-        GemBlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(address)")
+    public func addressUrl(chain _: Chain, address: String) -> Gemstone.BlockExplorerLink {
+        Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(address)")
     }
 
-    public func tokenUrl(chain _: Chain, address _: String) -> GemBlockExplorerLink? {
+    public func tokenUrl(chain _: Chain, address _: String) -> Gemstone.BlockExplorerLink? {
         .none
     }
 

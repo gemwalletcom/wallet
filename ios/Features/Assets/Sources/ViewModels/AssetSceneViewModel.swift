@@ -465,11 +465,11 @@ extension AssetSceneViewModel {
         guard let tokenId = assetModel.asset.tokenId else {
             return .none
         }
-        return service.tokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
+        return service.tokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { $0.map() }
     }
 
     private var addressLink: BlockExplorerLink {
-        BlockExplorerLink(service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
+        service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address).map()
     }
 
     private var stakeBalance: GemAssetBalance {

@@ -94,11 +94,16 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
     };
     write_generated(&path, contents);
 
-    if matches!(generator_type, GeneratorType::Kotlin) {
-        write_generated(
+    match generator_type {
+        GeneratorType::Swift => write_generated(
+            &format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/JsonBridge.swift"),
+            remote_mappers::swift_json_bridge(&remote_mappers::bridge_types(Path::new("."))),
+        ),
+        GeneratorType::Kotlin => write_generated(
             &format!("{platform_directory_path}/../../gemwallet/android/serializer/TaggedJsonBridge.kt"),
             remote_mappers::kotlin_tagged_bridge(&remote_mappers::tagged_bridge_types(Path::new("."))),
-        );
+        ),
+        GeneratorType::TypeScript => {}
     }
 }
 

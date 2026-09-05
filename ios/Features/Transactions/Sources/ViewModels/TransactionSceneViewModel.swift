@@ -152,13 +152,13 @@ extension TransactionSceneViewModel {
 
     private var transactionLink: BlockExplorerLink {
         let transaction = transactionExtended.transaction
-        return BlockExplorerLink(service.transactionLink(
+        return service.transactionLink(
             chain: transaction.assetId.chain.rawValue,
             hash: transaction.id.hash,
             provider: transaction.swapProvider,
             recipient: transaction.to,
             memo: transaction.memo,
-        ))
+        ).map()
     }
 
     private var headerViewModel: TransactionHeaderViewModel {

@@ -1,5 +1,8 @@
 remote:
   - Account
+  - ApplicationMetadata
+  - ApplicationMetadataSource
+  - BlockExplorerLink
   - AssetFiatValue
   - AssetType
   - BannerEvent

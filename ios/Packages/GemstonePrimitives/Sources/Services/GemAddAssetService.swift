@@ -13,7 +13,7 @@ public extension GemAddAssetServiceProtocol {
     }
 
     func tokenUrl(chain: Chain, tokenId: String) -> BlockExplorerLink? {
-        tokenUrl(chain: chain.rawValue, tokenId: tokenId).map { BlockExplorerLink($0) }
+        tokenUrl(chain: chain.rawValue, tokenId: tokenId).map { $0.map() }
     }
 
     func token(chain: Chain, address: String) async throws -> Asset {

@@ -11,7 +11,7 @@ struct LocalKeystoreTests {
             let keystore = LocalKeystore.mock()
             let wallet = try keystore.importWallet(
                 name: "test",
-                type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+                type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }),
             )
 
             #expect(wallet.accounts.count == 1)
@@ -25,7 +25,7 @@ struct LocalKeystoreTests {
             let keystore = LocalKeystore.mock()
             let wallet = try keystore.importWallet(
                 name: "Solana Wallet",
-                type: .phrase(words: LocalKeystore.words, chains: [.solana]),
+                type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.solana].map { $0.map() }),
             )
 
             #expect(wallet.accounts.count == 1)
@@ -42,7 +42,7 @@ struct LocalKeystoreTests {
 
             let wallet = try keystore.importWallet(
                 name: "test",
-                type: .phrase(words: LocalKeystore.words, chains: chains),
+                type: .multicoinPhrase(words: LocalKeystore.words, chains: chains.map { $0.map() }),
             )
 
             #expect(wallet.accounts == chains.map {
@@ -61,7 +61,7 @@ struct LocalKeystoreTests {
             let hex = "0xb9095df5360714a69bc86ca92f6191e60355f206909982a8409f7b8358cf41b0"
             let wallet = try keystore.importWallet(
                 name: "Test Solana",
-                type: .privateKey(text: hex, chain: .solana),
+                type: .privateKey(value: hex, chain: Primitives.Chain.solana.map()),
             )
 
             let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .solana)
@@ -70,7 +70,7 @@ struct LocalKeystoreTests {
             let keystore2 = LocalKeystore.mock()
             let wallet2 = try keystore2.importWallet(
                 name: "Test Solana 2",
-                type: .privateKey(text: exported, chain: .solana),
+                type: .privateKey(value: exported, chain: Primitives.Chain.solana.map()),
             )
             let exportedKey = try await keystore2.getPrivateKeyEncoded(wallet: wallet2, chain: .solana)
             #expect(exportedKey == exported)
@@ -100,7 +100,7 @@ struct LocalKeystoreTests {
             let hex = "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e"
             let wallet = try keystore.importWallet(
                 name: "Test Ethereum",
-                type: .privateKey(text: hex, chain: .ethereum),
+                type: .privateKey(value: hex, chain: Primitives.Chain.ethereum.map()),
             )
 
             let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .ethereum)
@@ -115,7 +115,7 @@ struct LocalKeystoreTests {
             let chains = AssetConfiguration.allChains
             let wallet = try keystore.importWallet(
                 name: "test",
-                type: .phrase(words: LocalKeystore.words, chains: chains),
+                type: .multicoinPhrase(words: LocalKeystore.words, chains: chains.map { $0.map() }),
             )
 
             #expect(wallet.accounts.count == chains.count)

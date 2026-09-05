@@ -7,7 +7,7 @@ import Primitives
 
 public extension GemConfirmTransferServiceProtocol {
     func explorerLink(chain: Primitives.Chain, address: String) -> BlockExplorerLink {
-        BlockExplorerLink(addressUrl(chain: chain.rawValue, address: address))
+        addressUrl(chain: chain.rawValue, address: address).map()
     }
 }
 

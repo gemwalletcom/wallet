@@ -130,7 +130,7 @@ struct PaymentTransferTests {
                 url: "https://example.com",
                 icon: "https://example.com/icon.png",
                 source: .payment,
-            ).json(),
+            ).map(),
             account: try Primitives.ChainAddress(chain: .solana, address: "account").json(),
             transaction: "encoded-transaction",
             transactionType: Primitives.TransactionType.transfer.map(),

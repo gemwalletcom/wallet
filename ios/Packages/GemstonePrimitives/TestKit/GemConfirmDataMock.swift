@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmInput
 public import BigInt
 public import enum Gemstone.FeePriority
 public import struct Gemstone.GemConfirmData
@@ -28,7 +29,7 @@ import struct Gemstone.GemTransferData
 
 public extension GemConfirmData {
     static func mock(
-        input: GemConfirmInput = GemTransferData.mock().confirmInput(from: .mock()),
+        input: GemConfirmInput = GemConfirmInput(from: Primitives.Account.mock().map(), transfer: GemTransferData.mock()),
         fee: GemTransactionLoadFee = .mock(),
         selectedPriority: Gemstone.FeePriority = .normal,
         feeRates: [GemFeeRate] = [],

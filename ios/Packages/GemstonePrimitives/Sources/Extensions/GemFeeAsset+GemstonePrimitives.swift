@@ -57,8 +57,8 @@ public extension GemApprovalValue {
 }
 
 public extension GemConfirmMetadata {
-    var assetId: Primitives.AssetId? { try? Primitives.AssetId(id: assetBalance.assetId) }
-    var feeAssetId: Primitives.AssetId? { try? Primitives.AssetId(id: feeAssetBalance.assetId) }
+    var assetId: Primitives.AssetId { Primitives.AssetId(core: assetBalance.assetId) }
+    var feeAssetId: Primitives.AssetId { Primitives.AssetId(core: feeAssetBalance.assetId) }
 
     var available: BigInt { BigInt(assetBalance.available) }
 
@@ -76,8 +76,6 @@ public extension GemConfirmMetadata {
     }
 
     var assetPrices: [Primitives.AssetId: Primitives.Price] {
-        Dictionary(uniqueKeysWithValues: prices.compactMap { price in
-            (try? Primitives.AssetId(id: price.assetId)).map { ($0, Primitives.Price(price)) }
-        })
+        Dictionary(uniqueKeysWithValues: prices.map { (Primitives.AssetId(core: $0.assetId), Primitives.Price($0)) })
     }
 }

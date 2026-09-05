@@ -15,7 +15,7 @@ public extension GemTransactionInputType {
 
     var applicationMetadata: Primitives.ApplicationMetadata? {
         guard case let .generic(_, metadata, _) = self else { return nil }
-        return Primitives.ApplicationMetadata(core: metadata)
+        return metadata.map()
     }
 }
 
@@ -61,6 +61,6 @@ public extension GemTransactionInputType {
     }
 
     static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: GemTransferDataExtra) -> Self {
-        .generic(asset: asset.map(), metadata: metadata.json(), extra: extra)
+        .generic(asset: asset.map(), metadata: metadata.map(), extra: extra)
     }
 }

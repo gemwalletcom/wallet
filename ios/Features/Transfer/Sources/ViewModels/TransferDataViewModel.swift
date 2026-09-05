@@ -91,7 +91,7 @@ struct TransferDataViewModel {
              .perpetual,
              .earn: .none
         case let .generic(_, metadata, _):
-            URL(string: Primitives.ApplicationMetadata(core: metadata).url)
+            URL(string: metadata.map().url)
         }
     }
 

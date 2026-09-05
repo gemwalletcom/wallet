@@ -4,9 +4,9 @@ use primitives::{Chain, Currency, Transaction, TransactionExtended};
 
 use super::model::{GemTransactionDetails, GemTransactionHeaderKind, GemTransactionParticipant};
 use super::rules;
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
+use primitives::BlockExplorerLink;
 
 #[derive(uniffi::Object)]
 pub struct GemTransactionDetailsService {
@@ -39,7 +39,7 @@ impl GemTransactionDetailsService {
         Some(GemTransactionParticipant { role, address, link })
     }
 
-    pub fn transaction_link(&self, chain: Chain, hash: String, provider: Option<String>, recipient: Option<String>, memo: Option<String>) -> GemBlockExplorerLink {
+    pub fn transaction_link(&self, chain: Chain, hash: String, provider: Option<String>, recipient: Option<String>, memo: Option<String>) -> BlockExplorerLink {
         self.explorer.get_transaction_link(chain, hash, provider, recipient, memo)
     }
 }

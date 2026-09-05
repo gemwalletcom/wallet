@@ -177,7 +177,7 @@ class PaymentNavigationTest {
             url = "https://example.com",
             icon = "https://example.com/icon.png",
             source = ApplicationMetadataSource.Payment,
-        ).toJson(),
+        ).toGem(),
         account = ChainAddress(account.chain, account.address).toJson(),
         transaction = "encoded-transaction",
         transactionType = TransactionType.Transfer.toGem(),

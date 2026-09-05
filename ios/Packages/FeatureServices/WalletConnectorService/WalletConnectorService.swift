@@ -194,7 +194,7 @@ extension WalletConnectorService {
     }
 
     private func metadata(_ metadata: AppMetadata) throws -> ApplicationMetadata {
-        try service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
+        service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
     }
 
     private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext) async throws {

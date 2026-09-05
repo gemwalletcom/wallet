@@ -88,7 +88,7 @@ class WalletConnectSignerTest {
         val transfer = GemTransferData(
             inputType = GemTransactionInputType.Generic(
                 asset = Chain.Solana.asset().toGem(),
-                metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toJson(),
+                metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toGem(),
                 extra = GemTransferDataExtra(
                     to = "",
                     gasLimit = null,

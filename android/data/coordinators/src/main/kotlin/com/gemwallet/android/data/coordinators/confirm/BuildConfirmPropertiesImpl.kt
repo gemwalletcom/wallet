@@ -6,9 +6,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AddressName
-import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Wallet
@@ -30,7 +28,7 @@ class BuildConfirmPropertiesImpl(
         return withContext(Dispatchers.IO) {
             mutableListOf<ConfirmProperty?>().apply {
                 add(ConfirmProperty.Source(wallet.name, wallet.type, chain, wallet.imageUrl))
-                (transfer.inputType as? GemTransactionInputType.Generic)?.let { add(ConfirmProperty.Destination.Generic(it.metadata.decodeJson<ApplicationMetadata>().name)) }
+                (transfer.inputType as? GemTransactionInputType.Generic)?.let { add(ConfirmProperty.Destination.Generic(it.metadata.name)) }
                 add(
                     when (val destination = ConfirmProperty.Destination.map(transfer.destination(), chain, addressName)) {
                         is ConfirmProperty.Destination.Transfer -> ConfirmProperty.Destination.Transfer(

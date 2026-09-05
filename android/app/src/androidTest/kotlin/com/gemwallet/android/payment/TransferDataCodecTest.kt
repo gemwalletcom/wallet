@@ -61,7 +61,7 @@ class TransferDataCodecTest {
     ) = GemTransferData(
         inputType = GemTransactionInputType.Generic(
             asset = asset.toGem(),
-            metadata = metadata.toJson(),
+            metadata = metadata.toGem(),
             extra = GemTransferDataExtra(
                 to = recipient.address,
                 gasLimit = gasLimit,
@@ -124,7 +124,7 @@ class TransferDataCodecTest {
         val transfer = roundTrip(original)
         val assetId = transfer.inputType.asset.id
         val generic = transfer.inputType as GemTransactionInputType.Generic
-        val metadata = generic.metadata.decodeJson<ApplicationMetadata>()
+        val metadata = generic.metadata.toPrimitives()
 
         assertEquals(asset.id, assetId)
         assertEquals("merchant", transfer.recipient.address)

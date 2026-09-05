@@ -1,4 +1,5 @@
 import protocol Gemstone.GemNameServiceProtocol
+import enum Gemstone.GemWalletImportType
 import protocol Gemstone.GemWalletServiceProtocol
 import Components
 import Foundation
@@ -198,23 +199,23 @@ extension ImportWalletSceneViewModel {
             case .multicoin:
                 try await importWallet(
                     name: recipient.name,
-                    keystoreType: .phrase(words: words, chains: AssetConfiguration.allChains),
+                    type: .multicoinPhrase(words: words, chains: AssetConfiguration.allChains.map { $0.map() }),
                 )
             case let .chain(chain):
                 try await importWallet(
                     name: recipient.name,
-                    keystoreType: .single(words: words, chain: chain),
+                    type: .singlePhrase(words: words, chain: chain.map()),
                 )
             }
         case .privateKey:
-            try await importWallet(name: recipient.name, keystoreType: .privateKey(text: trimmedInput, chain: chain!))
+            try await importWallet(name: recipient.name, type: .privateKey(value: trimmedInput, chain: chain!.map()))
         case .address:
-            try await importWallet(name: recipient.name, keystoreType: .address(address: recipient.address, chain: chain!))
+            try await importWallet(name: recipient.name, type: .address(address: recipient.address, chain: chain!.map()))
         }
     }
 
-    private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
-        let result = try await service.importWallet(name: name, type: keystoreType, source: .import)
+    private func importWallet(name: String, type: GemWalletImportType) async throws {
+        let result = try await service.importWallet(name: name, type: type, source: .import)
 
         switch result {
         case let .new(wallet):

@@ -32,7 +32,6 @@ use std::sync::Arc;
 use gem_keystore::Mnemonic;
 use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
@@ -43,6 +42,7 @@ use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::BlockExplorerLink;
 
 pub use error::GemWalletImportError;
 pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
@@ -108,7 +108,7 @@ impl GemWalletService {
         self.session.set_current_wallet_id(Some(wallet_id))
     }
 
-    pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
+    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }
 
