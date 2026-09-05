@@ -9,7 +9,6 @@ public import struct Gemstone.GemAutocloseSummary
 public import typealias Gemstone.GemBigInt
 public import struct Gemstone.GemBlockExplorerLink
 public import struct Gemstone.GemConfirmData
-public import struct Gemstone.GemConfirmInitialState
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
@@ -68,11 +67,14 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         try GemConfirmInput(from: wallet.account(for: transfer.chain).map(), transfer: transfer)
     }
 
-    public func initialState(inputType: GemTransactionInputType, simulation _: SimulationResult?) -> GemConfirmInitialState {
-        GemConfirmInitialState(
-            feePriority: inputType.defaultFeePriority(),
-            feeAsset: inputType.transactionAsset(),
-            simulation: confirm.simulation,
+    public func initialState(transfer: GemTransferData, simulation _: SimulationResult?) async throws -> GemConfirmLoad {
+        GemConfirmLoad(
+            feeAsset: transfer.inputType.transactionAsset(),
+            metadata: .mock(),
+            feeAssets: [],
+            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: [], simulation: confirm.simulation, addressNames: []),
+            addressName: nil,
+            preload: nil,
         )
     }
 

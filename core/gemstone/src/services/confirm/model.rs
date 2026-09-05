@@ -9,7 +9,7 @@ use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::{
-    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
+    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, SimulationWarning, Transaction, Wallet,
 };
 
 pub type GemAccount = Account;
@@ -18,13 +18,6 @@ pub type GemAccount = Account;
 pub struct GemConfirmInput {
     pub from: GemAccount,
     pub transfer: GemTransferData,
-}
-
-#[derive(uniffi::Record)]
-pub struct GemConfirmInitialState {
-    pub fee_priority: FeePriority,
-    pub fee_asset: Asset,
-    pub simulation: Option<GemConfirmSimulation>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -151,14 +144,19 @@ impl GemConfirmSimulation {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
+    pub fee_asset: Asset,
+    pub metadata: GemConfirmMetadata,
     pub fee_assets: Vec<GemFeeAsset>,
-    pub preload: GemConfirmPreload,
     pub simulation: GemConfirmSimulationState,
     pub address_name: Option<AddressName>,
+    pub preload: Option<GemConfirmPreload>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulationState {
+    pub chain: Chain,
+    pub result: Option<SimulationResult>,
+    pub warnings: Vec<SimulationWarning>,
     pub simulation: Option<GemConfirmSimulation>,
     pub address_names: Vec<AddressName>,
 }
@@ -169,11 +167,15 @@ pub enum GemTransferAmountResult {
     Error { error: GemConfirmError },
 }
 
+pub struct GemConfirmFeeLoad {
+    pub fee_asset: Asset,
+    pub metadata: GemConfirmMetadata,
+    pub preload: GemConfirmPreload,
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmPreload {
     pub confirm_data: GemConfirmData,
-    pub metadata: GemConfirmMetadata,
-    pub fee_asset: Asset,
     pub amount: GemTransferAmountResult,
 }
 

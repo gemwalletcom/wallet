@@ -128,8 +128,6 @@ impl GemWalletService {
         })
     }
 
-
-
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
         let import = import.validated()?;
         let preview = self.preview_import(import.clone())?;
@@ -224,7 +222,8 @@ impl GemWalletService {
     pub async fn migrate_to_shared_password(&self) -> Result<u32, GemServiceError> {
         let legacy: Vec<(Wallet, String)> = self
             .store
-            .get_wallets().await?
+            .get_wallets()
+            .await?
             .into_iter()
             .filter(|wallet| wallet.wallet_type != WalletType::View)
             .filter_map(|wallet| match self.password.get_wallet_password(wallet.id.clone()) {

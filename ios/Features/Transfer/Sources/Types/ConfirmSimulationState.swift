@@ -5,7 +5,6 @@ import struct Gemstone.GemConfirmSimulationState
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
-import struct Gemstone.GemTransferData
 
 struct ConfirmSimulationState {
     let result: SimulationResult?
@@ -31,22 +30,29 @@ struct ConfirmSimulationState {
         self.balanceChanges = balanceChanges
     }
 
-    init(
-        data: GemTransferData,
-        simulation: SimulationResult?,
-        state: GemConfirmSimulationState,
-    ) {
+    init(result: SimulationResult?, chain: Primitives.Chain) {
+        self.init(
+            result: result,
+            warnings: result?.warnings ?? [],
+            hasCriticalWarning: false,
+            payload: SimulationPayloadModel(chain: chain, primaryFields: [], secondaryFields: []),
+            headerData: nil,
+            balanceChanges: [],
+        )
+    }
+
+    init(_ state: GemConfirmSimulationState) throws {
         let details = state.simulation
-        let addressNames = state.names
+        let simulation = try state.result.map { try Primitives.SimulationResult($0) }
         var payload = SimulationPayloadModel(
-            chain: data.chain,
+            chain: Primitives.Chain(core: state.chain),
             primaryFields: details?.primaryFields.map { $0.map() } ?? [],
             secondaryFields: details?.secondaryFields.map { $0.map() } ?? [],
         )
-        payload.addressNames = addressNames
+        payload.addressNames = state.names
         self.init(
             result: simulation,
-            warnings: simulation?.warnings ?? [],
+            warnings: try state.warnings.map { try SimulationWarning($0) },
             hasCriticalWarning: details?.hasCriticalWarning ?? false,
             payload: payload,
             headerData: details?.header.flatMap {

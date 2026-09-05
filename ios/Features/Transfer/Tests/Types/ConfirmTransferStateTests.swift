@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmLoad
 @testable import Primitives
 import PrimitivesTestKit
 import Testing
@@ -7,26 +8,24 @@ import Testing
 import TransferTestKit
 
 struct ConfirmTransferStateTests {
-    private let warning = SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)
 
     @Test
-    func loadedCarriesBundle() {
-        let data = ConfirmTransferData(
-            preload: ConfirmTransferPreload(
-                metadata: .mock(),
-                input: .mock(),
-            ),
-            simulation: .mock(warnings: [warning]),
-            feeAssets: [.mock(asset: .mockTempoUSDC())],
-            addressName: .mock(name: "Uniswap"),
+    func loadWithoutAFeeStillCarriesThePricesAndTheRecipient() throws {
+        let state = try ConfirmTransferState(
+            .mock(feeAssets: [.mock(asset: .mockTempoUSDC())], addressName: .mock(name: "Uniswap"), preload: nil),
         )
 
-        let loaded = ConfirmTransferState.loaded(data)
+        #expect(state.transaction.value == nil)
+        #expect(state.metadata != nil)
+        #expect(state.feeAssets.count == 1)
+        #expect(state.addressName?.name == "Uniswap")
+    }
 
-        #expect(loaded.transaction.value != nil)
-        #expect(loaded.metadata != nil)
-        #expect(loaded.feeAssets.count == 1)
-        #expect(loaded.simulation.warnings.count == 1)
-        #expect(loaded.addressName?.name == "Uniswap")
+    @Test
+    func loadWithAFeeCarriesTheTransactionInput() throws {
+        let state = try ConfirmTransferState(.mock(preload: .mock()))
+
+        #expect(state.transaction.value != nil)
+        #expect(state.confirmData != nil)
     }
 }

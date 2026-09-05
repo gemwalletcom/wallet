@@ -17,6 +17,7 @@ import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemSimulationBalanceChange
 import uniffi.gemstone.GemSimulationValue
+import com.wallet.core.primitives.Chain
 import java.math.BigInteger
 
 class SimulationTest {
@@ -37,7 +38,7 @@ class SimulationTest {
                 GemSimulationBalanceChange(asset = solana.toGem(), value = BigInteger("-100005000")),
                 GemSimulationBalanceChange(asset = usdc.toGem(), value = BigInteger("750000")),
             ),
-        ).toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
+        ).toSimulation(confirmService)
 
         assertEquals(
             listOf("-0.100005 SOL", "+0.75 USDC"),
@@ -53,14 +54,14 @@ class SimulationTest {
     fun `an unlimited header carries no amount`() {
         val usdc = mockAssetSolanaUSDC()
         val unlimited = state(header = GemSimulationValue(asset = usdc.toGem(), value = GemApprovalValue.Unlimited))
-            .toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
+            .toSimulation(confirmService)
 
         assertTrue(unlimited.headerIsUnlimited)
         assertNull(unlimited.headerValue)
         assertEquals(usdc, unlimited.headerAsset)
 
         val exact = state(header = GemSimulationValue(asset = usdc.toGem(), value = GemApprovalValue.Exact(BigInteger("750000"))))
-            .toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
+            .toSimulation(confirmService)
 
         assertEquals(false, exact.headerIsUnlimited)
         assertEquals(BigInteger("750000"), exact.headerValue)
@@ -70,6 +71,9 @@ class SimulationTest {
         balanceChanges: List<GemSimulationBalanceChange> = emptyList(),
         header: GemSimulationValue? = null,
     ) = GemConfirmSimulationState(
+        chain = Chain.Ethereum.string,
+        result = null,
+        warnings = emptyList(),
         simulation = GemConfirmSimulation(primaryFields = emptyList(), secondaryFields = emptyList(), header = header, balanceChanges = balanceChanges, hasCriticalWarning = false),
         addressNames = emptyList(),
     )

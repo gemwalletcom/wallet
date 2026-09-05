@@ -67,20 +67,9 @@ public extension GemTransactionLoadFee {
 public extension GemConfirmPreload {
     static func mock(
         confirmData: GemConfirmData = .mock(),
-        metadata: GemConfirmMetadata? = nil,
-        feeAsset: Primitives.Asset = .mockEthereum(),
         amount: GemTransferAmountResult = .amount(amount: GemTransferAmount(value: 1, networkFee: 1, isMaxAmount: false)),
     ) -> GemConfirmPreload {
-        GemConfirmPreload(
-            confirmData: confirmData,
-            metadata: metadata ?? GemConfirmMetadata(
-                assetBalance: .mock(assetId: feeAsset.id.identifier),
-                feeAssetBalance: .mock(assetId: feeAsset.id.identifier),
-                prices: [],
-            ),
-            feeAsset: feeAsset.map(),
-            amount: amount,
-        )
+        GemConfirmPreload(confirmData: confirmData, amount: amount)
     }
 }
 
@@ -149,16 +138,21 @@ public extension GemTransferAmount {
 
 public extension GemConfirmLoad {
     static func mock(
-        preload: GemConfirmPreload = .mock(),
+        feeAsset: Primitives.Asset = .mockEthereum(),
+        metadata: GemConfirmMetadata = .mock(),
         feeAssets: [GemFeeAsset] = [],
         simulation: GemConfirmSimulation? = nil,
+        warnings: [Primitives.SimulationWarning] = [],
         addressName: Primitives.AddressName? = nil,
+        preload: GemConfirmPreload? = .mock(),
     ) -> GemConfirmLoad {
         GemConfirmLoad(
+            feeAsset: feeAsset.map(),
+            metadata: metadata,
             feeAssets: feeAssets,
-            preload: preload,
-            simulation: GemConfirmSimulationState(simulation: simulation, addressNames: []),
+            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings.map { $0.json() }, simulation: simulation, addressNames: []),
             addressName: addressName?.json(),
+            preload: preload,
         )
     }
 }

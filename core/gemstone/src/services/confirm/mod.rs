@@ -233,7 +233,7 @@ impl GemConfirmService {
         let prices = self.price.prices(fee_asset_ids).await?;
         Ok(rules::selectable_fee_assets(assets, balances, prices))
     }
-    pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
+    pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let confirm_data = self.load(input, options).await?;
         let fee_asset_id = confirm_data.fee.fee_asset.clone();
         let metadata = self
@@ -247,11 +247,10 @@ impl GemConfirmService {
             .next()
             .ok_or(GemConfirmError::BalanceMissing { asset_id: fee_asset_id.clone() })?;
         let amount = confirm_data.preload_amount(&metadata, &fee_asset)?;
-        Ok(GemConfirmPreload {
-            confirm_data,
-            metadata,
+        Ok(GemConfirmFeeLoad {
             fee_asset,
-            amount,
+            metadata,
+            preload: GemConfirmPreload { confirm_data, amount },
         })
     }
 }

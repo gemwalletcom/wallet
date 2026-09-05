@@ -57,6 +57,22 @@ impl GemTransactionInputType {
         }
     }
 
+    pub fn fee_asset(&self) -> Asset {
+        let asset = self.transaction_asset();
+        let chain = asset.chain();
+        if let Self::Perpetual { .. } = self
+            && chain == Chain::HyperCore
+        {
+            return default_asset(chain, AssetType::PERPETUAL).unwrap_or(asset);
+        }
+        match chain {
+            Chain::Tempo => asset,
+            Chain::HyperCore => default_asset(chain, AssetType::TOKEN).unwrap_or(asset),
+            _ if asset.id.is_token() => Asset::from_chain(chain),
+            _ => asset,
+        }
+    }
+
     pub fn default_fee_priority(&self) -> FeePriority {
         match self {
             Self::Swap { from_asset, .. } if from_asset.chain() == Chain::Bitcoin => FeePriority::Fast,
@@ -110,21 +126,6 @@ impl GemTransactionInputType {
             Self::Swap { from_asset, to_asset, .. } => vec![from_asset.id.clone(), to_asset.id.clone()],
             Self::TransferNft { .. } => vec![],
             _ => vec![self.asset().id.clone()],
-        }
-    }
-    pub fn fee_asset(&self) -> Asset {
-        let asset = self.transaction_asset();
-        let chain = asset.chain();
-        if let Self::Perpetual { .. } = self
-            && chain == Chain::HyperCore
-        {
-            return default_asset(chain, AssetType::PERPETUAL).unwrap_or(asset);
-        }
-        match chain {
-            Chain::Tempo => asset,
-            Chain::HyperCore => default_asset(chain, AssetType::TOKEN).unwrap_or(asset),
-            _ if asset.id.is_token() => Asset::from_chain(chain),
-            _ => asset,
         }
     }
     pub fn recent_activity(&self) -> Option<GemRecentActivity> {

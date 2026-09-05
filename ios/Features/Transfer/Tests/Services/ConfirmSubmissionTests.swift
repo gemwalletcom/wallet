@@ -76,9 +76,9 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func simulationStateMapsTheHeader() {
+    func simulationStateMapsTheHeader() async {
         let usdt = Asset.mockEthereumUSDT()
-        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
+        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
@@ -86,9 +86,10 @@ struct ConfirmSubmissionTests {
                 balanceChanges: [],
                 hasCriticalWarning: false,
             ),
-        ))
+        )))
+        await model.load()
 
-        let state = service.state.simulation
+        let state = model.state.simulation
 
         #expect(state.headerData == AssetValueHeaderData(asset: usdt, value: .exact(1_000_000)))
         #expect(state.payload.primaryFields.isEmpty)
@@ -96,9 +97,9 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func simulationStateMapsAnUnlimitedHeader() {
+    func simulationStateMapsAnUnlimitedHeader() async {
         let usdt = Asset.mockEthereumUSDT()
-        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
+        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
@@ -106,19 +107,21 @@ struct ConfirmSubmissionTests {
                 balanceChanges: [],
                 hasCriticalWarning: false,
             ),
-        ))
+        )))
+        await model.load()
 
-        #expect(service.state.simulation.headerData == AssetValueHeaderData(asset: usdt, value: .unlimited))
+        #expect(model.state.simulation.headerData == AssetValueHeaderData(asset: usdt, value: .unlimited))
     }
 
     @Test
-    func simulationStateKeepsPrimaryAndSecondaryFieldsApart() {
+    func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
-        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
+        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: GemConfirmSimulation(primaryFields: [primary.map()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
-        ))
+        )))
+        await model.load()
 
-        let state = service.state.simulation
+        let state = model.state.simulation
 
         #expect(state.payload.primaryFields.count == 1)
         #expect(state.payload.primaryFields.first?.kind == .contract)
@@ -126,9 +129,9 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func simulationStateMapsBalanceChanges() {
+    func simulationStateMapsBalanceChanges() async {
         let usdt = Asset.mockEthereumUSDT()
-        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
+        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
@@ -136,9 +139,10 @@ struct ConfirmSubmissionTests {
                 balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25")],
                 hasCriticalWarning: false,
             ),
-        ))
+        )))
+        await model.load()
 
-        #expect(service.state.simulation.balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
+        #expect(model.state.simulation.balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
     }
 
 }
