@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
@@ -61,7 +60,7 @@ class UserConfig(
 
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
-    private val appearanceState = MutableStateFlow(preferencesService.getAppearance().decodeJson<Appearance>())
+    private val appearanceState = MutableStateFlow(preferencesService.getAppearance().toPrimitives())
     private val termsAcceptedState = MutableStateFlow(preferencesService.isAcceptTermsCompleted())
     private val askNotificationsState = MutableStateFlow(preferencesService.shouldAskNotifications())
     private val lockIntervalState = MutableStateFlow(
@@ -85,8 +84,8 @@ class UserConfig(
     fun appearance(): Flow<Appearance> = appearanceState
 
     fun setAppearance(appearance: Appearance) {
-        preferencesService.setAppearance(appearance.toJson())
-        appearanceState.value = preferencesService.getAppearance().decodeJson()
+        preferencesService.setAppearance(appearance.toGem())
+        appearanceState.value = preferencesService.getAppearance().toPrimitives()
     }
 
     private val perpetualLeverageState = MutableStateFlow(preferencesService.getPerpetualLeverage().toInt())
@@ -125,7 +124,7 @@ class UserConfig(
     fun reload() {
         hideBalancesState.value = preferencesService.isHideBalanceEnabled()
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
-        appearanceState.value = preferencesService.getAppearance().decodeJson()
+        appearanceState.value = preferencesService.getAppearance().toPrimitives()
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
         askNotificationsState.value = preferencesService.shouldAskNotifications()
         perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()

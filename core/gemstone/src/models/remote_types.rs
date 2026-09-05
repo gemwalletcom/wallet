@@ -2,14 +2,26 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetType, BannerEvent, BannerState, BlockExplorerLink, Chain, ChainType,
-    ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, DelegationState, FeePriority, FeeUnitType, FiatQuoteType, Latency, LatencyType, LinkType, PerpetualAccountMode,
-    PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PlatformStore, PortfolioType, PriceAlertDirection, PriceAlertNotificationType,
-    RecentActivityType, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, StakeProviderType,
-    SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus,
-    WalletConnectionVerificationStatus, WalletSource, WalletType,
+    Account, AccountDataType, Appearance, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetType, BannerEvent, BannerState, BlockExplorerLink,
+    Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, DelegationState, FeePriority, FeeUnitType, FiatQuoteType, Latency, LatencyType, LinkType,
+    PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, Platform, PlatformStore, PortfolioType, PriceAlertDirection,
+    PriceAlertNotificationType, RecentActivityType, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind,
+    SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction,
+    TransferDataOutputType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
+
+#[uniffi::remote(Enum)]
+pub enum AccountDataType {
+    Activate,
+}
+
+#[uniffi::remote(Enum)]
+pub enum Appearance {
+    System,
+    Light,
+    Dark,
+}
 
 #[uniffi::remote(Enum)]
 pub enum ApplicationMetadataSource {
@@ -193,6 +205,12 @@ pub enum PerpetualProvider {
 }
 
 #[uniffi::remote(Enum)]
+pub enum Platform {
+    IOS,
+    Android,
+}
+
+#[uniffi::remote(Enum)]
 pub enum PlatformStore {
     AppStore,
     GooglePlay,
@@ -263,6 +281,12 @@ pub enum SimulationPayloadFieldType {
     Text,
     Address,
     Timestamp,
+}
+
+#[uniffi::remote(Enum)]
+pub enum SolanaTokenProgramId {
+    Token,
+    Token2022,
 }
 
 #[uniffi::remote(Enum)]

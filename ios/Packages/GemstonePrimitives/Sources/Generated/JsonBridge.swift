@@ -3,9 +3,7 @@
 
 import Primitives
 
-extension Primitives.AccountDataType: JsonCodable {}
 extension Primitives.AddressName: JsonCodable {}
-extension Primitives.Appearance: JsonCodable {}
 extension Primitives.ApprovalData: JsonCodable {}
 extension Primitives.AssetBasic: JsonCodable {}
 extension Primitives.AssetFull: JsonCodable {}
@@ -32,7 +30,6 @@ extension Primitives.Delegation: JsonCodable {}
 extension Primitives.DelegationBase: JsonCodable {}
 extension Primitives.DelegationValidator: JsonCodable {}
 extension Primitives.Device: JsonCodable {}
-extension Primitives.DeviceLocale: JsonCodable {}
 extension Primitives.EarnType: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
 extension Primitives.FiatQuote: JsonCodable {}
@@ -46,12 +43,10 @@ extension Primitives.Markets: JsonCodable {}
 extension Primitives.NFTAsset: JsonCodable {}
 extension Primitives.NFTAssetData: JsonCodable {}
 extension Primitives.NFTAttribute: JsonCodable {}
-extension Primitives.NFTAttributeType: JsonCodable {}
 extension Primitives.NFTData: JsonCodable {}
 extension Primitives.Node: JsonCodable {}
 extension Primitives.NFTImages: JsonCodable {}
 extension Primitives.NFTResource: JsonCodable {}
-extension Primitives.NFTType: JsonCodable {}
 extension Primitives.NameRecord: JsonCodable {}
 extension Primitives.Payment: JsonCodable {}
 extension Primitives.PaymentAmount: JsonCodable {}
@@ -68,7 +63,6 @@ extension Primitives.PerpetualModifyConfirmData: JsonCodable {}
 extension Primitives.PerpetualModifyPositionType: JsonCodable {}
 extension Primitives.PerpetualPortfolio: JsonCodable {}
 extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}
-extension Primitives.Platform: JsonCodable {}
 extension Primitives.Release: JsonCodable {}
 extension Primitives.PerpetualPosition: JsonCodable {}
 extension Primitives.PerpetualPositionsSummary: JsonCodable {}
@@ -95,7 +89,6 @@ extension Primitives.SimulationHeader: JsonCodable {}
 extension Primitives.SimulationResult: JsonCodable {}
 extension Primitives.SimulationWarning: JsonCodable {}
 extension Primitives.SolanaNftStandard: JsonCodable {}
-extension Primitives.SolanaTokenProgramId: JsonCodable {}
 extension Primitives.StakeType: JsonCodable {}
 extension Primitives.StakeValidator: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
@@ -103,11 +96,9 @@ extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SupportTyping: JsonCodable {}
 extension Primitives.SwapData: JsonCodable {}
 extension Primitives.SwapPriceImpact: JsonCodable {}
-extension Primitives.SwapPriceImpactType: JsonCodable {}
 extension Primitives.SwapProviderData: JsonCodable {}
 extension Primitives.SwapQuote: JsonCodable {}
 extension Primitives.SwapQuoteData: JsonCodable {}
-extension Primitives.SwapQuoteDataType: JsonCodable {}
 extension Primitives.TPSLOrderData: JsonCodable {}
 extension Primitives.Transaction: JsonCodable {}
 extension Primitives.TransactionExtended: JsonCodable {}

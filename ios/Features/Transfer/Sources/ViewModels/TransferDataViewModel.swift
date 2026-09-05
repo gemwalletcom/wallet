@@ -59,7 +59,7 @@ struct TransferDataViewModel {
             case .unfreeze: Localized.Transfer.Unfreeze.title
             }
         case let .account(_, type):
-            switch Primitives.AccountDataType(core: type) {
+            switch type {
             case .activate: Localized.Transfer.ActivateAsset.title
             }
         case let .perpetual(_, type):

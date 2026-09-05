@@ -49,7 +49,7 @@ public extension GemTransactionInputType {
     }
 
     static func account(_ asset: Primitives.Asset, _ accountType: Primitives.AccountDataType) -> Self {
-        .account(asset: asset.map(), accountType: accountType.json())
+        .account(asset: asset.map(), accountType: accountType.map())
     }
 
     static func perpetual(_ asset: Primitives.Asset, _ perpetualType: Primitives.PerpetualType) -> Self {

@@ -737,6 +737,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   gone, the sheet id uses `GemRecipient::identifier`, and both modes build Core's
   `GemContactAddressInput` from the recipient directly. Android has no add-contact-from-address
   flow yet, so there is nothing to converge there.
+- **No fieldless enum crosses the FFI as JSON any more.** `AccountDataType`, `Appearance`,
+  `Platform` and `SolanaTokenProgramId` were the last ones still on the `json_bridge!` list while
+  crossing directly (the transaction input account type, the preferences appearance, the device
+  platform, the Solana load metadata); they are `remote_types.yml` entries now, so the apps pass
+  the generated `map()` / `toGem()` value instead of `json()` / `toJson()` and read it back with
+  `map()` / `toPrimitives()` instead of a JSON decode. `DeviceLocale`, `NFTAttributeType`,
+  `NFTType`, `SwapPriceImpactType` and `SwapQuoteDataType` only ever appeared nested inside other
+  bridged types, so their bridge entries and iOS `JsonCodable` conformances were dead and are gone.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

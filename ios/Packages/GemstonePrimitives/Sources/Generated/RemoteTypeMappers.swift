@@ -4,6 +4,42 @@
 import Gemstone
 import Primitives
 
+public extension Gemstone.AccountDataType {
+    func map() -> Primitives.AccountDataType {
+        switch self {
+        case .activate: .activate
+        }
+    }
+}
+
+public extension Primitives.AccountDataType {
+    func map() -> Gemstone.AccountDataType {
+        switch self {
+        case .activate: .activate
+        }
+    }
+}
+
+public extension Gemstone.Appearance {
+    func map() -> Primitives.Appearance {
+        switch self {
+        case .system: .system
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+}
+
+public extension Primitives.Appearance {
+    func map() -> Gemstone.Appearance {
+        switch self {
+        case .system: .system
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+}
+
 public extension Gemstone.ApplicationMetadataSource {
     func map() -> Primitives.ApplicationMetadataSource {
         switch self {
@@ -482,6 +518,24 @@ public extension Primitives.PerpetualProvider {
     }
 }
 
+public extension Gemstone.Platform {
+    func map() -> Primitives.Platform {
+        switch self {
+        case .ios: .ios
+        case .android: .android
+        }
+    }
+}
+
+public extension Primitives.Platform {
+    func map() -> Gemstone.Platform {
+        switch self {
+        case .ios: .ios
+        case .android: .android
+        }
+    }
+}
+
 public extension Gemstone.PlatformStore {
     func map() -> Primitives.PlatformStore {
         switch self {
@@ -678,6 +732,24 @@ public extension Primitives.SimulationPayloadFieldType {
         case .text: .text
         case .address: .address
         case .timestamp: .timestamp
+        }
+    }
+}
+
+public extension Gemstone.SolanaTokenProgramId {
+    func map() -> Primitives.SolanaTokenProgramId {
+        switch self {
+        case .token: .token
+        case .token2022: .token2022
+        }
+    }
+}
+
+public extension Primitives.SolanaTokenProgramId {
+    func map() -> Gemstone.SolanaTokenProgramId {
+        switch self {
+        case .token: .token
+        case .token2022: .token2022
         }
     }
 }

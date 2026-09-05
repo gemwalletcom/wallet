@@ -3,6 +3,26 @@
 
 package com.gemwallet.android.ext
 
+fun uniffi.gemstone.AccountDataType.toPrimitives(): com.wallet.core.primitives.AccountDataType = when (this) {
+    uniffi.gemstone.AccountDataType.ACTIVATE -> com.wallet.core.primitives.AccountDataType.Activate
+}
+
+fun com.wallet.core.primitives.AccountDataType.toGem(): uniffi.gemstone.AccountDataType = when (this) {
+    com.wallet.core.primitives.AccountDataType.Activate -> uniffi.gemstone.AccountDataType.ACTIVATE
+}
+
+fun uniffi.gemstone.Appearance.toPrimitives(): com.wallet.core.primitives.Appearance = when (this) {
+    uniffi.gemstone.Appearance.SYSTEM -> com.wallet.core.primitives.Appearance.System
+    uniffi.gemstone.Appearance.LIGHT -> com.wallet.core.primitives.Appearance.Light
+    uniffi.gemstone.Appearance.DARK -> com.wallet.core.primitives.Appearance.Dark
+}
+
+fun com.wallet.core.primitives.Appearance.toGem(): uniffi.gemstone.Appearance = when (this) {
+    com.wallet.core.primitives.Appearance.System -> uniffi.gemstone.Appearance.SYSTEM
+    com.wallet.core.primitives.Appearance.Light -> uniffi.gemstone.Appearance.LIGHT
+    com.wallet.core.primitives.Appearance.Dark -> uniffi.gemstone.Appearance.DARK
+}
+
 fun uniffi.gemstone.ApplicationMetadataSource.toPrimitives(): com.wallet.core.primitives.ApplicationMetadataSource = when (this) {
     uniffi.gemstone.ApplicationMetadataSource.WALLET_CONNECT -> com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect
     uniffi.gemstone.ApplicationMetadataSource.PAYMENT -> com.wallet.core.primitives.ApplicationMetadataSource.Payment
@@ -313,6 +333,16 @@ fun com.wallet.core.primitives.PerpetualProvider.toGem(): uniffi.gemstone.Perpet
     com.wallet.core.primitives.PerpetualProvider.Hypercore -> uniffi.gemstone.PerpetualProvider.HYPERCORE
 }
 
+fun uniffi.gemstone.Platform.toPrimitives(): com.wallet.core.primitives.Platform = when (this) {
+    uniffi.gemstone.Platform.IOS -> com.wallet.core.primitives.Platform.IOS
+    uniffi.gemstone.Platform.ANDROID -> com.wallet.core.primitives.Platform.Android
+}
+
+fun com.wallet.core.primitives.Platform.toGem(): uniffi.gemstone.Platform = when (this) {
+    com.wallet.core.primitives.Platform.IOS -> uniffi.gemstone.Platform.IOS
+    com.wallet.core.primitives.Platform.Android -> uniffi.gemstone.Platform.ANDROID
+}
+
 fun uniffi.gemstone.PlatformStore.toPrimitives(): com.wallet.core.primitives.PlatformStore = when (this) {
     uniffi.gemstone.PlatformStore.APP_STORE -> com.wallet.core.primitives.PlatformStore.AppStore
     uniffi.gemstone.PlatformStore.GOOGLE_PLAY -> com.wallet.core.primitives.PlatformStore.GooglePlay
@@ -439,6 +469,16 @@ fun com.wallet.core.primitives.SimulationPayloadFieldType.toGem(): uniffi.gemsto
     com.wallet.core.primitives.SimulationPayloadFieldType.Text -> uniffi.gemstone.SimulationPayloadFieldType.TEXT
     com.wallet.core.primitives.SimulationPayloadFieldType.Address -> uniffi.gemstone.SimulationPayloadFieldType.ADDRESS
     com.wallet.core.primitives.SimulationPayloadFieldType.Timestamp -> uniffi.gemstone.SimulationPayloadFieldType.TIMESTAMP
+}
+
+fun uniffi.gemstone.SolanaTokenProgramId.toPrimitives(): com.wallet.core.primitives.SolanaTokenProgramId = when (this) {
+    uniffi.gemstone.SolanaTokenProgramId.TOKEN -> com.wallet.core.primitives.SolanaTokenProgramId.Token
+    uniffi.gemstone.SolanaTokenProgramId.TOKEN2022 -> com.wallet.core.primitives.SolanaTokenProgramId.Token2022
+}
+
+fun com.wallet.core.primitives.SolanaTokenProgramId.toGem(): uniffi.gemstone.SolanaTokenProgramId = when (this) {
+    com.wallet.core.primitives.SolanaTokenProgramId.Token -> uniffi.gemstone.SolanaTokenProgramId.TOKEN
+    com.wallet.core.primitives.SolanaTokenProgramId.Token2022 -> uniffi.gemstone.SolanaTokenProgramId.TOKEN2022
 }
 
 fun uniffi.gemstone.StakeProviderType.toPrimitives(): com.wallet.core.primitives.StakeProviderType = when (this) {

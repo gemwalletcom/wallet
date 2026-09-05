@@ -111,7 +111,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     private var hideBalanceEnabled = false
     private var developerEnabled = false
     private var acceptTermsCompleted = false
-    private var appearance: Gemstone.Appearance = (Primitives.Appearance.system.json()) ?? "\"system\""
+    private var appearance: Gemstone.Appearance = .system
 
     public func isPerpetualEnabled() -> Bool {
         perpetualEnabled

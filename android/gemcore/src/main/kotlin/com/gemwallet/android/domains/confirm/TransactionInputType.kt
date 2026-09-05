@@ -69,4 +69,4 @@ fun GemTransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swa
     GemTransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData.toJson())
 
 fun GemTransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): GemTransactionInputType =
-    GemTransactionInputType.Account(asset.toGem(), accountType.toJson())
+    GemTransactionInputType.Account(asset.toGem(), accountType.toGem())
