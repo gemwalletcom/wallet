@@ -989,6 +989,20 @@ Three gotchas if you repeat the sweep, all met on this pass:
   Core rows instead of re-encoding swap metadata. Core tests pin the swap-leg resolution, the
   known-address name, the NFT image and perpetual notional, the detail header/participant/rate/fee
   build, and the both-legs-non-zero rate rule.
+- **The rewards screen state is Core's answer.** `GemRewardsService::state(rewards)` returns
+  `GemRewardsState { has_referral_code, has_used_referral_code, can_invite,
+  can_use_referral_code, shows_info, is_unverified, has_pending_referral,
+  can_activate_pending_referral }` from the `Rewards` the same service fetched. The apps had
+  diverged: iOS offered the invite button to any wallet with a code that was not unverified
+  (including a disabled one), Android only for `Verified | Trusted | Attribution`; iOS hid the
+  "use a referral code" action once a code was used, Android dropped every `Rewards` without an
+  own code on the floor (so a wallet that had used a friend's code never saw its pending
+  referral); iOS activated a pending referral at `>=` verify-after, Android at `>`. Core keeps
+  the status-based invite rule, iOS's use-a-code and info rules, requires a used code for a
+  pending referral and activates at `>=`, each pinned by a test. `Rewards` now lifts from the
+  app-encoded JSON (the two non-typeshare fields default), pinned by a Core test on the app
+  shape. iOS `RewardsViewModel` lost seven booleans and Android `RewardsUIState` and its test
+  are deleted; both scenes read the one record.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

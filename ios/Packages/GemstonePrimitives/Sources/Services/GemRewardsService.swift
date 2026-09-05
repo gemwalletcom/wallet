@@ -2,6 +2,7 @@
 
 import Foundation
 import protocol Gemstone.GemRewardsServiceProtocol
+import struct Gemstone.GemRewardsState
 import Primitives
 
 public extension GemRewardsServiceProtocol {
@@ -19,6 +20,10 @@ public extension GemRewardsServiceProtocol {
 
     func redeem(wallet: Primitives.Wallet, redemptionId: String) async throws -> Primitives.RedemptionResult {
         try await Primitives.RedemptionResult(redeem(wallet: wallet.map(), redemptionId: redemptionId))
+    }
+
+    func state(rewards: Primitives.Rewards?) -> GemRewardsState {
+        state(rewards: rewards?.json())
     }
 
     func referralLink(code: String) throws -> URL {

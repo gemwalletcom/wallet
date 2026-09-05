@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use chrono::Utc;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AuthenticatedRequest, ReferralCode, Rewards, Wallet, WalletId};
 
@@ -9,6 +10,11 @@ use crate::services::auth::GemAuthService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::wallet_session::rules as session_rules;
+
+pub mod model;
+pub mod rules;
+
+pub use model::GemRewardsState;
 
 #[derive(uniffi::Object)]
 pub struct GemRewardsService {
@@ -34,6 +40,10 @@ impl GemRewardsService {
 
     pub fn referral_link(&self, code: String) -> String {
         get_referral_url(&code)
+    }
+
+    pub fn state(&self, rewards: Option<Rewards>) -> GemRewardsState {
+        rules::state(rewards.as_ref(), Utc::now())
     }
 
     pub async fn get_rewards(&self, wallet_id: WalletId) -> Result<Rewards, GemServiceError> {

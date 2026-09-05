@@ -45,7 +45,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
+import uniffi.gemstone.GemRewardsState
 import com.gemwallet.android.features.referral.viewmodels.SyncType
 import com.gemwallet.android.features.referral.views.components.referralConfirmCode
 import com.gemwallet.android.features.referral.views.components.referralError
@@ -68,7 +68,7 @@ fun ReferralScene(
     isAvailableWalletSelect: Boolean,
     rewards: Rewards?,
     referralLink: String?,
-    uiState: RewardsUIState,
+    uiState: GemRewardsState,
     currentWallet: Wallet?,
     joinPointsCost: Int,
     referralCode: String? = null,
@@ -146,12 +146,12 @@ fun ReferralScene(
                 referralHead(
                     joinPointsCost = joinPointsCost,
                     canInvite = uiState.canInvite,
-                    hasCode = rewards != null,
+                    hasCode = uiState.hasReferralCode,
                     onGetStarted = { getStartedDialogShow = true },
                     onShare = onShare,
                 )
 
-                if (rewards == null) {
+                if (uiState.canUseReferralCode) {
                     item {
                         Spacer8()
                         Box(modifier = Modifier.padding(horizontal = sceneContentPadding())) {
@@ -172,7 +172,8 @@ fun ReferralScene(
                             textAlign = TextAlign.Center
                         )
                     }
-                } else {
+                }
+                if (rewards != null) {
                     referralError(rewards)
                     referralUnverified(uiState)
                     referralConfirmCode(rewards, uiState) {
@@ -187,7 +188,9 @@ fun ReferralScene(
                             onRefresh()
                         }
                     }
-                    referralInfo(rewards, onRedeem)
+                    if (uiState.showsInfo) {
+                        referralInfo(rewards, onRedeem)
+                    }
                 }
             }
         }
@@ -223,7 +226,7 @@ private fun ReferralScenePreview() {
                 redemptionOptions = emptyList(),
             ),
             referralLink = null,
-            uiState = RewardsUIState(canInvite = true, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
+            uiState = previewState(hasReferralCode = true, canInvite = true, showsInfo = true),
             currentWallet = Wallet(
                 id = WalletId("1"),
                 name = "Wallet 1",
@@ -255,7 +258,7 @@ private fun ReferralSceneNoRewardsPreview() {
             isAvailableWalletSelect = false,
             rewards = null,
             referralLink = null,
-            uiState = RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
+            uiState = previewState(canUseReferralCode = true),
             currentWallet = Wallet(
                 id = WalletId("1"),
                 name = "Wallet 1",
@@ -277,3 +280,19 @@ private fun ReferralSceneNoRewardsPreview() {
         )
     }
 }
+
+private fun previewState(
+    hasReferralCode: Boolean = false,
+    canInvite: Boolean = false,
+    canUseReferralCode: Boolean = false,
+    showsInfo: Boolean = false,
+) = GemRewardsState(
+    hasReferralCode = hasReferralCode,
+    hasUsedReferralCode = false,
+    canInvite = canInvite,
+    canUseReferralCode = canUseReferralCode,
+    showsInfo = showsInfo,
+    isUnverified = false,
+    hasPendingReferral = false,
+    canActivatePendingReferral = false,
+)

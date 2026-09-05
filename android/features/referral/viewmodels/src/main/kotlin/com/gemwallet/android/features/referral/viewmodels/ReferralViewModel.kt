@@ -9,6 +9,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
@@ -45,8 +46,8 @@ class ReferralViewModel @Inject constructor(
     val rewards = MutableStateFlow<Rewards?>(null)
     val inSync = MutableStateFlow(SyncType.Init)
 
-    val uiState = rewards.mapLatest { RewardsUIState.from(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, RewardsUIState.from(null))
+    val uiState = rewards.mapLatest { service.state(it?.toJson()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, service.state(null))
 
     val referralLink = rewards.mapLatest { it?.code?.let(service::referralLink) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -82,7 +83,7 @@ class ReferralViewModel @Inject constructor(
     private fun sync(wallet: Wallet, type: SyncType) = viewModelScope.launch(Dispatchers.IO) {
         inSync.update { type }
         val rewards = try {
-            service.getRewards(wallet.id.id).decodeJson<Rewards>().takeIf { it.code != null }
+            service.getRewards(wallet.id.id).decodeJson<Rewards>()
         } catch (_: Exception) {
             null
         } finally {
