@@ -131,7 +131,7 @@ struct PaymentTransferTests {
                 icon: "https://example.com/icon.png",
                 source: .payment,
             ).map(),
-            account: try Primitives.ChainAddress(chain: .solana, address: "account").json(),
+            account: Primitives.ChainAddress(chain: .solana, address: "account").map(),
             transaction: "encoded-transaction",
             transactionType: Primitives.TransactionType.transfer.map(),
             memo: memo,

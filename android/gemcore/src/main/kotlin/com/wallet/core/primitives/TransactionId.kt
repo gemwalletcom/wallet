@@ -8,16 +8,14 @@ data class TransactionId(
     val chain: Chain,
     val hash: String,
 ) {
-    companion object {
-        fun from(id: String): TransactionId? {
-            val components = id.split("_", limit = 2)
-            if (components.size != 2) {
-                return null
-            }
+    constructor(identifier: String) : this(
+        chain = Chain.entries.firstOrNull { it.string == identifier.substringBefore("_") }
+            ?: throw IllegalArgumentException("Invalid transaction id: $identifier"),
+        hash = identifier.substringAfter("_", "").ifEmpty { throw IllegalArgumentException("Invalid transaction id: $identifier") },
+    )
 
-            val chain = Chain.entries.firstOrNull { it.string == components[0] } ?: return null
-            return TransactionId(chain, components[1])
-        }
+    companion object {
+        fun from(id: String): TransactionId? = runCatching { TransactionId(id) }.getOrNull()
     }
 
     val identifier: String

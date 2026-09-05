@@ -766,6 +766,17 @@ Three gotchas if you repeat the sweep, all met on this pass:
   filled with the type's empty value on the way back (`PriceAlert.identifier`, a `#[serde(skip)]`
   cache Core already received empty from the JSON bridge). The price alert service, formatter and
   stores pass `map()` / `toGem()` values on both apps.
+- **Validators, address names, contacts, nodes, releases and chain addresses cross the FFI typed,
+  and `TransactionId` is an identifier.** `DelegationValidator`, `AddressName` (with
+  `AddressType`), `Contact`, `ContactAddress`, `Node` (with `NodeState`), `Release` and
+  `ChainAddress` are `remote_types.yml` records now, so the stake, address, contact and node store
+  callbacks, the contact and app-update service wrappers, the stake view models, the WalletConnect
+  and confirm address-name readers and the payment loader pass typed values instead of JSON on
+  both apps. `TransactionId` joins `AssetId` and `WalletId` as a string custom type (Core parses it
+  with `FromStr`), so the transaction-state store callbacks receive the identifier and build the
+  app's `TransactionId` from it; the Kotlin type gained the string constructor the identifier
+  convention expects. The generator now only considers `#[typeshare]` declarations and fails when a
+  configured name is declared more than once, because `primitives` had two `Node` structs.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

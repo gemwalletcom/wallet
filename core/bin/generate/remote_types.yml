@@ -1,6 +1,8 @@
 remote:
   - Account
   - AccountDataType
+  - AddressName
+  - AddressType
   - Appearance
   - ApplicationMetadata
   - ApplicationMetadataSource
@@ -9,11 +11,15 @@ remote:
   - AssetType
   - BannerEvent
   - BannerState
+  - ChainAddress
   - ChainType
   - ChartPeriod
   - DelegationState
   - ConnectionComponent
   - ConnectionStatus
+  - Contact
+  - ContactAddress
+  - DelegationValidator
   - Asset
   - AssetLink
   - AssetPrice
@@ -34,6 +40,7 @@ remote:
   - WalletConnectionVerificationStatus
   - VerificationStatus
   - RecentActivityType
+  - Release
   - Resource
   - SimulationPayloadFieldType
   - SolanaTokenProgramId
@@ -44,6 +51,8 @@ remote:
   - SimulationPayloadField
   - LatencyType
   - LinkType
+  - Node
+  - NodeState
   - Latency
   - PortfolioType
   - PriceAlert
@@ -60,4 +69,5 @@ codes:
   - Currency
 identifiers:
   - AssetId
+  - TransactionId
   - WalletId

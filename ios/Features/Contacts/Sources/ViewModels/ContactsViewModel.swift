@@ -74,7 +74,7 @@ public final class ContactsViewModel {
         guard case let .addAddress(recipient, chain) = mode else { return }
         Task {
             do {
-                let addresses = try GemContactAddressInput(
+                let addresses = GemContactAddressInput(
                     contactId: contact.contact.id,
                     chain: chain,
                     address: recipient.address,

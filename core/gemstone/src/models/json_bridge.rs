@@ -1,28 +1,23 @@
 use primitives::Charts;
 use primitives::FiatRate;
-use primitives::TransactionId;
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
-use primitives::contact::ContactAddress;
 use primitives::name::NameRecord;
-use primitives::node::Node;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapProviderData, SwapQuote, SwapQuoteData};
+use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
-    PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse,
-    WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
+    AssetList, ChainAsset, ContractCallData, DelegationBase, NFTAsset, NFTAssetData, NFTAttribute, NFTData, NFTImages, NFTResource, Payment, PaymentAmount, PaymentLink,
+    PaymentRequest, Perpetual, PerpetualMarketData, PerpetualPosition, PerpetualTriggerOrder, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader,
+    SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
-    AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, Contact, FiatAssets, Markets, Release, SearchResponse, StreamEvent, StreamMessage, SupportTyping,
-};
-use primitives::{
-    AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationValidator, NFTAsset, NFTAssetData, NFTAttribute, NFTData, NFTImages, NFTResource, Payment, PaymentAmount,
-    PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData, PerpetualPosition, PerpetualTriggerOrder, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
-    SimulationHeader, SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    AuthNonce, AuthPayload, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset,
+    PortfolioAssets, PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult,
+    WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended};
 
@@ -47,7 +42,6 @@ macro_rules! json_bridge {
 }
 
 json_bridge!(
-    AddressName,
     ApprovalData,
     AssetBasic,
     AssetFull,
@@ -57,7 +51,6 @@ json_bridge!(
     AuthPayload,
     BalanceMetadata,
     CancelOrderData,
-    ChainAddress,
     ChainAsset,
     ChartCandleStick,
     ChartCandleUpdate,
@@ -66,12 +59,9 @@ json_bridge!(
     Charts,
     ConfigResponse,
     ConfigVersions,
-    Contact,
-    ContactAddress,
     ContractCallData,
     Delegation,
     DelegationBase,
-    DelegationValidator,
     Device,
     EarnType,
     FiatAssets,
@@ -87,7 +77,6 @@ json_bridge!(
     NFTAssetData,
     NFTAttribute,
     NFTData,
-    Node,
     NFTImages,
     NFTResource,
     NameRecord,
@@ -106,7 +95,6 @@ json_bridge!(
     PerpetualModifyPositionType,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
-    Release,
     PerpetualPosition,
     PerpetualPositionsSummary,
     PerpetualReduceData,
@@ -145,7 +133,6 @@ json_bridge!(
     Transaction,
     TransactionExtended,
     TransactionPerpetualMetadata,
-    TransactionId,
     TransactionsResponse,
     TronStakeData,
     TronUnfreeze,

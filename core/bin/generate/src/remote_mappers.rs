@@ -56,8 +56,19 @@ pub fn parse(root: &Path) -> Vec<RemoteType> {
     for entry in entries.flatten() {
         let Ok(source) = fs::read_to_string(entry.path()) else { continue };
         let mut lines = source.lines();
+        let mut typeshare = false;
         while let Some(line) = lines.next() {
-            let Some((keyword, name)) = declaration(line.trim()) else { continue };
+            let Some((keyword, name)) = declaration(line.trim()) else {
+                typeshare = match line.trim().starts_with("#[") {
+                    true => typeshare || line.trim().starts_with("#[typeshare"),
+                    false => false,
+                };
+                continue;
+            };
+            let declared = std::mem::take(&mut typeshare);
+            if !declared {
+                continue;
+            }
             if config.codes.contains(&name) {
                 assert_eq!(keyword, "enum", "{name} crosses as a code but is not an enum");
                 found.push(RemoteType::Code { name });
@@ -77,7 +88,11 @@ pub fn parse(root: &Path) -> Vec<RemoteType> {
         }
     }
     for name in config.remote.iter().chain(&config.codes) {
-        assert!(found.iter().any(|remote| remote.name() == name), "{name} is not declared in {PRIMITIVES_SOURCE}");
+        let declarations = found.iter().filter(|remote| remote.name() == name).count();
+        assert!(
+            declarations == 1,
+            "{name} has {declarations} TypeShare declarations in {PRIMITIVES_SOURCE}, expected exactly one"
+        );
     }
     found.sort_by_key(|remote| (matches!(remote, RemoteType::Record { .. }), remote.name().to_string()));
     found

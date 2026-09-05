@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, WalletId};
+use primitives::{AssetId, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, TransactionId, WalletId};
 use std::str::FromStr;
 
 uniffi::custom_type!(StakeChain, String, {
@@ -19,6 +19,12 @@ uniffi::custom_type!(AssetId, String, {
     remote,
     lower: |s| s.to_string(),
     try_lift: |s| AssetId::new(&s).ok_or_else(|| uniffi::deps::anyhow::Error::msg("Invalid AssetId")),
+});
+
+uniffi::custom_type!(TransactionId, String, {
+    remote,
+    lower: |s| s.to_string(),
+    try_lift: |s| TransactionId::from_str(&s).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid TransactionId")),
 });
 
 uniffi::custom_type!(NFTAssetId, String, {

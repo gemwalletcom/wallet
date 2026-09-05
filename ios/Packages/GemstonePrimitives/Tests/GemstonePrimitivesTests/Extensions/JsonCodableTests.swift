@@ -22,9 +22,9 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsNestedRecord() throws {
-        let address = Primitives.ChainAddress(chain: .ethereum, address: "0x1")
-        let decoded = try Primitives.ChainAddress(address.json())
-        #expect(decoded.chain == address.chain)
-        #expect(decoded.address == address.address)
+        let images = Primitives.NFTImages(preview: Primitives.NFTResource(url: "https://example.com/a.png", mimeType: "image/png"))
+        let decoded = try Primitives.NFTImages(images.json())
+        #expect(decoded.preview.url == images.preview.url)
+        #expect(decoded.preview.mimeType == images.preview.mimeType)
     }
 }

@@ -471,7 +471,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
     }
 
     public func addressName(chain: String, address: String) throws -> Gemstone.AddressName? {
-        try addressNames.first { $0.chain.rawValue == chain && $0.address == address }?.json()
+        addressNames.first { $0.chain.rawValue == chain && $0.address == address }?.map()
     }
 
     public func validateRecipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?) -> GemRecipientValidation {

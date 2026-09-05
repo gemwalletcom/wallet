@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -30,8 +32,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactInput
@@ -202,7 +202,7 @@ class ManageContactViewModel @Inject constructor(
                     address = address,
                     memo = input.memo,
                     replacingId = input.editingId,
-                ).addAddress(current.addresses.map { it.toJson() }).map { it.decodeJson<ContactAddress>() },
+                ).addAddress(current.addresses.map { it.toGem() }).map { it.toPrimitives() },
                 page = ManageContactPage.Form,
             )
         }
@@ -216,7 +216,7 @@ class ManageContactViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val input = GemContactInput(
                 id = contactId,
-                existing = contact?.toJson(),
+                existing = contact?.toGem(),
                 name = current.name,
                 description = current.description,
                 avatar = when (val avatar = current.avatar) {
@@ -226,7 +226,7 @@ class ManageContactViewModel @Inject constructor(
                         EmojiAvatarRenderer.render(context, avatar.emoji, avatar.backgroundColor)
                     )
                 },
-                addresses = current.addresses.map { it.toJson() },
+                addresses = current.addresses.map { it.toGem() },
             )
             runCatchingCancellable { service.saveContact(input) }
                 .onSuccess { state.update { it.copy(saved = true) } }

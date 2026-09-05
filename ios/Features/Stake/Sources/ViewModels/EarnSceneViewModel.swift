@@ -60,7 +60,7 @@ public final class EarnSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? service.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
+        service.selectableValidators(validators: validators.map { $0.map() }).map { $0.map() }
     }
 
     var assetModel: AssetViewModel {

@@ -75,13 +75,13 @@ public final class ManageContactViewModel {
         case let .add(recipient, chain):
             contactId = UUID().uuidString
             if let recipient, let chain {
-                addresses = (try? GemContactAddressInput(
+                addresses = GemContactAddressInput(
                     contactId: contactId,
                     chain: chain,
                     address: recipient.address,
                     memo: recipient.memo,
                     replacingId: nil,
-                ).addAddress([])) ?? []
+                ).addAddress([])
             }
         case let .edit(contactData):
             contactId = contactData.contact.id
@@ -200,13 +200,13 @@ public final class ManageContactViewModel {
     }
 
     func onAddressComplete(_ input: ManageContactAddressViewModel.Input) {
-        addresses = (try? GemContactAddressInput(
+        addresses = GemContactAddressInput(
             contactId: contactId,
             chain: input.chain,
             address: input.address,
             memo: input.memo,
             replacingId: input.replacingId,
-        ).addAddress(addresses)) ?? addresses
+        ).addAddress(addresses)
         isPresentingAddress = nil
     }
 

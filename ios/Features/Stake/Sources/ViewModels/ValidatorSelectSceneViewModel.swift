@@ -38,7 +38,7 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     private var recommendedValidators: [DelegationValidator] {
-        service.recommendedValidators(chain: chain.rawValue, validators: validators.map { $0.json() }).compactMap { try? DelegationValidator($0) }
+        service.recommendedValidators(chain: chain.rawValue, validators: validators.map { $0.map() }).map { $0.map() }
     }
 
     public var list: [ListItemValueSection<DelegationValidator>] {
@@ -65,7 +65,7 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
-        service.validatorUrl(validator: validator.json()).map { $0.map() }
+        service.validatorUrl(validator: validator.map()).map { $0.map() }
     }
 
     public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {

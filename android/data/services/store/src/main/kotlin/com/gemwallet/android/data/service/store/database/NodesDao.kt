@@ -1,13 +1,13 @@
 package com.gemwallet.android.data.service.store.database
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.gemwallet.android.data.service.store.database.entities.DbNode
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import uniffi.gemstone.GemNodeStore
@@ -15,11 +15,11 @@ import uniffi.gemstone.GemNodeStore
 @Dao
 interface NodesDao : GemNodeStore {
 
-    override suspend fun getNodes(chain: String): List<String> = getNodes(chain.requireChain())
-        .map { Node(it.url, it.status, it.priority).toJson() }
+    override suspend fun getNodes(chain: String): List<uniffi.gemstone.Node> = getNodes(chain.requireChain())
+        .map { Node(it.url, it.status, it.priority).toGem() }
 
-    override suspend fun addNode(chain: String, node: String) {
-        val value = node.decodeJson<Node>()
+    override suspend fun addNode(chain: String, node: uniffi.gemstone.Node) {
+        val value = node.toPrimitives()
         addNodes(listOf(DbNode(value.url, value.status, value.priority, chain.requireChain())))
     }
 

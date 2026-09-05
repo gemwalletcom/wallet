@@ -5,7 +5,6 @@ import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
-import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemTransactionInputType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
@@ -176,7 +175,7 @@ class PaymentNavigationTest {
             icon = "https://example.com/icon.png",
             source = ApplicationMetadataSource.Payment,
         ).toGem(),
-        account = ChainAddress(account.chain, account.address).toJson(),
+        account = ChainAddress(account.chain, account.address).toGem(),
         transaction = "encoded-transaction",
         transactionType = TransactionType.Transfer.toGem(),
         memo = memo,

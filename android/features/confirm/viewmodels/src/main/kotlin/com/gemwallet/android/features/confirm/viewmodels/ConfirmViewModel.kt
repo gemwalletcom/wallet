@@ -162,7 +162,7 @@ class ConfirmViewModel @Inject constructor(
     val payloadAddressNames = content
         .map { content ->
             content?.load?.simulation?.addressNames.orEmpty()
-                .map { it.decodeJson<AddressName>() }
+                .map { it.toPrimitives() }
                 .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
                 .associate { it.address.lowercase() to it.name }
         }
@@ -341,7 +341,7 @@ class ConfirmViewModel @Inject constructor(
 
         val feeAssets: List<FeeAssetUIModel> = load.feeAssets.map { it.toFeeAssetUIModel(currency) }
 
-        val addressName: AddressName? = load.addressName?.decodeJson<AddressName>()
+        val addressName: AddressName? = load.addressName?.toPrimitives()
 
         fun assetPrice(asset: Asset): AssetPriceValue = load.metadata.prices.toAssetPriceValue(asset, currency)
     }

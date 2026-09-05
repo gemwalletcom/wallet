@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.update
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.application.device.cases.RequestPushToken
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.Release
 import io.mockk.coEvery
@@ -40,7 +40,7 @@ class AppUpdateCoordinatorTest {
     fun `skip clears the observed offer once core stops offering it`() = runTest {
         val appUpdateService = mockk<GemAppUpdateService>()
         val releases = mutableListOf<Release?>(release("3.0.0"), null)
-        coEvery { appUpdateService.check(any(), any()) } answers { releases.removeAt(0)?.toJson() }
+        coEvery { appUpdateService.check(any(), any()) } answers { releases.removeAt(0)?.toGem() }
         every { appUpdateService.skip(any()) } returns Unit
         val coordinator = AppUpdateCoordinator(appUpdateService, buildInfo(PlatformStore.GooglePlay))
 
@@ -54,7 +54,7 @@ class AppUpdateCoordinatorTest {
 
     private fun coordinator(platformStore: PlatformStore, release: Release?): AppUpdateCoordinator {
         val appUpdateService = mockk<GemAppUpdateService> {
-            coEvery { check(any(), any()) } returns release?.toJson()
+            coEvery { check(any(), any()) } returns release?.toGem()
         }
         return AppUpdateCoordinator(appUpdateService, buildInfo(platformStore))
     }

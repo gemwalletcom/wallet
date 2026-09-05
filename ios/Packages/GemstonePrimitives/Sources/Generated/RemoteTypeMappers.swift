@@ -20,6 +20,30 @@ public extension Primitives.AccountDataType {
     }
 }
 
+public extension Gemstone.AddressType {
+    func map() -> Primitives.AddressType {
+        switch self {
+        case .address: .address
+        case .contract: .contract
+        case .validator: .validator
+        case .contact: .contact
+        case .internalWallet: .internalWallet
+        }
+    }
+}
+
+public extension Primitives.AddressType {
+    func map() -> Gemstone.AddressType {
+        switch self {
+        case .address: .address
+        case .contract: .contract
+        case .validator: .validator
+        case .contact: .contact
+        case .internalWallet: .internalWallet
+        }
+    }
+}
+
 public extension Gemstone.Appearance {
     func map() -> Primitives.Appearance {
         switch self {
@@ -426,6 +450,24 @@ public extension Primitives.LinkType {
         case .magicEden: .magicEden
         case .coinMarketCap: .coinMarketCap
         case .tikTok: .tikTok
+        }
+    }
+}
+
+public extension Gemstone.NodeState {
+    func map() -> Primitives.NodeState {
+        switch self {
+        case .active: .active
+        case .inactive: .inactive
+        }
+    }
+}
+
+public extension Primitives.NodeState {
+    func map() -> Gemstone.NodeState {
+        switch self {
+        case .active: .active
+        case .inactive: .inactive
         }
     }
 }
@@ -1066,6 +1108,32 @@ public extension Primitives.Account {
     }
 }
 
+public extension Gemstone.AddressName {
+    func map() -> Primitives.AddressName {
+        Primitives.AddressName(
+            chain: Primitives.Chain(core: chain),
+            address: address,
+            name: name,
+            type: addressType.map(),
+            status: status.map(),
+            imageUrl: imageUrl,
+        )
+    }
+}
+
+public extension Primitives.AddressName {
+    func map() -> Gemstone.AddressName {
+        Gemstone.AddressName(
+            chain: chain.rawValue,
+            address: address,
+            name: name,
+            addressType: type.map(),
+            status: status.map(),
+            imageUrl: imageUrl,
+        )
+    }
+}
+
 public extension Gemstone.ApplicationMetadata {
     func map() -> Primitives.ApplicationMetadata {
         Primitives.ApplicationMetadata(
@@ -1192,6 +1260,102 @@ public extension Primitives.BlockExplorerLink {
     }
 }
 
+public extension Gemstone.ChainAddress {
+    func map() -> Primitives.ChainAddress {
+        Primitives.ChainAddress(
+            chain: Primitives.Chain(core: chain),
+            address: address,
+        )
+    }
+}
+
+public extension Primitives.ChainAddress {
+    func map() -> Gemstone.ChainAddress {
+        Gemstone.ChainAddress(
+            chain: chain.rawValue,
+            address: address,
+        )
+    }
+}
+
+public extension Gemstone.Contact {
+    func map() -> Primitives.Contact {
+        Primitives.Contact(
+            id: id,
+            name: name,
+            description: description,
+            imageUrl: imageUrl,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension Primitives.Contact {
+    func map() -> Gemstone.Contact {
+        Gemstone.Contact(
+            id: id,
+            name: name,
+            description: description,
+            imageUrl: imageUrl,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension Gemstone.ContactAddress {
+    func map() -> Primitives.ContactAddress {
+        Primitives.ContactAddress(
+            id: id,
+            contactId: contactId,
+            address: address,
+            chain: Primitives.Chain(core: chain),
+            memo: memo,
+        )
+    }
+}
+
+public extension Primitives.ContactAddress {
+    func map() -> Gemstone.ContactAddress {
+        Gemstone.ContactAddress(
+            id: id,
+            contactId: contactId,
+            address: address,
+            chain: chain.rawValue,
+            memo: memo,
+        )
+    }
+}
+
+public extension Gemstone.DelegationValidator {
+    func map() -> Primitives.DelegationValidator {
+        Primitives.DelegationValidator(
+            chain: Primitives.Chain(core: chain),
+            id: id,
+            name: name,
+            isActive: isActive,
+            commission: commission,
+            apr: apr,
+            providerType: providerType.map(),
+        )
+    }
+}
+
+public extension Primitives.DelegationValidator {
+    func map() -> Gemstone.DelegationValidator {
+        Gemstone.DelegationValidator(
+            chain: chain.rawValue,
+            id: id,
+            name: name,
+            isActive: isActive,
+            commission: commission,
+            apr: apr,
+            providerType: providerType.map(),
+        )
+    }
+}
+
 public extension Gemstone.Latency {
     func map() -> Primitives.Latency {
         Primitives.Latency(
@@ -1206,6 +1370,26 @@ public extension Primitives.Latency {
         Gemstone.Latency(
             latencyType: latencyType.map(),
             value: value,
+        )
+    }
+}
+
+public extension Gemstone.Node {
+    func map() -> Primitives.Node {
+        Primitives.Node(
+            url: url,
+            status: status.map(),
+            priority: priority,
+        )
+    }
+}
+
+public extension Primitives.Node {
+    func map() -> Gemstone.Node {
+        Gemstone.Node(
+            url: url,
+            status: status.map(),
+            priority: priority,
         )
     }
 }
@@ -1233,6 +1417,26 @@ public extension Primitives.PriceAlert {
             priceDirection: priceDirection.map { $0.map() },
             lastNotifiedAt: lastNotifiedAt,
             identifier: "",
+        )
+    }
+}
+
+public extension Gemstone.Release {
+    func map() -> Primitives.Release {
+        Primitives.Release(
+            version: version,
+            store: store.map(),
+            upgradeRequired: upgradeRequired,
+        )
+    }
+}
+
+public extension Primitives.Release {
+    func map() -> Gemstone.Release {
+        Gemstone.Release(
+            version: version,
+            store: store.map(),
+            upgradeRequired: upgradeRequired,
         )
     }
 }

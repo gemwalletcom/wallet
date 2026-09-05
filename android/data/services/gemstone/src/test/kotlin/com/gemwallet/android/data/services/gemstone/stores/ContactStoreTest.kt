@@ -1,10 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.ContactsDao
 import com.gemwallet.android.data.service.store.database.entities.DbContactAddress
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ContactAddress
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -22,7 +21,7 @@ class ContactStoreTest {
             DbContactAddress(id = "address-a1", contactId = "contact-1", chain = Chain.Bitcoin, address = "bc1", memo = null),
         )
 
-        val addresses = store.getAddresses("contact-1").map { it.decodeJson<ContactAddress>() }
+        val addresses = store.getAddresses("contact-1").map { it.toPrimitives() }
 
         assertEquals(listOf("address-a1"), addresses.map { it.id })
         assertEquals(Chain.Bitcoin, addresses.single().chain)

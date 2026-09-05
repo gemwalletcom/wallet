@@ -36,7 +36,7 @@ class GemstoneTransactionStateStore(
     }
 
     override suspend fun getTransaction(walletId: String, transactionId: String): GemPendingTransaction? =
-        transactionsDao.getTransaction(transactionId.decodeJson(), WalletId(walletId))?.let { pendingTransaction(it) }
+        transactionsDao.getTransaction(TransactionId(transactionId), WalletId(walletId))?.let { pendingTransaction(it) }
 
     override suspend fun addTransactions(walletId: String, transactions: List<String>) {
         val records = transactions.map { it.decodeJson<Transaction>() }
@@ -53,11 +53,11 @@ class GemstoneTransactionStateStore(
 
 
     override suspend fun getState(walletId: String, transactionId: String): uniffi.gemstone.TransactionState? =
-        transactionsDao.getTransactionState(transactionId.decodeJson(), WalletId(walletId))?.toGem()
+        transactionsDao.getTransactionState(TransactionId(transactionId), WalletId(walletId))?.toGem()
 
     override suspend fun renameTransaction(walletId: String, transactionId: String, newTransactionId: String) {
-        val oldId = transactionId.decodeJson<TransactionId>()
-        val newId = newTransactionId.decodeJson<TransactionId>()
+        val oldId = TransactionId(transactionId)
+        val newId = TransactionId(newTransactionId)
         val wallet = WalletId(walletId)
         transactionRunner.run {
             transactionsDao.updateTransactionId(oldId, newId, wallet, newId.hash)
@@ -67,7 +67,7 @@ class GemstoneTransactionStateStore(
     }
 
     override suspend fun deleteTransaction(walletId: String, transactionId: String) {
-        val id = transactionId.decodeJson<TransactionId>()
+        val id = TransactionId(transactionId)
         transactionRunner.run {
             transactionsDao.delete(id, WalletId(walletId))
             transactionsDao.deleteUnreferencedSwapMetadata(id.identifier)
@@ -75,7 +75,7 @@ class GemstoneTransactionStateStore(
     }
 
     override suspend fun updateTransaction(walletId: String, transactionId: String, update: GemTransactionStateUpdate): Boolean {
-        val id = transactionId.decodeJson<TransactionId>()
+        val id = TransactionId(transactionId)
         val wallet = WalletId(walletId)
         return transactionRunner.run {
             val updatedRows = transactionsDao.updateTransactionState(

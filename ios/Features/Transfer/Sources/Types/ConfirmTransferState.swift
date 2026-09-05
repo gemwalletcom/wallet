@@ -19,7 +19,7 @@ struct ConfirmTransferState {
     var metadata: GemConfirmMetadata? { load?.metadata }
     var feeAssets: [GemFeeAsset] { load?.feeAssets ?? [] }
     var confirmData: GemConfirmData? { load?.preload?.confirmData }
-    var addressName: AddressName? { load?.addressName.map(AddressName.init(core:)) }
+    var addressName: AddressName? { load?.addressName.map { $0.map() } }
 }
 
 extension ConfirmTransferState {

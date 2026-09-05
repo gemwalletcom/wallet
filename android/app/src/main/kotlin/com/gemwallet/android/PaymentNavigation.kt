@@ -1,5 +1,7 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
@@ -46,9 +48,9 @@ class PaymentNavigation @Inject constructor(
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
         val payment = paymentService.load(
             link.toJson(),
-            accounts.map { ChainAddress(chain = it.chain, address = it.address).toJson() },
+            accounts.map { ChainAddress(chain = it.chain, address = it.address).toGem() },
         )
-        val chain = payment.account.decodeJson<ChainAddress>().chain
+        val chain = payment.account.toPrimitives().chain
         val assetId = payment.request?.decodeJson<PaymentRequest>()?.assetId ?: chain.asset().id
         val asset = assetsService.ensureTokenAsset(assetId.toIdentifier())
         val transfer = paymentService.transactionTransferData(payment, asset)

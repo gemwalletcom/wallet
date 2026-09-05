@@ -11,6 +11,22 @@ fun com.wallet.core.primitives.AccountDataType.toGem(): uniffi.gemstone.AccountD
     com.wallet.core.primitives.AccountDataType.Activate -> uniffi.gemstone.AccountDataType.ACTIVATE
 }
 
+fun uniffi.gemstone.AddressType.toPrimitives(): com.wallet.core.primitives.AddressType = when (this) {
+    uniffi.gemstone.AddressType.ADDRESS -> com.wallet.core.primitives.AddressType.Address
+    uniffi.gemstone.AddressType.CONTRACT -> com.wallet.core.primitives.AddressType.Contract
+    uniffi.gemstone.AddressType.VALIDATOR -> com.wallet.core.primitives.AddressType.Validator
+    uniffi.gemstone.AddressType.CONTACT -> com.wallet.core.primitives.AddressType.Contact
+    uniffi.gemstone.AddressType.INTERNAL_WALLET -> com.wallet.core.primitives.AddressType.InternalWallet
+}
+
+fun com.wallet.core.primitives.AddressType.toGem(): uniffi.gemstone.AddressType = when (this) {
+    com.wallet.core.primitives.AddressType.Address -> uniffi.gemstone.AddressType.ADDRESS
+    com.wallet.core.primitives.AddressType.Contract -> uniffi.gemstone.AddressType.CONTRACT
+    com.wallet.core.primitives.AddressType.Validator -> uniffi.gemstone.AddressType.VALIDATOR
+    com.wallet.core.primitives.AddressType.Contact -> uniffi.gemstone.AddressType.CONTACT
+    com.wallet.core.primitives.AddressType.InternalWallet -> uniffi.gemstone.AddressType.INTERNAL_WALLET
+}
+
 fun uniffi.gemstone.Appearance.toPrimitives(): com.wallet.core.primitives.Appearance = when (this) {
     uniffi.gemstone.Appearance.SYSTEM -> com.wallet.core.primitives.Appearance.System
     uniffi.gemstone.Appearance.LIGHT -> com.wallet.core.primitives.Appearance.Light
@@ -283,6 +299,16 @@ fun com.wallet.core.primitives.LinkType.toGem(): uniffi.gemstone.LinkType = when
     com.wallet.core.primitives.LinkType.MagicEden -> uniffi.gemstone.LinkType.MAGIC_EDEN
     com.wallet.core.primitives.LinkType.CoinMarketCap -> uniffi.gemstone.LinkType.COIN_MARKET_CAP
     com.wallet.core.primitives.LinkType.TikTok -> uniffi.gemstone.LinkType.TIK_TOK
+}
+
+fun uniffi.gemstone.NodeState.toPrimitives(): com.wallet.core.primitives.NodeState = when (this) {
+    uniffi.gemstone.NodeState.ACTIVE -> com.wallet.core.primitives.NodeState.Active
+    uniffi.gemstone.NodeState.INACTIVE -> com.wallet.core.primitives.NodeState.Inactive
+}
+
+fun com.wallet.core.primitives.NodeState.toGem(): uniffi.gemstone.NodeState = when (this) {
+    com.wallet.core.primitives.NodeState.Active -> uniffi.gemstone.NodeState.ACTIVE
+    com.wallet.core.primitives.NodeState.Inactive -> uniffi.gemstone.NodeState.INACTIVE
 }
 
 fun uniffi.gemstone.PerpetualAccountMode.toPrimitives(): com.wallet.core.primitives.PerpetualAccountMode = when (this) {
@@ -697,6 +723,24 @@ fun com.wallet.core.primitives.Account.toGem(): uniffi.gemstone.Account = uniffi
     extendedPublicKey = extendedPublicKey,
 )
 
+fun uniffi.gemstone.AddressName.toPrimitives(): com.wallet.core.primitives.AddressName = com.wallet.core.primitives.AddressName(
+    chain = chain.toChain(),
+    address = address,
+    name = name,
+    type = addressType.toPrimitives(),
+    status = status.toPrimitives(),
+    imageUrl = imageUrl,
+)
+
+fun com.wallet.core.primitives.AddressName.toGem(): uniffi.gemstone.AddressName = uniffi.gemstone.AddressName(
+    chain = chain.toGem(),
+    address = address,
+    name = name,
+    addressType = type.toGem(),
+    status = status.toGem(),
+    imageUrl = imageUrl,
+)
+
 fun uniffi.gemstone.ApplicationMetadata.toPrimitives(): com.wallet.core.primitives.ApplicationMetadata = com.wallet.core.primitives.ApplicationMetadata(
     name = name,
     description = description,
@@ -775,6 +819,70 @@ fun com.wallet.core.primitives.BlockExplorerLink.toGem(): uniffi.gemstone.BlockE
     link = link,
 )
 
+fun uniffi.gemstone.ChainAddress.toPrimitives(): com.wallet.core.primitives.ChainAddress = com.wallet.core.primitives.ChainAddress(
+    chain = chain.toChain(),
+    address = address,
+)
+
+fun com.wallet.core.primitives.ChainAddress.toGem(): uniffi.gemstone.ChainAddress = uniffi.gemstone.ChainAddress(
+    chain = chain.toGem(),
+    address = address,
+)
+
+fun uniffi.gemstone.Contact.toPrimitives(): com.wallet.core.primitives.Contact = com.wallet.core.primitives.Contact(
+    id = id,
+    name = name,
+    description = description,
+    imageUrl = imageUrl,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun com.wallet.core.primitives.Contact.toGem(): uniffi.gemstone.Contact = uniffi.gemstone.Contact(
+    id = id,
+    name = name,
+    description = description,
+    imageUrl = imageUrl,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun uniffi.gemstone.ContactAddress.toPrimitives(): com.wallet.core.primitives.ContactAddress = com.wallet.core.primitives.ContactAddress(
+    id = id,
+    contactId = contactId,
+    address = address,
+    chain = chain.toChain(),
+    memo = memo,
+)
+
+fun com.wallet.core.primitives.ContactAddress.toGem(): uniffi.gemstone.ContactAddress = uniffi.gemstone.ContactAddress(
+    id = id,
+    contactId = contactId,
+    address = address,
+    chain = chain.toGem(),
+    memo = memo,
+)
+
+fun uniffi.gemstone.DelegationValidator.toPrimitives(): com.wallet.core.primitives.DelegationValidator = com.wallet.core.primitives.DelegationValidator(
+    chain = chain.toChain(),
+    id = id,
+    name = name,
+    isActive = isActive,
+    commission = commission,
+    apr = apr,
+    providerType = providerType.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.DelegationValidator.toGem(): uniffi.gemstone.DelegationValidator = uniffi.gemstone.DelegationValidator(
+    chain = chain.toGem(),
+    id = id,
+    name = name,
+    isActive = isActive,
+    commission = commission,
+    apr = apr,
+    providerType = providerType.toGem(),
+)
+
 fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency = com.wallet.core.primitives.Latency(
     latencyType = latencyType.toPrimitives(),
     value = value,
@@ -783,6 +891,18 @@ fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency =
 fun com.wallet.core.primitives.Latency.toGem(): uniffi.gemstone.Latency = uniffi.gemstone.Latency(
     latencyType = latencyType.toGem(),
     value = value,
+)
+
+fun uniffi.gemstone.Node.toPrimitives(): com.wallet.core.primitives.Node = com.wallet.core.primitives.Node(
+    url = url,
+    status = status.toPrimitives(),
+    priority = priority,
+)
+
+fun com.wallet.core.primitives.Node.toGem(): uniffi.gemstone.Node = uniffi.gemstone.Node(
+    url = url,
+    status = status.toGem(),
+    priority = priority,
 )
 
 fun uniffi.gemstone.PriceAlert.toPrimitives(): com.wallet.core.primitives.PriceAlert = com.wallet.core.primitives.PriceAlert(
@@ -802,6 +922,18 @@ fun com.wallet.core.primitives.PriceAlert.toGem(): uniffi.gemstone.PriceAlert = 
     priceDirection = priceDirection?.let { it.toGem() },
     lastNotifiedAt = lastNotifiedAt,
     identifier = "",
+)
+
+fun uniffi.gemstone.Release.toPrimitives(): com.wallet.core.primitives.Release = com.wallet.core.primitives.Release(
+    version = version,
+    store = store.toPrimitives(),
+    upgradeRequired = upgradeRequired,
+)
+
+fun com.wallet.core.primitives.Release.toGem(): uniffi.gemstone.Release = uniffi.gemstone.Release(
+    version = version,
+    store = store.toGem(),
+    upgradeRequired = upgradeRequired,
 )
 
 fun uniffi.gemstone.ReportNft.toPrimitives(): com.wallet.core.primitives.ReportNft = com.wallet.core.primitives.ReportNft(

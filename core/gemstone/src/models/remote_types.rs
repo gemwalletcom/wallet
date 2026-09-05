@@ -2,18 +2,28 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, AccountDataType, Appearance, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetPrice, AssetType, BannerEvent, BannerState,
-    BlockExplorerLink, Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, DelegationState, FeePriority, FeeUnitType, FiatQuoteType, Latency,
-    LatencyType, LinkType, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, Platform, PlatformStore, PortfolioType,
-    PriceAlert, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay,
-    SimulationPayloadFieldKind, SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType,
-    TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetPrice, AssetType,
+    BannerEvent, BannerState, BlockExplorerLink, Chain, ChainAddress, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, Currency,
+    DelegationState, DelegationValidator, FeePriority, FeeUnitType, FiatQuoteType, Latency, LatencyType, LinkType, Node, NodeState, PerpetualAccountMode, PerpetualDirection,
+    PerpetualMarginType, PerpetualOrderType, PerpetualProvider, Platform, PlatformStore, PortfolioType, PriceAlert, PriceAlertDirection, PriceAlertNotificationType,
+    RecentActivityType, Release, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+    SolanaTokenProgramId, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType,
+    VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
 #[uniffi::remote(Enum)]
 pub enum AccountDataType {
     Activate,
+}
+
+#[uniffi::remote(Enum)]
+pub enum AddressType {
+    Address,
+    Contract,
+    Validator,
+    Contact,
+    InternalWallet,
 }
 
 #[uniffi::remote(Enum)]
@@ -173,6 +183,12 @@ pub enum LinkType {
     MagicEden,
     CoinMarketCap,
     TikTok,
+}
+
+#[uniffi::remote(Enum)]
+pub enum NodeState {
+    Active,
+    Inactive,
 }
 
 #[uniffi::remote(Enum)]
@@ -410,6 +426,16 @@ pub struct Account {
 }
 
 #[uniffi::remote(Record)]
+pub struct AddressName {
+    pub chain: Chain,
+    pub address: String,
+    pub name: String,
+    pub address_type: AddressType,
+    pub status: VerificationStatus,
+    pub image_url: Option<String>,
+}
+
+#[uniffi::remote(Record)]
 pub struct ApplicationMetadata {
     pub name: String,
     pub description: String,
@@ -455,9 +481,52 @@ pub struct BlockExplorerLink {
 }
 
 #[uniffi::remote(Record)]
+pub struct ChainAddress {
+    pub chain: Chain,
+    pub address: String,
+}
+
+#[uniffi::remote(Record)]
+pub struct Contact {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub image_url: Option<String>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[uniffi::remote(Record)]
+pub struct ContactAddress {
+    pub id: String,
+    pub contact_id: String,
+    pub address: String,
+    pub chain: Chain,
+    pub memo: Option<String>,
+}
+
+#[uniffi::remote(Record)]
+pub struct DelegationValidator {
+    pub chain: Chain,
+    pub id: String,
+    pub name: String,
+    pub is_active: bool,
+    pub commission: f64,
+    pub apr: f64,
+    pub provider_type: StakeProviderType,
+}
+
+#[uniffi::remote(Record)]
 pub struct Latency {
     pub latency_type: LatencyType,
     pub value: f64,
+}
+
+#[uniffi::remote(Record)]
+pub struct Node {
+    pub url: String,
+    pub status: NodeState,
+    pub priority: i32,
 }
 
 #[uniffi::remote(Record)]
@@ -469,6 +538,13 @@ pub struct PriceAlert {
     pub price_direction: Option<PriceAlertDirection>,
     pub last_notified_at: Option<chrono::DateTime<chrono::Utc>>,
     pub identifier: String,
+}
+
+#[uniffi::remote(Record)]
+pub struct Release {
+    pub version: String,
+    pub store: PlatformStore,
+    pub upgrade_required: bool,
 }
 
 #[uniffi::remote(Record)]

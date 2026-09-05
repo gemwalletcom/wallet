@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.coordinators.stake
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
@@ -7,8 +9,6 @@ import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneStakeStore
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
@@ -39,7 +39,7 @@ class GetValidatorsImpl(
 
     override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
         stakeStore.observeValidators(assetId, StakeProviderType.Stake)
-            .map { validators -> stakeService.selectableValidators(validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
+            .map { validators -> stakeService.selectableValidators(validators.map { it.toGem() }).map { it.toPrimitives() } }
 }
 
 class GetRecommendedValidatorImpl(
@@ -49,7 +49,7 @@ class GetRecommendedValidatorImpl(
 
     override fun invoke(assetId: AssetId): Flow<DelegationValidator?> =
         getValidators(assetId).map { validators ->
-            stakeService.recommendedValidator(assetId.chain.string, validators.map { it.toJson() })?.decodeJson<DelegationValidator>()
+            stakeService.recommendedValidator(assetId.chain.string, validators.map { it.toGem() })?.toPrimitives()
         }
 }
 

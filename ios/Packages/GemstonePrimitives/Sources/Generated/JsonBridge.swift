@@ -3,7 +3,6 @@
 
 import Primitives
 
-extension Primitives.AddressName: JsonCodable {}
 extension Primitives.ApprovalData: JsonCodable {}
 extension Primitives.AssetBasic: JsonCodable {}
 extension Primitives.AssetFull: JsonCodable {}
@@ -13,7 +12,6 @@ extension Primitives.AuthNonce: JsonCodable {}
 extension Primitives.AuthPayload: JsonCodable {}
 extension Primitives.BalanceMetadata: JsonCodable {}
 extension Primitives.CancelOrderData: JsonCodable {}
-extension Primitives.ChainAddress: JsonCodable {}
 extension Primitives.ChainAsset: JsonCodable {}
 extension Primitives.ChartCandleStick: JsonCodable {}
 extension Primitives.ChartCandleUpdate: JsonCodable {}
@@ -22,12 +20,9 @@ extension Primitives.ChartValuePercentage: JsonCodable {}
 extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
-extension Primitives.Contact: JsonCodable {}
-extension Primitives.ContactAddress: JsonCodable {}
 extension Primitives.ContractCallData: JsonCodable {}
 extension Primitives.Delegation: JsonCodable {}
 extension Primitives.DelegationBase: JsonCodable {}
-extension Primitives.DelegationValidator: JsonCodable {}
 extension Primitives.Device: JsonCodable {}
 extension Primitives.EarnType: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
@@ -43,7 +38,6 @@ extension Primitives.NFTAsset: JsonCodable {}
 extension Primitives.NFTAssetData: JsonCodable {}
 extension Primitives.NFTAttribute: JsonCodable {}
 extension Primitives.NFTData: JsonCodable {}
-extension Primitives.Node: JsonCodable {}
 extension Primitives.NFTImages: JsonCodable {}
 extension Primitives.NFTResource: JsonCodable {}
 extension Primitives.NameRecord: JsonCodable {}
@@ -62,7 +56,6 @@ extension Primitives.PerpetualModifyConfirmData: JsonCodable {}
 extension Primitives.PerpetualModifyPositionType: JsonCodable {}
 extension Primitives.PerpetualPortfolio: JsonCodable {}
 extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}
-extension Primitives.Release: JsonCodable {}
 extension Primitives.PerpetualPosition: JsonCodable {}
 extension Primitives.PerpetualPositionsSummary: JsonCodable {}
 extension Primitives.PerpetualReduceData: JsonCodable {}
@@ -101,7 +94,6 @@ extension Primitives.TPSLOrderData: JsonCodable {}
 extension Primitives.Transaction: JsonCodable {}
 extension Primitives.TransactionExtended: JsonCodable {}
 extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
-extension Primitives.TransactionId: JsonCodable {}
 extension Primitives.TransactionsResponse: JsonCodable {}
 extension Primitives.TronStakeData: JsonCodable {}
 extension Primitives.TronUnfreeze: JsonCodable {}

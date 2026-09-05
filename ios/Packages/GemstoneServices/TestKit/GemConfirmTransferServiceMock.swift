@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-public import typealias Gemstone.AddressName
+public import struct Gemstone.AddressName
 public import typealias Gemstone.Chain
 public import typealias Gemstone.Currency
 public import enum Gemstone.GemAcquireAssetFlow

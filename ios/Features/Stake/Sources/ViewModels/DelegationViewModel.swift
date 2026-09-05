@@ -112,7 +112,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        service.validatorUrl(validator: delegation.validator.json()).map { $0.map() }?.url
+        service.validatorUrl(validator: delegation.validator.map()).map { $0.map() }?.url
     }
 
     public var completionDateText: String? {
