@@ -1114,6 +1114,11 @@ once in a full `cargo test -p gemstone --lib` run with the subscriptions version
 after the last wallet was deleted, and passed on rerun and in isolation — the counter it asserts
 on is shared preferences state, so another test's bumps can leak in under parallel execution.
 
+`AddAssetViewModelTest > addAsset adds the found token to the current wallet` (Android) failed once
+in a full `just test` run with a `CompletionHandlerException` from a cancelled `ProducerCoroutine`
+and passed three forced reruns; the view model's search producer is cancelled while its completion
+handler still runs, so the test needs the producer scope closed before the assertion, not a retry.
+
 `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL` — the pre-`46889318bc` contract — and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived, so it cannot fail on data loss. It is an `androidTest`, so fixing it means running it on a device.
 
 ### 6. Android
