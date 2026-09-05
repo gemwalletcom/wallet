@@ -10,9 +10,9 @@ import enum Gemstone.GemSlippageCheck
 import class Gemstone.GemSwapQuoteSummary
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
+import struct Gemstone.GemSwapSession
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperAssetList
-import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperSlippage
 import GemstonePrimitives
@@ -75,6 +75,10 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         Primitives.Currency.usd.rawValue
     }
 
+    public func newSession() -> GemSwapSession {
+        GemSwapSession(quotePhase: .noInput, transferPhase: .idle)
+    }
+
     public func slippageBps() -> UInt32? {
         storedSlippageBps
     }
@@ -102,10 +106,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public func updateBalances(assetIds _: [AssetId]) async throws {}
 
     public func addPrices(assetIds _: [AssetId]) async throws {}
-
-    public func selectedQuote(quotes: [SwapperQuote], preferred: SwapProvider?) -> SwapperQuote? {
-        quotes.first(where: { $0.data.provider.id == preferred }) ?? quotes.first
-    }
 
     public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
         if let quotesDelay {

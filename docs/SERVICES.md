@@ -812,11 +812,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
   view-model tests stub the mock's answer instead of the request's.
 - **Which quote the swap screen shows is Core's pick.** Both apps kept "the preferred provider's
   quote, else the first" — iOS inline in `performFetch`, Android as `SwapQuotesResult.getQuote`.
-  `GemSwapQuoteService::selected_quote(quotes, preferred)` (`rules::selected_quote`, tested)
-  answers it; iOS calls it when quotes arrive and Android's `SwapQuoteSession` stores
-  `selectedQuote` from it on `onQuoteResults` / `onProviderSelected`, the two transitions that
-  can change it. The mocks state the same premise so the provider-selection view-model tests
-  keep their meaning.
+  `rules::selected_quote(quotes, preferred)` (tested) answers it inside `GemSwapSession` on
+  `on_quote_results` / `on_provider_selected`, the two transitions that can change it; the
+  export the apps used to call is gone with their session copies.
 - **The recommended validators section is one Core answer.** Both validator-select screens
   asked `GemStakeService::recommended_validator_ids(chain)` and then ran the same
   `validators.filter { ids.contains(id) }` themselves; `recommended_validators(chain, validators)`
@@ -1011,6 +1009,29 @@ Three gotchas if you repeat the sweep, all met on this pass:
   active banners and price alerts instead, `AccountInfoUIModel.walletType` is gone and
   `AssetHeadActions` takes `GemHeaderButton`s (the home header builds them from its summary
   until it moves to Core too).
+- **The swap screen's quote and transfer lifecycle is one Core value.** `GemSwapSession`
+  (from `GemSwapQuoteService::new_session()`) is an immutable record whose transitions return
+  the next session: `on_request_changed`, `on_refresh_requested`, `on_fetch_started`,
+  `on_quote_results`, `on_provider_selected`, `on_quote_invalidated`, `on_refresh_resumed`,
+  `start_transfer`, `on_transfer_failed`, `on_transfer_handed_off`, `on_transfer_abandoned`;
+  and whose answers are `quote()`, the quote and transfer errors, the loading flags,
+  `refreshes_quotes(is_screen_active)`, `action()` (none / quote loading / ready / transfer
+  loading / quote error / transfer error), `button_action(value, available)` and
+  `button_state(action)`. The rules it pins: results for a request that is no longer current, or
+  that arrive while a transfer is in flight, do not replace the quote the user is confirming;
+  the chosen provider survives an amount or slippage change and a refresh, falls back to the best
+  quote when it disappears, and is dropped when the pair changes; a transfer outcome applies only
+  to the transfer that started it; handing a transfer to the confirm screen pauses quote
+  refreshes until the screen resumes, and any quote-changing action clears a failed transfer.
+  Android's `SwapQuoteSession` (a hand-written copy of exactly this) and `SwapUiState`'s
+  derivations are deleted, its `SwapQuoteRequestKey` carries the atomic value so it maps to
+  `GemSwapRequest`, and `SwapViewModel` only forwards events; iOS's `SwapState` (two
+  `StateViewType`s plus `selectedSwapQuote`/`preferredProvider` and the "is the transfer still
+  loading / is the input still current" guards spread over `SwapSceneViewModel`) is gone, the
+  scene reads the session, and iOS now pauses refreshes after the confirm handoff like Android.
+  `GemSwapQuoteService::selected_quote` is un-exported: the session picks the quote itself.
+  Still open, and still product calls: the minimum-amount button copy and whether selecting a
+  swap asset enables it on the wallet.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

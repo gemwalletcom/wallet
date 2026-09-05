@@ -1,6 +1,7 @@
 pub mod model;
 pub mod quote;
 pub mod rules;
+pub mod session;
 pub mod store;
 
 use crate::keystore::decode_password;
@@ -22,6 +23,7 @@ use crate::services::error::GemServiceError;
 use crate::services::wallet::GemKeystorePassword;
 pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer};
 use primitives::{AssetId, WalletId};
+pub use session::{GemSwapButtonState, GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
 pub use store::GemSwapStore;
 
 #[derive(uniffi::Object)]
