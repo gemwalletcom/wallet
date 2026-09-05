@@ -298,6 +298,7 @@ mod tests {
             address: address.to_string(),
             amount,
             memo: memo.map(str::to_string),
+            label: None,
             references: None,
             asset_id,
         }
@@ -541,6 +542,7 @@ mod tests {
                 address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
                 amount: Some(GemPaymentAmount::ExactValue("0.42301".to_string())),
                 memo: None,
+                label: None,
                 asset_id: Some(AssetId::from_chain(Chain::Solana)),
                 references: None,
             })

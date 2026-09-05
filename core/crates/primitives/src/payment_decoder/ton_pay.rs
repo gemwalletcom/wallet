@@ -6,7 +6,6 @@ use crate::{
     payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
-pub const TON_PAY_SCHEME: &str = "ton";
 const TRANSFER_PATH: &str = "transfer";
 
 const QUERY_AMOUNT: &str = "amount";
@@ -18,7 +17,7 @@ pub fn decode(path: &str) -> Result<Payment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let parameters = query::parameters(query);
 
-    if parameters.contains_key(QUERY_BODY) || parameters.contains_key(QUERY_STATE_INIT) {
+    if query::contains(&parameters, QUERY_BODY) || query::contains(&parameters, QUERY_STATE_INIT) {
         return Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()));
     }
 
@@ -28,6 +27,7 @@ pub fn decode(path: &str) -> Result<Payment> {
             .and_then(|value| amount::exact_from_atomic(&value, Chain::Ton))
             .map(PaymentAmount::ExactValue),
         memo: query::value(&parameters, QUERY_TEXT),
+        label: None,
         references: None,
         asset_id: Some(AssetId::from_chain(Chain::Ton)),
     }))
@@ -37,8 +37,9 @@ fn address(path: &str) -> Result<String> {
     let path = path.trim_matches('/');
 
     match path.split_once('/') {
+        None if path.is_empty() || path == TRANSFER_PATH => Err(PaymentDecoderError::MissingField("address".to_string())),
         None => Ok(path.to_string()),
-        Some((TRANSFER_PATH, address)) if !address.contains('/') => Ok(address.to_string()),
+        Some((TRANSFER_PATH, address)) if !address.is_empty() && !address.contains('/') => Ok(address.to_string()),
         Some(_) => Err(PaymentDecoderError::InvalidFormat(format!("Not a transfer path: {path}"))),
     }
 }
@@ -63,6 +64,7 @@ mod tests {
                 address: ADDRESS.to_string(),
                 amount: Some(PaymentAmount::ExactValue("1".to_string())),
                 memo: Some("order 7".to_string()),
+                label: None,
                 references: None,
                 asset_id: Some(AssetId::from_chain(Chain::Ton)),
             })
@@ -79,6 +81,10 @@ mod tests {
         );
         assert_eq!(
             decode(&format!("//transfer/{ADDRESS}?amount=1&init=te6cc")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
+        );
+        assert_eq!(
+            decode(&format!("//transfer/{ADDRESS}?amount=1&BIN=te6cc")),
             Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
         );
         assert!(decode("//invalid/format").is_err());

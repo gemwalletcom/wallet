@@ -17,6 +17,7 @@ final class PaymentDecodeTests {
                     address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326",
                     amount: .none,
                     memo: .none,
+                    label: .none,
                     references: .none,
                     assetId: .none,
                 )),
@@ -28,8 +29,21 @@ final class PaymentDecodeTests {
                     address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5",
                     amount: .exactValue("0.266232"),
                     memo: "order7",
+                    label: .none,
                     references: ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny"],
                     assetId: AssetId(chain: .solana, tokenId: .none),
+                )),
+        )
+
+        #expect(
+            try Primitives.Payment.decode("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001&label=Gem%20Store", paymentService: paymentService)
+                == .request(PaymentRequest(
+                    address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+                    amount: .exactValue("0.001"),
+                    memo: .none,
+                    label: "Gem Store",
+                    references: .none,
+                    assetId: AssetId(chain: .bitcoin, tokenId: .none),
                 )),
         )
     }
