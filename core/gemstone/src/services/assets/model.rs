@@ -119,3 +119,12 @@ mod tests {
         assert_eq!(GemAssetAction::Sell.filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Sellable]);
     }
 }
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletSearchLimits {
+    pub assets: u32,
+    pub fetch: u32,
+    pub perpetuals: u32,
+    pub nfts: u32,
+    pub results: u32,
+}

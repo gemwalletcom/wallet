@@ -19,7 +19,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.listPriorityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.domains.search.WalletSearchConfig
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.search.walletSearchTagOf
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
@@ -77,7 +76,7 @@ class AssetsResultsViewModel @Inject constructor(
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
     val cappedAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(pinned, unpinned) { pinned, unpinned ->
-        unpinned.take((WalletSearchConfig.resultsLimit - pinned.size).coerceAtLeast(0))
+        unpinned.take((resultsLimit() - pinned.size).coerceAtLeast(0))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -87,7 +86,7 @@ class AssetsResultsViewModel @Inject constructor(
                 getPerpetuals.getPerpetuals(listPriorityQuery(scope.id)),
                 getSession().map { service.showPerpetuals(it?.wallet?.toJson()) },
             ) { items, show ->
-                if (show) items.take(WalletSearchConfig.resultsLimit) else emptyList()
+                if (show) items.take(resultsLimit()) else emptyList()
             }
                 .flowOn(Dispatchers.IO)
                 .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -112,7 +111,9 @@ class AssetsResultsViewModel @Inject constructor(
         fetch(pull = false)
     }
 
-    override fun assetsSearchLimit(query: String): Int = WalletSearchConfig.resultsLimit
+    override fun assetsSearchLimit(query: String): Int = resultsLimit(query)
+
+    private fun resultsLimit(query: String = queryState.text.toString()): Int = service.walletSearchLimits(query).results.toInt()
 
     fun refresh() = fetch(pull = true)
 

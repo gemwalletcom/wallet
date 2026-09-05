@@ -1,6 +1,7 @@
 use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, VerificationStatus, Wallet};
 
-use super::model::{AssetList, GemAssetNetworkDestination};
+use super::model::{AssetList, GemAssetNetworkDestination, GemWalletSearchLimits};
+use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing, missing_by, unique};
@@ -124,9 +125,34 @@ pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatu
     }
 }
 
+pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
+    let assets = match query.trim().is_empty() {
+        true => ASSETS_INITIAL_LIMIT,
+        false => ASSETS_SEARCH_LIMIT,
+    };
+    GemWalletSearchLimits {
+        assets,
+        fetch: assets + 1,
+        perpetuals: PERPETUALS_PREVIEW_LIMIT,
+        nfts: NFTS_PREVIEW_LIMIT,
+        results: RESULTS_LIMIT,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_wallet_search_limits_widen_while_searching_and_fetch_one_more_than_shown() {
+        let initial = wallet_search_limits("  ");
+        let searching = wallet_search_limits("btc");
+
+        assert_eq!((initial.assets, initial.fetch), (12, 13));
+        assert_eq!((searching.assets, searching.fetch), (25, 26));
+        assert_eq!((initial.perpetuals, initial.nfts, initial.results), (3, 3, 100));
+        assert_eq!((searching.perpetuals, searching.nfts, searching.results), (3, 3, 100));
+    }
 
     #[test]
     fn test_icon_asset_id_borrows_the_underlying_chain_icon_for_a_perpetual() {

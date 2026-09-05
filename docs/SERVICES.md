@@ -725,6 +725,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   signed device request already carries; the field is gone and `ReportNft` crosses typed as a
   remote record. Still bridged with required skipped fields, and therefore never to be accepted
   from an app: `FiatQuoteRequest`, `Rewards`, `ScanTransaction`.
+- **Wallet search limits are one Core rule on both apps.** Each app had a `WalletSearchConfig`
+  wrapper that only cast the config integers, and the rules around them had drifted: iOS fetched
+  the results limit while searching where Android fetched the asset limit plus one, and iOS's
+  results screen hard-coded its own limit. `GemAssetSelectionService::wallet_search_limits(query)`
+  now returns the asset, fetch, perpetual, NFT and results limits for a query (fetch is always
+  one more than shown, so "has more" is answerable); the wrappers, Core's `WalletSearchConfig`
+  record and the iOS `WalletSearchMode` are gone.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

@@ -151,7 +151,6 @@ struct WalletNavigationView: View {
                         walletId: model.wallet.id,
                         searchBy: destination.searchQuery,
                         scope: destination.scope,
-                        limit: AssetsResultsSceneViewModel.defaultLimit,
                     ),
                     title: destination.title ?? Localized.Assets.title,
                     onSelectAsset: navigationState.openAsset,

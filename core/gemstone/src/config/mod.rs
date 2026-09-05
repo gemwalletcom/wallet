@@ -24,7 +24,6 @@ use {
     fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
     scan_config::{ScanConfig, get_scan_config},
-    search_config::{WalletSearchConfig, get_wallet_search_config},
     stake::{StakeChainConfig, get_stake_config},
     swap_config::{SwapConfig, get_swap_config},
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
@@ -55,10 +54,6 @@ impl Config {
 
     fn get_fiat_config(&self) -> FiatConfig {
         get_fiat_config()
-    }
-
-    fn get_wallet_search_config(&self) -> WalletSearchConfig {
-        get_wallet_search_config()
     }
 
     fn get_scan_config(&self) -> ScanConfig {
