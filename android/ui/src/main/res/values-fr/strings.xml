@@ -388,9 +388,9 @@
   <string name="fee_rates_info">La vitesse de transaction est déterminée par les frais de réseau payés aux mineurs du réseau.</string>
   <string name="fee_rates_fast">Rapide</string>
   <string name="fee_rates_normal">Normale</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personnalisé</string>
   <string name="banner_account_activation_title">Frais d\'activation de compte</string>
   <string name="banner_account_activation_description">Le réseau %1$s nécessite des frais uniques de %2$s.</string>

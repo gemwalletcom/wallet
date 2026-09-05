@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Szybkość transakcji zależy od opłaty sieciowej płaconej górnikom sieciowym.</string>
   <string name="fee_rates_fast">Szybko</string>
   <string name="fee_rates_normal">Normalne</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Niestandardowe</string>
   <string name="banner_account_activation_title">Opłata za aktywację konta</string>
   <string name="banner_account_activation_description">Sieć %1$s wymaga jednorazowej opłaty w wysokości %2$s.</string>

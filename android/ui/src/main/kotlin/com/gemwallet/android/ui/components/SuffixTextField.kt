@@ -2,7 +2,9 @@ package com.gemwallet.android.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +23,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.secondaryFaded
 
 @Composable
@@ -75,6 +78,7 @@ fun SuffixTextField(
                 }
             },
         )
+        Spacer(modifier = Modifier.width(paddingHalfSmall))
         Text(
             text = suffix,
             style = MaterialTheme.typography.bodyLarge,

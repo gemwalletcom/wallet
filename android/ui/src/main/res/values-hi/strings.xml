@@ -388,9 +388,9 @@
   <string name="fee_rates_info">लेन-देन की गति नेटवर्क खनिकों को भुगतान किए गए नेटवर्क शुल्क से निर्धारित होती है।</string>
   <string name="fee_rates_fast">तेज</string>
   <string name="fee_rates_normal">सामान्य</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">कस्टम</string>
   <string name="banner_account_activation_title">खाता सक्रियण शुल्क</string>
   <string name="banner_account_activation_description">%1$s नेटवर्क को %2$s का एक बार शुल्क देना पड़ता है।</string>

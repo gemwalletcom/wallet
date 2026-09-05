@@ -469,9 +469,9 @@ fee_rates_normal = স্বাভাবিক
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = কাস্টম
 
 # Banner

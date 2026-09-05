@@ -388,9 +388,9 @@
   <string name="fee_rates_info">交易速度取決於向礦工支付的網路費用</string>
   <string name="fee_rates_fast">快速</string>
   <string name="fee_rates_normal">普通</string>
-  <string name="fee_rate_satvB">%1$s 聰/vB</string>
+  <string name="fee_rate_satvB">聰/vB</string>
   <string name="fee_rate_satB">%1$s 聰/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">自訂</string>
   <string name="banner_account_activation_title">帳戶啟動費用</string>
   <string name="banner_account_activation_description">%1$s 網路需支付一次性費用：%2$s。</string>

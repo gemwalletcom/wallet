@@ -469,9 +469,9 @@ fee_rates_normal = 普通
 
 # Fee Rate
 
-fee_rate_satvB = %@ サトシ/vB
+fee_rate_satvB = サトシ/vB
 fee_rate_satB = %@ サトシ/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = カスタム
 
 # Banner

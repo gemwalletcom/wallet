@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Die Geschwindigkeit der Transaktion wird durch die Netzwerkgebühr bestimmt, die an die Miner des Netzwerks gezahlt wird.</string>
   <string name="fee_rates_fast">Schnell</string>
   <string name="fee_rates_normal">Normal</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Benutzerdefiniert</string>
   <string name="banner_account_activation_title">Kontoaktivierungsgebühr</string>
   <string name="banner_account_activation_description">Das %1$s Netzwerk erfordert eine einmalige Gebühr von %2$s.</string>

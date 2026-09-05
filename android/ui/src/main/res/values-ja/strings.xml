@@ -388,9 +388,9 @@
   <string name="fee_rates_info">取引速度は、ネットワークのマイナーに支払う手数料によって決まります。</string>
   <string name="fee_rates_fast">速い</string>
   <string name="fee_rates_normal">普通</string>
-  <string name="fee_rate_satvB">%1$s サトシ/vB</string>
+  <string name="fee_rate_satvB">サトシ/vB</string>
   <string name="fee_rate_satB">%1$s サトシ/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">カスタム</string>
   <string name="banner_account_activation_title">アカウントの有効化手数料</string>
   <string name="banner_account_activation_description">%1$s ネットワークでは、1回限りの有効化手数料 %2$s が必要です。</string>

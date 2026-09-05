@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Ana ƙayyade saurin ma\'amala ta hanyar kuɗin hanyar sadarwa da aka biya ga masu hakar ma\'adinai na cibiyar sadarwa.</string>
   <string name="fee_rates_fast">Mai sauri</string>
   <string name="fee_rates_normal">Na al\'ada</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Na Musamman</string>
   <string name="banner_account_activation_title">Kudin Kunna Asusu</string>
   <string name="banner_account_activation_description">Cibiyar sadarwar %1$s tana buƙatar kuɗin lokaci ɗaya na %2$s.</string>

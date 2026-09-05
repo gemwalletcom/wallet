@@ -23,6 +23,7 @@ public final class SwapSlippageViewModel {
     private let suggestionsBps: [UInt32]
     private let maxPercent: Double
 
+    let placeholder: String
     var isAuto: Bool
     var inputModel: InputValidationViewModel
     var infoSheet: InfoSheetType?
@@ -33,14 +34,15 @@ public final class SwapSlippageViewModel {
         let config = Config.shared.swapConfig()
         suggestionsBps = config.slippageSuggestionsBps
         maxPercent = Double(config.maxSlippageBps) / 100
-        let bps: UInt32
+        placeholder = Self.format(bps: service.defaultSlippage(chain: chain.rawValue).bps)
+        let input: String
         switch slippage {
         case .auto:
             isAuto = true
-            bps = service.defaultSlippage(chain: chain.rawValue).bps
+            input = ""
         case let .manual(value):
             isAuto = false
-            bps = value
+            input = Self.format(bps: value)
         }
         inputModel = InputValidationViewModel(
             mode: .onDemand,
@@ -52,7 +54,7 @@ public final class SwapSlippageViewModel {
                 ),
             ],
         )
-        inputModel.text = Self.format(bps: bps)
+        inputModel.text = input
     }
 
     var title: String {
