@@ -2,7 +2,6 @@
 
 import Components
 import Primitives
-import PrimitivesTestKit
 import Style
 import SwiftUI
 
@@ -52,8 +51,8 @@ public struct TransactionView: View {
     )
     let pendingTransactionExtendedMock = TransactionExtended(
         transaction: pendingTransactionMock,
-        asset: .mockBNB(),
-        feeAsset: .mockBNB(),
+        asset: Primitives.Chain.smartChain.asset,
+        feeAsset: Primitives.Chain.smartChain.asset,
         price: nil,
         feePrice: nil,
         assets: [],

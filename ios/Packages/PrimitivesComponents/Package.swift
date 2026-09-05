@@ -43,7 +43,6 @@ let package = Package(
                 "Validators",
                 "Formatters",
                 .product(name: "BigInt", package: "BigInt"),
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "Sources",
         ),
