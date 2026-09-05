@@ -1079,6 +1079,18 @@ Three gotchas if you repeat the sweep, all met on this pass:
   delegation opens the confirm screen with the withdraw transfer, everything else opens the
   delegation details, and a view-only wallet always opens the details. Android had the view-only
   guard and iOS did not, so iOS could route a watch-only wallet into a transfer it cannot sign.
+- **The import screen's kinds and request are Core's.** `GemWalletService::import_kinds(chain)`
+  lists what a wallet can be imported from (a phrase for multicoin; phrase, private key where the
+  chain supports it, and address for a single chain), `GemWalletImportKind::{protects_input,
+  supports_phrase_suggestions, shows_view_only_warning}` decide the input treatment, and
+  `import_request(kind, chain, input, name_record)` / `import_name(name_record, default_name)`
+  build the `GemWalletImportType` (words split from the pasted text, the resolved address over the
+  typed name, all chains for a multicoin phrase) and pick the wallet name (the resolved name unless
+  blank). Both create-wallet flows build their multicoin request the same way. Deleted: iOS
+  `WalletImportType` and `Chain.isPrivateKeyImportSupported`, Android `WalletImportMappers`,
+  `importWalletTabs`, `shouldProtectInput`, `supportsPhraseSuggestions` and
+  `Chain.isPrivateKeyImportSupported`; the `supports_private_key_import` export is gone because
+  only the kinds rule reads it.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

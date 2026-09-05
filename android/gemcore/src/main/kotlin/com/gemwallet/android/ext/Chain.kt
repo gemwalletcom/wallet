@@ -8,7 +8,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
 import uniffi.gemstone.Config
-import uniffi.gemstone.supportsPrivateKeyImport
 
 
 private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
@@ -43,7 +42,5 @@ fun Chain.toChainType(): ChainType = Config().getChainConfig(string).chainType.t
 fun Chain.isSwapSupport(): Boolean = Config().getChainConfig(string).isSwapSupported
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
-
-fun Chain.isPrivateKeyImportSupported(): Boolean = supportsPrivateKeyImport(string)
 
 fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(Chain.entries.firstOrNull { it.string == this }) { "unknown chain: $this" }

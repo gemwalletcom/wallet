@@ -30,7 +30,7 @@ pub(crate) mod testkit;
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
-use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Chain, NameRecord, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
@@ -45,7 +45,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 use primitives::BlockExplorerLink;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportKind, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -126,6 +126,18 @@ impl GemWalletService {
             name: self.localizer.text(text),
             has_existing_wallets: index > 1,
         })
+    }
+
+    pub fn import_kinds(&self, chain: Option<Chain>) -> Vec<GemWalletImportKind> {
+        rules::import_kinds(chain)
+    }
+
+    pub fn import_request(&self, kind: GemWalletImportKind, chain: Option<Chain>, input: String, name_record: Option<NameRecord>) -> Result<GemWalletImportType, GemServiceError> {
+        Ok(rules::import_request(kind, chain, &input, name_record.as_ref())?)
+    }
+
+    pub fn import_name(&self, name_record: Option<NameRecord>, default_name: String) -> String {
+        rules::import_name(name_record.as_ref(), default_name)
     }
 
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {

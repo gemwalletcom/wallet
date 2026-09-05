@@ -58,9 +58,6 @@ public extension Primitives.Chain {
         return asset.map()
     }
 
-    var isPrivateKeyImportSupported: Bool {
-        Gemstone.supportsPrivateKeyImport(chain: rawValue)
-    }
 }
 
 private extension Primitives.Chain {

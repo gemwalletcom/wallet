@@ -27,7 +27,7 @@ struct ImportWalletScene: View {
                 VStack {
                     if model.showImportTypes {
                         Picker("", selection: $model.importType) {
-                            ForEach(model.importTypes) { type in
+                            ForEach(model.importTypes, id: \.self) { type in
                                 Text(type.title).tag(type)
                             }
                         }
@@ -92,7 +92,7 @@ struct ImportWalletScene: View {
         .listSectionSpacing(.compact)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .safeAreaView {
-            if model.importType.showToolbar, model.wordsSuggestion.isNotEmpty, focusedField == .input {
+            if model.importType.supportsPhraseSuggestions(), model.wordsSuggestion.isNotEmpty, focusedField == .input {
                 WordSuggestionView(
                     words: model.wordsSuggestion,
                     selectWord: model.onSelectWord,

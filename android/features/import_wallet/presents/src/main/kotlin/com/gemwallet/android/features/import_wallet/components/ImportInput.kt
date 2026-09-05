@@ -46,24 +46,6 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
-internal fun supportsPhraseSuggestions(walletType: WalletType): Boolean {
-    return when (walletType) {
-        WalletType.Multicoin,
-        WalletType.Single -> true
-        WalletType.PrivateKey,
-        WalletType.View -> false
-    }
-}
-
-internal fun shouldProtectInput(walletType: WalletType): Boolean {
-    return when (walletType) {
-        WalletType.Multicoin,
-        WalletType.Single,
-        WalletType.PrivateKey -> true
-        WalletType.View -> false
-    }
-}
-
 @Composable
 internal fun ImportInput(
     inputState: TextFieldValue,
@@ -152,7 +134,7 @@ internal fun ImportInput(
                         selection = TextRange(pastedText.length),
                     )
                 )
-                if (shouldProtectInput(importType.walletType)) {
+                if (importType.kind.protectsInput()) {
                     clipboardManager.clear()
                 }
             }

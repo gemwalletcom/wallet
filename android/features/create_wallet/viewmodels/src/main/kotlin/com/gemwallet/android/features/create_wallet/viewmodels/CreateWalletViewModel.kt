@@ -4,7 +4,6 @@ import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.domains.wallet_import.multicoinImport
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
@@ -12,6 +11,7 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletImportResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -76,7 +76,7 @@ class CreateWalletViewModel @Inject constructor(
     }
 
     private suspend fun createWallet(name: String, phrase: String): Wallet {
-        val wallet = when (val result = service.importWallet(name, multicoinImport(phrase).validated(), WalletSource.Create.toGem())) {
+        val wallet = when (val result = service.importWallet(name, service.importRequest(GemWalletImportKind.PHRASE, null, phrase, null), WalletSource.Create.toGem())) {
             is GemWalletImportResult.Existing -> result.wallet.toPrimitives()
             is GemWalletImportResult.New -> result.wallet.toPrimitives()
         }

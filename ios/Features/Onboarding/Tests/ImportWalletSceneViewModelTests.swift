@@ -5,6 +5,7 @@ import GemstonePrimitives
 import GemstoneServices
 import GemstoneServicesTestKit
 import protocol Gemstone.GemNameServiceProtocol
+import enum Gemstone.GemWalletImportKind
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import Preferences
@@ -63,7 +64,7 @@ struct ImportWalletSceneViewModelTests {
         #expect(nameService.requestedNames == ["vitalik.eth"])
     }
 
-    private func enterName(in model: ImportWalletSceneViewModel, importType: WalletImportType) async throws {
+    private func enterName(in model: ImportWalletSceneViewModel, importType: GemWalletImportKind) async throws {
         model.importType = importType
         model.onChangeInput("", newValue: "vitalik.eth")
         try await Task.sleep(for: .milliseconds(500))
