@@ -1056,6 +1056,24 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `FiatQuotes` and their tests; Android `FiatOperationState`, `FiatSceneState` and `BuyError`.
   Left on the apps: the debounce/refresh scheduling that calls `load`, formatting, the
   field-level validation message on iOS, and the URL opening.
+- **Which controls an asset-select screen offers is Core's table.** `GemSelectAssetType::flow()`
+  (send, receive, receive collection, buy, swap pay, swap receive, manage, price alert, deposit,
+  withdraw, wallet search, wallet search results) returns `GemSelectAssetFlow { row_action
+  (navigate / toggle / select), action (the recent-activity action, if any), enables_price_alert,
+  network_search, chain_filter, recents, popular_section, balance_filter, add_custom_token,
+  deposit_asset_display }`. iOS's `SelectAssetFlow` kept this as a `Capabilities` option set with
+  a `RowSelection` per type; Android spread it over constructor flags (`remoteSearch`), view-model
+  overrides (`showRecents`, `action`, `assetFilters`) and per-screen composable arguments
+  (`showPopular`, `action`, `showFilter`). Both now read the record: iOS keeps only
+  `SelectAssetPresentation` (title, section title, list type, default DB filters) beside it, and
+  Android's `BaseAssetSelectViewModel` takes the `GemSelectAssetType`, with one subclass per type
+  (`AssetSelectViewModel` split into `ManageSelectViewModel` and `ReceiveSelectViewModel`) and
+  `onSelected(asset)` recording the recent and enabling the price alert as the flow says.
+  Divergences resolved: the popular section on the price-alert select (iOS had it, Android did
+  not); the has-balance filter toggle (Android offered it on every select, iOS only on manage);
+  the swap receive side recorded recents as a swap-pay selection on Android; Android enabled the
+  price alert only when the target was confirmed, iOS on selection. A screen-context override
+  survives as a parameter: the scan/receive sheet hides the chain filter on the receive select.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

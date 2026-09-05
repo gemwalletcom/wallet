@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
@@ -27,9 +28,8 @@ class PriceAlertsSelectViewModel @Inject constructor(
     getRecentAssets,
     service,
     PriceAlertSelectSearch(searchService),
-) {
-    override val showRecents: Boolean get() = false
-}
+    GemSelectAssetType.PRICE_ALERT,
+)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 open class PriceAlertSelectSearch(

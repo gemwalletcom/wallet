@@ -101,10 +101,10 @@ public struct SelectAssetScene: View {
             let itemView = ListAssetItemSelectionView(
                 assetData: model.displayAssetData(assetData),
                 currencyCode: model.currencyCode,
-                type: model.flow.listType,
+                type: model.presentation.listType,
                 action: model.onAssetAction,
             )
-            switch model.flow.rowSelection {
+            switch model.flow.rowAction {
             case .navigate:
                 NavigationCustomLink(with: itemView) {
                     model.onSelectAsset(assetData)

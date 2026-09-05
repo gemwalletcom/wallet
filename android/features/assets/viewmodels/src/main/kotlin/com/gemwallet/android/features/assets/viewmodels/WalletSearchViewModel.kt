@@ -5,6 +5,7 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
@@ -57,6 +58,7 @@ class WalletSearchViewModel @Inject constructor(
     getRecentAssets,
     service,
     BaseSelectSearch(searchSelectAssets),
+    GemSelectAssetType.WALLET_SEARCH,
 ) {
 
     override suspend fun searchRemote(query: String) {

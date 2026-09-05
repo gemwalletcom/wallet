@@ -1,12 +1,11 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.eligible
-import com.gemwallet.android.domains.asset.recentFilters
-import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
@@ -27,11 +26,8 @@ class BuySelectViewModel @Inject constructor(
     getRecentAssets,
     service,
     BuySelectSearch(searchSelectAssets),
-) {
-    override val action: GemAssetAction get() = GemAssetAction.BUY
-
-    override fun assetFilters() = GemAssetAction.BUY.recentFilters()
-}
+    GemSelectAssetType.BUY,
+)
 
 class BuySelectSearch(
     searchSelectAssets: SearchSelectAssets,

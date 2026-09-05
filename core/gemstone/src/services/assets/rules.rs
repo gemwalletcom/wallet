@@ -4,7 +4,10 @@ use primitives::{
     Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BannerEvent, Chain, ConfigVersions, StakeChain, VerificationStatus, Wallet, WalletType,
 };
 
-use super::model::{AssetList, GemAssetDetailsState, GemAssetEmptyAction, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemWalletSearchLimits};
+use super::model::{
+    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetType,
+    GemSelectRowAction, GemWalletSearchLimits,
+};
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemAssetBalance;
@@ -131,6 +134,82 @@ pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatu
     }
 }
 
+pub fn select_asset_flow(select_type: GemSelectAssetType) -> GemSelectAssetFlow {
+    let flow = |row_action: GemSelectRowAction, action: Option<GemAssetAction>| GemSelectAssetFlow {
+        row_action,
+        action,
+        enables_price_alert: false,
+        network_search: false,
+        chain_filter: false,
+        recents: false,
+        popular_section: false,
+        balance_filter: false,
+        add_custom_token: false,
+        deposit_asset_display: false,
+    };
+    match select_type {
+        GemSelectAssetType::Send => GemSelectAssetFlow {
+            chain_filter: true,
+            recents: true,
+            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Send))
+        },
+        GemSelectAssetType::Receive => GemSelectAssetFlow {
+            network_search: true,
+            chain_filter: true,
+            recents: true,
+            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
+        },
+        GemSelectAssetType::ReceiveCollection => GemSelectAssetFlow {
+            network_search: true,
+            recents: true,
+            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
+        },
+        GemSelectAssetType::Buy => GemSelectAssetFlow {
+            network_search: true,
+            chain_filter: true,
+            recents: true,
+            popular_section: true,
+            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Buy))
+        },
+        GemSelectAssetType::SwapPay => GemSelectAssetFlow {
+            chain_filter: true,
+            recents: true,
+            ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapPay))
+        },
+        GemSelectAssetType::SwapReceive => GemSelectAssetFlow {
+            network_search: true,
+            chain_filter: true,
+            recents: true,
+            ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
+        },
+        GemSelectAssetType::Manage => GemSelectAssetFlow {
+            network_search: true,
+            chain_filter: true,
+            balance_filter: true,
+            add_custom_token: true,
+            ..flow(GemSelectRowAction::Toggle, None)
+        },
+        GemSelectAssetType::PriceAlert => GemSelectAssetFlow {
+            enables_price_alert: true,
+            network_search: true,
+            chain_filter: true,
+            popular_section: true,
+            ..flow(GemSelectRowAction::Select, None)
+        },
+        GemSelectAssetType::Deposit => flow(GemSelectRowAction::Navigate, None),
+        GemSelectAssetType::Withdraw => GemSelectAssetFlow {
+            deposit_asset_display: true,
+            ..flow(GemSelectRowAction::Navigate, None)
+        },
+        GemSelectAssetType::WalletSearch => GemSelectAssetFlow {
+            network_search: true,
+            recents: true,
+            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
+        },
+        GemSelectAssetType::WalletSearchResults => flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open)),
+    }
+}
+
 pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
     let assets = match query.trim().is_empty() {
         true => ASSETS_INITIAL_LIMIT,
@@ -193,6 +272,61 @@ pub fn details_state(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_each_select_flow_decides_its_row_action_and_recent_activity() {
+        let row = |select_type: GemSelectAssetType| (select_type.flow().row_action, select_type.flow().action);
+        assert_eq!(row(GemSelectAssetType::Send), (GemSelectRowAction::Navigate, Some(GemAssetAction::Send)));
+        assert_eq!(row(GemSelectAssetType::Receive), (GemSelectRowAction::Navigate, Some(GemAssetAction::Receive)));
+        assert_eq!(row(GemSelectAssetType::ReceiveCollection), (GemSelectRowAction::Navigate, Some(GemAssetAction::Receive)));
+        assert_eq!(row(GemSelectAssetType::Buy), (GemSelectRowAction::Navigate, Some(GemAssetAction::Buy)));
+        assert_eq!(row(GemSelectAssetType::SwapPay), (GemSelectRowAction::Select, Some(GemAssetAction::SwapPay)));
+        assert_eq!(row(GemSelectAssetType::SwapReceive), (GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive)));
+        assert_eq!(row(GemSelectAssetType::Manage), (GemSelectRowAction::Toggle, None));
+        assert_eq!(row(GemSelectAssetType::PriceAlert), (GemSelectRowAction::Select, None));
+        assert_eq!(row(GemSelectAssetType::Deposit), (GemSelectRowAction::Navigate, None));
+        assert_eq!(row(GemSelectAssetType::Withdraw), (GemSelectRowAction::Navigate, None));
+        assert_eq!(row(GemSelectAssetType::WalletSearch), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
+        assert_eq!(row(GemSelectAssetType::WalletSearchResults), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
+    }
+
+    #[test]
+    fn test_each_select_flow_enables_only_its_capabilities() {
+        let enabled = |select_type: GemSelectAssetType| {
+            let flow = select_type.flow();
+            [
+                ("network_search", flow.network_search),
+                ("chain_filter", flow.chain_filter),
+                ("recents", flow.recents),
+                ("popular_section", flow.popular_section),
+                ("balance_filter", flow.balance_filter),
+                ("add_custom_token", flow.add_custom_token),
+                ("deposit_asset_display", flow.deposit_asset_display),
+                ("enables_price_alert", flow.enables_price_alert),
+            ]
+            .into_iter()
+            .filter_map(|(name, on)| on.then_some(name))
+            .collect::<Vec<_>>()
+        };
+        assert_eq!(enabled(GemSelectAssetType::Send), ["chain_filter", "recents"]);
+        assert_eq!(enabled(GemSelectAssetType::Receive), ["network_search", "chain_filter", "recents"]);
+        assert_eq!(enabled(GemSelectAssetType::ReceiveCollection), ["network_search", "recents"]);
+        assert_eq!(enabled(GemSelectAssetType::Buy), ["network_search", "chain_filter", "recents", "popular_section"]);
+        assert_eq!(enabled(GemSelectAssetType::SwapPay), ["chain_filter", "recents"]);
+        assert_eq!(enabled(GemSelectAssetType::SwapReceive), ["network_search", "chain_filter", "recents"]);
+        assert_eq!(
+            enabled(GemSelectAssetType::Manage),
+            ["network_search", "chain_filter", "balance_filter", "add_custom_token"]
+        );
+        assert_eq!(
+            enabled(GemSelectAssetType::PriceAlert),
+            ["network_search", "chain_filter", "popular_section", "enables_price_alert"]
+        );
+        assert!(enabled(GemSelectAssetType::Deposit).is_empty());
+        assert_eq!(enabled(GemSelectAssetType::Withdraw), ["deposit_asset_display"]);
+        assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents"]);
+        assert!(enabled(GemSelectAssetType::WalletSearchResults).is_empty());
+    }
 
     #[test]
     fn test_wallet_search_limits_widen_while_searching_and_fetch_one_more_than_shown() {

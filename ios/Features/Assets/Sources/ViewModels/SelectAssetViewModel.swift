@@ -5,6 +5,7 @@ import Foundation
 import class Gemstone.GemAssetConfigService
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
+import struct Gemstone.GemSelectAssetFlow
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -20,7 +21,8 @@ import SwiftUI
 public final class SelectAssetViewModel {
     private let service: any GemAssetSelectionServiceProtocol
     let selectType: SelectAssetType
-    let flow: SelectAssetFlow
+    let flow: GemSelectAssetFlow
+    let presentation: SelectAssetPresentation
 
     public let wallet: Wallet
 
@@ -53,7 +55,8 @@ public final class SelectAssetViewModel {
         self.service = service
         self.wallet = wallet
         self.selectType = selectType
-        flow = selectType.flow()
+        flow = selectType.flow
+        presentation = selectType.presentation()
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
@@ -75,11 +78,11 @@ public final class SelectAssetViewModel {
     }
 
     var title: String {
-        flow.title
+        presentation.title
     }
 
     var sections: AssetsSections {
-        AssetsSections.from(assets, popularIds: flow.capabilities.contains(.popularSection) ? Self.popularIds : [])
+        AssetsSections.from(assets, popularIds: flow.popularSection ? Self.popularIds : [])
     }
 
     private static let popularIds = Set(GemAssetConfigService.shared.popularIds().compactMap { try? AssetId(id: $0) })
@@ -113,19 +116,19 @@ public final class SelectAssetViewModel {
     }
 
     var assetsTitle: String {
-        flow.assetsSectionTitle
+        presentation.assetsSectionTitle
     }
 
     public var showAddToken: Bool {
-        flow.capabilities.contains(.addCustomToken) && service.supportsTokens(wallet: wallet.map()) && filterModel.chainsFilter.hasChains
+        flow.addCustomToken && service.supportsTokens(wallet: wallet.map()) && filterModel.chainsFilter.hasChains
     }
 
     public var showFilter: Bool {
-        flow.capabilities.contains(.chainFilter) && wallet.isMultiCoins && filterModel.chainsFilter.hasChains
+        flow.chainFilter && wallet.isMultiCoins && filterModel.chainsFilter.hasChains
     }
 
     var isNetworkSearchEnabled: Bool {
-        flow.capabilities.contains(.networkSearch)
+        flow.networkSearch
     }
 
     var showLoading: Bool {
@@ -137,7 +140,7 @@ public final class SelectAssetViewModel {
     }
 
     var showRecents: Bool {
-        flow.capabilities.contains(.recents) && searchableQuery.isEmpty && recentModel.hasAssets
+        flow.recents && searchableQuery.isEmpty && recentModel.hasAssets
     }
 
     var currencyCode: String {
@@ -162,7 +165,7 @@ extension SelectAssetViewModel {
     }
 
     func handleAction(assetId: AssetId, enabled: Bool) async {
-        switch flow.rowSelection {
+        switch flow.rowAction {
         case .toggle:
             do {
                 try await service.setAssetsEnabled(assetIds: [assetId.identifier], enabled: enabled)
@@ -213,7 +216,7 @@ extension SelectAssetViewModel {
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
-        guard flow.capabilities.contains(.depositAssetDisplay) else { return assetData }
+        guard flow.depositAssetDisplay else { return assetData }
         return AssetData(
             asset: PerpetualConfig.depositAsset,
             balance: assetData.balance,
@@ -226,7 +229,7 @@ extension SelectAssetViewModel {
     }
 
     public func onSelectRecent(_ asset: Asset) {
-        switch flow.rowSelection {
+        switch flow.rowAction {
         case .navigate:
             assetSelection = SelectAssetInput(type: selectType, assetData: assetData(for: asset))
         case .select:

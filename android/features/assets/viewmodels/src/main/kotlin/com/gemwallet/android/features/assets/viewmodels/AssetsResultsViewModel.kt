@@ -5,6 +5,7 @@ import com.gemwallet.android.domains.search.toGem
 import com.gemwallet.android.ext.runCatchingCancellable
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import android.content.Context
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import android.util.Log
@@ -63,7 +64,7 @@ class AssetsResultsViewModel @Inject constructor(
     getRecentAssets,
     service,
     selectSearchOf(savedStateHandle, searchSelectAssets, searchListAssets),
-    remoteSearch = false,
+    GemSelectAssetType.WALLET_SEARCH_RESULTS,
 ) {
 
     private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
