@@ -40,10 +40,6 @@ impl GemFiatQuoteService {
         GemFiatSession::new(quote_type, amount)
     }
 
-    pub fn default_amount(&self, quote_type: FiatQuoteType) -> u32 {
-        rules::default_amount(&get_fiat_config(), quote_type)
-    }
-
     pub fn random_amount(&self) -> u32 {
         rules::random_amount(&get_fiat_config())
     }

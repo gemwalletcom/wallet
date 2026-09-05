@@ -410,7 +410,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         Gemstone.FiatConfig(defaultBuyAmount: 50, defaultSellAmount: 100, minimumAmount: 5, maximumAmount: 10000, randomMaxAmount: 1000, suggestedAmounts: [100, 250], insufficientNetworkFeeBuyAmount: 10)
     }
 
-    public func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
+    private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
         quoteType.map() == .sell ? 100 : 50
     }
 
@@ -492,10 +492,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 
     public func nameRecordDebounceMilliseconds() -> UInt64 {
         0
-    }
-
-    public func addressName(chain: String, address: String) throws -> Gemstone.AddressName? {
-        addressNames.first { $0.chain.rawValue == chain && $0.address == address }?.map()
     }
 
     public func validateRecipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?) -> GemRecipientValidation {
@@ -708,7 +704,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         isPerpetualEnabled && connects
     }
 
-    public func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+    private func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if trigger == .scheduled, updatedAt != nil {
             return false
         }
@@ -726,7 +722,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt = nil
     }
 
-    public func syncCurrentPositions() async throws {
+    private func syncCurrentPositions() async throws {
         syncPositionsCount += 1
     }
 

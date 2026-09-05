@@ -16,7 +16,6 @@ import enum Gemstone.GemBannerAction
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.BlockExplorerLink
-import class Gemstone.GemDeeplinkService
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.VerificationStatus
 import enum Gemstone.WalletType
@@ -26,7 +25,6 @@ import PrimitivesTestKit
 
 public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @unchecked Sendable {
     private let assetPair: GemSwapPairSuggestion?
-    private let deeplinks = GemDeeplinkService()
 
     public init(assetPair: GemSwapPairSuggestion? = nil) {
         self.assetPair = assetPair
@@ -93,11 +91,11 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
 
     public func syncPriceAlerts(assetId _: AssetId?) async throws {}
 
-    public func deeplinkUrl(deeplink: Deeplink) -> String {
-        deeplinks.buildUrl(deeplink: deeplink)
+    public func deeplinkUrl(deeplink _: Deeplink) -> String {
+        "https://gemwallet.com"
     }
 
-    public func deeplinkGemUrl(deeplink: Deeplink) -> String {
-        deeplinks.buildUrl(deeplink: deeplink)
+    public func deeplinkGemUrl(deeplink _: Deeplink) -> String {
+        "https://gemwallet.com"
     }
 }

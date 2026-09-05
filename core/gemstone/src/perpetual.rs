@@ -50,7 +50,9 @@ impl GemPerpetual {
             references: vec![],
         }
     }
+}
 
+impl GemPerpetual {
     pub fn deposit_recipient(&self) -> GemRecipient {
         let address = match self.provider {
             PerpetualProvider::Hypercore => HYPERLIQUID_DEPOSIT_ADDRESS.to_string(),

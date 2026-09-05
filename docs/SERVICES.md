@@ -945,7 +945,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `synchronize_if_needed`; Core's app-start and price-alert flows call it), `GemAssetDiscoveryService::discover`
   (only `GemWalletHomeService::refresh` calls it; the apps only construct the service),
   `GemMnemonic::generate` (deleted — wallets are created by `GemWalletService`, neither app
-  generated a phrase). Sweep gotcha: an iOS `+GemstonePrimitives.swift` wrapper calls the export
+  generated a phrase). A September 2026 rerun un-exported `GemDeeplinkService::build_url`,
+  `GemNameService::address_name`, `GemPerpetualService::{sync_markets_if_needed,
+  sync_current_positions}`, `GemPerpetual::deposit_recipient` and deleted
+  `GemFiatQuoteService::default_amount` (the fiat session owns the default); `default_rank`,
+  `is_swapable`, `decode_url`, `setup_chains` and the keystore's `create_store` / `preview_import`
+  have only test callers and stay while those tests do. Sweep gotcha: an iOS `+GemstonePrimitives.swift` wrapper calls the export
   with implicit `self` (`newest(` not `.newest(`), so verify by the bare name — `GemAppUpdateService::newest`
   looked dead and is not.
 - **The home "importing" row is Core's answer on both apps.** Android's `AssetsViewModel` took

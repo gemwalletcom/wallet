@@ -17,6 +17,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -93,6 +94,7 @@ class WalletConnectCoordinatorTest {
     @Test
     fun `a settled session is stored once for the wallet that approved it`() = runBlocking {
         subject.pair("wc:uri")
+        clientEvents.subscriptionCount.first { it > 0 }
         clientEvents.emit(WalletConnectEvent.SessionSettled(settledSession))
 
         subject.approveConnection(wallet, proposal, onSuccess = {}, onError = {})

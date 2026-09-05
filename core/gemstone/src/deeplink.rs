@@ -21,16 +21,16 @@ impl GemDeeplinkService {
         Self {}
     }
 
-    pub fn build_url(&self, deeplink: Deeplink) -> String {
-        deeplink.to_url()
-    }
-
     pub fn url_action(&self, url: String) -> Option<UrlAction> {
         UrlAction::from_url(&url)
     }
 }
 
 impl GemDeeplinkService {
+    pub fn build_url(&self, deeplink: Deeplink) -> String {
+        deeplink.to_url()
+    }
+
     pub fn build_gem_url(&self, deeplink: Deeplink) -> String {
         deeplink.to_gem_url()
     }
