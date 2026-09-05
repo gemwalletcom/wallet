@@ -75,7 +75,7 @@ class GetWalletSummaryImplTest {
                 changedValue = null,
             ),
             isBalanceHidden = false,
-            isOperationsAvailable = true,
+            headerButtons = emptyList(),
         )
 
         assertEquals(Chain.Base.getIconUrl(), summary.walletIcon.placeholder)

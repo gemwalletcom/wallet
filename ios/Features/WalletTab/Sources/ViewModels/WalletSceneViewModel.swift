@@ -149,7 +149,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             totalValue: totalFiatValue,
             currencyCode: currencyCode,
             showsPnl: service.showsPnl(total: totalFiatValue.map()),
-            bannerEventsViewModel: HeaderBannerEventViewModel(events: banners.map(\.event)),
+            buttons: service.headerButtons(wallet: wallet.map(), isEnabled: HeaderBannerEventViewModel(events: banners.map(\.event)).isButtonsEnabled),
         )
     }
 
@@ -215,7 +215,8 @@ public extension WalletSceneViewModel {
         case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
         case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
-        case .sell, .swap, .more, .stake, .deposit, .withdraw: break
+        case .swap: isPresentingSheet = .swap
+        case .sell, .more, .stake, .deposit, .withdraw: break
         }
     }
 

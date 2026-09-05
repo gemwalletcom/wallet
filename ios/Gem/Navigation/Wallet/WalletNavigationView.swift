@@ -205,6 +205,8 @@ struct WalletNavigationView: View {
                     PortfolioScene(model: viewModelFactory.portfolioScene(wallet: model.wallet, defaultType: defaultType))
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
+                case .swap:
+                    SwapNavigationStack(wallet: model.wallet, onComplete: model.onTransferComplete)
                 }
             }
             .id(sheet.id)

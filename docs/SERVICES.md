@@ -320,10 +320,6 @@ Each is one question. Nothing below is blocked on investigation.
 |---|---|---|
 | S3 biometric gate | iOS gates at the Keychain ACL so every secret read prompts; Android calls a UI prompt at each call site and `PasswordStore` itself is unauthenticated, so any new caller bypasses it. | Core should mark which operations require authentication, and the adapter enforces it. |
 | N1 notification permission | Core owns "granted / denied / never asked", but Android's adapter holds an application `Context` and cannot tell "never asked" from "denied", so it opens Settings for a first-time user. | Core owns the three-state decision; Android needs an activity-scoped requester. |
-| Stake push notification target | iOS `case .stake: break` selects the wallet tab behind a TODO; Android opens the asset. | Navigation decision. |
-| Swap minimum-amount button copy | iOS "Use Minimum Amount" (`swap_use_minimum_amount`); Android "Minimum amount" (`stake_minimum_amount`, borrowed from staking). | Product call — nobody has written swap-specific copy. |
-| Swap asset selection enables the asset | Android's `SwapViewModel.updateBalance` enables a selected pay/receive asset on the current wallet (`EnableAsset`, one of the last `getSession` reads in a view model) and subscribes its price; iOS only subscribes prices when a quote loads. | Product call. If enabling stays, it becomes `GemSwapQuoteService::select_asset(asset_id)` reading the session, on both apps. |
-| Wallet header swap button | Android's wallet header shows Swap when `GetWalletSummaryImpl.isSwapAvailable` says so (multicoin, or a single-chain wallet whose chain swaps; never a view wallet); iOS's `WalletHeaderViewModel` has no swap button. | Product call. If iOS gets the button, the rule moves to `GemWalletHomeService` first so both read it. |
 | S8 privacy lock | iOS has an app-lock setting with a `shouldCoverScreen` rule and an overlay window; Android has none. | Product call. The cover predicate is Core's; the overlay is platform. |
 | S9 WalletConnect one-click auth (SIWE) | Android only, and its rules — including *what the user is asked to sign* — live in `WCAuthViewModel.kt` UI code. | Product call. Whoever takes it moves the rules to Core first. |
 | Polling on top of a live socket | T5/T7: screens still poll while a socket is open, and each screen asks for its own price subscription rather than Core deciding when prices are subscribed (deleting `PriceUpdater.swift`). | Design change, not a missing call. |
@@ -1079,6 +1075,16 @@ Three gotchas if you repeat the sweep, all met on this pass:
   the swap receive side recorded recents as a swap-pay selection on Android; Android enabled the
   price alert only when the target was confirmed, iOS on selection. A screen-context override
   survives as a parameter: the scan/receive sheet hides the chain filter on the receive select.
+- **The wallet header's buttons are Core's list on both apps.** `GemWalletHomeService::header_buttons(wallet,
+  is_enabled)` returns send, receive and buy, plus swap for a multicoin wallet or a single-chain and
+  private-key wallet whose chain swaps, never for a view wallet. Android's `isSwapAvailable` on the
+  wallet summary and its per-screen button list are gone; iOS's header gained the swap button it did
+  not have, opening the swap scene with no pair so Core suggests one. The swap minimum-amount button
+  reads `swap_use_minimum_amount` on both apps (Android borrowed the staking copy). Selecting a swap
+  asset no longer enables it on the wallet on Android: `GemTransactionStateService` already enables
+  the assets of a recorded swap, so a browsed-but-never-swapped token stays out of the list, and both
+  apps only subscribe the selected asset's price. The stake push notification opens the asset on both
+  apps (iOS's `NavigationHandler` already did; the table row describing a wallet-tab fallback was stale).
 - **Tapping a delegation is Core's decision.** `GemStakeService::delegation_destination(wallet_type,
   asset, delegation)` returns `Details` or `Withdraw { transfer }`: an awaiting-withdrawal
   delegation opens the confirm screen with the withdraw transfer, everything else opens the
@@ -1099,20 +1105,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
-- **`GemSecurityService` (iOS)** is a *defaulted* parameter on `BiometryAuthenticationService`. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole service — a lock-manager pass, not a one-liner.
 
 ### 5. Tests that cannot fail
 
-`SettingsViewModelTest` (Android) fails intermittently across unrelated changes — seen on both
-`single wallet hides rewards` and `rewards stay available while no wallets are loaded`, each passing
-on an immediate rerun with an `IllegalStateException` from `TestMainDispatcher`. A flake in a
-wallet-settings suite is a false signal every contributor has to re-run past; fix the dispatcher
-setup rather than retrying it.
-
-`services::wallet::tests::test_every_wallet_change_bumps_the_subscriptions_version` (Core) failed
-once in a full `cargo test -p gemstone --lib` run with the subscriptions version at 9 instead of 1
-after the last wallet was deleted, and passed on rerun and in isolation — the counter it asserts
-on is shared preferences state, so another test's bumps can leak in under parallel execution.
+`SettingsViewModelTest` (Android) used to fail intermittently with an `IllegalStateException` from
+`TestMainDispatcher`; its rewards tests were rewritten to drive a `StandardTestDispatcher` and cancel
+the view-model scope in `tearDown`, and five forced reruns on 2026-09-05 passed. Treat a new failure
+there as a real regression, not the old flake.
 
 `AddAssetViewModelTest > addAsset adds the found token to the current wallet` (Android) failed once
 in a full `just test` run with a `CompletionHandlerException` from a cancelled `ProducerCoroutine`
@@ -1136,7 +1135,7 @@ handler still runs, so the test needs the producer scope closed before the asser
 
 - Image URLs come from `GemImage { Asset, Validator, NftAsset, AssetList }::url()` on both apps; `Validator` answers the chain's own logo for the system ("unstaking") validator, so neither app keeps a system-validator id (iOS `DelegationValidator.systemId`, Android `SYSTEM_VALIDATOR_ID` are gone) (iOS `AssetImageFormatter`, Android's remote-URL half of `IconUrlGeneration.kt` and both apps' `assets.gemwallet.com` constants are gone). The one exception is `GemPriceWidget`, which does not link Gemstone — a widget extension cannot afford the Rust binary — so `WidgetPriceService.tokenImageURL` spells the token logo URL itself; bundled chain/provider icons stay platform paths.
 - Naming: untyped `.map()` conversions where Android has `toPrimitives()`.
-- `NavigationHandler`'s `.stake` deep link is an unimplemented branch and `TransactionScene`'s corner radius is an open iOS 26 styling question — both mark real gaps, keep the TODOs until closed.
+- `TransactionScene`'s corner radius is an open iOS 26 styling question — it marks a real gap, keep the TODO until closed.
 - The two "delete in 2026" `FileMigrator` calls (`LocalKeystore`, `DB.swift`) move the keystore and database from documents to application support on launch. Deleting them strands anyone who has not opened the app since the move — losing their keystore — so this needs install-base data, not a code decision.
 
 ### 8. iOS view models holding more than one Core service

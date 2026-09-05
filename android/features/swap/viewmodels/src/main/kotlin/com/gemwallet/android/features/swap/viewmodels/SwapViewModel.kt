@@ -12,7 +12,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
@@ -21,11 +20,9 @@ import com.gemwallet.android.application.swap.cases.create
 import com.gemwallet.android.application.swap.cases.matches
 import com.gemwallet.android.application.swap.cases.toGem
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.swap.SwapItemType
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
@@ -81,9 +78,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SwapViewModel @Inject constructor(
-    private val getSession: GetSession,
     private val getAssetInfo: GetAssetInfo,
-    private val enableAsset: EnableAsset,
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
@@ -113,7 +108,7 @@ class SwapViewModel @Inject constructor(
 
     val payAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
         .map { it?.toAssetId() }
-        .onEach { id -> id?.let { updateBalance(it) } }
+        .onEach { id -> id?.let { subscribePrice(it) } }
         .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -123,7 +118,7 @@ class SwapViewModel @Inject constructor(
 
     val receiveAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.ToAssetId.key, null)
         .map { it?.toAssetId() }
-        .onEach { id -> id?.let { updateBalance(it) } }
+        .onEach { id -> id?.let { subscribePrice(it) } }
         .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -363,10 +358,7 @@ class SwapViewModel @Inject constructor(
         }
     }
 
-    private fun updateBalance(id: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val currentSession = getSession().firstOrNull() ?: return@launch
-        currentSession.wallet.getAccount(id.chain) ?: return@launch
-        enableAsset(currentSession.wallet.id, id)
+    private fun subscribePrice(id: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         runCatchingCancellable { swapQuoteService.addPrices(listOf(id.toIdentifier())) }
     }
 

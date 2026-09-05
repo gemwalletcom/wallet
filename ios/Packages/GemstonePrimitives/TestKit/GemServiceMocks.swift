@@ -781,6 +781,10 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         total.value > 0 && total.pnlAmount != 0
     }
 
+    public func headerButtons(wallet _: Gemstone.Wallet, isEnabled: Bool) -> [GemHeaderButton] {
+        [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }
+    }
+
     public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}
 
     public func includesPerpetualCollateral() -> Bool {

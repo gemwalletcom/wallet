@@ -3,7 +3,6 @@ package com.gemwallet.android.features.swap.viewmodels
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
@@ -105,7 +104,6 @@ class SwapViewModelTest {
         every { this@mockk(solAsset.id) } returns flowOf(solInfo)
         every { this@mockk(usdcAsset.id) } returns flowOf(usdcInfo)
     }
-    private val enableAsset = mockk<EnableAsset>(relaxed = true)
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
         every { slippageBps() } returns null
@@ -137,9 +135,7 @@ class SwapViewModelTest {
     }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
-        getSession = getSession,
         getAssetInfo = getAssetInfo,
-        enableAsset = enableAsset,
         requestSwapQuotes = requestSwapQuotes,
         swapQuoteService = swapQuoteService,
         savedStateHandle = savedStateHandle,
