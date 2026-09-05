@@ -82,6 +82,7 @@ fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Wallet;
     use primitives::NFTData;
 
     #[test]

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.create_wallet.views
 
+import uniffi.gemstone.GemWalletDefaultName
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -77,7 +78,7 @@ fun CreateWalletScreen(
                 onCancel = viewModel::handleCreateDismiss,
             )
             false -> UI(
-                generatedNameIndex = uiState.generatedNameIndex,
+                defaultName = uiState.defaultName,
                 data = uiState.data,
                 dataError = uiState.dataError,
                 onCreate = viewModel::handleReadyToCreate,
@@ -107,7 +108,7 @@ fun CreateWalletScreen(
 
 @Composable
 private fun UI(
-    generatedNameIndex: Int,
+    defaultName: GemWalletDefaultName?,
     data: List<String>,
     dataError: String?,
     onCreate: (String) -> Unit,
@@ -115,7 +116,7 @@ private fun UI(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val name = stringResource(id = R.string.wallet_default_name, generatedNameIndex)
+    val name = defaultName?.name.orEmpty()
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
         onClose = onCancel,
@@ -165,7 +166,7 @@ fun PreviewCreateUI() {
     WalletTheme {
         Column {
             UI(
-                generatedNameIndex = 2,
+                defaultName = GemWalletDefaultName("Wallet #2", true),
                 data = listOf(
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve"

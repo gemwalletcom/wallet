@@ -28,8 +28,6 @@ class GemstonePriceStore(
     override suspend fun getPrices(assetIds: List<String>): List<GemAssetPrice> =
         pricesDao.getByAssets(assetIds).map { it.toGemAssetPrice() }
 
-    override suspend fun getEnabledPriceAssetIds(walletId: String): List<String> = assetsDao.getAssetsPriceUpdate(walletId)
-
     override suspend fun getRate(currency: String): String? =
         pricesDao.getRates(currency.toCurrency()).firstOrNull()?.toDTO()?.toJson()
 

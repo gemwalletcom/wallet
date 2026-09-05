@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.receive.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow

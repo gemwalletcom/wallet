@@ -53,6 +53,7 @@ pub fn node_verification_address(chain: Chain) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Wallet;
     use primitives::Account;
 
     #[test]

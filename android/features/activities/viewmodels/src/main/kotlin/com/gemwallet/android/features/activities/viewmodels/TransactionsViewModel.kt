@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.activities.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

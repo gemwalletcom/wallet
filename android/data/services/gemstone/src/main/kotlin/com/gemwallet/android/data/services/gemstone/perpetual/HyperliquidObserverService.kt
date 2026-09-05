@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.perpetual
 
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable

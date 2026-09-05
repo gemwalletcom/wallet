@@ -24,6 +24,7 @@ pub mod failures;
 pub mod fiat;
 pub mod file;
 pub mod name;
+pub mod localization;
 pub mod nft;
 pub mod node;
 pub mod notification;

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
@@ -67,14 +68,14 @@ class ImportViewModel @Inject constructor(
     }
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
-        val generatedNameIndex = withContext(Dispatchers.IO) {
-            service.nextWalletIndex(service.wallets())
+        val defaultName = withContext(Dispatchers.IO) {
+            service.defaultWalletName(importType.chain?.string)
         }
         val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
         state.update {
             it.copy(
                 importType = importType,
-                generatedNameIndex = generatedNameIndex,
+                defaultWalletName = defaultName.name,
                 chainName = chainName,
             )
         }
@@ -126,7 +127,7 @@ data class ImportViewModelState(
     val loading: Boolean = false,
     val error: String = "",
     val importType: ImportType = ImportType(WalletType.Multicoin),
-    val generatedNameIndex: Int = 0,
+    val defaultWalletName: String = "",
     val chainName: String = "",
     val data: String = "",
     val dataError: Throwable? = null,
@@ -136,7 +137,7 @@ data class ImportViewModelState(
         return ImportUIState(
             loading = loading,
             error = error,
-            generatedNameIndex = generatedNameIndex,
+            defaultWalletName = defaultWalletName,
             chainName = chainName,
             importType = importType,
             dataError = dataError,
@@ -149,8 +150,9 @@ data class ImportUIState(
     val loading: Boolean = false,
     val error: String = "",
     val importType: ImportType = ImportType(WalletType.Multicoin),
-    val generatedNameIndex: Int = 0,
+    val defaultWalletName: String = "",
     val chainName: String = "",
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )
+

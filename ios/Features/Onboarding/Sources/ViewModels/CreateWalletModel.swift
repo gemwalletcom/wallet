@@ -15,7 +15,6 @@ public final class CreateWalletModel {
     private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
     private let avatarService: any GemAvatarServiceProtocol
-    private(set) var hasExistingWallets: Bool = false
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
@@ -69,16 +68,15 @@ extension CreateWalletModel {
         }
     }
 
-    func createWallet(words: [String]) async throws -> Wallet {
-        let wallets = (try? await service.getWallets()) ?? []
-        hasExistingWallets = wallets.isNotEmpty
+    func createWallet(words: [String]) async throws -> CreatedWallet {
+        let name = try await service.defaultWalletName(chain: .none)
         let result = try await service.importWallet(
-            name: WalletNameGenerator(type: .multicoin, wallets: wallets, service: service).name(),
+            name: name.name,
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
             source: .create,
         )
         preferences.acceptTerms()
-        return result.wallet
+        return CreatedWallet(wallet: result.wallet, hasExistingWallets: name.hasExistingWallets)
     }
 
     func setupWalletComplete(wallet: Wallet) async {
@@ -89,4 +87,9 @@ extension CreateWalletModel {
             debugLog("set current wallet error: \(error)")
         }
     }
+}
+
+struct CreatedWallet {
+    let wallet: Wallet
+    let hasExistingWallets: Bool
 }

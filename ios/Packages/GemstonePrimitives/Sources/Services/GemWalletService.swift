@@ -15,10 +15,6 @@ public extension GemWalletServiceProtocol {
         }
     }
 
-    func nextWalletIndex(wallets: [Wallet]) -> Int {
-        Int(nextWalletIndex(wallets: wallets.map { $0.json() }) as Int32)
-    }
-
     func sorted(wallets: [Wallet]) -> [Wallet] {
         do {
             return try sortedWallets(wallets: wallets.map { $0.json() }).map { try Wallet($0) }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import struct Gemstone.Account
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic

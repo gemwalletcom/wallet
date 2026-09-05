@@ -8,9 +8,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, WalletId};
-
-use crate::models::asset::asset_ids_enabled_by_default;
+use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
 pub use model::{GemAssetPrice, GemPriceUpdate};
 pub use store::GemPriceStore;
@@ -63,23 +61,11 @@ impl GemPriceService {
         };
         self.store.convert_prices(currency, rate.rate).await
     }
-}
 
-impl GemPriceService {
     pub async fn update_asset_price(&self, asset_id: AssetId, price: Option<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
         update_prices(self.store.as_ref(), vec![price.unwrap_or_else(|| AssetPrice::empty(asset_id))], currency).await
     }
 
-    pub async fn observable_asset_ids(&self, wallet_id: WalletId, alert_asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
-        Ok(rules::observable_asset_ids(
-            self.store.get_enabled_price_asset_ids(wallet_id).await?,
-            alert_asset_ids,
-            asset_ids_enabled_by_default(),
-        ))
-    }
-}
-
-impl GemPriceService {
     pub async fn rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
         Ok(rules::rate_or_base(currency.clone(), self.store.get_rate(currency).await?))
     }

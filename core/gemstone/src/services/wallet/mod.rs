@@ -36,6 +36,7 @@ use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
+use crate::services::localization::{GemLocalizedText, GemLocalizer};
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
 use crate::services::name::GemAddressStore;
@@ -44,7 +45,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletDefaultName, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -67,6 +68,7 @@ pub struct GemWalletService {
     preferences: Arc<GemWalletPreferencesService>,
     explorer: Arc<GemExplorerService>,
     addresses: Arc<dyn GemAddressStore>,
+    localizer: Arc<dyn GemLocalizer>,
 }
 
 #[uniffi::export]
@@ -82,6 +84,7 @@ impl GemWalletService {
         preferences: Arc<GemWalletPreferencesService>,
         explorer: Arc<GemExplorerService>,
         addresses: Arc<dyn GemAddressStore>,
+        localizer: Arc<dyn GemLocalizer>,
     ) -> Self {
         Self {
             keystore,
@@ -93,6 +96,7 @@ impl GemWalletService {
             preferences,
             explorer,
             addresses,
+            localizer,
         }
     }
 
@@ -112,8 +116,16 @@ impl GemWalletService {
         Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })
     }
 
-    pub fn next_wallet_index(&self, wallets: Vec<Wallet>) -> i32 {
-        rules::next_wallet_index(&wallets)
+    pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemWalletDefaultName, GemServiceError> {
+        let index = rules::next_wallet_index(&self.store.get_wallets().await?);
+        let text = match chain {
+            Some(chain) => GemLocalizedText::WalletDefaultNameChain { chain, index },
+            None => GemLocalizedText::WalletDefaultName { index },
+        };
+        Ok(GemWalletDefaultName {
+            name: self.localizer.text(text),
+            has_existing_wallets: index > 1,
+        })
     }
 
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
@@ -334,6 +346,7 @@ mod tests {
 
     use super::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
     use super::*;
+    use crate::services::localization::testkit::EnglishLocalizer;
     use crate::services::file::testkit::NoopFileStore;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
     use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
@@ -373,6 +386,7 @@ mod tests {
                 Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
                 Arc::new(GemExplorerService::new(app_preferences)),
                 addresses.clone(),
+                Arc::new(EnglishLocalizer),
             );
             Self {
                 service,

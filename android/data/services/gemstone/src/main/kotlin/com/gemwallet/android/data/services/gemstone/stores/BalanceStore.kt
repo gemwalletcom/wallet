@@ -22,8 +22,7 @@ class GemstoneBalanceStore(
         assetIds.mapNotNull { balancesDao.getByAsset(walletId, it)?.toGemAssetBalance() }
     }
 
-    override suspend fun getEnabledAssetIds(walletId: String, assetIds: List<String>): List<String> =
-        balancesDao.getVisibleAssetIds(walletId, assetIds)
+    override suspend fun getEnabledAssetIds(walletId: String): List<String> = balancesDao.getEnabledAssetIds(walletId)
 
     override suspend fun setAssetsEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) =
         assetsDao.setWalletAssetsVisibility(walletId, assetIds, enabled)

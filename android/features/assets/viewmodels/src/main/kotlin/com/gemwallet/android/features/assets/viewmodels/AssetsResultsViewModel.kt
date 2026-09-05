@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.search.toGem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.serializer.toJson

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.nft
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemCollectibleServiceInterface
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails

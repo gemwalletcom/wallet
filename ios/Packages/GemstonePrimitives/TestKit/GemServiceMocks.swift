@@ -121,8 +121,8 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         perpetualEnabled = enabled
     }
 
-    public func showPerpetuals(wallet: Gemstone.Wallet) -> Bool {
-        perpetualEnabled && ((try? Primitives.Wallet(wallet).supportsPerpetuals) ?? false)
+    public func showPerpetuals(wallet _: Gemstone.Wallet) -> Bool {
+        perpetualEnabled
     }
 
     public var collectionsShown = true
@@ -667,7 +667,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         autocloseSummary
     }
 
-    public func syncEnablement(wallet: String?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+    public func syncEnablement(wallet: Gemstone.Wallet?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if isPerpetualEnabled {
             _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
         } else {
@@ -676,7 +676,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         return shouldConnectPerpetuals(wallet: wallet)
     }
 
-    public func shouldConnectPerpetuals(wallet _: String?) -> Bool {
+    public func shouldConnectPerpetuals(wallet _: Gemstone.Wallet?) -> Bool {
         isPerpetualEnabled && connects
     }
 
@@ -767,7 +767,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         showsLoading
     }
 
-    public func refresh(assetIds _: [Gemstone.AssetId]) async throws {}
+    public func refresh() async throws {}
 
     public func setAssetPinned(assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
         pinned.append((assetId, isPinned))
