@@ -732,6 +732,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   now returns the asset, fetch, perpetual, NFT and results limits for a query (fetch is always
   one more than shown, so "has more" is answerable); the wrappers, Core's `WalletSearchConfig`
   record and the iOS `WalletSearchMode` are gone.
+- **The add-contact sheet carries a `GemRecipient` and a `Chain`, not an iOS-only pair.** iOS
+  wrapped them in `ChainRecipient` for `AddContactType` and the two contact modes; the wrapper is
+  gone, the sheet id uses `GemRecipient::identifier`, and both modes build Core's
+  `GemContactAddressInput` from the recipient directly. Android has no add-contact-from-address
+  flow yet, so there is nothing to converge there.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

@@ -3,6 +3,7 @@
 import protocol Gemstone.GemContactServiceProtocol
 import struct Gemstone.GemContactAddressInput
 import Components
+import struct Gemstone.GemRecipient
 import GemstoneServices
 import Foundation
 import Localization
@@ -17,7 +18,7 @@ import Style
 public final class ContactsViewModel {
     public enum Mode: Sendable {
         case list
-        case addAddress(ChainRecipient)
+        case addAddress(GemRecipient, chain: Chain)
     }
 
     enum RowAction {
@@ -65,19 +66,19 @@ public final class ContactsViewModel {
     var addContactMode: ManageContactViewModel.Mode {
         switch mode {
         case .list: .add()
-        case let .addAddress(recipient): .add(recipient)
+        case let .addAddress(recipient, chain): .add(recipient: recipient, chain: chain)
         }
     }
 
     func add(to contact: ContactData) {
-        guard case let .addAddress(recipient) = mode else { return }
+        guard case let .addAddress(recipient, chain) = mode else { return }
         Task {
             do {
                 let addresses = try GemContactAddressInput(
                     contactId: contact.contact.id,
-                    chain: recipient.chain,
-                    address: recipient.recipient.address,
-                    memo: recipient.recipient.memo,
+                    chain: chain,
+                    address: recipient.address,
+                    memo: recipient.memo,
                     replacingId: nil,
                 ).addAddress(contact.addresses)
                 try await service.updateContact(contact.contact, addresses: addresses)

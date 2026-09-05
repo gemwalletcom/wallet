@@ -37,12 +37,12 @@ public struct AddressListItemView: View {
             items.append(.custom(
                 title: model.createContactTitle,
                 systemImage: model.createContactImage,
-                action: { onAddContact(.new(recipient)) },
+                action: { onAddContact(.new(recipient, chain: model.account.chain)) },
             ))
             items.append(.custom(
                 title: model.addToExistingContactTitle,
                 systemImage: model.addToExistingContactImage,
-                action: { onAddContact(.existing(recipient)) },
+                action: { onAddContact(.existing(recipient, chain: model.account.chain)) },
             ))
         }
         return items

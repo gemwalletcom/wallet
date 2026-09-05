@@ -5,6 +5,7 @@ import struct Gemstone.GemContactAddressInput
 import protocol Gemstone.GemManageContactServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
+import struct Gemstone.GemRecipient
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
@@ -20,7 +21,7 @@ import Validators
 @MainActor
 public final class ManageContactViewModel {
     public enum Mode {
-        case add(ChainRecipient? = nil)
+        case add(recipient: GemRecipient? = nil, chain: Chain? = nil)
         case edit(ContactData)
 
         var contact: Contact? {
@@ -71,17 +72,17 @@ public final class ManageContactViewModel {
         )
 
         switch mode {
-        case let .add(recipient):
+        case let .add(recipient, chain):
             contactId = UUID().uuidString
-            addresses = recipient.flatMap {
-                try? GemContactAddressInput(
+            if let recipient, let chain {
+                addresses = (try? GemContactAddressInput(
                     contactId: contactId,
-                    chain: $0.chain,
-                    address: $0.recipient.address,
-                    memo: $0.recipient.memo,
+                    chain: chain,
+                    address: recipient.address,
+                    memo: recipient.memo,
                     replacingId: nil,
-                ).addAddress([])
-            } ?? []
+                ).addAddress([])) ?? []
+            }
         case let .edit(contactData):
             contactId = contactData.contact.id
             nameInputModel.text = contactData.contact.name
