@@ -755,6 +755,17 @@ Three gotchas if you repeat the sweep, all met on this pass:
   are lifted through the primitives constructor (`AssetId(id)`, `WalletId(id)`) instead of a
   nullable parser plus `!!`; iOS `WalletId` gained the `init(core:)` / `identifier` pair the
   identifier convention expects.
+- **`AssetPrice` and `PriceAlert` cross the FFI typed, and Core's `GemAssetPrice` is gone.**
+  `GemAssetPrice` duplicated `primitives::AssetPrice` field for field; the price store callback,
+  the confirm metadata and the fee assets now carry the primitives record. Two generator gaps
+  closed on the way: `DateTime<Utc>` fields are declared through Core's `DateTimeUtc` custom type,
+  which `uniffi.toml` now maps to `Date` on iOS and to epoch milliseconds (`Long`) on Android, the
+  same shapes TypeShare gives the primitives models, so timestamps map as identity and the
+  hand-written seconds/milliseconds conversions in both price stores are gone; and a
+  `#[typeshare(skip)]` field is declared on the Rust record, left out of the Core → app mapper, and
+  filled with the type's empty value on the way back (`PriceAlert.identifier`, a `#[serde(skip)]`
+  cache Core already received empty from the JSON bridge). The price alert service, formatter and
+  stores pass `map()` / `toGem()` values on both apps.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

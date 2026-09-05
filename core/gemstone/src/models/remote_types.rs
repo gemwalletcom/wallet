@@ -2,12 +2,12 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, AccountDataType, Appearance, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetType, BannerEvent, BannerState, BlockExplorerLink,
-    Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, DelegationState, FeePriority, FeeUnitType, FiatQuoteType, Latency, LatencyType, LinkType,
-    PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, Platform, PlatformStore, PortfolioType, PriceAlertDirection,
-    PriceAlertNotificationType, RecentActivityType, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind,
-    SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction,
-    TransferDataOutputType, VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    Account, AccountDataType, Appearance, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetPrice, AssetType, BannerEvent, BannerState,
+    BlockExplorerLink, Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, DelegationState, FeePriority, FeeUnitType, FiatQuoteType, Latency,
+    LatencyType, LinkType, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, Platform, PlatformStore, PortfolioType,
+    PriceAlert, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay,
+    SimulationPayloadFieldKind, SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType,
+    TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -441,6 +441,14 @@ pub struct AssetLink {
 }
 
 #[uniffi::remote(Record)]
+pub struct AssetPrice {
+    pub asset_id: primitives::AssetId,
+    pub price: f64,
+    pub price_change_percentage_24h: f64,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[uniffi::remote(Record)]
 pub struct BlockExplorerLink {
     pub name: String,
     pub link: String,
@@ -450,6 +458,17 @@ pub struct BlockExplorerLink {
 pub struct Latency {
     pub latency_type: LatencyType,
     pub value: f64,
+}
+
+#[uniffi::remote(Record)]
+pub struct PriceAlert {
+    pub asset_id: primitives::AssetId,
+    pub currency: Currency,
+    pub price: Option<f64>,
+    pub price_percent_change: Option<f64>,
+    pub price_direction: Option<PriceAlertDirection>,
+    pub last_notified_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub identifier: String,
 }
 
 #[uniffi::remote(Record)]

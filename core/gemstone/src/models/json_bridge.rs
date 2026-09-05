@@ -13,12 +13,11 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
-    PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PortfolioData, PriceAlert, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse,
+    PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse,
     WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{
-    AssetBasic, AssetFull, AssetMarket, AssetPrice, ConfigResponse, ConfigVersions, Contact, FiatAssets, Markets, Release, SearchResponse, StreamEvent, StreamMessage,
-    SupportTyping,
+    AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, Contact, FiatAssets, Markets, Release, SearchResponse, StreamEvent, StreamMessage, SupportTyping,
 };
 use primitives::{
     AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationValidator, NFTAsset, NFTAssetData, NFTAttribute, NFTData, NFTImages, NFTResource, Payment, PaymentAmount,
@@ -54,7 +53,6 @@ json_bridge!(
     AssetFull,
     AssetList,
     AssetMarket,
-    AssetPrice,
     AuthNonce,
     AuthPayload,
     BalanceMetadata,
@@ -119,7 +117,6 @@ json_bridge!(
     PortfolioAssetsRequest,
     PortfolioData,
     Price,
-    PriceAlert,
     RedemptionRequest,
     RedemptionResult,
     ReferralCode,

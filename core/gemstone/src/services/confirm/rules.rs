@@ -14,10 +14,10 @@ use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPrel
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
 use crate::services::balance::GemBalanceRequirement;
-use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
 use num_bigint::BigInt;
+use primitives::AssetPrice;
 
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
@@ -149,7 +149,7 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
     }
 }
 
-pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
+pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>) -> Vec<GemFeeAsset> {
     balances
         .into_iter()
         .filter(|balance| balance.available > num_bigint::BigUint::from(0u32))
@@ -161,7 +161,7 @@ pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>,
         .collect()
 }
 
-pub fn build_metadata(asset_id: AssetId, fee_asset_id: AssetId, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Result<GemConfirmMetadata, GemConfirmError> {
+pub fn build_metadata(asset_id: AssetId, fee_asset_id: AssetId, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>) -> Result<GemConfirmMetadata, GemConfirmError> {
     Ok(GemConfirmMetadata {
         asset_balance: asset_balance(&balances, &asset_id)?,
         fee_asset_balance: asset_balance(&balances, &fee_asset_id)?,

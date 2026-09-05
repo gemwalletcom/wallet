@@ -751,6 +751,20 @@ fun com.wallet.core.primitives.AssetLink.toGem(): uniffi.gemstone.AssetLink = un
     url = url,
 )
 
+fun uniffi.gemstone.AssetPrice.toPrimitives(): com.wallet.core.primitives.AssetPrice = com.wallet.core.primitives.AssetPrice(
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    price = price,
+    priceChangePercentage24h = priceChangePercentage24h,
+    updatedAt = updatedAt,
+)
+
+fun com.wallet.core.primitives.AssetPrice.toGem(): uniffi.gemstone.AssetPrice = uniffi.gemstone.AssetPrice(
+    assetId = assetId.toIdentifier(),
+    price = price,
+    priceChangePercentage24h = priceChangePercentage24h,
+    updatedAt = updatedAt,
+)
+
 fun uniffi.gemstone.BlockExplorerLink.toPrimitives(): com.wallet.core.primitives.BlockExplorerLink = com.wallet.core.primitives.BlockExplorerLink(
     name = name,
     link = link,
@@ -769,6 +783,25 @@ fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency =
 fun com.wallet.core.primitives.Latency.toGem(): uniffi.gemstone.Latency = uniffi.gemstone.Latency(
     latencyType = latencyType.toGem(),
     value = value,
+)
+
+fun uniffi.gemstone.PriceAlert.toPrimitives(): com.wallet.core.primitives.PriceAlert = com.wallet.core.primitives.PriceAlert(
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    currency = currency.toCurrency(),
+    price = price,
+    pricePercentChange = pricePercentChange,
+    priceDirection = priceDirection?.let { it.toPrimitives() },
+    lastNotifiedAt = lastNotifiedAt,
+)
+
+fun com.wallet.core.primitives.PriceAlert.toGem(): uniffi.gemstone.PriceAlert = uniffi.gemstone.PriceAlert(
+    assetId = assetId.toIdentifier(),
+    currency = currency.toGem(),
+    price = price,
+    pricePercentChange = pricePercentChange,
+    priceDirection = priceDirection?.let { it.toGem() },
+    lastNotifiedAt = lastNotifiedAt,
+    identifier = "",
 )
 
 fun uniffi.gemstone.ReportNft.toPrimitives(): com.wallet.core.primitives.ReportNft = com.wallet.core.primitives.ReportNft(

@@ -8,6 +8,8 @@ pub const REMOTE_TYPES_PATH: &str = "gemstone/src/models/remote_types.rs";
 const PRIMITIVES_SOURCE: &str = "crates/primitives/src";
 const CONFIG: &str = include_str!("../remote_types.yml");
 const SCALARS: &[&str] = &["String", "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "bool", "f32", "f64"];
+const DATE_TIME: &str = "DateTime<Utc>";
+const DATE_TIME_DECLARED: &str = "chrono::DateTime<chrono::Utc>";
 
 #[derive(Deserialize)]
 struct Config {
@@ -26,6 +28,7 @@ pub struct Field {
     rust: String,
     serialized: String,
     type_name: String,
+    skipped: bool,
 }
 
 impl RemoteType {
@@ -104,14 +107,18 @@ fn member(line: &str) -> Option<(String, Option<String>)> {
 fn fields(body: &[&str]) -> Vec<Field> {
     let mut fields = Vec::new();
     let mut rename = None;
+    let mut skipped = false;
     for line in body {
         if let Some(value) = serde_rename(line.trim()) {
             rename = Some(value);
+        } else if line.trim() == "#[typeshare(skip)]" {
+            skipped = true;
         } else if let Some((rust, Some(type_name))) = member(line) {
             fields.push(Field {
                 serialized: rename.take().unwrap_or_else(|| camel_case(&rust)),
                 rust,
                 type_name,
+                skipped: std::mem::take(&mut skipped),
             });
         }
     }
@@ -147,9 +154,10 @@ pub fn remote_types(types: &[RemoteType]) -> String {
                 for field in fields {
                     let (inner, wrapper) = unwrap(&field.type_name);
                     let known = types.iter().any(|other| other.name() == inner) || SCALARS.contains(&inner);
-                    let declared = match known {
-                        true => inner.to_string(),
-                        false => format!("primitives::{inner}"),
+                    let declared = match (inner, known) {
+                        (DATE_TIME, _) => DATE_TIME_DECLARED.to_string(),
+                        (_, true) => inner.to_string(),
+                        (_, false) => format!("primitives::{inner}"),
                     };
                     let declared = match wrapper {
                         Wrapper::Option => format!("Option<{declared}>"),
@@ -187,6 +195,8 @@ struct Language {
     identifiers: [&'static str; 2],
     optional: &'static str,
     vec: &'static str,
+    none: &'static str,
+    empty_vec: &'static str,
     element: &'static str,
     core_module: &'static str,
     app_module: &'static str,
@@ -208,12 +218,24 @@ impl Language {
             };
         }
         let template = match inner {
-            name if SCALARS.contains(&name) => return expression.to_string(),
+            name if SCALARS.contains(&name) || name == DATE_TIME => return expression.to_string(),
             name if config.codes.iter().any(|code| code == name) => self.codes[index],
             name if config.identifiers.iter().any(|identifier| identifier == name) => self.identifiers[index],
             _ => return format!("{expression}.{}()", self.functions[index]),
         };
         template.replace("{name}", inner).replace("{}", expression)
+    }
+
+    fn default_value(&self, record: &str, field: &Field) -> String {
+        match unwrap(&field.type_name) {
+            (_, Wrapper::Option) => self.none.to_string(),
+            (_, Wrapper::Vec) => self.empty_vec.to_string(),
+            ("String", _) => "\"\"".to_string(),
+            ("bool", _) => "false".to_string(),
+            ("f64", _) => "0.0".to_string(),
+            (name, _) if SCALARS.contains(&name) => "0".to_string(),
+            (name, _) => panic!("{record}.{} is skipped by TypeShare and {name} has no default the generator can emit", field.rust),
+        }
     }
 
     fn direction(&self, index: usize) -> (&'static str, &'static str, &'static str) {
@@ -307,6 +329,8 @@ pub fn swift(types: &[RemoteType]) -> String {
         identifiers: ["Primitives.{name}(core: {})", "{}.identifier"],
         optional: "{}.map { {inner} }",
         vec: "{}.map { {inner} }",
+        none: "nil",
+        empty_vec: "[]",
         element: "$0",
         core_module: "Gemstone",
         app_module: "Primitives",
@@ -340,7 +364,11 @@ pub fn swift(types: &[RemoteType]) -> String {
                     out.push_str(&format!("        {to}.{name}(\n"));
                     for field in fields {
                         let (label, accessor) = field_names(field, index);
-                        out.push_str(&format!("            {label}: {},\n", language.convert(&config, &field.type_name, &accessor, index)));
+                        match (field.skipped, index) {
+                            (true, 0) => continue,
+                            (true, _) => out.push_str(&format!("            {label}: {},\n", language.default_value(name, field))),
+                            (false, _) => out.push_str(&format!("            {label}: {},\n", language.convert(&config, &field.type_name, &accessor, index))),
+                        }
                     }
                     out.push_str("        )\n");
                 }
@@ -360,6 +388,8 @@ pub fn kotlin(types: &[RemoteType]) -> String {
         identifiers: ["com.wallet.core.primitives.{name}({})", "{}.toIdentifier()"],
         optional: "{}?.let { {inner} }",
         vec: "{}.map { {inner} }",
+        none: "null",
+        empty_vec: "emptyList()",
         element: "it",
         core_module: "uniffi.gemstone",
         app_module: "com.wallet.core.primitives",
@@ -392,7 +422,11 @@ pub fn kotlin(types: &[RemoteType]) -> String {
                     out.push_str(&format!("{to}.{name}(\n"));
                     for field in fields {
                         let (label, accessor) = field_names(field, index);
-                        out.push_str(&format!("    {label} = {},\n", language.convert(&config, &field.type_name, &accessor, index)));
+                        match (field.skipped, index) {
+                            (true, 0) => continue,
+                            (true, _) => out.push_str(&format!("    {label} = {},\n", language.default_value(name, field))),
+                            (false, _) => out.push_str(&format!("    {label} = {},\n", language.convert(&config, &field.type_name, &accessor, index))),
+                        }
                     }
                 }
                 RemoteType::Code { .. } => unreachable!(),
@@ -481,11 +515,42 @@ mod tests {
             rust: rust.to_string(),
             serialized: camel_case(rust),
             type_name: type_name.to_string(),
+            skipped: false,
         };
         RemoteType::Record {
             name: "Wallet".to_string(),
             fields: vec![field("id", "WalletId"), field("accounts", "Vec<Account>"), field("image_url", "Option<String>")],
         }
+    }
+
+    fn price_alert() -> RemoteType {
+        let field = |rust: &str, type_name: &str, skipped: bool| Field {
+            rust: rust.to_string(),
+            serialized: camel_case(rust),
+            type_name: type_name.to_string(),
+            skipped,
+        };
+        RemoteType::Record {
+            name: "PriceAlert".to_string(),
+            fields: vec![
+                field("price", "Option<f64>", false),
+                field("last_notified_at", "Option<DateTime<Utc>>", false),
+                field("identifier", "String", true),
+            ],
+        }
+    }
+
+    #[test]
+    fn test_skipped_fields_are_declared_but_only_travel_from_core_with_a_default_on_the_way_back() {
+        let rust = remote_types(&[price_alert()]);
+        assert!(rust.contains("    pub last_notified_at: Option<chrono::DateTime<chrono::Utc>>,\n"));
+        assert!(rust.contains("    pub identifier: String,\n"));
+        let swift = swift(&[price_alert()]);
+        assert!(swift.contains("        Primitives.PriceAlert(\n            price: price,\n            lastNotifiedAt: lastNotifiedAt,\n        )\n"));
+        assert!(swift.contains("        Gemstone.PriceAlert(\n            price: price,\n            lastNotifiedAt: lastNotifiedAt,\n            identifier: \"\",\n        )\n"));
+        let kotlin = kotlin(&[price_alert()]);
+        assert!(kotlin.contains("    identifier = \"\",\n"));
+        assert_eq!(kotlin.matches("identifier").count(), 1);
     }
 
     #[test]

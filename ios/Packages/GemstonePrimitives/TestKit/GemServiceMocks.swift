@@ -239,7 +239,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
     }
 
     public func priceAlertId(alert: Gemstone.PriceAlert) -> String {
-        (try? Primitives.PriceAlert(alert).id) ?? ""
+        alert.map().id
     }
 }
 
@@ -902,7 +902,7 @@ public extension Gemstone.GemFeeAsset {
     static func mock(
         asset: Primitives.Asset,
         balance: Gemstone.GemAssetBalance? = nil,
-        price: Gemstone.GemAssetPrice? = nil,
+        price: Gemstone.AssetPrice? = nil,
     ) -> Gemstone.GemFeeAsset {
         Gemstone.GemFeeAsset(
             asset: asset.map(),

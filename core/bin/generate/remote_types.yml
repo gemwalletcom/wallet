@@ -16,6 +16,7 @@ remote:
   - ConnectionStatus
   - Asset
   - AssetLink
+  - AssetPrice
   - FeePriority
   - FeeUnitType
   - FiatQuoteType
@@ -45,6 +46,7 @@ remote:
   - LinkType
   - Latency
   - PortfolioType
+  - PriceAlert
   - PriceAlertDirection
   - PriceAlertNotificationType
   - ReportNft

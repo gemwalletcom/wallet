@@ -9,7 +9,6 @@ extension Primitives.AssetBasic: JsonCodable {}
 extension Primitives.AssetFull: JsonCodable {}
 extension Primitives.AssetList: JsonCodable {}
 extension Primitives.AssetMarket: JsonCodable {}
-extension Primitives.AssetPrice: JsonCodable {}
 extension Primitives.AuthNonce: JsonCodable {}
 extension Primitives.AuthPayload: JsonCodable {}
 extension Primitives.BalanceMetadata: JsonCodable {}
@@ -74,7 +73,6 @@ extension Primitives.PortfolioAsset: JsonCodable {}
 extension Primitives.PortfolioAssetsRequest: JsonCodable {}
 extension Primitives.PortfolioData: JsonCodable {}
 extension Primitives.Price: JsonCodable {}
-extension Primitives.PriceAlert: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
 extension Primitives.ReferralCode: JsonCodable {}

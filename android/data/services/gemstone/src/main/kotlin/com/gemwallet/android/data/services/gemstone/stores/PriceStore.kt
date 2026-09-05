@@ -6,7 +6,6 @@ import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetMarket
@@ -15,7 +14,7 @@ import com.wallet.core.primitives.FiatRate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemAssetPrice
+import uniffi.gemstone.AssetPrice
 import uniffi.gemstone.GemPriceStore
 import uniffi.gemstone.GemPriceUpdate
 import com.wallet.core.primitives.AssetId
@@ -25,8 +24,8 @@ class GemstonePriceStore(
     private val assetsDao: AssetsDao,
 ) : GemPriceStore {
 
-    override suspend fun getPrices(assetIds: List<String>): List<GemAssetPrice> =
-        pricesDao.getByAssets(assetIds).map { it.toGemAssetPrice() }
+    override suspend fun getPrices(assetIds: List<String>): List<AssetPrice> =
+        pricesDao.getByAssets(assetIds).map { it.toAssetPrice() }
 
     override suspend fun getRate(currency: String): String? =
         pricesDao.getRates(currency.toCurrency()).firstOrNull()?.toDTO()?.toJson()
@@ -44,7 +43,7 @@ class GemstonePriceStore(
                     usdValue = it.priceUsd,
                     dayChanged = it.priceChangePercentage24h,
                     currency = currency,
-                    updatedAt = it.updatedAt.secondsToMillis(),
+                    updatedAt = it.updatedAt,
                 )
             }
         )

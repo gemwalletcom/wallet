@@ -1152,6 +1152,28 @@ public extension Primitives.AssetLink {
     }
 }
 
+public extension Gemstone.AssetPrice {
+    func map() -> Primitives.AssetPrice {
+        Primitives.AssetPrice(
+            assetId: Primitives.AssetId(core: assetId),
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension Primitives.AssetPrice {
+    func map() -> Gemstone.AssetPrice {
+        Gemstone.AssetPrice(
+            assetId: assetId.identifier,
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
 public extension Gemstone.BlockExplorerLink {
     func map() -> Primitives.BlockExplorerLink {
         Primitives.BlockExplorerLink(
@@ -1184,6 +1206,33 @@ public extension Primitives.Latency {
         Gemstone.Latency(
             latencyType: latencyType.map(),
             value: value,
+        )
+    }
+}
+
+public extension Gemstone.PriceAlert {
+    func map() -> Primitives.PriceAlert {
+        Primitives.PriceAlert(
+            assetId: Primitives.AssetId(core: assetId),
+            currency: Primitives.Currency(core: currency),
+            price: price,
+            pricePercentChange: pricePercentChange,
+            priceDirection: priceDirection.map { $0.map() },
+            lastNotifiedAt: lastNotifiedAt,
+        )
+    }
+}
+
+public extension Primitives.PriceAlert {
+    func map() -> Gemstone.PriceAlert {
+        Gemstone.PriceAlert(
+            assetId: assetId.identifier,
+            currency: currency.rawValue,
+            price: price,
+            pricePercentChange: pricePercentChange,
+            priceDirection: priceDirection.map { $0.map() },
+            lastNotifiedAt: lastNotifiedAt,
+            identifier: "",
         )
     }
 }
