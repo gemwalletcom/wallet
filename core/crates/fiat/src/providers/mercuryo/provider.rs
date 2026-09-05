@@ -32,6 +32,9 @@ impl FiatProvider for MercuryoClient {
             let fiat_payment_methods = currencies.fiat_payment_methods.clone();
             let currency = currency.clone();
             async move {
+                if !asset.widget_onramp_enabled {
+                    return (asset, map_asset_limits(None, currency, &fiat_payment_methods));
+                }
                 match self.get_currency_limits(asset.currency.clone(), currency.as_ref().to_string()).await {
                     Ok(response) => (asset, map_asset_limits(response.data.get(currency.as_ref()), currency.clone(), &fiat_payment_methods)),
                     Err(_) => (asset, map_asset_limits(None, currency, &fiat_payment_methods)),
