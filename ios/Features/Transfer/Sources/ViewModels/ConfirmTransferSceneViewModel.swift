@@ -163,7 +163,7 @@ public final class ConfirmTransferSceneViewModel {
             feeRates: state.confirmData?.feeRateRows(selection: feeSelection, feeAsset: state.feeAsset.map()),
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.transaction.value?.fee.fee,
-            feeAssets: state.feeAssets.compactMap { try? $0.feeAssetItem(currency: currency) },
+            feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: currency) },
             onSelect: { [weak self] in self?.feeSelection = $0 },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )

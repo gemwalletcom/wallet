@@ -33,7 +33,7 @@ extension ConfirmTransferState {
     }
 
     init(_ load: GemConfirmLoad) throws {
-        let input = try load.preload.map {
+        let input = load.preload.map {
             ConfirmTransferInput(
                 confirmData: $0.confirmData,
                 fee: $0.confirmData.fee,
