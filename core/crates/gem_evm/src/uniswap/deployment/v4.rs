@@ -5,6 +5,7 @@ use primitives::{
 };
 
 pub struct V4Deployment {
+    pub pool_manager: &'static str,
     pub quoter: &'static str, // V4 Quoter
     pub state_view: &'static str,
     pub permit2: &'static str,
@@ -13,8 +14,9 @@ pub struct V4Deployment {
 }
 
 impl V4Deployment {
-    fn v2_1(quoter: &'static str, state_view: &'static str, permit2: &'static str, universal_router: &'static str) -> Self {
+    fn v2_1(pool_manager: &'static str, quoter: &'static str, state_view: &'static str, permit2: &'static str, universal_router: &'static str) -> Self {
         Self {
+            pool_manager,
             quoter,
             state_view,
             permit2,
@@ -29,90 +31,105 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
     let permit2 = get_uniswap_permit2_by_chain(chain)?;
     match chain {
         Chain::Ethereum => Some(V4Deployment::v2_1(
+            "0x000000000004444c5dc75cb358380d2e3de08a90",
             "0x52F0E24D1c21C8A0cB1e5a5dD6198556BD9E1203",
             "0x7fFE42C4a5DEeA5b0feC41C94C136Cf115597227",
             permit2,
             "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA",
         )),
         Chain::Optimism => Some(V4Deployment::v2_1(
+            "0x9a13f98cb987694c9f086b1f5eb990eea8264ec3",
             OPTIMISM_UNISWAP_V4_QUOTER_CONTRACT,
             "0xc18a3169788F4F75A170290584ECA6395C75Ecdb",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Arbitrum => Some(V4Deployment::v2_1(
+            "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
             "0x3972C00f7ed4885e145823eb7C655375d275A1C5",
             "0x76Fd297e2D437cd7f76d50F01AfE6160f86e9990",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Polygon => Some(V4Deployment::v2_1(
+            "0x67366782805870060151383f4bbff9dab53e5cd6",
             "0xb3d5c3Dfc3a7aEbFF71895A7191796BFFc2c81b9",
             "0x5eA1bD7974c8A611cBAB0bDCAFcB1D9CC9b3BA5a",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::AvalancheC => Some(V4Deployment::v2_1(
+            "0x06380c0e0912312b5150364b9dc4542ba0dbbc85",
             "0xbE40675BB704506a3c2Ccfb762DCFd1e979845C2",
             "0xc3c9e198C735a4b97e3e683f391cCBDD60B69286",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Base => Some(V4Deployment::v2_1(
+            "0x498581ff718922c3f8e6a244956af099b2652b2b",
             "0x0d5e0F971ED27FBfF6c2837bf31316121532048D",
             "0xA3c0c9b65baD0b08107Aa264b0f3dB444b867A71",
             permit2,
             "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
         )),
         Chain::SmartChain => Some(V4Deployment::v2_1(
+            "0x28e2ea090877bf75740558f6bfb36a5ffee9e9df",
             "0x9F75dD27D6664c475B90e105573E550ff69437B0",
             "0xd13Dd3D6E93f276FAfc9Db9E6BB47C1180aeE0c4",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Blast => Some(V4Deployment::v2_1(
+            "0x1631559198a9e474033433b2958dabc135ab6446",
             "0x6F71Cdcb0d119fF72C6eb501ABCEb576fBF62BCF",
             "0x12a88AE16F46DCe4e8B15368008Ab3380885df30",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Linea => Some(V4Deployment::v2_1(
+            "0x248083fb965359d82b06c1f5322480dcfc1ad857",
             "0x2C125569C0BeE20A66E33E5491C552B37EBD9934",
             "0xE861de206E460A8b936b05ad3816520B58ccDf9b",
             permit2,
             "0xBA548cE7A95f87Bc66a0C7c6eAB1e428735F8b57",
         )),
         Chain::World => Some(V4Deployment::v2_1(
+            "0xb1860d529182ac3bc1f51fa2abd56662b7d13f33",
             "0x55d235b3fF2DaF7c3ede0defC9521f1d6Fe6c5c0",
             "0x51D394718bc09297262e368c1A481217FdEB71eb",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Unichain => Some(V4Deployment::v2_1(
+            "0x1f98400000000000000000000000000000000004",
             UNICHAIN_UNISWAP_V4_QUOTER_CONTRACT,
             "0x86e8631A016F9068C3f085fAF484Ee3F5fDee8f2",
             permit2,
             "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
         )),
         Chain::Celo => Some(V4Deployment::v2_1(
+            "0x288dc841a52fca2707c6947b3a777c5e56cd87bc",
             "0x28566da1093609182dFf2cB2A91CFD72e61d66cd",
             "0xbc21f8720BABf4b20d195eE5C6e99c52b76F2bfb",
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
         Chain::Monad => Some(V4Deployment::v2_1(
+            "0x188d586ddcf52439676ca21a244753fa19f9ea8e",
             "0xa222Dd357A9076d1091Ed6Aa2e16C9742dD26891",
             "0x77395F3b2E73aE90843717371294fa97cC419D64",
             permit2,
             "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
         )),
         Chain::Ink => Some(V4Deployment::v2_1(
+            "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
             "0x3972C00f7ed4885e145823eb7C655375d275A1C5",
             "0x76Fd297e2D437cd7f76d50F01AfE6160f86e9990",
             permit2,
             "0x28bD21bB4Ea4fDa370D8d7544992038375D8d456",
         )),
         Chain::XLayer => Some(V4Deployment::v2_1(
+            "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
             "0x8928074CA1b241D8Ec02815881c1Af11E8bC5219",
             "0x76Fd297e2D437cd7f76d50F01AfE6160f86e9990",
             permit2,
@@ -120,12 +137,14 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
         )),
         // See: https://github.com/Uniswap/contracts/blob/main/deployments/4663.md
         Chain::Robinhood => Some(V4Deployment::v2_1(
+            "0x8366a39cc670b4001a1121b8f6a443a643e40951",
             "0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94",
             "0xF3334192D15450CdD385c8B70e03f9A6bD9E673b",
             permit2,
             "0x8876789976dEcBfCbBbe364623C63652db8C0904",
         )),
         Chain::Tempo => Some(V4Deployment::v2_1(
+            "0x33620f62c5b9b2086dd6b62f4a297a9f30347029",
             "0x20E6487C371a2086F841eF453F85378223DF4f4E",
             "0x21B954fBa3F5ddEbe77Ef2D47A3100c066908B2A",
             permit2,

@@ -1,16 +1,22 @@
-use crate::u256::u256_to_biguint;
-use alloy_primitives::U256;
-use alloy_sol_types::SolCall;
 use std::str::FromStr;
+
+use alloy_primitives::{Address, B256, U256, keccak256};
+use alloy_sol_types::{SolCall, SolEvent, SolValue};
 
 use crate::{
     address::ethereum_address_from_topic,
     ethereum_address_checksum,
     rpc::{mapper::TRANSFER_TOPIC, model::TransactionReceipt},
+    u256::u256_to_biguint,
     uniswap::{
         actions::{V4Action, decode_action_data},
-        command::{SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V3SwapExactInV2_1, V4_SWAP_COMMAND, WRAP_ETH_COMMAND},
-        contracts::IUniversalRouter,
+        command::{
+            MSG_SENDER, SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V3SwapExactInV2_1, V4_SWAP_COMMAND, WRAP_ETH_COMMAND,
+        },
+        contracts::{
+            IUniversalRouter,
+            v4::{IPoolManager, PoolKey},
+        },
         deployment::{UniversalRouterAbi, get_provider_by_chain_contract, v3, v4},
         path::decode_path,
     },
@@ -25,6 +31,7 @@ pub struct UniversalRouterParser;
 
 #[derive(Clone, Copy)]
 struct RouterAbi {
+    router: Option<Address>,
     v3: UniversalRouterAbi,
     v4: Option<UniversalRouterAbi>,
 }
@@ -35,6 +42,7 @@ impl RouterAbi {
         let v4_abi = v4::get_universal_router_abi_by_chain_contract(chain, contract);
 
         Self {
+            router: Address::from_str(contract).ok(),
             v3: v3_abi.or(v4_abi).unwrap_or(UniversalRouterAbi::V2),
             v4: v4_abi,
         }
@@ -81,6 +89,7 @@ pub(crate) fn decode_execute_swap(
     decode_execute_swap_call(
         chain,
         RouterAbi {
+            router: None,
             v3: universal_router_abi,
             v4: None,
         },
@@ -160,6 +169,11 @@ fn decode_execute_swap_call(
             && let Some(universal_router_abi) = router_abi.v4
             && let Ok(actions) = decode_action_data(input, universal_router_abi)
         {
+            let native_output = if sweep_minimum.is_none() && commands.as_ref() == [V4_SWAP_COMMAND] {
+                router_abi.router.and_then(|router| native_v4_value_from_receipt(chain, router, from, &actions, receipt))
+            } else {
+                None
+            };
             for action in actions {
                 let (from_token, to_token, amount_in) = match action {
                     V4Action::SWAP_EXACT_IN(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn),
@@ -174,7 +188,7 @@ fn decode_execute_swap_call(
                 let leg_to_value = if let Some(to_token_id) = &to_token_id {
                     transfer_value_from_receipt(from, to_token_id, receipt)?
                 } else {
-                    sweep_minimum.as_ref()?.to_string()
+                    native_output.as_ref().or(sweep_minimum.as_ref())?.to_string()
                 };
                 let leg_to_asset = AssetId::from(*chain, to_token_id);
                 let leg_from_value = U256::from(amount_in);
@@ -198,6 +212,59 @@ fn decode_execute_swap_call(
         to_value: u256_to_biguint(&U256::from_str(&to_value).ok()?),
         provider: Some(swap_provider.to_string()),
     })
+}
+
+fn native_v4_value_from_receipt(chain: &Chain, router: Address, from: &str, actions: &[V4Action], receipt: &TransactionReceipt) -> Option<U256> {
+    let [swap, settlement, take] = actions else { return None };
+    let (currency_in, path) = match swap {
+        V4Action::SWAP_EXACT_IN(params) => (params.currencyIn, &params.path),
+        V4Action::SWAP_EXACT_IN_V2_1(params) => (params.currencyIn, &params.path),
+        _ => return None,
+    };
+    let (last, preceding) = path.split_last()?;
+    if currency_in.is_zero()
+        || !last.intermediateCurrency.is_zero()
+        || path.iter().any(|hop| !hop.hooks.is_zero())
+        || preceding.iter().any(|hop| hop.intermediateCurrency.is_zero())
+    {
+        return None;
+    }
+    match settlement {
+        V4Action::SETTLE {
+            currency, payer_is_user: true, ..
+        }
+        | V4Action::SETTLE_ALL { currency, .. }
+            if *currency == currency_in => {}
+        _ => return None,
+    }
+    match take {
+        V4Action::TAKE { currency, recipient, amount }
+            if currency.is_zero() && amount.is_zero() && (*recipient == Address::from_str(from).ok()? || *recipient == Address::from_str(MSG_SENDER).ok()?) => {}
+        V4Action::TAKE_ALL { currency, .. } if currency.is_zero() => {}
+        _ => return None,
+    }
+    let pool = PoolKey {
+        currency0: Address::ZERO,
+        currency1: preceding.last().map_or(currency_in, |hop| hop.intermediateCurrency),
+        fee: last.fee,
+        tickSpacing: last.tickSpacing,
+        hooks: last.hooks,
+    };
+    let pool_id = keccak256(pool.abi_encode());
+    let manager = v4::get_uniswap_deployment_by_chain(chain)?.pool_manager;
+    let mut swaps = receipt.logs.iter().filter_map(|log| {
+        if !log.address.eq_ignore_ascii_case(manager) {
+            return None;
+        }
+        let topics = log.topics.iter().map(|topic| B256::from_str(topic)).collect::<Result<Vec<_>, _>>().ok()?;
+        let event = IPoolManager::Swap::decode_raw_log_validate(topics, &decode_hex(&log.data).ok()?).ok()?;
+        (event.id == pool_id && event.sender == router).then_some(event)
+    });
+    let swap = swaps.next()?;
+    if swaps.next().is_some() || swap.amount0 <= 0 || swap.amount1 >= 0 {
+        return None;
+    }
+    Some(U256::from(u128::try_from(swap.amount0).ok()?))
 }
 
 fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReceipt) -> Option<String> {
@@ -232,6 +299,7 @@ fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionRecei
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::provider::testkit::TOKEN_USDC_ADDRESS;
     use crate::rpc::model::{Transaction, TransactionReceipt};
     use crate::rpc::parsers::ProtocolParsers;
@@ -248,6 +316,102 @@ mod tests {
 
     fn map_swap(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> primitives::Transaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default()).unwrap()
+    }
+
+    #[test]
+    fn test_map_v4_swap_cake_bnb() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v4_cake_bnb_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v4_cake_bnb_transaction_receipt.json"));
+        let swap_transaction = map_swap(&Chain::SmartChain, &transaction, &receipt);
+        let metadata: TransactionSwapMetadata = serde_json::from_value(swap_transaction.metadata.unwrap()).unwrap();
+        assert_eq!(swap_transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_value, BigUint::from(1_000_000_000_000_000_000u64));
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::SmartChain));
+        assert_eq!(metadata.to_value, BigUint::from(2_893_729_657_423_135u64));
+        assert_eq!(metadata.provider.as_deref(), Some("uniswap_v4"));
+    }
+
+    #[test]
+    fn test_map_v4_native_swap_rejects_unverified_events() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v4_cake_bnb_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v4_cake_bnb_transaction_receipt.json"));
+        let original = receipt.logs[0].clone();
+        let mut wrong_manager = original.clone();
+        wrong_manager.address = transaction.from.clone();
+        let mut wrong_pool = original.clone();
+        wrong_pool.topics[1] = B256::ZERO.to_string();
+        let mut wrong_router = original.clone();
+        wrong_router.topics[2] = B256::ZERO.to_string();
+        let mut wrong_signature = original.clone();
+        wrong_signature.topics[0] = B256::ZERO.to_string();
+        let mut malformed = original.clone();
+        malformed.data = "0x01".to_string();
+        let mut negative_output = original.clone();
+        negative_output.data.replace_range(2..66, &"f".repeat(64));
+        for invalid in [wrong_manager, wrong_pool, wrong_router, wrong_signature, malformed, negative_output] {
+            let mut receipt = receipt.clone();
+            receipt.logs[0] = invalid;
+            assert_eq!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &receipt, DateTime::default()), None);
+        }
+        let mut duplicate = receipt.clone();
+        duplicate.logs.push(original);
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &duplicate, DateTime::default()), None);
+    }
+
+    #[test]
+    fn test_v4_native_payout_validation() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v4_cake_bnb_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v4_cake_bnb_transaction_receipt.json"));
+        let execute = IUniversalRouter::executeCall::abi_decode(&decode_hex(&transaction.input).unwrap()).unwrap();
+        let router = Address::from_str(transaction.to.as_ref().unwrap()).unwrap();
+        let mut actions = decode_action_data(&execute.inputs[0], UniversalRouterAbi::V2_1).unwrap();
+        for recipient in [Address::from_str(&transaction.from).unwrap(), Address::from_str(MSG_SENDER).unwrap()] {
+            actions[2] = V4Action::TAKE {
+                currency: Address::ZERO,
+                recipient,
+                amount: U256::ZERO,
+            };
+            assert_eq!(
+                native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt),
+                Some(U256::from(2_893_729_657_423_135u64))
+            );
+        }
+        actions[2] = V4Action::TAKE_ALL {
+            currency: Address::ZERO,
+            min_amount: U256::ZERO,
+        };
+        assert_eq!(
+            native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt),
+            Some(U256::from(2_893_729_657_423_135u64))
+        );
+        for take in [
+            V4Action::TAKE {
+                currency: Address::ZERO,
+                recipient: router,
+                amount: U256::ZERO,
+            },
+            V4Action::TAKE {
+                currency: Address::ZERO,
+                recipient: Address::from_str(&transaction.from).unwrap(),
+                amount: U256::from(1),
+            },
+            V4Action::TAKE_PORTION {
+                currency: Address::ZERO,
+                recipient: router,
+                bips: U256::from(50),
+            },
+        ] {
+            actions[2] = take;
+            assert_eq!(native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt), None);
+        }
+        actions[2] = V4Action::TAKE_ALL {
+            currency: Address::ZERO,
+            min_amount: U256::ZERO,
+        };
+        if let V4Action::SWAP_EXACT_IN_V2_1(params) = &mut actions[0] {
+            params.path[0].hooks = router;
+        }
+        assert_eq!(native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt), None);
     }
 
     #[test]
