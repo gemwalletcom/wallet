@@ -187,26 +187,40 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_scan_address_significant_risk() {
-        let client = MockClient::new().with_post(|path, body| {
-            assert_eq!(path, "/v2/hashdit/address-security-v2");
-            let request: Value = serde_json::from_slice(body).unwrap();
-            assert_eq!(request["chainId"], "56");
-            assert_eq!(request["address"], "0x0f9adaaccd7caecc5019194e15ad19624fed95fa");
-            assert_eq!(request["sync"], true);
-            Ok(include_str!("../../../testdata/hashdit/address_security_significant_risk_response.json")
-                .as_bytes()
-                .to_vec())
-        });
-        let target = AddressTarget {
-            chain: Chain::SmartChain,
-            address: "0x0f9adaaccd7caecc5019194e15ad19624fed95fa".to_string(),
-        };
-        let result = HashDitProvider::new(client, "api-key").scan_address(&target).await.unwrap();
+    async fn test_scan_bsc_address_verdicts() {
+        let cases = [
+            (
+                "0x0f9adaaccd7caecc5019194e15ad19624fed95fa",
+                include_str!("../../../testdata/hashdit/address_security_significant_risk_response.json"),
+                true,
+                "Significant Risk",
+            ),
+            (
+                "0x45BeBa0913382F5371E288f08E841FEfb01355B6",
+                include_str!("../../../testdata/hashdit/address_security_safe_response.json"),
+                false,
+                "No Obvious Risk",
+            ),
+        ];
+        for (address, response, is_malicious, reason) in cases {
+            let client = MockClient::new().with_post(move |path, body| {
+                assert_eq!(path, "/v2/hashdit/address-security-v2");
+                let request: Value = serde_json::from_slice(body).unwrap();
+                assert_eq!(request["chainId"], "56");
+                assert_eq!(request["address"], address);
+                assert_eq!(request["sync"], true);
+                Ok(response.as_bytes().to_vec())
+            });
+            let target = AddressTarget {
+                chain: Chain::SmartChain,
+                address: address.to_string(),
+            };
+            let result = HashDitProvider::new(client, "api-key").scan_address(&target).await.unwrap();
 
-        assert!(result.is_malicious);
-        assert_eq!(result.target, target);
-        assert_eq!(result.reason.as_deref(), Some("Significant Risk"));
+            assert_eq!(result.is_malicious, is_malicious);
+            assert_eq!(result.target, target);
+            assert_eq!(result.reason.as_deref(), Some(reason));
+        }
     }
 
     #[tokio::test]
@@ -277,18 +291,112 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_scan_website() {
-        let client = MockClient::new().with_post(move |path, body| {
-            assert_eq!(path, "/v2/hashdit/domain-security");
-            assert_json(body, include_str!("../../../testdata/hashdit/domain_security_request.json"));
-            Ok(include_str!("../../../testdata/hashdit/domain_security_malicious_response.json").as_bytes().to_vec())
-        });
-        let target = WebsiteTarget {
-            website: "https://malicious.example".to_string(),
-        };
-        let result = HashDitProvider::new(client, "api-key").scan_website(&target).await.unwrap();
+    async fn test_scan_bsc_token_verdicts() {
+        let cases = [
+            (
+                "0x60c909Cb023BC831788F44058251C6a688E18888",
+                include_str!("../../../testdata/hashdit/token_security_bsc_malicious_response.json"),
+                true,
+                "Significant Risk",
+            ),
+            (
+                "0x55d398326f99059fF775485246999027B3197955",
+                include_str!("../../../testdata/hashdit/token_security_bsc_safe_response.json"),
+                false,
+                "No Obvious Risk",
+            ),
+        ];
+        for (token_id, response, is_malicious, reason) in cases {
+            let client = MockClient::new().with_post(move |path, body| {
+                assert_eq!(path, "/v2/hashdit/token-security");
+                let request: Value = serde_json::from_slice(body).unwrap();
+                assert_eq!(request["chainId"], "56");
+                assert_eq!(request["address"], token_id);
+                assert_eq!(request["sync"], true);
+                Ok(response.as_bytes().to_vec())
+            });
+            let target = TokenTarget {
+                chain: Chain::SmartChain,
+                token_id: token_id.to_string(),
+            };
+            let result = HashDitProvider::new(client, "api-key").scan_token(&target).await.unwrap();
 
-        assert!(result.is_malicious);
-        assert_eq!(result.reason.as_deref(), Some("risk_level=3"));
+            assert_eq!(result.is_malicious, is_malicious);
+            assert_eq!(result.target, target);
+            assert_eq!(result.reason.as_deref(), Some(reason));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_scan_bsc_address_poisoning_verdicts() {
+        let cases = [
+            (
+                "0x938915fd4b7c188a211113ed655ae1f18c334146",
+                include_str!("../../../testdata/hashdit/address_poisoning_bsc_response.json"),
+                true,
+                Some("is_poisoning"),
+            ),
+            (
+                "0x45BeBa0913382F5371E288f08E841FEfb01355B6",
+                include_str!("../../../testdata/hashdit/address_poisoning_safe_response.json"),
+                false,
+                None,
+            ),
+        ];
+        for (address, response, is_malicious, reason) in cases {
+            let client = MockClient::new().with_post(move |path, body| {
+                assert_eq!(path, "/v2/hashdit/address-poisoning");
+                let request: Value = serde_json::from_slice(body).unwrap();
+                assert_eq!(request["chainId"], "56");
+                assert_eq!(request["address"], address);
+                assert_eq!(request["userAddress"], "0x938915fd4b7c188a21ad73ed655ae1f18c334146");
+                Ok(response.as_bytes().to_vec())
+            });
+            let target = AddressPoisoningTarget {
+                target: AddressTarget {
+                    chain: Chain::SmartChain,
+                    address: address.to_string(),
+                },
+                user_address: "0x938915fd4b7c188a21ad73ed655ae1f18c334146".to_string(),
+            };
+            let result = HashDitProvider::new(client, "api-key").scan_address_poisoning(&target).await.unwrap();
+
+            assert_eq!(result.is_malicious, is_malicious);
+            assert_eq!(result.target, target);
+            assert_eq!(result.reason.as_deref(), reason);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_scan_website() {
+        let cases = [
+            (
+                include_str!("../../../testdata/hashdit/domain_security_request.json"),
+                include_str!("../../../testdata/hashdit/domain_security_malicious_response.json"),
+                "https://malicious.example",
+                true,
+                "risk_level=3",
+            ),
+            (
+                include_str!("../../../testdata/hashdit/domain_security_safe_request.json"),
+                include_str!("../../../testdata/hashdit/domain_security_safe_response.json"),
+                "https://gemwallet.com/",
+                false,
+                "risk_level=1",
+            ),
+        ];
+        for (request, response, website, is_malicious, reason) in cases {
+            let client = MockClient::new().with_post(move |path, body| {
+                assert_eq!(path, "/v2/hashdit/domain-security");
+                assert_json(body, request);
+                Ok(response.as_bytes().to_vec())
+            });
+            let target = WebsiteTarget { website: website.to_string() };
+            let result = HashDitProvider::new(client, "api-key").scan_website(&target).await.unwrap();
+
+            assert_eq!(result.is_malicious, is_malicious);
+            assert_eq!(result.target, target);
+            assert_eq!(result.reason.as_deref(), Some(reason));
+        }
     }
 }

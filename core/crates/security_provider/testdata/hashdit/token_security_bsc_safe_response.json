@@ -1,0 +1,296 @@
+{
+  "code": "0",
+  "status": "ok",
+  "data": {
+    "status": 200,
+    "address": "bsc:0x55d398326f99059ff775485246999027b3197955",
+    "basic_info": {
+      "proxy": {
+        "is_proxy": "0",
+        "proxy_admin_type": "",
+        "proxy_admin_address": "",
+        "proxy_implementation_type": "",
+        "proxy_implementation_address": "",
+        "proxy_implementation_verified": ""
+      },
+      "verified": "1",
+      "is_in_dex": "1",
+      "token_name": "Tether USD",
+      "is_mintable": "1",
+      "token_symbol": "USDT",
+      "total_supply": "9184991905680829664064698687",
+      "days_deployed": "2191",
+      "token_decimals": "18",
+      "token_price_usd": "0.9992"
+    },
+    "privileges": {
+      "owner_type": "eoa",
+      "dev_address": "0x970609ba2c160a1b491b90867681918bdc9773af",
+      "dev_malicious": "0",
+      "owner_address": "0xF68a4b64162906efF0fF6aE34E2bB1Cd42FEf62d"
+    },
+    "address_type": "ERC20",
+    "result_stage": "complete",
+    "scanned_time": 1788569063,
+    "token_market": {
+      "holders": [
+        {
+          "token_balance": "590000000004170297778600913",
+          "account_address": "0xF977814e90dA44bFA03b6295A0616a897441aceC"
+        },
+        {
+          "token_balance": "280884741927383299677175511",
+          "account_address": "0x8894E0a0c962CB723c1976a4421c95949bE2D4E3"
+        },
+        {
+          "token_balance": "117045886668836169470304587",
+          "account_address": "0xEF3aeFf9A5F61C6Dda33069c58C1434006e13B20"
+        },
+        {
+          "token_balance": "116150851714442234234202414",
+          "account_address": "0x128463A60784c4D3f46c23Af3f65Ed859Ba87974"
+        },
+        {
+          "token_balance": "83585355109758000000000000",
+          "account_address": "0x8932fe7726C1EE743F662f485C3e5a5D1D595F71"
+        },
+        {
+          "token_balance": "82925891029454159968190901",
+          "account_address": "0x092FE28430BaDe62C7C044B9C77d0aaa06241319"
+        },
+        {
+          "token_balance": "70995308596093090477638767",
+          "account_address": "0x18e226459CCf0Eec276514a4fd3b226D8961e4d1"
+        },
+        {
+          "token_balance": "69809500000000000457680300",
+          "account_address": "0x3Ce02596CA6982662E3d9b66c73e42A7b9D90E8E"
+        },
+        {
+          "token_balance": "60842035996775729197540870",
+          "account_address": "0xfD5840Cd36d94D7229439859C0112a4185BC0255"
+        },
+        {
+          "token_balance": "60254780638971709999000000",
+          "account_address": "0x3136ED252D6EC340C7D2fb1285C15aDD1fd4e0fA"
+        }
+      ],
+      "dex_info": [
+        {
+          "dex": "pancakeswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "26970886",
+          "quote_token": {
+            "name": "Wrapped BNB",
+            "symbol": "WBNB",
+            "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+          },
+          "pair_address": "0x36696169c63e42cd08ce11f5deebbcebae652050",
+          "liquidity_in_usd": "93531904.428"
+        },
+        {
+          "dex": "pancakeswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "27885351",
+          "quote_token": {
+            "name": "USD Coin",
+            "symbol": "USDC",
+            "address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+          },
+          "pair_address": "0x4f31fa980a675570939b737ebdde0471a4be40eb",
+          "liquidity_in_usd": "28568280.516"
+        },
+        {
+          "dex": "pancakeswapv2",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "6810857",
+          "quote_token": {
+            "name": "Wrapped BNB",
+            "symbol": "WBNB",
+            "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+          },
+          "pair_address": "0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae",
+          "liquidity_in_usd": "20311918.752"
+        },
+        {
+          "dex": "pancakeswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "27086036",
+          "quote_token": {
+            "name": "Wrapped BNB",
+            "symbol": "WBNB",
+            "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+          },
+          "pair_address": "0x172fcd41e0913e95784454622d1c3724f546f849",
+          "liquidity_in_usd": "11127654.888"
+        },
+        {
+          "dex": "pancakeswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "26972195",
+          "quote_token": {
+            "name": "USD Coin",
+            "symbol": "USDC",
+            "address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+          },
+          "pair_address": "0x92b7807bf19b7dddf89b706143896d05228f3121",
+          "liquidity_in_usd": "9983200.548"
+        },
+        {
+          "dex": "pancakeswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "26971594",
+          "quote_token": {
+            "name": "PancakeSwap Token",
+            "symbol": "Cake",
+            "address": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
+          },
+          "pair_address": "0x7f51c8aaa6b0599abd16674e2b17fec7a9f674a1",
+          "liquidity_in_usd": "6463475.148"
+        },
+        {
+          "dex": "pancakeswapv2",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "6810857",
+          "quote_token": {
+            "name": "BUSD Token",
+            "symbol": "BUSD",
+            "address": "0xe9e7cea3dedca5984780bafc599bd69add087d56"
+          },
+          "pair_address": "0x7efaef62fddcca950418312c6c91aef321375a00",
+          "liquidity_in_usd": "5351086.812"
+        },
+        {
+          "dex": "pancakeswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "26971794",
+          "quote_token": {
+            "name": "BTCB Token",
+            "symbol": "BTCB",
+            "address": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+          },
+          "pair_address": "0x46cf1cf8c69595804ba91dfdd8d6b960c9b0a7c4",
+          "liquidity_in_usd": "5216640.456"
+        },
+        {
+          "dex": "uniswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "26960232",
+          "quote_token": {
+            "name": "PancakeSwap Token",
+            "symbol": "Cake",
+            "address": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
+          },
+          "pair_address": "0xfe4fe5b4575c036ac6d5cccfe13660020270e27a",
+          "liquidity_in_usd": "4107927.4560000002"
+        },
+        {
+          "dex": "pancakeswapv3",
+          "base_token": {
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "address": "0x55d398326f99059ff775485246999027b3197955"
+          },
+          "created_at": "27036819",
+          "quote_token": {
+            "name": "BTCB Token",
+            "symbol": "BTCB",
+            "address": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+          },
+          "pair_address": "0x247f51881d1e3ae0f759afb801413a6c948ef442",
+          "liquidity_in_usd": "3710369.928"
+        }
+      ],
+      "holders_count": "74345811",
+      "dev_token_balance": "11225314730136147970439",
+      "dev_token_percent": "0.0000",
+      "owner_token_balance": "1502009265918282428541",
+      "owner_token_percent": "0.0000",
+      "holders_concentration": {
+        "top1_eoa_concentration": "0.0127",
+        "top5_eoa_concentration": "0.0270",
+        "top10_eoa_concentration": "0.0270"
+      }
+    },
+    "contract_name": "BEP20USDT",
+    "overall_score": "90",
+    "security_risks": {
+      "fake_token": {
+        "is_fake": "0",
+        "real_token_name": "",
+        "real_token_symbol": "",
+        "real_token_address": ""
+      },
+      "is_honeypot": "0",
+      "hidden_owner": "0",
+      "self_destruct": "0",
+      "external_calls": {
+        "risk_level": "0",
+        "has_external_calls": "0"
+      },
+      "code_obfuscation": "0",
+      "unlimited_mintable": "1",
+      "bad_function_encode": "0",
+      "owner_change_balance": "0",
+      "balance_external_call": "0"
+    },
+    "trade_analysis": {
+      "buy_gas": "unknown",
+      "buy_tax": "unknown",
+      "sell_gas": "unknown",
+      "sell_tax": "unknown",
+      "transfer_gas": "unknown",
+      "transfer_tax": "unknown",
+      "cannot_sell_percentage": {}
+    },
+    "overall_risk_level": "No Obvious Risk",
+    "threat_intelligence": {
+      "risk_level": "0",
+      "trust_level": "3"
+    },
+    "transfer_restrictions": {
+      "is_anti_whale": "0",
+      "transfer_cooldown": "0",
+      "transfer_pausable": "0",
+      "transfer_blacklist": "0",
+      "transfer_whitelist": "0",
+      "anti_whale_modifiable": "0"
+    }
+  }
+}

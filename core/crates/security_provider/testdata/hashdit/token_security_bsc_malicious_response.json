@@ -1,0 +1,152 @@
+{
+  "code": "0",
+  "status": "ok",
+  "data": {
+    "status": 200,
+    "address": "bsc:0x60c909cb023bc831788f44058251c6a688e18888",
+    "basic_info": {
+      "proxy": {
+        "is_proxy": "0",
+        "proxy_admin_type": "",
+        "proxy_admin_address": "",
+        "proxy_implementation_type": "",
+        "proxy_implementation_address": "",
+        "proxy_implementation_verified": ""
+      },
+      "verified": "1",
+      "is_in_dex": "1",
+      "token_name": "\ua4d4\u0435ther \u054d\u054f\u216e",
+      "is_mintable": "1",
+      "token_symbol": "\u054d\u054f\u216e\ua4d4",
+      "total_supply": "1000000000000000000000000000",
+      "days_deployed": "70",
+      "token_decimals": "18",
+      "token_price_usd": "0.0"
+    },
+    "privileges": {
+      "owner_type": "contract",
+      "dev_address": "0x623efeb1c61a5a8922fd8386a5be9d0bbf2843a1",
+      "dev_malicious": "0",
+      "owner_address": "0xe2cE6ab80874Fa9Fa2aAE65D277Dd6B8e65C9De0"
+    },
+    "address_type": "ERC20",
+    "result_stage": "complete",
+    "scanned_time": 1788450607,
+    "token_market": {
+      "holders": [
+        {
+          "token_balance": "928375015242313778690545922",
+          "account_address": "0xe2cE6ab80874Fa9Fa2aAE65D277Dd6B8e65C9De0"
+        },
+        {
+          "token_balance": "5000000000000000000000000",
+          "account_address": "0xc5a6E17919168A08636cf865EAc3a20Bf50feB09"
+        },
+        {
+          "token_balance": "3478857239496014787957435",
+          "account_address": "0xf60eCb5C9BFaAc8eA2dbdA1f7b3fd6255aC94266"
+        },
+        {
+          "token_balance": "2500080698723230000000000",
+          "account_address": "0x1De685176d9AF19FA39A42ed4Be63599a6bE7C63"
+        },
+        {
+          "token_balance": "2066820479868404431383358",
+          "account_address": "0x57094f9ae09f04e6bD5068AfE4682afE3b822404"
+        },
+        {
+          "token_balance": "1575923971728751150991116",
+          "account_address": "0xd0F2ABf197D5302B9851407bC7A2ddF9Eab823F0"
+        },
+        {
+          "token_balance": "1512808000000000000000000",
+          "account_address": "0x556eD3178AAAca1F98D7CF84a53993141cFb1ac6"
+        },
+        {
+          "token_balance": "1152800000000000000000000",
+          "account_address": "0x3F4aDbc459947B9F23861d3254BB926E5Bc78e7b"
+        },
+        {
+          "token_balance": "1022000000000000000000000",
+          "account_address": "0xbe77357d879486349438306C159b6b8Ae3620A09"
+        },
+        {
+          "token_balance": "1009869865929460000000000",
+          "account_address": "0x4a7112187354e67eefD3f4Bef9e72714aA70419E"
+        }
+      ],
+      "dex_info": [
+        {
+          "dex": "flapsh",
+          "base_token": {
+            "name": "\ua4d4\u0435ther \u054d\u054f\u216e",
+            "symbol": "\u054d\u054f\u216e\ua4d4",
+            "address": "0x60c909Cb023BC831788F44058251C6a688E18888"
+          },
+          "created_at": "1787584819",
+          "quote_token": {
+            "name": "Unity USD",
+            "symbol": "UUSD",
+            "address": "0x61a10E8556BEd032eA176330e7F17D6a12a10000"
+          },
+          "pair_address": "0xc3C73523cDC35cb6155D77bB39a543922A1bC23F",
+          "liquidity_in_usd": ""
+        }
+      ],
+      "holders_count": "73739",
+      "dev_token_balance": "0",
+      "dev_token_percent": "0.0000",
+      "owner_token_balance": "928375015242313778690545922",
+      "owner_token_percent": "0.9284",
+      "holders_concentration": {
+        "top1_eoa_concentration": "0.0050",
+        "top5_eoa_concentration": "0.0146",
+        "top10_eoa_concentration": "0.0193"
+      }
+    },
+    "contract_name": "TokenV2",
+    "overall_score": "10",
+    "security_risks": {
+      "fake_token": {
+        "is_fake": "0",
+        "real_token_name": "",
+        "real_token_symbol": "",
+        "real_token_address": ""
+      },
+      "is_honeypot": "0",
+      "hidden_owner": "0",
+      "self_destruct": "0",
+      "external_calls": {
+        "risk_level": "1",
+        "has_external_calls": "1"
+      },
+      "code_obfuscation": "0",
+      "unlimited_mintable": "",
+      "bad_function_encode": "0",
+      "owner_change_balance": "0",
+      "balance_external_call": "0"
+    },
+    "trade_analysis": {
+      "buy_gas": "unknown",
+      "buy_tax": "unknown",
+      "sell_gas": "unknown",
+      "sell_tax": "unknown",
+      "transfer_gas": "unknown",
+      "transfer_tax": "unknown",
+      "cannot_sell_percentage": {}
+    },
+    "overall_risk_level": "Significant Risk",
+    "threat_intelligence": {
+      "risk_level": "3",
+      "trust_level": "0"
+    },
+    "transfer_restrictions": {
+      "is_anti_whale": "0",
+      "transfer_cooldown": "0",
+      "transfer_pausable": "0",
+      "transfer_blacklist": "0",
+      "transfer_whitelist": "0",
+      "anti_whale_modifiable": "0"
+    }
+  }
+}
