@@ -2,7 +2,6 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
-import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmState
@@ -59,7 +58,6 @@ import java.math.BigInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRetryTest {
 
-    private val transferService = GemTransferService()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
@@ -134,8 +132,7 @@ class ConfirmViewModelRetryTest {
             },
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(transfer)))),
-            transferService = uniffi.gemstone.GemTransferService(),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
         )
     }
 }

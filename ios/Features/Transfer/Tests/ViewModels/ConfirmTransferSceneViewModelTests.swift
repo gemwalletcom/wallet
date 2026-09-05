@@ -11,7 +11,6 @@ import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemFeeRate
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemTransferData
-import class Gemstone.GemTransferService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices

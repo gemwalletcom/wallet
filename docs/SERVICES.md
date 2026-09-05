@@ -706,6 +706,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   the exported `link_type_order`. `GemSocialLinks::sorted` now does it in Core over the remote
   `AssetLink` record, `link_type_order` is no longer exported, and the iOS `LinkType.order` and
   `Asset(chain)` extensions are gone (the chain's asset comes from `Chain.asset`).
+- **One serializer carries any Core record through Android navigation.** Route payloads held
+  three hand-written `KSerializer`s: field-by-field surrogates for `GemRecipient` and
+  `GemPaymentRecipient`, and a `GemTransferService` JSON codec for the position action, with a
+  fourth codec pair (`encode_transfer_data`) behind `pack`/`unpack` for the confirm route. UniFFI
+  already generates a public `FfiConverter` per record, so `GemRecordSerializer` writes any record
+  through it as bytes, `gemRecordSerializers` registers the four route records contextually on
+  `jsonEncoder`, and a route field is just `@Contextual GemTransferData`. The Core codecs are gone,
+  and with them `GemTransferService`, which had nothing left; adding a record to a route is one
+  registry line.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

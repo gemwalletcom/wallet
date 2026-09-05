@@ -56,7 +56,6 @@ import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSwapService
 import class Gemstone.GemTransactionDetailsService
 import class Gemstone.GemTransactionStateService
-import class Gemstone.GemTransferService
 import class Gemstone.GemWalletHomeService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
@@ -128,7 +127,6 @@ public struct ViewModelFactory: Sendable {
     let swapService: GemSwapService
     let transactionStateService: GemTransactionStateService
     let transactionsService: GemTransactionsService
-    let transferService: GemTransferService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService
     let serviceStatusService: GemServiceStatus

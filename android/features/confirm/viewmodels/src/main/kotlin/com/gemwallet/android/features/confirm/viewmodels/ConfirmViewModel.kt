@@ -4,7 +4,6 @@ import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferServiceInterface
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.confirm.asset
@@ -13,7 +12,6 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.perpetualType
 import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
-import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.domains.swap.providerId
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -81,6 +79,7 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
+import com.gemwallet.android.domains.confirm.unpackTransferData
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -89,7 +88,6 @@ class ConfirmViewModel @Inject constructor(
     private val buildConfirmProperties: BuildConfirmProperties,
     private val confirmService: GemConfirmTransferServiceInterface,
     private val savedStateHandle: SavedStateHandle,
-    private val transferService: GemTransferServiceInterface,
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
@@ -100,7 +98,7 @@ class ConfirmViewModel @Inject constructor(
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
         .filterNotNull()
-        .mapNotNull { paramsPack -> transferService.unpack(paramsPack) }
+        .mapNotNull { paramsPack -> unpackTransferData(paramsPack) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val session = getSession()
@@ -258,7 +256,7 @@ class ConfirmViewModel @Inject constructor(
         requestSimulation = simulationResult?.toJson()
         feeSelection.value = FeeSelection.Preset(transfer.inputType.defaultFeePriority().toPrimitives())
         viewModelScope.launch(Dispatchers.IO) {
-            val pack = transferService.pack(transfer)
+            val pack = transfer.pack()
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
             }

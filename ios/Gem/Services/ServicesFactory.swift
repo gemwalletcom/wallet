@@ -383,7 +383,6 @@ struct ServicesFactory {
             swapService: swapService,
             transactionStateService: transactionStateService,
             transactionsService: transactionsService,
-            transferService: Gemstone.GemTransferService(),
             walletService: walletService,
             walletSessionService: walletSessionService,
             serviceStatusService: serviceStatusService,

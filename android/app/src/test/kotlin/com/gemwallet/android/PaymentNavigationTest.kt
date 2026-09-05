@@ -1,12 +1,10 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemTransferService
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
-import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemTransactionInputType
 import com.wallet.core.primitives.TransferDataOutputAction
@@ -43,10 +41,10 @@ import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPaymentService
 import java.math.BigInteger
+import com.gemwallet.android.domains.confirm.unpackTransferData
 
 class PaymentNavigationTest {
 
-    private val transferService = GemTransferService()
 
     @Test
     fun routes_paymentLink_loadsTransactionForExistingAccount() = runTest {
@@ -70,14 +68,14 @@ class PaymentNavigationTest {
             memo = "payment-memo",
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService(), assetsService(assetInfo.asset))
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
         )
 
         val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(transferService.unpack(route.params))
+        val transfer = requireNotNull(unpackTransferData(route.params))
         val assetId = transfer.inputType.asset.id
         val metadataSource = transfer.inputType.applicationMetadata?.source
         val generic = transfer.inputType as GemTransactionInputType.Generic
@@ -111,14 +109,14 @@ class PaymentNavigationTest {
             memo = null,
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService(), assetsService(assetInfo.asset))
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
         )
 
         val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(transferService.unpack(route.params))
+        val transfer = requireNotNull(unpackTransferData(route.params))
         val assetId = transfer.inputType.asset.id
         val generic = transfer.inputType as GemTransactionInputType.Generic
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
@@ -150,14 +148,14 @@ class PaymentNavigationTest {
                 assetId = requestedAsset.id,
             ),
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService(), assetsService(requestedAsset))
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, assetsService(requestedAsset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
         )
 
         val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(transferService.unpack(route.params))
+        val transfer = requireNotNull(unpackTransferData(route.params))
         assertEquals(requestedAsset.id, transfer.inputType.asset.id)
         assertEquals(BigInteger("19000000"), transfer.value)
     }

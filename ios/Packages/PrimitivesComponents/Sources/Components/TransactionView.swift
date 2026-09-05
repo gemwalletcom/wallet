@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import typealias Gemstone.Chain
 import Components
 import Primitives
+import PrimitivesTestKit
 import Style
 import SwiftUI
 
@@ -52,8 +52,8 @@ public struct TransactionView: View {
     )
     let pendingTransactionExtendedMock = TransactionExtended(
         transaction: pendingTransactionMock,
-        asset: Primitives.Chain.smartChain.asset,
-        feeAsset: Primitives.Chain.smartChain.asset,
+        asset: .mockBNB(),
+        feeAsset: .mockBNB(),
         price: nil,
         feePrice: nil,
         assets: [],

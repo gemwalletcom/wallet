@@ -39,13 +39,11 @@ import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelHeaderTest {
 
-    private val transferService = GemTransferService()
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAsset()
     private val account = mockAccount(chain = Chain.Bitcoin)
@@ -105,8 +103,7 @@ class ConfirmViewModelHeaderTest {
             },
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(transfer)))),
-            transferService = transferService,
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
         )
     }
 }

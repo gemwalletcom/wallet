@@ -7,7 +7,6 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.domains.confirm.transfer
-import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -31,13 +30,11 @@ import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemTransferDataExtra
-import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
+import com.gemwallet.android.domains.confirm.unpackTransferData
 
 @RunWith(AndroidJUnit4::class)
 class TransferDataCodecTest {
-
-    private val transferService = GemTransferService()
 
     companion object {
         init {
@@ -46,7 +43,7 @@ class TransferDataCodecTest {
     }
 
     private fun roundTrip(transfer: GemTransferData): GemTransferData =
-        requireNotNull(transferService.unpack(requireNotNull(transferService.pack(transfer))))
+        requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))
 
     private fun generic(
         asset: Asset,
