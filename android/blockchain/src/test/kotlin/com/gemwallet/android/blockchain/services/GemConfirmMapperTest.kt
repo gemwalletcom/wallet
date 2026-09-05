@@ -69,8 +69,6 @@ class GemConfirmMapperTest {
                 simulation = null,
                 input = input,
             ),
-            metadata = mockGemConfirmMetadata(asset),
-            feeAsset = asset.toGem(),
             amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
         )
 

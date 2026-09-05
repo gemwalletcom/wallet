@@ -18,6 +18,8 @@ pub struct Asset {
     pub currency: String,
     pub network: String,
     pub contract: String,
+    pub widget_onramp_enabled: bool,
+    pub widget_offramp_enabled: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -7,7 +7,6 @@ import Foundation
 import struct Gemstone.GemConfirmData
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmLoadOptions
-import struct Gemstone.GemConfirmPreload
 import struct Gemstone.GemConfirmSimulationState
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import enum Gemstone.GemExecuteResult
@@ -73,24 +72,14 @@ public final class ConfirmTransferSceneViewModel {
         self.service = service
         self.onComplete = onComplete
 
-        let initialState = service.initialState(
-            inputType: request.data.inputType,
-            simulation: request.simulation?.json(),
-        )
-        feeSelection = .priority(priority: initialState.feePriority)
+        feeSelection = .priority(priority: request.data.inputType.defaultFeePriority())
         feeAssetSelection = .automatic
-
         state = ConfirmTransferState(
-            simulation: ConfirmSimulationState(
-                data: request.data,
-                simulation: request.simulation,
-                state: GemConfirmSimulationState(simulation: initialState.simulation, addressNames: []),
-            ),
-            metadata: .none,
-            feeAsset: initialState.feeAsset.map(),
-            transaction: .loading,
+            inputType: request.data.inputType,
+            simulation: ConfirmSimulationState(result: request.simulation, chain: request.data.chain),
         )
     }
+
 
     var preloadSelection: ConfirmPreloadSelection {
         ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection)
@@ -301,7 +290,16 @@ extension ConfirmTransferSceneViewModel {
     func load() async {
         state.transaction = .loading
         do {
-            state = try await .loaded(load(request: request, selection: feeSelection, feeAssetSelection: feeAssetSelection))
+            state = try ConfirmTransferState(
+                await service.initialState(transfer: request.data, simulation: request.simulation?.json()),
+            )
+            state = try ConfirmTransferState(
+                await service.load(
+                    input: service.confirmInput(wallet: wallet.json(), transfer: request.data),
+                    options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection),
+                    simulation: request.simulation?.json(),
+                ),
+            )
         } catch {
             guard !Task.isCancelled else { return }
             state.transaction.setError(error)
@@ -389,25 +387,6 @@ extension ConfirmTransferSceneViewModel {
 extension ConfirmTransferSceneViewModel {
     func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
         service.explorerLink(chain: chain, address: address)
-    }
-
-    func load(request: ConfirmTransferRequest, selection: GemConfirmFeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        let scene = try await service.load(
-            input: service.confirmInput(wallet: wallet.json(), transfer: request.data),
-            options: options(selection: selection, feeAssetSelection: feeAssetSelection),
-            simulation: request.simulation?.json(),
-        )
-        let preload = try ConfirmTransferPreload(scene.preload)
-        return ConfirmTransferData(
-            preload: preload,
-            simulation: ConfirmSimulationState(
-                data: request.data,
-                simulation: request.simulation ?? preload.simulation,
-                state: scene.simulation,
-            ),
-            feeAssets: scene.feeAssets,
-            addressName: scene.addressName.map(AddressName.init(core:)),
-        )
     }
 
     private func options(selection: GemConfirmFeeSelection, feeAssetSelection: FeeAssetSelection) -> GemConfirmLoadOptions {

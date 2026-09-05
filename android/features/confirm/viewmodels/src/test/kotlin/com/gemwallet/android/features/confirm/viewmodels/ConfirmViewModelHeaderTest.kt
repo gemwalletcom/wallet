@@ -9,7 +9,7 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockGemConfirmInitialState
+import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -95,7 +95,7 @@ class ConfirmViewModelHeaderTest {
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
         every { confirmService.confirmInput(any(), transfer) } returns GemConfirmInput(from = account.toGem(), transfer = transfer)
-        every { confirmService.initialState(any(), any()) } returns mockGemConfirmInitialState(asset)
+        coEvery { confirmService.initialState(any(), any()) } returns mockGemConfirmLoad(asset)
         coEvery { confirmService.load(any(), any(), any()) } coAnswers { awaitCancellation() }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {

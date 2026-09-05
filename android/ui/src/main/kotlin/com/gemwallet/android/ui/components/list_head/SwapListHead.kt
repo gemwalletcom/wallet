@@ -114,11 +114,10 @@ private fun SwapItem(
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start
             )
-            if (currency != null) {
+            val price = assetInfo.price?.price?.price
+            if (currency != null && price != null) {
                 Text(
-                    text = CryptoFiatConverter.toFiatString(
-                        Crypto(value), decimals, assetInfo.price?.price?.price ?: 0.0, currency
-                    ),
+                    text = CryptoFiatConverter.toFiatString(Crypto(value), decimals, price, currency),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Start

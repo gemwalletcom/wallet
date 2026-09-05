@@ -7,7 +7,6 @@ use super::model::GemRecipientError;
 use crate::GemstoneError;
 use crate::models::payment::GemPayment;
 use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentService, GemPaymentWalletAsset};
-use crate::services::error::GemServiceError;
 use crate::services::name::GemNameService;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use crate::services::wallet_session::GemWalletSessionService;

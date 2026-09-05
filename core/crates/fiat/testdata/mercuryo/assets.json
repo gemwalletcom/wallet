@@ -1982,49 +1982,63 @@
                     "network": "BITCOIN",
                     "show_network_icon": false,
                     "network_label": "BITCOIN",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ETH",
                     "network": "ARBITRUM",
                     "show_network_icon": true,
                     "network_label": "ARBITRUM",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ETH",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ETHEREUM",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ETH",
                     "network": "ZKSYNC",
                     "show_network_icon": true,
                     "network_label": "ZKSYNC",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ETH",
                     "network": "LINEA",
                     "show_network_icon": true,
                     "network_label": "LINEA",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ETH",
                     "network": "BASE",
                     "show_network_icon": true,
                     "network_label": "BASE",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ETH",
                     "network": "OPTIMISM",
                     "show_network_icon": true,
                     "network_label": "OPTIMISM",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
@@ -2032,35 +2046,45 @@
                     "show_network_icon": true,
                     "network_label": "ERC-20",
                     "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-                    "network_ud": "ERC20"
+                    "network_ud": "ERC20",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
                     "network": "SOLANA",
                     "show_network_icon": true,
                     "network_label": "SOLANA",
-                    "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                    "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
                     "network": "BINANCESMARTCHAIN",
                     "show_network_icon": true,
                     "network_label": "BNB Chain",
-                    "contract": "0x55d398326f99059fF775485246999027B3197955"
+                    "contract": "0x55d398326f99059fF775485246999027B3197955",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
                     "network": "POLYGON",
                     "show_network_icon": true,
                     "network_label": "POLYGON",
-                    "contract": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
+                    "contract": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                    "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
@@ -2068,147 +2092,189 @@
                     "show_network_icon": true,
                     "network_label": "TRC-20",
                     "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-                    "network_ud": "TRON"
+                    "network_ud": "TRON",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
                     "network": "AVALANCHE",
                     "show_network_icon": true,
                     "network_label": "AVALANCHE",
-                    "contract": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+                    "contract": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDT",
                     "network": "ARBITRUM",
                     "show_network_icon": true,
                     "network_label": "ARBITRUM",
-                    "contract": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+                    "contract": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "POLYGON",
                     "show_network_icon": true,
                     "network_label": "POLYGON",
-                    "contract": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+                    "contract": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "NEAR_PROTOCOL",
                     "show_network_icon": true,
                     "network_label": "NEAR",
-                    "contract": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1"
+                    "contract": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "SOLANA",
                     "show_network_icon": true,
                     "network_label": "SOLANA",
-                    "contract": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                    "contract": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ETHEREUM",
-                    "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+                    "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "BINANCESMARTCHAIN",
                     "show_network_icon": true,
                     "network_label": "BNB Chain",
-                    "contract": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d-8R8-XHwh3gsNKhy-UrdrPcUo"
+                    "contract": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d-8R8-XHwh3gsNKhy-UrdrPcUo",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "STELLAR",
                     "show_network_icon": true,
                     "network_label": "STELLAR",
-                    "contract": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+                    "contract": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "BASE",
                     "show_network_icon": true,
                     "network_label": "BASE",
-                    "contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+                    "contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "AVALANCHE",
                     "show_network_icon": true,
                     "network_label": "AVALANCHE",
-                    "contract": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+                    "contract": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDC",
                     "network": "ARBITRUM",
                     "show_network_icon": true,
                     "network_label": "ARBITRUM",
-                    "contract": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+                    "contract": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "SOL",
                     "network": "SOLANA",
                     "show_network_icon": false,
                     "network_label": "SOLANA",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "BNB",
                     "network": "BINANCESMARTCHAIN",
                     "show_network_icon": false,
                     "network_label": "BEP-20",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "LTC",
                     "network": "LITECOIN",
                     "show_network_icon": false,
                     "network_label": "LITECOIN",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "BCH",
                     "network": "BITCOINCASH",
                     "show_network_icon": false,
                     "network_label": "BITCOINCASH",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ADA",
                     "network": "CARDANO",
                     "show_network_icon": false,
                     "network_label": "CARDANO",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ALGO",
                     "network": "ALGORAND",
                     "show_network_icon": false,
                     "network_label": "ALGORAND",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ARB",
                     "network": "ARBITRUM",
                     "show_network_icon": true,
                     "network_label": "ARBITRUM",
-                    "contract": "0x912CE59144191C1204E64559FE8253a0e49E6548"
+                    "contract": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "AVAX",
                     "network": "AVALANCHE",
                     "show_network_icon": false,
                     "network_label": "AVALANCHE",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "BAT",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ERC-20",
-                    "contract": "0x0d8775f648430679a709e98d2b0cb6250d2887ef"
+                    "contract": "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "CRV",
@@ -2216,77 +2282,99 @@
                     "show_network_icon": true,
                     "network_label": "ERC-20",
                     "contract": "0xd533a949740bb3306d119cc777fa900ba034cd52",
-                    "network_ud": "ERC20"
+                    "network_ud": "ERC20",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "DAI",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ERC-20",
-                    "contract": "0x6b175474e89094c44da98b954eedeac495271d0f"
+                    "contract": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "DOT",
                     "network": "POLKADOT",
                     "show_network_icon": false,
                     "network_label": "POLKADOT",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "DOGE",
                     "network": "DOGECOIN",
                     "show_network_icon": false,
                     "network_label": "DOGECOIN",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "DYDX",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ERC-20",
-                    "contract": "0x92d6c1e31e14520e676a687f0a93788b716beff5"
+                    "contract": "0x92d6c1e31e14520e676a687f0a93788b716beff5",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "FTM",
                     "network": "FANTOM",
                     "show_network_icon": false,
                     "network_label": "FANTOM",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "INJ",
                     "network": "INJECTIVE",
                     "show_network_icon": false,
                     "network_label": "INJECTIVE",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "KSM",
                     "network": "KUSAMA",
                     "show_network_icon": false,
                     "network_label": "KUSAMA",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "LINK",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ERC-20",
-                    "contract": "0x514910771AF9Ca656af840dff83E8264EcF986CA"
+                    "contract": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "TON",
                     "network": "NEWTON",
                     "show_network_icon": false,
                     "network_label": "NEWTON",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "TRX",
                     "network": "TRON",
                     "show_network_icon": false,
                     "network_label": "TRC-20",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "MANA",
@@ -2294,7 +2382,9 @@
                     "show_network_icon": true,
                     "network_label": "ERC-20",
                     "contract": "0x0f5d2fb29fb7d3cfee444a200298f468908cc942",
-                    "network_ud": "ERC20"
+                    "network_ud": "ERC20",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "POL",
@@ -2302,35 +2392,45 @@
                     "show_network_icon": false,
                     "network_label": "POLYGON",
                     "contract": "",
-                    "network_ud": "POL"
+                    "network_ud": "POL",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "NEAR",
                     "network": "NEAR_PROTOCOL",
                     "show_network_icon": false,
                     "network_label": "NEAR_PROTOCOL",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "NOT",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT"
+                    "contract": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "1INCH",
                     "network": "BINANCESMARTCHAIN",
                     "show_network_icon": true,
                     "network_label": "BEP-20",
-                    "contract": "0x111111111117dc0aa78b770fa6a738034120c302"
+                    "contract": "0x111111111117dc0aa78b770fa6a738034120c302",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "OKB",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ERC-20",
-                    "contract": "0x75231f58b43240c9718dd58b4967c5114342a86c"
+                    "contract": "0x75231f58b43240c9718dd58b4967c5114342a86c",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "SAND",
@@ -2338,7 +2438,9 @@
                     "show_network_icon": true,
                     "network_label": "ERC-20",
                     "contract": "0x3845badade8e6dff049820680d1f14bd3903a5d0",
-                    "network_ud": "ERC20"
+                    "network_ud": "ERC20",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "SHIB",
@@ -2346,21 +2448,27 @@
                     "show_network_icon": true,
                     "network_label": "ERC-20",
                     "contract": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
-                    "network_ud": "ERC20"
+                    "network_ud": "ERC20",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "SWEAT",
                     "network": "NEAR_PROTOCOL",
                     "show_network_icon": true,
                     "network_label": "NEAR",
-                    "contract": "token.sweat"
+                    "contract": "token.sweat",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "TIA",
                     "network": "CELESTIA",
                     "show_network_icon": false,
                     "network_label": "CELESTIA",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "UNI",
@@ -2368,133 +2476,171 @@
                     "show_network_icon": true,
                     "network_label": "ERC-20",
                     "contract": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
-                    "network_ud": "ERC20"
+                    "network_ud": "ERC20",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "WEMIX",
                     "network": "WEMIX",
                     "show_network_icon": false,
                     "network_label": "WEMIX",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "XLM",
                     "network": "STELLAR",
                     "show_network_icon": false,
                     "network_label": "STELLAR",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "XTZ",
                     "network": "TEZOS",
                     "show_network_icon": false,
                     "network_label": "TEZOS",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "ATOM",
                     "network": "COSMOS",
                     "show_network_icon": false,
                     "network_label": "COSMOS",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "XRP",
                     "network": "RIPPLE",
                     "show_network_icon": false,
                     "network_label": "RIPPLE",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "PEPE",
                     "network": "ETHEREUM",
                     "show_network_icon": true,
                     "network_label": "ETHEREUM",
-                    "contract": "0x6982508145454ce325ddbe47a25d4ec3d2311933"
+                    "contract": "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "TWT",
                     "network": "BINANCESMARTCHAIN",
                     "show_network_icon": true,
                     "network_label": "BEP-20",
-                    "contract": "0x4B0F1812e5Df2A09796481Ff14017e6005508003"
+                    "contract": "0x4B0F1812e5Df2A09796481Ff14017e6005508003",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "JUP",
                     "network": "SOLANA",
                     "show_network_icon": true,
                     "network_label": "SOLANA",
-                    "contract": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
+                    "contract": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "DOGS",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS"
+                    "contract": "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "HMSTR",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo"
+                    "contract": "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "MAJOR",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQCuPm01HldiduQ55xaBF_1kaW_WAUy5DHey8suqzU_MAJOR"
+                    "contract": "EQCuPm01HldiduQ55xaBF_1kaW_WAUy5DHey8suqzU_MAJOR",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "CATI",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7"
+                    "contract": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "X",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQB4zZusHsbU2vVTPqjhlokIOoiZhEdCMT703CWEzhTOo__X"
+                    "contract": "EQB4zZusHsbU2vVTPqjhlokIOoiZhEdCMT703CWEzhTOo__X",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "TRUMP",
                     "network": "SOLANA",
                     "show_network_icon": true,
                     "network_label": "SOLANA",
-                    "contract": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+                    "contract": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "USDE",
                     "network": "NEWTON",
                     "show_network_icon": true,
                     "network_label": "TON",
-                    "contract": "EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f"
+                    "contract": "EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "SUI",
                     "network": "SUI",
                     "show_network_icon": true,
                     "network_label": "SUI",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "KAS",
                     "network": "KASPA",
                     "show_network_icon": true,
                     "network_label": "KASPA",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 },
                 {
                     "currency": "S",
                     "network": "SONIC",
                     "show_network_icon": true,
                     "network_label": "SONIC",
-                    "contract": ""
+                    "contract": "",
+                    "widget_onramp_enabled": true,
+                    "widget_offramp_enabled": true
                 }
             ],
             "default_networks": {
