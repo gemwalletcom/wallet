@@ -170,7 +170,7 @@ fn decode_execute_swap_call(
             && let Ok(actions) = decode_action_data(input, universal_router_abi)
         {
             let native_output = if sweep_minimum.is_none() && commands.as_ref() == [V4_SWAP_COMMAND] {
-                router_abi.router.and_then(|router| native_v4_value_from_receipt(chain, router, from, &actions, receipt))
+                router_abi.router.and_then(|router| native_v4_value_from_receipt(router, from, &actions, receipt))
             } else {
                 None
             };
@@ -214,7 +214,7 @@ fn decode_execute_swap_call(
     })
 }
 
-fn native_v4_value_from_receipt(chain: &Chain, router: Address, from: &str, actions: &[V4Action], receipt: &TransactionReceipt) -> Option<U256> {
+fn native_v4_value_from_receipt(router: Address, from: &str, actions: &[V4Action], receipt: &TransactionReceipt) -> Option<U256> {
     let [swap, settlement, take] = actions else { return None };
     let (currency_in, path) = match swap {
         V4Action::SWAP_EXACT_IN(params) => (params.currencyIn, &params.path),
@@ -251,11 +251,7 @@ fn native_v4_value_from_receipt(chain: &Chain, router: Address, from: &str, acti
         hooks: last.hooks,
     };
     let pool_id = keccak256(pool.abi_encode());
-    let manager = v4::get_uniswap_deployment_by_chain(chain)?.pool_manager;
     let mut swaps = receipt.logs.iter().filter_map(|log| {
-        if !log.address.eq_ignore_ascii_case(manager) {
-            return None;
-        }
         let topics = log.topics.iter().map(|topic| B256::from_str(topic)).collect::<Result<Vec<_>, _>>().ok()?;
         let event = IPoolManager::Swap::decode_raw_log_validate(topics, &decode_hex(&log.data).ok()?).ok()?;
         (event.id == pool_id && event.sender == router).then_some(event)
@@ -336,8 +332,6 @@ mod tests {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v4_cake_bnb_transaction.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v4_cake_bnb_transaction_receipt.json"));
         let original = receipt.logs[0].clone();
-        let mut wrong_manager = original.clone();
-        wrong_manager.address = transaction.from.clone();
         let mut wrong_pool = original.clone();
         wrong_pool.topics[1] = B256::ZERO.to_string();
         let mut wrong_router = original.clone();
@@ -348,7 +342,7 @@ mod tests {
         malformed.data = "0x01".to_string();
         let mut negative_output = original.clone();
         negative_output.data.replace_range(2..66, &"f".repeat(64));
-        for invalid in [wrong_manager, wrong_pool, wrong_router, wrong_signature, malformed, negative_output] {
+        for invalid in [wrong_pool, wrong_router, wrong_signature, malformed, negative_output] {
             let mut receipt = receipt.clone();
             receipt.logs[0] = invalid;
             assert_eq!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &receipt, DateTime::default()), None);
@@ -372,7 +366,7 @@ mod tests {
                 amount: U256::ZERO,
             };
             assert_eq!(
-                native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt),
+                native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt),
                 Some(U256::from(2_893_729_657_423_135u64))
             );
         }
@@ -381,7 +375,7 @@ mod tests {
             min_amount: U256::ZERO,
         };
         assert_eq!(
-            native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt),
+            native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt),
             Some(U256::from(2_893_729_657_423_135u64))
         );
         for take in [
@@ -402,7 +396,7 @@ mod tests {
             },
         ] {
             actions[2] = take;
-            assert_eq!(native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt), None);
+            assert_eq!(native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt), None);
         }
         actions[2] = V4Action::TAKE_ALL {
             currency: Address::ZERO,
@@ -411,7 +405,7 @@ mod tests {
         if let V4Action::SWAP_EXACT_IN_V2_1(params) = &mut actions[0] {
             params.path[0].hooks = router;
         }
-        assert_eq!(native_v4_value_from_receipt(&Chain::SmartChain, router, &transaction.from, &actions, &receipt), None);
+        assert_eq!(native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt), None);
     }
 
     #[test]
