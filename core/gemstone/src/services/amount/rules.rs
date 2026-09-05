@@ -4,7 +4,6 @@ use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AutocloseEstimator, Chain, Delegation, EarnType, PerpetualDirection, StakeChain, StakeType, TpslType};
 
 use super::model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
-use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
 use crate::models::GemTransactionInputType;
@@ -235,6 +234,7 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
     use crate::models::custom_types::GemBigUint;
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
