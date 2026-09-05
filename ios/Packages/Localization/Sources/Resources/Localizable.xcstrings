@@ -187,7 +187,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "發起您的第一筆交易"
+            "value": "進行第一筆交易"
           }
         }
       }
@@ -378,7 +378,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "清空篩選條件後將重新載入交易"
+            "value": "清除篩選條件以重新整理交易紀錄"
           }
         }
       }
@@ -760,7 +760,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的交易將顯示在此處"
+            "value": "交易將顯示在此處"
           }
         }
       }
@@ -945,13 +945,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "活动"
+            "value": "交易记录"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "活動"
+            "value": "交易紀錄"
           }
         }
       }
@@ -1625,7 +1625,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "オールタイムロー"
+            "value": "史上最安値"
           }
         },
         "ko": {
@@ -1715,7 +1715,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最低"
+            "value": "歷史最低價"
           }
         }
       }
@@ -2198,7 +2198,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "予約済み"
+            "value": "確保済み"
           }
         },
         "ko": {
@@ -2580,7 +2580,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "循環供給量"
+            "value": "流通供給量"
           }
         },
         "ko": {
@@ -2670,7 +2670,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "循環供應"
+            "value": "流通供應量"
           }
         }
       }
@@ -3535,7 +3535,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ウォレットから隠す"
+            "value": "ウォレットで非表示にする"
           }
         },
         "ko": {
@@ -3625,7 +3625,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "隱藏錢包"
+            "value": "從錢包中隱藏"
           }
         }
       }
@@ -4490,7 +4490,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "受け取る、スワップする、買う%@"
+            "value": "%@を受け取る、スワップする、または購入する"
           }
         },
         "ko": {
@@ -4681,7 +4681,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "取引はここに表示されます️"
+            "value": "取引はここに表示されます"
           }
         },
         "ko": {
@@ -6209,7 +6209,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "誰でも作成可能で、偽トークンや悪意のあるトークンも含まれます。"
+            "value": "トークンは誰でも作成でき、偽造トークンや悪意のあるトークンも存在します。"
           }
         },
         "ko": {
@@ -6293,13 +6293,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任何人都可以创建，包括假冒或恶意代币。"
+            "value": "任何人都可以创建代币，请谨防假冒或恶意代币。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "任何人都可以創建，包括假冒或惡意代幣。"
+            "value": "任何人都可以建立代幣，請謹防仿冒或惡意代幣。"
           }
         }
       }
@@ -6484,13 +6484,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "了解您正在添加的内容"
+            "value": "了解正在添加的内容"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "了解您正在新增的內容"
+            "value": "了解正在新增的內容"
           }
         }
       }
@@ -8018,7 +8018,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "新的"
+            "value": "新"
           }
         }
       }
@@ -8310,7 +8310,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ネットワークは、一回限りの料金が%@必要です。"
+            "value": "%@ ネットワークでは、1回限りの有効化手数料 %@ が必要です。"
           }
         },
         "ko": {
@@ -8400,7 +8400,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 網路需要一次性費用 %@ 。"
+            "value": "%@ 網路需支付一次性費用：%@。"
           }
         }
       }
@@ -8692,7 +8692,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@アセットを使用するには、まずネットワークの特定の要件を満たして%@ネットワーク上でアセットを有効にする必要があります。"
+            "value": "%@ を利用するには、%@ ネットワーク固有の要件を満たして有効化する必要があります。"
           }
         },
         "ko": {
@@ -8782,7 +8782,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "要使用%@資產，您必須先透過滿足網路的特定要求在%@網路上啟用它。"
+            "value": "若要使用 %@ 資產，必須先符合 %@ 網路的特定要求，才能啟用該資產。"
           }
         }
       }
@@ -8883,7 +8883,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "トークンは安全でないか、誤解を招く可能性がある。完全に信頼できる場合のみ手続きを行ってください。"
+            "value": "トークンは安全でないか、誤解を招く可能性があります。完全に信頼できる場合のみ続行してください。"
           }
         },
         "ko": {
@@ -9922,13 +9922,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的钱包已准备就绪"
+            "value": "钱包已准备就绪"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的錢包已準備就緒"
+            "value": "錢包已準備就緒"
           }
         }
       }
@@ -10029,7 +10029,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hyperliquid perpetuals で入金、取引、収益を得る"
+            "value": "Hyperliquid で入金・取引し、パーペチュアルで収益を獲得"
           }
         },
         "ko": {
@@ -10113,13 +10113,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用 Hyperliquid 永续合约进行存款、交易和赚取收益"
+            "value": "在 Hyperliquid 上存入资产、交易永续合约并赚取收益"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用 Hyperliquid 永續合約進行存款、交易和賺取收益"
+            "value": "在 Hyperliquid 上存入資金、交易永續合約並賺取收益"
           }
         }
       }
@@ -10220,7 +10220,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hyperliquidで永久取引をする"
+            "value": "Hyperliquid でパーペチュアルを取引"
           }
         },
         "ko": {
@@ -10411,7 +10411,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "寝ている間にステークで%@の報酬を獲得できます。"
+            "value": "%@ をステーキングして、寝ている間も報酬を獲得できます。"
           }
         },
         "ko": {
@@ -11265,7 +11265,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "費率"
+            "value": "匯率"
           }
         }
       }
@@ -12220,7 +12220,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "1 時"
+            "value": "1時"
           }
         }
       }
@@ -12512,7 +12512,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "変化"
+            "value": "変動"
           }
         },
         "ko": {
@@ -12602,7 +12602,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "改變"
+            "value": "漲跌幅"
           }
         }
       }
@@ -12793,7 +12793,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "關閉"
+            "value": "收盤價"
           }
         }
       }
@@ -12894,7 +12894,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "高い"
+            "value": "高値"
           }
         },
         "ko": {
@@ -12984,7 +12984,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "高的"
+            "value": "最高價"
           }
         }
       }
@@ -13085,7 +13085,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "低い"
+            "value": "安値"
           }
         },
         "ko": {
@@ -13175,7 +13175,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "低的"
+            "value": "最低價"
           }
         }
       }
@@ -13366,7 +13366,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "打開"
+            "value": "開盤價"
           }
         }
       }
@@ -14894,7 +14894,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已復制： %@"
+            "value": "已複製：%@"
           }
         }
       }
@@ -16040,7 +16040,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "詳情"
+            "value": "詳細"
           }
         }
       }
@@ -17950,7 +17950,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "列表"
+            "value": "清單"
           }
         }
       }
@@ -20051,7 +20051,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "粘貼"
+            "value": "貼上"
           }
         }
       }
@@ -22062,7 +22062,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密のフレーズ"
+            "value": "リカバリーフレーズ"
           }
         },
         "ko": {
@@ -22146,13 +22146,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密短语"
+            "value": "助记词"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密短語"
+            "value": "助記詞"
           }
         }
       }
@@ -22343,7 +22343,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "共享"
+            "value": "分享"
           }
         }
       }
@@ -24736,7 +24736,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "住所"
+            "value": "アドレス"
           }
         },
         "ko": {
@@ -24927,7 +24927,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "接触"
+            "value": "連絡先"
           }
         },
         "ko": {
@@ -25011,13 +25011,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "接触"
+            "value": "联系人"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "接觸"
+            "value": "聯絡人"
           }
         }
       }
@@ -25393,13 +25393,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存您常用的地址"
+            "value": "保存常用地址"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "儲存您常用的地址"
+            "value": "儲存常用地址"
           }
         }
       }
@@ -25584,13 +25584,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无联系方式"
+            "value": "暂无联系人"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無聯絡方式"
+            "value": "尚無聯絡人"
           }
         }
       }
@@ -25775,13 +25775,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联系方式"
+            "value": "联系人"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "聯絡方式"
+            "value": "聯絡人"
           }
         }
       }
@@ -26264,7 +26264,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "初回入金 %@"
+            "value": "%@ を入金して始めましょう"
           }
         },
         "ko": {
@@ -26348,13 +26348,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "存入您的第一笔款项 %@"
+            "value": "首次存入 %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "存入您的第一筆款項 %@"
+            "value": "首次存入 %@"
           }
         }
       }
@@ -26455,7 +26455,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたのポジションはここに表示されます"
+            "value": "ポジションはここに表示されます"
           }
         },
         "ko": {
@@ -26539,13 +26539,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的持仓将显示在此处。"
+            "value": "持仓将显示在此处。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的持倉將顯示在此。"
+            "value": "持倉將顯示在此。"
           }
         }
       }
@@ -26730,13 +26730,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "余额和活动可能不是最新的。"
+            "value": "余额和交易记录可能不是最新的。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "餘額和活動可能不是最新的。"
+            "value": "餘額和交易紀錄可能尚未更新。"
           }
         }
       }
@@ -26927,7 +26927,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未取得相機權限。請在設定中開啟以掃描二維碼。"
+            "value": "尚未取得相機權限。請在設定中允許相機存取，以掃描 QR 碼。"
           }
         }
       }
@@ -27882,7 +27882,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "暫無可用錢包"
+            "value": "目前沒有支援的錢包可用。"
           }
         }
       }
@@ -28073,7 +28073,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "暫不支援該區塊鏈網絡"
+            "value": "不支援指定的區塊鏈。"
           }
         }
       }
@@ -28455,7 +28455,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "用戶已取消"
+            "value": "使用者已取消"
           }
         }
       }
@@ -28938,7 +28938,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "QRコードのデコードに失敗しました。別のQRコードで再試行してください。"
+            "value": "QRコードを読み取れませんでした。別のQRコードでもう一度お試しください。"
           }
         },
         "ko": {
@@ -29028,7 +29028,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "解析二維碼失敗，請換一個碼重試"
+            "value": "無法辨識 QR 碼，請改用其他 QR 碼再試一次。"
           }
         }
       }
@@ -29219,7 +29219,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "交易失敗，因為金額太小，無法滿足%@網路的最低要求（灰塵閾值）。此限制確保交易價值涵蓋費用和處理成本。"
+            "value": "交易失敗，因為金額太小，無法滿足 %@ 網路的最低要求（粉塵門檻）。此限制確保交易金額足以支付手續費和處理成本。"
           }
         }
       }
@@ -29404,13 +29404,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "网络将这笔金额视为微不足道的垃圾——手续费甚至高于金额本身。"
+            "value": "转账金额过小，被网络视为“粉尘”金额，手续费甚至高于金额本身。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "網路將這筆金額視為微不足道的垃圾——手續費甚至高於金額本身。"
+            "value": "此網路將這筆金額視為粉塵金額，手續費高於金額本身。"
           }
         }
       }
@@ -30084,7 +30084,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無効な秘密フレーズ"
+            "value": "無効なリカバリーフレーズ"
           }
         },
         "ko": {
@@ -30275,7 +30275,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無効なシークレットフレーズの単語: %@"
+            "value": "リカバリーフレーズに無効な単語があります: %@"
           }
         },
         "ko": {
@@ -30359,13 +30359,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "助记词无效：%@"
+            "value": "助记词中包含无效单词：%@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "助記詞無效： %@"
+            "value": "助記詞中包含無效單字：%@"
           }
         }
       }
@@ -31505,13 +31505,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法在此设备上访问该钱包的密钥。如果你有助记词，请删除该钱包并重新导入以恢复访问。"
+            "value": "无法在此设备上访问该钱包的密钥。如持有该钱包的助记词，请删除该钱包并重新导入以恢复访问。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法在此裝置上存取該錢包的金鑰。如果你有助記詞，請移除該錢包並重新匯入以恢復存取。"
+            "value": "無法在此裝置上存取該錢包的金鑰。如持有該錢包的助記詞，請移除該錢包並重新匯入以恢復存取。"
           }
         }
       }
@@ -32084,7 +32084,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "暫無數據"
+            "value": "無可用資料"
           }
         }
       }
@@ -32376,7 +32376,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "サービス接続がありません"
+            "value": "サービスに接続できません"
           }
         },
         "ko": {
@@ -32466,7 +32466,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無服務連線"
+            "value": "無法連線至服務"
           }
         }
       }
@@ -32758,7 +32758,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このデバイスはQRコードのスキャンをサポートしていません。ライブラリからQRコード画像を選択することしかできません。"
+            "value": "このデバイスではQRコードをスキャンできません。写真ライブラリからQRコード画像を選択してください。"
           }
         },
         "ko": {
@@ -32848,7 +32848,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此設備不支援掃碼，只能選取圖庫的二維碼圖片。"
+            "value": "此裝置不支援掃描 QR 碼，只能從照片圖庫選取 QR 碼圖片。"
           }
         }
       }
@@ -33612,7 +33612,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@為必填項"
+            "value": "%@ 為必填欄位"
           }
         }
       }
@@ -33713,7 +33713,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この取引は完了できません。送信先のウォレット アドレスが疑わしいまたは有害なアクティビティにリンクされています。"
+            "value": "この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。"
           }
         },
         "ko": {
@@ -33797,13 +33797,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此交易无法完成——目标钱包地址与可疑或有害活动有关。"
+            "value": "无法完成此交易：目标钱包地址与可疑或恶意行为有关。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此交易無法完成——目標錢包地址與可疑或有害活動有關。"
+            "value": "無法完成此交易：收款錢包位址與可疑或惡意行為有關。"
           }
         }
       }
@@ -33988,13 +33988,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可疑活动"
+            "value": "可疑行为"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "可疑活動"
+            "value": "可疑行為"
           }
         }
       }
@@ -34095,7 +34095,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@宛先ウォレットアドレスには宛先タグ/メモが必要です"
+            "value": "%@ の送信先アドレスには、宛先タグまたはメモが必要です"
           }
         },
         "ko": {
@@ -34179,7 +34179,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@目标钱包地址需要目标标签/备注"
+            "value": "%@ 收款地址需要填写目标标签或备注"
           }
         },
         "zh-Hant": {
@@ -34477,7 +34477,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最低取引金額は %@。より高い金額を入力してください。"
+            "value": "最低取引金額は %@ です。これより大きい金額を入力してください。"
           }
         },
         "ko": {
@@ -34668,7 +34668,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在の見積もりはありません"
+            "value": "見積もりを取得できません"
           }
         },
         "ko": {
@@ -34859,7 +34859,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "サポートされていないアセット。"
+            "value": "未対応のアセットです。"
           }
         },
         "ko": {
@@ -34949,7 +34949,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "暫不支持該資產。"
+            "value": "不支援此資產。"
           }
         }
       }
@@ -35241,7 +35241,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "転送エラー: %@"
+            "value": "送金エラー: %@"
           }
         },
         "ko": {
@@ -35325,13 +35325,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "传输错误： %@"
+            "value": "转账错误： %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "傳輸錯誤： %@"
+            "value": "轉帳錯誤：%@"
           }
         }
       }
@@ -35623,7 +35623,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在、ネットワーク料金を計算することができません。"
+            "value": "現在、ネットワーク手数料を計算できません。"
           }
         },
         "ko": {
@@ -37241,7 +37241,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "極速"
+            "value": "快速"
           }
         }
       }
@@ -37342,7 +37342,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "取引速度は、マイナーへのネットワーク手数料により決定します。"
+            "value": "取引速度は、ネットワークのマイナーに支払う手数料によって決まります。"
           }
         },
         "ko": {
@@ -38763,13 +38763,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可疑或垃圾代币会被识别为潜在的诈骗或有害资产。它们可能因空投、转账或手动导入而出现在您的钱包中。"
+            "value": "可疑或垃圾代币会被识别为潜在的诈骗或有害资产。它们可能因空投、转账或手动导入而出现在钱包中。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "可疑或垃圾代幣會被識別為潛在的詐騙或有害資產。它們可能因空投、轉帳或手動匯入而出現在您的錢包中。"
+            "value": "可疑或垃圾代幣會被識別為潛在的詐騙或有害資產。它們可能因空投、轉帳或手動匯入而出現在錢包中。"
           }
         }
       }
@@ -38954,13 +38954,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未验证代币是指未经可信第三方服务充分验证的代币。它们可能因空投、转账或手动导入而出现在您的钱包中。"
+            "value": "未验证代币是指未经可信第三方服务充分验证的代币。它们可能因空投、转账或手动导入而出现在钱包中。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未驗證代幣是指未經可信任第三方服務充分驗證的代幣。它們可能因空投、轉帳或手動匯入而出現在您的錢包中。"
+            "value": "未驗證代幣是指未經可信任第三方服務充分驗證的代幣。它們可能因空投、轉帳或手動匯入而出現在錢包中。"
           }
         }
       }
@@ -39634,7 +39634,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この推定は、取引手数料と%@ネットワークの現在の状況に基づいています。実際の承認時間は変わる可能性があり、保証されるものではありません。"
+            "value": "この推定は、取引手数料と %@ ネットワークの現在の混雑状況に基づいています。実際の確認時間は変わる可能性があり、保証されるものではありません。"
           }
         },
         "ko": {
@@ -39718,13 +39718,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此估算基于交易手续费和 %@ 网络当前的活动。实际确认时间可能会发生变化，且无法保证。"
+            "value": "此估算基于交易手续费和 %@ 网络当前的负载情况。实际确认时间可能变化，无法保证。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此估算根據交易手續費和 %@ 網路目前的活動。實際確認時間可能會變更，且無法保證。"
+            "value": "此估算是根據交易手續費和 %@ 網路目前的負載情況得出。實際確認時間可能變動，無法保證。"
           }
         }
       }
@@ -39909,13 +39909,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果所有硬币都在流通，其理论市场价值为：价格乘以最大供应量。"
+            "value": "完全稀释估值是所有代币均进入流通时的理论市值，计算方式为当前价格乘以最大供应量。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果所有硬幣都在流通，其理論市場價值為：價格乘以最大供應量。"
+            "value": "假設所有代幣均已流通時的理論市值，計算方式為價格乘以最大供應量。"
           }
         }
       }
@@ -40398,7 +40398,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この取引には、%@ネットワーク手数料として%@が必要ですが、利用できるのは%@のみです。続行するには、あと%@必要です。"
+            "value": "この取引には %@ が %@ ネットワークの手数料として必要ですが、利用可能な残高は %@ のみです。続行するには、あと %@ 必要です。"
           }
         },
         "ko": {
@@ -40488,7 +40488,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此交易需要 %@ 支付 %@ 網路費用，但只有 %@ 可用。還需要 %@ 才能繼續。"
+            "value": "此交易需支付 %@ 作為 %@ 網路手續費，但目前只有 %@ 可用，還差 %@ 才能繼續。"
           }
         }
       }
@@ -40673,13 +40673,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "锁仓期（又称为解锁期或解绑期）是指你发起解除质押后，资产在一段时间内无法使用的等待期间。"
+            "value": "解锁等待期（也称解质押期或解冻期）是指发起解除质押后，质押资产暂时无法使用的等待时间。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "鎖倉期（又稱解鎖期或解綁期）是指你發起解除質押後，資產在一段時間內無法使用的等待期間。"
+            "value": "解鎖等待期（也稱解質押期或解凍期）是指發起解除質押後，質押資產暫時無法使用的等待時間。"
           }
         }
       }
@@ -40780,7 +40780,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "これまでに存在するコインの最大数。"
+            "value": "将来にわたって発行される可能性があるコインの最大数です。"
           }
         },
         "ko": {
@@ -40864,13 +40864,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "硬币的最大存世量。"
+            "value": "该代币可能存在的最大数量。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "硬幣的最大存世量。"
+            "value": "代幣可能存在的最大總量。"
           }
         }
       }
@@ -41055,13 +41055,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最大供应"
+            "value": "最大供应量"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最大供應"
+            "value": "最大供應量"
           }
         }
       }
@@ -41628,13 +41628,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 %@ 网络上的每笔交易都需要以 %@ 支付给矿工的手续费，以处理您的交易，Gem Wallet 不收取此费用。网络手续费根据网络使用情况而变化。"
+            "value": "在 %@ 网络上的每笔交易都需要以 %@ 支付给矿工的手续费，以处理交易，Gem Wallet 不收取此费用。网络手续费根据网络使用情况而变化。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 %@ 網路上的每筆交易都需要以 %@ 支付給礦工的手續費，以處理您的交易，Gem Wallet 不收取此費用。網路手續費會根據網路使用情況而有所不同。"
+            "value": "在 %@ 網路上的每筆交易都需要以 %@ 支付給礦工的手續費，以處理交易，Gem Wallet 不收取此費用。網路手續費會根據網路使用情況而有所不同。"
           }
         }
       }
@@ -41735,7 +41735,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ネットワーク料金"
+            "value": "ネットワーク手数料"
           }
         },
         "ko": {
@@ -41825,7 +41825,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "網絡費用"
+            "value": "網路手續費"
           }
         }
       }
@@ -41926,7 +41926,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "選択したトークン ペアの見積もりを返すことができません。金額が少ない、流動性がない、または技術的な制限がある可能性があります。"
+            "value": "選択したトークンペアの見積もりを取得できません。取引額が小さすぎる、流動性が不足している、または技術的な制約がある可能性があります。"
           }
         },
         "ko": {
@@ -42010,13 +42010,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法返回所选代币对的报价，可能是由于数量少、缺乏流动性或技术限制。"
+            "value": "无法获取所选代币对的报价，可能是由于交易金额过小、流动性不足或技术限制。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法返回所選代幣對的報價，可能是由於數量少、缺乏流動性或技術限制。"
+            "value": "無法提供所選代幣對的報價，可能是因為金額過低、流動性不足或技術限制。"
           }
         }
       }
@@ -42308,7 +42308,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ロングがショートに支払う年率 (マイナスの場合、ショートがロングに支払う)。価格をスポット価格に近づけるためのユーザー間のピアツーピア転送である資金調達に関連する手数料はありません。"
+            "value": "ロングがショートに支払うファンディングの年率換算値です（マイナスの場合はショートがロングに支払います）。ファンディングは、パーペチュアル価格を現物価格に近づけるためにユーザー間で行われる直接支払いで、別途手数料はかかりません。"
           }
         },
         "ko": {
@@ -42392,13 +42392,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "多头支付空头的年化利率（如果为负，则空头支付多头）。融资不收取任何费用，融资是用户之间的点对点转账，旨在将价格推向现货价格。"
+            "value": "多头向空头支付的年化资金费率（为负时由空头向多头支付）。资金费是用户之间的点对点支付，不另收手续费，用于使永续合约价格接近现货价格。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "多頭支付空頭的年化利率（如果為負，則空頭支付多頭）。融資不收取任何費用，融資是用戶之間的點對點轉賬，旨在將價格推向現貨價格。"
+            "value": "多頭向空頭支付的年化資金費率（為負時由空頭向多頭支付）。資金費是使用者之間的點對點支付，不另收手續費，用於使永續合約價格接近現貨價格。"
           }
         }
       }
@@ -42499,7 +42499,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "資金調達APR"
+            "value": "ファンディングAPR"
           }
         },
         "ko": {
@@ -42589,7 +42589,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "資金費率年化"
+            "value": "年化資金費率"
           }
         }
       }
@@ -42690,7 +42690,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ファンディングペイメントは、永久契約の価格を基礎資産のスポット価格に近づけるためにトレーダー間で定期的に行われる支払いです。プラスのファンディングではロングポジションがショートポジションに支払い、マイナスのファンディングではショートポジションがロングポジションに支払います。"
+            "value": "ファンディングペイメントは、パーペチュアル契約の価格を原資産の現物価格に近づけるために、トレーダー間で定期的に行われる支払いです。ファンディングがプラスの場合はロングがショートに、マイナスの場合はショートがロングに支払います。"
           }
         },
         "ko": {
@@ -43156,13 +43156,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "强平价格是当市场价格达到该水平时，您的仓位将被自动平仓以防止进一步亏损的价格。当市场价触及此价位，仓位被强制平仓，保证金将被扣除。"
+            "value": "强平价格是当市场价格达到该水平时，仓位将被自动平仓以防止进一步亏损的价格。当市场价触及此价位，仓位被强制平仓，保证金将被扣除。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "強制平倉價格是當您的持倉價格達到此水平時，系統會自動平倉以防止進一步損失。當市場價格觸及此價格，您的持倉將被清算，並損失保證金。"
+            "value": "強制平倉價格是市場價格達到某一價位時，倉位將被自動平倉以防止進一步損失的價格。當市場價格觸及此價位，倉位將被強制平倉，並損失保證金。"
           }
         }
       }
@@ -43454,7 +43454,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "オープンインタレストは、未決済のすべての永久契約の合計価値を表します。市場の活動状況や流動性の指標となります。"
+            "value": "未決済建玉は、決済されていないすべてのパーペチュアル契約の合計価値を表し、市場の活発さや流動性の指標となります。"
           }
         },
         "ko": {
@@ -43538,13 +43538,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未平仓合约代表所有尚未结算的永续合约的总价值，反映市场活动和流动性。"
+            "value": "未平仓量是所有尚未结算的永续合约总价值，可反映市场活跃度和流动性。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未平倉合約量代表所有尚未結算的永續合約總價值，提供市場活動和流動性的參考。"
+            "value": "未平倉量是所有尚未結算的永續合約總價值，可反映市場活躍程度和流動性。"
           }
         }
       }
@@ -43729,13 +43729,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未平仓合约"
+            "value": "未平仓量"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未平倉合約量"
+            "value": "未平倉量"
           }
         }
       }
@@ -44493,13 +44493,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的钱包中会留有少量资金，用于支付取消质押或领取奖励等操作的费用。"
+            "value": "钱包中会留有少量资金，用于支付取消质押或领取奖励等操作的费用。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的錢包中會留有少量資金，用於支付取消質押或領取獎勵等操作的費用。"
+            "value": "錢包中會留有少量資金，用於支付取消質押或領取獎勵等操作的費用。"
           }
         }
       }
@@ -44600,7 +44600,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ネットワーク料金用に予約"
+            "value": "ネットワーク手数料として確保"
           }
         },
         "ko": {
@@ -45257,13 +45257,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "现存硬币总数，包括已锁定或已预留的硬币。"
+            "value": "代币总供应量，包括已锁定或预留的部分。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "現存硬幣總數，包括已鎖定或已預留的硬幣。"
+            "value": "目前存在的代幣總數，包括鎖定或預留的代幣。"
           }
         }
       }
@@ -45836,7 +45836,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "交易已完成並在網路上確認。您可以查看詳細資訊來驗證其狀態。"
+            "value": "交易已完成並在網路上確認。可以查看詳細資訊來驗證其狀態。"
           }
         }
       }
@@ -45937,7 +45937,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アクセス権はありませんが、取引や動きを監視できるウォレットです。"
+            "value": "資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。"
           }
         },
         "ko": {
@@ -46319,7 +46319,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@の金額を入力してください"
+            "value": "%@金額を入力してください"
           }
         },
         "ko": {
@@ -46409,7 +46409,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "請輸入您要%@的數量"
+            "value": "請輸入要%@的數量"
           }
         }
       }
@@ -46600,7 +46600,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "從照片中選取"
+            "value": "從照片圖庫中選取"
           }
         }
       }
@@ -47167,13 +47167,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保护您设备上对此应用的访问"
+            "value": "保护此设备上的应用访问安全"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "保護您設備上對此應用的訪問"
+            "value": "保護此裝置上的 App 存取安全"
           }
         }
       }
@@ -48128,7 +48128,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "鎖定時間"
+            "value": "需要身分驗證"
           }
         }
       }
@@ -49459,13 +49459,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "藏品"
+            "value": "系列"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "藏品"
+            "value": "系列"
           }
         }
       }
@@ -49650,13 +49650,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "藏品集合"
+            "value": "NFT 系列"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "藏品集合"
+            "value": "NFT 系列"
           }
         }
       }
@@ -49847,7 +49847,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "特性"
+            "value": "屬性"
           }
         }
       }
@@ -50330,7 +50330,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "悪意のある"
+            "value": "悪質"
           }
         },
         "ko": {
@@ -50712,7 +50712,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "報告"
+            "value": "通報"
           }
         },
         "ko": {
@@ -51476,7 +51476,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFTはここに表示されます️"
+            "value": "NFTはここに表示されます"
           }
         },
         "ko": {
@@ -52813,7 +52813,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "カスタム ノードは悪意のあるものである可能性があり、トランザクション データが公開されたり、誤った情報が提供されたりする可能性があります。"
+            "value": "カスタムノードは悪意のある第三者によって運営されている可能性があり、取引データの漏えいや虚偽情報の提供につながるおそれがあります。"
           }
         },
         "ko": {
@@ -52897,13 +52897,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自定义节点可能存在恶意，可能会泄露您的交易数据或提供虚假信息。"
+            "value": "自定义节点可能存在恶意，可能会泄露交易数据或提供虚假信息。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "自訂節點可能存在惡意，可能會洩露您的交易資料或提供虛假資訊。"
+            "value": "自訂節點可能是惡意節點，並可能洩露交易資料或提供不實資訊。"
           }
         }
       }
@@ -53088,13 +53088,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您可以在这里查看通知更新。"
+            "value": "可以在这里查看通知更新。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您可以在這裡查看通知更新。"
+            "value": "可以在這裡查看通知更新。"
           }
         }
       }
@@ -53470,13 +53470,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我已了解，继续"
+            "value": "同意并继续"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我了解，繼續"
+            "value": "同意並繼續"
           }
         }
       }
@@ -53577,7 +53577,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ウォレットのセキュリティとバックアップは自己責任であり、Gemは一切関与しないことを理解しています。"
+            "value": "ウォレットのセキュリティとバックアップはすべて自分の責任であり、Gem は責任を負わないことを理解しています。"
           }
         },
         "ko": {
@@ -54532,7 +54532,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "理解しました。継続したいと思います。"
+            "value": "理解して続行する"
           }
         },
         "ko": {
@@ -54723,7 +54723,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたの秘密のフレーズを入手した人は誰でもあなたのウォレットを完全に制御できます。"
+            "value": "リカバリーフレーズを知った人は誰でも、このウォレットを完全に操作できます。"
           }
         },
         "ko": {
@@ -54813,7 +54813,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "任何獲得您的密碼的人都可以完全控制您的錢包。"
+            "value": "任何取得您助記詞的人都能完全控制您的錢包。"
           }
         }
       }
@@ -55105,7 +55105,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密のフレーズを取得します。これがウォレットにアクセスする唯一の方法です。"
+            "value": "リカバリーフレーズが作成されます。ウォレットにアクセスする唯一の手段です。"
           }
         },
         "ko": {
@@ -55189,13 +55189,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您将获得一个助记词——这是访问钱包的唯一方法。"
+            "value": "将获得一组助记词——这是访问钱包的唯一方法。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您將獲得一個助記詞——這是訪問您的錢包的唯一方法。"
+            "value": "將取得一組助記詞——這是存取錢包的唯一方式。"
           }
         }
       }
@@ -55296,7 +55296,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密のフレーズはウォレットにアクセスする唯一の方法です。"
+            "value": "リカバリーフレーズは、ウォレットにアクセスする唯一の手段です。"
           }
         },
         "ko": {
@@ -55386,7 +55386,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "助記詞是存取您的錢包的唯一方法。"
+            "value": "助記詞是存取錢包的唯一方法。"
           }
         }
       }
@@ -55678,7 +55678,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密のフレーズを紛失すると、ウォレットにアクセスできなくなります。"
+            "value": "リカバリーフレーズを紛失すると、ウォレットにアクセスできなくなります。"
           }
         },
         "ko": {
@@ -55762,13 +55762,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果您丢失了助记词，将无法访问钱包。"
+            "value": "助记词一旦丢失，将无法访问钱包。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果您遺失了助記詞，將無法存取錢包。"
+            "value": "助記詞一旦遺失，將無法存取錢包。"
           }
         }
       }
@@ -55869,7 +55869,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "回復のお手伝いはできません"
+            "value": "紛失したリカバリーフレーズは復元できません"
           }
         },
         "ko": {
@@ -55953,13 +55953,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我们无法帮您找回助记词。"
+            "value": "我们无法找回助记词。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我們無法幫助您恢復"
+            "value": "我們無法協助復原"
           }
         }
       }
@@ -56150,7 +56150,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "拒絕訪問"
+            "value": "存取遭拒"
           }
         }
       }
@@ -56335,13 +56335,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此应用无权访问您的照片库。请在设备设置中启用访问权限。"
+            "value": "此应用无权访问照片库。请在设备设置中启用访问权限。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此應用程式無權存取您的照片庫。請在您的裝置設定中啟用存取。"
+            "value": "此應用程式無權存取照片圖庫。請在裝置設定中啟用存取權限。"
           }
         }
       }
@@ -56914,7 +56914,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "自動關閉"
+            "value": "自動平倉"
           }
         }
       }
@@ -57672,7 +57672,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "获利"
+            "value": "止盈"
           }
         },
         "zh-Hant": {
@@ -57779,7 +57779,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@を閉じる"
+            "value": "%@ポジションを決済"
           }
         },
         "ko": {
@@ -57869,7 +57869,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "關閉%@"
+            "value": "平倉 %@"
           }
         }
       }
@@ -58436,13 +58436,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "增加%@"
+            "value": "%@ 加仓"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "增加%@"
+            "value": "%@ 加倉"
           }
         }
       }
@@ -59689,7 +59689,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "分離"
+            "value": "分離マージン"
           }
         },
         "ko": {
@@ -59773,7 +59773,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "隔离"
+            "value": "逐仓"
           }
         },
         "zh-Hant": {
@@ -59880,7 +59880,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "マージンの使用"
+            "value": "証拠金使用率"
           }
         },
         "ko": {
@@ -60644,7 +60644,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@を開く"
+            "value": "%@ポジションを建てる"
           }
         },
         "ko": {
@@ -60734,7 +60734,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "打開%@"
+            "value": "開倉 %@"
           }
         }
       }
@@ -61492,13 +61492,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "减少%@"
+            "value": "%@ 减仓"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "減少%@"
+            "value": "%@ 減倉"
           }
         }
       }
@@ -63891,7 +63891,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "価格アラートの設定%@"
+            "value": "価格アラートを設定しました：%@"
           }
         },
         "ko": {
@@ -63981,7 +63981,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "為%@設定價格提醒"
+            "value": "價格提醒已設定：%@"
           }
         }
       }
@@ -64172,7 +64172,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "當價格發生重大變動時，警報就會觸發。"
+            "value": "價格大幅變動時會觸發提醒。"
           }
         }
       }
@@ -64273,7 +64273,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "減少する"
+            "value": "下落率"
           }
         },
         "ko": {
@@ -65509,7 +65509,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "當您最喜歡的加密資產發生重大價格變化時收到通知。"
+            "value": "喜愛的加密資產價格大幅變動時收到通知。"
           }
         }
       }
@@ -65801,7 +65801,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "価格が減少したとき"
+            "value": "価格の下落率"
           }
         },
         "ko": {
@@ -65992,7 +65992,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "価格が増加したとき"
+            "value": "価格の上昇率"
           }
         },
         "ko": {
@@ -67138,7 +67138,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アラートはここに表示されます️"
+            "value": "アラートはここに表示されます"
           }
         },
         "ko": {
@@ -67329,7 +67329,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@を受信"
+            "value": "%@を受け取る"
           }
         },
         "ko": {
@@ -67520,7 +67520,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "これはあなたの住所です - 送信のみ %@ 上の %@ ネットワーク。"
+            "value": "このアドレスには、%@ のみを %@ ネットワークで送金してください。"
           }
         },
         "ko": {
@@ -67610,7 +67610,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這是您的地址——請僅發送 %@，且僅在 %@ 網路上。"
+            "value": "這是您的地址——請僅傳送 %@，並確保使用 %@ 網路。"
           }
         }
       }
@@ -67795,13 +67795,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您最近使用过的资源将显示在此处"
+            "value": "最近使用过的资产将显示在此处"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您最近使用過的資源將顯示在此處"
+            "value": "最近使用過的資產將顯示在這裡"
           }
         }
       }
@@ -67986,13 +67986,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您最近的记录将显示在这里"
+            "value": "最近的记录将显示在这里"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您最近的記錄將顯示在這裡"
+            "value": "最近的記錄將顯示在這裡"
           }
         }
       }
@@ -68368,13 +68368,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有朋友的推荐码吗？"
+            "value": "有朋友的邀请码吗？"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "有朋友的推薦碼嗎？"
+            "value": "有朋友的邀請碼嗎？"
           }
         }
       }
@@ -68475,7 +68475,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "コードを利用する"
+            "value": "紹介コードを使う"
           }
         },
         "ko": {
@@ -68559,13 +68559,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "兑换码"
+            "value": "兑换邀请码"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "兌換碼"
+            "value": "兌換邀請碼"
           }
         }
       }
@@ -68666,7 +68666,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "得る %@ のために %@!"
+            "value": "%@ を %@ で獲得しますか？"
           }
         },
         "ko": {
@@ -68750,13 +68750,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "得到 %@ 为了 %@！"
+            "value": "兑换 %@ 需要 %@！"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "得到 %@ 為了 %@！"
+            "value": "兌換 %@ 需要 %@！"
           }
         }
       }
@@ -68941,13 +68941,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这将是您为当前钱包起的个人昵称。"
+            "value": "这将是当前钱包的个人昵称。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這將是您為目前錢包起的個人暱稱。"
+            "value": "這將是目前錢包的個人暱稱。"
           }
         }
       }
@@ -69430,7 +69430,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "報酬を獲得"
+            "value": "ポイントを交換"
           }
         },
         "ko": {
@@ -69514,13 +69514,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "获得奖励"
+            "value": "兑换积分"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "獲得獎勵"
+            "value": "兌換積分"
           }
         }
       }
@@ -69705,13 +69705,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "分数不足"
+            "value": "积分不足"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "分數不足"
+            "value": "積分不足"
           }
         }
       }
@@ -69812,7 +69812,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "得る %@ 参加した友達ごとにポイントが付与されます。"
+            "value": "友達が1人参加するごとに、%@ ポイントを獲得できます。"
           }
         },
         "ko": {
@@ -69896,13 +69896,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "赚 %@ 每邀请一位好友加入，即可获得积分。"
+            "value": "每邀请一位好友加入，即可赚取 %@ 积分。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "賺 %@ 每邀請一位好友加入，即可獲得分數。"
+            "value": "每邀請一位好友加入，即可獲得 %@ 積分。"
           }
         }
       }
@@ -70469,13 +70469,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的推荐码"
+            "value": "我的邀请码"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的推薦碼"
+            "value": "我的邀請碼"
           }
         }
       }
@@ -70767,7 +70767,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "入手可能な %@"
+            "value": "受け取り可能時期：%@"
           }
         },
         "ko": {
@@ -70851,13 +70851,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有售 %@"
+            "value": "预计 %@ 可领取"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "有售 %@"
+            "value": "預計 %@ 可領取"
           }
         }
       }
@@ -70958,7 +70958,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ボーナスの準備ができました!"
+            "value": "ポイントを受け取れるようになりました！"
           }
         },
         "ko": {
@@ -71042,13 +71042,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的奖金已发放！"
+            "value": "积分已可领取！"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的獎金已發放！"
+            "value": "積分已可領取！"
           }
         }
       }
@@ -71149,7 +71149,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ボーナス保留中"
+            "value": "ポイント保留中"
           }
         },
         "ko": {
@@ -71233,13 +71233,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "奖金待发放"
+            "value": "积分待发放"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "獎金待發放"
+            "value": "積分待發放"
           }
         }
       }
@@ -71615,13 +71615,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "推荐码"
+            "value": "邀请码"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "推薦碼"
+            "value": "邀請碼"
           }
         }
       }
@@ -71722,7 +71722,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "紹介"
+            "value": "紹介人数"
           }
         },
         "ko": {
@@ -71806,13 +71806,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "推荐"
+            "value": "邀请人数"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "推薦"
+            "value": "邀請人數"
           }
         }
       }
@@ -71913,7 +71913,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "参加する Gem Wallet 私の紹介リンクを使用して報酬を獲得しましょう: %@"
+            "value": "私の紹介リンクから Gem Wallet に参加して、ポイントを獲得しましょう：%@"
           }
         },
         "ko": {
@@ -71997,13 +71997,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加入 Gem Wallet 使用我的推荐链接，即可获得奖励： %@"
+            "value": "通过我的邀请链接加入 Gem Wallet，即可获得积分：%@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "加入 Gem Wallet 使用我的推薦鏈接，即可獲得獎勵： %@"
+            "value": "透過我的邀請連結加入 Gem Wallet，即可獲得積分：%@"
           }
         }
       }
@@ -72104,7 +72104,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "報酬"
+            "value": "ポイント"
           }
         },
         "ko": {
@@ -72188,13 +72188,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "奖励"
+            "value": "积分"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "獎勵"
+            "value": "積分"
           }
         }
       }
@@ -72295,7 +72295,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。"
+            "value": "アプリを使い続けると、ポイント機能が自動的に有効になります。"
           }
         },
         "ko": {
@@ -72379,13 +72379,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您使用应用程序的次数越多，奖励就会自动激活。"
+            "value": "继续使用应用，积分功能会自动激活。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您使用應用程式的次數越多，獎勵就會自動啟動。"
+            "value": "繼續使用 App，積分功能會自動啟用。"
           }
         }
       }
@@ -72486,7 +72486,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "特典はまだ有効になっていません。"
+            "value": "ポイント機能はまだ利用できません。"
           }
         },
         "ko": {
@@ -72570,13 +72570,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "奖励尚未激活。"
+            "value": "积分尚未激活。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "獎勵尚未激活。"
+            "value": "積分功能尚未啟用。"
           }
         }
       }
@@ -72868,7 +72868,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "得る %@"
+            "value": "%@ を獲得"
           }
         },
         "ko": {
@@ -72952,13 +72952,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "得到 %@"
+            "value": "兑换 %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "得到 %@"
+            "value": "兌換 %@"
           }
         }
       }
@@ -73059,7 +73059,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "使い方"
+            "value": "ポイントの使い道"
           }
         },
         "ko": {
@@ -73143,13 +73143,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "消费方式"
+            "value": "积分兑换"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "消費方式"
+            "value": "積分兌換"
           }
         }
       }
@@ -73531,7 +73531,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "完成這個快速測試，以確認您已正確保存所有內容"
+            "value": "完成這個快速測試，以確認已正確儲存所有內容"
           }
         }
       }
@@ -73632,7 +73632,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "画面録画中にコンテンツが非表示になる"
+            "value": "画面録画中はコンテンツが非表示になります"
           }
         },
         "ko": {
@@ -73823,7 +73823,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "誰かがあなたの秘密のフレーズを知っていると、あなたのウォレットを完全に制御できるようになります。"
+            "value": "リカバリーフレーズを知った人は、このウォレットを完全に操作できます。"
           }
         },
         "ko": {
@@ -74014,7 +74014,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密のフレーズを共有しないでください。"
+            "value": "リカバリーフレーズを共有しないでください。"
           }
         },
         "ko": {
@@ -74205,7 +74205,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密のフレーズを安全な場所に保存する\nそれはあなただけがコントロールできます。"
+            "value": "リカバリーフレーズは、自分だけが管理できる\n安全な場所に保管してください。"
           }
         },
         "ko": {
@@ -74295,7 +74295,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "請將助記詞保存在安全位置，\n且只有您可以掌控。"
+            "value": "請將助記詞儲存在安全位置，\n且只有您可以掌控。"
           }
         }
       }
@@ -74396,7 +74396,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スクリーンショットは他のアプリからアクセスできる場合があり、この方法で保存すると秘密のフレーズが危険にさらされる可能性があります。"
+            "value": "スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でリカバリーフレーズを保存すると、漏えいするおそれがあります。"
           }
         },
         "ko": {
@@ -74480,13 +74480,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "其他应用程序可能可以访问屏幕截图，如果以这种方式保存，可能会泄露您的密码短语。"
+            "value": "屏幕截图可能会被其他应用访问；以此方式保存助记词会带来泄露风险。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "其他應用程式可能可以存取螢幕截圖，如果以這種方式儲存，可能會洩露您的密碼短語。"
+            "value": "螢幕截圖可能會被其他應用程式存取；以此方式儲存助記詞會帶來外洩風險。"
           }
         }
       }
@@ -76014,7 +76014,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "社區"
+            "value": "社群"
           }
         }
       }
@@ -76587,7 +76587,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "禁用 %@"
+            "value": "停用 %@"
           }
         }
       }
@@ -79553,7 +79553,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "安全"
+            "value": "セキュリティ"
           }
         },
         "ko": {
@@ -79643,7 +79643,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "安全設置"
+            "value": "安全設定"
           }
         }
       }
@@ -79834,7 +79834,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "身份驗證"
+            "value": "身分驗證"
           }
         }
       }
@@ -80407,7 +80407,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "設置"
+            "value": "設定"
           }
         }
       }
@@ -80699,7 +80699,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ウェブサイトを訪問"
+            "value": "ウェブサイトを開く"
           }
         },
         "ko": {
@@ -80789,7 +80789,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "訪問網站"
+            "value": "前往網站"
           }
         }
       }
@@ -81463,7 +81463,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFTコレクションへのフルアクセスをリクエスト"
+            "value": "NFT コレクション全体へのアクセスが要求されています"
           }
         },
         "ko": {
@@ -81547,13 +81547,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求访问整个 NFT 收藏集"
+            "value": "请求访问整个 NFT 系列"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "請求訪問完整的NFT收藏集"
+            "value": "要求存取整個 NFT 系列"
           }
         }
       }
@@ -81654,7 +81654,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "これにより、承認を取り消すか期限が切れるまで、支出者はこのトークンを使用できるようになります。"
+            "value": "この承認により、承認先のアドレスはこのトークンを使用できるようになります。承認を取り消すか、承認の有効期限が切れるまで有効です。"
           }
         },
         "ko": {
@@ -81738,13 +81738,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这样，消费者就可以一直使用该代币，直到你撤销授权或代币过期为止。"
+            "value": "此授权会允许被授权方持续使用该代币，直到您撤销授权或授权到期。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這樣，消費者就可以一直使用該代幣，直到你撤銷授權或代幣過期為止。"
+            "value": "此授權允許被授權方持續使用此代幣，直到您撤銷授權或授權到期。"
           }
         }
       }
@@ -81929,13 +81929,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无限代币批准"
+            "value": "无限额度代币授权"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無限代幣批准"
+            "value": "無限額代幣授權"
           }
         }
       }
@@ -82036,7 +82036,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この承認により、通常のウォレットアドレス（EOA）があなたの資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。"
+            "value": "この承認により、通常のウォレットアドレス（EOA）がウォレット内の資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。"
           }
         },
         "ko": {
@@ -82126,7 +82126,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此授權允許一般錢包地址 (EOA) 使用你的資產。僅在你信任該地址時確認。"
+            "value": "此授權允許一般錢包位址（EOA）使用您的資產。僅在您信任此位址時確認。"
           }
         }
       }
@@ -82991,7 +82991,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ギットハブ"
+            "value": "GitHub"
           }
         },
         "ko": {
@@ -84227,7 +84227,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "電報"
+            "value": "Telegram"
           }
         }
       }
@@ -84412,7 +84412,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "抖音"
+            "value": "海外抖音"
           }
         },
         "zh-Hant": {
@@ -85092,7 +85092,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "有効化"
+            "value": "有効化中"
           }
         },
         "ko": {
@@ -85176,7 +85176,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "激活"
+            "value": "激活中"
           }
         },
         "zh-Hant": {
@@ -85558,13 +85558,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "激活于"
+            "value": "距激活"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "激活於"
+            "value": "距離啟用"
           }
         }
       }
@@ -85856,7 +85856,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "入手可能"
+            "value": "利用可能まで"
           }
         },
         "ko": {
@@ -85940,13 +85940,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可用"
+            "value": "距可用"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "可用於"
+            "value": "距離可用"
           }
         }
       }
@@ -86238,7 +86238,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "非アクティブ化"
+            "value": "ステーキング解除中"
           }
         },
         "ko": {
@@ -86322,13 +86322,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "停用"
+            "value": "解除质押中"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "停用"
+            "value": "解除質押中"
           }
         }
       }
@@ -88148,7 +88148,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "初めてステーキング %@"
+            "value": "%@ のステーキングを始めましょう"
           }
         },
         "ko": {
@@ -88232,13 +88232,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "质押第一个%@"
+            "value": "首次质押 %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "質押第一個%@"
+            "value": "首次質押 %@"
           }
         }
       }
@@ -88429,7 +88429,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的質押將顯示在這裡️"
+            "value": "質押將顯示在這裡"
           }
         }
       }
@@ -89103,7 +89103,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "何でもお気軽にお尋ねください。私たちがサポートいたします。"
+            "value": "何でもお気軽にお尋ねください。サポートいたします。"
           }
         },
         "ko": {
@@ -89187,13 +89187,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有任何问题都可以问我们。我们随时为您提供帮助。"
+            "value": "有任何问题都可以问我们。我们随时提供帮助。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "有任何問題都可以問我們。我們隨時為您提供協助。"
+            "value": "有任何問題都可以問我們。我們隨時提供協助。"
           }
         }
       }
@@ -89378,13 +89378,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有什么可以帮您?"
+            "value": "需要什么帮助？"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "有什麼可以幫您?"
+            "value": "需要什麼協助？"
           }
         }
       }
@@ -89867,7 +89867,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "価格の影響"
+            "value": "価格への影響"
           }
         },
         "ko": {
@@ -90058,7 +90058,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この取引で%@（保有する%@の一部）を失います。続行してもよろしいですか?"
+            "value": "この取引では %@ の損失が発生します（対象資産：%@）。続行してもよろしいですか？"
           }
         },
         "ko": {
@@ -90142,13 +90142,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次交易您将损失 %@，这是您 %@ 的一部分。确定要继续吗？"
+            "value": "本次交易将损失 %@ 的 %@。确定要继续吗？"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您將在本次交易中損失 %@，這是您 %@ 的一部分。您確定要繼續嗎？"
+            "value": "本次交易將損失 %@ 的 %@。確定要繼續嗎？"
           }
         }
       }
@@ -90249,7 +90249,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "高い価格影響"
+            "value": "価格への影響が大きすぎます"
           }
         },
         "ko": {
@@ -90333,13 +90333,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "滑点巨大"
+            "value": "价格影响"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "價格影響過大"
+            "value": "價格影響"
           }
         }
       }
@@ -91097,13 +91097,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "滑点过高。您的兑换可能以比预期更差的价格成交。"
+            "value": "滑点过高。兑换可能以比预期更差的价格成交。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "滑點過高。您的兌換可能以比預期更差的價格成交。"
+            "value": "滑點過高。兌換可能以比預期更差的價格成交。"
           }
         }
       }
@@ -91204,7 +91204,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最小量を使用する"
+            "value": "最低金額を使用"
           }
         },
         "ko": {
@@ -91395,7 +91395,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたが支払う"
+            "value": "支払額"
           }
         },
         "ko": {
@@ -91586,7 +91586,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "受け取るもの"
+            "value": "受取額"
           }
         },
         "ko": {
@@ -92058,7 +92058,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "預計確認"
+            "value": "預計確認時間"
           }
         }
       }
@@ -92249,7 +92249,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "接收人"
+            "value": "收款人"
           }
         }
       }
@@ -92440,7 +92440,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "發送人"
+            "value": "傳送者"
           }
         }
       }
@@ -93114,7 +93114,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "失敗した"
+            "value": "失敗"
           }
         },
         "ko": {
@@ -93878,7 +93878,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "取り消し済み"
+            "value": "リバート"
           }
         },
         "ko": {
@@ -93962,7 +93962,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已撤销"
+            "value": "已回滚"
           }
         },
         "zh-Hant": {
@@ -94159,7 +94159,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "再次交換"
+            "value": "再次兌換"
           }
         }
       }
@@ -94833,7 +94833,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アセットのアクティブ化"
+            "value": "アセットを有効化"
           }
         },
         "ko": {
@@ -95788,7 +95788,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "フリーズ"
+            "value": "凍結"
           }
         },
         "ko": {
@@ -96361,7 +96361,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ネットワーク手数料用の%@残高不足。"
+            "value": "ネットワーク手数料を支払うための%@残高が不足しています。"
           }
         },
         "ko": {
@@ -96743,7 +96743,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最大金額は%@"
+            "value": "最大金額は %@ です"
           }
         },
         "ko": {
@@ -97024,7 +97024,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "備忘"
+            "value": "備註"
           }
         }
       }
@@ -97125,7 +97125,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "残高をすべて使用しない限り、この後も最低%@残高が残っている必要があります。"
+            "value": "全額を使用する場合を除き、取引後も最低 %@ の残高を維持する必要があります。"
           }
         },
         "ko": {
@@ -97215,7 +97215,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此後必須保留最低%@餘額，除非您使用全部餘額。"
+            "value": "此後必須保留最低 %@ 餘額，除非使用全部餘額。"
           }
         }
       }
@@ -97698,7 +97698,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ネットワーク料金"
+            "value": "ネットワーク手数料"
           }
         },
         "ko": {
@@ -97788,7 +97788,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "網絡費用"
+            "value": "網路手續費"
           }
         }
       }
@@ -98552,7 +98552,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "接收地址"
+            "value": "收款人"
           }
         }
       }
@@ -98844,7 +98844,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "再委任"
+            "value": "再ステーキング"
           }
         },
         "ko": {
@@ -98928,13 +98928,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "再质押"
+            "value": "重新质押"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新委派"
+            "value": "重新質押"
           }
         }
       }
@@ -99035,7 +99035,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "将来のネットワーク手数料をカバーするために、残高に%@を残しておきました。"
+            "value": "今後のネットワーク手数料として、残高から %@ を確保しました。"
           }
         },
         "ko": {
@@ -99119,13 +99119,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我们已在您的余额中留下%@以支付未来的网络费用。"
+            "value": "已在余额中预留 %@，用于支付后续网络费用。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我們已在您的餘額中留下%@以支付未來的網路費用。"
+            "value": "已保留 %@ 的餘額，以支付後續網路手續費。"
           }
         }
       }
@@ -99226,7 +99226,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "レビューリクエスト"
+            "value": "リクエストを確認"
           }
         },
         "ko": {
@@ -99316,7 +99316,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "審查請求"
+            "value": "檢視請求"
           }
         }
       }
@@ -99417,7 +99417,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "リワード"
+            "value": "報酬"
           }
         },
         "ko": {
@@ -99698,7 +99698,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "發送"
+            "value": "傳送"
           }
         }
       }
@@ -99889,7 +99889,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "智能合約"
+            "value": "智慧合約"
           }
         }
       }
@@ -100271,7 +100271,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "轉賬"
+            "value": "轉帳"
           }
         }
       }
@@ -100462,7 +100462,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "發往"
+            "value": "傳送至"
           }
         }
       }
@@ -101411,13 +101411,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "版本 %@ 已更新。请更新并体验最新功能和改进。"
+            "value": "应用 %@ 版本现已发布。立即更新，体验最新功能和改进。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "版本%@已更新。請更新並體驗最新功能和改進。"
+            "value": "App %@ 版本現已推出。立即更新，享受最新功能與改進。"
           }
         }
       }
@@ -101990,7 +101990,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "添加代幣"
+            "value": "新增代幣"
           }
         }
       }
@@ -102754,7 +102754,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "創建新錢包"
+            "value": "建立新錢包"
           }
         }
       }
@@ -103428,7 +103428,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ウォレットの資産から"
+            "value": "ウォレット内の資産を使用"
           }
         },
         "ko": {
@@ -103512,13 +103512,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来自你的钱包资产"
+            "value": "使用钱包中的资产"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "來自你的錢包資產"
+            "value": "使用錢包中的資產"
           }
         }
       }
@@ -103709,7 +103709,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "導入"
+            "value": "匯入"
           }
         }
       }
@@ -104192,7 +104192,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "契約またはトークンID"
+            "value": "コントラクトまたはトークンID"
           }
         },
         "ko": {
@@ -104473,7 +104473,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "導入錢包"
+            "value": "匯入錢包"
           }
         }
       }
@@ -104574,7 +104574,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このアドレスの残高と取引は表示できますが、**資金を送信または売却することはできません**。"
+            "value": "このアドレスの残高と取引履歴は確認できますが、**送金や売却はできません**。"
           }
         },
         "ko": {
@@ -104658,13 +104658,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您可以查看此地址的余额和交易，但**不能发送或出售资金**。"
+            "value": "可以查看此地址的余额和交易，但**不能发送或出售资金**。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您可以查看此地址的餘額和交易，但**不能發送或出售資金**。"
+            "value": "可以查看此地址的餘額和交易，但**不能發送或出售資金**。"
           }
         }
       }
@@ -104855,7 +104855,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "導入現有錢包"
+            "value": "匯入現有錢包"
           }
         }
       }
@@ -105619,7 +105619,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "名字"
+            "value": "名稱"
           }
         }
       }
@@ -105911,7 +105911,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "カードまたは銀行で支払う"
+            "value": "カードまたは銀行口座で支払う"
           }
         },
         "ko": {
@@ -106568,7 +106568,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无需目的地标签"
+            "value": "无需目标标签"
           }
         },
         "zh-Hant": {
@@ -106759,13 +106759,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无需备忘录"
+            "value": "无需备注"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "不需要備忘"
+            "value": "無需備註"
           }
         }
       }
@@ -107338,7 +107338,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "傳送、支付或連接 DApp"
+            "value": "傳送、付款或連線至 DApp"
           }
         }
       }
@@ -107720,7 +107720,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "掃描二維碼"
+            "value": "掃描 QR 碼"
           }
         }
       }
@@ -108102,7 +108102,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "發送"
+            "value": "傳送"
           }
         }
       }
@@ -108484,7 +108484,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "交換"
+            "value": "兌換"
           }
         }
       }
@@ -109158,7 +109158,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このウォレットを見ています。"
+            "value": "このウォレットは閲覧専用です。"
           }
         },
         "ko": {
@@ -109248,7 +109248,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "您正在觀察此錢包。"
+            "value": "正在觀察此錢包。"
           }
         }
       }
@@ -110012,7 +110012,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "連接"
+            "value": "連線"
           }
         }
       }
@@ -110203,7 +110203,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "聯繫"
+            "value": "連線"
           }
         }
       }
@@ -110394,7 +110394,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "斷開"
+            "value": "中斷連線"
           }
         }
       }
@@ -110585,7 +110585,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "沒有活動連接"
+            "value": "目前沒有有效連線"
           }
         }
       }
@@ -110776,7 +110776,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "發送審批請求"
+            "value": "傳送授權請求"
           }
         }
       }
@@ -111152,13 +111152,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看您的余额和活动"
+            "value": "查看余额和交易记录"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看您的餘額和活動"
+            "value": "查看餘額和交易紀錄"
           }
         }
       }
@@ -111343,13 +111343,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "扫描或复制链接以连接到 DApp"
+            "value": "扫描二维码或粘贴连接链接，以连接 DApp"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "掃描或複製連結以連接到DApp"
+            "value": "掃描 QR 碼或貼上連線連結，以連線至 DApp"
           }
         }
       }
@@ -111832,7 +111832,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "見る"
+            "value": "閲覧専用"
           }
         },
         "ko": {
@@ -112113,7 +112113,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "除非您確定您控制著私鑰，否則請勿將資金轉移到此%@多重簽名錢包。如果不這樣做，您可能會遭受詐騙，並且您可能會永久失去您的資產。"
+            "value": "除非確定自己持有對應的私鑰，否則請勿將資金轉入此 %@ 多重簽章錢包，以免遭到詐騙或永久失去資產。"
           }
         }
       }

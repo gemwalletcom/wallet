@@ -5,7 +5,7 @@ common_hidden = 非表示
 common_done = 完了
 common_maximum_value = 最大値は %@ です
 common_minimum_value = 最小値は %@ です
-common_secret_phrase = 秘密のフレーズ
+common_secret_phrase = リカバリーフレーズ
 common_copy = コピー
 common_share = 共有
 common_continue = 続ける
@@ -57,8 +57,8 @@ common_token = トークン
 common_suspicious_address = 不審なアドレス
 common_refresh = 更新
 common_no_thanks = 結構です
-common_grant_permission = 許可を与える
-common_required_field = %@必須です
+common_grant_permission = 許可する
+common_required_field = %@は必須です
 
 # Welcome
 
@@ -87,7 +87,7 @@ wallet_default_name = ウォレット #%d
 wallet_default_name_chain = %@ ウォレット #%d
 wallet_copy_address = アドレスをコピー
 wallet_watch_tooltip_title = 閲覧専用ウォレットです。この資金はあなたの管理下にありません。
-wallet_watch_empty_state_title = このウォレットを見ています。
+wallet_watch_empty_state_title = このウォレットは閲覧専用です。
 wallet_stake = ステーク
 wallet_receive_no_memo_required = メモ不要
 wallet_receive_no_destination_tag_required = デスティネーション・タグ不要
@@ -96,15 +96,15 @@ wallet_add_token_title = トークンを追加
 wallet_sell = 売却する
 wallet_receive_collection = コレクションを受け取る
 wallet_more = もっと見る
-wallet_import_contract_address_field = 契約またはトークンID
-wallet_import_address_warning = このアドレスの残高と取引は表示できますが、**資金を送信または売却することはできません**。
+wallet_import_contract_address_field = コントラクトまたはトークンID
+wallet_import_address_warning = このアドレスの残高と取引履歴は確認できますが、**送金や売却はできません**。
 wallet_deposit = 入金
 wallet_withdraw = 出金
 wallet_available_balance = 利用可能: %@
 # Used in the insufficient network fee sheet for the buy option subtitle.
-wallet_pay_with_card_or_bank = カードまたは銀行で支払う
+wallet_pay_with_card_or_bank = カードまたは銀行口座で支払う
 # Used in the insufficient network fee sheet for the swap option subtitle.
-wallet_from_your_wallet_assets = ウォレットの資産から
+wallet_from_your_wallet_assets = ウォレット内の資産を使用
 # Used in the insufficient network fee sheet for the receive option subtitle.
 wallet_transfer_from_another_wallet = 別のウォレットから送金
 wallet_portfolio_title = ポートフォリオ
@@ -113,12 +113,12 @@ wallet_import_already_imported_message = このウォレットは既にインポ
 # Wallets
 
 wallets_title = ウォレット
-wallets_watch = 見る
+wallets_watch = 閲覧専用
 
 # Receive
 
-receive_title = %@を受信
-receive_warning = これはあなたの住所です - 送信のみ %@ 上の %@ ネットワーク。
+receive_title = %@を受け取る
+receive_warning = このアドレスには、%@ のみを %@ ネットワークで送金してください。
 
 # Buy
 
@@ -129,7 +129,7 @@ buy_no_results = 見積もりなし
 
 # Transfer
 
-transfer_network_fee = ネットワーク料金
+transfer_network_fee = ネットワーク手数料
 transfer_memo = メモ
 transfer_confirm = 確認
 transfer_from = 送信元
@@ -142,26 +142,26 @@ transfer_title = 送金
 transfer_recipient_address_field = アドレスまたはドメイン
 transfer_send_title = 送る
 transfer_insufficient_balance = %@の残高が不足しています。
-transfer_insufficient_network_fee_balance = ネットワーク手数料用の%@残高不足。
+transfer_insufficient_network_fee_balance = ネットワーク手数料を支払うための%@残高が不足しています。
 transfer_approve_title = 承認する
 transfer_stake_title = ステーク
 transfer_claim_rewards_title = 報酬を受け取る
 transfer_unstake_title = ステーク解除
-transfer_redelegate_title = 再委任
+transfer_redelegate_title = 再ステーキング
 transfer_withdraw_title = 引き出す
-transfer_rewards_title = リワード
+transfer_rewards_title = 報酬
 transfer_minimum_amount = 最小金額は%@です
-transfer_activate_asset_title = アセットのアクティブ化
+transfer_activate_asset_title = アセットを有効化
 transfer_recipient_my_wallets = マイウォレット
 transfer_recipient_view_wallets = ウォレットを表示
-transfer_minimum_account_balance = 残高をすべて使用しない限り、この後も最低%@残高が残っている必要があります。
+transfer_minimum_account_balance = 全額を使用する場合を除き、取引後も最低 %@ の残高を維持する必要があります。
 transfer_smart_contract_title = スマートコントラクト
 transfer_other_title = その他
-transfer_maximum_amount = 最大金額は%@
-transfer_reserved_fees = 将来のネットワーク手数料をカバーするために、残高に%@を残しておきました。
-transfer_freeze_title = フリーズ
+transfer_maximum_amount = 最大金額は %@ です
+transfer_reserved_fees = 今後のネットワーク手数料として、残高から %@ を確保しました。
+transfer_freeze_title = 凍結
 transfer_unfreeze_title = 凍結解除
-transfer_review_request = レビューリクエスト
+transfer_review_request = リクエストを確認
 transfer_amount = 金額
 transfer_amount_title = 金額
 
@@ -178,8 +178,8 @@ settings_networks_title = ネットワーク
 settings_networks_source = ソース
 settings_networks_explorer = エクスプローラー
 settings_currency = 通貨
-settings_website = ウェブサイトを訪問
-settings_security = 安全
+settings_website = ウェブサイトを開く
+settings_security = セキュリティ
 settings_enable_value = %@を有効にする
 settings_enable_passcode = パスコードを有効にする
 settings_security_authentication = 認証
@@ -202,19 +202,19 @@ settings_appearance_dark = ダーク
 # Support
 
 support_state_empty_title = どのようなご用件でしょうか？
-support_state_empty_description = 何でもお気軽にお尋ねください。私たちがサポートいたします。
+support_state_empty_description = 何でもお気軽にお尋ねください。サポートいたします。
 support_message_placeholder = メッセージ
 
 # Errors
 
-errors_transfer = 転送エラー: %@
+errors_transfer = 送金エラー: %@
 errors_validation = 検証エラー: %@
 errors_create_wallet = ウォレット作成エラー: %@
 errors_invalid_address_name = 無効なアドレスまたはドメイン
 errors_invalid_amount = 無効な金額
 errors_token_invalid_id = 無効なトークンID
-errors_import_invalid_secret_phrase = 無効な秘密フレーズ
-errors_import_invalid_secret_phrase_word = 無効なシークレットフレーズの単語: %@
+errors_import_invalid_secret_phrase = 無効なリカバリーフレーズ
+errors_import_invalid_secret_phrase_word = リカバリーフレーズに無効な単語があります: %@
 errors_import_invalid_private_key = 無効な秘密鍵
 errors_keystore_access = このデバイスでこのウォレットの鍵にアクセスできませんでした。リカバリーフレーズをお持ちの場合は、このウォレットを削除して再度インポートするとアクセスを復元できます。
 errors_wallet_account_missing = このウォレットにはこのネットワークのアカウントがありません
@@ -228,15 +228,15 @@ errors_not_supported = サポートされていません
 errors_permissions_not_granted = 許可が得られていません
 errors_decoding = デコードエラー
 errors_unknown = 不明
-errors_not_supported_qr = このデバイスはQRコードのスキャンをサポートしていません。ライブラリからQRコード画像を選択することしかできません。
+errors_not_supported_qr = このデバイスではQRコードをスキャンできません。写真ライブラリからQRコード画像を選択してください。
 errors_camera_permissions_not_granted = カメラの権限が許可されていません。QRコードをスキャンするためには、設定でカメラへのアクセスを有効にしてください。
-errors_decoding_qr = QRコードのデコードに失敗しました。別のQRコードで再試行してください。
+errors_decoding_qr = QRコードを読み取れませんでした。別のQRコードでもう一度お試しください。
 errors_transfer_error = 送金エラー
-errors_unable_estimate_network_fee = 現在、ネットワーク料金を計算することができません。
+errors_unable_estimate_network_fee = 現在、ネットワーク手数料を計算できません。
 errors_invalid_asset_address = 無効な %@ アドレス
 errors_dust_threshold = 金額が%@ネットワークの最小要件（ダストしきい値）を満たしていないため、取引は失敗しました。この制限は、取引額が手数料と処理コストをカバーすることを保証するものです。
-errors_swap_no_quote_available = 現在の見積もりはありません
-errors_swap_not_supported_asset = サポートされていないアセット。
+errors_swap_no_quote_available = 見積もりを取得できません
+errors_swap_not_supported_asset = 未対応のアセットです。
 errors_connections_invalid_send_parameters = トランザクションの送信に無効なパラメータが指定されました。
 errors_connections_invalid_sign_parameters = 署名に無効なパラメータが指定されました。
 errors_connections_no_supported_wallets = サポートされているウォレットは利用できません。
@@ -244,21 +244,21 @@ errors_connections_unsupported_chain = 選択されたチェーンはサポー�
 errors_connections_unsupported_method = 要求されたメソッドはサポートされていません。
 errors_swap_amount_too_small = 金額が小さすぎます
 errors_required = %@は必須です
-errors_scan_transaction_malicious_description = この取引は完了できません。送信先のウォレット アドレスが疑わしいまたは有害なアクティビティにリンクされています。
-errors_scan_transaction_memo_required = %@宛先ウォレットアドレスには宛先タグ/メモが必要です
+errors_scan_transaction_malicious_description = この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。
+errors_scan_transaction_memo_required = %@ の送信先アドレスには、宛先タグまたはメモが必要です
 errors_scan_transaction_malicious_title = 不審な活動
 errors_connections_malicious_origin = この接続は信頼できないソースからのものです。
 errors_no_data_available = データなし
 errors_dust_threshold_short = ネットワークはこの金額をダストとみなします。つまり、手数料は金額自体よりも高くなります。
-errors_swap_minimum_amount = 最低取引金額は %@。より高い金額を入力してください。
+errors_swap_minimum_amount = 最低取引金額は %@ です。これより大きい金額を入力してください。
 errors_perpetual_trigger_price_lower = トリガー価格は市場価格より低くする必要があります
 errors_perpetual_trigger_price_higher = トリガー価格は市場価格より高くする必要があります
 errors_token_unable_fetch_token_information = トークン情報を取得できません: %@
-errors_unknown_try_again = 未知のエラーが発生しました。もう一度お試しください。
+errors_unknown_try_again = 不明なエラーが発生しました。もう一度お試しください。
 errors_network_error = ネットワークエラー: %@
 errors_network_offline = インターネット接続が切断されているようです。
 errors_no_internet_connection = インターネット接続がありません
-errors_no_service_connection = サービス接続がありません
+errors_no_service_connection = サービスに接続できません
 errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
 
 # Activity
@@ -275,7 +275,7 @@ update_app_title = 新しいアップデートが利用可能です!
 update_app_description = アプリのバージョン%@が利用可能になりました。最新の機能と改善を楽しむために更新してください。
 update_app_action = アップデート
 update_app_permission_title = インストールを許可
-update_app_permission_description = 設定に移動して外部ソースからのインストールを許可します
+update_app_permission_description = 設定を開き、この提供元からのアプリのインストールを許可してください
 update_app_permission_open_settings = 設定に移動
 update_app_downloading = ダウンロード中...
 
@@ -289,8 +289,8 @@ transaction_status = 状態
 transaction_estimated_confirmation = 推定承認時間
 transaction_status_confirmed = 成功
 transaction_status_pending = 確認待ち
-transaction_status_failed = 失敗した
-transaction_status_reverted = 取り消し済み
+transaction_status_failed = 失敗
+transaction_status_reverted = リバート
 transaction_title_received = 受取
 transaction_title_sent = 送金
 transaction_swap_again = 再度スワップ
@@ -306,8 +306,8 @@ asset_price = 価格
 asset_market_cap = 時価総額
 asset_trading_volume = 取引量（24時間）
 asset_total_supply = 総供給量
-asset_circulating_supply = 循環供給量
-asset_balances_reserved = 予約済み
+asset_circulating_supply = 流通供給量
+asset_balances_reserved = 確保済み
 asset_view_token_on = %@でトークンを見る
 asset_view_address_on = %@ でアドレスを見る
 asset_name = 名前
@@ -315,22 +315,22 @@ asset_symbol = シンボル
 asset_decimals = 小数点桁数
 asset_token_id = トークンID
 asset_contract = コントラクト
-asset_state_empty_title = 取引はここに表示されます️
-asset_state_empty_description = 受け取る、スワップする、買う%@
+asset_state_empty_title = 取引はここに表示されます
+asset_state_empty_description = %@を受け取る、スワップする、または購入する
 asset_verification_unverified = 未検証
 asset_verification_suspicious = 疑わしい
 asset_verification_warning_title = 追加内容を確認
-asset_verification_warning_message = 誰でも作成可能で、偽トークンや悪意のあるトークンも含まれます。
+asset_verification_warning_message = トークンは誰でも作成でき、偽造トークンや悪意のあるトークンも存在します。
 asset_buy_asset = %@を購入
 asset_get_asset = %@を入手
 asset_add_to_wallet = ウォレットに追加
-asset_hide_from_wallet = ウォレットから隠す
+asset_hide_from_wallet = ウォレットで非表示にする
 asset_added_to_wallet = ウォレットに追加しました
 asset_hidden_from_wallet = ウォレットから非表示にしました
 asset_resources = リソース
 asset_verification_verified = 検証済み
 asset_all_time_high = 史上最高値
-asset_all_time_low = オールタイムロー
+asset_all_time_low = 史上最安値
 
 # Charts
 
@@ -343,9 +343,9 @@ charts_all = 全て
 charts_entry = エントリー
 charts_price_open = 始値
 charts_price_close = 終値
-charts_price_high = 高い
-charts_price_low = 低い
-charts_price_change = 変化
+charts_price_high = 高値
+charts_price_low = 安値
+charts_price_change = 変動
 
 # Date
 
@@ -368,18 +368,18 @@ wallet_connect_permissions_approval_requests = 承認依頼を送信する
 
 # Swap
 
-swap_you_pay = あなたが支払う
-swap_you_receive = 受け取るもの
-swap_price_impact = 価格の影響
+swap_you_pay = 支払額
+swap_you_receive = 受取額
+swap_price_impact = 価格への影響
 swap_slippage = スリッページ
 swap_slippage_warning = スリッページが大きいです。スワップが予想より悪い価格で実行される可能性があります。
 swap_slippage_auto = 自動
 swap_slippage_auto_description = スワップを成功させるための最適なスリッページを自動的に設定します。
-swap_price_impact_warning_description = この取引で%@（保有する%@の一部）を失います。続行してもよろしいですか?
-swap_price_impact_warning_title = 高い価格影響
+swap_price_impact_warning_description = この取引では %@ の損失が発生します（対象資産：%@）。続行してもよろしいですか？
+swap_price_impact_warning_title = 価格への影響が大きすぎます
 swap_estimated_time_title = 推定時間
 swap_min_receive = 最小受取額
-swap_use_minimum_amount = 最小量を使用する
+swap_use_minimum_amount = 最低金額を使用
 
 # Stake
 
@@ -389,16 +389,16 @@ stake_rewards = 報酬
 stake_validator = バリデーター
 stake_validators = バリデーター
 stake_apr = APR %@
-stake_available_in = 入手可能
+stake_available_in = 利用可能まで
 stake_inactive = 非アクティブ
 stake_lock_time = ロック時間
-stake_activating = 有効化
-stake_deactivating = 非アクティブ化
+stake_activating = 有効化中
+stake_deactivating = ステーキング解除中
 stake_awaiting_withdrawal = 引き出し待ち
 stake_active_in = 有効化まで
 stake_minimum_amount = 最小額
 stake_state_empty_title = ステークはここに表示されます
-stake_state_empty_description = 初めてステーキング %@
+stake_state_empty_description = %@ のステーキングを始めましょう
 stake_resource = リソース
 stake_resource_energy = エネルギー
 stake_resource_bandwidth = 帯域幅
@@ -421,13 +421,13 @@ sign_message_view_full_message = メッセージ全文を表示
 
 # Secret Phrase
 
-secret_phrase_do_not_share_title = 秘密のフレーズを共有しないでください。
-secret_phrase_do_not_share_description = 誰かがあなたの秘密のフレーズを知っていると、あなたのウォレットを完全に制御できるようになります。
-secret_phrase_save_phrase_safely = 秘密のフレーズを安全な場所に保存する\nそれはあなただけがコントロールできます。
+secret_phrase_do_not_share_title = リカバリーフレーズを共有しないでください。
+secret_phrase_do_not_share_description = リカバリーフレーズを知った人は、このウォレットを完全に操作できます。
+secret_phrase_save_phrase_safely = リカバリーフレーズは、自分だけが管理できる\n安全な場所に保管してください。
 secret_phrase_confirm_quick_test_title = この簡単なテストを完了して、すべてが正しく保存されたことを確認してください。
 secret_phrase_screenshot_detected_title = スクリーンショットが検出されました
-secret_phrase_screenshot_detected_description = スクリーンショットは他のアプリからアクセスできる場合があり、この方法で保存すると秘密のフレーズが危険にさらされる可能性があります。
-secret_phrase_content_hidden_description = 画面録画中にコンテンツが非表示になる
+secret_phrase_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でリカバリーフレーズを保存すると、漏えいするおそれがあります。
+secret_phrase_content_hidden_description = 画面録画中はコンテンツが非表示になります
 
 # Social
 
@@ -435,7 +435,7 @@ social_x = エックス（旧ツイッター）
 social_discord = ディスコード
 social_reddit = レディット
 social_telegram = テレグラム
-social_github = ギットハブ
+social_github = GitHub
 social_youtube = ユーチューブ
 social_links = リンク
 social_facebook = フェイスブック
@@ -455,7 +455,7 @@ nodes_import_node_in_sync = 同期済み
 nodes_import_node_latest_block = 最新のブロック
 nodes_import_node_latency = 遅延
 nodes_gem_wallet_node = Gem Walletノード
-nodes_import_node_warning_message = カスタム ノードは悪意のあるものである可能性があり、トランザクション データが公開されたり、誤った情報が提供されたりする可能性があります。
+nodes_import_node_warning_message = カスタムノードは悪意のある第三者によって運営されている可能性があり、取引データの漏えいや虚偽情報の提供につながるおそれがあります。
 
 # Library
 
@@ -463,7 +463,7 @@ library_select_from_photo_library = 写真ライブラリから選択
 
 # Fee Rates
 
-fee_rates_info = 取引速度は、マイナーへのネットワーク手数料により決定します。
+fee_rates_info = 取引速度は、ネットワークのマイナーに支払う手数料によって決まります。
 fee_rates_fast = 速い
 fee_rates_normal = 普通
 
@@ -477,18 +477,18 @@ fee_rate_custom = カスタム
 # Banner
 
 banner_account_activation_title = アカウントの有効化手数料
-banner_account_activation_description = %@ネットワークは、一回限りの料金が%@必要です。
+banner_account_activation_description = %@ ネットワークでは、1回限りの有効化手数料 %@ が必要です。
 banner_stake_title = %@ のステーキングを開始
-banner_stake_description = 寝ている間にステークで%@の報酬を獲得できます。
+banner_stake_description = %@ をステーキングして、寝ている間も報酬を獲得できます。
 banner_enable_notifications_title = 通知を有効にする
 banner_enable_notifications_description = ウォレットのアクティビティを常に把握しましょう。
-banner_activate_asset_description = %@アセットを使用するには、まずネットワークの特定の要件を満たして%@ネットワーク上でアセットを有効にする必要があります。
+banner_activate_asset_description = %@ を利用するには、%@ ネットワーク固有の要件を満たして有効化する必要があります。
 banner_asset_status_title = 不審資産
-banner_asset_status_description = トークンは安全でないか、誤解を招く可能性がある。完全に信頼できる場合のみ手続きを行ってください。
+banner_asset_status_description = トークンは安全でないか、誤解を招く可能性があります。完全に信頼できる場合のみ続行してください。
 banner_onboarding_title = ウォレットの準備ができました
 banner_onboarding_description = 始めるには暗号通貨を購入または受け取りましょう
-banner_perpetuals_title = Hyperliquidで永久取引をする
-banner_perpetuals_description = Hyperliquid perpetuals で入金、取引、収益を得る
+banner_perpetuals_title = Hyperliquid でパーペチュアルを取引
+banner_perpetuals_description = Hyperliquid で入金・取引し、パーペチュアルで収益を獲得
 
 # Filter
 
@@ -505,15 +505,15 @@ price_alerts_get_notified_explain_message = お気に入りの暗号資産の価
 price_alerts_direction_over = オーバー
 price_alerts_direction_under = アンダー
 price_alerts_direction_increases_by = 上昇率
-price_alerts_direction_decreases_by = 減少する
+price_alerts_direction_decreases_by = 下落率
 price_alerts_set_alert_price_over = 価格が上回ったとき
 price_alerts_set_alert_price_under = 価格が下回ったとき
-price_alerts_set_alert_price_increases_by = 価格が増加したとき
-price_alerts_set_alert_price_decreases_by = 価格が減少したとき
+price_alerts_set_alert_price_increases_by = 価格の上昇率
+price_alerts_set_alert_price_decreases_by = 価格の下落率
 price_alerts_set_alert_set_target_price = 目標価格の設定
 price_alerts_set_alert_current_price = 現在の価格
-price_alerts_added_for = 価格アラートの設定%@
-price_alerts_state_empty_title = アラートはここに表示されます️
+price_alerts_added_for = 価格アラートを設定しました：%@
+price_alerts_state_empty_title = アラートはここに表示されます
 price_alerts_state_empty_description = 追跡するコインを追加して有効にしてください
 price_alerts_auto_footer = 大幅な価格変動が発生するとアラートが発動します。
 price_alerts_set_alert_title = 価格アラートを設定する
@@ -545,13 +545,13 @@ sell_title = %@を売る
 
 # Info
 
-info_network_fee_title = ネットワーク料金
+info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = ウォッチウォレット
-info_watch_wallet_description = アクセス権はありませんが、取引や動きを監視できるウォレットです。
+info_watch_wallet_description = 資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。
 info_network_fee_description = %@ ネットワーク上のすべての取引には、取引処理のためにマイナーに支払われる %@ の手数料が必要であり、Gem Wallet には支払われません。ネットワーク手数料はネットワークの使用状況により変動します。
 info_transaction_error_description = 残高不足、無効な入力、ネットワークによる拒否などのエラーにより、取引を完了できませんでした。詳細をご確認の上、再度お試しください。
 info_transaction_pending_description = 取引は送信済みで、ネットワーク上での確認を待っています。処理時間は異なる場合があります。最新情報を再度ご確認ください。
-info_estimated_confirmation_description = この推定は、取引手数料と%@ネットワークの現在の状況に基づいています。実際の承認時間は変わる可能性があり、保証されるものではありません。
+info_estimated_confirmation_description = この推定は、取引手数料と %@ ネットワークの現在の混雑状況に基づいています。実際の確認時間は変わる可能性があり、保証されるものではありません。
 info_transaction_success_description = 取引は完了し、ネットワーク上で確認されました。詳細を確認してステータスをご確認ください。
 info_lock_time_description = ロック時間は、アンボンディング期間や凍結解除期間とも呼ばれ、ステーキング解除を決定した後にステークされた資産が利用できなくなる期間のことです。
 info_price_impact_description = 価格影響とは、取引サイズによって生じるトークン価格の変化です。価格影響が大きいということは、流動性が低いか注文サイズが大きいために受け取るトークンが少なくなることを意味します。
@@ -559,18 +559,18 @@ info_slippage_description = スリッページとは、取引の予想価格と�
 info_asset_status_unverified_description = 未検証トークンは、信頼できるサードパーティサービスによって十分に検証されていません。エアドロップ、送金、または手動インポートによってウォレットに表示される場合があります。
 info_asset_status_suspicious_description = 疑わしいトークンやスパムトークンは、詐欺や有害な資産の可能性があると判断されます。エアドロップ、送金、または手動インポートによってウォレットに表示される場合があります。
 info_balance_required_title = %@が必要です
-info_insufficient_network_fee_balance_description = この取引には、%@ネットワーク手数料として%@が必要ですが、利用できるのは%@のみです。続行するには、あと%@必要です。
+info_insufficient_network_fee_balance_description = この取引には %@ が %@ ネットワークの手数料として必要ですが、利用可能な残高は %@ のみです。続行するには、あと %@ 必要です。
 info_insufficient_balance_title = 残高不足
 info_balance_required_description = この取引には%@が必要ですが、利用できるのは%@のみです。続行するには、あと%@必要です。
 info_account_minimum_balance_title = 最低残高
 info_perpetual_funding_payments_title = ファンディングペイメント
-info_perpetual_funding_payments_description = ファンディングペイメントは、永久契約の価格を基礎資産のスポット価格に近づけるためにトレーダー間で定期的に行われる支払いです。プラスのファンディングではロングポジションがショートポジションに支払い、マイナスのファンディングではショートポジションがロングポジションに支払います。
+info_perpetual_funding_payments_description = ファンディングペイメントは、パーペチュアル契約の価格を原資産の現物価格に近づけるために、トレーダー間で定期的に行われる支払いです。ファンディングがプラスの場合はロングがショートに、マイナスの場合はショートがロングに支払います。
 info_perpetual_liquidation_price_title = 清算価格
 info_perpetual_liquidation_price_description = 清算価格は、損失拡大を防ぐためにポジションが自動的に決済される価格水準です。市場価格がこの水準に達するとポジションは清算され、証拠金を失います。
 info_perpetual_open_interest_title = 未決済建玉
-info_perpetual_open_interest_description = オープンインタレストは、未決済のすべての永久契約の合計価値を表します。市場の活動状況や流動性の指標となります。
-info_no_quote_description = 選択したトークン ペアの見積もりを返すことができません。金額が少ない、流動性がない、または技術的な制限がある可能性があります。
-info_stake_reserved_title = ネットワーク料金用に予約
+info_perpetual_open_interest_description = 未決済建玉は、決済されていないすべてのパーペチュアル契約の合計価値を表し、市場の活発さや流動性の指標となります。
+info_no_quote_description = 選択したトークンペアの見積もりを取得できません。取引額が小さすぎる、流動性が不足している、または技術的な制約がある可能性があります。
+info_stake_reserved_title = ネットワーク手数料として確保
 info_stake_reserved_description = ステーキング解除や報酬の請求などの操作にかかる手数料をカバーするために、少額がウォレットに残ります。
 info_stake_apr_description = 年率 (APR) は、暗号通貨をステーキングした場合の年間報酬率です。
 info_stake_frozen_required_title = ステークするにはTRXをフリーズ
@@ -581,15 +581,15 @@ info_fully_diluted_valuation_description = すべてのコインが流通して�
 info_circulating_supply_description = 現在市場で入手可能で取引されているコインの数。
 info_total_supply_description = ロックされたコインや予約されたコインを含む、存在するコインの合計数。
 info_max_supply_title = 最大供給量
-info_max_supply_description = これまでに存在するコインの最大数。
-info_perpetual_funding_apr_title = 資金調達APR
-info_perpetual_funding_apr_description = ロングがショートに支払う年率 (マイナスの場合、ショートがロングに支払う)。価格をスポット価格に近づけるためのユーザー間のピアツーピア転送である資金調達に関連する手数料はありません。
+info_max_supply_description = 将来にわたって発行される可能性があるコインの最大数です。
+info_perpetual_funding_apr_title = ファンディングAPR
+info_perpetual_funding_apr_description = ロングがショートに支払うファンディングの年率換算値です（マイナスの場合はショートがロングに支払います）。ファンディングは、パーペチュアル価格を現物価格に近づけるためにユーザー間で行われる直接支払いで、別途手数料はかかりません。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = %@ ネットワークで、この取引の最低金額は %@ です。
 
 # Input
 
-input_enter_amount_to = %@の金額を入力してください
+input_enter_amount_to = %@金額を入力してください
 
 # Nft
 
@@ -598,13 +598,13 @@ nft_collections = コレクション
 nft_collection = コレクション
 nft_save_to_photos = 写真に保存
 nft_set_as_avatar = アバターとして設定
-nft_state_empty_title = NFTはここに表示されます️
+nft_state_empty_title = NFTはここに表示されます
 nft_state_empty_description = 最初のNFTを受け取る
 nft_report_reason_spam = スパム
-nft_report_reason_malicious = 悪意のある
+nft_report_reason_malicious = 悪質
 nft_report_reason_inappropriate = 不適切なコンテンツ
 nft_report_reason_copyright = 著作権
-nft_report_report_button_title = 報告
+nft_report_report_button_title = 通報
 
 # Permissions
 
@@ -627,17 +627,17 @@ networks_state_empty_search_title = ネットワークが見つかりません
 
 # Onboarding
 
-onboarding_security_create_wallet_intro_title = 秘密のフレーズを取得します。これがウォレットにアクセスする唯一の方法です。
-onboarding_security_create_wallet_confirm_title = 理解しました。継続したいと思います。
+onboarding_security_create_wallet_intro_title = リカバリーフレーズが作成されます。ウォレットにアクセスする唯一の手段です。
+onboarding_security_create_wallet_confirm_title = 理解して続行する
 onboarding_security_create_wallet_do_not_share_title = 誰とも共有しないでください
-onboarding_security_create_wallet_do_not_share_subtitle = あなたの秘密のフレーズを入手した人は誰でもあなたのウォレットを完全に制御できます。
-onboarding_security_create_wallet_keep_safe_subtitle = 秘密のフレーズはウォレットにアクセスする唯一の方法です。
-onboarding_security_create_wallet_no_recovery_subtitle = 秘密のフレーズを紛失すると、ウォレットにアクセスできなくなります。
+onboarding_security_create_wallet_do_not_share_subtitle = リカバリーフレーズを知った人は誰でも、このウォレットを完全に操作できます。
+onboarding_security_create_wallet_keep_safe_subtitle = リカバリーフレーズは、ウォレットにアクセスする唯一の手段です。
+onboarding_security_create_wallet_no_recovery_subtitle = リカバリーフレーズを紛失すると、ウォレットにアクセスできなくなります。
 onboarding_security_create_wallet_keep_safe_title = 安全な場所に保管する
-onboarding_security_create_wallet_no_recovery_title = 回復のお手伝いはできません
+onboarding_security_create_wallet_no_recovery_title = 紛失したリカバリーフレーズは復元できません
 onboarding_accept_terms_title = 利用規約に同意する
 onboarding_accept_terms_message = 続行する前に、以下の利用規約をお読みいただき同意してください。
-onboarding_accept_terms_item1_message = ウォレットのセキュリティとバックアップは自己責任であり、Gemは一切関与しないことを理解しています。
+onboarding_accept_terms_item1_message = ウォレットのセキュリティとバックアップはすべて自分の責任であり、Gem は責任を負わないことを理解しています。
 onboarding_accept_terms_item2_message = Gemは銀行や取引所ではなく、違法目的での使用は禁止されていることを理解しています。
 onboarding_accept_terms_item3_message = ウォレットへのアクセスを失った場合、Gemは責任を負わず、支援もできないことを理解しています。
 onboarding_accept_terms_continue = 同意して続行
@@ -659,8 +659,8 @@ perpetual_entry_price = エントリー価格
 perpetual_modify = 修正する
 perpetual_reduce_position = ポジションを縮小
 perpetual_increase_position = ポジションを増やす
-perpetual_open_direction = %@を開く
-perpetual_close_direction = %@を閉じる
+perpetual_open_direction = %@ポジションを建てる
+perpetual_close_direction = %@ポジションを決済
 perpetual_leverage = レバレッジ
 perpetual_auto_close = 自動決済
 perpetual_auto_close_take_profit = 利益確定
@@ -678,10 +678,10 @@ perpetual_value = 価値
 perpetual_unrealized_pnl = 未実現損益
 perpetual_volume = 出来高
 perpetual_all_time_pnl = これまでの損益
-perpetual_margin_usage = マージンの使用
+perpetual_margin_usage = 証拠金使用率
 perpetual_account_leverage = アカウントレバレッジ
 perpetual_margin_cross = クロス
-perpetual_margin_isolated = 分離
+perpetual_margin_isolated = 分離マージン
 
 # Perpetuals
 
@@ -692,32 +692,32 @@ perpetuals_empty_state_no_markets_found = 市場が見つかりません
 
 # Rewards
 
-rewards_title = 報酬
-rewards_share_text = 参加する Gem Wallet 私の紹介リンクを使用して報酬を獲得しましょう: %@
+rewards_title = ポイント
+rewards_share_text = 私の紹介リンクから Gem Wallet に参加して、ポイントを獲得しましょう：%@
 rewards_my_referral_code = 私の紹介コード
 rewards_invite_friends_title = 友達を招待
-rewards_invite_friends_description = 得る %@ 参加した友達ごとにポイントが付与されます。
+rewards_invite_friends_description = 友達が1人参加するごとに、%@ ポイントを獲得できます。
 rewards_referral_code = 紹介コード
 rewards_invited_by = 招待者
 rewards_points = ポイント
-rewards_referrals = 紹介
+rewards_referrals = 紹介人数
 rewards_earn_points_title = ポイントを獲得
-rewards_get_rewards_title = 報酬を獲得
+rewards_get_rewards_title = ポイントを交換
 rewards_activate_referral_code_description = 友達からの紹介コードをお持ちですか?
-rewards_activate_referral_code_title = コードを利用する
+rewards_activate_referral_code_title = 紹介コードを使う
 rewards_create_referral_code_title = ユーザー名を作成
 rewards_create_referral_code_info = これは現在のウォレットの個人的なニックネームになります。
 rewards_username = ユーザー名
-rewards_ways_spend_title = 使い方
-rewards_ways_spend_asset_title = 得る %@
+rewards_ways_spend_title = ポイントの使い道
+rewards_ways_spend_asset_title = %@ を獲得
 rewards_insufficient_points = ポイントが足りない
-rewards_confirm_redeem = 得る %@ のために %@!
-rewards_pending_title = ボーナス保留中
-rewards_pending_description = 入手可能な %@
-rewards_pending_description_ready = ボーナスの準備ができました!
+rewards_confirm_redeem = %@ を %@ で獲得しますか？
+rewards_pending_title = ポイント保留中
+rewards_pending_description = 受け取り可能時期：%@
+rewards_pending_description_ready = ポイントを受け取れるようになりました！
 rewards_nickname = ニックネーム
-rewards_unverified_title = 特典はまだ有効になっていません。
-rewards_unverified_description = アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。
+rewards_unverified_title = ポイント機能はまだ利用できません。
+rewards_unverified_description = アプリを使い続けると、ポイント機能が自動的に有効になります。
 
 # Recent Activity
 
@@ -732,14 +732,14 @@ notifications_inapp_state_empty_description = 通知に関する最新情報は�
 
 # Earn
 
-earn_state_empty_title = あなたのポジションはここに表示されます
-earn_state_empty_description = 初回入金 %@
+earn_state_empty_title = ポジションはここに表示されます
+earn_state_empty_description = %@ を入金して始めましょう
 
 # Contacts
 
 contacts_title = 連絡先
-contacts_contact = 接触
-contacts_addresses = 住所
+contacts_contact = 連絡先
+contacts_addresses = アドレス
 contacts_state_empty_title = 連絡先なし
 contacts_state_empty_description = よく使うアドレスを保存する
 contacts_create_new_contact = 新しい連絡先を作成
@@ -748,9 +748,9 @@ contacts_add_to_existing_contact = 連絡先に追加
 # Simulation
 
 simulation_header_unlimited_asset = 無制限 %@
-simulation_warning_unlimited_token_approval_description = これにより、承認を取り消すか期限が切れるまで、支出者はこのトークンを使用できるようになります。
-simulation_warning_externally_owned_spender_description = この承認により、通常のウォレットアドレス（EOA）があなたの資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。
-simulation_warning_nft_collection_approval_title = NFTコレクションへのフルアクセスをリクエスト
+simulation_warning_unlimited_token_approval_description = この承認により、承認先のアドレスはこのトークンを使用できるようになります。承認を取り消すか、承認の有効期限が切れるまで有効です。
+simulation_warning_externally_owned_spender_description = この承認により、通常のウォレットアドレス（EOA）がウォレット内の資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。
+simulation_warning_nft_collection_approval_title = NFT コレクション全体へのアクセスが要求されています
 simulation_warning_unlimited_token_approval_title = 無制限のトークン承認
 
 # Application
@@ -759,19 +759,19 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = QRコードのスキャンにはカメラの許可が必要です。\n許可をお願いします。
+camera_permission_request_camera = QRコードをスキャンするにはカメラへのアクセスが必要です。\nアクセスを許可してください。
 
 # Notifications Permission
 
-notifications_permission_request_notification = 新しい取引に関する通知を受け取るためには、通知の許可が必要です。\n許可をお願いします。
+notifications_permission_request_notification = 新しい取引の通知を受け取るには、通知の許可が必要です。\n通知を許可してください。
 
 # Confirm
 
-confirm_fee_error = 料金計算エラー
+confirm_fee_error = 手数料計算エラー
 
 # Rootcheck
 
 rootcheck_security_alert = セキュリティ警告
-rootcheck_body = お使いのデバイスはルート権限を持っているようです。これにより、セキュリティ リスクが大幅に増加する可能性があります。ルート権限を取得したデバイスでこのアプリを使用すると、資産が不正アクセスにさらされ、損失が発生する可能性があります。資金の安全のため、ルート権限を取得したデバイス以外のデバイスを使用することを強くお勧めします。
+rootcheck_body = このデバイスは root 化されているようです。root 化されたデバイスではセキュリティリスクが大幅に高まり、資産への不正アクセスや損失につながる可能性があります。資金を守るため、root 化されていないデバイスの使用を強くお勧めします。
 rootcheck_ignore = 無視する
 rootcheck_exit = 終了
