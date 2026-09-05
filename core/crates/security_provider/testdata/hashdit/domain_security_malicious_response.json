@@ -2,7 +2,16 @@
   "code": "0",
   "status": "ok",
   "data": {
+    "request_id": "7ffb5f5c-040f-4cc3-8110-0757c66256fe",
     "has_result": true,
-    "risk_level": 3
+    "polling_interval": 0,
+    "risk_level": 5,
+    "risk_name": "Significant Risk",
+    "risk_detail": [
+      {
+        "name": "is_in_blist",
+        "value": "There are potential risks in the dApp based on the threat intelligence."
+      }
+    ]
   }
 }

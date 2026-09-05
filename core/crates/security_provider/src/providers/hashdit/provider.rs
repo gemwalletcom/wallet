@@ -373,9 +373,9 @@ mod tests {
             (
                 include_str!("../../../testdata/hashdit/domain_security_request.json"),
                 include_str!("../../../testdata/hashdit/domain_security_malicious_response.json"),
-                "https://malicious.example",
+                "https://bnbdaily.finance/",
                 true,
-                "risk_level=3",
+                "risk_level=5",
             ),
             (
                 include_str!("../../../testdata/hashdit/domain_security_safe_request.json"),

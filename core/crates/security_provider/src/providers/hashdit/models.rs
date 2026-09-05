@@ -104,7 +104,7 @@ impl DomainSecurityData {
         }
         match self.risk_level {
             -1..=1 => Ok(false),
-            2..=4 => Ok(true),
+            2..=5 => Ok(true),
             value => Err(format!("Unsupported HashDit domain risk level: {value}")),
         }
     }
@@ -158,10 +158,11 @@ mod tests {
         for risk_level in -1..=1 {
             assert_eq!(DomainSecurityData { has_result: true, risk_level }.is_malicious(), Ok(false));
         }
-        for risk_level in 2..=4 {
+        for risk_level in 2..=5 {
             assert_eq!(DomainSecurityData { has_result: true, risk_level }.is_malicious(), Ok(true));
         }
         assert!(DomainSecurityData { has_result: false, risk_level: 0 }.is_malicious().is_err());
-        assert!(DomainSecurityData { has_result: true, risk_level: 5 }.is_malicious().is_err());
+        assert!(DomainSecurityData { has_result: false, risk_level: 5 }.is_malicious().is_err());
+        assert!(DomainSecurityData { has_result: true, risk_level: 6 }.is_malicious().is_err());
     }
 }
