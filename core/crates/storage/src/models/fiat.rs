@@ -203,7 +203,7 @@ impl FiatTransactionRow {
         Ok(FiatTransaction {
             id: self.id.to_string(),
             asset_id: self.asset_id.0.clone(),
-            transaction_type: self.transaction_type.0.clone(),
+            transaction_type: self.transaction_type.0,
             provider: self.provider_id.0,
             provider_transaction_id: self.provider_transaction_id.clone(),
             status: self.status.0.clone(),

@@ -3,30 +3,25 @@ package com.gemwallet.android.features.buy.viewmodels
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import uniffi.gemstone.GemFiatAmountCheck
-import uniffi.gemstone.GemFiatQuoteServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
-import com.gemwallet.android.ext.tickerFlow
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toGemNetworkError
-import com.gemwallet.android.ext.toCurrency
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.buy.viewmodels.models.BuyError
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
-import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
-import com.gemwallet.android.math.parseInputNumber
-import com.gemwallet.android.model.AssetData
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
-import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ext.tickerFlow
+import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
+import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
+import com.gemwallet.android.features.buy.viewmodels.models.createFiatUiState
+import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
+import com.gemwallet.android.model.AssetData
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuote
 import com.wallet.core.primitives.FiatQuoteType
@@ -42,16 +37,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import uniffi.gemstone.GemFiatQuoteRequest
+import uniffi.gemstone.GemFiatQuoteServiceInterface
+import uniffi.gemstone.GemFiatQuotesResult
+import uniffi.gemstone.GemServiceException
 import java.math.BigInteger
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -64,34 +63,26 @@ class FiatViewModel @Inject constructor(
 
     private val currency = service.getCurrency().toCurrency()
     private val currencySymbol = java.util.Currency.getInstance(currency.name).symbol
+    private val assetId: AssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
-    private val initialType = savedStateHandle.get<FiatQuoteType>(RouteArgument.Type.key) ?: FiatQuoteType.Buy
-    private val initialAmount = savedStateHandle.get<Int>(RouteArgument.FiatAmount.key)?.toString()
+    private val session = MutableStateFlow(
+        service.newSession(
+            (savedStateHandle.get<FiatQuoteType>(RouteArgument.Type.key) ?: FiatQuoteType.Buy).toGem(),
+            savedStateHandle.get<Int>(RouteArgument.FiatAmount.key)?.toUInt(),
+        )
+    )
+    private val isUrlLoading = MutableStateFlow(false)
 
-    val type = MutableStateFlow(initialType)
-    val assetId = MutableStateFlow(savedStateHandle.requireAssetId(RouteArgument.AssetId))
+    val type: StateFlow<FiatQuoteType> = session.map { it.quoteType.toPrimitives() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.quoteType.toPrimitives())
 
-    private val buyOperation = FiatOperationState(defaultAmount(FiatQuoteType.Buy))
-    private val sellOperation = FiatOperationState(defaultAmount(FiatQuoteType.Sell))
+    val amount: StateFlow<String> = session.map { it.current().amount }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.current().amount)
 
-    private fun operationFor(type: FiatQuoteType) = when (type) {
-        FiatQuoteType.Buy -> buyOperation
-        FiatQuoteType.Sell -> sellOperation
-    }
-
-    private fun defaultAmount(type: FiatQuoteType): String =
-        initialAmount?.takeIf { type == initialType } ?: service.defaultAmount(type.toGem()).toString()
-
-    val amount: StateFlow<String> = type
-        .flatMapLatest { operationFor(it).amount }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, operationFor(type.value).defaultAmount)
-
-    private val assetData: StateFlow<AssetData?> = assetId
-        .flatMapLatest { getBuyAssetInfo(it) }
+    private val assetData: StateFlow<AssetData?> = getBuyAssetInfo(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val assetPriceUsd: StateFlow<Double?> = assetId
-        .flatMapLatest { getAssetPriceUsd(it) }
+    private val assetPriceUsd: StateFlow<Double?> = getAssetPriceUsd(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val assetInfoUIModel = assetData
@@ -107,14 +98,8 @@ class FiatViewModel @Inject constructor(
 
     val showFiatTypePicker = assetData
         .filterNotNull()
-        .map { it.showFiatTypePicker() }
+        .map { it.metadata.isSellEnabled }
         .distinctUntilChanged()
-        .onEach { showFiatTypePicker ->
-            if (!showFiatTypePicker && type.value == FiatQuoteType.Sell) {
-                buyOperation.updateAmount(sellOperation.amount.value)
-                type.value = FiatQuoteType.Buy
-            }
-        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val suggestedAmounts = type.mapLatest {
@@ -123,138 +108,93 @@ class FiatViewModel @Inject constructor(
         } + FiatSuggestion.RandomAmount
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val state: StateFlow<FiatSceneState> = type
-        .flatMapLatest { operationFor(it).state }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, FiatSceneState.Ready)
+    val uiState: StateFlow<FiatUiState> = combine(session, isUrlLoading) { session, isUrlLoading ->
+        createFiatUiState(session, isUrlLoading)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(session.value, false))
+
+    val quotes: StateFlow<List<FiatQuote>> = session
+        .map { it.current().quotes.map { quote -> quote.decodeJson<FiatQuote>() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val providers = combine(assetInfoUIModel.filterNotNull(), quotes, assetPriceUsd) { asset, quotes, priceUsd ->
+        quotes.map { quote -> quote.toProviderUIModel(asset.asset, currency, priceUsd) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val selectedProvider = combine(assetInfoUIModel, session) { asset, session ->
+        asset?.let { session.selectedQuote()?.decodeJson<FiatQuote>()?.toProviderUIModel(it.asset, currency) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val ticker = tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
     private val quoteRetry = MutableStateFlow(0L)
 
     init {
-        type.flatMapLatest { currentType ->
-            combine(
-                assetData.filterNotNull(),
-                operationFor(currentType).amount.debounce(service.quoteDebounceMilliseconds().toLong()),
-                ticker,
-                quoteRetry,
-            ) { data, amount, tick, retry ->
-                QuoteFetchParams(
-                    assetData = data,
-                    type = currentType,
-                    amount = amount,
-                    ticker = tick,
-                    retry = retry,
-                )
-            }
-        }
-        .distinctUntilChanged { old, new ->
-            old.type == new.type && old.amount == new.amount && old.ticker == new.ticker && old.retry == new.retry
-        }
-        .mapLatest { params ->
-            val (data, currentType, amount, _) = params
-            val operation = operationFor(currentType)
-            val amountParsed = runCatching { amount.ifEmpty { "0" }.parseInputNumber().toDouble() }.getOrNull()
-            amountError(currentType, amountParsed, data, quote = null)?.let { error ->
-                operation.updateState(FiatSceneState.Error(error))
-                operation.clearQuotes()
-                return@mapLatest
-            }
-            operation.updateState(FiatSceneState.Loading)
-            operation.clearQuotes()
-            val quotes = try {
-                service.quotes(currentType.toGem(), data.asset.id.toIdentifier(), amountParsed!!).map { it.decodeJson<FiatQuote>() }
-            } catch (err: CancellationException) {
-                throw err
-            } catch (err: Throwable) {
-                Log.e(TAG, "fiat quotes request failed", err)
-                if (operation.amount.value == amount) {
-                    operation.updateState(FiatSceneState.Error(BuyError.QuoteRequestFailed(err.toGemNetworkError())))
-                    operation.clearQuotes()
+        assetData.filterNotNull()
+            .onEach { data ->
+                session.update {
+                    it.onBalanceChanged(BigInteger(data.balance.balance.available))
+                        .onSellEnabledChanged(data.metadata.isSellEnabled)
                 }
-                return@mapLatest
             }
-            if (operation.amount.value != amount) return@mapLatest
-            if (quotes.isEmpty()) {
-                operation.updateState(FiatSceneState.Error(BuyError.QuoteNotAvailable))
-                operation.clearQuotes()
-                return@mapLatest
-            }
-            amountError(currentType, amountParsed, data, quotes.first())?.let { error ->
-                operation.updateState(FiatSceneState.Error(error))
-                operation.clearQuotes()
-                return@mapLatest
-            }
-            operation.updateQuotes(quotes)
-            operation.updateState(FiatSceneState.Ready)
-        }
-        .launchIn(viewModelScope)
+            .launchIn(viewModelScope)
+
+        combine(
+            session.map { it.quoteRequest() }.distinctUntilChanged().debounce(service.quoteDebounceMilliseconds().toLong()),
+            assetData.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
+            ticker,
+            quoteRetry,
+        ) { request, assetId, tick, retry -> request?.let { QuoteFetch(it, assetId, tick, retry) } }
+            .distinctUntilChanged()
+            .mapLatest { fetch -> fetch?.let { loadQuotes(it.request, it.assetId) } }
+            .launchIn(viewModelScope)
     }
 
-    val quotes = type
-        .flatMapLatest { operationFor(it).quotes }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val providers = combine(assetInfoUIModel.filterNotNull(), quotes, assetPriceUsd) { asset, quotes, priceUsd ->
-        quotes.map { quote ->
-            quote.toProviderUIModel(asset.asset, currency, priceUsd)
+    private suspend fun loadQuotes(request: GemFiatQuoteRequest, assetId: AssetId) {
+        session.update { it.onFetchStarted(request) }
+        val results = try {
+            GemFiatQuotesResult(request, service.quotes(request.quoteType, assetId.toIdentifier(), request.amount), null)
+        } catch (err: CancellationException) {
+            throw err
+        } catch (err: Throwable) {
+            Log.e(TAG, "fiat quotes request failed", err)
+            GemFiatQuotesResult(request, emptyList(), err as? GemServiceException ?: GemServiceException.Api(err.message.orEmpty()))
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    private val currentSelectedQuote = type
-        .flatMapLatest { operationFor(it).selectedQuote }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val selectedProvider = combine(assetInfoUIModel, currentSelectedQuote) { asset, quote ->
-        return@combine asset?.let { quote?.toProviderUIModel(asset.asset, currency) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val buttonState = combine(state, selectedProvider) { state, provider ->
-        buttonState(enabled = state == FiatSceneState.Ready && provider != null)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
+        session.update { it.onQuoteResults(results) }
+    }
 
     fun updateAmount(newAmount: String) {
-        operationFor(type.value).updateAmount(newAmount)
+        session.update { it.onAmountChanged(newAmount) }
     }
 
     fun updateAmount(suggestion: FiatSuggestion) {
         val value = when (suggestion) {
-            FiatSuggestion.RandomAmount -> randomAmount().toString()
+            FiatSuggestion.RandomAmount -> service.randomAmount().toInt().toString()
             is FiatSuggestion.SuggestionAmount -> suggestion.value.toInt().toString()
         }
-        operationFor(type.value).updateAmount(value)
+        updateAmount(value)
     }
 
     fun setProvider(provider: FiatProvider) {
-        operationFor(type.value).selectProvider(provider.name)
+        session.update { it.onProviderSelected(provider.id) }
     }
 
     fun setType(type: FiatQuoteType) {
-        this.type.value = type
+        session.update { it.onTypeChanged(type.toGem()) }
     }
 
     fun retry() {
         quoteRetry.value += 1
     }
 
-    private fun randomAmount(): Int = service.randomAmount().toInt()
-
-    private fun amountError(type: FiatQuoteType, amount: Double?, data: AssetData, quote: FiatQuote?): BuyError? {
-        amount ?: return BuyError.ValueIncorrect
-        if (amount == 0.0) return BuyError.EmptyAmount
-        return when (val check = service.amountCheck(type.toGem(), amount, quote?.toJson(), BigInteger(data.balance.balance.available))) {
-            is GemFiatAmountCheck.BelowMinimum -> BuyError.MinimumAmount(check.minimum.toInt())
-            is GemFiatAmountCheck.AboveMaximum -> BuyError.MaximumAmount(check.maximum.toInt())
-            is GemFiatAmountCheck.InsufficientBalance -> BuyError.InsufficientBalance
-            GemFiatAmountCheck.Valid -> null
-        }
-    }
-
     fun getUrl(callback: (String?) -> Unit) {
+        val quoteId = session.value.selectedQuote()?.decodeJson<FiatQuote>()?.id ?: return callback(null)
         viewModelScope.launch {
-            val data = assetData.value ?: return@launch callback(null)
-            val quoteId = operationFor(type.value).selectedQuote.value?.id ?: return@launch callback(null)
-            callback(runCatching { service.quoteUrl(data.asset.id.toIdentifier(), quoteId).decodeJson<FiatQuoteUrl>().redirectUrl }.getOrNull())
+            isUrlLoading.value = true
+            val url = runCatching { service.quoteUrl(assetId.toIdentifier(), quoteId).decodeJson<FiatQuoteUrl>().redirectUrl }
+                .onFailure { Log.e(TAG, "fiat quote url request failed", it) }
+                .getOrNull()
+            isUrlLoading.value = false
+            callback(url)
         }
     }
 
@@ -262,14 +202,10 @@ class FiatViewModel @Inject constructor(
         const val TAG = "FiatViewModel"
     }
 
-    private data class QuoteFetchParams(
-        val assetData: AssetData,
-        val type: FiatQuoteType,
-        val amount: String,
+    private data class QuoteFetch(
+        val request: GemFiatQuoteRequest,
+        val assetId: AssetId,
         val ticker: Long,
         val retry: Long,
     )
-
 }
-
-private fun AssetData.showFiatTypePicker() = metadata.isSellEnabled

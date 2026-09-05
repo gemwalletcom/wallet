@@ -19,10 +19,6 @@ public struct PerpetualFormatter {
         perpetual.recipient()
     }
 
-    public var depositRecipient: GemRecipient {
-        perpetual.depositRecipient()
-    }
-
     public func formatInputPrice(_ price: Double, decimals: Int32, locale: Locale = .current) -> String {
         let formatted = perpetual.formatPrice(price: price, decimals: decimals)
         let decimalSeparator = locale.decimalSeparator ?? "."

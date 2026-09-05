@@ -158,7 +158,7 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 
 ## Security providers
 
-Backend transaction scanning checks the transaction target rather than the sender. Provider failures make the scan incomplete instead of treating the missing result as safe.
+Backend transaction scanning checks the transaction target rather than the sender. Provider failures make the scan incomplete instead of treating the missing result as safe. Staking transaction types (delegate, undelegate, redelegate, rewards, withdraw, freeze, and unfreeze) use local database checks only and skip external security providers.
 
 | Provider | Address security | Address poisoning | Website security | EVM token security | Solana token security |
 | --- | :---: | :---: | :---: | :---: | :---: |

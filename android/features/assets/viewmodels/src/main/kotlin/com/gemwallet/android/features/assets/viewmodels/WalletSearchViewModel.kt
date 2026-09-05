@@ -5,6 +5,7 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
@@ -57,6 +58,7 @@ class WalletSearchViewModel @Inject constructor(
     getRecentAssets,
     service,
     BaseSelectSearch(searchSelectAssets),
+    GemSelectAssetType.WALLET_SEARCH,
 ) {
 
     override suspend fun searchRemote(query: String) {
@@ -152,12 +154,6 @@ class WalletSearchViewModel @Inject constructor(
         if (assets.size == 1) NftItemUIModel(collection, assets.first()) else NftItemUIModel(collection, null, assets.size)
 
     override fun assetsSearchLimit(query: String): Int = limits(query).fetch.toInt()
-
-    fun onPinAsset(assetId: AssetId) {
-        val willPin = (pinned.value + unpinned.value).firstOrNull { it.asset.id == assetId }?.pinned != true
-        onTogglePin(assetId)
-        if (willPin) onChangeVisibility(assetId, true)
-    }
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = visiblePerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch

@@ -142,16 +142,9 @@ public final class StakeSceneViewModel {
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch delegation.state {
-        case .awaitingWithdrawal:
-            service.stakeTransferData(
-                asset: asset.map(),
-                stakeType: StakeType.withdraw(delegation.delegation).json(),
-                value: delegation.delegation.base.balanceValue,
-                useMaxAmount: false,
-            )
-        case .active, .pending, .inactive, .activating, .deactivating:
-            delegation.delegation
+        switch service.delegationDestination(walletType: wallet.type.map(), asset: asset.map(), delegation: delegation.delegation.json()) {
+        case let .withdraw(transfer): transfer
+        case .details: delegation.delegation
         }
     }
 

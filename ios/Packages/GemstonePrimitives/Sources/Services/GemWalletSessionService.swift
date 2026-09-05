@@ -60,8 +60,4 @@ public extension GemWalletSessionServiceProtocol {
     func showsRewards(wallets: [Wallet]) -> Bool {
         showsRewards(wallets: wallets.map { $0.map() })
     }
-
-    func walletsCount() async throws -> Int {
-        try await getWallets().count
-    }
 }

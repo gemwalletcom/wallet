@@ -41,7 +41,7 @@ impl FiatTransaction {
         Self {
             id: quote.id.clone(),
             asset_id: quote.asset.id.clone(),
-            transaction_type: quote.quote_type.clone(),
+            transaction_type: quote.quote_type,
             provider: quote.provider.id,
             provider_transaction_id,
             status: FiatTransactionStatus::Pending,
@@ -95,7 +95,7 @@ pub enum FiatTransactionStatus {
     Unknown,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]

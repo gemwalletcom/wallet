@@ -58,8 +58,8 @@ fun SwapSlippageBottomSheet(
         title = stringResource(R.string.swap_slippage),
     ) {
         var isAuto by remember(currentBps) { mutableStateOf(currentBps == null) }
-        var input by remember(currentBps, defaultBps) {
-            mutableStateOf((currentBps ?: defaultBps)?.let(SwapSlippage::format).orEmpty())
+        var input by remember(currentBps) {
+            mutableStateOf(currentBps?.let(SwapSlippage::format).orEmpty())
         }
         val focusRequester = remember { FocusRequester() }
 
@@ -106,6 +106,7 @@ fun SwapSlippageBottomSheet(
                             .weight(1f)
                             .padding(start = paddingSmall),
                         value = input,
+                        placeholder = defaultBps?.let(SwapSlippage::format).orEmpty(),
                         onValueChange = { input = SwapSlippage.sanitize(it) },
                         suffix = "%",
                         focusRequester = focusRequester,

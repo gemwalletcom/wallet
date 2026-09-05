@@ -870,12 +870,12 @@ fee_rates_normal = Normal
 
 # Fee Rate
 
-# Used in network fee rate selector for the satvB label. Contains 1 string placeholder.
-fee_rate_satvB = %@ sat/vB
+# Fee unit label for satoshis per virtual byte.
+fee_rate_satvB = sat/vB
 # Used in network fee rate selector for the satB label. Contains 1 string placeholder.
 fee_rate_satB = %@ sat/B
-# Used in network fee rate selector for the gwei label. Contains 1 string placeholder.
-fee_rate_gwei = %@ gwei
+# Fee unit label for gwei.
+fee_rate_gwei = gwei
 # Used in the network fee rate selector for the custom fee rate row label.
 fee_rate_custom = Custom
 

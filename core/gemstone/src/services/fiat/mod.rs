@@ -1,6 +1,7 @@
 pub mod model;
 pub mod quote;
 pub mod rules;
+pub mod session;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -14,6 +15,7 @@ use crate::services::assets::GemAssetsService;
 
 pub use model::GemFiatAmountCheck;
 pub use quote::GemFiatQuoteService;
+pub use session::{GemFiatButtonAction, GemFiatButtonState, GemFiatOperation, GemFiatQuotePhase, GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
 pub use store::GemFiatStore;
 
 const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;

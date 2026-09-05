@@ -37,6 +37,32 @@ pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64,
     }
 }
 
+pub enum FiatAmountInput {
+    Empty,
+    Invalid,
+    Value(f64),
+}
+
+pub fn parse_amount(text: &str) -> FiatAmountInput {
+    let normalized: String = text.trim().replace(',', ".").chars().filter(|character| !character.is_whitespace()).collect();
+    if normalized.is_empty() {
+        return FiatAmountInput::Empty;
+    }
+    match normalized.parse::<f64>() {
+        Ok(value) if value > 0.0 => FiatAmountInput::Value(value),
+        Ok(_) => FiatAmountInput::Empty,
+        Err(_) => FiatAmountInput::Invalid,
+    }
+}
+
+pub fn selected_quote(quotes: &[FiatQuote], preferred: Option<&str>) -> Option<FiatQuote> {
+    quotes
+        .iter()
+        .find(|quote| preferred.is_some_and(|provider| quote.provider.id.id() == provider))
+        .or_else(|| quotes.first())
+        .cloned()
+}
+
 pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
     let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
     BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
@@ -110,6 +136,24 @@ mod tests {
             amount_check(&config, FiatQuoteType::Buy, 100.0, Some(&quote(200)), &BigUint::ZERO),
             GemFiatAmountCheck::Valid
         );
+    }
+
+    #[test]
+    fn test_parse_amount_accepts_a_decimal_comma_and_treats_zero_as_empty() {
+        assert!(matches!(parse_amount(" 12,5 "), FiatAmountInput::Value(value) if value == 12.5));
+        assert!(matches!(parse_amount("1 000"), FiatAmountInput::Value(value) if value == 1000.0));
+        assert!(matches!(parse_amount(""), FiatAmountInput::Empty));
+        assert!(matches!(parse_amount("0"), FiatAmountInput::Empty));
+        assert!(matches!(parse_amount("abc"), FiatAmountInput::Invalid));
+    }
+
+    #[test]
+    fn test_selected_quote_prefers_the_chosen_provider_and_falls_back_to_the_first() {
+        let quotes = vec![quote(1), quote(2)];
+        assert_eq!(selected_quote(&quotes, None).map(|quote| quote.value), Some(BigUint::from(1u32)));
+        assert_eq!(selected_quote(&quotes, Some("transak")).map(|quote| quote.value), Some(BigUint::from(1u32)));
+        assert_eq!(selected_quote(&quotes, Some("banxa")).map(|quote| quote.value), Some(BigUint::from(1u32)));
+        assert_eq!(selected_quote(&[], Some("transak")), None);
     }
 
     #[test]

@@ -410,8 +410,16 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         Gemstone.FiatConfig(defaultBuyAmount: 50, defaultSellAmount: 100, minimumAmount: 5, maximumAmount: 10000, randomMaxAmount: 1000, suggestedAmounts: [100, 250], insufficientNetworkFeeBuyAmount: 10)
     }
 
-    public func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
+    private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
         quoteType.map() == .sell ? 100 : 50
+    }
+
+    public func newSession(quoteType: Gemstone.FiatQuoteType, amount: UInt32?) -> GemFiatSession {
+        let operation = { (type: Gemstone.FiatQuoteType) -> GemFiatOperation in
+            let value = (type == quoteType ? amount : nil) ?? self.defaultAmount(quoteType: type)
+            return GemFiatOperation(quoteType: type, amount: String(value), quotes: [], selectedProvider: nil, phase: .loading(amount: Double(value)))
+        }
+        return GemFiatSession(quoteType: quoteType, buy: operation(.buy), sell: operation(.sell), available: 0)
     }
 
     public func randomAmount() -> UInt32 {
@@ -486,10 +494,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         0
     }
 
-    public func addressName(chain: String, address: String) throws -> Gemstone.AddressName? {
-        addressNames.first { $0.chain.rawValue == chain && $0.address == address }?.map()
-    }
-
     public func validateRecipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?) -> GemRecipientValidation {
         rules.validateRecipient(chain: chain, input: input, nameRecord: nameRecord)
     }
@@ -543,6 +547,10 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
         GemTransferData(inputType: .stake(asset: asset, stakeType: stakeType), recipient: GemRecipient(address: ""), value: value, useMaxAmount: useMaxAmount)
+    }
+
+    public func delegationDestination(walletType _: Gemstone.WalletType, asset _: Gemstone.Asset, delegation _: Gemstone.Delegation) -> GemDelegationDestination {
+        .details
     }
 
     public func delegationActions(walletType _: Gemstone.WalletType, delegation _: Gemstone.Delegation) -> [Gemstone.GemDelegationAction] {
@@ -696,7 +704,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         isPerpetualEnabled && connects
     }
 
-    public func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+    private func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if trigger == .scheduled, updatedAt != nil {
             return false
         }
@@ -714,7 +722,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt = nil
     }
 
-    public func syncCurrentPositions() async throws {
+    private func syncCurrentPositions() async throws {
         syncPositionsCount += 1
     }
 
@@ -771,6 +779,10 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
 
     public func showsPnl(total: Gemstone.TotalFiatValue) -> Bool {
         total.value > 0 && total.pnlAmount != 0
+    }
+
+    public func headerButtons(wallet _: Gemstone.Wallet, isEnabled: Bool) -> [GemHeaderButton] {
+        [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }
     }
 
     public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}

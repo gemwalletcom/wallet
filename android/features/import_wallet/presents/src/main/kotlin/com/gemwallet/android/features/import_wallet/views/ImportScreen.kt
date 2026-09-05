@@ -44,8 +44,6 @@ import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
 import com.gemwallet.android.features.import_wallet.components.importTypeTabIndex
-import com.gemwallet.android.features.import_wallet.components.importWalletTabs
-import com.gemwallet.android.features.import_wallet.components.supportsPhraseSuggestions
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.model.ImportType
@@ -110,6 +108,7 @@ fun ImportScreen(
     ImportScene(
         inputState = inputState,
         importType = uiState.importType,
+        tabs = uiState.tabs,
         defaultWalletName = uiState.defaultWalletName,
         chainName = uiState.chainName,
         nameResolveState = nameResolveState,
@@ -166,6 +165,7 @@ fun ImportScreen(
 private fun ImportScene(
     inputState: MutableState<TextFieldValue>,
     importType: ImportType,
+    tabs: List<WalletType>,
     defaultWalletName: String,
     chainName: String,
     nameResolveState: NameRecordState,
@@ -210,7 +210,7 @@ private fun ImportScene(
                         .padding(bottom = 0.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    TypeSelection(importType) { walletType ->
+                    TypeSelection(importType, tabs) { walletType ->
                         onTypeChange(walletType)
                         inputState.value = TextFieldValue()
                     }
@@ -220,7 +220,7 @@ private fun ImportScene(
                     ErrorMessage(dataErrorState)
                 }
             }
-            if (importType.walletType == WalletType.View) {
+            if (importType.kind.showsViewOnlyWarning()) {
                 item {
                     Text(
                         modifier = Modifier.sectionHeaderItem(),
@@ -261,7 +261,7 @@ private fun DataInput(
             onChange()
             onInput(query.text)
 
-            if (!supportsPhraseSuggestions(importType.walletType)) {
+            if (!importType.kind.supportsPhraseSuggestions()) {
                 return@ImportInput
             }
 
@@ -279,7 +279,7 @@ private fun DataInput(
         },
     )
 
-    if (suggestions.isNotEmpty() && supportsPhraseSuggestions(importType.walletType)) {
+    if (suggestions.isNotEmpty() && importType.kind.supportsPhraseSuggestions()) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -302,19 +302,20 @@ private fun DataInput(
 @Composable
 private fun TypeSelection(
     importType: ImportType,
+    tabs: List<WalletType>,
     onTypeChange: (WalletType) -> Unit,
 ) {
-    if (importType.walletType == WalletType.Multicoin) {
+    if (tabs.size < 2) {
         return
     }
     PrimaryTabRow(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
-        selectedTabIndex = importTypeTabIndex(importType.walletType, importType.chain),
+        selectedTabIndex = importTypeTabIndex(importType.walletType, tabs),
         indicator = { Box {} },
         containerColor = Color.Transparent,
         divider = {}
     ) {
-        importWalletTabs(importType.chain).forEach { walletType ->
+        tabs.forEach { walletType ->
             WalletTypeTab(walletType, importType.walletType, onTypeChange)
         }
     }
@@ -366,6 +367,7 @@ fun PreviewImportAddress() {
             ImportScene(
                 inputState = remember { mutableStateOf(TextFieldValue()) },
                 importType = ImportType(chain = Chain.Bitcoin, walletType = WalletType.View),
+                tabs = listOf(WalletType.Single, WalletType.View),
                 defaultWalletName = "Wallet #1",
                 chainName = "Ethereum",
                 nameResolveState = NameRecordState.None,

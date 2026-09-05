@@ -26,6 +26,50 @@ pub enum GemAssetAction {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetType {
+    Send,
+    Receive,
+    ReceiveCollection,
+    Buy,
+    SwapPay,
+    SwapReceive,
+    Manage,
+    PriceAlert,
+    Deposit,
+    Withdraw,
+    WalletSearch,
+    WalletSearchResults,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectRowAction {
+    Navigate,
+    Toggle,
+    Select,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemSelectAssetFlow {
+    pub row_action: GemSelectRowAction,
+    pub action: Option<GemAssetAction>,
+    pub enables_price_alert: bool,
+    pub network_search: bool,
+    pub chain_filter: bool,
+    pub recents: bool,
+    pub popular_section: bool,
+    pub balance_filter: bool,
+    pub add_custom_token: bool,
+    pub deposit_asset_display: bool,
+}
+
+#[uniffi::export]
+impl GemSelectAssetType {
+    pub fn flow(&self) -> GemSelectAssetFlow {
+        super::rules::select_asset_flow(*self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetFilter {
     Enabled,
     Buyable,

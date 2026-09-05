@@ -44,11 +44,11 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
     }
 
     public var defaultFilters: [AssetsRequestFilter] {
-        type.flow().defaultFilters
+        type.presentation().defaultFilters
     }
 
     var showHasBalanceToggle: Bool {
-        type.flow().capabilities.contains(.balanceFilter)
+        type.flow.balanceFilter
     }
 
     var title: String {

@@ -12,6 +12,17 @@ struct FeeUnitViewModelTests {
     let usFormatter = NumericFormatter(locale: .US)
     let asset = Asset.mock()
 
+    @Test(arguments: [
+        (FeeUnitType.satVb, "sat/vB"),
+        (FeeUnitType.gwei, "gwei"),
+        (FeeUnitType.native, "BTC"),
+    ])
+    func suffix(type: FeeUnitType, expected: String) {
+        let model = FeeUnitViewModel(unit: FeeUnit(type: type, value: .zero), decimals: 0, symbol: "BTC")
+
+        #expect(model.suffix == expected)
+    }
+
     @Test
     func testValue() {
         #expect(

@@ -469,9 +469,9 @@ fee_rates_normal = عادی
 
 # Fee Rate
 
-fee_rate_satvB = %@ ساتوشی بر بایت
+fee_rate_satvB = ساتوشی بر بایت
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = سفارشی
 
 # Banner

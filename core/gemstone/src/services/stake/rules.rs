@@ -11,7 +11,7 @@ use primitives::{
 };
 use rand::seq::IndexedRandom;
 
-use super::model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemStakeAction, GemStakeActionItem};
+use super::model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationDestination, GemStakeAction, GemStakeActionItem};
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::transfer::rules as transfer_rules;
@@ -19,6 +19,16 @@ use crate::services::transfer::rules as transfer_rules;
 use crate::config::chain::account_activation_fee_url;
 use crate::config::stake::get_stake_config;
 use crate::config::validators::get_validators;
+
+pub fn delegation_destination(wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
+    if wallet_type == WalletType::View || delegation.base.state != DelegationState::AwaitingWithdrawal {
+        return GemDelegationDestination::Details;
+    }
+    let value = BigInt::from(delegation.base.balance.clone());
+    GemDelegationDestination::Withdraw {
+        transfer: transfer_rules::stake_transfer_data(asset, StakeType::Withdraw(delegation), value, false),
+    }
+}
 
 pub fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> Vec<GemDelegationAction> {
     if wallet_type == WalletType::View {
@@ -373,6 +383,27 @@ mod tests {
         assert!(shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100).base));
         assert!(!shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0).base));
         assert!(!shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Inactive, 100).base));
+    }
+
+    #[test]
+    fn test_a_delegation_tap_withdraws_only_an_awaiting_withdrawal_on_a_signing_wallet() {
+        let asset = Asset::from_chain(Chain::Solana);
+        let awaiting = delegation(Chain::Solana, StakeProviderType::Stake, DelegationState::AwaitingWithdrawal, 0);
+        let active = delegation(Chain::Solana, StakeProviderType::Stake, DelegationState::Active, 0);
+
+        assert!(matches!(
+            delegation_destination(WalletType::Multicoin, asset.clone(), active),
+            GemDelegationDestination::Details
+        ));
+        assert!(matches!(
+            delegation_destination(WalletType::View, asset.clone(), awaiting.clone()),
+            GemDelegationDestination::Details
+        ));
+        let GemDelegationDestination::Withdraw { transfer } = delegation_destination(WalletType::Multicoin, asset.clone(), awaiting.clone()) else {
+            panic!("expected a withdraw transfer");
+        };
+        assert_eq!(transfer.value, BigInt::from(awaiting.base.balance.clone()));
+        assert_eq!(transfer.recipient.address, awaiting.validator.id);
     }
 
     #[test]

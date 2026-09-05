@@ -7,8 +7,6 @@ import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.GemHeaderButton
-import uniffi.gemstone.GemHeaderButtonKind
 
 @Composable
 internal fun AssetsHead(
@@ -35,12 +33,7 @@ internal fun AssetsHead(
         actions = {
             AssetHeadActions(
                 isViewOnly = walletSummary.walletType == WalletType.View,
-                buttons = listOfNotNull(
-                    GemHeaderButtonKind.SEND,
-                    GemHeaderButtonKind.RECEIVE,
-                    GemHeaderButtonKind.BUY,
-                    GemHeaderButtonKind.SWAP.takeIf { walletSummary.isSwapAvailable },
-                ).map { GemHeaderButton(it, isEnabled = walletSummary.isOperationsAvailable) },
+                buttons = walletSummary.headerButtons,
                 onTransfer = onSendClick,
                 onReceive = onReceiveClick,
                 onBuy = onBuyClick,

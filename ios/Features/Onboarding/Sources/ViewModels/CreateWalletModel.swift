@@ -72,7 +72,7 @@ extension CreateWalletModel {
         let name = try await service.defaultWalletName(chain: .none)
         let result = try await service.importWallet(
             name: name.name,
-            type: .multicoinPhrase(words: words, chains: AssetConfiguration.allChains.map { $0.map() }),
+            type: try service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
             source: .create,
         )
         preferences.acceptTerms()

@@ -59,9 +59,6 @@ fun GemTransactionInputType.Companion.transfer(asset: Asset): GemTransactionInpu
 fun GemTransactionInputType.Companion.deposit(asset: Asset): GemTransactionInputType =
     GemTransactionInputType.Deposit(asset.toGem())
 
-fun GemTransactionInputType.Companion.withdrawal(asset: Asset): GemTransactionInputType =
-    GemTransactionInputType.Withdrawal(asset.toGem())
-
 fun GemTransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAsset): GemTransactionInputType =
     GemTransactionInputType.TransferNft(asset.toGem(), nftAsset.toGem())
 

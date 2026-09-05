@@ -388,9 +388,9 @@
   <string name="fee_rates_info">سرعت انجام تراکنش بر اساس کارمزدی که به ماینرهای شبکه پرداخت میشود مشخص میشود.</string>
   <string name="fee_rates_fast">سریع</string>
   <string name="fee_rates_normal">عادی</string>
-  <string name="fee_rate_satvB">%1$s ساتوشی بر بایت</string>
+  <string name="fee_rate_satvB">ساتوشی بر بایت</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">سفارشی</string>
   <string name="banner_account_activation_title">کارمزد فعال سازی حساب.</string>
   <string name="banner_account_activation_description">شبکه %1$s نیاز به کارمزد اولیه %2$s ای دارد.</string>

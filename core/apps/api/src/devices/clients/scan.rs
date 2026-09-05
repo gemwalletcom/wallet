@@ -45,7 +45,9 @@ impl ScanClient {
             return Ok(local_scan);
         }
 
-        let (address_target, poisoning_target, website_target) = Self::provider_targets(&payload);
+        let Some((address_target, poisoning_target, website_target)) = Self::provider_targets(&payload) else {
+            return Ok(local_scan);
+        };
         let (address_scans, poisoning_scans, website_scans) = future::join3(
             self.scan_address_providers(address_target.clone()),
             self.scan_address_poisoning_providers(poisoning_target),
@@ -108,7 +110,7 @@ impl ScanClient {
         })
     }
 
-    fn provider_targets(payload: &ScanTransactionPayload) -> (AddressTarget, Option<AddressPoisoningTarget>, Option<WebsiteTarget>) {
+    fn provider_targets(payload: &ScanTransactionPayload) -> Option<(AddressTarget, Option<AddressPoisoningTarget>, Option<WebsiteTarget>)> {
         let address = AddressTarget {
             chain: payload.target.asset_id.chain,
             address: payload.target.address.clone(),
@@ -118,15 +120,15 @@ impl ScanClient {
                 target: address.clone(),
                 user_address: payload.origin.address.clone(),
             }),
-            TransactionType::Swap
-            | TransactionType::TokenApproval
-            | TransactionType::StakeDelegate
+            TransactionType::StakeDelegate
             | TransactionType::StakeUndelegate
             | TransactionType::StakeRewards
             | TransactionType::StakeRedelegate
             | TransactionType::StakeWithdraw
             | TransactionType::StakeFreeze
-            | TransactionType::StakeUnfreeze
+            | TransactionType::StakeUnfreeze => return None,
+            TransactionType::Swap
+            | TransactionType::TokenApproval
             | TransactionType::AssetActivation
             | TransactionType::SmartContractCall
             | TransactionType::PerpetualOpenPosition
@@ -136,7 +138,7 @@ impl ScanClient {
             | TransactionType::EarnWithdraw => None,
         };
         let website = payload.website.clone().map(|website| WebsiteTarget { website });
-        (address, poisoning, website)
+        Some((address, poisoning, website))
     }
 
     fn is_scan_complete(enable: bool, has_address_scan: bool, scans: &[bool]) -> bool {
@@ -346,7 +348,7 @@ mod tests {
         );
 
         assert_eq!(
-            ScanClient::provider_targets(&payload),
+            ScanClient::provider_targets(&payload).unwrap(),
             (
                 AddressTarget {
                     chain: Chain::SmartChain,
@@ -367,6 +369,28 @@ mod tests {
     }
 
     #[test]
+    fn test_provider_targets_skip_staking() {
+        for transaction_type in [
+            TransactionType::StakeDelegate,
+            TransactionType::StakeUndelegate,
+            TransactionType::StakeRewards,
+            TransactionType::StakeRedelegate,
+            TransactionType::StakeWithdraw,
+            TransactionType::StakeFreeze,
+            TransactionType::StakeUnfreeze,
+        ] {
+            let payload = payload(
+                AssetId::from_chain(Chain::Monad),
+                AssetId::from_chain(Chain::Monad),
+                Some("https://example.com"),
+                transaction_type,
+            );
+
+            assert_eq!(ScanClient::provider_targets(&payload), None);
+        }
+    }
+
+    #[test]
     fn test_provider_targets_skip_poisoning_for_contract_calls() {
         let payload = payload(
             AssetId::from_chain(Chain::Ethereum),
@@ -375,6 +399,6 @@ mod tests {
             TransactionType::Swap,
         );
 
-        assert_eq!(ScanClient::provider_targets(&payload).1, None);
+        assert_eq!(ScanClient::provider_targets(&payload).unwrap().1, None);
     }
 }

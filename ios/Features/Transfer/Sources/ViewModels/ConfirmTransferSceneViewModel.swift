@@ -7,6 +7,7 @@ import Foundation
 import struct Gemstone.GemConfirmData
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmLoadOptions
+import protocol Gemstone.GemConfirmSessionProtocol
 import struct Gemstone.GemConfirmSimulationState
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import enum Gemstone.GemExecuteResult
@@ -60,16 +61,19 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     private let service: any GemConfirmTransferServiceProtocol
+    private let session: any GemConfirmSessionProtocol
 
     public init(
         request: ConfirmTransferRequest,
         wallet: Wallet,
         service: any GemConfirmTransferServiceProtocol,
+        session: any GemConfirmSessionProtocol,
         onComplete: VoidAction,
     ) {
         self.request = request
         self.wallet = wallet
         self.service = service
+        self.session = session
         self.onComplete = onComplete
 
         feeSelection = .priority(priority: request.data.inputType.defaultFeePriority())
@@ -159,7 +163,7 @@ public final class ConfirmTransferSceneViewModel {
             feeRates: state.confirmData?.feeRateRows(selection: feeSelection, feeAsset: state.feeAsset.map()),
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.transaction.value?.fee.fee,
-            feeAssets: state.feeAssets.compactMap { try? $0.feeAssetItem(currency: currency) },
+            feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: currency) },
             onSelect: { [weak self] in self?.feeSelection = $0 },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )
@@ -288,22 +292,14 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func load() async {
-        state.transaction = .loading
         do {
-            state = try ConfirmTransferState(
-                await service.initialState(transfer: request.data, simulation: request.simulation?.json()),
-            )
-            state = try ConfirmTransferState(
-                await service.load(
-                    input: service.confirmInput(wallet: wallet.map(), transfer: request.data),
-                    options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection),
-                    simulation: request.simulation?.json(),
-                ),
-            )
+            state = try ConfirmTransferState(await session.state())
+            state.transaction = .loading
+            state = try ConfirmTransferState(await session.load(options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection)))
         } catch {
             guard !Task.isCancelled else { return }
             state.transaction.setError(error)
-            debugLog("preload transaction error: \(error)")
+            debugLog("confirm load error: \(error)")
         }
     }
 

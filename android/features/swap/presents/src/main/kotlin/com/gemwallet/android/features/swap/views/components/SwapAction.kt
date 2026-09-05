@@ -34,7 +34,7 @@ internal fun SwapAction(
                 text = when (swapState.buttonAction) {
                     GemSwapButtonAction.InsufficientBalance ->
                         stringResource(R.string.transfer_insufficient_balance, pay?.asset?.symbol ?: "")
-                    is GemSwapButtonAction.UseMinimumAmount -> stringResource(R.string.stake_minimum_amount)
+                    is GemSwapButtonAction.UseMinimumAmount -> stringResource(R.string.swap_use_minimum_amount)
                     GemSwapButtonAction.RetryQuote,
                     GemSwapButtonAction.RetryTransfer -> stringResource(R.string.common_try_again)
                     GemSwapButtonAction.Swap -> stringResource(R.string.wallet_swap)

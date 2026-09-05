@@ -1,17 +1,16 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import uniffi.gemstone.GemAssetSelectionServiceInterface
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class AssetSelectViewModel @Inject constructor(
+class ReceiveSelectViewModel @Inject constructor(
     getSession: GetSession,
     searchSelectAssets: SearchSelectAssets,
     getRecentAssets: GetRecentAssets,
@@ -21,4 +20,5 @@ class AssetSelectViewModel @Inject constructor(
     getRecentAssets,
     service,
     BaseSelectSearch(searchSelectAssets),
+    GemSelectAssetType.RECEIVE,
 )

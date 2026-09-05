@@ -16,6 +16,7 @@ import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
+import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemTransferData
@@ -63,6 +64,7 @@ class ConfirmViewModelRetryTest {
     private val asset = mockAssetHyperCoreUBTC()
     private val account = mockAccount(chain = Chain.HyperCore)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
+    private val confirmSession = mockk<GemConfirmSession>()
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -79,14 +81,14 @@ class ConfirmViewModelRetryTest {
         )
         val viewModel = viewModel(transfer)
         runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { confirmService.load(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 1) { confirmSession.load(any()) }
 
         assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
-        coVerify(timeout = 5_000, exactly = 2) { confirmService.load(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 2) { confirmSession.load(any()) }
         assertTrue(viewModel.state.first { it is ConfirmState.Ready } is ConfirmState.Ready)
         assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
     }
@@ -94,10 +96,10 @@ class ConfirmViewModelRetryTest {
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
-        every { confirmService.confirmInput(any(), transfer) } returns input
-        coEvery { confirmService.initialState(any(), any()) } returns mockGemConfirmLoad(asset)
+        every { confirmService.session(any(), transfer, any()) } returns confirmSession
+        coEvery { confirmSession.state() } returns mockGemConfirmLoad(asset, preload = null)
         var calls = 0
-        coEvery { confirmService.load(any(), any(), any()) } answers {
+        coEvery { confirmSession.load(any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")

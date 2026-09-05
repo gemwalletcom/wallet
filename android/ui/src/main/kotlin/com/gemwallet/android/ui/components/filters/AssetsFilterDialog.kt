@@ -18,6 +18,7 @@ fun AssetsFilter(
     availableChains: List<Chain>,
     chainFilter: List<Chain>,
     balanceFilter: Boolean,
+    showBalanceFilter: Boolean,
     onDismissRequest: () -> Unit,
     onChainFilter: (Chain) -> Unit,
     onBalanceFilter: (Boolean) -> Unit,
@@ -32,7 +33,9 @@ fun AssetsFilter(
         onClear = onClearFilters,
     ) {
         availableChains.takeIf { it.size > 1 }?.let { SearchBar(query) }
-        HasBalances(isActive = balanceFilter, onBalanceFilter)
+        if (showBalanceFilter) {
+            HasBalances(isActive = balanceFilter, onBalanceFilter)
+        }
         LazyColumn(modifier = Modifier.Companion.fillMaxSize()) {
             selectFilterChain(availableChains, chainFilter, query.text.toString(), chainService, onChainFilter)
         }

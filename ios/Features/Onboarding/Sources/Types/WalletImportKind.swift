@@ -1,20 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemWalletImportKind
 import Localization
-import SwiftUI
 
-enum WalletImportType: String, Hashable, CaseIterable, Identifiable {
-    var id: String {
-        rawValue
-    }
-
-    case phrase
-    case address
-    case privateKey
-}
-
-extension WalletImportType {
+extension GemWalletImportKind {
     var title: String {
         switch self {
         case .phrase: Localized.Common.phrase
@@ -29,18 +19,5 @@ extension WalletImportType {
         case .privateKey: Localized.Common.privateKey
         case .address: Localized.Common.address
         }
-    }
-
-    var showToolbar: Bool {
-        switch self {
-        case .phrase: true
-        case .privateKey, .address: false
-        }
-    }
-}
-
-extension WalletImportType: Equatable {
-    static func == (lhs: WalletImportType, rhs: WalletImportType) -> Bool {
-        lhs.id == rhs.id
     }
 }

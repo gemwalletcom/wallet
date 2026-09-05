@@ -56,6 +56,7 @@ class WalletConnectCoordinator(
 
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
+    private val approvingWallet = MutableStateFlow<Wallet?>(null)
     val bridgeEvents = isWalletConnectInit.flatMapLatest {
         if (it) {
             merge(walletConnectClient.events, pendingEvents)
@@ -77,6 +78,7 @@ class WalletConnectCoordinator(
             bridgeEvents.collect { event ->
                 when (event) {
                     is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
+                    is WalletConnectEvent.SessionSettled -> storeSettledSession(event.session)
                     else -> Unit
                 }
             }
@@ -252,6 +254,7 @@ class WalletConnectCoordinator(
         onError: (String) -> Unit,
         approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit,
     ) {
+        approvingWallet.value = wallet
         val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
         approve(
             { persistNewSessions(wallet, activeBefore, failureMessage, onSuccess, onError) },
@@ -280,9 +283,19 @@ class WalletConnectCoordinator(
     private suspend fun addNewSessions(wallet: Wallet, activeBefore: Set<String>) {
         activeSessions().orEmpty()
             .filter { it.topic !in activeBefore }
-            .mapNotNull { it.toConnectionSession(walletConnectService) }
-            .forEach { session ->
-                walletConnectService.addConnection(WalletConnection(session = session, wallet = wallet).toGem())
-            }
+            .forEach { storeSession(it, wallet) }
+    }
+
+    private suspend fun storeSettledSession(session: WalletConnectSession) {
+        val wallet = approvingWallet.value ?: return
+        storeSession(session, wallet)
+    }
+
+    private suspend fun storeSession(session: WalletConnectSession, wallet: Wallet) {
+        if (connectionStore.getConnectionBySessionId(session.topic) != null) {
+            return
+        }
+        val connectionSession = session.toConnectionSession(walletConnectService) ?: return
+        walletConnectService.addConnection(WalletConnection(session = connectionSession, wallet = wallet).toGem())
     }
 }

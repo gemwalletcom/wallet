@@ -219,7 +219,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected network fee item model for error state")
         }
 
-        model.state = .mock(transaction: .data(.mock()))
+        model.state = .mock(transaction: .data(.mock()), load: .mock())
         let loadedFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = loadedFeeItem?.itemModel {
@@ -268,6 +268,70 @@ struct ConfirmTransferSceneViewModelTests {
 
         #expect(model.state.simulation.warnings.isEmpty)
         #expect(model.state.transaction.value?.confirmData.feeRates.map(\.priority) == priorities)
+    }
+
+    @Test
+    func reloadKeepsTheLoadedFeeRowUntilTheSessionAnswers() async {
+        let data = GemTransferData.mock()
+        let wallet = Wallet.mock(accounts: [.mock(chain: data.chain)])
+        let session = GemConfirmSessionMock(
+            state: .mock(preload: nil),
+            load: .success(.mock(preload: .mock(confirmData: .mock(feeRates: [
+                GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
+                GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
+            ])))),
+        )
+        let model = ConfirmTransferSceneViewModel(
+            request: ConfirmTransferRequest(data: data, simulation: nil),
+            wallet: wallet,
+            service: GemConfirmTransferServiceMock(wallet: wallet),
+            session: session,
+            onComplete: nil,
+        )
+        await model.load()
+
+        await confirmation { reloading in
+            session.onLoad = {
+                let feeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
+                guard case let .networkFee(listItem, selectable) = feeItem?.itemModel else { return }
+                #expect(model.state.transaction.isLoading)
+                #expect(model.state.confirmData != nil)
+                #expect(listItem.hasSubtitlePlaceholder)
+                #expect(selectable)
+                reloading()
+            }
+            model.feeSelection = .priority(priority: .fast)
+            await model.load()
+        }
+        #expect(model.state.transaction.value?.confirmData.feeRates.count == 2)
+    }
+
+    @Test
+    func firstLoadShowsTheScreenBeforeThePreloadArrives() async {
+        let data = GemTransferData.mock()
+        let wallet = Wallet.mock(accounts: [.mock(chain: data.chain)])
+        let session = GemConfirmSessionMock(
+            state: .mock(addressName: .mock(name: "vitalik.eth"), preload: nil),
+            load: .success(.mock(addressName: .mock(name: "vitalik.eth"))),
+        )
+        let model = ConfirmTransferSceneViewModel(
+            request: ConfirmTransferRequest(data: data, simulation: nil),
+            wallet: wallet,
+            service: GemConfirmTransferServiceMock(wallet: wallet),
+            session: session,
+            onComplete: nil,
+        )
+
+        await confirmation { preloading in
+            session.onLoad = {
+                #expect(model.state.transaction.isLoading)
+                #expect(model.state.addressName?.name == "vitalik.eth")
+                preloading()
+            }
+            await model.load()
+        }
+        #expect(model.state.transaction.value != nil)
+        #expect(model.state.addressName?.name == "vitalik.eth")
     }
 
     @Test

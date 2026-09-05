@@ -14,8 +14,15 @@ struct SwapSlippageViewModelTests {
         let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .auto) { _ in }
 
         #expect(model.isAuto)
-        #expect(model.selectedBps == 100)
-        #expect(model.inputModel.text == "1")
+        #expect(model.inputModel.text.isEmpty)
+        #expect(model.placeholder == "1")
+
+        model.isAuto = false
+
+        #expect(model.inputModel.text.isEmpty)
+        #expect(model.isConfirmEnabled == false)
+        #expect(model.errorText == nil)
+        #expect(model.warningText == nil)
     }
 
     @Test

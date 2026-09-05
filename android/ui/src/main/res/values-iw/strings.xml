@@ -388,9 +388,9 @@
   <string name="fee_rates_info">מהירות העסקה נקבעת לפי עמלת הרשת המשולמת לכורי הרשת.</string>
   <string name="fee_rates_fast">מהר</string>
   <string name="fee_rates_normal">רגיל</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">מותאם אישית</string>
   <string name="banner_account_activation_title">עמלת הפעלת חשבון</string>
   <string name="banner_account_activation_description">הרשת %1$s דורשת תשלום חד פעמי של %2$s.</string>

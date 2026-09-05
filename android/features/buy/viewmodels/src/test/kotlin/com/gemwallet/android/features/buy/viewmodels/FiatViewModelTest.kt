@@ -5,24 +5,22 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.buy.viewmodels.models.BuyError
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.GemNetworkError
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFiatQuote
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuoteType
 import io.mockk.coEvery
@@ -36,21 +34,26 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runCurrent
-import uniffi.gemstone.GemFiatAmountCheck
-import uniffi.gemstone.GemFiatQuoteServiceInterface
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.net.UnknownHostException
+import uniffi.gemstone.GemFiatButtonAction
+import uniffi.gemstone.GemFiatOperation
+import uniffi.gemstone.GemFiatQuotePhase
+import uniffi.gemstone.GemFiatQuoteServiceInterface
+import uniffi.gemstone.GemFiatSession
+import uniffi.gemstone.GemServiceException
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FiatViewModelTest {
@@ -71,10 +74,8 @@ class FiatViewModelTest {
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { getCurrency() } returns Currency.USD.toGem()
         every { config() } returns uniffi.gemstone.FiatConfig(50, 100, 5, 10000, 1000, listOf(100, 250), 10)
-        every { defaultAmount(FiatQuoteType.Buy.toGem()) } returns 50u
-        every { defaultAmount(FiatQuoteType.Sell.toGem()) } returns 100u
+        every { newSession(any(), any()) } answers { session(firstArg(), secondArg()) }
         every { randomAmount() } returns 500u
-        every { amountCheck(any(), any(), any(), any()) } returns GemFiatAmountCheck.Valid
         every { quoteDebounceMilliseconds() } returns 250uL
         every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
         coEvery { quotes(any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
@@ -122,6 +123,7 @@ class FiatViewModelTest {
         try {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
+            coVerify(exactly = 0) { service.quotes(any(), any(), any()) }
 
             assetDataFlow.value = assetData(price = 100.0)
             advanceTimeBy(DebounceSettleMs)
@@ -185,13 +187,15 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertTrue(viewModel.quotes.value.isNotEmpty())
+            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
             viewModel.updateAmount("75")
             runCurrent()
 
             assertTrue(viewModel.quotes.value.isEmpty())
-            assertEquals(FiatSceneState.Loading, viewModel.state.value)
-            assertEquals(null, viewModel.selectedProvider.value)
+            assertEquals(GemFiatQuotePhase.Loading(75.0), viewModel.uiState.value.phase)
+            assertEquals(ButtonState.Loading, viewModel.uiState.value.buttonState)
+            assertNull(viewModel.selectedProvider.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -199,23 +203,24 @@ class FiatViewModelTest {
 
     @Test
     fun `quote request failure is distinct from an empty quote list and can retry`() = runTest(testDispatcher) {
-        coEvery { service.quotes(any(), any(), any()) } throws UnknownHostException("offline")
+        coEvery { service.quotes(any(), any(), any()) } throws GemServiceException.Api("offline")
         val viewModel = createViewModel()
 
         try {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals(
-                FiatSceneState.Error(BuyError.QuoteRequestFailed(GemNetworkError.Offline)),
-                viewModel.state.value,
-            )
+            val failed = viewModel.uiState.value.phase as GemFiatQuotePhase.Failed
+            assertEquals("offline", (failed.error as GemServiceException.Api).msg)
+            assertEquals(GemFiatButtonAction.RETRY_QUOTE, viewModel.uiState.value.buttonAction)
+            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
             coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
             viewModel.retry()
             runCurrent()
 
-            assertEquals(FiatSceneState.Ready, viewModel.state.value)
+            assertEquals(GemFiatQuotePhase.Ready, viewModel.uiState.value.phase)
+            assertEquals(GemFiatButtonAction.CONTINUE, viewModel.uiState.value.buttonAction)
             assertTrue(viewModel.quotes.value.isNotEmpty())
             coVerify(exactly = 2) {
                 service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
@@ -234,7 +239,8 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals(FiatSceneState.Error(BuyError.QuoteNotAvailable), viewModel.state.value)
+            assertEquals(GemFiatQuotePhase.NoQuotes, viewModel.uiState.value.phase)
+            assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -343,6 +349,19 @@ class FiatViewModelTest {
             getAssetPriceUsd = getAssetPriceUsd,
             service = service,
             savedStateHandle = SavedStateHandle(arguments),
+        )
+    }
+
+    private fun session(quoteType: uniffi.gemstone.FiatQuoteType, amount: UInt?): GemFiatSession {
+        val operation = { type: uniffi.gemstone.FiatQuoteType, default: UInt ->
+            val value = amount?.takeIf { type == quoteType } ?: default
+            GemFiatOperation(type, value.toString(), emptyList(), null, GemFiatQuotePhase.Loading(value.toDouble()))
+        }
+        return GemFiatSession(
+            quoteType = quoteType,
+            buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u),
+            sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u),
+            available = BigInteger.ZERO,
         )
     }
 

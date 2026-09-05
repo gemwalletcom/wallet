@@ -388,9 +388,9 @@
   <string name="fee_rates_info">거래 속도는 네트워크 채굴자에게 지불되는 네트워크 수수료에 따라 결정됩니다.</string>
   <string name="fee_rates_fast">빠르게</string>
   <string name="fee_rates_normal">보통</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">사용자 지정</string>
   <string name="banner_account_activation_title">계정 활성화 수수료</string>
   <string name="banner_account_activation_description">%1$s 네트워크에는 %2$s 의 일회성 수수료가 필요합니다.</string>

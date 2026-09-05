@@ -14,8 +14,3 @@ pub fn encode_private_key(chain: Chain, private_key: Vec<u8>) -> Result<String, 
     let private_key = Zeroizing::new(private_key);
     signer::encode_private_key(&chain, &private_key).map_err(GemstoneError::from)
 }
-
-#[uniffi::export]
-pub fn supports_private_key_import(chain: Chain) -> bool {
-    signer::supports_private_key_import(&chain)
-}

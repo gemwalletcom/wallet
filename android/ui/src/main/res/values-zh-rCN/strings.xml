@@ -388,9 +388,9 @@
   <string name="fee_rates_info">交易速度取决于向矿工支付的网络费用</string>
   <string name="fee_rates_fast">极速</string>
   <string name="fee_rates_normal">普通</string>
-  <string name="fee_rate_satvB">%1$s 聪/vB</string>
+  <string name="fee_rate_satvB">聪/vB</string>
   <string name="fee_rate_satB">%1$s 聪/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">自定义</string>
   <string name="banner_account_activation_title">账户激活费用</string>
   <string name="banner_account_activation_description">%1$s 网络需要一次性费用 %2$s。</string>

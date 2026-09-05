@@ -47,10 +47,6 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).badgeChain.flatMap { Primitives.Chain(rawValue: $0) }
     }
 
-    var defaultAssets: [Primitives.Asset] {
-        GemAssetConfigService.shared.walletDefaultAssets(chain: map()).map { $0.map() }
-    }
-
     func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {
         guard let asset = GemAssetConfigService.shared.defaultAsset(chain: map(), assetType: type.map()) else {
             preconditionFailure("Missing \(type) default asset for \(self)")
@@ -58,9 +54,6 @@ public extension Primitives.Chain {
         return asset.map()
     }
 
-    var isPrivateKeyImportSupported: Bool {
-        Gemstone.supportsPrivateKeyImport(chain: rawValue)
-    }
 }
 
 private extension Primitives.Chain {

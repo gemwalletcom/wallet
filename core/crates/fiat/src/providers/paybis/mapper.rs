@@ -30,7 +30,7 @@ fn map_symbol_to_asset_id(symbol: &str) -> Option<AssetId> {
         "LTC" => Some(AssetId::from_chain(Chain::Litecoin)),
         "DOT" => Some(AssetId::from_chain(Chain::Polkadot)),
         "CELO" => Some(AssetId::from_chain(Chain::Celo)),
-        "TON" => Some(AssetId::from_chain(Chain::Ton)),
+        "GRAM" => Some(AssetId::from_chain(Chain::Ton)),
         "DOGE" => Some(AssetId::from_chain(Chain::Doge)),
         "AVAX" | "AVAXC" => Some(AssetId::from_chain(Chain::AvalancheC)),
         "ETH-BASE" => Some(AssetId::from_chain(Chain::Base)),
@@ -256,7 +256,7 @@ mod tests {
         assert_eq!(map_symbol_to_asset_id("SOL"), Some(AssetId::from_chain(Chain::Solana)));
         assert_eq!(map_symbol_to_asset_id("ADA"), Some(AssetId::from_chain(Chain::Cardano)));
         assert_eq!(map_symbol_to_asset_id("DOT"), Some(AssetId::from_chain(Chain::Polkadot)));
-        assert_eq!(map_symbol_to_asset_id("TON"), Some(AssetId::from_chain(Chain::Ton)));
+        assert_eq!(map_symbol_to_asset_id("GRAM"), Some(AssetId::from_chain(Chain::Ton)));
         assert_eq!(map_symbol_to_asset_id("DOGE"), Some(AssetId::from_chain(Chain::Doge)));
 
         assert_eq!(map_symbol_to_asset_id("ARB"), Some(ARBITRUM_ARB_ASSET_ID.clone()));
@@ -433,6 +433,19 @@ mod tests {
         assert!(limits.iter().any(|limit| limit.payment_type == PaymentType::Card));
         assert!(limits.iter().any(|limit| limit.payment_type == PaymentType::ApplePay));
         assert!(limits.iter().any(|limit| limit.payment_type == PaymentType::GooglePay));
+    }
+
+    #[test]
+    fn test_map_gram_asset() {
+        let currency = serde_json::from_str(include_str!("../../../testdata/paybis/currency_gram.json")).unwrap();
+        let assets = map_assets(vec![currency], HashSet::from(["GRAM".to_string()]));
+        let asset = &assets[0];
+
+        assert_eq!(asset.asset_id(), Some(AssetId::from_chain(Chain::Ton)));
+        assert_eq!(asset.id, "GRAM");
+        assert_eq!(asset.symbol, "GRAM");
+        assert!(asset.is_buy_enabled);
+        assert!(asset.is_sell_enabled);
     }
 
     #[test]

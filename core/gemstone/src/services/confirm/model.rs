@@ -168,6 +168,7 @@ pub enum GemTransferAmountResult {
     Error { error: GemConfirmError },
 }
 
+#[derive(Debug, Clone)]
 pub struct GemConfirmFeeLoad {
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,

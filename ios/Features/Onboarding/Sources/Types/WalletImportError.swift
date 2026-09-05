@@ -15,6 +15,8 @@ extension GemWalletImportError: @retroactive LocalizedError {
             Localized.Errors.Import.invalidPrivateKey
         case .InvalidAddress:
             Localized.Errors.invalidAddressName
+        case .MissingChain:
+            Localized.Errors.unknown
         }
     }
 }

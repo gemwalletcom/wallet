@@ -70,7 +70,7 @@ fun WalletSearchScreen(
 
     val handleAction: (WalletSearchAction) -> Unit = { action ->
         when (action) {
-            is WalletSearchAction.PinAsset -> viewModel.onPinAsset(action.assetId)
+            is WalletSearchAction.PinAsset -> viewModel.onTogglePin(action.assetId)
             is WalletSearchAction.AddToWallet -> viewModel.onAddToWallet(action.assetId)
             is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.perpetualId)
             WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())

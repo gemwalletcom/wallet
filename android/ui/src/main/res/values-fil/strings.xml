@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Ang bilis ng transaksyon ay tinutukoy ng bayad sa network na binabayaran sa mga minero ng network.</string>
   <string name="fee_rates_fast">Mabilis</string>
   <string name="fee_rates_normal">Normal</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Pasadya</string>
   <string name="banner_account_activation_title">Bayarin sa Pag-activate ng Account</string>
   <string name="banner_account_activation_description">Ang %1$s network ay nangangailangan ng isang beses na bayad na %2$s.</string>

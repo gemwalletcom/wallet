@@ -33,6 +33,8 @@ public struct SuffixTextField<Field: Hashable>: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .focused(focusedField, equals: field)
+            Spacer()
+                .frame(width: .tiny)
             Text(suffix)
                 .foregroundStyle(Colors.gray)
         }

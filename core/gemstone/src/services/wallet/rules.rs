@@ -1,8 +1,8 @@
 use gem_keystore::Mnemonic;
-use primitives::{Account, AddressName, AddressType, Chain, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::GemWalletImportType;
+use super::model::{GemWalletImportKind, GemWalletImportType};
 use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -33,6 +33,52 @@ impl GemWalletImportType {
             }
         }
     }
+}
+
+pub fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
+    match chain {
+        None => vec![GemWalletImportKind::Phrase],
+        Some(chain) => [
+            Some(GemWalletImportKind::Phrase),
+            signer::supports_private_key_import(&chain).then_some(GemWalletImportKind::PrivateKey),
+            Some(GemWalletImportKind::Address),
+        ]
+        .into_iter()
+        .flatten()
+        .collect(),
+    }
+}
+
+pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &str, name_record: Option<&NameRecord>) -> Result<GemWalletImportType, GemWalletImportError> {
+    let words = || input.split_whitespace().map(str::to_string).collect();
+    match (kind, chain) {
+        (GemWalletImportKind::Phrase, None) => Ok(GemWalletImportType::MulticoinPhrase {
+            words: words(),
+            chains: Chain::all(),
+        }),
+        (GemWalletImportKind::Phrase, Some(chain)) => Ok(GemWalletImportType::SinglePhrase { words: words(), chain }),
+        (GemWalletImportKind::PrivateKey, Some(chain)) => Ok(GemWalletImportType::PrivateKey {
+            value: input.trim().to_string(),
+            chain,
+        }),
+        (GemWalletImportKind::Address, Some(chain)) => Ok(GemWalletImportType::Address {
+            address: name_record
+                .map(|record| record.address.trim())
+                .filter(|address| !address.is_empty())
+                .unwrap_or(input.trim())
+                .to_string(),
+            chain,
+        }),
+        (GemWalletImportKind::PrivateKey | GemWalletImportKind::Address, None) => Err(GemWalletImportError::MissingChain),
+    }
+}
+
+pub fn import_name(name_record: Option<&NameRecord>, default_name: String) -> String {
+    name_record
+        .map(|record| record.name.trim())
+        .filter(|name| !name.is_empty())
+        .map(str::to_string)
+        .unwrap_or(default_name)
 }
 
 fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportError> {
@@ -156,6 +202,70 @@ pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: Wa
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::NameProvider;
+
+    fn record(name: &str, address: &str) -> NameRecord {
+        NameRecord {
+            name: name.to_string(),
+            chain: Chain::Ethereum,
+            address: address.to_string(),
+            provider: NameProvider::Ens,
+        }
+    }
+
+    #[test]
+    fn test_import_kinds_offer_a_private_key_only_where_the_chain_supports_it() {
+        assert_eq!(import_kinds(None), vec![GemWalletImportKind::Phrase]);
+        assert_eq!(
+            import_kinds(Some(Chain::Ethereum)),
+            vec![GemWalletImportKind::Phrase, GemWalletImportKind::PrivateKey, GemWalletImportKind::Address]
+        );
+        assert_eq!(import_kinds(Some(Chain::Bitcoin)), vec![GemWalletImportKind::Phrase, GemWalletImportKind::Address]);
+        assert!(GemWalletImportKind::Phrase.protects_input() && GemWalletImportKind::PrivateKey.protects_input());
+        assert!(!GemWalletImportKind::Address.protects_input());
+        assert!(GemWalletImportKind::Phrase.supports_phrase_suggestions() && !GemWalletImportKind::Address.supports_phrase_suggestions());
+        assert!(GemWalletImportKind::Address.shows_view_only_warning() && !GemWalletImportKind::Phrase.shows_view_only_warning());
+    }
+
+    #[test]
+    fn test_import_request_splits_words_and_prefers_the_resolved_address() {
+        let phrase = " alpha  bravo\tcharlie ";
+        assert!(matches!(
+            import_request(GemWalletImportKind::Phrase, None, phrase, None),
+            Ok(GemWalletImportType::MulticoinPhrase { words, chains }) if words == ["alpha", "bravo", "charlie"] && chains == Chain::all()
+        ));
+        assert!(matches!(
+            import_request(GemWalletImportKind::Phrase, Some(Chain::Solana), phrase, None),
+            Ok(GemWalletImportType::SinglePhrase { words, chain: Chain::Solana }) if words.len() == 3
+        ));
+        assert!(matches!(
+            import_request(GemWalletImportKind::PrivateKey, Some(Chain::Ethereum), " 0xabc ", None),
+            Ok(GemWalletImportType::PrivateKey { value, chain: Chain::Ethereum }) if value == "0xabc"
+        ));
+        assert!(matches!(
+            import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), "vitalik.eth", Some(&record("vitalik.eth", "0xd8dA"))),
+            Ok(GemWalletImportType::Address { address, chain: Chain::Ethereum }) if address == "0xd8dA"
+        ));
+        assert!(matches!(
+            import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), " 0x123 ", Some(&record("", ""))),
+            Ok(GemWalletImportType::Address { address, .. }) if address == "0x123"
+        ));
+        assert!(matches!(
+            import_request(GemWalletImportKind::Address, None, "0x123", None),
+            Err(GemWalletImportError::MissingChain)
+        ));
+        assert!(matches!(
+            import_request(GemWalletImportKind::PrivateKey, None, "0x123", None),
+            Err(GemWalletImportError::MissingChain)
+        ));
+    }
+
+    #[test]
+    fn test_import_name_uses_the_resolved_name_unless_it_is_blank() {
+        assert_eq!(import_name(Some(&record("vitalik.eth", "0x1")), "Wallet #2".to_string()), "vitalik.eth");
+        assert_eq!(import_name(Some(&record("  ", "0x1")), "Wallet #2".to_string()), "Wallet #2");
+        assert_eq!(import_name(None, "Wallet #2".to_string()), "Wallet #2");
+    }
 
     const PHRASE: &str = "test test test test test test test test test test test junk";
 

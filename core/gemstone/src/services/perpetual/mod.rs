@@ -86,14 +86,6 @@ impl GemPerpetualService {
         failures
     }
 
-    pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
-        if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
-            return Ok(false);
-        }
-        self.sync_markets(chain).await?;
-        Ok(true)
-    }
-
     pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
@@ -111,14 +103,6 @@ impl GemPerpetualService {
         self.store.set_pinned(vec![perpetual_id], pinned).await
     }
 
-    pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
-        let wallet = self.session.current_wallet().await?;
-        let Some(account) = hyperliquid_account(&wallet.accounts) else {
-            return Ok(());
-        };
-        self.sync_positions(wallet.id, account.chain, account.address.clone()).await.map(|_| ())
-    }
-
     pub async fn connection(&self, wallet: Wallet) -> Result<Option<GemPerpetualConnection>, GemServiceError> {
         let Some(account) = hyperliquid_account(&wallet.accounts) else {
             return Ok(None);
@@ -134,6 +118,22 @@ impl GemPerpetualService {
 }
 
 impl GemPerpetualService {
+    pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
+        if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
+            return Ok(false);
+        }
+        self.sync_markets(chain).await?;
+        Ok(true)
+    }
+
+    pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
+        let wallet = self.session.current_wallet().await?;
+        let Some(account) = hyperliquid_account(&wallet.accounts) else {
+            return Ok(());
+        };
+        self.sync_positions(wallet.id, account.chain, account.address.clone()).await.map(|_| ())
+    }
+
     pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
         let currency = self.preferences.get_currency();
         let data = self.gateway.get_perpetuals_data(chain).await?;
