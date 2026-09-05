@@ -92,6 +92,7 @@ import class Gemstone.GemAddAssetService
 import class Gemstone.GemAssetSelectionService
 import class Gemstone.GemBannerService
 import class Gemstone.GemTransactionsService
+import enum Gemstone.GemRecipientType
 import struct Gemstone.GemTransferData
 
 public struct ViewModelFactory: Sendable {
@@ -618,7 +619,7 @@ public struct ViewModelFactory: Sendable {
     public func recipientScene(
         wallet: Wallet,
         asset: Asset,
-        type: RecipientAssetType,
+        type: GemRecipientType,
         recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,

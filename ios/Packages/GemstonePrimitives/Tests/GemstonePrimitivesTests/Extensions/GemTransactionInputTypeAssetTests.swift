@@ -16,13 +16,6 @@ struct GemTransactionInputTypeAssetTests {
         }
     }
 
-    @Test
-    func localAssetIsTheNativeAssetForAnNftTransfer() {
-        let nftAsset = NFTAsset.mock()
-
-        #expect(GemTransactionInputType.transferNft(nftAsset).asset == nftAsset.chain.asset)
-    }
-
     private var cases: [GemTransactionInputType] {
         let asset = Asset.mock()
         return [
@@ -32,7 +25,7 @@ struct GemTransactionInputTypeAssetTests {
             .swap(asset, .mockEthereum(), .mock()),
             .stake(asset, .rewards([])),
             .tokenApprove(asset, .mock()),
-            .transferNft(.mock()),
+            .transferNft(asset: NFTAsset.mock().chain.asset.map(), nftAsset: NFTAsset.mock().map()),
         ]
     }
 }

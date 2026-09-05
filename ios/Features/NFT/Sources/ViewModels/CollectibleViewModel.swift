@@ -216,7 +216,7 @@ extension CollectibleViewModel {
         switch type {
         case .send:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
-                type: .send(.nft(assetData.asset)),
+                type: .send(.nft(nftAsset: assetData.asset.map())),
                 assetData: .with(asset: account.chain.asset, account: account),
             )
         case .buy, .sell, .receive, .swap, .stake, .more, .deposit, .withdraw:

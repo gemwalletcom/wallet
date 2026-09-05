@@ -3,9 +3,9 @@
 import enum Gemstone.GemImage
 import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemRecipient
-import BigInt
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemRecipientServiceProtocol
+import enum Gemstone.GemRecipientType
 import Components
 import Foundation
 import GemstonePrimitives
@@ -16,7 +16,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import struct Gemstone.GemTransferData
 
 public typealias RecipientDataAction = ((GemPaymentRecipient) -> Void)?
 
@@ -25,7 +24,7 @@ public typealias RecipientDataAction = ((GemPaymentRecipient) -> Void)?
 public final class RecipientSceneViewModel {
     public let wallet: Wallet
     public let asset: Asset
-    let type: RecipientAssetType
+    let type: GemRecipientType
 
     public let onTransferAction: TransferDataAction
 
@@ -49,7 +48,7 @@ public final class RecipientSceneViewModel {
         asset: Asset,
         service: any GemRecipientServiceProtocol,
         nameService: any GemNameServiceProtocol,
-        type: RecipientAssetType,
+        type: GemRecipientType,
         recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
@@ -155,7 +154,7 @@ extension RecipientSceneViewModel {
             do {
                 try handleAddressScan(result)
             } catch {
-                addressInputModel.update(error: error)
+                addressInputModel.update(error: AnyError(Localized.Errors.invalidAssetAddress(asset.name)))
             }
 
         case .memo:
@@ -222,11 +221,9 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        switch (try service.scanDestination(url: string, asset: asset.paymentWalletAsset), type) {
-        case let (.confirm(transfer), .asset): handle(transferData: service.transferData(transfer: transfer, asset: asset.map()))
-        case let (.confirm(transfer), .nft): update(from: GemPaymentRecipient(recipient: service.transferData(transfer: transfer, asset: asset.map()).recipient))
-        case let (.recipient(_, payment), _): update(from: payment)
-        case (.selectAsset, _), (.unsupported, _): throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
+        switch try service.scan(url: string, recipientType: type) {
+        case let .confirm(transfer): onTransferAction?(transfer)
+        case let .recipient(payment): update(from: payment)
         }
     }
 
@@ -240,15 +237,9 @@ extension RecipientSceneViewModel {
     }
 
     private func handle(recipientData: GemPaymentRecipient) {
-        switch type {
-        case .asset:
-            onRecipientDataAction?(recipientData)
-        case let .nft(asset):
-            handle(transferData: GemTransferData(inputType: .transferNft(asset), recipient: recipientData.recipient, value: BigInt.zero))
+        switch service.next(recipientType: type, payment: recipientData) {
+        case let .amount(payment): onRecipientDataAction?(payment)
+        case let .confirm(transfer): onTransferAction?(transfer)
         }
-    }
-
-    private func handle(transferData: GemTransferData) {
-        onTransferAction?(transferData)
     }
 }

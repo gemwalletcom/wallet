@@ -45,7 +45,7 @@ public enum PaymentDestinationBuilder {
             }
             return .recipient(
                 SelectedAssetInput(
-                    type: .send(.asset(assetData.asset)),
+                    type: .send(.asset(asset: assetData.asset.map())),
                     assetData: assetData,
                     recipient: payment,
                 ),

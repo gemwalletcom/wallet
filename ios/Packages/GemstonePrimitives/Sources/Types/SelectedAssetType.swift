@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemRecipientType
+import Primitives
 
 public enum SelectedAssetType: Sendable, Hashable, Identifiable {
-    case send(RecipientAssetType)
+    case send(GemRecipientType)
     case receive(ReceiveAssetType)
     case stake(Asset)
     case earn(Asset)
@@ -13,7 +15,7 @@ public enum SelectedAssetType: Sendable, Hashable, Identifiable {
 
     public var id: String {
         switch self {
-        case let .send(type): "send_\(type.id)"
+        case let .send(type): "send_\(type.identifier())"
         case let .receive(type): "receive_\(type.id)"
         case let .stake(asset): "stake_\(asset.id)"
         case let .earn(asset): "earn_\(asset.id)"
