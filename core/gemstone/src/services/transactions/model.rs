@@ -1,5 +1,5 @@
 use crate::models::custom_types::GemBigUint;
-use primitives::{Asset, AssetId, PerpetualDirection, Resource, Transaction};
+use primitives::{AddressName, Asset, AssetId, AssetPrice, NFTAssetId, PerpetualDirection, Resource, TransactionExtended};
 
 use super::rules;
 use primitives::BlockExplorerLink;
@@ -26,7 +26,7 @@ pub enum GemTransactionTitle {
     PerpetualModify,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemTransactionSubtitle {
     None,
     ToAddress { address: String },
@@ -43,7 +43,7 @@ pub enum GemAmountSign {
     Outgoing,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemTransactionValue {
     None,
     AssetSymbol,
@@ -67,44 +67,115 @@ pub enum GemTransactionParticipantRole {
 pub struct GemTransactionParticipant {
     pub role: GemTransactionParticipantRole,
     pub address: String,
+    pub name: Option<AddressName>,
     pub link: BlockExplorerLink,
+    pub can_add_contact: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemTransactionAmount {
+    pub asset: Asset,
+    pub value: GemBigUint,
+    pub sign: GemAmountSign,
+    pub price: Option<AssetPrice>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemTransactionRowSubtitle {
+    None,
+    ToAddress { address: String, name: Option<String> },
+    FromAddress { address: String, name: Option<String> },
+    ToResource { resource: Resource },
+    FromResource { resource: Resource },
+    Price { value: f64 },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemTransactionRowValue {
+    None,
+    AssetSymbol { asset: Asset },
+    Amount { amount: GemTransactionAmount },
+    Fiat { value: f64 },
+    Pnl { value: f64 },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Object)]
-pub struct GemTransactionSummary {
-    title: GemTransactionTitle,
-    subtitle: GemTransactionSubtitle,
-    value: GemTransactionValue,
-    equivalent_value: GemTransactionValue,
+pub struct GemTransactionRow {
+    pub title: GemTransactionTitle,
+    pub subtitle: GemTransactionRowSubtitle,
+    pub value: GemTransactionRowValue,
+    pub equivalent_value: GemTransactionRowValue,
+    pub nft_image_url: Option<String>,
 }
 
 #[uniffi::export]
-impl GemTransactionSummary {
+impl GemTransactionRow {
     #[uniffi::constructor]
-    pub fn new(transaction: Transaction) -> Self {
-        Self {
-            title: rules::transaction_title(&transaction),
-            subtitle: rules::transaction_subtitle(&transaction),
-            value: rules::transaction_value(&transaction),
-            equivalent_value: rules::transaction_equivalent_value(&transaction),
-        }
+    pub fn new(transaction: TransactionExtended) -> Self {
+        rules::row(&transaction)
     }
 
     pub fn title(&self) -> GemTransactionTitle {
         self.title.clone()
     }
 
-    pub fn subtitle(&self) -> GemTransactionSubtitle {
+    pub fn subtitle(&self) -> GemTransactionRowSubtitle {
         self.subtitle.clone()
     }
 
-    pub fn value(&self) -> GemTransactionValue {
+    pub fn value(&self) -> GemTransactionRowValue {
         self.value.clone()
     }
 
-    pub fn equivalent_value(&self) -> GemTransactionValue {
+    pub fn equivalent_value(&self) -> GemTransactionRowValue {
         self.equivalent_value.clone()
     }
+
+    pub fn nft_image_url(&self) -> Option<String> {
+        self.nft_image_url.clone()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemTransactionHeader {
+    Amount { amount: GemTransactionAmount, shows_fiat: bool },
+    Swap { from: GemTransactionAmount, to: GemTransactionAmount },
+    Nft { asset_id: NFTAssetId, name: Option<String>, image_url: String },
+    Symbol { asset: Asset },
+    AssetImage { asset: Asset },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemTransactionHeaderAction {
+    Asset { asset_id: AssetId },
+    Nft { asset_id: NFTAssetId },
+    Swap { from_asset_id: AssetId, to_asset_id: AssetId },
+    Perpetual { asset_id: AssetId },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapRate {
+    pub from: GemTransactionAmount,
+    pub to: GemTransactionAmount,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemTransactionDetailRows {
+    pub title: GemTransactionTitle,
+    pub header: GemTransactionHeader,
+    pub header_action: Option<GemTransactionHeaderAction>,
+    pub swap_progress: Option<GemSwapProgress>,
+    pub swap_again: Option<GemSwapAgain>,
+    pub estimated_confirmation_seconds: Option<u32>,
+    pub participant: Option<GemTransactionParticipant>,
+    pub provider_name: Option<String>,
+    pub memo: Option<String>,
+    pub resource: Option<Resource>,
+    pub rate: Option<GemSwapRate>,
+    pub pnl: Option<f64>,
+    pub price: Option<f64>,
+    pub fee: GemTransactionAmount,
+    pub explorer: BlockExplorerLink,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -116,7 +187,7 @@ pub enum GemTransactionHeaderKind {
     AssetImage,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemTransactionDetails {
     pub swap_progress: Option<GemSwapProgress>,
     pub swap_again: Option<GemSwapAgain>,

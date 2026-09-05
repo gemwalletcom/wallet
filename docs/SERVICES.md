@@ -403,8 +403,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
   screen takes `GemTransactionLoadFee` and `GemTransferDataExtra` straight from Core, as Android
   always has. Teaching the generator about associated values is still what a data-carrying enum
   needs before it can cross typed.
-- **Screens read their rows from one Core answer.** `GemTransactionDetailsService::details`
-  (swap progress steps, swap-again, provider name, confirmation ETA, pnl, price) and
+- **Screens read their rows from one Core answer.** `GemTransactionDetailsService::detail_rows`
+  (header, header action, swap progress steps, swap-again, provider name, confirmation ETA,
+  participant, memo, resource, rate, pnl, price, fee, explorer link) and
   `GemAssetBalance::detail_rows` (available, staked, earn, pending, reserved) replaced the
   per-row predicates both apps kept — Android had mapped the transaction state to swap-progress
   step statuses a third time inside a Compose item. Left on the apps: formatting, titles, and the
@@ -969,6 +970,25 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `refresh(assetIds)`, hide it in `finally`; the import screen no longer calls anything after
   `importWallet` + `setCurrentWalletId`. The five import-state files and their DI providers are
   deleted; `AssetsViewModelTest` covers the first-load and already-loaded answers.
+- **Transaction rows and details are one Core answer each.** `GemTransactionRow::new(extended)`
+  returns the list row (title, subtitle with the counterparty's address *and* its known name or the
+  resource or the perpetual price, value and equivalent value as `GemTransactionAmount { asset,
+  value, sign, price }` / fiat / pnl / symbol, NFT image URL), and
+  `GemTransactionDetailsService::detail_rows(extended)` returns the whole details screen
+  (`GemTransactionDetailRows`: header as amount-with-fiat-flag / swap legs / NFT / symbol / asset
+  image, header tap action, participant with name and `can_add_contact`, provider, memo, resource,
+  swap rate with both legs, pnl, price, fee with its price, explorer link). Each app used to
+  re-derive all of it — resolving swap legs against the transaction's asset list, deciding when a
+  swap has a rate, filtering empty memos, deriving the perpetual notional in collateral decimals,
+  mapping the header kind back to metadata, and choosing the header action by transaction type —
+  iOS in `TransactionViewModel` + `TransactionSceneViewModel` + `TransactionHeaderTypeBuilder`,
+  Android in `TransactionDataAggregateImpl` + `TransactionDetailsAggregateImpl` (which also
+  loaded the wallet assets a second time for the swap header). The app view models now format
+  `GemTransactionAmount` values and map Core enums to strings; Android's details coordinator lost
+  its `GetWalletAssets` dependency and its `Amount.None` state, and both apps' details tests feed
+  Core rows instead of re-encoding swap metadata. Core tests pin the swap-leg resolution, the
+  known-address name, the NFT image and perpetual notional, the detail header/participant/rate/fee
+  build, and the both-legs-non-zero rate rule.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

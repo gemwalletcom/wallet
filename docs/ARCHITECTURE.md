@@ -305,7 +305,7 @@ TypeShare-only `SimulationResult.asset_ids()` should reach mobile without duplic
 A rule that answers for one value is a constructor on that value, not a method on an object with
 nothing in it: `GemSwapQuoteSummary::new(quote)` carries the minimum receive and the ETA of a
 quote, `GemSwapValue::price_impact(receive)` compares two priced amounts, `GemCustomFee::estimate`
-and `GemTransactionSummary::new` do the same for fees and rows. The apps and their tests construct
+and `GemTransactionRow::new` do the same for fees and rows. The apps and their tests construct
 the value; nothing has to be mocked to reach a rule. `GemSwapQuoteService` carried those rules as
 a `new()` with no fields until it became the swap screen's real service — swap, balances,
 preferences and the price stream behind one object — and the rules moved onto their values.

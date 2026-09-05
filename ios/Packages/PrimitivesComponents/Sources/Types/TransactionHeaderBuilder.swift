@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemTransactionHeaderKind
 import enum Gemstone.GemTransactionInputType
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
@@ -9,35 +8,6 @@ import Foundation
 import Primitives
 
 public enum TransactionHeaderTypeBuilder {
-    public static func build(
-        infoModel: TransactionInfoViewModel,
-        kind: GemTransactionHeaderKind,
-        transaction: Transaction,
-        metadata: TransactionExtendedMetadata?,
-    ) -> TransactionHeaderType {
-        let inputType: TransactionHeaderInputType = {
-            switch kind {
-            case let .amount(showsFiat):
-                return .amount(showFiat: showsFiat)
-            case .swap:
-                guard let metadata, let input = SwapMetadataViewModel(metadata: metadata).headerInput else {
-                    return .amount(showFiat: true)
-                }
-                return .swap(input)
-            case .nft:
-                guard let metadata = transaction.metadata?.decode(TransactionNFTTransferMetadata.self) else {
-                    return .amount(showFiat: false)
-                }
-                return .nft(name: metadata.name, id: metadata.assetId.identifier)
-            case .symbol:
-                return .symbol
-            case .assetImage:
-                return .assetImage
-            }
-        }()
-        return infoModel.headerType(input: inputType)
-    }
-
     public static func build(
         infoModel: TransactionInfoViewModel,
         dataType: GemTransactionInputType,

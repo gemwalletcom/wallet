@@ -14,14 +14,11 @@ import com.gemwallet.android.ui.components.statusColor
 import com.gemwallet.android.ui.components.statusLabelRes
 import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.decodeJsonOrNull
 import uniffi.gemstone.GemAmountSign
-import uniffi.gemstone.GemTransactionSubtitle
+import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionTitle
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 
 private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
@@ -73,12 +70,12 @@ fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 
 @Composable
 fun TransactionDataAggregate.formatAddress(): String? = when (val subtitle = subtitle) {
-    is GemTransactionSubtitle.ToAddress -> prefixed(R.string.transfer_to, addressName ?: address)
-    is GemTransactionSubtitle.FromAddress -> prefixed(R.string.transfer_from, addressName ?: address)
-    is GemTransactionSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.toPrimitives().titleRes()))
-    is GemTransactionSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.toPrimitives().titleRes()))
-    is GemTransactionSubtitle.Price -> "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(subtitle.value)}"
-    GemTransactionSubtitle.None -> null
+    is GemTransactionRowSubtitle.ToAddress -> prefixed(R.string.transfer_to, subtitle.name ?: address)
+    is GemTransactionRowSubtitle.FromAddress -> prefixed(R.string.transfer_from, subtitle.name ?: address)
+    is GemTransactionRowSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.toPrimitives().titleRes()))
+    is GemTransactionRowSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.toPrimitives().titleRes()))
+    is GemTransactionRowSubtitle.Price -> "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(subtitle.value)}"
+    GemTransactionRowSubtitle.None -> null
 }
 
 @Composable

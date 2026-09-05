@@ -3,7 +3,7 @@
 import BigInt
 import Components
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
-import struct Gemstone.GemTransactionDetails
+import struct Gemstone.GemTransactionDetailRows
 import GemstonePrimitives
 import Formatters
 import Foundation
@@ -42,7 +42,7 @@ public final class TransactionSceneViewModel {
     }
 
     var title: String {
-        model.titleTextValue.text
+        rows.title.title
     }
 
     var explorerURL: URL {
@@ -71,20 +71,26 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 
     public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
         switch item {
-        case .header: headerViewModel
-        case .swapProgress: TransactionSwapProgressViewModel(progress: details.swapProgress)
-        case .swapButton: TransactionSwapButtonViewModel(swapAgain: details.swapAgain)
-        case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
-        case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
-        case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: details.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
-        case .participant: TransactionParticipantViewModel(transactionViewModel: model, participant: service.participant(transaction: transactionExtended.transaction.json()), onAddContact: onAddContact)
-        case .memo: TransactionMemoViewModel(transaction: model.transaction.transaction)
-        case .rate: TransactionRateViewModel(transaction: model.transaction, direction: rateDirection)
-        case .network: TransactionNetworkViewModel(chain: model.transaction.asset.chain)
-        case .pnl: TransactionPnlViewModel(pnl: details.pnl)
-        case .price: TransactionPriceViewModel(price: details.price)
-        case .provider: TransactionProviderViewModel(name: details.providerName)
-        case .fee: TransactionNetworkFeeViewModel(feeDisplay: model.infoModel.feeDisplay, onInfoAction: onSelectFee)
+        case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency())
+        case .swapProgress: TransactionSwapProgressViewModel(progress: rows.swapProgress)
+        case .swapButton: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
+        case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
+        case .status: TransactionStatusViewModel(state: transactionExtended.transaction.state, onInfoAction: onSelectStatusInfo)
+        case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: rows.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
+        case .participant: TransactionParticipantViewModel(
+                participant: rows.participant,
+                resource: rows.resource,
+                chain: transactionExtended.transaction.assetId.chain,
+                memo: transactionExtended.transaction.memo,
+                onAddContact: onAddContact,
+            )
+        case .memo: TransactionMemoViewModel(transaction: transactionExtended.transaction)
+        case .rate: TransactionRateViewModel(rate: rows.rate, direction: rateDirection)
+        case .network: TransactionNetworkViewModel(chain: transactionExtended.asset.chain)
+        case .pnl: TransactionPnlViewModel(pnl: rows.pnl)
+        case .price: TransactionPriceViewModel(price: rows.price)
+        case .provider: TransactionProviderViewModel(name: rows.providerName)
+        case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency(), formatter: .auto), onInfoAction: onSelectFee)
         case .explorerLink: explorerViewModel
         }
     }
@@ -126,96 +132,52 @@ extension TransactionSceneViewModel {
     }
 
     private func onSelectFee() {
-        isPresentingTransactionSheet = .info(.networkFee(model.transaction.feeAsset))
+        isPresentingTransactionSheet = .info(.networkFee(transactionExtended.feeAsset))
     }
 
     private func onSelectStatusInfo() {
-        let assetImage = model.assetImage
+        let assetImage = TransactionViewModel(transaction: transactionExtended, currency: service.getCurrency()).assetImage
         isPresentingTransactionSheet = .info(.transactionState(
             imageURL: assetImage.imageURL,
             placeholder: assetImage.placeholder,
-            state: model.transaction.transaction.state,
+            state: transactionExtended.transaction.state,
         ))
     }
 
     private func onSelectEstimatedConfirmationInfo() {
-        isPresentingTransactionSheet = .info(.estimatedConfirmation(model.transaction.transaction.assetId.chain))
+        isPresentingTransactionSheet = .info(.estimatedConfirmation(transactionExtended.transaction.assetId.chain))
     }
 }
 
 // MARK: - Private
 
 extension TransactionSceneViewModel {
-    private var model: TransactionViewModel {
-        TransactionViewModel(transaction: transactionExtended, currency: service.getCurrency())
-    }
-
-    private var transactionLink: BlockExplorerLink {
-        let transaction = transactionExtended.transaction
-        return service.transactionLink(
-            chain: transaction.assetId.chain.rawValue,
-            hash: transaction.id.hash,
-            provider: transaction.swapProvider,
-            recipient: transaction.to,
-            memo: transaction.memo,
-        ).map()
-    }
-
-    private var headerViewModel: TransactionHeaderViewModel {
-        TransactionHeaderViewModel(
-            transaction: model.transaction,
-            kind: service.headerKind(transaction: transactionExtended.transaction.json()),
-            infoModel: model.infoModel,
-        )
-    }
-
-    private var details: GemTransactionDetails {
-        service.details(transaction: transactionExtended.json())
+    private var rows: GemTransactionDetailRows {
+        service.detailRows(transaction: transactionExtended.json())
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {
-        TransactionExplorerViewModel(transactionLink: transactionLink)
+        TransactionExplorerViewModel(transactionLink: rows.explorer.map())
     }
 
     private var headerAction: TransactionHeaderAction? {
-        switch transactionExtended.transaction.type {
-        case .transfer,
-             .tokenApproval,
-             .stakeDelegate,
-             .stakeUndelegate,
-             .stakeRewards,
-             .stakeRedelegate,
-             .stakeWithdraw,
-             .stakeFreeze,
-             .stakeUnfreeze:
-            .asset(assetId: transactionExtended.transaction.assetId)
-        case .transferNFT:
-            transactionExtended.transaction.metadata?
-                .decode(TransactionNFTTransferMetadata.self)
-                .map { .nft(assetId: $0.assetId) }
-        case .swap:
-            transactionExtended.transaction.metadata?
-                .decode(TransactionSwapMetadata.self)
-                .map { .swap(fromAssetId: $0.fromAsset, toAssetId: $0.toAsset) }
-        case .perpetualOpenPosition,
-             .perpetualClosePosition,
-             .perpetualModifyPosition:
-            .perpetual(assetId: transactionExtended.transaction.assetId)
-        case .smartContractCall,
-             .assetActivation,
-             .earnDeposit,
-             .earnWithdraw:
-            nil
+        switch rows.headerAction {
+        case let .asset(assetId): .asset(assetId: Primitives.AssetId(core: assetId))
+        case let .nft(assetId): .nft(assetId: Primitives.NFTAssetId(core: assetId))
+        case let .swap(fromAssetId, toAssetId): .swap(fromAssetId: Primitives.AssetId(core: fromAssetId), toAssetId: Primitives.AssetId(core: toAssetId))
+        case let .perpetual(assetId): .perpetual(assetId: Primitives.AssetId(core: assetId))
+        case .none: nil
         }
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        NetworkFeeSceneViewModel(
-            feeAsset: model.transaction.feeAsset,
+        let fee = rows.fee
+        return NetworkFeeSceneViewModel(
+            feeAsset: fee.asset.map(),
             currency: Currency(core: service.getCurrency()),
             selection: .priority(priority: .normal),
-            feeAssetPrice: model.transaction.feePrice,
-            feeAmount: BigInt(model.transaction.transaction.fee),
+            feeAssetPrice: fee.price.map { $0.map().mapToPrice() },
+            feeAmount: BigInt(fee.value),
         )
     }
 }

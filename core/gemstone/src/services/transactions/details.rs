@@ -1,12 +1,11 @@
 use std::sync::Arc;
 
-use primitives::{Chain, Currency, Transaction, TransactionExtended};
+use primitives::{Currency, TransactionExtended};
 
-use super::model::{GemTransactionDetails, GemTransactionHeaderKind, GemTransactionParticipant};
+use super::model::GemTransactionDetailRows;
 use super::rules;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
-use primitives::BlockExplorerLink;
 
 #[derive(uniffi::Object)]
 pub struct GemTransactionDetailsService {
@@ -25,21 +24,16 @@ impl GemTransactionDetailsService {
         self.preferences.get_currency()
     }
 
-    pub fn details(&self, transaction: TransactionExtended) -> GemTransactionDetails {
-        rules::details(&transaction)
-    }
-
-    pub fn header_kind(&self, transaction: Transaction) -> GemTransactionHeaderKind {
-        rules::header_kind(&transaction)
-    }
-
-    pub fn participant(&self, transaction: Transaction) -> Option<GemTransactionParticipant> {
-        let (role, address) = rules::transaction_participant(&transaction)?;
-        let link = self.explorer.get_address_url(transaction.asset_id.chain, address.clone());
-        Some(GemTransactionParticipant { role, address, link })
-    }
-
-    pub fn transaction_link(&self, chain: Chain, hash: String, provider: Option<String>, recipient: Option<String>, memo: Option<String>) -> BlockExplorerLink {
-        self.explorer.get_transaction_link(chain, hash, provider, recipient, memo)
+    pub fn detail_rows(&self, transaction: TransactionExtended) -> GemTransactionDetailRows {
+        let chain = transaction.transaction.asset_id.chain;
+        let participant = rules::participant(&transaction, |address| self.explorer.get_address_url(chain, address.to_string()));
+        let explorer = self.explorer.get_transaction_link(
+            chain,
+            transaction.transaction.hash().to_string(),
+            transaction.transaction.swap_metadata().and_then(|metadata| metadata.provider),
+            Some(transaction.transaction.to.clone()),
+            transaction.transaction.memo.clone(),
+        );
+        rules::detail_rows(&transaction, participant, explorer)
     }
 }
