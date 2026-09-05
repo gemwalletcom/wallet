@@ -155,12 +155,6 @@ class WalletSearchViewModel @Inject constructor(
 
     override fun assetsSearchLimit(query: String): Int = limits(query).fetch.toInt()
 
-    fun onPinAsset(assetId: AssetId) {
-        val willPin = (pinned.value + unpinned.value).firstOrNull { it.asset.id == assetId }?.pinned != true
-        onTogglePin(assetId)
-        if (willPin) onChangeVisibility(assetId, true)
-    }
-
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = visiblePerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
         setPerpetualPinned(perpetualId, !item.isPinned)
