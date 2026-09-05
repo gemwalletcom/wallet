@@ -26,6 +26,13 @@ pub struct GemStakeActionItem {
     pub requires_frozen_balance: bool,
 }
 
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemDelegationDestination {
+    Details,
+    Withdraw { transfer: GemTransferData },
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemClaimRewards {
     pub value: GemBigInt,
