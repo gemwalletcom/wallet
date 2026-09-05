@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -130,27 +131,33 @@ internal fun NftListScene(
                 return@PullToRefreshBox
             }
 
-            Column(modifier = Modifier.fillMaxSize()) {
-                LazyVerticalGrid(
-                    modifier = Modifier
-                        .then(if (items.isEmpty()) Modifier else Modifier.weight(1f))
-                        .fillMaxWidth(),
-                    columns = GridCells.Adaptive(minSize = 150.dp),
-                    state = listState,
-                    contentPadding = PaddingValues(paddingSmall, paddingDefault)
-                ) {
-                    items(items) { item ->
-                        NFTItem(
-                            model = item,
-                            onClick = {
-                                val asset = item.asset
-                                if (asset == null) {
-                                    onAction(NftListAction.OpenCollection(item.collection.id.toIdentifier()))
-                                } else {
-                                    onAction(NftListAction.OpenAsset(asset.id))
-                                }
-                            },
-                        )
+            Column(modifier = Modifier.fillMaxSize().padding(top = paddingDefault)) {
+                if (items.isNotEmpty()) {
+                    LazyVerticalGrid(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        columns = GridCells.Adaptive(minSize = 150.dp),
+                        state = listState,
+                        contentPadding = PaddingValues(
+                            start = paddingSmall,
+                            end = paddingSmall,
+                            bottom = paddingDefault,
+                        ),
+                    ) {
+                        items(items) { item ->
+                            NFTItem(
+                                model = item,
+                                onClick = {
+                                    val asset = item.asset
+                                    if (asset == null) {
+                                        onAction(NftListAction.OpenCollection(item.collection.id.toIdentifier()))
+                                    } else {
+                                        onAction(NftListAction.OpenAsset(asset.id))
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
                 if (showUnverifiedRow) {
