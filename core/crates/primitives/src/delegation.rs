@@ -8,7 +8,7 @@ use typeshare::typeshare;
 use crate::stake_provider_type::StakeProviderType;
 use crate::{AssetId, Chain, Price, StakeValidator};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Delegation {
@@ -66,7 +66,7 @@ impl From<DelegationValidator> for StakeValidator {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationValidator {

@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemPaymentRecipient
-import struct Gemstone.GemRecipient
 import Assets
 import Components
 import FiatConnect
@@ -86,10 +84,7 @@ struct SelectAssetSceneNavigationStack: View {
                     case .deposit:
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
-                                input: AmountInput(
-                                    type: .deposit(recipient: GemPaymentRecipient(recipient: PerpetualFormatter(provider: .hypercore).depositRecipient)),
-                                    asset: input.asset,
-                                ),
+                                input: AmountInput(type: .deposit, asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: {
                                     navigationPath.append($0)
@@ -97,15 +92,9 @@ struct SelectAssetSceneNavigationStack: View {
                             ),
                         )
                     case .withdraw:
-                        let withdrawRecipient = GemRecipient(address: input.assetAddress.address, name: model.wallet.name)
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
-                                input: AmountInput(
-                                    type: .withdraw(
-                                        recipient: GemPaymentRecipient(recipient: withdrawRecipient),
-                                    ),
-                                    asset: input.asset,
-                                ),
+                                input: AmountInput(type: .withdraw, asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: {
                                     navigationPath.append($0)

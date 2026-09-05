@@ -352,42 +352,31 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
-- **The amount providers still mirror each other.** `GemAmountType::validate` now checks a value
-  against the type's own available value and minimum, so neither app hands those in, and
-  `GemAmountService { stake, preferences }` answers the currency, the earn data and the perpetual
-  defaults on both apps: `perpetual_leverage(max_leverage)` picks the preferred option and
-  `perpetual_autoclose(price, direction, leverage)` turns the preference percents into target
-  prices, so neither app reads the perpetual preferences or runs the estimator itself (Android's
-  `AmountPerpetualProvider` took `UserConfig` for that, and `AmountViewModel` read the currency
-  off the price with a `USD` fallback). The stake and earn confirm transfers are Core's too:
-  `stake_transfer_data(asset, stake_type, value, use_max_amount)` (on `GemAmountService` and
-  `GemStakeService`, for the amount screen and the stake/delegation screens) names the validator
-  as the recipient, carries the resource for a freeze, and keeps max only for a new stake or a
-  freeze; `GemAmountService::earn_transfer_data(asset, earn_type, value, use_max_amount)` finds
-  the account on the session wallet, asks the gateway for the contract call and addresses it to
-  the contract under the provider name, so `get_earn_data` is no longer exported. Android's
-  `GemTransferData.stake` (with its `StakeType.validatorId` switch) and iOS's inline
-  `TransferData(...)` builders are gone. What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
-  `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
-  `providers/*` each build the type-specific confirm input; the screen state is one Core answer,
-  `GemAmountType::input(asset, balance) -> GemAmountInput { available_value, max_value,
-  reserved_fee: Option, can_change_value, shows_asset_balance }` (the former `rules` + `limits`
-  pair — `reserved_fee` is `Some` exactly when the max keeps a fee back, which is the note both
-  screens show at max; the minimum is Core's to validate, not the app's to read), so iOS's
-  `AmountDataProvidable` extension and Android's five derived provider flows are one `input`
-  each, and the perpetual order is Core's too:
-  `GemPerpetualDetailsService::position_action` builds the action the position screen hands over
-  and `GemAmountService::perpetual_transfer_data` turns it into the transfer, so the per-app
-  `PerpetualTransferData`, `PerpetualPositionAction`, `PerpetualOrderFactory` and
-  `PerpetualOrder+GemstonePrimitives` are gone; the chart takes the `Perpetual` itself —
-  `GemPerpetualDetailsService::{candlesticks, candle_subscription, market_subscription}` derive
-  the Hyperliquid symbol and `apply_candle_update(candles, update, perpetual, period)` answers
-  whether a socket candle belongs to this chart and merges it, so the per-app `coin` derivation
-  and the interval/coin filters are gone (`limits` is infallible — the available value exists for
-  every type — so neither app carries a catch that handed back zero limits; the balance they hand
-  in is the one `GemAssetBalance` record, bridged once per app). What is left per app is the
-  input text ↔ value conversion (both through Core converters) and the type-specific
-  `makeTransferData` / `buildTransfer` dispatch.
+- **The amount providers hand Core their inputs and take Core's types back.**
+  `GemAmountType::validate` checks a value against the type's own available value and minimum,
+  and `GemAmountService { stake, preferences, session }` answers the currency, the earn data and
+  the perpetual defaults on both apps: `perpetual_leverage(max_leverage)` picks the preferred
+  option and `perpetual_autoclose(price, direction, leverage)` turns the preference percents into
+  target prices. The confirm transfers are Core's: `stake_transfer_data(asset, stake_type, value,
+  use_max_amount)`, `earn_transfer_data(asset, earn_type, value, use_max_amount)`,
+  `perpetual_transfer_data(action, value, use_max_amount, leverage, take_profit, stop_loss)` and
+  `transfer_data(asset, GemAmountTransfer::{Send { recipient } | Deposit | Withdraw}, value,
+  use_max_amount)` — the last addresses a deposit to the Hypercore deposit address and a
+  withdrawal to the session wallet's own account (named after the wallet, as iOS did; Android
+  passed the bare address and iOS's callers built both recipients themselves). The screen state
+  is one Core answer, `GemAmountType::input(asset, balance) -> GemAmountInput`, and the type
+  itself is Core's to build: `perpetual_amount_type(action, leverage)` (position, direction,
+  price and size decimals from the action), `stake_amount_type(stake_type, delegations)` (the
+  rewards case keeps only the delegations of the chosen validators) and
+  `earn_amount_type(earn_type)`, so each app builds one `StakeType` and asks Core for the amount
+  type instead of keeping a second, parallel `GemAmountStakeType` builder; iOS's
+  `AmountStakeViewModel.getStakeType()` (throwing) and Android's `AmountStakeProvider` duplicate
+  `when (params)` are gone. `GemAmountType::can_switch_input_type()` is true for a send only —
+  Android let deposit and withdraw toggle fiat input, iOS did not. What is left on the apps: the
+  provider objects themselves (`AmountTransferViewModel`, `AmountStakeViewModel`,
+  `AmountPerpetualViewModel`, `AmountEarnViewModel`; Android's `providers/*`) that load the
+  delegations, validators and perpetual market the type needs, hold the validator/resource/
+  leverage/autoclose selection, and format titles.
 - **The generator is the way a duplicated type stops being duplicated.** Adding a fieldless enum or
   a record of scalars, remote types, codes and identifiers (plain, `Option` or `Vec`) to
   `core/bin/generate/remote_types.yml` replaces a hand-written mapper on

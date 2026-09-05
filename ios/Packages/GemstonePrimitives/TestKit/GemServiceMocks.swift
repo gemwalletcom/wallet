@@ -372,6 +372,22 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         min(5, maxLeverage)
     }
 
+    public func perpetualAmountType(action: GemPerpetualPositionAction, leverage: UInt8) -> GemAmountType {
+        builder.perpetualAmountType(action: action, leverage: leverage)
+    }
+
+    public func stakeAmountType(stakeType: Gemstone.StakeType, delegations: [Gemstone.Delegation]) -> GemAmountType {
+        builder.stakeAmountType(stakeType: stakeType, delegations: delegations)
+    }
+
+    public func earnAmountType(earnType: Gemstone.EarnType) -> GemAmountType {
+        builder.earnAmountType(earnType: earnType)
+    }
+
+    public func transferData(asset: Gemstone.Asset, transfer: GemAmountTransfer, value: Gemstone.GemBigInt, useMaxAmount: Bool) async throws -> GemTransferData {
+        try await builder.transferData(asset: asset, transfer: transfer, value: value, useMaxAmount: useMaxAmount)
+    }
+
     public func perpetualAutoclose(price _: Double, direction _: Gemstone.PerpetualDirection, leverage _: UInt8) -> GemPerpetualAutoclose {
         GemPerpetualAutoclose(takeProfit: nil, stopLoss: nil)
     }
