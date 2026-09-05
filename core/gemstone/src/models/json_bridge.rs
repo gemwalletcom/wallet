@@ -1,5 +1,4 @@
 use primitives::Charts;
-use primitives::name::NameRecord;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
@@ -13,7 +12,7 @@ use primitives::{
 use primitives::{
     AuthNonce, AuthPayload, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset,
     PortfolioAssets, PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult,
-    WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
+    WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended};
 
@@ -70,7 +69,6 @@ json_bridge!(
     NFTData,
     NFTImages,
     NFTResource,
-    NameRecord,
     Payment,
     PaymentAmount,
     PaymentLink,
@@ -121,9 +119,6 @@ json_bridge!(
     TronVote,
     UTXO,
     WalletConfigurationResult,
-    WalletConnection,
-    WalletConnectionSession,
-    WalletConnectionSessionProposal,
     WalletSubscription,
     WalletSubscriptionChains,
 );

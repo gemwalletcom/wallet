@@ -454,6 +454,50 @@ public extension Primitives.LinkType {
     }
 }
 
+public extension Gemstone.NameProvider {
+    func map() -> Primitives.NameProvider {
+        switch self {
+        case .ud: .ud
+        case .ens: .ens
+        case .sns: .sns
+        case .ton: .ton
+        case .spaceid: .spaceid
+        case .did: .did
+        case .suins: .suins
+        case .aptos: .aptos
+        case .injective: .injective
+        case .icns: .icns
+        case .lens: .lens
+        case .basenames: .basenames
+        case .hyperliquid: .hyperliquid
+        case .allDomains: .allDomains
+        case .near: .near
+        }
+    }
+}
+
+public extension Primitives.NameProvider {
+    func map() -> Gemstone.NameProvider {
+        switch self {
+        case .ud: .ud
+        case .ens: .ens
+        case .sns: .sns
+        case .ton: .ton
+        case .spaceid: .spaceid
+        case .did: .did
+        case .suins: .suins
+        case .aptos: .aptos
+        case .injective: .injective
+        case .icns: .icns
+        case .lens: .lens
+        case .basenames: .basenames
+        case .hyperliquid: .hyperliquid
+        case .allDomains: .allDomains
+        case .near: .near
+        }
+    }
+}
+
 public extension Gemstone.NodeState {
     func map() -> Primitives.NodeState {
         switch self {
@@ -1046,6 +1090,26 @@ public extension Primitives.VerificationStatus {
     }
 }
 
+public extension Gemstone.WalletConnectionState {
+    func map() -> Primitives.WalletConnectionState {
+        switch self {
+        case .started: .started
+        case .active: .active
+        case .expired: .expired
+        }
+    }
+}
+
+public extension Primitives.WalletConnectionState {
+    func map() -> Gemstone.WalletConnectionState {
+        switch self {
+        case .started: .started
+        case .active: .active
+        case .expired: .expired
+        }
+    }
+}
+
 public extension Gemstone.WalletConnectionVerificationStatus {
     func map() -> Primitives.WalletConnectionVerificationStatus {
         switch self {
@@ -1502,6 +1566,28 @@ public extension Primitives.Latency {
     }
 }
 
+public extension Gemstone.NameRecord {
+    func map() -> Primitives.NameRecord {
+        Primitives.NameRecord(
+            name: name,
+            chain: Primitives.Chain(core: chain),
+            address: address,
+            provider: provider.map(),
+        )
+    }
+}
+
+public extension Primitives.NameRecord {
+    func map() -> Gemstone.NameRecord {
+        Gemstone.NameRecord(
+            name: name,
+            chain: chain.rawValue,
+            address: address,
+            provider: provider.map(),
+        )
+    }
+}
+
 public extension Gemstone.Node {
     func map() -> Primitives.Node {
         Primitives.Node(
@@ -1883,6 +1969,72 @@ public extension Primitives.Wallet {
             isPinned: isPinned,
             imageUrl: imageUrl,
             source: source.map(),
+        )
+    }
+}
+
+public extension Gemstone.WalletConnection {
+    func map() -> Primitives.WalletConnection {
+        Primitives.WalletConnection(
+            session: session.map(),
+            wallet: wallet.map(),
+        )
+    }
+}
+
+public extension Primitives.WalletConnection {
+    func map() -> Gemstone.WalletConnection {
+        Gemstone.WalletConnection(
+            session: session.map(),
+            wallet: wallet.map(),
+        )
+    }
+}
+
+public extension Gemstone.WalletConnectionSession {
+    func map() -> Primitives.WalletConnectionSession {
+        Primitives.WalletConnectionSession(
+            id: id,
+            sessionId: sessionId,
+            state: state.map(),
+            chains: chains.map { Primitives.Chain(core: $0) },
+            createdAt: createdAt,
+            expireAt: expireAt,
+            metadata: metadata.map(),
+        )
+    }
+}
+
+public extension Primitives.WalletConnectionSession {
+    func map() -> Gemstone.WalletConnectionSession {
+        Gemstone.WalletConnectionSession(
+            id: id,
+            sessionId: sessionId,
+            state: state.map(),
+            chains: chains.map { $0.rawValue },
+            createdAt: createdAt,
+            expireAt: expireAt,
+            metadata: metadata.map(),
+        )
+    }
+}
+
+public extension Gemstone.WalletConnectionSessionProposal {
+    func map() -> Primitives.WalletConnectionSessionProposal {
+        Primitives.WalletConnectionSessionProposal(
+            defaultWallet: defaultWallet.map(),
+            wallets: wallets.map { $0.map() },
+            metadata: metadata.map(),
+        )
+    }
+}
+
+public extension Primitives.WalletConnectionSessionProposal {
+    func map() -> Gemstone.WalletConnectionSessionProposal {
+        Gemstone.WalletConnectionSessionProposal(
+            defaultWallet: defaultWallet.map(),
+            wallets: wallets.map { $0.map() },
+            metadata: metadata.map(),
         )
     }
 }

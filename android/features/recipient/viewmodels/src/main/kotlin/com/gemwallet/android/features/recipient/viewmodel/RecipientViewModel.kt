@@ -33,7 +33,6 @@ import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAsset
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentRecipient
@@ -186,7 +185,7 @@ class RecipientViewModel @Inject constructor(
     ) {
         val chain = type.assetInfo.asset.chain
         val recipient = try {
-            service.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
+            service.recipient(chain.string, input, nameRecord?.toGem(), memo.value, references)
         } catch (_: GemRecipientException) {
             addressInput.markInvalid()
             return

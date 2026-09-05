@@ -790,6 +790,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   by the TypeShare package of their subdirectory (`com.wallet.core.primitives.swap` for the swap
   types), and it keeps a field's Rust name when the struct has no `#[serde(rename_all)]`, because
   TypeShare emits `order_type` for `PerpetualTriggerOrder` on both apps.
+- **WalletConnect sessions, connections, proposals and name records cross the FFI typed.**
+  `WalletConnectionSession` (with `WalletConnectionState`), `WalletConnection`,
+  `WalletConnectionSessionProposal` and `NameRecord` (with `NameProvider`) are `remote_types.yml`
+  records, so the connection store callbacks, the session sync and add-connection paths, the
+  pairing proposal, the message and transaction requests' session, the recipient validation and
+  the name lookup pass typed values on both apps; the Android pending request keeps the typed
+  session instead of a JSON string it decoded lazily.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
@@ -45,7 +44,7 @@ class PrepareSessionProposalImplTest {
                 origin = "https://app.example",
                 validation = WalletConnectionVerificationStatus.VERIFIED,
             )
-        } returns GemSessionProposal(proposal.toJson(), WalletConnectionVerificationStatus.VERIFIED)
+        } returns GemSessionProposal(proposal.toGem(), WalletConnectionVerificationStatus.VERIFIED)
 
         val prepared = prepare(requiredChainIds = listOf("eip155:1"))
 

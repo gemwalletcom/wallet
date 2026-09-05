@@ -1,15 +1,14 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toSession
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
-import com.wallet.core.primitives.WalletConnectionSession
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -36,14 +35,14 @@ class GemstoneConnectionStore(
         return record.toConnection(walletStore.observeWallets().firstOrNull().orEmpty())
     }
 
-    override suspend fun getConnection(sessionId: String): String? = getConnectionBySessionId(sessionId)?.toJson()
+    override suspend fun getConnection(sessionId: String): uniffi.gemstone.WalletConnection? = getConnectionBySessionId(sessionId)?.toGem()
 
-    override suspend fun getSessions(): List<String> = connectionsDao.getConnections().map { it.toSession().toJson() }
+    override suspend fun getSessions(): List<uniffi.gemstone.WalletConnectionSession> = connectionsDao.getConnections().map { it.toSession().toGem() }
 
-    override suspend fun addConnection(connection: String) = connectionsDao.insert(connection.decodeJson<WalletConnection>().toRecord())
+    override suspend fun addConnection(connection: uniffi.gemstone.WalletConnection) = connectionsDao.insert(connection.toPrimitives().toRecord())
 
-    override suspend fun updateSession(session: String) {
-        val updated = session.decodeJson<WalletConnectionSession>()
+    override suspend fun updateSession(session: uniffi.gemstone.WalletConnectionSession) {
+        val updated = session.toPrimitives()
         val record = connectionsDao.getBySessionId(updated.id) ?: return
         connectionsDao.insert(
             record.copy(

@@ -35,7 +35,6 @@ extension Primitives.NFTAttribute: JsonCodable {}
 extension Primitives.NFTData: JsonCodable {}
 extension Primitives.NFTImages: JsonCodable {}
 extension Primitives.NFTResource: JsonCodable {}
-extension Primitives.NameRecord: JsonCodable {}
 extension Primitives.Payment: JsonCodable {}
 extension Primitives.PaymentAmount: JsonCodable {}
 extension Primitives.PaymentLink: JsonCodable {}
@@ -86,8 +85,5 @@ extension Primitives.TronUnfreeze: JsonCodable {}
 extension Primitives.TronVote: JsonCodable {}
 extension Primitives.UTXO: JsonCodable {}
 extension Primitives.WalletConfigurationResult: JsonCodable {}
-extension Primitives.WalletConnection: JsonCodable {}
-extension Primitives.WalletConnectionSession: JsonCodable {}
-extension Primitives.WalletConnectionSessionProposal: JsonCodable {}
 extension Primitives.WalletSubscription: JsonCodable {}
 extension Primitives.WalletSubscriptionChains: JsonCodable {}

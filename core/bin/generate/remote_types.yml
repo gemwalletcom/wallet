@@ -50,6 +50,10 @@ remote:
   - WalletType
   - WalletSource
   - TpslType
+  - WalletConnection
+  - WalletConnectionSession
+  - WalletConnectionSessionProposal
+  - WalletConnectionState
   - WalletConnectionVerificationStatus
   - VerificationStatus
   - RecentActivityType
@@ -66,6 +70,8 @@ remote:
   - SimulationPayloadField
   - LatencyType
   - LinkType
+  - NameProvider
+  - NameRecord
   - Node
   - NodeState
   - Latency

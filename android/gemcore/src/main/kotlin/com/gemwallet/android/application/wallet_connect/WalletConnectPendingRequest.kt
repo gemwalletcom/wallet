@@ -9,7 +9,6 @@ import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletConnectionSession
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,14 +25,14 @@ sealed class WalletConnectPendingRequest(
     val sessionId: String,
     chainId: String,
     val wallet: Wallet,
-    sessionJson: String,
+    session: uniffi.gemstone.WalletConnectionSession,
     simulationJson: String,
 ) {
     internal val result = CompletableDeferred<String>()
 
     val chain: Chain by lazy { chainId.requireChain() }
     val account: Account by lazy { checkNotNull(wallet.getAccount(chain)) { "Wallet has no $chain account" } }
-    val appMetadata: ApplicationMetadata by lazy { sessionJson.decodeJson<WalletConnectionSession>().metadata }
+    val appMetadata: ApplicationMetadata = session.metadata.toPrimitives()
     val simulation: SimulationResult by lazy { simulationJson.decodeJson() }
 
     fun approve(value: String) {

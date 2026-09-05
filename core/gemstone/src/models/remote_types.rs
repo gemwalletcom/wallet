@@ -5,11 +5,12 @@ use primitives::{
     Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetPrice, AssetType,
     BalanceMetadata, BannerEvent, BannerState, BlockExplorerLink, Chain, ChainAddress, ChainType, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod,
     ConnectionComponent, ConnectionStatus, Contact, ContactAddress, Currency, DelegationState, DelegationValidator, FeePriority, FeeUnitType, FiatQuoteType, FiatRate, Latency,
-    LatencyType, LinkType, Node, NodeState, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData,
-    PerpetualMetadata, PerpetualOrderType, PerpetualPosition, PerpetualPositionsSummary, PerpetualProvider, PerpetualTriggerOrder, Platform, PlatformStore, PortfolioType,
-    PriceAlert, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, Release, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay,
-    SimulationPayloadFieldKind, SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapPriceImpact, SwapPriceImpactType, SwapProvider, TotalFiatValue, TpslType,
-    TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    LatencyType, LinkType, NameProvider, NameRecord, Node, NodeState, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualDirection, PerpetualMarginType,
+    PerpetualMarketData, PerpetualMetadata, PerpetualOrderType, PerpetualPosition, PerpetualPositionsSummary, PerpetualProvider, PerpetualTriggerOrder, Platform, PlatformStore,
+    PortfolioType, PriceAlert, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, Release, ReportNft, Resource, SimulationPayloadField,
+    SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapPriceImpact, SwapPriceImpactType,
+    SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnection,
+    WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -184,6 +185,25 @@ pub enum LinkType {
     MagicEden,
     CoinMarketCap,
     TikTok,
+}
+
+#[uniffi::remote(Enum)]
+pub enum NameProvider {
+    Ud,
+    Ens,
+    Sns,
+    Ton,
+    Spaceid,
+    Did,
+    Suins,
+    Aptos,
+    Injective,
+    Icns,
+    Lens,
+    Basenames,
+    Hyperliquid,
+    AllDomains,
+    Near,
 }
 
 #[uniffi::remote(Enum)]
@@ -405,6 +425,13 @@ pub enum VerificationStatus {
 }
 
 #[uniffi::remote(Enum)]
+pub enum WalletConnectionState {
+    Started,
+    Active,
+    Expired,
+}
+
+#[uniffi::remote(Enum)]
 pub enum WalletConnectionVerificationStatus {
     Verified,
     Unknown,
@@ -570,6 +597,14 @@ pub struct Latency {
 }
 
 #[uniffi::remote(Record)]
+pub struct NameRecord {
+    pub name: String,
+    pub chain: Chain,
+    pub address: String,
+    pub provider: NameProvider,
+}
+
+#[uniffi::remote(Record)]
 pub struct Node {
     pub url: String,
     pub status: NodeState,
@@ -712,4 +747,28 @@ pub struct Wallet {
     pub is_pinned: bool,
     pub image_url: Option<String>,
     pub source: WalletSource,
+}
+
+#[uniffi::remote(Record)]
+pub struct WalletConnection {
+    pub session: WalletConnectionSession,
+    pub wallet: Wallet,
+}
+
+#[uniffi::remote(Record)]
+pub struct WalletConnectionSession {
+    pub id: String,
+    pub session_id: String,
+    pub state: WalletConnectionState,
+    pub chains: Vec<Chain>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub expire_at: chrono::DateTime<chrono::Utc>,
+    pub metadata: ApplicationMetadata,
+}
+
+#[uniffi::remote(Record)]
+pub struct WalletConnectionSessionProposal {
+    pub default_wallet: Wallet,
+    pub wallets: Vec<Wallet>,
+    pub metadata: ApplicationMetadata,
 }

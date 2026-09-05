@@ -1,9 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionState
@@ -17,8 +18,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.WalletConnectionSession
 
 class GemstoneConnectionStoreTest {
 
@@ -49,7 +48,7 @@ class GemstoneConnectionStoreTest {
             connection(id = "connection-2", walletId = "missing-wallet"),
         )
 
-        val sessions = store.getSessions().map { it.decodeJson<WalletConnectionSession>() }
+        val sessions = store.getSessions().map { it.toPrimitives() }
 
         assertEquals(listOf("connection-1", "connection-2"), sessions.map { it.id })
     }
@@ -69,7 +68,7 @@ class GemstoneConnectionStoreTest {
         coEvery { connectionsDao.getBySessionId("connection-1") } returns record
         val session = record.toDTO(mockWallet(id = "wallet-1")).session.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)
 
-        store.updateSession(session.toJson())
+        store.updateSession(session.toGem())
 
         coVerify { connectionsDao.insert(record.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)) }
     }
@@ -78,7 +77,7 @@ class GemstoneConnectionStoreTest {
     fun updateSession_ignoresUnknownSessions() = runTest {
         coEvery { connectionsDao.getBySessionId("missing") } returns null
 
-        store.updateSession(connection(id = "missing", walletId = "wallet-1").toDTO(mockWallet(id = "wallet-1")).session.toJson())
+        store.updateSession(connection(id = "missing", walletId = "wallet-1").toDTO(mockWallet(id = "wallet-1")).session.toGem())
 
         coVerify(exactly = 0) { connectionsDao.insert(any<DbConnection>()) }
     }

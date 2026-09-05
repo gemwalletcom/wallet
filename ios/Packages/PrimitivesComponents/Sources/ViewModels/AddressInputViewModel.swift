@@ -65,14 +65,14 @@ public final class AddressInputViewModel {
         try nameService.recipient(
             chain: chain.rawValue,
             input: text,
-            nameRecord: nameResolveState.result?.json(),
+            nameRecord: nameResolveState.result?.map(),
             memo: memo,
             references: references,
         )
     }
 
     private var validation: GemRecipientValidation {
-        nameService.validateRecipient(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
+        nameService.validateRecipient(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.map())
     }
 
     @discardableResult

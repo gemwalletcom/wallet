@@ -31,7 +31,7 @@ public extension GemWalletConnectServiceProtocol {
             origin: origin,
             validation: validation,
         )
-        return (try WalletConnectionSessionProposal(result.proposal), result.verificationStatus)
+        return (result.proposal.map(), result.verificationStatus)
     }
 
     func sessionApproval(wallet: Wallet) throws -> WalletConnectSessionApproval {
@@ -45,14 +45,14 @@ public extension GemWalletConnectServiceProtocol {
     }
 
     func session(topic: String, accounts: [String], expireAt: Date, metadata: Primitives.ApplicationMetadata) throws -> WalletConnectionSession {
-        try WalletConnectionSession(session(topic: topic, accounts: accounts, expireAt: Int64(expireAt.timeIntervalSince1970), metadata: metadata.map()))
+        try session(topic: topic, accounts: accounts, expireAt: Int64(expireAt.timeIntervalSince1970), metadata: metadata.map()).map()
     }
 
     func addConnection(_ connection: WalletConnection) async throws {
-        try await addConnection(connection: connection.json())
+        try await addConnection(connection: connection.map())
     }
 
     func updateSessions(_ sessions: [WalletConnectionSession]) async throws {
-        try await updateSessions(sessions: sessions.map { $0.json() })
+        try await updateSessions(sessions: sessions.map { $0.map() })
     }
 }

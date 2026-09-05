@@ -21,7 +21,6 @@ import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConne
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.CoroutineScope
@@ -224,7 +223,7 @@ class WalletConnectCoordinator(
 
     private suspend fun sync() {
         val sessions = activeSessions() ?: return
-        walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService)?.toJson() })
+        walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService)?.toGem() })
     }
 
     private fun handlePendingRequests() {
@@ -283,7 +282,7 @@ class WalletConnectCoordinator(
             .filter { it.topic !in activeBefore }
             .mapNotNull { it.toConnectionSession(walletConnectService) }
             .forEach { session ->
-                walletConnectService.addConnection(WalletConnection(session = session, wallet = wallet).toJson())
+                walletConnectService.addConnection(WalletConnection(session = session, wallet = wallet).toGem())
             }
     }
 }

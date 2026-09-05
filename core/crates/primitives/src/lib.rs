@@ -38,7 +38,7 @@ pub use self::chain_evm::EVMChain;
 pub mod chain_bitcoin;
 pub use self::chain_bitcoin::{BITCOINCASH_PREFIX, BitcoinChain};
 pub mod name;
-pub use self::name::NameProvider;
+pub use self::name::{NameProvider, NameRecord};
 pub mod node;
 pub use self::node::{Node, NodeState};
 pub mod node_check;

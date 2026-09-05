@@ -55,7 +55,7 @@ class WalletConnectSignerTest {
         chain = Chain.Ethereum.string,
         wallet = wallet.toGem(),
         account = account.toGem(),
-        session = session.toJson(),
+        session = session.toGem(),
         simulation = simulation,
         message = message,
     )
@@ -65,7 +65,7 @@ class WalletConnectSignerTest {
         chain = Chain.Ethereum.string,
         wallet = wallet.toGem(),
         account = account.toGem(),
-        session = session.toJson(),
+        session = session.toGem(),
         simulation = simulation,
         transfer = transfer,
         action = action,

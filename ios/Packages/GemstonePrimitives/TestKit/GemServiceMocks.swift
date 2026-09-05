@@ -459,7 +459,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
     public func getNameRecord(name: String, chain _: String) async throws -> Gemstone.NameRecord? {
         requestedNames.append(name)
         if let error { throw error }
-        return try nameRecord?.json()
+        return nameRecord?.map()
     }
 
     public func isNameSupported(name: String) -> Bool {
