@@ -1422,6 +1422,44 @@ public extension Primitives.AssetLink {
     }
 }
 
+public extension Gemstone.AssetMetaData {
+    func map() -> Primitives.AssetMetaData {
+        Primitives.AssetMetaData(
+            isEnabled: isEnabled,
+            isBalanceEnabled: isBalanceEnabled,
+            isBuyEnabled: isBuyEnabled,
+            isSellEnabled: isSellEnabled,
+            isSwapEnabled: isSwapEnabled,
+            isStakeEnabled: isStakeEnabled,
+            isEarnEnabled: isEarnEnabled,
+            isPinned: isPinned,
+            isActive: isActive,
+            stakingApr: stakingApr,
+            earnApr: earnApr,
+            rankScore: rankScore,
+        )
+    }
+}
+
+public extension Primitives.AssetMetaData {
+    func map() -> Gemstone.AssetMetaData {
+        Gemstone.AssetMetaData(
+            isEnabled: isEnabled,
+            isBalanceEnabled: isBalanceEnabled,
+            isBuyEnabled: isBuyEnabled,
+            isSellEnabled: isSellEnabled,
+            isSwapEnabled: isSwapEnabled,
+            isStakeEnabled: isStakeEnabled,
+            isEarnEnabled: isEarnEnabled,
+            isPinned: isPinned,
+            isActive: isActive,
+            stakingApr: stakingApr,
+            earnApr: earnApr,
+            rankScore: rankScore,
+        )
+    }
+}
+
 public extension Gemstone.AssetPrice {
     func map() -> Primitives.AssetPrice {
         Primitives.AssetPrice(

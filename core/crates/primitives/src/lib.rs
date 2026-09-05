@@ -22,6 +22,8 @@ pub mod auth_status;
 pub use self::auth_status::AuthStatus;
 pub mod chain;
 pub use self::chain::Chain;
+pub mod asset_metadata;
+pub use self::asset_metadata::AssetMetaData;
 pub mod chain_request;
 pub use self::chain_request::{ChainRequest, ChainRequestProtocol, ChainRequestType};
 pub mod chain_config;

@@ -13,7 +13,9 @@ use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, Confi
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
-pub use model::{AssetList, GemAssetAction, GemAssetFilter, GemAssetNetworkDestination, GemWalletSearchLimits};
+pub use model::{
+    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemWalletSearchLimits,
+};
 pub use selection::GemAssetSelectionService;
 pub use store::GemAssetStore;
 

@@ -9,7 +9,6 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.core.app.ApplicationProvider
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.wallet.core.primitives.WalletType
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,9 +42,8 @@ class AmountListHeadTest {
         composeRule.setContent {
             WalletTheme {
                 AssetHeadActions(
-                    walletType = WalletType.View,
-                    transferEnabled = false,
-                    operationsEnabled = false,
+                    isViewOnly = true,
+                    buttons = emptyList(),
                     onTransfer = null,
                     onReceive = null,
                     onBuy = null,

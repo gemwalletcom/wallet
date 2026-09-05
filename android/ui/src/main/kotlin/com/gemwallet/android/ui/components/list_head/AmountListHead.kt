@@ -79,7 +79,8 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemHeaderButton
+import uniffi.gemstone.GemHeaderButtonKind
 import kotlin.math.floor
 
 private val headerChangeTextHeight = 24.dp
@@ -221,25 +222,26 @@ private data class AssetHeadActionItem(
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun AssetHeadActions(
-    walletType: WalletType,
-    transferEnabled: Boolean,
-    operationsEnabled: Boolean,
+    isViewOnly: Boolean,
+    buttons: List<GemHeaderButton>,
     onTransfer: (() -> Unit)?,
     onReceive: (() -> Unit)?,
     onBuy: (() -> Unit)?,
     onSwap: (() -> Unit)?,
 ) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
-    if (walletType == WalletType.View) {
+    if (isViewOnly) {
         AssetWatchOnly()
         return
     }
-    val actions = listOf(
-        AssetHeadActionItem(R.string.wallet_send, AppIcons.Send, transferEnabled && operationsEnabled, onTransfer),
-        AssetHeadActionItem(R.string.wallet_receive, AppIcons.Receive, operationsEnabled, onReceive),
-        AssetHeadActionItem(R.string.wallet_buy, AppIcons.Buy, operationsEnabled, onBuy, testTag = "assetBuy"),
-        AssetHeadActionItem(R.string.wallet_swap, AppIcons.SwapVert, operationsEnabled, onSwap),
-    )
+    val actions = buttons.map { button ->
+        when (button.kind) {
+            GemHeaderButtonKind.SEND -> AssetHeadActionItem(R.string.wallet_send, AppIcons.Send, button.isEnabled, onTransfer)
+            GemHeaderButtonKind.RECEIVE -> AssetHeadActionItem(R.string.wallet_receive, AppIcons.Receive, button.isEnabled, onReceive)
+            GemHeaderButtonKind.BUY -> AssetHeadActionItem(R.string.wallet_buy, AppIcons.Buy, button.isEnabled, onBuy, testTag = "assetBuy")
+            GemHeaderButtonKind.SWAP -> AssetHeadActionItem(R.string.wallet_swap, AppIcons.SwapVert, button.isEnabled, onSwap)
+        }
+    }
     Row(
         modifier = Modifier.width(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
@@ -484,14 +486,12 @@ private class ActionTextAutoSize(
 fun PreviewAssetHeadActions() {
     WalletTheme {
         AssetHeadActions(
-            walletType = WalletType.Multicoin,
+            isViewOnly = false,
+            buttons = listOf(GemHeaderButtonKind.SEND, GemHeaderButtonKind.RECEIVE, GemHeaderButtonKind.BUY, GemHeaderButtonKind.SWAP).map { GemHeaderButton(it, isEnabled = true) },
             onTransfer = { },
-            transferEnabled = true,
-            operationsEnabled = true,
             onReceive = { },
-            onBuy = {}
-        ) {
-
-        }
+            onBuy = {},
+            onSwap = {},
+        )
     }
 }

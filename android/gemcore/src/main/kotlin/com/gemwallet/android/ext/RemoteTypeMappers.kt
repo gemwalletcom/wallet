@@ -949,6 +949,36 @@ fun com.wallet.core.primitives.AssetLink.toGem(): uniffi.gemstone.AssetLink = un
     url = url,
 )
 
+fun uniffi.gemstone.AssetMetaData.toPrimitives(): com.wallet.core.primitives.AssetMetaData = com.wallet.core.primitives.AssetMetaData(
+    isEnabled = isEnabled,
+    isBalanceEnabled = isBalanceEnabled,
+    isBuyEnabled = isBuyEnabled,
+    isSellEnabled = isSellEnabled,
+    isSwapEnabled = isSwapEnabled,
+    isStakeEnabled = isStakeEnabled,
+    isEarnEnabled = isEarnEnabled,
+    isPinned = isPinned,
+    isActive = isActive,
+    stakingApr = stakingApr,
+    earnApr = earnApr,
+    rankScore = rankScore,
+)
+
+fun com.wallet.core.primitives.AssetMetaData.toGem(): uniffi.gemstone.AssetMetaData = uniffi.gemstone.AssetMetaData(
+    isEnabled = isEnabled,
+    isBalanceEnabled = isBalanceEnabled,
+    isBuyEnabled = isBuyEnabled,
+    isSellEnabled = isSellEnabled,
+    isSwapEnabled = isSwapEnabled,
+    isStakeEnabled = isStakeEnabled,
+    isEarnEnabled = isEarnEnabled,
+    isPinned = isPinned,
+    isActive = isActive,
+    stakingApr = stakingApr,
+    earnApr = earnApr,
+    rankScore = rankScore,
+)
+
 fun uniffi.gemstone.AssetPrice.toPrimitives(): com.wallet.core.primitives.AssetPrice = com.wallet.core.primitives.AssetPrice(
     assetId = com.wallet.core.primitives.AssetId(assetId),
     price = price,

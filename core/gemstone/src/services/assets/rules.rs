@@ -1,7 +1,13 @@
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, VerificationStatus, Wallet};
+use std::str::FromStr;
 
-use super::model::{AssetList, GemAssetNetworkDestination, GemWalletSearchLimits};
+use primitives::{
+    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BannerEvent, Chain, ConfigVersions, StakeChain, VerificationStatus, Wallet, WalletType,
+};
+
+use super::model::{AssetList, GemAssetDetailsState, GemAssetEmptyAction, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemWalletSearchLimits};
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
+use crate::models::custom_types::GemBigUint;
+use crate::services::balance::GemAssetBalance;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing, missing_by, unique};
@@ -136,6 +142,51 @@ pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
         perpetuals: PERPETUALS_PREVIEW_LIMIT,
         nfts: NFTS_PREVIEW_LIMIT,
         results: RESULTS_LIMIT,
+    }
+}
+
+pub fn details_state(
+    wallet_type: WalletType,
+    chain: Chain,
+    metadata: &AssetMetaData,
+    balance: &GemAssetBalance,
+    banner_events: &[BannerEvent],
+    has_price: bool,
+    price_alerts_count: u32,
+) -> GemAssetDetailsState {
+    let is_view_only = wallet_type == WalletType::View;
+    let buttons_enabled = !banner_events
+        .iter()
+        .any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature));
+    let button = |kind: GemHeaderButtonKind, shows: bool| {
+        (shows && !is_view_only).then_some(GemHeaderButton {
+            kind,
+            is_enabled: buttons_enabled,
+        })
+    };
+    GemAssetDetailsState {
+        is_view_only,
+        header_buttons: [
+            button(GemHeaderButtonKind::Send, true),
+            button(GemHeaderButtonKind::Receive, true),
+            button(GemHeaderButtonKind::Buy, metadata.is_buy_enabled),
+            button(GemHeaderButtonKind::Swap, metadata.is_swap_enabled),
+        ]
+        .into_iter()
+        .flatten()
+        .collect(),
+        shows_banners: !is_view_only,
+        shows_manage: !metadata.is_balance_enabled,
+        shows_resources: StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze()),
+        shows_price_alerts: price_alerts_count > 0 && has_price,
+        shows_earn: metadata.is_earn_enabled && !is_view_only && balance.earn == GemBigUint::ZERO,
+        empty_transactions_action: if metadata.is_buy_enabled {
+            Some(GemAssetEmptyAction::Buy)
+        } else if metadata.is_swap_enabled {
+            Some(GemAssetEmptyAction::Swap)
+        } else {
+            None
+        },
     }
 }
 
@@ -325,5 +376,133 @@ mod tests {
     fn test_token_search_chains_defaults_to_every_chain() {
         assert_eq!(token_search_chains(&[Chain::Ethereum]), vec![Chain::Ethereum]);
         assert_eq!(token_search_chains(&[]), Chain::all());
+    }
+
+    fn metadata(is_balance_enabled: bool, is_buy_enabled: bool, is_swap_enabled: bool, is_earn_enabled: bool) -> AssetMetaData {
+        AssetMetaData {
+            is_enabled: true,
+            is_balance_enabled,
+            is_buy_enabled,
+            is_sell_enabled: false,
+            is_swap_enabled,
+            is_stake_enabled: false,
+            is_earn_enabled,
+            is_pinned: false,
+            is_active: true,
+            staking_apr: None,
+            earn_apr: None,
+            rank_score: 0,
+        }
+    }
+
+    fn state(wallet_type: WalletType, chain: Chain, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {
+        details_state(wallet_type, chain, metadata, &GemAssetBalance::mock(), banner_events, true, 0)
+    }
+
+    fn kinds(state: &GemAssetDetailsState) -> Vec<GemHeaderButtonKind> {
+        state.header_buttons.iter().map(|button| button.kind).collect()
+    }
+
+    #[test]
+    fn test_details_state_shows_the_header_buttons_the_metadata_allows() {
+        let all = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[]);
+        assert_eq!(
+            kinds(&all),
+            vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive, GemHeaderButtonKind::Buy, GemHeaderButtonKind::Swap]
+        );
+        assert!(all.header_buttons.iter().all(|button| button.is_enabled));
+
+        let transfer_only = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, false, false), &[]);
+        assert_eq!(kinds(&transfer_only), vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive]);
+    }
+
+    #[test]
+    fn test_details_state_disables_the_buttons_behind_an_activation_or_multi_signature_banner() {
+        for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
+            let state = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[BannerEvent::Stake, event]);
+            assert!(state.header_buttons.iter().all(|button| !button.is_enabled), "{event:?}");
+        }
+        let stake_only = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[BannerEvent::Stake]);
+        assert!(stake_only.header_buttons.iter().all(|button| button.is_enabled));
+    }
+
+    #[test]
+    fn test_details_state_hides_buttons_banners_and_earn_from_a_view_only_wallet() {
+        let state = state(WalletType::View, Chain::Ethereum, &metadata(true, true, true, true), &[]);
+
+        assert!(state.is_view_only);
+        assert!(state.header_buttons.is_empty());
+        assert!(!state.shows_banners);
+        assert!(!state.shows_earn);
+        assert_eq!(state.empty_transactions_action, Some(GemAssetEmptyAction::Buy));
+    }
+
+    #[test]
+    fn test_details_state_offers_manage_until_the_balance_is_enabled() {
+        assert!(state(WalletType::Multicoin, Chain::Ethereum, &metadata(false, false, false, false), &[]).shows_manage);
+        assert!(!state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, false, false), &[]).shows_manage);
+
+        let disabled_asset = AssetMetaData {
+            is_enabled: false,
+            ..metadata(false, false, false, false)
+        };
+        assert!(state(WalletType::Multicoin, Chain::Ethereum, &disabled_asset, &[]).shows_manage);
+    }
+
+    #[test]
+    fn test_details_state_shows_resources_only_where_staking_freezes() {
+        assert!(state(WalletType::Multicoin, Chain::Tron, &metadata(true, false, false, false), &[]).shows_resources);
+        assert!(!state(WalletType::Multicoin, Chain::Cosmos, &metadata(true, false, false, false), &[]).shows_resources);
+        assert!(!state(WalletType::Multicoin, Chain::Bitcoin, &metadata(true, false, false, false), &[]).shows_resources);
+    }
+
+    #[test]
+    fn test_details_state_shows_price_alerts_only_with_alerts_and_a_price() {
+        let plain = metadata(true, false, false, false);
+        let balance = GemAssetBalance::mock();
+
+        assert!(details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], true, 2).shows_price_alerts);
+        assert!(!details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], false, 2).shows_price_alerts);
+        assert!(!details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], true, 0).shows_price_alerts);
+    }
+
+    #[test]
+    fn test_details_state_offers_earn_until_there_is_an_earn_balance() {
+        let earn_enabled = metadata(true, false, false, true);
+
+        assert!(details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &GemAssetBalance::mock(), &[], true, 0).shows_earn);
+        let earning = GemAssetBalance {
+            earn: GemBigUint::from(100u32),
+            ..GemAssetBalance::mock()
+        };
+        assert!(!details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &earning, &[], true, 0).shows_earn);
+        assert!(
+            !details_state(
+                WalletType::Multicoin,
+                Chain::Ethereum,
+                &metadata(true, false, false, false),
+                &GemAssetBalance::mock(),
+                &[],
+                true,
+                0
+            )
+            .shows_earn
+        );
+    }
+
+    #[test]
+    fn test_details_state_empty_transactions_prefer_buy_then_swap() {
+        assert_eq!(
+            state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[]).empty_transactions_action,
+            Some(GemAssetEmptyAction::Buy)
+        );
+        assert_eq!(
+            state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, true, false), &[]).empty_transactions_action,
+            Some(GemAssetEmptyAction::Swap)
+        );
+        assert_eq!(
+            state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, false, false), &[]).empty_transactions_action,
+            None
+        );
     }
 }

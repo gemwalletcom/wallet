@@ -1,10 +1,10 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, BannerEvent, Chain, Deeplink, VerificationStatus};
+use primitives::{Asset, AssetId, AssetMetaData, BannerEvent, Chain, Deeplink, VerificationStatus, WalletType};
 
 use crate::deeplink::GemDeeplinkService;
-use crate::services::balance::GemBalanceService;
+use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -17,7 +17,7 @@ use primitives::BlockExplorerLink;
 
 use crate::services::failures::{StepFailure, record};
 
-use super::{GemAssetNetworkDestination, GemAssetsService, rules};
+use super::{GemAssetDetailsState, GemAssetNetworkDestination, GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetRefreshStep {
@@ -158,6 +158,19 @@ impl GemAssetDetailsService {
 
     pub fn verification_status(&self, asset: Asset, rank: i32) -> Option<VerificationStatus> {
         rules::verification_status(&asset, rank)
+    }
+
+    pub fn state(
+        &self,
+        wallet_type: WalletType,
+        chain: Chain,
+        metadata: AssetMetaData,
+        balance: GemAssetBalance,
+        banner_events: Vec<BannerEvent>,
+        has_price: bool,
+        price_alerts_count: u32,
+    ) -> GemAssetDetailsState {
+        rules::details_state(wallet_type, chain, &metadata, &balance, &banner_events, has_price, price_alerts_count)
     }
 
     pub fn swap_pair(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {

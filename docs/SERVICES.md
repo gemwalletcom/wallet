@@ -1003,6 +1003,25 @@ Three gotchas if you repeat the sweep, all met on this pass:
   app-encoded JSON (the two non-typeshare fields default), pinned by a Core test on the app
   shape. iOS `RewardsViewModel` lost seven booleans and Android `RewardsUIState` and its test
   are deleted; both scenes read the one record.
+- **The asset screen's visibility is Core's answer.** `GemAssetDetailsService::state(wallet_type,
+  chain, metadata, balance, banner_events, has_price, price_alerts_count)` returns
+  `GemAssetDetailsState { is_view_only, header_buttons: [GemHeaderButton { kind, is_enabled }],
+  shows_banners, shows_manage, shows_resources, shows_price_alerts, shows_earn,
+  empty_transactions_action }`. `AssetMetaData` crosses typed for it (it was a typeshare-only
+  declaration; it is a `primitives` struct now). The apps had diverged: iOS disabled the header
+  buttons behind an `ActivateAsset` or multi-signature banner, Android only behind the wallet's
+  multi-signature banner; Android hid the manage section for a token not yet in the wallet,
+  iOS showed it (that is where "add to wallet" lives); Android showed the price-alerts row
+  whenever alerts existed, iOS only with a price; Android showed the Tron resources whenever
+  balance metadata existed, iOS only on a freeze-staking chain. Core keeps the banner-event
+  rule, iOS's manage, price-alerts and resources rules, hides buttons, banners and earn from a
+  view-only wallet, and picks the empty-transactions action (buy, then swap), each pinned by a
+  test. iOS `AssetSceneViewModel` lost `showResources`/`showManageToken`/`canSign`/
+  `showPriceAlerts` and `AssetHeaderViewModel` reads the buttons from the state; Android
+  `AssetDetailsViewModel` lost `HasMultiSign` and `isOperationEnabled`, observes the asset's
+  active banners and price alerts instead, `AccountInfoUIModel.walletType` is gone and
+  `AssetHeadActions` takes `GemHeaderButton`s (the home header builds them from its summary
+  until it moves to Core too).
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

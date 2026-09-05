@@ -3,10 +3,13 @@
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
+import struct Gemstone.AssetMetaData
 import typealias Gemstone.BannerEvent
 import typealias Gemstone.Chain
 import typealias Gemstone.Deeplink
+import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import struct Gemstone.GemAssetDetailsState
 import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemAssetRefreshFailure
 import enum Gemstone.GemBannerAction
@@ -16,6 +19,7 @@ import struct Gemstone.BlockExplorerLink
 import class Gemstone.GemDeeplinkService
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.VerificationStatus
+import enum Gemstone.WalletType
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -54,6 +58,19 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
 
     public func verificationStatus(asset _: Asset, rank _: Int32) -> Gemstone.VerificationStatus? {
         .none
+    }
+
+    public func state(walletType: WalletType, chain _: Chain, metadata: AssetMetaData, balance _: GemAssetBalance, bannerEvents _: [BannerEvent], hasPrice _: Bool, priceAlertsCount _: UInt32) -> GemAssetDetailsState {
+        GemAssetDetailsState(
+            isViewOnly: walletType == .view,
+            headerButtons: [],
+            showsBanners: walletType != .view,
+            showsManage: !metadata.isBalanceEnabled,
+            showsResources: false,
+            showsPriceAlerts: false,
+            showsEarn: false,
+            emptyTransactionsAction: nil,
+        )
     }
 
     public func swapPair(assetId: AssetId, hasBalance _: Bool) -> GemSwapPairSuggestion {

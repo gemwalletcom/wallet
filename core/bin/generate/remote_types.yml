@@ -28,6 +28,7 @@ remote:
   - DeviceLocale
   - Asset
   - AssetLink
+  - AssetMetaData
   - AssetPrice
   - FeePriority
   - FeeUnitType
