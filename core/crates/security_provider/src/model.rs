@@ -1,10 +1,21 @@
 use primitives::Chain;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AddressTarget {
     pub address: String,
     pub chain: Chain,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AddressPoisoningTarget {
+    pub target: AddressTarget,
+    pub user_address: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WebsiteTarget {
+    pub website: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
