@@ -10,10 +10,7 @@ public import typealias Gemstone.GemBigInt
 public import struct Gemstone.BlockExplorerLink
 public import struct Gemstone.GemConfirmData
 public import struct Gemstone.GemConfirmInput
-public import struct Gemstone.GemConfirmLoad
-public import struct Gemstone.GemConfirmLoadOptions
-public import struct Gemstone.GemConfirmMetadata
-public import struct Gemstone.GemConfirmSimulationState
+public import class Gemstone.GemConfirmSession
 public import protocol Gemstone.GemConfirmTransferServiceProtocol
 public import enum Gemstone.GemExecuteResult
 public import enum Gemstone.GemKeystoreAuthentication
@@ -33,7 +30,6 @@ import PrimitivesTestKit
 
 public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProtocol, @unchecked Sendable {
     private let confirm: GemConfirmServiceMock
-    private let loadResult: Result<GemConfirmLoad, any Error>
     private let transactionState: any GemTransactionStateServiceProtocol
     private let signer: any GemTransactionSigner
     private let authenticationValue: GemKeystoreAuthentication
@@ -43,14 +39,12 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     public init(
         wallet: Primitives.Wallet = .mock(),
         confirm: GemConfirmServiceMock = GemConfirmServiceMock(),
-        load: Result<GemConfirmLoad, any Error> = .success(.mock()),
         transactionState: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
         signer: any GemTransactionSigner = GemTransactionSignerMock(),
         authentication: GemKeystoreAuthentication = .none,
     ) {
         self.wallet = wallet
         self.confirm = confirm
-        loadResult = load
         self.transactionState = transactionState
         self.signer = signer
         self.authenticationValue = authentication
@@ -68,19 +62,8 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         try GemConfirmInput(from: wallet.account(for: transfer.chain).map(), transfer: transfer)
     }
 
-    public func initialState(transfer: GemTransferData, simulation _: SimulationResult?) async throws -> GemConfirmLoad {
-        GemConfirmLoad(
-            feeAsset: transfer.inputType.transactionAsset(),
-            metadata: .mock(),
-            feeAssets: [],
-            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: [], simulation: confirm.simulation, addressNames: []),
-            addressName: nil,
-            preload: nil,
-        )
-    }
-
-    public func load(input _: GemConfirmInput, options _: GemConfirmLoadOptions, simulation _: SimulationResult?) async throws -> GemConfirmLoad {
-        try loadResult.get()
+    public func session(wallet _: Gemstone.Wallet, transfer _: GemTransferData, simulation _: SimulationResult?) -> GemConfirmSession {
+        fatalError("not used")
     }
 
     public func execute(confirm data: GemConfirmData, value _: GemBigInt, networkFee _: GemBigInt, simulation _: SimulationResult?) async throws -> GemExecuteResult {

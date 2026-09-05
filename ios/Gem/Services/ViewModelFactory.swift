@@ -518,14 +518,16 @@ public struct ViewModelFactory: Sendable {
         simulation: SimulationResult? = nil,
         onComplete: VoidAction,
     ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
+        let service = confirmTransferService()
+        return ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(
                 data: data,
                 simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
             wallet: wallet,
-            service: confirmTransferService(),
+            service: service,
+            session: service.session(wallet: wallet.map(), transfer: data, simulation: simulation?.json()),
             onComplete: { [toastPresenter] in
                 Task { toastPresenter.present(.transfer(for: data.inputType)) }
                 onComplete?()

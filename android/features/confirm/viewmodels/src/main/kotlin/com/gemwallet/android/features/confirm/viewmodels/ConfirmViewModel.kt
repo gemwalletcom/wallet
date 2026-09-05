@@ -22,7 +22,6 @@ import com.gemwallet.android.blockchain.services.toGem
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.blockchain.services.toSignerParams
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetPriceValue
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
@@ -64,6 +63,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -107,50 +107,41 @@ class ConfirmViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val initialLoad = request.filterNotNull().map { transfer ->
-        runCatchingCancellable { confirmService.initialState(transfer, requestSimulation) }.getOrNull()
+    private val confirmSession = combine(request.filterNotNull(), session.filterNotNull()) { request, session ->
+        confirmService.session(session.wallet.toGem(), request, requestSimulation)
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val feeLoad = combine(
-        request.filterNotNull(),
+    private val load = combine(
+        confirmSession.filterNotNull(),
         feeSelection,
         feeAssetSelection,
         restart,
-        session,
-    ) { request, feeSelection, feeAssetSelection, _, session ->
-        state.update { ConfirmState.Prepare }
-        val wallet = session?.wallet ?: return@combine null
-        val input = try {
-            confirmService.confirmInput(wallet.toGem(), request)
-        } catch (_: GemConfirmException.AccountMissing) {
-            state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
-            return@combine null
+    ) { session, feeSelection, feeAssetSelection, _ ->
+        session to confirmLoadOptions(feeSelection, feeAssetSelection)
+    }
+    .flatMapLatest { (session, options) ->
+        flow {
+            state.update { ConfirmState.Prepare }
+            try {
+                emit(session.state())
+                emit(session.load(options))
+                state.update { ConfirmState.Ready }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: GemConfirmException.AccountMissing) {
+                state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
+            } catch (err: Throwable) {
+                state.update { ConfirmState.Error(err) }
+            }
         }
-
-        val load = try {
-            confirmService.load(
-                input = input,
-                options = confirmLoadOptions(feeSelection, feeAssetSelection),
-                simulation = requestSimulation,
-            )
-        } catch (error: CancellationException) {
-            throw error
-        } catch (err: Throwable) {
-            state.update { ConfirmState.Error(err) }
-            return@combine null
-        }
-
-        state.update { ConfirmState.Ready }
-
-        load
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val content = combine(initialLoad, feeLoad, currency.filterNotNull()) { initial, fee, currency ->
-        (fee ?: initial)?.let { ConfirmContent(currency, it) }
+    private val content = combine(load.filterNotNull(), currency.filterNotNull()) { load, currency ->
+        ConfirmContent(currency, load)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

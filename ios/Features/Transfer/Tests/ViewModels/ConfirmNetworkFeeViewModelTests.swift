@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemBalanceRequirement
+import struct Gemstone.GemConfirmData
 import BigInt
 import Foundation
 @testable import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesComponentsTestKit
@@ -122,6 +124,7 @@ struct ConfirmNetworkFeeViewModelTests {
             feeAsset: .mockEthereum(),
             currency: .usd,
             selection: .priority(priority: .normal),
+            feeRates: GemConfirmData.mock().feeRateRows(selection: .priority(priority: .normal), feeAsset: Asset.mockEthereum().map()),
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
         )

@@ -34,7 +34,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
@@ -92,9 +92,10 @@ class ConfirmViewModelHeaderTest {
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
-        every { confirmService.confirmInput(any(), transfer) } returns GemConfirmInput(from = account.toGem(), transfer = transfer)
-        coEvery { confirmService.initialState(any(), any()) } returns mockGemConfirmLoad(asset)
-        coEvery { confirmService.load(any(), any(), any()) } coAnswers { awaitCancellation() }
+        val confirmSession = mockk<GemConfirmSession>()
+        coEvery { confirmSession.state() } returns mockGemConfirmLoad(asset, preload = null)
+        coEvery { confirmSession.load(any()) } coAnswers { awaitCancellation() }
+        every { confirmService.session(any(), transfer, any()) } returns confirmSession
         return ConfirmViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(

@@ -3,6 +3,7 @@
 mod error;
 mod model;
 pub(crate) mod rules;
+mod session;
 mod signer;
 mod transfer;
 
@@ -12,6 +13,7 @@ use std::time::Duration;
 pub use error::GemConfirmError;
 pub use model::*;
 pub use rules::acquire_asset_flow;
+pub use session::GemConfirmSession;
 pub use signer::GemTransactionSigner;
 pub use transfer::GemConfirmTransferService;
 

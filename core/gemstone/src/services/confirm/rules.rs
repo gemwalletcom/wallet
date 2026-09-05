@@ -1,12 +1,12 @@
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction,
-    TransactionPreloadInput, Wallet,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
+    SimulationResult, Transaction, TransactionPreloadInput, Wallet,
 };
 
 use super::error::GemConfirmError;
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemFeeRateRow, GemFeeRateRows,
-    GemTransferAmountResult, SendInput,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemConfirmPreload, GemFeeAsset, GemFeeRateRow,
+    GemFeeRateRows, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
@@ -147,6 +147,10 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
             requirement: GemBalanceRequirement::new(required, available),
         },
     }
+}
+
+pub fn confirm_simulation(request: Option<SimulationResult>, preload: Option<&GemConfirmPreload>) -> Option<SimulationResult> {
+    request.or_else(|| preload.and_then(|preload| preload.confirm_data.simulation.clone()))
 }
 
 pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>) -> Vec<GemFeeAsset> {
@@ -377,11 +381,12 @@ mod tests {
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;
     use crate::services::transfer::{GemRecipient, GemTransferData};
+    use crate::transfer_amount::GemTransferAmount;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::{
-        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, StakeType, TransactionType, TransferDataExtra, TransferDataOutputAction,
-        Wallet, WalletId,
+        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, TransactionType, TransferDataExtra,
+        TransferDataOutputAction, Wallet, WalletId,
         swap::{ApprovalData, SwapData},
     };
 
@@ -1031,5 +1036,34 @@ mod tests {
             Err(GemConfirmError::BalanceMissing { asset_id: missing }) => assert_eq!(missing, fee_asset_id),
             result => panic!("expected the fee balance to be required, got {result:?}"),
         }
+    }
+
+    #[test]
+    fn test_confirm_simulation_prefers_the_request_and_falls_back_to_the_preload() {
+        let simulation = |message: &str| SimulationResult {
+            warnings: vec![SimulationWarning::validation_error(message)],
+            balance_changes: vec![],
+            payload: vec![],
+            header: None,
+        };
+        let mut confirm_data = send_input(Chain::Ethereum, GemTransactionInputType::Transfer { asset: Asset::mock_sol() }).confirm;
+        confirm_data.simulation = Some(simulation("preload"));
+        let preload = GemConfirmPreload {
+            confirm_data,
+            amount: GemTransferAmountResult::Amount {
+                amount: GemTransferAmount {
+                    value: GemBigInt::from(1),
+                    network_fee: GemBigInt::from(1),
+                    is_max_amount: false,
+                },
+            },
+        };
+
+        assert_eq!(
+            confirm_simulation(Some(simulation("request")), Some(&preload)).unwrap().warnings[0].message.as_deref(),
+            Some("request")
+        );
+        assert_eq!(confirm_simulation(None, Some(&preload)).unwrap().warnings[0].message.as_deref(), Some("preload"));
+        assert!(confirm_simulation(None, None).is_none());
     }
 }

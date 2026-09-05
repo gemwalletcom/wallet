@@ -430,8 +430,8 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemStakeService::{sync, sync_earn}`, which take the chain or asset and look the account up on
   the session wallet (`sync_wallet` / `sync_earn_wallet` stay for the transaction-state
   post-processing), and `GemNftService::sync` (`sync_wallet` underneath), and
-  `GemConfirmTransferService` (`confirm_input(transfer)` picks the signing account; `load` and
-  `execute` read the wallet), so every screen hands the confirm flow a `GemTransferData` and no
+  `GemConfirmTransferService` (`confirm_input(transfer)` picks the signing account; `GemConfirmSession::load`
+  and `execute` read the wallet), so every screen hands the confirm flow a `GemTransferData` and no
   Android call site looks an account up any more, and `GemRecentActivityService::clear(types)`
   reads the wallet too (Android's `ClearRecentAssets` use case is gone; `RecentsSheetViewModel`
   holds the Core service), and the perpetual screens refresh positions through
@@ -454,6 +454,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   typeshare model (`Balance`, `SwapQuote`, `Delegation.base`, `TransactionSwapMetadata`) and the
   database columns both apps store as text — a typeshare-level mapping would finish it.
 
+- **The confirm screen state is one Core session.** `GemConfirmTransferService::session(wallet, transfer, simulation) -> GemConfirmSession` keeps the last preload it ran. `state()` answers the screen from what Core has (header prices, fee assets, simulation, address name, and the last preload once one exists); `load(options)` runs the preload for a fee selection, keeps it, and answers the full screen. Every load on both apps is the same three steps in order: apply `state()`, mark the transaction loading, apply `load(options)` (`ConfirmTransferSceneViewModel.load`, Android's `load` flow). `GemConfirmTransferService::{initial_state, load}` are gone (`confirm_input` stays for the sender address), and so is every app-side decision about when to fetch the first state and how to merge two answers (Android's `initialLoad` and `fee ?: initial` are deleted). A reload keeps the loaded screen until Core answers, which is what put the fee row's spinner and chevron back during a fee-speed change: the app used to replace the whole state with a fresh initial state on every reload, so the row flipped from the selectable row to the plain one mid-load and SwiftUI's list dropped the spinner.
 - **The network fee sheet is one Core answer.** `GemConfirmData::fee_rate_rows(selection, fee_asset) -> GemFeeRateRows { rows: [{ priority, unit_value, fee }], unit_type, unit_decimals, supports_custom_fee, selected_total, normal_total }` scales the loaded fee to each rate against the selected base, picks the unit (`FeeUnitType` is a remote enum now) and its decimals, and says whether a custom rate can be entered (bitcoin chains with more than one rate). Both apps' copies of that — iOS `estimatedFee`/`feeRateDecimals`/`Chain.customFeeEnabled`/`FeePriority.rank` and Android `FeeDetailsModel.from`/`FeeRateUIModel.feeAmount`/`CustomFee.baseTotal`/`feeRateDecimals`/`Chain.feeUnitType()` — are gone; the app formats a row and drives the custom-fee input from `selected_total`/`normal_total`. `fee_rates` themselves arrive sorted (normal, then fast). `Primitives.FeeRate` and the `GemFeeRate` mapping on iOS, and `SignerParams.feeRates` on Android, had no reader left and are deleted.
 
 - **The asset status row is one Core answer.** `VerificationStatus::from_rank(rank)` holds the
@@ -620,8 +621,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 - **One-sided calls that are structure, not drift** (from the September 2026 sweep of every
   generated protocol method against both apps — re-run it with the two `rg` lines in Screen
   services): Android carries transfers and position actions through routes, so only it calls
-  `GemTransferService::{encode, decode}_*`; iOS builds the confirm screen's first state with
-  `initial_state` while Android reads `metadata` + `preload`; iOS's `MessageSigner.hash /
+  `GemTransferService::{encode, decode}_*`; iOS's `MessageSigner.hash /
   sign_with_keystore` and Android's `payload_preview` are the two halves of the WalletConnect
   sign-message path each platform drives from its SDK; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
   set_price_alerts_enabled, *_swap_slippage_bps}` are Android's push/N1 adapters and
