@@ -332,7 +332,8 @@ hand-written parsers the record mappers call by convention (`X(core:)` / `.ident
 the `X(identifier)` constructor / `toIdentifier()` on Android). Before adding a `remote` type,
 verify that the generator can represent its full shape and inspect both generated mappers. It
 handles fieldless enums and records whose fields are scalars, `DateTime<Utc>`, other remote
-types, codes or identifiers, plain or wrapped in `Option` / `Vec`; a `#[typeshare(skip)]` field
+types, codes or identifiers, plain or wrapped in `Option` / `Vec`, whatever subdirectory of
+`primitives/src` declares them; a `#[typeshare(skip)]` field
 travels Core → app only and is filled with its empty value on the way back (scalars, `Option`,
 `Vec` and `String` have one; anything else fails generation). `StakeType` has data-carrying
 variants, so adding it mechanically would produce an incomplete mapping. Keep a single JSON bridge at the

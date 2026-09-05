@@ -814,6 +814,28 @@ public extension Primitives.StakeProviderType {
     }
 }
 
+public extension Gemstone.SwapPriceImpactType {
+    func map() -> Primitives.SwapPriceImpactType {
+        switch self {
+        case .positive: .positive
+        case .low: .low
+        case .medium: .medium
+        case .high: .high
+        }
+    }
+}
+
+public extension Primitives.SwapPriceImpactType {
+    func map() -> Gemstone.SwapPriceImpactType {
+        switch self {
+        case .positive: .positive
+        case .low: .low
+        case .medium: .medium
+        case .high: .high
+        }
+    }
+}
+
 public extension Gemstone.SwapProvider {
     func map() -> Primitives.SwapProvider {
         switch self {
@@ -1242,6 +1264,30 @@ public extension Primitives.AssetPrice {
     }
 }
 
+public extension Gemstone.BalanceMetadata {
+    func map() -> Primitives.BalanceMetadata {
+        Primitives.BalanceMetadata(
+            votes: votes,
+            energyAvailable: energyAvailable,
+            energyTotal: energyTotal,
+            bandwidthAvailable: bandwidthAvailable,
+            bandwidthTotal: bandwidthTotal,
+        )
+    }
+}
+
+public extension Primitives.BalanceMetadata {
+    func map() -> Gemstone.BalanceMetadata {
+        Gemstone.BalanceMetadata(
+            votes: votes,
+            energyAvailable: energyAvailable,
+            energyTotal: energyTotal,
+            bandwidthAvailable: bandwidthAvailable,
+            bandwidthTotal: bandwidthTotal,
+        )
+    }
+}
+
 public extension Gemstone.BlockExplorerLink {
     func map() -> Primitives.BlockExplorerLink {
         Primitives.BlockExplorerLink(
@@ -1274,6 +1320,70 @@ public extension Primitives.ChainAddress {
         Gemstone.ChainAddress(
             chain: chain.rawValue,
             address: address,
+        )
+    }
+}
+
+public extension Gemstone.ChartCandleStick {
+    func map() -> Primitives.ChartCandleStick {
+        Primitives.ChartCandleStick(
+            date: date,
+            open: open,
+            high: high,
+            low: low,
+            close: close,
+            volume: volume,
+        )
+    }
+}
+
+public extension Primitives.ChartCandleStick {
+    func map() -> Gemstone.ChartCandleStick {
+        Gemstone.ChartCandleStick(
+            date: date,
+            open: open,
+            high: high,
+            low: low,
+            close: close,
+            volume: volume,
+        )
+    }
+}
+
+public extension Gemstone.ChartCandleUpdate {
+    func map() -> Primitives.ChartCandleUpdate {
+        Primitives.ChartCandleUpdate(
+            coin: coin,
+            interval: interval,
+            candle: candle.map(),
+        )
+    }
+}
+
+public extension Primitives.ChartCandleUpdate {
+    func map() -> Gemstone.ChartCandleUpdate {
+        Gemstone.ChartCandleUpdate(
+            coin: coin,
+            interval: interval,
+            candle: candle.map(),
+        )
+    }
+}
+
+public extension Gemstone.ChartDateValue {
+    func map() -> Primitives.ChartDateValue {
+        Primitives.ChartDateValue(
+            date: date,
+            value: value,
+        )
+    }
+}
+
+public extension Primitives.ChartDateValue {
+    func map() -> Gemstone.ChartDateValue {
+        Gemstone.ChartDateValue(
+            date: date,
+            value: value,
         )
     }
 }
@@ -1356,6 +1466,24 @@ public extension Primitives.DelegationValidator {
     }
 }
 
+public extension Gemstone.FiatRate {
+    func map() -> Primitives.FiatRate {
+        Primitives.FiatRate(
+            symbol: Primitives.Currency(core: symbol),
+            rate: rate,
+        )
+    }
+}
+
+public extension Primitives.FiatRate {
+    func map() -> Gemstone.FiatRate {
+        Gemstone.FiatRate(
+            symbol: symbol.rawValue,
+            rate: rate,
+        )
+    }
+}
+
 public extension Gemstone.Latency {
     func map() -> Primitives.Latency {
         Primitives.Latency(
@@ -1390,6 +1518,208 @@ public extension Primitives.Node {
             url: url,
             status: status.map(),
             priority: priority,
+        )
+    }
+}
+
+public extension Gemstone.Perpetual {
+    func map() -> Primitives.Perpetual {
+        Primitives.Perpetual(
+            id: Primitives.PerpetualId(core: id),
+            name: name,
+            provider: provider.map(),
+            assetId: Primitives.AssetId(core: assetId),
+            identifier: identifier,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+            openInterest: openInterest,
+            volume24h: volume24h,
+            funding: funding,
+            maxLeverage: maxLeverage,
+            isIsolatedOnly: isIsolatedOnly,
+        )
+    }
+}
+
+public extension Primitives.Perpetual {
+    func map() -> Gemstone.Perpetual {
+        Gemstone.Perpetual(
+            id: id.identifier,
+            name: name,
+            provider: provider.map(),
+            assetId: assetId.identifier,
+            identifier: identifier,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+            openInterest: openInterest,
+            volume24h: volume24h,
+            funding: funding,
+            maxLeverage: maxLeverage,
+            isIsolatedOnly: isIsolatedOnly,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualBalance {
+    func map() -> Primitives.PerpetualBalance {
+        Primitives.PerpetualBalance(
+            available: available,
+            reserved: reserved,
+            withdrawable: withdrawable,
+        )
+    }
+}
+
+public extension Primitives.PerpetualBalance {
+    func map() -> Gemstone.PerpetualBalance {
+        Gemstone.PerpetualBalance(
+            available: available,
+            reserved: reserved,
+            withdrawable: withdrawable,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualData {
+    func map() -> Primitives.PerpetualData {
+        Primitives.PerpetualData(
+            perpetual: perpetual.map(),
+            asset: asset.map(),
+            metadata: metadata.map(),
+        )
+    }
+}
+
+public extension Primitives.PerpetualData {
+    func map() -> Gemstone.PerpetualData {
+        Gemstone.PerpetualData(
+            perpetual: perpetual.map(),
+            asset: asset.map(),
+            metadata: metadata.map(),
+        )
+    }
+}
+
+public extension Gemstone.PerpetualMarketData {
+    func map() -> Primitives.PerpetualMarketData {
+        Primitives.PerpetualMarketData(
+            coin: coin,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+            openInterest: openInterest,
+            volume24h: volume24h,
+            funding: funding,
+        )
+    }
+}
+
+public extension Primitives.PerpetualMarketData {
+    func map() -> Gemstone.PerpetualMarketData {
+        Gemstone.PerpetualMarketData(
+            coin: coin,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+            openInterest: openInterest,
+            volume24h: volume24h,
+            funding: funding,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualMetadata {
+    func map() -> Primitives.PerpetualMetadata {
+        Primitives.PerpetualMetadata(
+            isPinned: isPinned,
+        )
+    }
+}
+
+public extension Primitives.PerpetualMetadata {
+    func map() -> Gemstone.PerpetualMetadata {
+        Gemstone.PerpetualMetadata(
+            isPinned: isPinned,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualPosition {
+    func map() -> Primitives.PerpetualPosition {
+        Primitives.PerpetualPosition(
+            id: id,
+            perpetualId: Primitives.PerpetualId(core: perpetualId),
+            assetId: Primitives.AssetId(core: assetId),
+            size: size,
+            sizeValue: sizeValue,
+            leverage: leverage,
+            entryPrice: entryPrice,
+            liquidationPrice: liquidationPrice,
+            marginType: marginType.map(),
+            direction: direction.map(),
+            marginAmount: marginAmount,
+            takeProfit: takeProfit.map { $0.map() },
+            stopLoss: stopLoss.map { $0.map() },
+            pnl: pnl,
+            funding: funding,
+        )
+    }
+}
+
+public extension Primitives.PerpetualPosition {
+    func map() -> Gemstone.PerpetualPosition {
+        Gemstone.PerpetualPosition(
+            id: id,
+            perpetualId: perpetualId.identifier,
+            assetId: assetId.identifier,
+            size: size,
+            sizeValue: sizeValue,
+            leverage: leverage,
+            entryPrice: entryPrice,
+            liquidationPrice: liquidationPrice,
+            marginType: marginType.map(),
+            direction: direction.map(),
+            marginAmount: marginAmount,
+            takeProfit: takeProfit.map { $0.map() },
+            stopLoss: stopLoss.map { $0.map() },
+            pnl: pnl,
+            funding: funding,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualPositionsSummary {
+    func map() -> Primitives.PerpetualPositionsSummary {
+        Primitives.PerpetualPositionsSummary(
+            positions: positions.map { $0.map() },
+            balance: balance.map(),
+        )
+    }
+}
+
+public extension Primitives.PerpetualPositionsSummary {
+    func map() -> Gemstone.PerpetualPositionsSummary {
+        Gemstone.PerpetualPositionsSummary(
+            positions: positions.map { $0.map() },
+            balance: balance.map(),
+        )
+    }
+}
+
+public extension Gemstone.PerpetualTriggerOrder {
+    func map() -> Primitives.PerpetualTriggerOrder {
+        Primitives.PerpetualTriggerOrder(
+            price: price,
+            order_type: orderType.map(),
+            order_id: orderId,
+        )
+    }
+}
+
+public extension Primitives.PerpetualTriggerOrder {
+    func map() -> Gemstone.PerpetualTriggerOrder {
+        Gemstone.PerpetualTriggerOrder(
+            price: price,
+            orderType: order_type.map(),
+            orderId: order_id,
         )
     }
 }
@@ -1481,6 +1811,26 @@ public extension Primitives.SimulationPayloadField {
             value: value,
             fieldType: fieldType.map(),
             display: display.map(),
+        )
+    }
+}
+
+public extension Gemstone.SwapPriceImpact {
+    func map() -> Primitives.SwapPriceImpact {
+        Primitives.SwapPriceImpact(
+            percentage: percentage,
+            impactType: impactType.map(),
+            isHigh: isHigh,
+        )
+    }
+}
+
+public extension Primitives.SwapPriceImpact {
+    func map() -> Gemstone.SwapPriceImpact {
+        Gemstone.SwapPriceImpact(
+            percentage: percentage,
+            impactType: impactType.map(),
+            isHigh: isHigh,
         )
     }
 }

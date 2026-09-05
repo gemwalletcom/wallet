@@ -777,6 +777,19 @@ Three gotchas if you repeat the sweep, all met on this pass:
   app's `TransactionId` from it; the Kotlin type gained the string constructor the identifier
   convention expects. The generator now only considers `#[typeshare]` declarations and fails when a
   configured name is declared more than once, because `primitives` had two `Node` structs.
+- **Perpetuals, charts, fiat rates, balance metadata and swap price impact cross the FFI typed.**
+  `Perpetual`, `PerpetualPosition` (with `PerpetualTriggerOrder`), `PerpetualBalance`,
+  `PerpetualMarketData`, `PerpetualData`, `PerpetualMetadata`, `PerpetualPositionsSummary`,
+  `ChartDateValue`, `ChartCandleStick`, `ChartCandleUpdate`, `FiatRate`, `BalanceMetadata` and
+  `SwapPriceImpact` (with `SwapPriceImpactType`) are `remote_types.yml` records, and `PerpetualId`
+  is an identifier, so the perpetual, price and balance store callbacks, the Hyperliquid socket
+  message payloads, the candle and market subscriptions, the chart scene, the swap price impact
+  readers and the fee-asset balance mapping pass typed values on both apps; the Kotlin
+  `PerpetualId` gained the string constructor and the iOS one the `init(core:)` the identifier
+  convention expects. The generator now walks `primitives/src` recursively and names Kotlin types
+  by the TypeShare package of their subdirectory (`com.wallet.core.primitives.swap` for the swap
+  types), and it keeps a field's Rust name when the struct has no `#[serde(rename_all)]`, because
+  TypeShare emits `order_type` for `PerpetualTriggerOrder` on both apps.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

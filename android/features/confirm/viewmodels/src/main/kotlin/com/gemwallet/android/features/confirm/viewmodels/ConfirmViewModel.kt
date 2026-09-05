@@ -5,7 +5,6 @@ import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
 import com.gemwallet.android.domains.confirm.pack
@@ -393,7 +392,7 @@ class ConfirmViewModel @Inject constructor(
                 isProviderSelectable = false,
                 priceImpact = fromAsset.swapValue(transfer.value)
                     .priceImpact(toAsset.swapValue(BigInteger(swapData.quote.toValue)))
-                    ?.decodeJson(),
+                    ?.toPrimitives(),
                 minReceiveValue = summary.minReceiveValue(),
                 etaMinutes = summary.etaMinutes(),
             ),

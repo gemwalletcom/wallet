@@ -15,15 +15,15 @@ public extension GemPerpetualDetailsServiceProtocol {
     }
 
     func candleSubscription(perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
-        candleSubscription(perpetual: perpetual.json(), period: period.map())
+        candleSubscription(perpetual: perpetual.map(), period: period.map())
     }
 
     func candlesticks(perpetual: Perpetual, period: ChartPeriod) async throws -> [ChartCandleStick] {
-        try await candlesticks(perpetual: perpetual.json(), period: period.map()).map { try ChartCandleStick($0) }
+        try await candlesticks(perpetual: perpetual.map(), period: period.map()).map { $0.map() }
     }
 
-    func apply(update: ChartCandleUpdate, to candlesticks: [ChartCandleStick], perpetual: Perpetual, period: ChartPeriod) throws -> [ChartCandleStick]? {
-        try applyCandleUpdate(candles: candlesticks.map { $0.json() }, update: update.json(), perpetual: perpetual.json(), period: period.map())?
-            .map { try ChartCandleStick($0) }
+    func apply(update: ChartCandleUpdate, to candlesticks: [ChartCandleStick], perpetual: Perpetual, period: ChartPeriod) -> [ChartCandleStick]? {
+        applyCandleUpdate(candles: candlesticks.map { $0.map() }, update: update.map(), perpetual: perpetual.map(), period: period.map())?
+            .map { $0.map() }
     }
 }

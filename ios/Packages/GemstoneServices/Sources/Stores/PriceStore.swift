@@ -4,7 +4,7 @@ import Foundation
 import typealias Gemstone.AssetId
 import typealias Gemstone.AssetMarket
 import typealias Gemstone.Currency
-import typealias Gemstone.FiatRate
+import struct Gemstone.FiatRate
 import struct Gemstone.AssetPrice
 import protocol Gemstone.GemPriceStore
 import struct Gemstone.GemPriceUpdate
@@ -27,11 +27,11 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
 
     public func getRate(currency: Gemstone.Currency) async throws -> Gemstone.FiatRate? {
         let currency = try Primitives.Currency(id: currency)
-        return try priceStore.getRate(currency: currency.rawValue).map { Primitives.FiatRate(symbol: currency, rate: $0.rate).json() }
+        return try priceStore.getRate(currency: currency.rawValue).map { Primitives.FiatRate(symbol: currency, rate: $0.rate).map() }
     }
 
     public func saveRates(rates: [Gemstone.FiatRate]) async throws {
-        try fiatRateStore.add(rates.map { try Primitives.FiatRate($0) })
+        try fiatRateStore.add(rates.map { $0.map() })
     }
 
     public func savePrices(currency _: Gemstone.Currency, prices: [GemPriceUpdate]) async throws {

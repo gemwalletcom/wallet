@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.swap.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import kotlinx.coroutines.CancellationException
-import com.gemwallet.android.serializer.decodeJson
 
 import com.gemwallet.android.domains.asset.swapValue
 import androidx.compose.foundation.text.input.TextFieldState
@@ -220,7 +220,7 @@ class SwapViewModel @Inject constructor(
                     isProviderSelectable = providers.size > 1,
                     priceImpact = quote.pay.swapValue(quote.quote.fromValue)
                         .priceImpact(quote.receive.swapValue(quote.quote.toValue))
-                        ?.decodeJson(),
+                        ?.toPrimitives(),
                     minReceiveValue = summary.minReceiveValue(),
                     etaMinutes = summary.etaMinutes(),
                 ),

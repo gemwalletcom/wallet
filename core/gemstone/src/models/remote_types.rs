@@ -3,12 +3,13 @@
 
 use primitives::{
     Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, Asset, AssetFiatValue, AssetLink, AssetPrice, AssetType,
-    BannerEvent, BannerState, BlockExplorerLink, Chain, ChainAddress, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, Currency,
-    DelegationState, DelegationValidator, FeePriority, FeeUnitType, FiatQuoteType, Latency, LatencyType, LinkType, Node, NodeState, PerpetualAccountMode, PerpetualDirection,
-    PerpetualMarginType, PerpetualOrderType, PerpetualProvider, Platform, PlatformStore, PortfolioType, PriceAlert, PriceAlertDirection, PriceAlertNotificationType,
-    RecentActivityType, Release, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
-    SolanaTokenProgramId, StakeProviderType, SwapProvider, TotalFiatValue, TpslType, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType,
-    VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    BalanceMetadata, BannerEvent, BannerState, BlockExplorerLink, Chain, ChainAddress, ChainType, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod,
+    ConnectionComponent, ConnectionStatus, Contact, ContactAddress, Currency, DelegationState, DelegationValidator, FeePriority, FeeUnitType, FiatQuoteType, FiatRate, Latency,
+    LatencyType, LinkType, Node, NodeState, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData,
+    PerpetualMetadata, PerpetualOrderType, PerpetualPosition, PerpetualPositionsSummary, PerpetualProvider, PerpetualTriggerOrder, Platform, PlatformStore, PortfolioType,
+    PriceAlert, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, Release, ReportNft, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay,
+    SimulationPayloadFieldKind, SimulationPayloadFieldType, SolanaTokenProgramId, StakeProviderType, SwapPriceImpact, SwapPriceImpactType, SwapProvider, TotalFiatValue, TpslType,
+    TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -312,6 +313,14 @@ pub enum StakeProviderType {
 }
 
 #[uniffi::remote(Enum)]
+pub enum SwapPriceImpactType {
+    Positive,
+    Low,
+    Medium,
+    High,
+}
+
+#[uniffi::remote(Enum)]
 pub enum SwapProvider {
     UniswapV3,
     UniswapV4,
@@ -475,6 +484,15 @@ pub struct AssetPrice {
 }
 
 #[uniffi::remote(Record)]
+pub struct BalanceMetadata {
+    pub votes: u32,
+    pub energy_available: u32,
+    pub energy_total: u32,
+    pub bandwidth_available: u32,
+    pub bandwidth_total: u32,
+}
+
+#[uniffi::remote(Record)]
 pub struct BlockExplorerLink {
     pub name: String,
     pub link: String,
@@ -484,6 +502,29 @@ pub struct BlockExplorerLink {
 pub struct ChainAddress {
     pub chain: Chain,
     pub address: String,
+}
+
+#[uniffi::remote(Record)]
+pub struct ChartCandleStick {
+    pub date: chrono::DateTime<chrono::Utc>,
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
+}
+
+#[uniffi::remote(Record)]
+pub struct ChartCandleUpdate {
+    pub coin: String,
+    pub interval: String,
+    pub candle: ChartCandleStick,
+}
+
+#[uniffi::remote(Record)]
+pub struct ChartDateValue {
+    pub date: chrono::DateTime<chrono::Utc>,
+    pub value: f64,
 }
 
 #[uniffi::remote(Record)]
@@ -517,6 +558,12 @@ pub struct DelegationValidator {
 }
 
 #[uniffi::remote(Record)]
+pub struct FiatRate {
+    pub symbol: Currency,
+    pub rate: f64,
+}
+
+#[uniffi::remote(Record)]
 pub struct Latency {
     pub latency_type: LatencyType,
     pub value: f64,
@@ -527,6 +574,83 @@ pub struct Node {
     pub url: String,
     pub status: NodeState,
     pub priority: i32,
+}
+
+#[uniffi::remote(Record)]
+pub struct Perpetual {
+    pub id: primitives::PerpetualId,
+    pub name: String,
+    pub provider: PerpetualProvider,
+    pub asset_id: primitives::AssetId,
+    pub identifier: String,
+    pub price: f64,
+    pub price_percent_change_24h: f64,
+    pub open_interest: f64,
+    pub volume_24h: f64,
+    pub funding: f64,
+    pub max_leverage: u8,
+    pub is_isolated_only: bool,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualBalance {
+    pub available: f64,
+    pub reserved: f64,
+    pub withdrawable: f64,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualData {
+    pub perpetual: Perpetual,
+    pub asset: Asset,
+    pub metadata: PerpetualMetadata,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualMarketData {
+    pub coin: String,
+    pub price: f64,
+    pub price_percent_change_24h: f64,
+    pub open_interest: f64,
+    pub volume_24h: f64,
+    pub funding: f64,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualMetadata {
+    pub is_pinned: bool,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualPosition {
+    pub id: String,
+    pub perpetual_id: primitives::PerpetualId,
+    pub asset_id: primitives::AssetId,
+    pub size: f64,
+    pub size_value: f64,
+    pub leverage: u8,
+    pub entry_price: f64,
+    pub liquidation_price: Option<f64>,
+    pub margin_type: PerpetualMarginType,
+    pub direction: PerpetualDirection,
+    pub margin_amount: f64,
+    pub take_profit: Option<PerpetualTriggerOrder>,
+    pub stop_loss: Option<PerpetualTriggerOrder>,
+    pub pnl: f64,
+    pub funding: Option<f32>,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualPositionsSummary {
+    pub positions: Vec<PerpetualPosition>,
+    pub balance: PerpetualBalance,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualTriggerOrder {
+    pub price: f64,
+    pub order_type: PerpetualOrderType,
+    pub order_id: String,
 }
 
 #[uniffi::remote(Record)]
@@ -561,6 +685,13 @@ pub struct SimulationPayloadField {
     pub value: String,
     pub field_type: SimulationPayloadFieldType,
     pub display: SimulationPayloadFieldDisplay,
+}
+
+#[uniffi::remote(Record)]
+pub struct SwapPriceImpact {
+    pub percentage: f64,
+    pub impact_type: SwapPriceImpactType,
+    pub is_high: bool,
 }
 
 #[uniffi::remote(Record)]

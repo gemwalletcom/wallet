@@ -64,7 +64,7 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
                 frozen: value(frozen),
                 locked: value(locked),
                 rewards: value(rewards),
-                metadata: metadata.map { try BalanceMetadata($0) },
+                metadata: metadata.map { $0.map() },
             ))
         case let .earn(balance):
             .earn(UpdateEarnBalance(balance: value(balance)))

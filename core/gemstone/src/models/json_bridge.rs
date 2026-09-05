@@ -1,18 +1,14 @@
 use primitives::Charts;
-use primitives::FiatRate;
-use primitives::asset_balance::BalanceMetadata;
-use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 use primitives::name::NameRecord;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
-use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapProviderData, SwapQuote, SwapQuoteData};
+use primitives::swap::{ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
     AssetList, ChainAsset, ContractCallData, DelegationBase, NFTAsset, NFTAssetData, NFTAttribute, NFTData, NFTImages, NFTResource, Payment, PaymentAmount, PaymentLink,
-    PaymentRequest, Perpetual, PerpetualMarketData, PerpetualPosition, PerpetualTriggerOrder, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader,
-    SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    PaymentRequest, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator,
+    TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AuthNonce, AuthPayload, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset,
@@ -49,12 +45,8 @@ json_bridge!(
     AssetMarket,
     AuthNonce,
     AuthPayload,
-    BalanceMetadata,
     CancelOrderData,
     ChainAsset,
-    ChartCandleStick,
-    ChartCandleUpdate,
-    ChartDateValue,
     ChartValuePercentage,
     Charts,
     ConfigResponse,
@@ -66,7 +58,6 @@ json_bridge!(
     EarnType,
     FiatAssets,
     FiatQuote,
-    FiatRate,
     FiatQuoteRequest,
     FiatQuoteUrl,
     FiatQuotes,
@@ -85,20 +76,12 @@ json_bridge!(
     PaymentLink,
     PaymentRequest,
     PerpetualAccountSummary,
-    PerpetualBalance,
     PerpetualConfirmData,
-    Perpetual,
-    PerpetualData,
-    PerpetualMarketData,
-    PerpetualMetadata,
     PerpetualModifyConfirmData,
     PerpetualModifyPositionType,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
-    PerpetualPosition,
-    PerpetualPositionsSummary,
     PerpetualReduceData,
-    PerpetualTriggerOrder,
     PerpetualType,
     PortfolioAssets,
     PortfolioAsset,
@@ -125,7 +108,6 @@ json_bridge!(
     SupportMessageInput,
     SupportTyping,
     SwapData,
-    SwapPriceImpact,
     SwapProviderData,
     SwapQuote,
     SwapQuoteData,

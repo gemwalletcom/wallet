@@ -272,6 +272,7 @@ pub use self::priority::{PrioritizedProvider, sort_by_priority_then_amount};
 pub mod swap_provider;
 pub use self::swap_provider::SwapProvider;
 pub mod swap;
+pub use self::swap::{SwapPriceImpact, SwapPriceImpactType};
 pub mod websocket;
 pub use self::websocket::WebSocketPricePayload;
 pub mod stream;
@@ -282,7 +283,7 @@ pub use self::support::{
     SupportTypingStatus,
 };
 pub mod asset_balance;
-pub use self::asset_balance::{AddressBalances, AssetBalance, Balance};
+pub use self::asset_balance::{AddressBalances, AssetBalance, Balance, BalanceMetadata};
 pub mod chain_address;
 pub use self::chain_address::ChainAddress;
 pub mod json_rpc;
@@ -297,9 +298,9 @@ pub use self::asset_address::AssetAddress;
 pub mod graphql;
 pub mod perpetual;
 pub use self::perpetual::{
-    AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualDirection, PerpetualMarketData,
-    PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData, PerpetualSearchData, PerpetualType,
-    TPSLOrderData,
+    AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection,
+    PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData,
+    PerpetualSearchData, PerpetualType, TPSLOrderData,
 };
 pub mod search;
 pub use self::search::{AssetList, SearchResponse};
@@ -320,7 +321,7 @@ pub use self::tpsl_type::TpslType;
 pub mod autoclose_validator;
 pub use self::autoclose_validator::{AutocloseEstimator, AutocloseValidation, AutocloseValidator};
 pub mod chart;
-pub use self::chart::{ChartCandleStick, ChartDateValue};
+pub use self::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 pub mod delegation;
 pub use self::delegation::{Delegation, DelegationBase, DelegationState, DelegationValidator};
 pub mod contract_call_data;

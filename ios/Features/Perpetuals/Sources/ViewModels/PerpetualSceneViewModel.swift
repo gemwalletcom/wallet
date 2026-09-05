@@ -240,7 +240,7 @@ public extension PerpetualSceneViewModel {
 
     func onClosePosition() {
         do {
-            onTransferData?(try service.closeTransfer(perpetual: perpetual.json(), asset: asset.map(), position: positions.first?.position.json()))
+            onTransferData?(try service.closeTransfer(perpetual: perpetual.map(), asset: asset.map(), position: positions.first?.position.map()))
         } catch {
             debugLog("perpetual scene: close position error \(error)")
         }
@@ -274,7 +274,7 @@ public extension PerpetualSceneViewModel {
 private extension PerpetualSceneViewModel {
     func subscribeMarket() async {
         do {
-            try await observerService.subscribe(service.marketSubscription(perpetual: perpetual.json()))
+            try await observerService.subscribe(service.marketSubscription(perpetual: perpetual.map()))
         } catch {
             debugLog("Market data subscription failed: \(error)")
         }
@@ -282,7 +282,7 @@ private extension PerpetualSceneViewModel {
 
     func unsubscribeMarket() async {
         do {
-            try await observerService.unsubscribe(service.marketSubscription(perpetual: perpetual.json()))
+            try await observerService.unsubscribe(service.marketSubscription(perpetual: perpetual.map()))
         } catch {
             debugLog("Market data unsubscribe failed: \(error)")
         }
@@ -290,7 +290,7 @@ private extension PerpetualSceneViewModel {
 
     func onPositionAction(_ kind: GemPerpetualPositionKind) {
         do {
-            let positionAction = try service.positionAction(perpetual: perpetual.json(), asset: asset.map(), position: positions.first?.position.json(), kind: kind)
+            let positionAction = try service.positionAction(perpetual: perpetual.map(), asset: asset.map(), position: positions.first?.position.map(), kind: kind)
             onPerpetualPosition?(positionAction)
         } catch {
             debugLog("perpetual scene: position action error \(error)")

@@ -1,10 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -59,7 +58,7 @@ class GemstoneBalanceStore(
                     updatedAt = updatedAt,
                 )
                 is GemBalanceUpdateType.Stake -> {
-                    val metadata = type.metadata?.decodeJson<BalanceMetadata>()
+                    val metadata = type.metadata?.toPrimitives()
                     balancesDao.updateStakeBalance(
                         walletId = walletId,
                         assetId = update.assetId,

@@ -10,9 +10,13 @@ remote:
   - AssetFiatValue
   - AssetType
   - BannerEvent
+  - BalanceMetadata
   - BannerState
   - ChainAddress
   - ChainType
+  - ChartCandleStick
+  - ChartCandleUpdate
+  - ChartDateValue
   - ChartPeriod
   - DelegationState
   - ConnectionComponent
@@ -25,12 +29,21 @@ remote:
   - AssetPrice
   - FeePriority
   - FeeUnitType
+  - FiatRate
   - FiatQuoteType
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
+  - Perpetual
+  - PerpetualBalance
+  - PerpetualData
+  - PerpetualMarketData
+  - PerpetualMetadata
   - PerpetualOrderType
+  - PerpetualPosition
+  - PerpetualPositionsSummary
   - PerpetualProvider
+  - PerpetualTriggerOrder
   - Platform
   - PlatformStore
   - Wallet
@@ -45,6 +58,8 @@ remote:
   - SimulationPayloadFieldType
   - SolanaTokenProgramId
   - StakeProviderType
+  - SwapPriceImpact
+  - SwapPriceImpactType
   - SwapProvider
   - SimulationPayloadFieldDisplay
   - SimulationPayloadFieldKind
@@ -69,5 +84,6 @@ codes:
   - Currency
 identifiers:
   - AssetId
+  - PerpetualId
   - TransactionId
   - WalletId

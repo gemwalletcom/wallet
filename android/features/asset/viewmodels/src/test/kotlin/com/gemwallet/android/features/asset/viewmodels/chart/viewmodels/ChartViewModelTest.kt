@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemChart
 import uniffi.gemstone.GemChartService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
@@ -158,5 +157,5 @@ class ChartViewModelTest {
     private fun mockChartPrices(values: List<Float>): List<ChartDateValue> =
         values.mapIndexed { index, value -> ChartDateValue(date = 1_000L + index * 60_000L, value = value.toDouble()) }
 
-    private fun List<ChartDateValue>.toGemChart() = GemChart(values = map { it.toJson() }, current = null)
+    private fun List<ChartDateValue>.toGemChart() = GemChart(values = map { it.toGem() }, current = null)
 }

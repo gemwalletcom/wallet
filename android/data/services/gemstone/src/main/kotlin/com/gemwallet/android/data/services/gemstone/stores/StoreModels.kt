@@ -2,8 +2,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
-import com.gemwallet.android.serializer.toJson
-import com.wallet.core.primitives.BalanceMetadata
+import uniffi.gemstone.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.AssetPrice
 import java.math.BigInteger
@@ -26,7 +25,7 @@ fun DbBalance.toGemAssetBalance(): GemAssetBalance = GemAssetBalance(
         energyTotal = energyTotal.toUInt(),
         bandwidthAvailable = bandwidthAvailable.toUInt(),
         bandwidthTotal = bandwidthTotal.toUInt(),
-    ).toJson(),
+    ),
 )
 
 fun DbPrice.toAssetPrice(): AssetPrice = AssetPrice(
