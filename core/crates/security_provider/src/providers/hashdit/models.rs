@@ -29,9 +29,24 @@ pub(super) struct DomainSecurityRequest {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(super) struct SecurityResponse {
-    pub(super) data: SecurityData,
+#[serde(tag = "status")]
+pub(super) enum SecurityResponse {
+    #[serde(rename = "ok")]
+    Complete { data: SecurityData },
+    #[serde(rename = "in progress")]
+    InProgress {
+        #[serde(rename = "pollAfter")]
+        poll_after: u64,
+    },
+}
+
+impl SecurityResponse {
+    pub(super) fn into_data(self) -> Result<SecurityData, String> {
+        match self {
+            Self::Complete { data } => Ok(data),
+            Self::InProgress { poll_after } => Err(format!("HashDit scan is in progress; retry after {poll_after} seconds")),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]

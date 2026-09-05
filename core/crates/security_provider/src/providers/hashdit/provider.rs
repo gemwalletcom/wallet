@@ -37,7 +37,7 @@ impl<C: Client> HashDitProvider<C> {
 
     async fn security<B: Serialize + Send + Sync>(&self, target: HashDitTarget, body: &B) -> Result<SecurityData, Box<dyn std::error::Error + Send + Sync>> {
         let response: SecurityResponse = self.client.post(target, body).headers(self.headers()).await?;
-        Ok(response.data)
+        Ok(response.into_data()?)
     }
 
     async fn scan<T: Clone + Send + Sync, B: Serialize + Send + Sync>(
@@ -184,6 +184,41 @@ mod tests {
 
         assert!(result.is_malicious);
         assert_eq!(result.reason.as_deref(), Some("High Risk"));
+    }
+
+    #[tokio::test]
+    async fn test_scan_address_significant_risk() {
+        let client = MockClient::new().with_post(|path, body| {
+            assert_eq!(path, "/v2/hashdit/address-security-v2");
+            let request: Value = serde_json::from_slice(body).unwrap();
+            assert_eq!(request["chainId"], "56");
+            assert_eq!(request["address"], "0x0f9adaaccd7caecc5019194e15ad19624fed95fa");
+            assert_eq!(request["sync"], true);
+            Ok(include_str!("../../../testdata/hashdit/address_security_significant_risk_response.json")
+                .as_bytes()
+                .to_vec())
+        });
+        let target = AddressTarget {
+            chain: Chain::SmartChain,
+            address: "0x0f9adaaccd7caecc5019194e15ad19624fed95fa".to_string(),
+        };
+        let result = HashDitProvider::new(client, "api-key").scan_address(&target).await.unwrap();
+
+        assert!(result.is_malicious);
+        assert_eq!(result.target, target);
+        assert_eq!(result.reason.as_deref(), Some("Significant Risk"));
+    }
+
+    #[tokio::test]
+    async fn test_scan_address_in_progress() {
+        let client = MockClient::new().with_post(|_, _| Ok(include_str!("../../../testdata/hashdit/security_in_progress_response.json").as_bytes().to_vec()));
+        let target = AddressTarget {
+            chain: Chain::SmartChain,
+            address: "0x0f9adaaccd7caecc5019194e15ad19624fed95fa".to_string(),
+        };
+        let error = HashDitProvider::new(client, "api-key").scan_address(&target).await.unwrap_err();
+
+        assert_eq!(error.to_string(), "HashDit scan is in progress; retry after 10 seconds");
     }
 
     #[tokio::test]
