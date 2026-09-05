@@ -665,6 +665,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `Wallet.onboardingBannerKey`, the home's `showWelcomeBanner`/`onHideWelcomeBanner` and
   `GemBannerService::shows_onboarding` are gone, and the DAO no longer pre-filters banner
   states in SQL — Core's `is_visible` decides.
+  The onboarding row itself is seeded first in `GemAppStartService::setup_wallet`, ahead of the
+  default-asset and balance setup that fetches prices; app-start banner seeding likewise runs
+  before the config fetch. The migration had queued both local writes behind a network round
+  trip, which surfaced as the "wallet is ready" banner appearing a second or two after a new
+  wallet's home screen on both apps.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per
