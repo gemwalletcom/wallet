@@ -678,6 +678,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   Both apps' `AutocloseValidator` forwarders are deleted: Core's `validate` takes an optional price,
   so the "unset trigger is valid" rule Android kept in Kotlin lives in Core, and iOS's text
   validator moved into the Perpetuals feature together with `PerpetualError`.
+- **A recipient with an optional amount is one Core record on both apps.** iOS's `RecipientData`
+  and Android's `PaymentRecipient` were the same `{ GemRecipient, amount? }` pair, each rebuilt by
+  hand from `GemPaymentDestination`'s loose fields. `GemPaymentRecipient` now sits inside
+  `GemPaymentDestination::{Recipient, SelectAsset}` and is the type both apps carry through the
+  send, stake, earn and perpetual amount flows (Android routes serialize it through
+  `GemPaymentRecipientSerializer`, registered contextually on `jsonEncoder`). iOS's
+  `PerpetualRecipientData` is gone: the perpetual sheet and amount scene carry the
+  `GemPerpetualPositionAction` itself, matching Android's `AmountParams.Perpetual`, and the
+  action's `recipient()` comes from Core.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

@@ -3,24 +3,20 @@ package com.gemwallet.android.ui.navigation
 import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalTransferService
-import uniffi.gemstone.GemAssetsServiceInterface
-import uniffi.gemstone.GemTransferService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.domains.search.WalletSearchTag
+import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
-import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
-import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
 import com.gemwallet.android.features.import_wallet.navigation.ImportChainWalletRoute
@@ -31,37 +27,32 @@ import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.features.wallet.presents.WalletImageSource
-import com.gemwallet.android.domains.search.WalletSearchTag
-import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.domains.confirm.pack
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.model.PaymentRecipient
 import com.gemwallet.android.toRoute
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
-import com.gemwallet.android.ui.navigation.routes.NetworkAssetsRoute
+import com.gemwallet.android.ui.navigation.routes.AddContactRoute
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
-import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetChartRoute
+import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
-import com.gemwallet.android.ui.navigation.routes.assetsRoute
+import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
-import com.gemwallet.android.ui.navigation.routes.AddContactRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
-import com.gemwallet.android.ui.navigation.routes.EditContactRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
-import com.gemwallet.android.ui.navigation.routes.DevelopRoute
 import com.gemwallet.android.ui.navigation.routes.DevelopPaymentsRoute
+import com.gemwallet.android.ui.navigation.routes.DevelopRoute
+import com.gemwallet.android.ui.navigation.routes.EditContactRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.FiatTransactionsRoute
 import com.gemwallet.android.ui.navigation.routes.InAppNotificationsRoute
+import com.gemwallet.android.ui.navigation.routes.NetworkAssetsRoute
 import com.gemwallet.android.ui.navigation.routes.NetworksRoute
 import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
 import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
@@ -70,6 +61,7 @@ import com.gemwallet.android.ui.navigation.routes.NftUnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
+import com.gemwallet.android.ui.navigation.routes.PortfolioChartRoute
 import com.gemwallet.android.ui.navigation.routes.PreferencesRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveNftChainsRoute
@@ -84,14 +76,14 @@ import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
-import com.gemwallet.android.ui.navigation.routes.PortfolioChartRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
 import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
+import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
-import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatQuoteType
@@ -100,9 +92,17 @@ import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import uniffi.gemstone.UrlAction
+import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemPaymentRecipient
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.GemTransferService
+import uniffi.gemstone.UrlAction
 
 @Serializable
 data object WalletRootRoute : NavKey
@@ -269,8 +269,8 @@ class WalletNavigator(
     fun openReceive() = push(ReceiveSelectRoute)
     fun openReceive(assetId: AssetId) = push(ReceiveRoute(assetId))
     fun openReceiveNftChains() = push(ReceiveNftChainsRoute)
-    fun openRecipient(payment: PaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
-    fun openRecipient(assetId: AssetId, payment: PaymentRecipient? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
+    fun openRecipient(payment: GemPaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
+    fun openRecipient(assetId: AssetId, payment: GemPaymentRecipient? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
     fun openNftRecipient(assetId: AssetId, nftAssetId: NFTAssetId) = push(RecipientInputRoute(assetId, nftAssetId.toIdentifier()))
     fun openAmount(params: AmountParams) {
         val pack = params.pack() ?: return

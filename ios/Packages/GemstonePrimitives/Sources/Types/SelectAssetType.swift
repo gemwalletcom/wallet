@@ -2,10 +2,11 @@
 
 import Foundation
 import enum Gemstone.GemAssetAction
+import struct Gemstone.GemPaymentRecipient
 import Primitives
 
 public enum SelectAssetType: Identifiable, Hashable, Sendable {
-    case send(RecipientData?)
+    case send(GemPaymentRecipient?)
     case receive(ReceiveAssetType)
     case buy
     case swap(SelectAssetSwapType)

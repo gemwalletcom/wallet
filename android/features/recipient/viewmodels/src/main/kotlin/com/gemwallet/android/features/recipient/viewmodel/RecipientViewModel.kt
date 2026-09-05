@@ -19,7 +19,6 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.PaymentRecipient
 import com.gemwallet.android.model.toPaymentWalletAsset
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -38,6 +37,7 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemPaymentDestination
+import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientServiceInterface
@@ -233,16 +233,16 @@ class RecipientViewModel @Inject constructor(
             is GemPaymentDestination.Confirm -> {
                 val transfer = service.transferData(destination.transfer, asset.toGem())
                 when (type) {
-                    is RecipientType.Nft -> updateFrom(PaymentRecipient(transfer.recipient, null))
+                    is RecipientType.Nft -> updateFrom(GemPaymentRecipient(transfer.recipient))
                     is RecipientType.Asset -> confirmAction(transfer)
                 }
             }
-            is GemPaymentDestination.Recipient -> updateFrom(PaymentRecipient(destination.recipient, destination.amount))
+            is GemPaymentDestination.Recipient -> updateFrom(destination.payment)
             is GemPaymentDestination.SelectAsset, is GemPaymentDestination.Unsupported -> addressInput.markInvalid()
         }
     }
 
-    private fun updateFrom(payment: PaymentRecipient) {
+    private fun updateFrom(payment: GemPaymentRecipient) {
         addressInput.applyExternalAddress(payment.recipient.address)
         payment.recipient.memo?.let { _memo.value = it }
         references = payment.recipient.references

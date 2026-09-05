@@ -10,7 +10,7 @@ import Primitives
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
         case confirm(GemTransferData)
-        case recipient(RecipientData)
+        case recipient(GemPaymentRecipient)
     }
 
     public static func transfer(
@@ -21,8 +21,8 @@ public enum PaymentDestinationBuilder {
         switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return .confirm(paymentService.transferData(transfer: transfer, asset: asset.map()))
-        case let .recipient(_, recipient, amount):
-            return .recipient(RecipientData(recipient: recipient, amount: amount))
+        case let .recipient(_, payment):
+            return .recipient(payment)
         case .selectAsset, .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
@@ -39,7 +39,7 @@ public enum PaymentDestinationBuilder {
                 throw AnyError(Localized.Errors.notSupported)
             }
             return .confirm(paymentService.transferData(transfer: transfer, asset: assetData.asset.map()))
-        case let .recipient(assetId, recipient, amount):
+        case let .recipient(assetId, payment):
             guard let assetData = assetData(for: assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
             }
@@ -47,11 +47,11 @@ public enum PaymentDestinationBuilder {
                 SelectedAssetInput(
                     type: .send(.asset(assetData.asset)),
                     assetData: assetData,
-                    recipient: RecipientData(recipient: recipient, amount: amount),
+                    recipient: payment,
                 ),
             )
-        case let .selectAsset(recipient, amount, chains):
-            return .selectAsset(.send(RecipientData(recipient: recipient, amount: amount)), chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
+        case let .selectAsset(payment, chains):
+            return .selectAsset(.send(payment), chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
         case .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }

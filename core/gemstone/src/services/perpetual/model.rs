@@ -1,5 +1,7 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::perpetual::GemPerpetual;
 use crate::services::failures::StepFailure;
+use crate::services::transfer::model::GemRecipient;
 use primitives::chart::ChartCandleUpdate;
 use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualProvider};
 use serde::{Deserialize, Serialize};
@@ -132,6 +134,10 @@ impl GemPerpetualPositionAction {
     pub fn transfer_data(&self) -> GemPerpetualTransferData {
         self.data().clone()
     }
+
+    pub fn recipient(&self) -> GemRecipient {
+        GemPerpetual::new(self.data().provider.clone()).recipient()
+    }
 }
 
 impl GemPerpetualPositionAction {
@@ -139,5 +145,30 @@ impl GemPerpetualPositionAction {
         match self {
             Self::Open { data } | Self::Increase { data } | Self::Reduce { data, .. } => data,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_position_action_recipient_names_the_provider_without_an_address() {
+        let data = GemPerpetualTransferData {
+            provider: PerpetualProvider::Hypercore,
+            direction: PerpetualDirection::Long,
+            asset: Asset::mock(),
+            base_asset: Asset::mock(),
+            asset_index: 0,
+            price: 100.0,
+            leverage: 3,
+            margin_type: PerpetualMarginType::Cross,
+        };
+        let action = GemPerpetualPositionAction::Open { data };
+
+        let recipient = action.recipient();
+
+        assert_eq!(recipient.name.as_deref(), Some("Hyperliquid"));
+        assert!(recipient.address.is_empty());
     }
 }

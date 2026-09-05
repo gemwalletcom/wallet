@@ -4,7 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset_select.presents.views.SelectSendScreen
 import com.gemwallet.android.features.recipient.presents.RecipientScreen
-import com.gemwallet.android.model.PaymentRecipient
+import com.gemwallet.android.serializer.GemPaymentRecipientSerializer
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -16,17 +16,18 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import kotlinx.serialization.Serializable
+import uniffi.gemstone.GemPaymentRecipient
 
 @Serializable
 data class RecipientInputRoute(
     val assetId: AssetId,
     val nftAssetId: String?,
-    val payment: PaymentRecipient? = null,
+    val payment: @Serializable(with = GemPaymentRecipientSerializer::class) GemPaymentRecipient? = null,
 ) : NavKey
 
 @Serializable
 data class SendSelectRoute(
-    val payment: PaymentRecipient? = null,
+    val payment: @Serializable(with = GemPaymentRecipientSerializer::class) GemPaymentRecipient? = null,
     val chains: List<Chain> = emptyList(),
 ) : NavKey
 

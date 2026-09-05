@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemImage
+import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemRecipient
 import BigInt
 import protocol Gemstone.GemNameServiceProtocol
@@ -17,7 +18,7 @@ import Style
 import SwiftUI
 import struct Gemstone.GemTransferData
 
-public typealias RecipientDataAction = ((RecipientData) -> Void)?
+public typealias RecipientDataAction = ((GemPaymentRecipient) -> Void)?
 
 @Observable
 @MainActor
@@ -34,7 +35,7 @@ public final class RecipientSceneViewModel {
     public var isPresentingScanner: RecipientScene.Field?
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
-    private(set) var recipientData: RecipientData?
+    private(set) var recipientData: GemPaymentRecipient?
 
     public let contactsQuery: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -49,7 +50,7 @@ public final class RecipientSceneViewModel {
         service: any GemRecipientServiceProtocol,
         nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
-        recipient: RecipientData? = .none,
+        recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
     ) {
@@ -135,8 +136,7 @@ extension RecipientSceneViewModel {
 
         do {
             handle(
-                recipientData: RecipientData(
-                    recipient: try addressInputModel.recipient(memo: memo, references: recipientData?.recipient.references ?? []),
+                recipientData: GemPaymentRecipient(recipient: try addressInputModel.recipient(memo: memo, references: recipientData?.recipient.references ?? []),
                     amount: recipientData?.amount,
                 ),
             )
@@ -178,10 +178,8 @@ extension RecipientSceneViewModel {
                 references: [],
             )
             handle(
-                recipientData: RecipientData(
-                    recipient: GemRecipient(address: validated.address, name: recipient.name, memo: validated.memo),
-                    amount: .none,
-                ),
+                recipientData: GemPaymentRecipient(
+                    recipient: GemRecipient(address: validated.address, name: recipient.name, memo: validated.memo)),
             )
         } catch {
             addressInputModel.text = recipient.address
@@ -226,13 +224,13 @@ extension RecipientSceneViewModel {
     private func handleAddressScan(_ string: String) throws {
         switch (try service.scanDestination(url: string, asset: asset.paymentWalletAsset), type) {
         case let (.confirm(transfer), .asset): handle(transferData: service.transferData(transfer: transfer, asset: asset.map()))
-        case let (.confirm(transfer), .nft): update(from: RecipientData(recipient: service.transferData(transfer: transfer, asset: asset.map()).recipient, amount: .none))
-        case let (.recipient(_, recipient, amount), _): update(from: RecipientData(recipient: recipient, amount: amount))
+        case let (.confirm(transfer), .nft): update(from: GemPaymentRecipient(recipient: service.transferData(transfer: transfer, asset: asset.map()).recipient))
+        case let (.recipient(_, payment), _): update(from: payment)
         case (.selectAsset, _), (.unsupported, _): throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
         }
     }
 
-    private func update(from recipientData: RecipientData) {
+    private func update(from recipientData: GemPaymentRecipient) {
         self.recipientData = recipientData
         addressInputModel.update(text: recipientData.recipient.address)
 
@@ -241,7 +239,7 @@ extension RecipientSceneViewModel {
         }
     }
 
-    private func handle(recipientData: RecipientData) {
+    private func handle(recipientData: GemPaymentRecipient) {
         switch type {
         case .asset:
             onRecipientDataAction?(recipientData)

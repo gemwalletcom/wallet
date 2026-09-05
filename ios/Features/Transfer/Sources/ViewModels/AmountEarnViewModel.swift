@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
 import protocol Gemstone.GemAmountServiceProtocol
+import struct Gemstone.GemPaymentRecipient
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -50,11 +51,8 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         }
     }
 
-    func recipientData() -> RecipientData {
-        RecipientData(
-            recipient: GemRecipient(address: provider.id, name: provider.name),
-            amount: nil,
-        )
+    func recipientData() -> GemPaymentRecipient {
+        GemPaymentRecipient(recipient: GemRecipient(address: provider.id, name: provider.name))
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {

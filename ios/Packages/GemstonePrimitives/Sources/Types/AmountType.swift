@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemPaymentRecipient
+import enum Gemstone.GemPerpetualPositionAction
 import Primitives
 
 public enum AmountStakeType: Equatable, Hashable, Sendable {
@@ -14,10 +16,10 @@ public enum AmountStakeType: Equatable, Hashable, Sendable {
 }
 
 public enum AmountType: Equatable, Hashable, Sendable {
-    case transfer(recipient: RecipientData)
-    case deposit(recipient: RecipientData)
-    case withdraw(recipient: RecipientData)
+    case transfer(recipient: GemPaymentRecipient)
+    case deposit(recipient: GemPaymentRecipient)
+    case withdraw(recipient: GemPaymentRecipient)
     case stake(AmountStakeType)
-    case perpetual(PerpetualRecipientData)
+    case perpetual(GemPerpetualPositionAction)
     case earn(EarnType)
 }

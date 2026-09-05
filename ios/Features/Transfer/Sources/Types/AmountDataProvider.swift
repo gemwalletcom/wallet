@@ -3,6 +3,8 @@
 import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountType
 import BigInt
+import struct Gemstone.GemPaymentRecipient
+import enum Gemstone.GemPerpetualPositionAction
 import GemstonePrimitives
 import Primitives
 import struct Gemstone.GemTransferData
@@ -23,8 +25,8 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
             .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
         case let .stake(stakeType):
             .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, service: service))
-        case let .perpetual(data):
-            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, service: service))
+        case let .perpetual(action):
+            .perpetual(AmountPerpetualViewModel(asset: input.asset, action: action, service: service))
         case let .earn(earnType):
             .earn(AmountEarnViewModel(asset: input.asset, action: earnType, service: service))
         }
@@ -46,7 +48,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.gemAmountType
     }
 
-    func recipientData() -> RecipientData {
+    func recipientData() -> GemPaymentRecipient {
         provider.recipientData()
     }
 

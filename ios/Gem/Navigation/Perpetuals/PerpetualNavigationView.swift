@@ -1,4 +1,5 @@
 import Components
+import enum Gemstone.GemPerpetualPositionAction
 import Perpetuals
 import GemstoneServices
 import GemstonePrimitives
@@ -30,7 +31,7 @@ public struct PerpetualNavigationView: View {
             .onChange(of: isPresentingSheet) { oldValue, newValue in
                 guard newValue == nil else { return }
                 switch oldValue {
-                case .transferData, .perpetualRecipientData:
+                case .transferData, .perpetualPosition:
                     Task { await model.load() }
                 default:
                     break

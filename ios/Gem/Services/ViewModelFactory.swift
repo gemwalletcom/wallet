@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemPaymentRecipient
+import enum Gemstone.GemPerpetualPositionAction
 import Support
 import class Gemstone.GemDeveloperService
 import class Gemstone.GemDeviceService
@@ -552,7 +554,7 @@ public struct ViewModelFactory: Sendable {
         asset: Asset,
         wallet: Wallet,
         onTransferData: TransferDataAction,
-        onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?,
+        onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)?,
     ) -> PerpetualSceneViewModel {
         PerpetualSceneViewModel(
             wallet: wallet,
@@ -560,7 +562,7 @@ public struct ViewModelFactory: Sendable {
             service: GemPerpetualDetailsService(perpetuals: perpetualService, transactions: transactionsService, preferences: preferencesService, session: walletSessionService),
             observerService: hyperliquidObserverService,
             onTransferData: onTransferData,
-            onPerpetualRecipientData: onPerpetualRecipientData,
+            onPerpetualPosition: onPerpetualPosition,
         )
     }
 
@@ -617,7 +619,7 @@ public struct ViewModelFactory: Sendable {
         wallet: Wallet,
         asset: Asset,
         type: RecipientAssetType,
-        recipient: RecipientData? = .none,
+        recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
     ) -> RecipientSceneViewModel {

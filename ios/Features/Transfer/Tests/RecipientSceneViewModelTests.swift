@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemRecipient
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -81,7 +82,7 @@ struct RecipientSceneViewModelTests {
     func onContinueUsesChecksumAddress() {
         let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
         let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
-        var recipientData: RecipientData?
+        var recipientData: GemPaymentRecipient?
         let model = RecipientSceneViewModel.mock(onRecipientDataAction: { recipientData = $0 })
 
         model.addressInputModel.text = " \n\(address)\r "
@@ -119,7 +120,7 @@ struct RecipientSceneViewModelTests {
         let model = RecipientSceneViewModel.mock(
             asset: asset,
             type: .mockAsset(asset),
-            recipient: RecipientData(
+            recipient: GemPaymentRecipient(
                 recipient: GemRecipient(address: address, memo: "12345"),
                 amount: "10",
             ),
@@ -149,7 +150,7 @@ extension RecipientSceneViewModel {
         wallet: Wallet = .mock(),
         asset: Asset = .mockEthereum(),
         type: RecipientAssetType = .mockAsset(),
-        recipient: RecipientData? = .none,
+        recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction = nil,
         onTransferAction: TransferDataAction = nil,
     ) -> RecipientSceneViewModel {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemRecipient
 import Assets
 import Components
@@ -86,7 +87,7 @@ struct SelectAssetSceneNavigationStack: View {
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(
-                                    type: .deposit(recipient: RecipientData(recipient: PerpetualFormatter(provider: .hypercore).depositRecipient, amount: .none)),
+                                    type: .deposit(recipient: GemPaymentRecipient(recipient: PerpetualFormatter(provider: .hypercore).depositRecipient)),
                                     asset: input.asset,
                                 ),
                                 wallet: model.wallet,
@@ -101,10 +102,7 @@ struct SelectAssetSceneNavigationStack: View {
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(
                                     type: .withdraw(
-                                        recipient: RecipientData(
-                                            recipient: withdrawRecipient,
-                                            amount: .none,
-                                        ),
+                                        recipient: GemPaymentRecipient(recipient: withdrawRecipient),
                                     ),
                                     asset: input.asset,
                                 ),

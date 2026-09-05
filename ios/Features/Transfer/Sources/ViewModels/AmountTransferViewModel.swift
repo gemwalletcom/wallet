@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemTransactionInputType
 import BigInt
 import Foundation
@@ -10,11 +11,11 @@ import Primitives
 import struct Gemstone.GemTransferData
 
 enum TransferAction {
-    case send(RecipientData)
-    case deposit(RecipientData)
-    case withdraw(RecipientData)
+    case send(GemPaymentRecipient)
+    case deposit(GemPaymentRecipient)
+    case withdraw(GemPaymentRecipient)
 
-    var recipient: RecipientData {
+    var recipient: GemPaymentRecipient {
         switch self {
         case let .send(data), let .deposit(data), let .withdraw(data):
             data
@@ -62,7 +63,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
     }
 
-    func recipientData() -> RecipientData {
+    func recipientData() -> GemPaymentRecipient {
         action.recipient
     }
 

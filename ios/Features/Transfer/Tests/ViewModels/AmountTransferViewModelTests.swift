@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import struct Gemstone.GemPaymentRecipient
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -38,7 +39,7 @@ struct AmountTransferViewModelTests {
 
     @Test
     func recipientData() {
-        let recipient = RecipientData.mock(recipient: .mock(address: "0x123"))
+        let recipient = GemPaymentRecipient(recipient: .mock(address: "0x123"))
         #expect(AmountTransferViewModel(asset: .mock(), action: .send(recipient)).recipientData().recipient.address == "0x123")
     }
 

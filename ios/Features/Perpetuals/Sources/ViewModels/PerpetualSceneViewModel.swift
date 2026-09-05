@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
+import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
 import BigInt
 import Formatters
@@ -21,7 +22,7 @@ public final class PerpetualSceneViewModel {
     private let service: any GemPerpetualDetailsServiceProtocol
     private let observerService: any PerpetualObservable
     private let onTransferData: TransferDataAction
-    private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
+    private let onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)?
 
     public let wallet: Wallet
     public let asset: Asset
@@ -61,7 +62,7 @@ public final class PerpetualSceneViewModel {
         service: any GemPerpetualDetailsServiceProtocol,
         observerService: any PerpetualObservable,
         onTransferData: TransferDataAction = nil,
-        onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
+        onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -69,7 +70,7 @@ public final class PerpetualSceneViewModel {
         self.observerService = observerService
         chart = PerpetualChartModel(service: service, observerService: observerService)
         self.onTransferData = onTransferData
-        self.onPerpetualRecipientData = onPerpetualRecipientData
+        self.onPerpetualPosition = onPerpetualPosition
 
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
@@ -290,11 +291,7 @@ private extension PerpetualSceneViewModel {
     func onPositionAction(_ kind: GemPerpetualPositionKind) {
         do {
             let positionAction = try service.positionAction(perpetual: perpetual.json(), asset: asset.map(), position: positions.first?.position.json(), kind: kind)
-            let recipientData = PerpetualRecipientData(
-                recipient: RecipientData(recipient: PerpetualFormatter(provider: perpetual.provider).recipient, amount: .none),
-                positionAction: positionAction,
-            )
-            onPerpetualRecipientData?(recipientData)
+            onPerpetualPosition?(positionAction)
         } catch {
             debugLog("perpetual scene: position action error \(error)")
         }

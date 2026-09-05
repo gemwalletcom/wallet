@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemPaymentRecipient
 import GemstonePrimitives
 import Primitives
 import QRScanner
@@ -24,7 +25,7 @@ struct RecipientNavigationView: View {
                 model.onHandleScan($0, for: value)
             }
         }
-        .navigationDestination(for: RecipientData.self) { data in
+        .navigationDestination(for: GemPaymentRecipient.self) { data in
             AmountNavigationView(
                 model: viewModelFactory.amountScene(
                     input: AmountInput(type: .transfer(recipient: data), asset: model.asset),

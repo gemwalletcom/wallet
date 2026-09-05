@@ -1,23 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemPerpetualTransferData
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
-
-public extension PerpetualRecipientData {
-    static func mock(
-        recipient: RecipientData = .mock(),
-        positionAction: GemPerpetualPositionAction = .open(data: .mock()),
-    ) -> PerpetualRecipientData {
-        PerpetualRecipientData(
-            recipient: recipient,
-            positionAction: positionAction,
-        )
-    }
-}
 
 public extension GemPerpetualTransferData {
     static func mock(

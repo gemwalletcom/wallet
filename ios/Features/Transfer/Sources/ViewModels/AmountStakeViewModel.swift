@@ -6,6 +6,7 @@ import Foundation
 import enum Gemstone.GemAmountType
 import enum Gemstone.GemAmountStakeType
 import protocol Gemstone.GemAmountServiceProtocol
+import struct Gemstone.GemPaymentRecipient
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -126,19 +127,13 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         return delegations.filter { $0.validator.id == state.selected.id }
     }
 
-    func recipientData() -> RecipientData {
+    func recipientData() -> GemPaymentRecipient {
         switch selection {
         case let .validator(state):
-            return RecipientData(
-                recipient: GemRecipient(address: state.selected.id, name: state.selected.name),
-                amount: nil,
-            )
+            return GemPaymentRecipient(recipient: GemRecipient(address: state.selected.id, name: state.selected.name))
         case let .resource(state):
             let title = ResourceViewModel(resource: state.selected).title
-            return RecipientData(
-                recipient: GemRecipient(address: title, name: title),
-                amount: nil,
-            )
+            return GemPaymentRecipient(recipient: GemRecipient(address: title, name: title))
         }
     }
 

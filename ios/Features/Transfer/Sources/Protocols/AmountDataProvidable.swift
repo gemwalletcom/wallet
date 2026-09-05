@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAmountInput
 import enum Gemstone.GemAmountType
+import struct Gemstone.GemPaymentRecipient
 import GemstonePrimitives
 import Primitives
 import struct Gemstone.GemTransferData
@@ -14,7 +15,7 @@ protocol AmountDataProvidable {
     var title: String { get }
     var amountType: AmountType { get }
     var gemAmountType: GemAmountType { get }
-    func recipientData() -> RecipientData
+    func recipientData() -> GemPaymentRecipient
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData
 }
 

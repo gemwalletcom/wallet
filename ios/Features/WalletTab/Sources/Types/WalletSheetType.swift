@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemPerpetualPositionAction
 import InfoSheet
 import GemstonePrimitives
 import Primitives
@@ -11,7 +12,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case selectAsset(SelectAssetType, chains: [Chain])
     case infoSheet(InfoSheetType)
     case transferData(GemTransferData)
-    case perpetualRecipientData(PerpetualRecipientData)
+    case perpetualPosition(GemPerpetualPositionAction)
     case addAsset
     case portfolio(PortfolioType)
     case addContact(AddContactType)
@@ -21,7 +22,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
         case let .selectAsset(type, _): "selectAsset-\(type.id)"
         case let .infoSheet(type): "infoSheet-\(type.id)"
         case let .transferData(data): "transferData-\(data.id)"
-        case .perpetualRecipientData: "perpetualRecipientData"
+        case .perpetualPosition: "perpetualPosition"
         case .addAsset: "addAsset"
         case let .portfolio(type): "portfolio-\(type.id)"
         case let .addContact(type): "addContact-\(type.id)"
