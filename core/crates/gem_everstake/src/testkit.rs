@@ -30,7 +30,6 @@ pub fn mock_delegation(state: DelegationState) -> Delegation {
             validator_id: EVERSTAKE_POOL_ADDRESS.to_string(),
         },
         validator: DelegationValidator::stake(Chain::Ethereum, EVERSTAKE_POOL_ADDRESS.to_string(), "Everstake".to_string(), true, 10.0, 4.2),
-        price: None,
     }
 }
 

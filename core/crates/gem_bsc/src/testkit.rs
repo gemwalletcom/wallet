@@ -39,7 +39,6 @@ pub fn mock_delegation(validator_id: &str, state: DelegationState, balance: u64,
             validator_id: validator_id.to_string(),
         },
         validator: DelegationValidator::stake(Chain::SmartChain, validator_id.to_string(), "Test Validator".to_string(), true, 5.0, 10.0),
-        price: None,
     }
 }
 

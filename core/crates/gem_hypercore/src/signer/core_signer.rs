@@ -475,7 +475,6 @@ mod tests {
                 validator_id: "validator".into(),
             },
             validator: DelegationValidator::stake(Chain::HyperCore, "0x66be52ec79f829cc88e5778a255e2cb9492798fd".into(), "Validator".into(), true, 0.0, 0.0),
-            price: None,
         };
         let input = TransactionLoadInput {
             value: BigUint::from(60000000u64),
