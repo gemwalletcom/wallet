@@ -16,7 +16,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
-        .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
@@ -52,8 +51,6 @@ let package = Package(
             name: "OnboardingTest",
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
-                "Preferences",
-                .product(name: "PreferencesTestKit", package: "Preferences"),
                 "Onboarding",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),

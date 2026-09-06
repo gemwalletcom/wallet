@@ -7,7 +7,6 @@ import Foundation
 import enum Gemstone.GemPerpetualSubscription
 import Localization
 import GemstoneServices
-import Preferences
 import Primitives
 import Style
 import SwiftUI

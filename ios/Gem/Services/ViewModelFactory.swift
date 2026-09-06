@@ -71,7 +71,6 @@ import ManageWallets
 import MarketInsight
 import NFT
 import Onboarding
-import Preferences
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents

@@ -4,9 +4,9 @@ import class Gemstone.GemChainService
 import protocol Gemstone.GemAvatarServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemWalletServiceProtocol
-import GemstonePrimitives
-import Preferences
 import Foundation
+import GemstonePrimitives
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import SwiftUI

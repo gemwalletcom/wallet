@@ -10,7 +10,6 @@ import GemstonePrimitives
 import InfoSheet
 import Localization
 import GemstoneServices
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store

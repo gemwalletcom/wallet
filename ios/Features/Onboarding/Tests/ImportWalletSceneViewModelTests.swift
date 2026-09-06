@@ -8,8 +8,6 @@ import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemWalletImportKind
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
-import Preferences
-import PreferencesTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit

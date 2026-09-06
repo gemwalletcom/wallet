@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstoneServices
 import Keychain
-import Preferences
 
 public final class MockKeychainPreference: KeychainPreferenceStorable, @unchecked Sendable {
     private let storage: UserDefaults

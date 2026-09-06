@@ -6,8 +6,6 @@ import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import Onboarding
-import Preferences
-import PreferencesTestKit
 import Primitives
 import Store
 import StoreTestKit

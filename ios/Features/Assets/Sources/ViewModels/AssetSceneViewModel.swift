@@ -15,7 +15,6 @@ import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store

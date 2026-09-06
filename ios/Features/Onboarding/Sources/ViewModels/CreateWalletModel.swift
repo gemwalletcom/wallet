@@ -5,7 +5,6 @@ import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
-import Preferences
 import Primitives
 import SwiftUI
 

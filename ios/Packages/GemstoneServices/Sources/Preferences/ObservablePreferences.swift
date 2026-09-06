@@ -2,8 +2,8 @@
 
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
+import Observation
 import Primitives
-import SwiftUI
 
 @Observable
 public final class ObservablePreferences: Sendable {

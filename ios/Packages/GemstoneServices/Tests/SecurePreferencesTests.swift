@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@testable import Preferences
-import PreferencesTestKit
+@testable import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import Testing
 
@@ -56,10 +56,6 @@ struct SecurePreferencesTests {
             #expect(deviceId == nil)
         }
     }
-
-
-
-
 
     @Test
     func testClear() {

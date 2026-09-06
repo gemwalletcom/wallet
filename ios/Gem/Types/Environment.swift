@@ -5,7 +5,6 @@ import AppService
 import WalletConnectorService
 import ConnectionStatusService
 import Foundation
-import Preferences
 import GRDB
 import Primitives
 import Store

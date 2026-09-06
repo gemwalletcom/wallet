@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Preferences
+import GemstoneServices
 
 public extension SecurePreferences {
     static func mock(

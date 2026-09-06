@@ -12,8 +12,6 @@ import GemstoneServicesTestKit
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
-import Preferences
-import PreferencesTestKit
 
 @MainActor
 struct WalletsSceneViewModelTests {

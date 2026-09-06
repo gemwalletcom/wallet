@@ -6,7 +6,6 @@ import Foundation
 import enum Gemstone.SocialUrl
 import GemstonePrimitives
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
