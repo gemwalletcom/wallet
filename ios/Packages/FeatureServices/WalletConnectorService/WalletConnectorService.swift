@@ -118,11 +118,6 @@ extension WalletConnectorService {
             debugLog("Session proposal received: \(proposal)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
-            guard let verifyContext else {
-                await handleRejectSession(proposal: proposal, error: WalletConnectorServiceError.invalidOrigin)
-                continue
-            }
-
             do {
                 try await processSession(proposal: proposal, verifyContext: verifyContext)
             } catch {
@@ -197,7 +192,7 @@ extension WalletConnectorService {
         service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
     }
 
-    private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext) async throws {
+    private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext?) async throws {
         let messageId = proposal.messageId
 
         guard service.shouldProcessMessage(messageId: messageId) else {
@@ -209,8 +204,8 @@ extension WalletConnectorService {
             requiredChainIds: proposal.requiredNamespaces.chainIds,
             optionalChainIds: proposal.optionalNamespaces?.chainIds ?? [],
             metadata: metadata(proposal.proposer),
-            origin: verifyContext.origin,
-            validation: verifyContext.validation.map(),
+            origin: verifyContext?.origin,
+            validation: verifyContext?.validation.map() ?? .unknown,
         )
         debugLog("Verification status: \(status)")
         let payloadTopic = WCPairingProposal(
