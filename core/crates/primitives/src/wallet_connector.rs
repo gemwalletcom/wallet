@@ -1,4 +1,4 @@
-use crate::{ApplicationMetadata, Chain, Wallet};
+use crate::{ApplicationMetadata, Chain, ChainType, Wallet};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
@@ -93,6 +93,24 @@ impl WalletConnectionMethods {
             Self::TronSignTransaction,
             Self::TronSendTransaction,
         ]
+    }
+
+    pub fn chain_type(&self) -> ChainType {
+        match self {
+            Self::EthChainId
+            | Self::PersonalSign
+            | Self::EthSignTypedData
+            | Self::EthSignTypedDataV4
+            | Self::EthSignTransaction
+            | Self::EthSendTransaction
+            | Self::EthSendRawTransaction
+            | Self::WalletSwitchEthereumChain
+            | Self::WalletAddEthereumChain => ChainType::Ethereum,
+            Self::SolanaSignMessage | Self::SolanaSignTransaction | Self::SolanaSignAndSendTransaction | Self::SolanaSignAllTransactions => ChainType::Solana,
+            Self::SuiGetAccounts | Self::SuiSignPersonalMessage | Self::SuiSignTransaction | Self::SuiSignAndExecuteTransaction => ChainType::Sui,
+            Self::TonSendMessage | Self::TonSignData => ChainType::Ton,
+            Self::TronSignMessage | Self::TronSignTransaction | Self::TronSendTransaction => ChainType::Tron,
+        }
     }
 }
 

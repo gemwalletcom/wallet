@@ -175,6 +175,14 @@ pub fn session_methods() -> Vec<String> {
     WalletConnectionMethods::all().iter().filter_map(serde_name).collect()
 }
 
+pub fn authentication_methods() -> Vec<String> {
+    WalletConnectionMethods::all()
+        .iter()
+        .filter(|method| method.chain_type() == ChainType::Ethereum)
+        .filter_map(serde_name)
+        .collect()
+}
+
 pub fn session_events() -> Vec<String> {
     WalletConnectionEvents::all().iter().filter_map(serde_name).collect()
 }
@@ -446,6 +454,19 @@ mod tests {
         assert_eq!(metadata.icon, "https://x/icon.PNG");
         assert!(session_methods().contains(&"personal_sign".to_string()));
         assert!(session_events().contains(&"accountsChanged".to_string()));
+    }
+
+    #[test]
+    fn test_authentication_methods_are_the_evm_session_methods() {
+        let methods = authentication_methods();
+        assert!(methods.contains(&"personal_sign".to_string()));
+        assert!(methods.contains(&"eth_sendTransaction".to_string()));
+        assert!(
+            !methods
+                .iter()
+                .any(|method| method.starts_with("solana_") || method.starts_with("sui_") || method.starts_with("ton_") || method.starts_with("tron_"))
+        );
+        assert!(methods.iter().all(|method| session_methods().contains(method)));
     }
 
     #[test]

@@ -10,7 +10,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
-import com.gemwallet.android.application.wallet_connect.ChainNamespace
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
@@ -246,7 +245,7 @@ class WCAuthViewModel @Inject constructor(
         val payloadParams = approveWalletConnectAuthentication.authPayloadParams(
             payloadParams = request.payloadParams,
             supportedChains = supportedChains,
-            supportedMethods = ChainNamespace.Eip155.methodIds,
+            supportedMethods = walletConnectService.authenticationMethods(),
         )
         val issuer = selectedAccount.issuer
         val message = approveWalletConnectAuthentication.authMessage(payloadParams, issuer)

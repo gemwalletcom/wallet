@@ -416,7 +416,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   one and show `failure` if there is one; iOS's `handleRequest`/`rejectRequest` and Android's `WalletConnectRequestHandler`, the
   connection lookup and the per-request origin check are gone, and `WCRequestViewModel` holds
   the Core service plus the SDK responder, the pending-request port, `GemSignMessageService` and the
-  active-request tracker. `GemSignMessageService { names, explorer }` answers the preview (text,
+  active-request tracker. The one-click-auth method list is Core's too: `GemWalletConnectService::authentication_methods()` returns the EVM session methods (`WalletConnectionMethods::chain_type` says which namespace a method belongs to), and Android's `ChainNamespace` enum, which spelled every namespace's method list a second time, is gone. `GemSignMessageService { names, explorer }` answers the preview (text,
   payload fields and `has_critical_warning`, which is what disables the sign button — the
   per-app "any warning is critical" helpers are gone; the confirm screen reads the same flag off
   `GemConfirmSimulation`), the payload address names and the explorer links for the
