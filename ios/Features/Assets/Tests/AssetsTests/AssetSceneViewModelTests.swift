@@ -9,7 +9,6 @@ import struct Gemstone.GemSwapPairSuggestion
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
-import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

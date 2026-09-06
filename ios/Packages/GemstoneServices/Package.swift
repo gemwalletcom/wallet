@@ -28,7 +28,6 @@ let package = Package(
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Store", path: "../Store"),
-        .package(name: "Preferences", path: "../Preferences"),
     ],
     targets: [
         .target(
@@ -38,7 +37,6 @@ let package = Package(
                 "Gemstone",
                 "GemstonePrimitives",
                 "Store",
-                "Preferences",
                 .product(name: "LocalStore", package: "SystemServices"),
                 "Keychain",
                 "NativeProviderService",
@@ -56,6 +54,7 @@ let package = Package(
                 .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "Gemstone",
                 "GemstoneServices",
+                "Keychain",
             ],
             path: "TestKit",
         ),
@@ -63,7 +62,6 @@ let package = Package(
             name: "GemstoneServicesTests",
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
-                .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StoreTestKit", package: "Store"),
                 "Primitives",

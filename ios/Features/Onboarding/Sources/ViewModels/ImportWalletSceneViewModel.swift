@@ -5,12 +5,12 @@ import protocol Gemstone.GemWalletServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import Preferences
 
 @Observable
 @MainActor

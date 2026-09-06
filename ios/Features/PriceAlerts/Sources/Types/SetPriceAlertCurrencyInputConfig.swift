@@ -4,7 +4,6 @@ import Components
 import Formatters
 import Foundation
 import Localization
-import Preferences
 import Primitives
 import Style
 import SwiftUI

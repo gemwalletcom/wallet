@@ -103,7 +103,6 @@
 		D8CF19E32CC747370025D6B4 /* Transfer in Frameworks */ = {isa = PBXBuildFile; productRef = D8CF19E22CC747370025D6B4 /* Transfer */; };
 		D8CFDE9E2E37FC2500D27283 /* Style in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDE9D2E37FC2500D27283 /* Style */; };
 		D8CFDEA02E37FC3B00D27283 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDE9F2E37FC3B00D27283 /* Primitives */; };
-		D8CFDEA82E37FC8800D27283 /* SharedPreferences in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEA72E37FC8800D27283 /* SharedPreferences */; };
 		D8CFDEAA2E37FC8C00D27283 /* GemAPI in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEA92E37FC8C00D27283 /* GemAPI */; };
 		D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAD2E37FCA800D27283 /* Formatters */; };
 		D8CFDEB02E37FCB000D27283 /* Components in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAF2E37FCB000D27283 /* Components */; };
@@ -175,7 +174,6 @@
 		830FDA442C224316003DA605 /* NavigationStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStateManager.swift; sourceTree = "<group>"; };
 		830FDA472C22EEC4003DA605 /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
 		8311A89A2DF9D35D00598C43 /* Validators */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Validators; sourceTree = "<group>"; };
-		832F57E92D36A6D50066024D /* Preferences */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Preferences; sourceTree = "<group>"; };
 		833931A32D2D54060063BB6A /* PriceAlerts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PriceAlerts; sourceTree = "<group>"; };
 		833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFactory.swift; sourceTree = "<group>"; };
 		8349F1452D5E4D04003A0A93 /* ManageWallets */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ManageWallets; sourceTree = "<group>"; };
@@ -365,7 +363,6 @@
 				D8WIDGBF12345678901234 /* WidgetLocalization in Frameworks */,
 				D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */,
 				D8CFDEB02E37FCB000D27283 /* Components in Frameworks */,
-				D8CFDEA82E37FC8800D27283 /* SharedPreferences in Frameworks */,
 				D838194B2E256A5A0076CDB3 /* SwiftUI.framework in Frameworks */,
 				D8CFDEAA2E37FC8C00D27283 /* GemAPI in Frameworks */,
 				D8CFDEA02E37FC3B00D27283 /* Primitives in Frameworks */,
@@ -608,7 +605,6 @@
 			isa = PBXGroup;
 			children = (
 				837D7DE62E005D2800BBBDDA /* Formatters */,
-				832F57E92D36A6D50066024D /* Preferences */,
 				D8D203D12AE0813E00261CA2 /* SwiftHTTPClient */,
 				C36679142A0FF81000F1D74D /* GemAPI */,
 				C3549B4C29CA3A9000B4BE01 /* Store */,
@@ -807,7 +803,6 @@
 				D869D94D2E358A9C0025A94D /* PBXTargetDependency */,
 				D869D95F2E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9612E358A9C0025A94D /* PBXTargetDependency */,
-				D869D9632E358A9C0025A94D /* PBXTargetDependency */,
 				D869D9672E358A9C0025A94D /* PBXTargetDependency */,
 				D869D96D2E358A9C0025A94D /* PBXTargetDependency */,
 				C30952C3299C39D80004C0F9 /* PBXTargetDependency */,
@@ -864,7 +859,6 @@
 			packageProductDependencies = (
 				D8CFDE9D2E37FC2500D27283 /* Style */,
 				D8CFDE9F2E37FC3B00D27283 /* Primitives */,
-				D8CFDEA72E37FC8800D27283 /* SharedPreferences */,
 				D8CFDEA92E37FC8C00D27283 /* GemAPI */,
 				D8CFDEAD2E37FCA800D27283 /* Formatters */,
 				D8CFDEAF2E37FCB000D27283 /* Components */,
@@ -1137,10 +1131,6 @@
 		D869D9612E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = D869D9602E358A9C0025A94D /* PerpetualsTestKit */;
-		};
-		D869D9632E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9622E358A9C0025A94D /* PreferencesTestKit */;
 		};
 		D869D9672E358A9C0025A94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1854,10 +1844,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = PerpetualsTestKit;
 		};
-		D869D9622E358A9C0025A94D /* PreferencesTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PreferencesTestKit;
-		};
 		D869D9662E358A9C0025A94D /* StoreTestKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = StoreTestKit;
@@ -1881,10 +1867,6 @@
 		D8CFDE9F2E37FC3B00D27283 /* Primitives */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Primitives;
-		};
-		D8CFDEA72E37FC8800D27283 /* SharedPreferences */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SharedPreferences;
 		};
 		D8CFDEA92E37FC8C00D27283 /* GemAPI */ = {
 			isa = XCSwiftPackageProductDependency;

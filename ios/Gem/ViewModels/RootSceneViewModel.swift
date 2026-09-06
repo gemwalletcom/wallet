@@ -13,7 +13,6 @@ import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
 import LockManager
 import Onboarding
-import Preferences
 import Primitives
 import PrimitivesComponents
 import SwiftUI

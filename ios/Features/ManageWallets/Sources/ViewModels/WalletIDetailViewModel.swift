@@ -9,7 +9,7 @@ import Style
 import SwiftUI
 import enum Gemstone.GemWalletSecret
 import protocol Gemstone.GemWalletServiceProtocol
-import Preferences
+import GemstoneServices
 
 @Observable
 @MainActor

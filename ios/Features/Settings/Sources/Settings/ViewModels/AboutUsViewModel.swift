@@ -6,7 +6,7 @@ import Components
 import enum Gemstone.SocialUrl
 import GemstonePrimitives
 import Localization
-import Preferences
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style

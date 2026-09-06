@@ -11,7 +11,6 @@ import GemstonePrimitives
 import InfoSheet
 import Localization
 import NFT
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store

@@ -23,7 +23,6 @@ let package = Package(
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
 
         .package(name: "Store", path: "../../Packages/Store"),
-        .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
     ],
     targets: [
@@ -38,7 +37,6 @@ let package = Package(
                 "Gemstone",
                 "Store",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                "Preferences",
             ],
             path: "Sources",
         ),

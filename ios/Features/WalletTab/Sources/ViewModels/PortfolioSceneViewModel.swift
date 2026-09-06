@@ -6,7 +6,7 @@ import Foundation
 import protocol Gemstone.GemPortfolioServiceProtocol
 import GemstonePrimitives
 import Localization
-import Preferences
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style

@@ -3,7 +3,7 @@
 import class Gemstone.GemPreferencesService
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitivesTestKit
-import Preferences
+import GemstoneServices
 
 public extension ObservablePreferences {
     static func mock(
