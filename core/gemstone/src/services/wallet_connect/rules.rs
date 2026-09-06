@@ -11,14 +11,14 @@ use primitives::{
     WalletConnectionState, WalletId, WalletType,
 };
 
-use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
+use crate::models::transaction::GemTransactionInputType;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
-use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
 pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
 const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
@@ -253,7 +253,7 @@ pub fn transfer_data(
                 EvmTransactionKind::ContractCall => (TransactionType::SmartContractCall, None),
                 EvmTransactionKind::TokenApproval { approval } => (TransactionType::TokenApproval, Some(approval)),
             };
-            let extra = GemTransferDataExtra {
+            let extra = TransferDataExtra {
                 to: data.to,
                 gas_limit,
                 gas_price,
@@ -296,8 +296,8 @@ pub fn transfer_data(
     })
 }
 
-fn encoded_extra(encoded: String, output_type: TransferDataOutputType, output_action: TransferDataOutputAction, transaction_type: TransactionType) -> GemTransferDataExtra {
-    GemTransferDataExtra {
+fn encoded_extra(encoded: String, output_type: TransferDataOutputType, output_action: TransferDataOutputAction, transaction_type: TransactionType) -> TransferDataExtra {
+    TransferDataExtra {
         to: String::new(),
         gas_limit: None,
         gas_price: None,

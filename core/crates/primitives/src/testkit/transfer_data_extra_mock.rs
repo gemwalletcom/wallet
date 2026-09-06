@@ -11,6 +11,7 @@ impl TransferDataExtra {
             output_type: TransferDataOutputType::EncodedTransaction,
             output_action: TransferDataOutputAction::Sign,
             transaction_type: TransactionType::SmartContractCall,
+            approval: None,
         }
     }
 

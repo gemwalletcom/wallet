@@ -5,12 +5,12 @@ use crate::address::{checksum_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
 use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentLink, GemPaymentRequest, GemPaymentTransaction};
-use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
+use crate::models::transaction::GemTransactionInputType;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use payment::PaymentService as CorePaymentService;
-use primitives::{Asset, AssetId, Chain, ChainAddress, ChainType, PaymentURLDecoder, TransferDataOutputAction, TransferDataOutputType, hex};
+use primitives::{Asset, AssetId, Chain, ChainAddress, ChainType, PaymentURLDecoder, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex};
 
 pub type GemPaymentError = payment::PaymentError;
 
@@ -82,7 +82,7 @@ impl GemPaymentService {
             input_type: GemTransactionInputType::Generic {
                 asset,
                 metadata: transaction.merchant,
-                extra: GemTransferDataExtra {
+                extra: TransferDataExtra {
                     to: recipient.address.clone(),
                     gas_limit: None,
                     gas_price: None,

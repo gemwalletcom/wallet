@@ -928,7 +928,7 @@ mod tests {
                 icon: String::new(),
                 source: ApplicationMetadataSource::Payment,
             },
-            extra: crate::models::transaction::GemTransferDataExtra {
+            extra: TransferDataExtra {
                 to: String::new(),
                 gas_limit: None,
                 gas_price: None,

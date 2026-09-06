@@ -32,7 +32,7 @@ import com.gemwallet.android.ext.asset
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferDataExtra
+import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
 
 class WalletConnectSignerTest {
@@ -89,7 +89,7 @@ class WalletConnectSignerTest {
             inputType = GemTransactionInputType.Generic(
                 asset = Chain.Solana.asset().toGem(),
                 metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toGem(),
-                extra = GemTransferDataExtra(
+                extra = TransferDataExtra(
                     to = "",
                     gasLimit = null,
                     gasPrice = null,

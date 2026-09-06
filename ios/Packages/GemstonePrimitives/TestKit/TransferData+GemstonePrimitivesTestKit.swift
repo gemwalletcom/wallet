@@ -5,7 +5,7 @@ import enum Gemstone.GemTransactionInputType
 import BigInt
 import Foundation
 import GemstonePrimitives
-import struct Gemstone.GemTransferDataExtra
+import struct Gemstone.TransferDataExtra
 import Primitives
 import PrimitivesTestKit
 import struct Gemstone.GemTransferData

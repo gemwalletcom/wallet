@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferDataExtra
+import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
 import com.gemwallet.android.domains.confirm.unpackTransferData
 
@@ -59,7 +59,7 @@ class TransferDataCodecTest {
         inputType = GemTransactionInputType.Generic(
             asset = asset.toGem(),
             metadata = metadata.toGem(),
-            extra = GemTransferDataExtra(
+            extra = TransferDataExtra(
                 to = recipient.address,
                 gasLimit = gasLimit,
                 gasPrice = null,

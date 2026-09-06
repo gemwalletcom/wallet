@@ -17,7 +17,7 @@ public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemFeeOptions
 public import struct Gemstone.GemFeeRate
 public import enum Gemstone.GasPriceType
-public import struct Gemstone.GemTransferDataExtra
+public import struct Gemstone.TransferDataExtra
 public import enum Gemstone.GemTransactionLoadMetadata
 public import struct Gemstone.GemTransactionLoadFee
 import Foundation
@@ -103,7 +103,7 @@ public extension GemConfirmMetadata {
     }
 }
 
-public extension GemTransferDataExtra {
+public extension TransferDataExtra {
     static func mock(
         to: String = "",
         gasLimit: BigInt? = .none,
@@ -113,8 +113,8 @@ public extension GemTransferDataExtra {
         outputAction: Primitives.TransferDataOutputAction = .send,
         transactionType: Primitives.TransactionType = .transfer,
         approval: String? = .none,
-    ) -> GemTransferDataExtra {
-        GemTransferDataExtra(
+    ) -> TransferDataExtra {
+        TransferDataExtra(
             to: to,
             gasLimit: gasLimit,
             gasPrice: gasPrice,

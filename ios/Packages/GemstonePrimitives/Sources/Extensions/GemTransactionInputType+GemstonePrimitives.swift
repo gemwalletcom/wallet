@@ -56,7 +56,7 @@ public extension GemTransactionInputType {
         .earn(asset: asset.map(), earnType: earnType.json(), data: data.json())
     }
 
-    static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: GemTransferDataExtra) -> Self {
+    static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: TransferDataExtra) -> Self {
         .generic(asset: asset.map(), metadata: metadata.map(), extra: extra)
     }
 }

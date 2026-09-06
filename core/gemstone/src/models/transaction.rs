@@ -43,18 +43,6 @@ pub type GemContractCallData = ContractCallData;
 
 pub type GemEarnType = EarnType;
 
-#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
-pub struct GemTransferDataExtra {
-    pub to: String,
-    pub gas_limit: Option<GemBigInt>,
-    pub gas_price: Option<GasPriceType>,
-    pub data: Option<Vec<u8>>,
-    pub output_type: GemTransferDataOutputType,
-    pub output_action: GemTransferDataOutputAction,
-    pub transaction_type: TransactionType,
-    pub approval: Option<GemApprovalData>,
-}
-
 pub type GemPerpetualType = PerpetualType;
 
 #[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
@@ -82,7 +70,7 @@ pub enum GemTransactionInputType {
     Generic {
         asset: GemAsset,
         metadata: ApplicationMetadata,
-        extra: GemTransferDataExtra,
+        extra: TransferDataExtra,
     },
     TransferNft {
         asset: GemAsset,
@@ -338,29 +326,11 @@ impl From<TransactionInputType> for GemTransactionInputType {
             TransactionInputType::Swap(from_asset, to_asset, swap_data) => GemTransactionInputType::Swap { from_asset, to_asset, swap_data },
             TransactionInputType::Stake(asset, stake_type) => GemTransactionInputType::Stake { asset, stake_type },
             TransactionInputType::TokenApprove(asset, approval_data) => GemTransactionInputType::TokenApprove { asset, approval_data },
-            TransactionInputType::Generic(asset, metadata, extra) => GemTransactionInputType::Generic {
-                asset,
-                metadata,
-                extra: extra.into(),
-            },
+            TransactionInputType::Generic(asset, metadata, extra) => GemTransactionInputType::Generic { asset, metadata, extra },
             TransactionInputType::TransferNft(asset, nft_asset) => GemTransactionInputType::TransferNft { asset, nft_asset },
             TransactionInputType::Account(asset, account_type) => GemTransactionInputType::Account { asset, account_type },
             TransactionInputType::Perpetual(asset, perpetual_type) => GemTransactionInputType::Perpetual { asset, perpetual_type },
             TransactionInputType::Earn(asset, earn_type, data) => GemTransactionInputType::Earn { asset, earn_type, data },
-        }
-    }
-}
-
-impl From<GemTransferDataExtra> for TransferDataExtra {
-    fn from(value: GemTransferDataExtra) -> Self {
-        TransferDataExtra {
-            to: value.to,
-            gas_limit: value.gas_limit,
-            gas_price: value.gas_price,
-            data: value.data,
-            output_type: value.output_type,
-            output_action: value.output_action,
-            transaction_type: value.transaction_type,
         }
     }
 }
@@ -387,21 +357,6 @@ pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> S
         | GemTransactionLoadMetadata::Polkadot { sequence, .. } => sequence.to_string(),
         GemTransactionLoadMetadata::Evm { nonce, .. } => nonce.to_string(),
         _ => "0".to_string(),
-    }
-}
-
-impl From<TransferDataExtra> for GemTransferDataExtra {
-    fn from(value: TransferDataExtra) -> Self {
-        GemTransferDataExtra {
-            to: value.to,
-            gas_limit: value.gas_limit,
-            gas_price: value.gas_price,
-            data: value.data,
-            output_type: value.output_type,
-            output_action: value.output_action,
-            transaction_type: value.transaction_type,
-            approval: None,
-        }
     }
 }
 
@@ -444,25 +399,10 @@ impl From<GemTransactionInputType> for TransactionInputType {
         match value {
             GemTransactionInputType::Transfer { asset } => TransactionInputType::Transfer(asset),
             GemTransactionInputType::Deposit { asset } => TransactionInputType::Deposit(asset),
-            GemTransactionInputType::Swap { from_asset, to_asset, swap_data } => TransactionInputType::Swap(
-                from_asset,
-                to_asset,
-                GemSwapData {
-                    quote: swap_data.quote,
-                    data: swap_data.data,
-                },
-            ),
+            GemTransactionInputType::Swap { from_asset, to_asset, swap_data } => TransactionInputType::Swap(from_asset, to_asset, swap_data),
             GemTransactionInputType::Stake { asset, stake_type } => TransactionInputType::Stake(asset, stake_type),
-            GemTransactionInputType::TokenApprove { asset, approval_data } => TransactionInputType::TokenApprove(
-                asset,
-                GemApprovalData {
-                    token: approval_data.token,
-                    spender: approval_data.spender,
-                    value: approval_data.value,
-                    is_unlimited: approval_data.is_unlimited,
-                },
-            ),
-            GemTransactionInputType::Generic { asset, metadata, extra } => TransactionInputType::Generic(asset, metadata, extra.into()),
+            GemTransactionInputType::TokenApprove { asset, approval_data } => TransactionInputType::TokenApprove(asset, approval_data),
+            GemTransactionInputType::Generic { asset, metadata, extra } => TransactionInputType::Generic(asset, metadata, extra),
             GemTransactionInputType::TransferNft { asset, nft_asset } => TransactionInputType::TransferNft(asset, nft_asset),
             GemTransactionInputType::Account { asset, account_type } => TransactionInputType::Account(asset, account_type),
             GemTransactionInputType::Perpetual { asset, perpetual_type } => TransactionInputType::Perpetual(asset, perpetual_type),

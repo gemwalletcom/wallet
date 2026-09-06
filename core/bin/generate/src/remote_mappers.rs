@@ -325,9 +325,10 @@ const BIG_INTEGERS: &[(&str, &str)] = &[("BigInt", "GemBigInt"), ("BigUint", "Ge
 fn declared_type(types: &[RemoteType], type_name: &str) -> String {
     let (inner, wrapper) = unwrap(type_name);
     let known = types.iter().any(|other| other.name() == inner) || SCALARS.contains(&inner);
-    let declared = match (inner, known) {
-        (DATE_TIME, _) => DATE_TIME_DECLARED.to_string(),
-        (_, true) => inner.to_string(),
+    let declared = match (inner, &wrapper, known) {
+        (_, Wrapper::Option | Wrapper::Vec, _) => declared_type(types, inner),
+        (DATE_TIME, _, _) => DATE_TIME_DECLARED.to_string(),
+        (_, _, true) => inner.to_string(),
         _ => match BIG_INTEGERS.iter().find(|(rust, _)| *rust == inner) {
             Some((_, declared)) => declared.to_string(),
             None => format!("primitives::{inner}"),
@@ -800,6 +801,13 @@ mod tests {
         assert_eq!(unwrap("Vec<Account>"), ("Account", Wrapper::Vec));
         assert_eq!(unwrap("Option<String>"), ("String", Wrapper::Option));
         assert_eq!(unwrap("WalletId"), ("WalletId", Wrapper::None));
+    }
+
+    #[test]
+    fn test_declared_type_nests_wrappers() {
+        assert_eq!(declared_type(&[], "Option<Vec<u8>>"), "Option<Vec<u8>>");
+        assert_eq!(declared_type(&[], "Option<BigInt>"), "Option<GemBigInt>");
+        assert_eq!(declared_type(&[], "Vec<Option<AddressName>>"), "Vec<Option<primitives::AddressName>>");
     }
 
     #[test]
