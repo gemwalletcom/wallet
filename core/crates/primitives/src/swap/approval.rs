@@ -24,6 +24,15 @@ pub enum SwapQuoteDataType {
     Transfer,
 }
 
+impl SwapQuoteDataType {
+    pub fn has_fixed_value(&self) -> bool {
+        match self {
+            Self::Contract => true,
+            Self::Transfer => false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]

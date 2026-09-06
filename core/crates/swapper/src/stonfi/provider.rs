@@ -3,12 +3,12 @@ use super::{
     constants::{FALLBACK_ROUTERS, RouterInfo},
     model::{QuotePath, SwapSimulation},
     quote::{DiscoveredPool, PoolData, apply_slippage, compute_amount_out, router_model, scaled_next_min_ask_amount, static_candidates, token_address},
-    tx_builder::{NextSwapParams, ReferralParams, SwapTransactionParams, build_swap_transaction},
+    tx_builder::{self, NextSwapParams, ReferralParams, SwapTransactionParams, build_swap_transaction},
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
     SwapperQuoteAsset, SwapperQuoteData,
-    fees::{ReferralFee, default_referral_fees},
+    fees::{ReferralFee, default_referral_fees, reserved_transaction_fees},
     route_cache::DiscoveryCache,
 };
 use async_trait::async_trait;
@@ -435,8 +435,9 @@ where
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        let request = request_keeping_native_attachment(request)?;
         let from_value = request.value.clone();
-        let path = self.get_quotes(request, &from_value.to_string()).await?;
+        let path = self.get_quotes(&request, &from_value.to_string()).await?;
 
         Ok(Quote {
             from_value,
@@ -447,7 +448,7 @@ where
                 routes: path.routes,
                 slippage_bps: request.options.slippage.bps,
             },
-            request: request.clone(),
+            request,
             eta_in_seconds: None,
         })
     }
@@ -504,6 +505,23 @@ where
             None,
         ))
     }
+}
+
+fn request_keeping_native_attachment(request: &QuoteRequest) -> Result<QuoteRequest, SwapperError> {
+    if !request.options.use_max_amount || !request.from_asset.is_native() {
+        return Ok(request.clone());
+    }
+    let attachment = tx_builder::native_attachment();
+    if request.value <= attachment {
+        let reserved_fee = reserved_transaction_fees(Chain::Ton).and_then(|fee| BigUint::from_str(fee).ok()).unwrap_or(BigUint::ZERO);
+        return Err(SwapperError::InputAmountError {
+            min_amount: Some((attachment + reserved_fee).to_string()),
+        });
+    }
+    Ok(QuoteRequest {
+        value: &request.value - &attachment,
+        ..request.clone()
+    })
 }
 
 fn is_retryable_get_method_error(err: &SwapperError) -> bool {
@@ -790,6 +808,38 @@ mod tests {
                 .unwrap_err(),
             SwapperError::NoQuoteAvailable
         );
+    }
+
+    #[test]
+    fn test_max_native_quote_keeps_the_forward_gas_in_the_wallet() {
+        let mut request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ton)),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID)),
+            wallet_address: TEST_TON_SENDER.to_string(),
+            destination_address: TEST_TON_SENDER.to_string(),
+            value: BigUint::from(1_195_893_271u64),
+            options: Options {
+                use_max_amount: true,
+                ..Options::new_with_slippage(100.into())
+            },
+        };
+
+        assert_eq!(request_keeping_native_attachment(&request).unwrap().value, BigUint::from(885_893_271u64));
+
+        request.value = BigUint::from(310_000_000u64);
+        assert_eq!(
+            request_keeping_native_attachment(&request).unwrap_err(),
+            SwapperError::InputAmountError {
+                min_amount: Some("330000000".to_string())
+            }
+        );
+
+        request.options.use_max_amount = false;
+        assert_eq!(request_keeping_native_attachment(&request).unwrap().value, BigUint::from(310_000_000u64));
+
+        request.options.use_max_amount = true;
+        request.from_asset = SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID));
+        assert_eq!(request_keeping_native_attachment(&request).unwrap().value, BigUint::from(310_000_000u64));
     }
 
     #[tokio::test]

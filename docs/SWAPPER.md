@@ -31,6 +31,19 @@ Exact concurrent RPC requests are joined by the same Gemstone coalescer used by 
 
 The Gem API adds every Swaps.xyz quoted deposit address to the seven-day vault watchlist while proxying the action request. Source-chain memo and destination-tag values returned as `tx.toExtra` are preserved in `SwapQuoteData.memo`; Sui deposits also receive a prebuilt transfer payload. Status polling uses the confirmed source-chain transaction hash directly; clients do not register broadcasts or persist a provider transaction-ID mapping.
 
+## Max amount
+
+A max swap of a native coin cannot spend the whole balance: the transaction still pays the network fee, and some providers attach native value on top of the swapped amount. Core owns that arithmetic; the apps only flag `use_max_amount` when the entered value equals the available balance.
+
+- `Swapper::get_quotes` reduces the value quoted to every `SwapAmountMode::Fixed` provider by the chain's `RESERVED_NATIVE_FEES` entry (`fees/reserve.rs`), which covers the wallet's own fee.
+- A provider whose transaction attaches native value on top of the swapped amount subtracts that attachment itself before quoting, because only it knows the number. STON.fi keeps the forward gas its TON-to-jetton message carries (0.31 TON, the v2 amount, which also covers v1 routes) out of a max native quote, and reports the chain reserve plus the attachment as the minimum when the balance cannot cover them; a builder test keeps that constant above what either router version attaches.
+- The chain preload turns the real attachment into the confirm fee: TON's `calculate_transaction_fee` reads it from the quote data, the message value minus the quoted amount for a native swap and the whole message value for a jetton swap, instead of a constant, so the balance check at confirm is exact for the route that was quoted.
+- `TransferAmountInput::calculate` never trims a max amount the transaction cannot carry. A `Contract` swap sends the quoted value, so the confirm shows that value or an insufficient-balance error, never a smaller number than the one signed. Transfer-type swaps still trim by the fee at confirm.
+
+Issue #1154 was the missing attachment: a max TON swap was quoted at the balance minus 0.02 TON, STON.fi attached 0.31 TON, the confirm displayed a trimmed amount, and the wallet skipped the message on chain.
+
+Known gap: for a transfer-type max swap the confirm trims by the fee only when the fee exceeds the chain reserve, while the EVM and Tron signers always subtract the fee (`SignerInput::swap_value`) and the other signers never do, so the confirmed and signed amounts can differ by up to the fee on those providers.
+
 ## Failure and lifetime
 
 Preloading is best-effort. Completed probes are cached; transport failures and incomplete responses remain missing, so `get_quote` retries them through the provider's normal discovery path. Uniswap falls back to its full quote request set when discovery is unavailable.
@@ -41,6 +54,7 @@ The apps keep one `GemSwapper` per process. The cache survives swap screen recre
 
 - [Core swapper](../core/crates/swapper/src/swapper.rs)
 - [Route cache](../core/crates/swapper/src/route_cache.rs)
+- [Max amount reserve](../core/crates/swapper/src/fees/reserve.rs)
 - [Uniswap discovery](../core/crates/swapper/src/uniswap/discovery.rs)
 - [Cetus discovery](../core/crates/swapper/src/cetus_clmm/client.rs)
 - [STON.fi discovery](../core/crates/swapper/src/stonfi/provider.rs)

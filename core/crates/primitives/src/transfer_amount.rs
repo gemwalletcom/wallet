@@ -86,6 +86,13 @@ impl TransactionInputType {
             Self::Perpetual { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::TransferNft { .. } => false,
         }
     }
+
+    pub fn has_fixed_value(&self) -> bool {
+        match self {
+            Self::Swap { swap_data, .. } => swap_data.data.data_type.has_fixed_value(),
+            _ => false,
+        }
+    }
 }
 
 impl TransferAmountInput {
@@ -94,7 +101,7 @@ impl TransferAmountInput {
         let spends_balance = self.input_type.spends_balance();
         let should_deduct_fee = spends_balance && asset.id == self.fee_asset;
 
-        let value = match self.is_max_amount && should_deduct_fee {
+        let value = match self.is_max_amount && should_deduct_fee && !self.input_type.has_fixed_value() {
             true => self.value.clone().min(&self.available_value - &self.fee),
             false => self.value.clone(),
         };
@@ -148,7 +155,11 @@ impl TransferAmountInput {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AccountDataType, Asset, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, PerpetualType, Resource, nft::NFTAsset, swap::ApprovalData};
+    use crate::{
+        AccountDataType, Asset, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, PerpetualType, Resource, SwapProvider,
+        nft::NFTAsset,
+        swap::{ApprovalData, SwapData},
+    };
 
     const SOLANA_MINIMUM_ACCOUNT_BALANCE: u64 = 890_880;
     const FEE: u64 = 5_000;
@@ -376,6 +387,44 @@ mod tests {
 
         let token = input(TransactionInputType::Transfer { asset: Asset::mock_spl_token() }, 10_000_000, 10_000_000, 10_000);
         assert!(token.calculate().is_ok());
+    }
+
+    #[test]
+    fn test_calculate_max_never_trims_a_contract_swap_below_the_quoted_amount() {
+        const TON_FEE_WITH_ATTACHMENT: u64 = 320_000_000;
+        let contract_swap = |from_value: &str, message_value: &str| TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Ton),
+            to_asset: Asset::mock_ton_usdt(),
+            swap_data: SwapData::mock_contract(SwapProvider::StonfiV2, from_value, "1000000", message_value),
+        };
+        let max = |input_type: TransactionInputType, value: u64| {
+            let mut input = input(input_type, value, 1_215_893_271, 1_215_893_271);
+            input.fee = BigInt::from(TON_FEE_WITH_ATTACHMENT);
+            input.is_max_amount = true;
+            input
+        };
+
+        let fits = max(contract_swap("885893271", "1195893271"), 885_893_271).calculate().unwrap();
+        assert_eq!(fits.value, BigInt::from(885_893_271u64));
+        assert!(fits.is_max_amount);
+
+        assert_eq!(
+            max(contract_swap("1195893271", "1505893271"), 1_195_893_271).calculate().unwrap_err(),
+            TransferAmountError::InsufficientBalance {
+                asset_id: AssetId::from_chain(Chain::Ton),
+                required: BigInt::from(1_515_893_271u64),
+                available: BigInt::from(1_215_893_271u64),
+            },
+            "a contract swap sends the quoted amount, so confirm must refuse it rather than show a trimmed one"
+        );
+
+        let transfer_swap = TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Ton),
+            to_asset: Asset::mock_sol(),
+            swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "1215893271", "1000000", "deposit"),
+        };
+        let trimmed = max(transfer_swap, 1_215_893_271).calculate().unwrap();
+        assert_eq!(trimmed.value, BigInt::from(1_215_893_271u64 - TON_FEE_WITH_ATTACHMENT));
     }
 
     #[test]
