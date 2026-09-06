@@ -9,3 +9,13 @@ pub struct SwapResult {
     pub metadata: Option<TransactionSwapMetadata>,
     pub eta_in_seconds: Option<u32>,
 }
+
+impl SwapResult {
+    pub fn pending() -> Self {
+        Self {
+            status: SwapStatus::Pending,
+            metadata: None,
+            eta_in_seconds: None,
+        }
+    }
+}

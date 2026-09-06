@@ -23,11 +23,7 @@ pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: C
     let deposit = match source_deposit(rpc_provider.clone(), chain, transaction_hash).await? {
         SourceDeposit::Deposit(deposit) => deposit,
         SourceDeposit::Pending => {
-            return Ok(SwapResult {
-                status: SwapStatus::Pending,
-                metadata: None,
-                eta_in_seconds: None,
-            });
+            return Ok(SwapResult::pending());
         }
         SourceDeposit::Failed => {
             return Ok(SwapResult {

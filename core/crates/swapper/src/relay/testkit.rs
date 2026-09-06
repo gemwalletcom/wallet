@@ -1,13 +1,14 @@
 use num_bigint::BigInt;
 
-use super::model::{CurrencyAmount, EvmStepData, QuoteDetails, RelayQuoteResponse, RelayRequest, RelayStatus, Step, StepData, StepItem};
+use super::model::{
+    CurrencyAmount, EvmStepData, QuoteDetails, RelayChainInfo, RelayProtocol, RelayProtocolV2, RelayQuoteResponse, RelayRequest, RelayStatus, Step, StepData, StepItem,
+};
 
 impl RelayQuoteResponse {
     pub fn mock_with_steps(steps: Vec<Step>) -> Self {
         Self {
             steps,
             details: QuoteDetails::mock(),
-            fees: None,
         }
     }
 }
@@ -22,9 +23,34 @@ impl QuoteDetails {
     }
 }
 
+impl EvmStepData {
+    pub fn mock_with_gas(gas: Option<u64>) -> Self {
+        Self {
+            to: "0xrouter".to_string(),
+            data: None,
+            value: "0".to_string(),
+            gas: gas.map(BigInt::from),
+        }
+    }
+}
+
 impl RelayRequest {
     pub fn mock_with_status(status: RelayStatus) -> Self {
         Self { status, data: None }
+    }
+}
+
+impl RelayChainInfo {
+    pub fn mock(id: u64, depository: Option<&str>, solver_addresses: &[&str]) -> Self {
+        Self {
+            id,
+            solver_addresses: solver_addresses.iter().map(|address| address.to_string()).collect(),
+            protocol: Some(RelayProtocol {
+                v2: Some(RelayProtocolV2 {
+                    depository: depository.map(str::to_string),
+                }),
+            }),
+        }
     }
 }
 

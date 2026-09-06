@@ -8,5 +8,6 @@ mod solana;
 mod target;
 #[cfg(test)]
 mod testkit;
+mod ton;
 
 pub use provider::Relay;

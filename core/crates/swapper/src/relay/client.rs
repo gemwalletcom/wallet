@@ -33,6 +33,14 @@ where
         self.client.get(RelayTarget::Request { term: identifier.to_string() }).await.map_err(SwapperError::from)
     }
 
+    pub async fn get_requests(&self, user: &str, origin_chain_id: u64) -> Result<RelayRequestsResponse, SwapperError> {
+        let target = RelayTarget::Requests {
+            user: user.to_string(),
+            origin_chain_id,
+        };
+        self.client.get(target).await.map_err(SwapperError::from)
+    }
+
     pub async fn get_chains(&self) -> Result<RelayChainsResponse, SwapperError> {
         self.client.get(RelayTarget::Chains).await.map_err(SwapperError::from)
     }
