@@ -155,7 +155,10 @@ mod tests {
 
     fn mock_trust_set_input() -> SignerInput {
         input_with_type(
-            TransactionInputType::Account(token("RLUSD", "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"), AccountDataType::Activate),
+            TransactionInputType::Account {
+                asset: token("RLUSD", "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"),
+                account_type: AccountDataType::Activate,
+            },
             "rDgEGKXWkHHr1HYq2ETnNAs9MdV4R8Gyt",
             "",
             "0",
@@ -242,10 +245,10 @@ mod tests {
     fn test_sign_swap_uses_payload_not_provider() {
         let private_key = hex::decode("a5576c0f63da10e584568c8d134569ff44017b0a249eb70657127ae04f38cc77").unwrap();
         let input = input_with_type(
-            TransactionInputType::Swap(
-                Asset::from_chain(Chain::Xrp),
-                Asset::from_chain(Chain::Xrp),
-                SwapData {
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Xrp),
+                to_asset: Asset::from_chain(Chain::Xrp),
+                swap_data: SwapData {
                     quote: SwapQuote {
                         from_address: "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq".to_string(),
                         from_value: BigUint::from(10u64),
@@ -271,7 +274,7 @@ mod tests {
                         gas_limit: None,
                     },
                 },
-            ),
+            },
             "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq",
             "",
             "999",

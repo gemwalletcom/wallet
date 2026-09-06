@@ -20,7 +20,7 @@ impl ChainSigner for SuiChainSigner {
 
     fn sign_stake(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         match &input.input_type {
-            TransactionInputType::Stake(_, stake_type) => match stake_type {
+            TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) | StakeType::Unstake(_) => {}
                 StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) => {
                     return Err(SignerError::SigningError("Sui signer does not support this staking operation yet".to_string()));

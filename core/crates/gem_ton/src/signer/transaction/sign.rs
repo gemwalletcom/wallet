@@ -130,7 +130,9 @@ mod tests {
         let address = signer.address().encode();
 
         let input = SignerInput::mock_with_input_type(
-            TransactionInputType::Transfer(Asset::from_chain(Chain::Ton)),
+            TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Ton),
+            },
             &address,
             &address,
             "10000",
@@ -149,7 +151,7 @@ mod tests {
 
         let asset = Asset::new(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID), String::new(), String::new(), 8, AssetType::TOKEN);
         let input = SignerInput::mock_with_input_type(
-            TransactionInputType::Transfer(asset),
+            TransactionInputType::Transfer { asset },
             &address,
             &address,
             "10000",
@@ -165,7 +167,10 @@ mod tests {
     fn test_sign_nft_transfer() {
         let signer = test_signer();
         let mut input = SignerInput::mock_ton(
-            TransactionInputType::TransferNft(Asset::from_chain(Chain::Ton), NFTAsset::mock_ton()),
+            TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Ton),
+                nft_asset: NFTAsset::mock_ton(),
+            },
             TransactionLoadMetadata::mock_ton(1),
         );
         input.fee = TransactionFee::new_from_fee_with_option(
@@ -187,7 +192,10 @@ mod tests {
 
         let mut nft_asset = NFTAsset::mock_ton();
         nft_asset.contract_address = None;
-        let input_type = TransactionInputType::TransferNft(Asset::from_chain(Chain::Ton), nft_asset);
+        let input_type = TransactionInputType::TransferNft {
+            asset: Asset::from_chain(Chain::Ton),
+            nft_asset,
+        };
         let input = SignerInput::mock_ton(input_type, TransactionLoadMetadata::mock_ton(1));
 
         assert_eq!(
@@ -222,7 +230,11 @@ mod tests {
         swap_data.data.data = mock_cell();
         swap_data.data.gas_limit = None;
         let input = SignerInput::mock_ton(
-            TransactionInputType::Swap(Asset::from_chain(Chain::Ton), Asset::from_chain(Chain::Ton), swap_data),
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ton),
+                to_asset: Asset::from_chain(Chain::Ton),
+                swap_data,
+            },
             TransactionLoadMetadata::mock_ton(1),
         );
 

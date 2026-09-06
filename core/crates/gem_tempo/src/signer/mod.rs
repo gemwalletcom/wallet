@@ -80,7 +80,9 @@ mod tests {
         let signer = EvmChainSigner::new(TempoSigner);
         let metadata = TransactionLoadMetadata::mock_evm(0, Chain::Tempo.network_id().parse().unwrap());
         let input = SignerInput::mock_evm_with_metadata(
-            TransactionInputType::Transfer(Asset::mock_with_chain(Chain::Tempo)),
+            TransactionInputType::Transfer {
+                asset: Asset::mock_with_chain(Chain::Tempo),
+            },
             "1000000",
             TOKEN_TRANSFER_GAS_LIMIT,
             metadata,

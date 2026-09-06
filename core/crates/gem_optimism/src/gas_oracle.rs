@@ -63,9 +63,11 @@ fn l1_fee_value(input: &TransactionLoadInput, params: &TransactionParams, gas_li
 
 fn spends_native_asset(input_type: &TransactionInputType) -> bool {
     match input_type {
-        TransactionInputType::Transfer(asset) | TransactionInputType::Deposit(asset) | TransactionInputType::TransferNft(asset, _) | TransactionInputType::Account(asset, _) => {
-            asset.id.is_native()
-        }
+        TransactionInputType::Transfer { asset }
+        | TransactionInputType::Withdrawal { asset }
+        | TransactionInputType::Deposit { asset }
+        | TransactionInputType::TransferNft { asset, .. }
+        | TransactionInputType::Account { asset, .. } => asset.id.is_native(),
         _ => false,
     }
 }
@@ -107,13 +109,15 @@ mod tests {
 
     #[test]
     fn test_encode_transaction_for_l1_fee() {
-        let encoded = encode_mock(TransactionInputType::Transfer(Asset::from_chain(Chain::Optimism)));
+        let encoded = encode_mock(TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::Optimism),
+        });
         assert_eq!(
             encode(&encoded),
             "020000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0"
         );
 
-        let encoded_token = encode_mock(TransactionInputType::Transfer(Asset::mock_erc20()));
+        let encoded_token = encode_mock(TransactionInputType::Transfer { asset: Asset::mock_erc20() });
         assert_eq!(
             encode(&encoded_token),
             "02000000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0"

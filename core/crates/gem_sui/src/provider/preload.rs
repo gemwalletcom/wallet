@@ -62,7 +62,7 @@ impl ChainTransactionLoad for SuiProvider {
 
 fn estimated_gas_budget(input_type: &TransactionInputType, fee: &TransactionFee) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
     match input_type {
-        TransactionInputType::Swap(..) | TransactionInputType::Generic(..) => Ok(None),
+        TransactionInputType::Swap { .. } | TransactionInputType::Generic { .. } => Ok(None),
         _ => Ok(Some(fee.gas_limit()?)),
     }
 }
@@ -81,9 +81,15 @@ impl SuiClient {
         } = input;
 
         let input_type = match input_type {
-            TransactionInputType::Generic(asset, app_metadata, extra) if extra.data.as_deref().is_some_and(is_transaction_json) => {
-                TransactionInputType::Generic(asset, app_metadata, self.finish_transaction_json_extra(&sender_address, extra).await?)
-            }
+            TransactionInputType::Generic {
+                asset,
+                metadata: app_metadata,
+                extra,
+            } if extra.data.as_deref().is_some_and(is_transaction_json) => TransactionInputType::Generic {
+                asset,
+                metadata: app_metadata,
+                extra: self.finish_transaction_json_extra(&sender_address, extra).await?,
+            },
             other => other,
         };
 
@@ -129,14 +135,14 @@ impl SuiClient {
         input_type: TransactionInputType,
     ) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
         match input_type {
-            TransactionInputType::Transfer(asset) => match asset.id.token_id {
+            TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } => match asset.id.token_id {
                 None => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 Some(token_id) => {
                     let (gas_coins, token_coins) = futures::try_join!(self.get_gas_coins(address), self.get_coins(address, &token_id))?;
                     Ok((gas_coins, Some(token_coins), Vec::new()))
                 }
             },
-            TransactionInputType::Stake(_, stake_type) => match stake_type {
+            TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 StakeType::Unstake(delegation) => {
                     let (gas_coins, staked_object) = futures::try_join!(self.get_gas_coins(address), self.get_object(delegation.base.delegation_id.clone()))?;
@@ -146,9 +152,9 @@ impl SuiClient {
                     Err("Unsupported stake type for Sui".into())
                 }
             },
-            TransactionInputType::Swap(_, _, _) => Ok((OwnedCoins::default(), None, Vec::new())),
-            TransactionInputType::Generic(_, _, _) => Ok((OwnedCoins::default(), None, Vec::new())),
-            TransactionInputType::TransferNft(_, _) | TransactionInputType::Account(_, _) => Err("Unsupported transaction type for Sui".into()),
+            TransactionInputType::Swap { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
+            TransactionInputType::Generic { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
+            TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } => Err("Unsupported transaction type for Sui".into()),
             _ => Err("Unsupported transaction type for Sui".into()),
         }
     }
@@ -167,7 +173,11 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_sui_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
-        let rates = client.get_transaction_fee_rates(TransactionInputType::Transfer(Asset::from_chain(Chain::Sui))).await?;
+        let rates = client
+            .get_transaction_fee_rates(TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Sui),
+            })
+            .await?;
 
         println!("Sui transaction fee rates: {:?}", rates);
 
@@ -184,7 +194,9 @@ mod chain_integration_tests {
         let input = TransactionPreloadInput {
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Sui)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Sui),
+            },
             references: vec![],
         };
 
@@ -214,7 +226,10 @@ mod chain_integration_tests {
             sender_address: user_address.to_string(),
             destination_address: user_address.to_string(),
             value: BigUint::from(1000000000u64),
-            input_type: TransactionInputType::Stake(Asset::from_chain(Chain::Sui), stake_type),
+            input_type: TransactionInputType::Stake {
+                asset: Asset::from_chain(Chain::Sui),
+                stake_type,
+            },
             gas_price: primitives::GasPriceType::regular(BigInt::from(1000)),
             memo: None,
             is_max_value: false,

@@ -117,29 +117,33 @@ mod tests {
         let implicit_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(implicit_fee.fee, BigInt::from(7607442456250000000000u128));
 
-        input.input_type = TransactionInputType::Swap(
-            Asset::from_chain(Chain::Near),
-            Asset::from_chain(Chain::Near),
-            SwapData::mock_transfer(SwapProvider::NearIntents, "1", "1", "051d30e6c78c4cf858389d62af5f703275450d318b85ff52a4ac963948cfdf95"),
-        );
+        input.input_type = TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Near),
+            to_asset: Asset::from_chain(Chain::Near),
+            swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "1", "1", "051d30e6c78c4cf858389d62af5f703275450d318b85ff52a4ac963948cfdf95"),
+        };
         input.destination_address = input.sender_address.clone();
         let swap_destination = input.input_type.swap_to_address().unwrap();
         let swap_fee = map_transaction_fee(&input, swap_destination, &config, None);
         assert_eq!(swap_fee.fee, implicit_fee.fee);
         assert_eq!(swap_fee.gas_limit, implicit_fee.gas_limit);
 
-        input.input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::Near));
+        input.input_type = TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::Near),
+        };
         input.destination_address = "receiver.near".to_string();
         let named_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(named_fee.fee, BigInt::from(245500818750000000000u128));
 
-        input.input_type = primitives::TransactionInputType::Transfer(primitives::Asset::new(
-            primitives::AssetId::from_token(primitives::Chain::Near, "token.near"),
-            "Token".to_string(),
-            "TKN".to_string(),
-            6,
-            primitives::AssetType::TOKEN,
-        ));
+        input.input_type = primitives::TransactionInputType::Transfer {
+            asset: primitives::Asset::new(
+                primitives::AssetId::from_token(primitives::Chain::Near, "token.near"),
+                "Token".to_string(),
+                "TKN".to_string(),
+                6,
+                primitives::AssetType::TOKEN,
+            ),
+        };
         let token_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(token_fee.gas_limit, BigInt::from(31_196_119_000_000u64));
         assert_eq!(token_fee.fee, BigInt::from(30_918_865_450_000_000_000_000u128));

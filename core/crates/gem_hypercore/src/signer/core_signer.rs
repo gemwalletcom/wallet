@@ -66,7 +66,7 @@ impl HyperCoreSigner {
     fn sign_swap_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
         let swap_data = input.input_type.get_swap_data()?;
 
-        if let TransactionInputType::Swap(from_asset, to_asset, _) = &input.input_type
+        if let TransactionInputType::Swap { from_asset, to_asset, .. } = &input.input_type
             && is_spot_swap(from_asset.chain(), to_asset.chain())
         {
             let hl_order = input.metadata.get_hyperliquid_order()?;
@@ -432,7 +432,10 @@ mod tests {
             value: BigUint::from(150000000u64),
             sender_address: "0xsender".into(),
             destination_address: "".into(),
-            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset.clone(), StakeType::Stake(validator)))
+            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Stake(validator),
+            })
         };
         let input = SignerInput::new(input, TransactionFee::mock());
         let private_key = [2u8; 32];
@@ -478,7 +481,10 @@ mod tests {
             value: BigUint::from(60000000u64),
             sender_address: "0xsender".into(),
             destination_address: "".into(),
-            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset, StakeType::Unstake(delegation)))
+            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake {
+                asset,
+                stake_type: StakeType::Unstake(delegation),
+            })
         };
         let input = SignerInput::new(input, TransactionFee::mock());
         let private_key = [1u8; 32];
@@ -539,7 +545,7 @@ mod tests {
             value: BigUint::from(2000000u64),
             sender_address: "0x1085c5f70f7f7591d97da281a64688385455c2bd".into(),
             destination_address: "0xabcdef1234567890abcdef1234567890abcdef12".into(),
-            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer(asset))
+            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset })
         };
         let input = SignerInput::new(input, TransactionFee::mock());
         let private_key = [1u8; 32];

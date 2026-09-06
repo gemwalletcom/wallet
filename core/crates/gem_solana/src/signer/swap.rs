@@ -69,7 +69,11 @@ mod tests {
         let signer = SolanaChainSigner;
         let original_limit = crate::decode_transaction(SINGLE_SIG_TX).unwrap().get_compute_unit_limit();
         let swap_data = SwapData::mock_with_provider_data(SwapProvider::Jupiter, SINGLE_SIG_TX, None);
-        let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), swap_data);
+        let input_type = TransactionInputType::Swap {
+            from_asset: Asset::mock_sol(),
+            to_asset: Asset::mock_spl_token(),
+            swap_data,
+        };
         let input = TransactionLoadInput::mock_with_input_type(input_type);
         let fee = TransactionFee::new_gas_price_type(
             GasPriceType::solana(5_000u64, 0u64, 0u64),
@@ -92,7 +96,11 @@ mod tests {
         let signer = SolanaChainSigner;
         let gas_limit = crate::DEFAULT_SWAP_GAS_LIMIT.to_string();
         let swap_data = SwapData::mock_with_provider_data(SwapProvider::Jupiter, SINGLE_SIG_TX, Some(&gas_limit));
-        let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), swap_data);
+        let input_type = TransactionInputType::Swap {
+            from_asset: Asset::mock_sol(),
+            to_asset: Asset::mock_spl_token(),
+            swap_data,
+        };
         let input = TransactionLoadInput::mock_with_input_type(input_type);
         let fee = TransactionFee::new_gas_price_type(
             GasPriceType::solana(5_000u64, 0u64, 0u64),

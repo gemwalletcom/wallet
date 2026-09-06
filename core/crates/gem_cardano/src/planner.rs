@@ -22,10 +22,10 @@ pub(crate) struct TransactionPlan {
 
 pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionPlan, SignerError> {
     match &input.input_type {
-        TransactionInputType::Transfer(asset) if asset.id.chain == Chain::Cardano && asset.id.is_native() => {}
-        TransactionInputType::Swap(asset, _, _) if asset.id.chain == Chain::Cardano && asset.id.is_native() => {}
-        TransactionInputType::Transfer(_) => return SignerError::invalid_input_err("unsupported Cardano token transfer"),
-        TransactionInputType::Swap(_, _, _) => return SignerError::invalid_input_err("unsupported Cardano token swap"),
+        TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } if asset.id.chain == Chain::Cardano && asset.id.is_native() => {}
+        TransactionInputType::Swap { from_asset: asset, .. } if asset.id.chain == Chain::Cardano && asset.id.is_native() => {}
+        TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => return SignerError::invalid_input_err("unsupported Cardano token transfer"),
+        TransactionInputType::Swap { .. } => return SignerError::invalid_input_err("unsupported Cardano token swap"),
         _ => return SignerError::invalid_input_err("unsupported Cardano transaction type"),
     }
 
@@ -91,7 +91,7 @@ pub(crate) fn transaction_from_plan(input: &TransactionLoadInput, plan: &Transac
 
 fn transaction_destination_address(input: &TransactionLoadInput) -> &str {
     match &input.input_type {
-        TransactionInputType::Swap(_, _, swap_data) => &swap_data.data.to,
+        TransactionInputType::Swap { swap_data, .. } => &swap_data.data.to,
         _ => &input.destination_address,
     }
 }
@@ -202,7 +202,9 @@ mod tests {
 
     fn wallet_core_input(amount: &str, is_max_value: bool) -> TransactionLoadInput {
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Cardano)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Cardano),
+            },
             sender_address: OWN_ADDRESS_1.to_string(),
             destination_address: TO_ADDRESS.to_string(),
             value: amount.parse().unwrap(),
@@ -267,7 +269,9 @@ mod tests {
     #[test]
     fn test_plan_transfer_android_vector_fee() {
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Cardano)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Cardano),
+            },
             sender_address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
             destination_address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
             value: BigUint::from(10000u64),
@@ -295,7 +299,11 @@ mod tests {
         let mut input = wallet_core_input("2000000", false);
         let mut swap_data = SwapData::mock_transfer(SwapProvider::Mayachain, "2000000", "1000000000000000", TO_ADDRESS);
         swap_data.data.memo = Some("=:e:0x1234567890abcdef:0/1/0:g1:50".to_string());
-        input.input_type = TransactionInputType::Swap(Asset::from_chain(Chain::Cardano), Asset::from_chain(Chain::Ethereum), swap_data);
+        input.input_type = TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Cardano),
+            to_asset: Asset::from_chain(Chain::Ethereum),
+            swap_data,
+        };
         input.destination_address = "0x1234567890abcdef".to_string();
 
         let plan = plan_transfer(&input).unwrap();
@@ -333,19 +341,8 @@ mod tests {
         assert!(plan_transfer(&input).is_err());
 
         input = wallet_core_input("1", false);
-        input.input_type = TransactionInputType::Transfer(Asset::mock_with_params(
-            Chain::Cardano,
-            Some("policy.asset".to_string()),
-            "Cardano Token".to_string(),
-            "TOKEN".to_string(),
-            0,
-            AssetType::TOKEN,
-        ));
-        assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token transfer");
-
-        input = wallet_core_input("1", false);
-        input.input_type = TransactionInputType::Swap(
-            Asset::mock_with_params(
+        input.input_type = TransactionInputType::Transfer {
+            asset: Asset::mock_with_params(
                 Chain::Cardano,
                 Some("policy.asset".to_string()),
                 "Cardano Token".to_string(),
@@ -353,9 +350,22 @@ mod tests {
                 0,
                 AssetType::TOKEN,
             ),
-            Asset::from_chain(Chain::Ethereum),
-            SwapData::mock_transfer(SwapProvider::Mayachain, "1", "1", TO_ADDRESS),
-        );
+        };
+        assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token transfer");
+
+        input = wallet_core_input("1", false);
+        input.input_type = TransactionInputType::Swap {
+            from_asset: Asset::mock_with_params(
+                Chain::Cardano,
+                Some("policy.asset".to_string()),
+                "Cardano Token".to_string(),
+                "TOKEN".to_string(),
+                0,
+                AssetType::TOKEN,
+            ),
+            to_asset: Asset::from_chain(Chain::Ethereum),
+            swap_data: SwapData::mock_transfer(SwapProvider::Mayachain, "1", "1", TO_ADDRESS),
+        };
         assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token swap");
 
         input = wallet_core_input("1", false);

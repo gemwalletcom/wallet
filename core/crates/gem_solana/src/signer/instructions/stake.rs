@@ -58,7 +58,10 @@ mod tests {
 
     fn stake_signer_input(private_key: &[u8], stake_type: StakeType, value: &str) -> SignerInput {
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Stake(Asset::mock_sol(), stake_type),
+            input_type: TransactionInputType::Stake {
+                asset: Asset::mock_sol(),
+                stake_type,
+            },
             sender_address: sender_address_for_key(private_key),
             destination_address: String::new(),
             value: value.parse().unwrap(),
@@ -85,7 +88,10 @@ mod tests {
         let signer = SolanaChainSigner;
         let validator = DelegationValidator::stake(Chain::Solana, TEST_RECIPIENT.to_string(), "validator".to_string(), true, 0.0, 0.0);
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Stake(Asset::mock_sol(), StakeType::Stake(validator)),
+            input_type: TransactionInputType::Stake {
+                asset: Asset::mock_sol(),
+                stake_type: StakeType::Stake(validator),
+            },
             sender_address: sender_address(),
             destination_address: String::new(),
             value: BigUint::from(42u64),
@@ -123,7 +129,10 @@ mod tests {
 
         let delegation = Delegation::mock_with_id(TEST_RECIPIENT.to_string());
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Stake(Asset::mock_sol(), StakeType::Unstake(delegation.clone())),
+            input_type: TransactionInputType::Stake {
+                asset: Asset::mock_sol(),
+                stake_type: StakeType::Unstake(delegation.clone()),
+            },
             sender_address: sender_address(),
             destination_address: String::new(),
             value: BigUint::from(0u64),
@@ -140,7 +149,10 @@ mod tests {
         assert_eq!(account_key(&transaction, 0, 0), Pubkey::from_base58(TEST_RECIPIENT).unwrap());
 
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Stake(Asset::mock_sol(), StakeType::Withdraw(delegation)),
+            input_type: TransactionInputType::Stake {
+                asset: Asset::mock_sol(),
+                stake_type: StakeType::Withdraw(delegation),
+            },
             sender_address: sender_address(),
             destination_address: String::new(),
             value: BigUint::from(55u64),

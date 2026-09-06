@@ -71,7 +71,7 @@ pub trait ChainTraits:
 {
     async fn get_transaction_fee_estimates(&self) -> Result<TransactionFeeEstimates, Box<dyn Error + Sync + Send>> {
         let chain = self.get_chain();
-        let rates = self.get_transaction_fee_rates(TransactionInputType::Transfer(Asset::from_chain(chain))).await?;
+        let rates = self.get_transaction_fee_rates(TransactionInputType::Transfer { asset: Asset::from_chain(chain) }).await?;
         let estimate = |operation| {
             let units = self.transaction_fee_estimate_units(operation);
             rates.iter().map(|rate| TransactionFeeEstimate::new(rate, units, chain.fee_unit_type())).collect()

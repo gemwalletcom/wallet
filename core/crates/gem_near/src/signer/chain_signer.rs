@@ -30,7 +30,9 @@ mod tests {
 
     fn token_transfer_input(memo: Option<&str>, fee: TransactionFee) -> SignerInput {
         let mut input = TransactionLoadInput::mock_near("test.near", "receiver.near", "1000000", 1, "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM");
-        input.input_type = TransactionInputType::Transfer(Asset::new(NEAR_USDT_ASSET_ID.clone(), "Tether".to_string(), "USDT".to_string(), 6, AssetType::TOKEN));
+        input.input_type = TransactionInputType::Transfer {
+            asset: Asset::new(NEAR_USDT_ASSET_ID.clone(), "Tether".to_string(), "USDT".to_string(), 6, AssetType::TOKEN),
+        };
         input.memo = memo.map(str::to_string);
         SignerInput::new(input, fee)
     }

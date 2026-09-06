@@ -42,7 +42,9 @@ mod tests {
     #[test]
     fn test_map_transaction_load_destination_not_exist() {
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Stellar),
+            },
             value: BigUint::from(15000000u64),
             gas_price: GasPriceType::regular(BigInt::from(100)),
             metadata: TransactionLoadMetadata::Stellar {

@@ -205,7 +205,10 @@ mod tests {
 
     fn signer_input(nft_asset: NFTAsset, metadata: TransactionLoadMetadata) -> SignerInput {
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::TransferNft(Asset::from_chain(Chain::Solana), nft_asset),
+            input_type: TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Solana),
+                nft_asset,
+            },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(1u64),

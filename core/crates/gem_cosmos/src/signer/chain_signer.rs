@@ -203,7 +203,9 @@ mod tests {
         let fee_amount = BigInt::from(200u64);
         let input = SignerInput::new(
             TransactionLoadInput {
-                input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Thorchain)),
+                input_type: TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Thorchain),
+                },
                 sender_address: "thor1z53wwe7md6cewz9sqwqzn0aavpaun0gw0exn2r".to_string(),
                 destination_address: "thor1e2ryt8asq4gu0h6z2sx9u7rfrykgxwkmr9upxn".to_string(),
                 value: BigUint::from(38000000u64),
@@ -239,7 +241,9 @@ mod tests {
         let fee_amount = BigInt::from(100_000_000_000_000u64);
         let input = SignerInput::new(
             TransactionLoadInput {
-                input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Injective)),
+                input_type: TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Injective),
+                },
                 sender_address: "inj13u6g7vqgw074mgmf2ze2cadzvkz9snlwcrtq8a".to_string(),
                 destination_address: "inj1xmpkmxr4as00em23tc2zgmuyy2gr4h3wgcl6vd".to_string(),
                 value: BigUint::from(10000000000u64),
@@ -274,7 +278,9 @@ mod tests {
         let signer = CosmosChainSigner;
 
         let transfer = SignerInput::mock_osmosis(
-            TransactionInputType::Transfer(Asset::from_chain(Chain::Osmosis)),
+            TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Osmosis),
+            },
             "osmo1rcjvzz8wzktqfz8qjf0l9q45kzxvd0z0n7l5cf",
         );
         assert_eq!(
@@ -283,7 +289,10 @@ mod tests {
         );
 
         let stake = SignerInput::mock_osmosis(
-            TransactionInputType::Stake(Asset::from_chain(Chain::Osmosis), StakeType::Stake(DelegationValidator::mock_osmosis(OSMO_VALIDATOR))),
+            TransactionInputType::Stake {
+                asset: Asset::from_chain(Chain::Osmosis),
+                stake_type: StakeType::Stake(DelegationValidator::mock_osmosis(OSMO_VALIDATOR)),
+            },
             "",
         );
         let signed = signer.sign_stake(&stake, &private_key).unwrap();
@@ -294,7 +303,10 @@ mod tests {
         );
 
         let undelegate = SignerInput::mock_osmosis(
-            TransactionInputType::Stake(Asset::from_chain(Chain::Osmosis), StakeType::Unstake(Delegation::mock_osmosis(OSMO_VALIDATOR))),
+            TransactionInputType::Stake {
+                asset: Asset::from_chain(Chain::Osmosis),
+                stake_type: StakeType::Unstake(Delegation::mock_osmosis(OSMO_VALIDATOR)),
+            },
             "",
         );
         // Auto-claims pending rewards before unstake.
@@ -305,13 +317,13 @@ mod tests {
         );
 
         let redelegate = SignerInput::mock_osmosis(
-            TransactionInputType::Stake(
-                Asset::from_chain(Chain::Osmosis),
-                StakeType::Redelegate(RedelegateData {
+            TransactionInputType::Stake {
+                asset: Asset::from_chain(Chain::Osmosis),
+                stake_type: StakeType::Redelegate(RedelegateData {
                     delegation: Delegation::mock_osmosis(OSMO_VALIDATOR),
                     to_validator: DelegationValidator::mock_osmosis(OSMO_VALIDATOR_DST),
                 }),
-            ),
+            },
             "",
         );
         let signed = signer.sign_stake(&redelegate, &private_key).unwrap();
@@ -321,10 +333,10 @@ mod tests {
         );
 
         let rewards = SignerInput::mock_osmosis(
-            TransactionInputType::Stake(
-                Asset::from_chain(Chain::Osmosis),
-                StakeType::Rewards(vec![DelegationValidator::mock_osmosis(OSMO_VALIDATOR), DelegationValidator::mock_osmosis(OSMO_VALIDATOR)]),
-            ),
+            TransactionInputType::Stake {
+                asset: Asset::from_chain(Chain::Osmosis),
+                stake_type: StakeType::Rewards(vec![DelegationValidator::mock_osmosis(OSMO_VALIDATOR), DelegationValidator::mock_osmosis(OSMO_VALIDATOR)]),
+            },
             "",
         );
         let signed = signer.sign_stake(&rewards, &private_key).unwrap();
@@ -343,7 +355,11 @@ mod tests {
         for gas_limit in [None, Some("0"), Some("")] {
             let swap_data = SwapData::mock_with_provider_data(SwapProvider::Squid, msg_send, gas_limit);
             let input = SignerInput::mock_osmosis(
-                TransactionInputType::Swap(Asset::from_chain(Chain::Osmosis), Asset::from_chain(Chain::Osmosis), swap_data),
+                TransactionInputType::Swap {
+                    from_asset: Asset::from_chain(Chain::Osmosis),
+                    to_asset: Asset::from_chain(Chain::Osmosis),
+                    swap_data,
+                },
                 "",
             );
             let signed = CosmosChainSigner.sign_swap(&input, &private_key).expect("swap should sign");

@@ -24,14 +24,14 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
     let mut options = HashMap::new();
 
     let fee = match &input.input_type {
-        TransactionInputType::Transfer(asset) | TransactionInputType::Account(asset, _) => {
+        TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::Account { asset, .. } => {
             transfer_fee(asset.id.token_subtype(), input.memo.as_deref(), recipient_token_address.as_deref(), &base_fee, &mut options)
         }
-        TransactionInputType::TransferNft(_, _) => {
+        TransactionInputType::TransferNft { .. } => {
             options.insert(FeeOption::TokenAccountCreation, BigInt::from(NFT_TRANSFER_ATTACHMENT));
             base_fee.clone()
         }
-        TransactionInputType::Swap(from_asset, _, swap_data) => match &swap_data.data.data_type {
+        TransactionInputType::Swap { from_asset, swap_data, .. } => match &swap_data.data.data_type {
             SwapQuoteDataType::Contract => {
                 options.insert(FeeOption::TokenAccountCreation, BigInt::from(SWAP_NATIVE_RESERVE));
                 base_fee
@@ -44,9 +44,9 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
                 &mut options,
             ),
         },
-        TransactionInputType::TokenApprove(_, _) => base_fee.clone(),
-        TransactionInputType::Generic(_, _, _) => base_fee.clone(),
-        TransactionInputType::Perpetual(_, _) => base_fee.clone(),
+        TransactionInputType::TokenApprove { .. } => base_fee.clone(),
+        TransactionInputType::Generic { .. } => base_fee.clone(),
+        TransactionInputType::Perpetual { .. } => base_fee.clone(),
         _ => base_fee.clone(),
     };
 
@@ -125,7 +125,7 @@ impl<C: Client> ChainTransactionLoad for TonClient<C> {
 
 fn get_recipient_jetton_wallet(input: &TransactionPreloadInput) -> Option<&str> {
     match &input.input_type {
-        TransactionInputType::Swap(_, _, swap_data) => match &swap_data.data.data_type {
+        TransactionInputType::Swap { swap_data, .. } => match &swap_data.data.data_type {
             SwapQuoteDataType::Transfer => Some(&swap_data.data.to),
             SwapQuoteDataType::Contract => None,
         },
@@ -148,16 +148,18 @@ mod tests {
         };
 
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset {
-                id: AssetId {
-                    chain: Chain::Ton,
-                    token_id: token_id.clone(),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset {
+                    id: AssetId {
+                        chain: Chain::Ton,
+                        token_id: token_id.clone(),
+                    },
+                    name,
+                    symbol,
+                    decimals,
+                    asset_type,
                 },
-                name,
-                symbol,
-                decimals,
-                asset_type,
-            }),
+            },
             sender_address: "test".to_string(),
             destination_address: "test".to_string(),
             value: BigUint::from(1000u64),
@@ -189,7 +191,10 @@ mod tests {
     #[test]
     fn test_ton_nft_transfer_fee_includes_attachment() {
         let mut input = create_input(AssetType::NATIVE, None);
-        input.input_type = TransactionInputType::TransferNft(Asset::from_chain(Chain::Ton), NFTAsset::mock_ton());
+        input.input_type = TransactionInputType::TransferNft {
+            asset: Asset::from_chain(Chain::Ton),
+            nft_asset: NFTAsset::mock_ton(),
+        };
 
         let fee = calculate_transaction_fee(&input, None);
 
@@ -232,7 +237,11 @@ mod tests {
     fn test_swap_contract_native_fee_includes_native_reserve() {
         let swap_data = SwapData::mock_contract(SwapProvider::StonfiV2, "400000000", "1000000", "710000000");
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Swap(Asset::from_chain(Chain::Ton), Asset::from_chain(Chain::Ton), swap_data),
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ton),
+                to_asset: Asset::from_chain(Chain::Ton),
+                swap_data,
+            },
             value: BigUint::from(400000000u64),
             ..create_input(AssetType::NATIVE, None)
         };
@@ -248,7 +257,11 @@ mod tests {
         let from_asset = Asset::mock_ton_usdt();
         let swap_data = SwapData::mock_contract(SwapProvider::StonfiV2, "2000000", "400000000", "300000000");
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Swap(from_asset, Asset::from_chain(Chain::Ton), swap_data),
+            input_type: TransactionInputType::Swap {
+                from_asset,
+                to_asset: Asset::from_chain(Chain::Ton),
+                swap_data,
+            },
             value: BigUint::from(2000000u64),
             ..create_input(AssetType::JETTON, None)
         };
@@ -263,7 +276,11 @@ mod tests {
     fn test_swap_transfer_native_fee_uses_transfer_fee() {
         let swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, "400000000", "1000000", "ton_deposit_address");
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Swap(Asset::from_chain(Chain::Ton), Asset::from_chain(Chain::Near), swap_data),
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ton),
+                to_asset: Asset::from_chain(Chain::Near),
+                swap_data,
+            },
             value: BigUint::from(400000000u64),
             ..create_input(AssetType::NATIVE, None)
         };
@@ -278,7 +295,11 @@ mod tests {
     fn test_swap_transfer_jetton_fee_uses_token_transfer_fee() {
         let swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, "2000000", "400000000", "ton_deposit_address");
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Swap(Asset::mock_ton_usdt(), Asset::from_chain(Chain::Near), swap_data),
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_ton_usdt(),
+                to_asset: Asset::from_chain(Chain::Near),
+                swap_data,
+            },
             value: BigUint::from(2000000u64),
             ..create_input(AssetType::JETTON, None)
         };
@@ -292,7 +313,7 @@ mod tests {
     #[test]
     fn test_get_recipient_jetton_wallet() {
         let transfer = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_ton_usdt()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_ton_usdt() },
             sender_address: "sender".to_string(),
             destination_address: "recipient".to_string(),
             references: vec![],
@@ -301,7 +322,11 @@ mod tests {
 
         let swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, "2000000", "400000000", "ton_deposit_address");
         let transfer_swap = TransactionPreloadInput {
-            input_type: TransactionInputType::Swap(Asset::mock_ton_usdt(), Asset::from_chain(Chain::Ethereum), swap_data),
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_ton_usdt(),
+                to_asset: Asset::from_chain(Chain::Ethereum),
+                swap_data,
+            },
             sender_address: "sender".to_string(),
             destination_address: "0xrecipient".to_string(),
             references: vec![],
@@ -309,11 +334,11 @@ mod tests {
         assert_eq!(get_recipient_jetton_wallet(&transfer_swap), Some("ton_deposit_address"));
 
         let contract_swap = TransactionPreloadInput {
-            input_type: TransactionInputType::Swap(
-                Asset::mock_ton_usdt(),
-                Asset::from_chain(Chain::Ton),
-                SwapData::mock_contract(SwapProvider::StonfiV2, "2000000", "400000000", "300000000"),
-            ),
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_ton_usdt(),
+                to_asset: Asset::from_chain(Chain::Ton),
+                swap_data: SwapData::mock_contract(SwapProvider::StonfiV2, "2000000", "400000000", "300000000"),
+            },
             sender_address: "sender".to_string(),
             destination_address: "recipient".to_string(),
             references: vec![],

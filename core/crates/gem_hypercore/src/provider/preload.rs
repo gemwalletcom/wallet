@@ -53,14 +53,18 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         match &input.input_type {
-            TransactionInputType::Transfer(_) | TransactionInputType::TransferNft(_, _) | TransactionInputType::Account(_, _) | TransactionInputType::Stake(_, _) => {
+            TransactionInputType::Transfer { .. }
+            | TransactionInputType::Withdrawal { .. }
+            | TransactionInputType::TransferNft { .. }
+            | TransactionInputType::Account { .. }
+            | TransactionInputType::Stake { .. } => {
                 // Only signature is required
                 Ok(TransactionLoadData {
                     fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
                     metadata: TransactionLoadMetadata::Hyperliquid { order: None },
                 })
             }
-            TransactionInputType::Swap(from_asset, to_asset, _) => {
+            TransactionInputType::Swap { from_asset, to_asset, .. } => {
                 let (fee_amount, order) = if is_spot_swap(from_asset.chain(), to_asset.chain()) {
                     let (order, fee_rates) = self.get_order(&input.sender_address).await?;
                     let swap_data = input.input_type.get_swap_data().map_err(|err| err.to_string())?;
@@ -76,7 +80,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
                     metadata: TransactionLoadMetadata::Hyperliquid { order },
                 })
             }
-            TransactionInputType::Perpetual(_, perpetual_type) => {
+            TransactionInputType::Perpetual { perpetual_type, .. } => {
                 let (fiat_value, fee_asset) = match perpetual_type {
                     PerpetualType::Open(data) | PerpetualType::Increase(data) | PerpetualType::Close(data) => (data.fiat_value, data.base_asset.id.clone()),
                     PerpetualType::Reduce(reduce_data) => (reduce_data.data.fiat_value, reduce_data.data.base_asset.id.clone()),
@@ -108,7 +112,9 @@ mod integration_tests {
     #[tokio::test]
     async fn test_get_transaction_load_transfer() {
         let client = create_hypercore_test_client();
-        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer(Asset::from_chain(Chain::HyperCore)));
+        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::HyperCore),
+        });
 
         let result = client.get_transaction_load(input).await.unwrap();
 

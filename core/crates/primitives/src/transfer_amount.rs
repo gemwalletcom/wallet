@@ -74,16 +74,16 @@ pub struct TransferAmountInput {
 impl TransactionInputType {
     pub fn spends_balance(&self) -> bool {
         match self {
-            Self::Transfer(_) | Self::Deposit(_) | Self::Swap(_, _, _) | Self::Generic(_, _, _) => true,
-            Self::Stake(_, stake_type) => match stake_type {
+            Self::Transfer { .. } | Self::Withdrawal { .. } | Self::Deposit { .. } | Self::Swap { .. } | Self::Generic { .. } => true,
+            Self::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) | StakeType::Freeze(_) => true,
                 StakeType::Unstake(_) | StakeType::Unfreeze(_) | StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) => false,
             },
-            Self::Earn(_, earn_type, _) => match earn_type {
+            Self::Earn { earn_type, .. } => match earn_type {
                 EarnType::Deposit(_) => true,
                 EarnType::Withdraw(_) => false,
             },
-            Self::Perpetual(_, _) | Self::TokenApprove(_, _) | Self::Account(_, _) | Self::TransferNft(_, _) => false,
+            Self::Perpetual { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::TransferNft { .. } => false,
         }
     }
 }
@@ -168,7 +168,7 @@ mod tests {
     }
 
     fn solana_transfer(value: u64, available_value: u64) -> TransferAmountInput {
-        input(TransactionInputType::Transfer(Asset::mock_sol()), value, available_value, available_value)
+        input(TransactionInputType::Transfer { asset: Asset::mock_sol() }, value, available_value, available_value)
     }
 
     #[test]
@@ -176,25 +176,58 @@ mod tests {
         let asset = Asset::mock_sol();
 
         let spending = [
-            TransactionInputType::Transfer(asset.clone()),
-            TransactionInputType::Deposit(asset.clone()),
-            TransactionInputType::Stake(asset.clone(), StakeType::Stake(DelegationValidator::mock())),
-            TransactionInputType::Stake(asset.clone(), StakeType::Freeze(Resource::Bandwidth)),
+            TransactionInputType::Transfer { asset: asset.clone() },
+            TransactionInputType::Deposit { asset: asset.clone() },
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Stake(DelegationValidator::mock()),
+            },
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Freeze(Resource::Bandwidth),
+            },
         ];
         for input_type in spending {
             assert!(input_type.spends_balance(), "{:?} must spend the sender balance", input_type.transaction_type());
         }
 
         let non_spending = [
-            TransactionInputType::Stake(asset.clone(), StakeType::Unstake(Delegation::mock())),
-            TransactionInputType::Stake(asset.clone(), StakeType::Withdraw(Delegation::mock())),
-            TransactionInputType::Stake(asset.clone(), StakeType::Rewards(vec![DelegationValidator::mock()])),
-            TransactionInputType::Stake(asset.clone(), StakeType::Unfreeze(Resource::Bandwidth)),
-            TransactionInputType::TokenApprove(Asset::mock_spl_token(), ApprovalData::mock()),
-            TransactionInputType::Account(asset.clone(), AccountDataType::Activate),
-            TransactionInputType::TransferNft(asset.clone(), NFTAsset::mock()),
-            TransactionInputType::Perpetual(asset.clone(), PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
-            TransactionInputType::Perpetual(asset, PerpetualType::Close(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Unstake(Delegation::mock()),
+            },
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Withdraw(Delegation::mock()),
+            },
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Rewards(vec![DelegationValidator::mock()]),
+            },
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Unfreeze(Resource::Bandwidth),
+            },
+            TransactionInputType::TokenApprove {
+                asset: Asset::mock_spl_token(),
+                approval_data: ApprovalData::mock(),
+            },
+            TransactionInputType::Account {
+                asset: asset.clone(),
+                account_type: AccountDataType::Activate,
+            },
+            TransactionInputType::TransferNft {
+                asset: asset.clone(),
+                nft_asset: NFTAsset::mock(),
+            },
+            TransactionInputType::Perpetual {
+                asset: asset.clone(),
+                perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            },
+            TransactionInputType::Perpetual {
+                asset,
+                perpetual_type: PerpetualType::Close(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            },
         ];
         for input_type in non_spending {
             assert!(!input_type.spends_balance(), "{:?} must not spend the sender balance", input_type.transaction_type());
@@ -218,7 +251,7 @@ mod tests {
             "sending more than the balance is insufficient balance, not a reserve problem"
         );
 
-        let full_balance_payment = input(TransactionInputType::Transfer(Asset::mock_btc()), 100_000_000, 100_000_000, 100_000_000);
+        let full_balance_payment = input(TransactionInputType::Transfer { asset: Asset::mock_btc() }, 100_000_000, 100_000_000, 100_000_000);
         assert_eq!(
             full_balance_payment.calculate().unwrap_err(),
             TransferAmountError::InsufficientBalance {
@@ -266,7 +299,7 @@ mod tests {
         );
 
         let hypercore = Asset::from_chain(Chain::HyperCore);
-        let mut zero_transfer = input(TransactionInputType::Transfer(hypercore.clone()), 0, 1_000_000, 0);
+        let mut zero_transfer = input(TransactionInputType::Transfer { asset: hypercore.clone() }, 0, 1_000_000, 0);
         zero_transfer.fee_asset = hypercore.id;
         assert_eq!(
             zero_transfer.calculate().unwrap_err(),
@@ -292,7 +325,9 @@ mod tests {
         );
 
         assert_eq!(
-            input(TransactionInputType::Transfer(Asset::mock()), 999_000, 1_000_000, 1_000_000).calculate().unwrap_err(),
+            input(TransactionInputType::Transfer { asset: Asset::mock() }, 999_000, 1_000_000, 1_000_000)
+                .calculate()
+                .unwrap_err(),
             TransferAmountError::InsufficientBalance {
                 asset_id: Asset::mock().id,
                 required: BigInt::from(1_004_000u64),
@@ -324,7 +359,10 @@ mod tests {
 
         const RESERVED_FOR_FEES: u64 = 5_000_000;
         let mut max_with_reserve = input(
-            TransactionInputType::Stake(Asset::mock_sol(), StakeType::Stake(DelegationValidator::mock())),
+            TransactionInputType::Stake {
+                asset: Asset::mock_sol(),
+                stake_type: StakeType::Stake(DelegationValidator::mock()),
+            },
             1_000_000_000 - RESERVED_FOR_FEES,
             1_000_000_000,
             1_000_000_000,
@@ -336,14 +374,17 @@ mod tests {
             "the amount screen already reserved for fees, core must not spend that reserve"
         );
 
-        let token = input(TransactionInputType::Transfer(Asset::mock_spl_token()), 10_000_000, 10_000_000, 10_000);
+        let token = input(TransactionInputType::Transfer { asset: Asset::mock_spl_token() }, 10_000_000, 10_000_000, 10_000);
         assert!(token.calculate().is_ok());
     }
 
     #[test]
     fn test_calculate_non_spending() {
         let unstake = input(
-            TransactionInputType::Stake(Asset::mock_sol(), StakeType::Unstake(Delegation::mock())),
+            TransactionInputType::Stake {
+                asset: Asset::mock_sol(),
+                stake_type: StakeType::Unstake(Delegation::mock()),
+            },
             649_953_059,
             649_953_059,
             5_000_000,
@@ -362,16 +403,40 @@ mod tests {
             }
         );
 
-        let below_reserve_unstake = input(TransactionInputType::Stake(Asset::mock_sol(), StakeType::Unstake(Delegation::mock())), 100, 100, 5_000_000);
+        let below_reserve_unstake = input(
+            TransactionInputType::Stake {
+                asset: Asset::mock_sol(),
+                stake_type: StakeType::Unstake(Delegation::mock()),
+            },
+            100,
+            100,
+            5_000_000,
+        );
         assert!(
             below_reserve_unstake.calculate().is_ok(),
             "unstaking never spends the balance, so a delegation below the reserve is still allowed"
         );
 
-        let approve = input(TransactionInputType::TokenApprove(Asset::mock_spl_token(), ApprovalData::mock()), 0, 0, 5_000_000);
+        let approve = input(
+            TransactionInputType::TokenApprove {
+                asset: Asset::mock_spl_token(),
+                approval_data: ApprovalData::mock(),
+            },
+            0,
+            0,
+            5_000_000,
+        );
         assert!(approve.calculate().is_ok());
 
-        let activate = input(TransactionInputType::Account(Asset::mock_spl_token(), AccountDataType::Activate), 0, 0, 5_000_000);
+        let activate = input(
+            TransactionInputType::Account {
+                asset: Asset::mock_spl_token(),
+                account_type: AccountDataType::Activate,
+            },
+            0,
+            0,
+            5_000_000,
+        );
         assert!(activate.calculate().is_ok());
     }
 
@@ -380,7 +445,10 @@ mod tests {
         let asset = Asset::from_chain(Chain::HyperCore);
 
         let open = input(
-            TransactionInputType::Perpetual(asset.clone(), PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
+            TransactionInputType::Perpetual {
+                asset: asset.clone(),
+                perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            },
             1_010_000_000,
             0,
             0,
@@ -391,7 +459,10 @@ mod tests {
         );
 
         let close = input(
-            TransactionInputType::Perpetual(asset, PerpetualType::Close(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))),
+            TransactionInputType::Perpetual {
+                asset,
+                perpetual_type: PerpetualType::Close(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            },
             100,
             0,
             0,

@@ -43,7 +43,9 @@ mod tests {
     fn signer_input(sender_address: &str) -> SignerInput {
         SignerInput::new(
             TransactionLoadInput {
-                input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Cardano)),
+                input_type: TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Cardano),
+                },
                 sender_address: sender_address.to_string(),
                 destination_address: TO_ADDRESS.to_string(),
                 value: BigUint::from(7000000u64),

@@ -53,7 +53,9 @@ mod tests {
         let fee = TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot));
         SignerInput::new(
             TransactionLoadInput {
-                input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Polkadot)),
+                input_type: TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Polkadot),
+                },
                 sender_address: ADDRESS.to_string(),
                 destination_address: ADDRESS.to_string(),
                 value: BigUint::from(10000u64),

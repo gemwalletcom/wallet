@@ -50,7 +50,7 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
     let value = input.value_as_bigint();
 
     match &input.input_type {
-        TransactionInputType::Transfer(asset) | TransactionInputType::Deposit(asset) => match asset.id.token_subtype() {
+        TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::Deposit { asset } => match asset.id.token_subtype() {
             AssetSubtype::NATIVE => Ok(TransactionParams::new(input.destination_address.clone(), vec![], value)),
             AssetSubtype::TOKEN => {
                 let to = asset.token_id().ok_or("Missing token ID")?;
@@ -58,7 +58,7 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
                 Ok(TransactionParams::new(to, data, BigInt::from(0)))
             }
         },
-        TransactionInputType::TransferNft(_, nft_asset) => {
+        TransactionInputType::TransferNft { nft_asset, .. } => {
             let contract_address = nft_asset.contract_address.as_ref().ok_or("Missing contract address")?;
             let data = match nft_asset.token_type {
                 NFTType::ERC721 => encode_erc721_transfer(&input.sender_address, &input.destination_address, &nft_asset.token_id)?,
@@ -67,7 +67,7 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
             };
             Ok(TransactionParams::new(contract_address.clone(), data, BigInt::from(0)))
         }
-        TransactionInputType::Swap(from_asset, _, swap_data) => {
+        TransactionInputType::Swap { from_asset, swap_data, .. } => {
             if let Some(approval) = &swap_data.data.approval {
                 Ok(TransactionParams::new(
                     approval.token.clone(),
@@ -94,14 +94,14 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
                 }
             }
         }
-        TransactionInputType::TokenApprove(_, approval) => Ok(TransactionParams::new(
+        TransactionInputType::TokenApprove { approval_data: approval, .. } => Ok(TransactionParams::new(
             approval.token.clone(),
             encode_erc20_approve_max_value(&approval.spender)?,
             BigInt::from(0),
         )),
-        TransactionInputType::Generic(_, _, extra) => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
-        TransactionInputType::Stake(_, _) => Err("Unsupported chain for staking".into()),
-        TransactionInputType::Earn(_, _, earn_data) => {
+        TransactionInputType::Generic { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
+        TransactionInputType::Stake { .. } => Err("Unsupported chain for staking".into()),
+        TransactionInputType::Earn { data: earn_data, .. } => {
             if let Some(approval) = &earn_data.approval {
                 Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?))
             } else {
@@ -126,7 +126,7 @@ pub fn calculate_gas_limit_with_increase(gas_limit: BigInt) -> BigInt {
 
 pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     match &input.input_type {
-        TransactionInputType::Swap(_, _, swap_data) => {
+        TransactionInputType::Swap { swap_data, .. } => {
             if swap_data.data.approval.is_some() {
                 if let Some(ref gas_limit) = swap_data.data.gas_limit {
                     Ok(BigInt::from_str_radix(gas_limit, 10)?)
@@ -137,7 +137,7 @@ pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, B
                 Ok(BigInt::from(0))
             }
         }
-        TransactionInputType::Earn(_, _, earn_data) => {
+        TransactionInputType::Earn { data: earn_data, .. } => {
             if earn_data.approval.is_some()
                 && let Some(gas_limit) = &earn_data.gas_limit
             {

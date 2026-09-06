@@ -95,10 +95,11 @@ impl<C: Client> AptosClient<C> {
         let sequence = input.metadata.get_sequence()?;
 
         match &input.input_type {
-            TransactionInputType::Transfer(asset)
-            | TransactionInputType::Deposit(asset)
-            | TransactionInputType::TransferNft(asset, _)
-            | TransactionInputType::Account(asset, _) => {
+            TransactionInputType::Transfer { asset }
+            | TransactionInputType::Withdrawal { asset }
+            | TransactionInputType::Deposit { asset }
+            | TransactionInputType::TransferNft { asset, .. }
+            | TransactionInputType::Account { asset, .. } => {
                 let payload = match &asset.id.token_id {
                     None => build_transfer_transaction_payload(&input.destination_address, &input.value.to_string()),
                     Some(token_id) => build_token_transfer_transaction_payload(token_id, &input.destination_address, &input.value.to_string())?,
@@ -107,7 +108,7 @@ impl<C: Client> AptosClient<C> {
                 self.simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string())
                     .await
             }
-            TransactionInputType::Swap(asset, _, swap_data) => match &swap_data.data.gas_limit {
+            TransactionInputType::Swap { from_asset: asset, swap_data, .. } => match &swap_data.data.gas_limit {
                 Some(gas_limit) => gas_limit.parse::<u64>().map_err(|_| "Invalid Aptos gas limit".into()),
                 None => {
                     let payload = build_swap_transaction_payload(&asset.id.token_id, &swap_data.data)?;
@@ -117,7 +118,7 @@ impl<C: Client> AptosClient<C> {
                         .unwrap_or(DEFAULT_SWAP_MAX_GAS_AMOUNT))
                 }
             },
-            TransactionInputType::Stake(_, stake_type) => {
+            TransactionInputType::Stake { stake_type, .. } => {
                 let payload = match stake_type {
                     StakeType::Stake(validator) => Some(build_stake_transaction_payload(&validator.id, &input.value.to_string())),
                     StakeType::Unstake(delegation) => Some(build_unstake_transaction_payload(&delegation.validator.id, &input.value.to_string())),
@@ -129,8 +130,8 @@ impl<C: Client> AptosClient<C> {
                 self.simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string())
                     .await
             }
-            TransactionInputType::Generic(_, _, _) => Ok(DEFAULT_MAX_GAS_AMOUNT),
-            TransactionInputType::TokenApprove(_, _) | TransactionInputType::Perpetual(_, _) | TransactionInputType::Earn(_, _, _) => {
+            TransactionInputType::Generic { .. } => Ok(DEFAULT_MAX_GAS_AMOUNT),
+            TransactionInputType::TokenApprove { .. } | TransactionInputType::Perpetual { .. } | TransactionInputType::Earn { .. } => {
                 Err("Unsupported Aptos transaction type".into())
             }
         }

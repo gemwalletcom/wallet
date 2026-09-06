@@ -24,7 +24,7 @@ pub fn map_transaction_data(
     let gas_price = input.gas_price.gas_price().to_string().parse().unwrap_or(0);
 
     match input.input_type {
-        TransactionInputType::Transfer(asset) | TransactionInputType::Deposit(asset) => match asset.id.token_id.as_ref() {
+        TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::Deposit { asset } => match asset.id.token_id.as_ref() {
             None => {
                 let transfer_input = TransferInput {
                     sender: input.sender_address,
@@ -62,7 +62,7 @@ pub fn map_transaction_data(
                 Ok(format!("{}_{}", data, digest))
             }
         },
-        TransactionInputType::Stake(_, stake_type) => match stake_type {
+        TransactionInputType::Stake { stake_type, .. } => match stake_type {
             StakeType::Stake(validator) => {
                 let stake_input = StakeInput {
                     sender: input.sender_address,
@@ -110,13 +110,13 @@ pub fn map_transaction_data(
                 Err("Unsupported stake type for Sui".into())
             }
         },
-        TransactionInputType::Swap(_, _, data) => {
+        TransactionInputType::Swap { swap_data: data, .. } => {
             let tx_output = validate_and_hash(&data.data.data)?;
             let data = encode_base64(&tx_output.tx_data);
             let digest = hex::encode(&tx_output.hash);
             Ok(format!("{}_{}", data, digest))
         }
-        TransactionInputType::Generic(_, _, extra) => {
+        TransactionInputType::Generic { extra, .. } => {
             let raw_data = extra.data.ok_or("Missing transaction data for Sui generic input")?;
             let encoded = String::from_utf8(raw_data).map_err(|_| "Invalid UTF-8 data for Sui generic input")?;
             let tx_output = validate_and_hash(&encoded)?;
@@ -138,7 +138,10 @@ mod tests {
     fn test_unstake_uses_object_reference() {
         let delegation_id = "0x1234567890abcdef1234567890abcdef12345678";
         let delegation = Delegation::mock_with_id(delegation_id.to_string());
-        let input_type = TransactionInputType::Stake(Asset::from_chain(Chain::Sui), StakeType::Unstake(delegation));
+        let input_type = TransactionInputType::Stake {
+            asset: Asset::from_chain(Chain::Sui),
+            stake_type: StakeType::Unstake(delegation),
+        };
         let input = TransactionLoadInput::mock_with_input_type(input_type);
 
         let gas_coins = OwnedCoins::<Coin>::mock_sui();

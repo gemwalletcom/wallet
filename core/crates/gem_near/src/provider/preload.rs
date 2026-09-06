@@ -71,11 +71,11 @@ mod chain_integration_tests {
         let client = create_near_test_client();
         let deposit_address = "gemwallet-near-token-registration-test-20260812.near";
         let from_asset = Asset::new(NEAR_USDT_ASSET_ID.clone(), "Tether".to_string(), "USDT".to_string(), 6, AssetType::TOKEN);
-        let input_type = TransactionInputType::Swap(
+        let input_type = TransactionInputType::Swap {
             from_asset,
-            Asset::from_chain(Chain::Near),
-            SwapData::mock_transfer(SwapProvider::NearIntents, "1000000", "1", deposit_address),
-        );
+            to_asset: Asset::from_chain(Chain::Near),
+            swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "1000000", "1", deposit_address),
+        };
         let metadata = client
             .get_transaction_preload(TransactionPreloadInput {
                 input_type: input_type.clone(),

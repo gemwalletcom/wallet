@@ -17,117 +17,151 @@ use typeshare::typeshare;
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[allow(clippy::large_enum_variant)]
 pub enum TransactionInputType {
-    Transfer(Asset),
-    Deposit(Asset),
-    Swap(Asset, Asset, SwapData),
-    Stake(Asset, StakeType),
-    TokenApprove(Asset, ApprovalData),
-    Generic(Asset, ApplicationMetadata, TransferDataExtra),
-    TransferNft(Asset, NFTAsset),
-    Account(Asset, AccountDataType),
-    Perpetual(Asset, PerpetualType),
-    Earn(Asset, EarnType, ContractCallData),
+    Transfer {
+        asset: Asset,
+    },
+    Deposit {
+        asset: Asset,
+    },
+    Withdrawal {
+        asset: Asset,
+    },
+    Swap {
+        from_asset: Asset,
+        to_asset: Asset,
+        swap_data: SwapData,
+    },
+    Stake {
+        asset: Asset,
+        stake_type: StakeType,
+    },
+    TokenApprove {
+        asset: Asset,
+        approval_data: ApprovalData,
+    },
+    Generic {
+        asset: Asset,
+        metadata: ApplicationMetadata,
+        extra: TransferDataExtra,
+    },
+    TransferNft {
+        asset: Asset,
+        nft_asset: NFTAsset,
+    },
+    Account {
+        asset: Asset,
+        account_type: AccountDataType,
+    },
+    Perpetual {
+        asset: Asset,
+        perpetual_type: PerpetualType,
+    },
+    Earn {
+        asset: Asset,
+        earn_type: EarnType,
+        data: ContractCallData,
+    },
 }
 
 impl TransactionInputType {
     pub fn get_asset(&self) -> &Asset {
         match self {
-            TransactionInputType::Transfer(asset) => asset,
-            TransactionInputType::Deposit(asset) => asset,
-            TransactionInputType::Swap(asset, _, _) => asset,
-            TransactionInputType::Stake(asset, _) => asset,
-            TransactionInputType::TokenApprove(asset, _) => asset,
-            TransactionInputType::Generic(asset, _, _) => asset,
-            TransactionInputType::TransferNft(asset, _) => asset,
-            TransactionInputType::Account(asset, _) => asset,
-            TransactionInputType::Perpetual(asset, _) => asset,
-            TransactionInputType::Earn(asset, _, _) => asset,
+            TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } => asset,
+            TransactionInputType::Deposit { asset } => asset,
+            TransactionInputType::Swap { from_asset: asset, .. } => asset,
+            TransactionInputType::Stake { asset, .. } => asset,
+            TransactionInputType::TokenApprove { asset, .. } => asset,
+            TransactionInputType::Generic { asset, .. } => asset,
+            TransactionInputType::TransferNft { asset, .. } => asset,
+            TransactionInputType::Account { asset, .. } => asset,
+            TransactionInputType::Perpetual { asset, .. } => asset,
+            TransactionInputType::Earn { asset, .. } => asset,
         }
     }
 
     pub fn get_swap_data(&self) -> Result<&SwapData, &'static str> {
         match self {
-            TransactionInputType::Swap(_, _, swap_data) => Ok(swap_data),
+            TransactionInputType::Swap { swap_data, .. } => Ok(swap_data),
             _ => Err("expected swap transaction"),
         }
     }
 
     pub fn get_generic_data(&self) -> Result<&TransferDataExtra, &'static str> {
         match self {
-            TransactionInputType::Generic(_, _, extra) => Ok(extra),
+            TransactionInputType::Generic { extra, .. } => Ok(extra),
             _ => Err("expected generic transaction"),
         }
     }
 
     pub fn get_application_metadata(&self) -> Result<&ApplicationMetadata, &'static str> {
         match self {
-            TransactionInputType::Generic(_, metadata, _) => Ok(metadata),
+            TransactionInputType::Generic { metadata, .. } => Ok(metadata),
             _ => Err("expected generic transaction"),
         }
     }
 
     pub fn get_approval_data(&self) -> Result<&ApprovalData, &'static str> {
         match self {
-            TransactionInputType::TokenApprove(_, approval) => Ok(approval),
+            TransactionInputType::TokenApprove { approval_data: approval, .. } => Ok(approval),
             _ => Err("expected token approval transaction"),
         }
     }
 
     pub fn get_nft_asset(&self) -> Result<&NFTAsset, &'static str> {
         match self {
-            TransactionInputType::TransferNft(_, nft) => Ok(nft),
+            TransactionInputType::TransferNft { nft_asset: nft, .. } => Ok(nft),
             _ => Err("expected NFT transfer transaction"),
         }
     }
 
     pub fn get_earn_data(&self) -> Result<&ContractCallData, &'static str> {
         match self {
-            TransactionInputType::Earn(_, _, data) => Ok(data),
+            TransactionInputType::Earn { data, .. } => Ok(data),
             _ => Err("expected earn transaction"),
         }
     }
 
     pub fn get_stake_type(&self) -> Result<&StakeType, &'static str> {
         match self {
-            TransactionInputType::Stake(_, stake_type) => Ok(stake_type),
+            TransactionInputType::Stake { stake_type, .. } => Ok(stake_type),
             _ => Err("expected stake transaction"),
         }
     }
 
     pub fn get_perpetual_type(&self) -> Result<&PerpetualType, &'static str> {
         match self {
-            TransactionInputType::Perpetual(_, perpetual_type) => Ok(perpetual_type),
+            TransactionInputType::Perpetual { perpetual_type, .. } => Ok(perpetual_type),
             _ => Err("expected perpetual transaction"),
         }
     }
 
     pub fn swap_to_address(&self) -> Option<&str> {
         match self {
-            TransactionInputType::Swap(_, _, swap_data) => Some(&swap_data.data.to),
+            TransactionInputType::Swap { swap_data, .. } => Some(&swap_data.data.to),
             _ => None,
         }
     }
 
     pub fn get_recipient_asset(&self) -> &Asset {
         match self {
-            TransactionInputType::Transfer(asset) => asset,
-            TransactionInputType::Deposit(asset) => asset,
-            TransactionInputType::Swap(_, asset, _) => asset,
-            TransactionInputType::Stake(asset, _) => asset,
-            TransactionInputType::TokenApprove(asset, _) => asset,
-            TransactionInputType::Generic(asset, _, _) => asset,
-            TransactionInputType::TransferNft(asset, _) => asset,
-            TransactionInputType::Account(asset, _) => asset,
-            TransactionInputType::Perpetual(asset, _) => asset,
-            TransactionInputType::Earn(asset, _, _) => asset,
+            TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } => asset,
+            TransactionInputType::Deposit { asset } => asset,
+            TransactionInputType::Swap { to_asset: asset, .. } => asset,
+            TransactionInputType::Stake { asset, .. } => asset,
+            TransactionInputType::TokenApprove { asset, .. } => asset,
+            TransactionInputType::Generic { asset, .. } => asset,
+            TransactionInputType::TransferNft { asset, .. } => asset,
+            TransactionInputType::Account { asset, .. } => asset,
+            TransactionInputType::Perpetual { asset, .. } => asset,
+            TransactionInputType::Earn { asset, .. } => asset,
         }
     }
 
     pub fn transaction_type(&self) -> TransactionType {
         match self {
-            TransactionInputType::Transfer(_) | TransactionInputType::Deposit(_) => TransactionType::Transfer,
-            TransactionInputType::Swap(_, _, _) => TransactionType::Swap,
-            TransactionInputType::Stake(_, stake_type) => match stake_type {
+            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } | TransactionInputType::Deposit { .. } => TransactionType::Transfer,
+            TransactionInputType::Swap { .. } => TransactionType::Swap,
+            TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) => TransactionType::StakeDelegate,
                 StakeType::Unstake(_) => TransactionType::StakeUndelegate,
                 StakeType::Redelegate(_) => TransactionType::StakeRedelegate,
@@ -136,16 +170,16 @@ impl TransactionInputType {
                 StakeType::Freeze(_) => TransactionType::StakeFreeze,
                 StakeType::Unfreeze(_) => TransactionType::StakeUnfreeze,
             },
-            TransactionInputType::TokenApprove(_, _) => TransactionType::TokenApproval,
-            TransactionInputType::Generic(_, _, extra) => extra.transaction_type.clone(),
-            TransactionInputType::TransferNft(_, _) => TransactionType::TransferNFT,
-            TransactionInputType::Account(_, _) => TransactionType::AssetActivation,
-            TransactionInputType::Perpetual(_, perpetual_type) => match perpetual_type {
+            TransactionInputType::TokenApprove { .. } => TransactionType::TokenApproval,
+            TransactionInputType::Generic { extra, .. } => extra.transaction_type.clone(),
+            TransactionInputType::TransferNft { .. } => TransactionType::TransferNFT,
+            TransactionInputType::Account { .. } => TransactionType::AssetActivation,
+            TransactionInputType::Perpetual { perpetual_type, .. } => match perpetual_type {
                 PerpetualType::Open(_) | PerpetualType::Increase(_) => TransactionType::PerpetualOpenPosition,
                 PerpetualType::Close(_) | PerpetualType::Reduce(_) => TransactionType::PerpetualClosePosition,
                 PerpetualType::Modify(_) => TransactionType::PerpetualModifyPosition,
             },
-            TransactionInputType::Earn(_, earn_type, _) => match earn_type {
+            TransactionInputType::Earn { earn_type, .. } => match earn_type {
                 EarnType::Deposit(_) => TransactionType::EarnDeposit,
                 EarnType::Withdraw(_) => TransactionType::EarnWithdraw,
             },
@@ -267,7 +301,11 @@ mod tests {
 
     fn swap_signer_input(swap_data: SwapData, value: &str) -> SignerInput {
         SignerInput::mock_evm(
-            TransactionInputType::Swap(Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Tron), swap_data),
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data,
+            },
             value,
             21000,
         )
@@ -300,21 +338,37 @@ mod tests {
 
     #[test]
     fn transaction_types() {
-        assert_eq!(TransactionInputType::Transfer(Asset::mock()).transaction_type(), TransactionType::Transfer);
+        assert_eq!(TransactionInputType::Transfer { asset: Asset::mock() }.transaction_type(), TransactionType::Transfer);
         assert_eq!(
-            TransactionInputType::Stake(Asset::mock(), StakeType::Stake(DelegationValidator::mock())).transaction_type(),
+            TransactionInputType::Stake {
+                asset: Asset::mock(),
+                stake_type: StakeType::Stake(DelegationValidator::mock())
+            }
+            .transaction_type(),
             TransactionType::StakeDelegate
         );
         assert_eq!(
-            TransactionInputType::Stake(Asset::mock(), StakeType::Freeze(Resource::Bandwidth)).transaction_type(),
+            TransactionInputType::Stake {
+                asset: Asset::mock(),
+                stake_type: StakeType::Freeze(Resource::Bandwidth)
+            }
+            .transaction_type(),
             TransactionType::StakeFreeze
         );
         assert_eq!(
-            TransactionInputType::Stake(Asset::mock(), StakeType::Unfreeze(Resource::Bandwidth)).transaction_type(),
+            TransactionInputType::Stake {
+                asset: Asset::mock(),
+                stake_type: StakeType::Unfreeze(Resource::Bandwidth)
+            }
+            .transaction_type(),
             TransactionType::StakeUnfreeze
         );
         assert_eq!(
-            TransactionInputType::Perpetual(Asset::mock(), PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))).transaction_type(),
+            TransactionInputType::Perpetual {
+                asset: Asset::mock(),
+                perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))
+            }
+            .transaction_type(),
             TransactionType::PerpetualOpenPosition
         );
     }
@@ -322,7 +376,7 @@ mod tests {
     #[test]
     fn transaction_input_accessors() {
         let stake_type = StakeType::Freeze(Resource::Bandwidth);
-        let stake_input = TransactionInputType::Stake(Asset::mock(), stake_type);
+        let stake_input = TransactionInputType::Stake { asset: Asset::mock(), stake_type };
         match stake_input.get_stake_type().unwrap() {
             StakeType::Freeze(resource) => assert_eq!(resource, &Resource::Bandwidth),
             StakeType::Stake(_) | StakeType::Unstake(_) | StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Unfreeze(_) => {
@@ -331,15 +385,21 @@ mod tests {
         }
 
         let perpetual_type = PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None));
-        let perpetual_input = TransactionInputType::Perpetual(Asset::mock(), perpetual_type);
+        let perpetual_input = TransactionInputType::Perpetual {
+            asset: Asset::mock(),
+            perpetual_type,
+        };
         match perpetual_input.get_perpetual_type().unwrap() {
             PerpetualType::Open(data) => assert_eq!(data.asset_index, 11),
             PerpetualType::Close(_) | PerpetualType::Modify(_) | PerpetualType::Increase(_) | PerpetualType::Reduce(_) => panic!("expected open perpetual type"),
         }
 
-        assert_eq!(TransactionInputType::Transfer(Asset::mock()).get_stake_type().unwrap_err(), "expected stake transaction");
         assert_eq!(
-            TransactionInputType::Transfer(Asset::mock()).get_perpetual_type().unwrap_err(),
+            TransactionInputType::Transfer { asset: Asset::mock() }.get_stake_type().unwrap_err(),
+            "expected stake transaction"
+        );
+        assert_eq!(
+            TransactionInputType::Transfer { asset: Asset::mock() }.get_perpetual_type().unwrap_err(),
             "expected perpetual transaction"
         );
     }
@@ -347,7 +407,7 @@ mod tests {
     #[test]
     fn transaction_load_input_value_as_u64() {
         let mut input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock() },
             sender_address: "sender".to_string(),
             destination_address: "destination".to_string(),
             value: BigUint::from(123u32),

@@ -264,7 +264,9 @@ mod tests {
 
     fn input() -> TransactionLoadInput {
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Polkadot)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Polkadot),
+            },
             sender_address: ADDRESS.to_string(),
             destination_address: ADDRESS.to_string(),
             value: BigUint::from(10000u64),

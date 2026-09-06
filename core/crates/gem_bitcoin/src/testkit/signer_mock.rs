@@ -28,7 +28,9 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
 
     SignerInput::new(
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(chain.get_chain())),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(chain.get_chain()),
+            },
             sender_address: sender_address.to_string(),
             destination_address: destination_address.to_string(),
             value: value.parse().unwrap(),
@@ -85,10 +87,10 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
     let destination_address = input.destination_address.clone();
     let value = input.value.clone();
 
-    input.input.input_type = TransactionInputType::Swap(
-        Asset::from_chain(chain.get_chain()),
-        Asset::from_chain(BitcoinChain::Bitcoin.get_chain()),
-        SwapData {
+    input.input.input_type = TransactionInputType::Swap {
+        from_asset: Asset::from_chain(chain.get_chain()),
+        to_asset: Asset::from_chain(BitcoinChain::Bitcoin.get_chain()),
+        swap_data: SwapData {
             quote: SwapQuote {
                 from_address: sender_address,
                 from_value: value.clone(),
@@ -106,7 +108,7 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
             },
             data: quote_data(destination_address, value.to_string()),
         },
-    );
+    };
     input
 }
 
