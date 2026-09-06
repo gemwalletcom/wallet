@@ -1,6 +1,5 @@
-package com.gemwallet.android.blockchain.operators.gemstone
+package com.gemwallet.android.data.services.gemstone.keystore
 
-import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
 import uniffi.gemstone.GemKeystore
 
 class GemMigrateKeystoreOperator(

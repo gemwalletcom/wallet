@@ -11,14 +11,14 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.perpetualType
 import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
+import com.gemwallet.android.domains.confirm.confirmLoadOptions
+import com.gemwallet.android.domains.confirm.toGem
 import com.gemwallet.android.domains.swap.providerId
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.blockchain.services.confirmLoadOptions
-import com.gemwallet.android.blockchain.services.toGem
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetPriceValue

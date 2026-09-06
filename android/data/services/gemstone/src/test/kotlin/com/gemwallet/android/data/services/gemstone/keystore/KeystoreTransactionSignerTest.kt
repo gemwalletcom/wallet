@@ -1,4 +1,4 @@
-package com.gemwallet.android.blockchain.services
+package com.gemwallet.android.data.services.gemstone.keystore
 
 import com.gemwallet.android.ext.toGem
 import android.util.Log

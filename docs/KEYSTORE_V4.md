@@ -144,7 +144,7 @@ Boundaries:
 
 App entrypoints:
 
-- Transaction signing uses the platform `KeystoreTransactionSigner`: [iOS](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift) delegates to `LocalKeystore.sign`, while [Android](../android/blockchain/src/main/kotlin/com/gemwallet/android/blockchain/services/KeystoreTransactionSigner.kt) uses `withGemKeystore`.
+- Transaction signing uses the platform `KeystoreTransactionSigner`: [iOS](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift) delegates to `LocalKeystore.sign`, while [Android](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/keystore/KeystoreTransactionSigner.kt) uses `withGemKeystore`.
 - WalletConnect message signing is owned by [`GemSignMessageService`](../core/gemstone/src/services/wallet_connect/sign_message.rs).
 - Wallet authentication signing is owned by [`GemAuthService`](../core/gemstone/src/services/auth/mod.rs).
 

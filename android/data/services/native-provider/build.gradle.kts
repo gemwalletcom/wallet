@@ -50,7 +50,8 @@ android {
 }
 
 dependencies {
-    api(project(":blockchain"))
+    api(project(":gemcore"))
+    api(libs.okhttp)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

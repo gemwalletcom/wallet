@@ -202,7 +202,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":blockchain"))
+    implementation(project(":gemcore"))
     implementation(project(":ui"))
     implementation(project(":data:services:gemstone"))
     implementation(project(":data:coordinators"))
@@ -269,6 +269,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.okhttp)
 
     implementation(libs.tink)
 

@@ -1,4 +1,4 @@
-package com.gemwallet.android.blockchain.services
+package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier

@@ -1,4 +1,4 @@
-package com.gemwallet.android.blockchain
+package com.gemwallet.android.model
 
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter

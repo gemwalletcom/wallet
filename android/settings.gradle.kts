@@ -9,7 +9,6 @@ rootProject.name = "wallet"
 
 include(":gemstone")
 include (":app")
-include(":blockchain")
 include(":gemcore")
 include(":ui")
 include(":ui-models")
