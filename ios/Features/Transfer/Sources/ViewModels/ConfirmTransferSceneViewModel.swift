@@ -1,6 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmButton
+import enum Gemstone.GemConfirmFeeRow
 import enum Gemstone.GemConfirmFeeSelection
+import struct Gemstone.GemFeeRateRows
 import struct Gemstone.GemTransferAmount
 import Components
 import Foundation
@@ -29,11 +32,16 @@ import WalletConnector
 @Observable
 @MainActor
 public final class ConfirmTransferSceneViewModel {
-    var feeSelection: GemConfirmFeeSelection
+    var feeSelection: GemConfirmFeeSelection {
+        didSet { feeRates = state.feeRateRows(selection: feeSelection) }
+    }
     var feeAssetSelection: FeeAssetSelection
     var state: ConfirmTransferState {
         didSet { onStateChange(state: state) }
     }
+    private(set) var button: GemConfirmButton
+    private(set) var feeRow: GemConfirmFeeRow
+    private(set) var feeRates: GemFeeRateRows?
 
     public var isPresentingSheet: ConfirmTransferSheetType?
 
@@ -76,12 +84,18 @@ public final class ConfirmTransferSceneViewModel {
         self.session = session
         self.onComplete = onComplete
 
-        feeSelection = .priority(priority: request.data.inputType.defaultFeePriority())
-        feeAssetSelection = .automatic
-        state = ConfirmTransferState(
+        let feeSelection = GemConfirmFeeSelection.priority(priority: request.data.inputType.defaultFeePriority())
+        let state = ConfirmTransferState(
             inputType: request.data.inputType,
             simulation: ConfirmSimulationState(result: request.simulation, chain: request.data.chain),
         )
+        let screen = state.screen
+        self.feeSelection = feeSelection
+        self.state = state
+        feeAssetSelection = .automatic
+        button = screen.button()
+        feeRow = screen.feeRow()
+        feeRates = state.feeRateRows(selection: feeSelection)
     }
 
 
@@ -131,7 +145,7 @@ public final class ConfirmTransferSceneViewModel {
 
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
-            button: state.screen.button(),
+            button: button,
             authentication: service.authentication(),
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
@@ -155,7 +169,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: state.feeAsset,
             currency: currency,
             selection: feeSelection,
-            feeRates: state.confirmData?.feeRateRows(selection: feeSelection, feeAsset: state.feeAsset.map()),
+            feeRates: feeRates,
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.transaction.value?.fee.fee,
             feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: currency) },
@@ -217,7 +231,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
-                feeRow: state.screen.feeRow(),
+                feeRow: feeRow,
                 feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
             )
@@ -299,6 +313,10 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private func onStateChange(state: ConfirmTransferState) {
+        let screen = state.screen
+        button = screen.button()
+        feeRow = screen.feeRow()
+        feeRates = state.feeRateRows(selection: feeSelection)
         guard let error = state.transactionError else { return }
         switch error {
         case .confirm:

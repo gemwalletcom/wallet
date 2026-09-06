@@ -1,11 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmData
+import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemConfirmLoad
 import struct Gemstone.GemConfirmMetadata
 import enum Gemstone.GemConfirmPhase
 import struct Gemstone.GemConfirmScreen
 import struct Gemstone.GemFeeAsset
+import struct Gemstone.GemFeeRateRows
 import enum Gemstone.GemTransactionInputType
 import Components
 import Foundation
@@ -57,6 +59,10 @@ extension ConfirmTransferState {
             amountFailed: transaction.value?.transferAmount.isFailure == true,
             hasCriticalWarning: simulation.hasCriticalWarning,
         )
+    }
+
+    func feeRateRows(selection: GemConfirmFeeSelection) -> GemFeeRateRows? {
+        confirmData?.feeRateRows(selection: selection, feeAsset: feeAsset.map())
     }
 
     var transactionError: ConfirmTransferError? {
