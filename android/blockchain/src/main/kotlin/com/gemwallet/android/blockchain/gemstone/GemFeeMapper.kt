@@ -5,7 +5,7 @@ import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
-import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.GasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 
 internal fun GemTransactionLoadFee.toFee(
@@ -43,7 +43,7 @@ private fun GemTransactionLoadFee.toPlainFee(feeAssetId: AssetId, priority: FeeP
 }
 
 private fun GemTransactionLoadFee.toRegularFee(feeAssetId: AssetId, priority: FeePriority): Fee.Regular {
-    val price = gasPriceType as GemGasPriceType.Regular
+    val price = gasPriceType as GasPriceType.Regular
     return Fee.Regular(
         feeAssetId = feeAssetId,
         priority = priority,
@@ -55,7 +55,7 @@ private fun GemTransactionLoadFee.toRegularFee(feeAssetId: AssetId, priority: Fe
 }
 
 private fun GemTransactionLoadFee.toEip1559Fee(feeAssetId: AssetId, priority: FeePriority): Fee.Eip1559 {
-    val price = gasPriceType as GemGasPriceType.Eip1559
+    val price = gasPriceType as GasPriceType.Eip1559
     return Fee.Eip1559(
         feeAssetId = feeAssetId,
         priority = priority,
@@ -68,7 +68,7 @@ private fun GemTransactionLoadFee.toEip1559Fee(feeAssetId: AssetId, priority: Fe
 }
 
 private fun GemTransactionLoadFee.toSolanaFee(feeAssetId: AssetId, priority: FeePriority): Fee.Solana {
-    val price = gasPriceType as GemGasPriceType.Solana
+    val price = gasPriceType as GasPriceType.Solana
     return Fee.Solana(
         feeAssetId = feeAssetId,
         priority = priority,

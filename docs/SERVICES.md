@@ -386,8 +386,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   written twice. The fee chain no longer needs it: `Fee`, `GasPriceType`, `FeeOption`/`FeeOptionMap`
   and `TransferDataExtra` are deleted from iOS `Primitives`, because nothing read them — the confirm
   screen takes `GemTransactionLoadFee` and `GemTransferDataExtra` straight from Core, as Android
-  always has. Teaching the generator about associated values is still what a data-carrying enum
-  needs before it can cross typed.
+  always has. The generator reads named-field enum variants now (`remote_mappers::variants`, a
+  brace-aware body reader), declares `BigInt`/`BigUint` fields as `GemBigInt`/`GemBigUint`, and
+  accepts a `remote` type that has no `#[typeshare]` twin: it gets the `#[uniffi::remote]`
+  declaration and no app mappers, so the apps hold the uniffi type itself. `GasPriceType` is the
+  first: `GemGasPriceType`, its two conversions, its `decimal_string` serde (nothing serialized it
+  once Android's routes moved to the Kotlin serializer) and `custom_gas_price` are gone, and both
+  apps name `GasPriceType`. Tuple variants still panic the generator; a typeshared data-carrying
+  enum still needs mapper emission before it can cross that way.
 - **Screens read their rows from one Core answer.** `GemTransactionDetailsService::detail_rows`
   (header, header action, swap progress steps, swap-again, provider name, confirmation ETA,
   participant, memo, resource, rate, pnl, price, fee, explorer link) and

@@ -47,7 +47,7 @@ pub type GemEarnType = EarnType;
 pub struct GemTransferDataExtra {
     pub to: String,
     pub gas_limit: Option<GemBigInt>,
-    pub gas_price: Option<GemGasPriceType>,
+    pub gas_price: Option<GasPriceType>,
     pub data: Option<Vec<u8>>,
     pub output_type: GemTransferDataOutputType,
     pub output_action: GemTransferDataOutputAction,
@@ -159,7 +159,7 @@ pub struct GemTransactionLoadInput {
     pub sender_address: String,
     pub destination_address: String,
     pub value: GemBigUint,
-    pub gas_price: GemGasPriceType,
+    pub gas_price: GasPriceType,
     pub memo: Option<String>,
     pub is_max_value: bool,
     pub metadata: GemTransactionLoadMetadata,
@@ -185,7 +185,7 @@ pub struct GemFeeOptions {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransactionLoadFee {
     pub fee: GemBigInt,
-    pub gas_price_type: GemGasPriceType,
+    pub gas_price_type: GasPriceType,
     pub gas_limit: GemBigInt,
     pub options: GemFeeOptions,
     pub fee_asset: AssetId,
@@ -292,7 +292,7 @@ impl From<GemTransactionLoadInput> for TransactionLoadInput {
             sender_address: value.sender_address,
             destination_address,
             value: value.value,
-            gas_price: value.gas_price.into(),
+            gas_price: value.gas_price,
             memo: value.memo,
             is_max_value: value.is_max_value,
             metadata: value.metadata,
@@ -313,7 +313,7 @@ impl From<TransactionLoadInput> for GemTransactionLoadInput {
             sender_address: value.sender_address,
             destination_address: value.destination_address,
             value: value.value,
-            gas_price: value.gas_price.into(),
+            gas_price: value.gas_price,
             memo: value.memo,
             is_max_value: value.is_max_value,
             metadata: value.metadata,
@@ -356,7 +356,7 @@ impl From<GemTransferDataExtra> for TransferDataExtra {
         TransferDataExtra {
             to: value.to,
             gas_limit: value.gas_limit,
-            gas_price: value.gas_price.map(|gp| gp.into()),
+            gas_price: value.gas_price,
             data: value.data,
             output_type: value.output_type,
             output_action: value.output_action,
@@ -395,30 +395,12 @@ impl From<TransferDataExtra> for GemTransferDataExtra {
         GemTransferDataExtra {
             to: value.to,
             gas_limit: value.gas_limit,
-            gas_price: value.gas_price.map(|x| x.into()),
+            gas_price: value.gas_price,
             data: value.data,
             output_type: value.output_type,
             output_action: value.output_action,
             transaction_type: value.transaction_type,
             approval: None,
-        }
-    }
-}
-
-impl From<GemGasPriceType> for GasPriceType {
-    fn from(value: GemGasPriceType) -> Self {
-        match value {
-            GemGasPriceType::Regular { gas_price } => GasPriceType::Regular { gas_price },
-            GemGasPriceType::Eip1559 { gas_price, priority_fee } => GasPriceType::Eip1559 { gas_price, priority_fee },
-            GemGasPriceType::Solana {
-                gas_price,
-                priority_fee,
-                unit_price,
-            } => GasPriceType::Solana {
-                gas_price,
-                priority_fee,
-                unit_price,
-            },
         }
     }
 }
@@ -437,7 +419,7 @@ impl From<GemTransactionLoadFee> for TransactionFee {
     fn from(value: GemTransactionLoadFee) -> Self {
         TransactionFee {
             fee: value.fee,
-            gas_price_type: value.gas_price_type.into(),
+            gas_price_type: value.gas_price_type,
             gas_limit: value.gas_limit,
             options: value.options.options,
             fee_asset: value.fee_asset,
@@ -449,7 +431,7 @@ impl From<TransactionFee> for GemTransactionLoadFee {
     fn from(value: TransactionFee) -> Self {
         GemTransactionLoadFee {
             fee: value.fee,
-            gas_price_type: value.gas_price_type.into(),
+            gas_price_type: value.gas_price_type,
             gas_limit: value.gas_limit,
             options: GemFeeOptions { options: value.options },
             fee_asset: value.fee_asset,

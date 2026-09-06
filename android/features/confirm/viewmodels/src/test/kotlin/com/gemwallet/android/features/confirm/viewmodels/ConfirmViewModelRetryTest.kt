@@ -13,7 +13,7 @@ import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmPreload
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemFeeOptions
-import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.GasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.GemConfirmSession
@@ -110,7 +110,7 @@ class ConfirmViewModelRetryTest {
                         confirmData = GemConfirmData(
                             fee = GemTransactionLoadFee(
                                 fee = BigInteger.ONE,
-                                gasPriceType = GemGasPriceType.Regular(gasPrice = BigInteger.ONE),
+                                gasPriceType = GasPriceType.Regular(gasPrice = BigInteger.ONE),
                                 gasLimit = BigInteger.ONE,
                                 options = GemFeeOptions(emptyMap()),
                                 feeAsset = asset.id.chain.string,

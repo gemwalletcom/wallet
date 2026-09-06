@@ -20,7 +20,7 @@ import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.GasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
@@ -51,8 +51,8 @@ class GemConfirmMapperTest {
             ),
         )
         val feeRates = listOf(
-            GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Eip1559(gasPrice = BigInteger("2"), priorityFee = BigInteger("3"))),
-            GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Eip1559(gasPrice = BigInteger.ONE, priorityFee = BigInteger.ONE)),
+            GemFeeRate(FeePriority.Normal.toGem(), GasPriceType.Eip1559(gasPrice = BigInteger("2"), priorityFee = BigInteger("3"))),
+            GemFeeRate(FeePriority.Fast.toGem(), GasPriceType.Eip1559(gasPrice = BigInteger.ONE, priorityFee = BigInteger.ONE)),
         )
         val preload = GemConfirmPreload(
             confirmData = GemConfirmData(

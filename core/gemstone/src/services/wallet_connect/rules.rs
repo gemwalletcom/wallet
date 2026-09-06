@@ -11,13 +11,13 @@ use primitives::{
     WalletConnectionState, WalletId, WalletType,
 };
 
-use crate::models::gateway::GemGasPriceType;
 use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
 use crate::services::error::GemServiceError;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
+use primitives::GasPriceType;
 use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
@@ -234,7 +234,7 @@ pub fn transfer_data(
             let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO);
             let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?;
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
-                (Some(max_fee), Some(priority_fee)) => Some(GemGasPriceType::Eip1559 {
+                (Some(max_fee), Some(priority_fee)) => Some(GasPriceType::Eip1559 {
                     gas_price: hex_value(max_fee)?,
                     priority_fee: hex_value(priority_fee)?,
                 }),
@@ -506,9 +506,7 @@ mod tests {
         };
         assert_eq!(asset.id, primitives::AssetId::from_chain(Chain::Ethereum));
         assert_eq!(extra.gas_limit, Some(BigInt::from(21000)));
-        assert!(
-            matches!(extra.gas_price, Some(GemGasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if *gas_price == BigInt::from(100) && *priority_fee == BigInt::from(2))
-        );
+        assert!(matches!(extra.gas_price, Some(GasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if *gas_price == BigInt::from(100) && *priority_fee == BigInt::from(2)));
         assert_eq!(extra.data, Some(vec![0xde, 0xad, 0xbe, 0xef]));
         assert_eq!(extra.transaction_type, TransactionType::TokenApproval);
         assert!(extra.approval.is_some());

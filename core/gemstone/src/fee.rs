@@ -1,8 +1,7 @@
 use num_bigint::BigInt;
-use primitives::{Chain, CustomFee, GasPriceType};
+use primitives::{Chain, CustomFee};
 
 use crate::config::fee_config::get_fee_config;
-use crate::models::gateway::GemGasPriceType;
 
 #[derive(uniffi::Object, Clone, Debug, PartialEq, Eq)]
 pub struct GemCustomFee {
@@ -48,11 +47,5 @@ impl GemCustomFee {
 
     pub fn is_valid(&self) -> bool {
         self.fee.is_valid
-    }
-}
-
-impl GemGasPriceType {
-    pub(crate) fn custom_gas_price(&self, gas_price: BigInt) -> Self {
-        GasPriceType::from(self.clone()).custom(gas_price).into()
     }
 }

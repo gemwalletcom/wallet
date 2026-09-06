@@ -473,9 +473,9 @@ mod tests {
 
     use super::super::model::GemRecipient;
     use super::*;
-    use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::{GemFeeOptions, GemTransactionLoadFee, GemTransactionLoadMetadata};
     use num_bigint::BigUint;
+    use primitives::GasPriceType;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
         Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PerpetualConfirmData, PerpetualDirection, Resource, StakeProviderType, SwapProvider,
@@ -598,7 +598,7 @@ mod tests {
             hash: hash.into(),
             fee: GemTransactionLoadFee {
                 fee: BigInt::from(1),
-                gas_price_type: GemGasPriceType::Regular { gas_price: BigInt::from(1) },
+                gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(1) },
                 gas_limit: BigInt::from(21_000),
                 options: GemFeeOptions { options: HashMap::new() },
                 fee_asset: AssetId::from_chain(Chain::Ethereum),

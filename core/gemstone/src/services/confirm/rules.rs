@@ -1,6 +1,6 @@
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
-    SimulationResult, Transaction, TransactionPreloadInput, Wallet,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult,
+    Transaction, TransactionPreloadInput, Wallet,
 };
 
 use super::error::GemConfirmError;
@@ -327,7 +327,7 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
 }
 
 pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &BigInt) -> GemFeeRateRows {
-    let unit_value = |rate: &GemFeeRate| GasPriceType::from(rate.gas_price_type.clone()).total_fee();
+    let unit_value = |rate: &GemFeeRate| rate.gas_price_type.clone().total_fee();
     let rate_total = |priority: FeePriority| rates.iter().find(|rate| rate.priority == priority).map(unit_value);
     let selected_total = match selection {
         GemConfirmFeeSelection::Priority { priority } => rate_total(*priority),
@@ -384,7 +384,7 @@ impl GemConfirmFeeSelection {
                     .ok_or(GemConfirmError::FeeRatesMissing)?;
                 Ok(GemFeeRate {
                     priority: base.priority,
-                    gas_price_type: base.gas_price_type.custom_gas_price(gas_price.clone()),
+                    gas_price_type: base.gas_price_type.custom(gas_price.clone()),
                 })
             }
         }
@@ -397,12 +397,12 @@ mod tests {
     use super::*;
     use crate::models::custom_types::GemBigInt;
     use crate::models::custom_types::GemBigUint;
-    use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use crate::transfer_amount::GemTransferAmount;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
+    use primitives::GasPriceType;
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, TransactionType, TransferDataExtra,
         TransferDataOutputAction, Wallet, WalletId,
@@ -441,7 +441,7 @@ mod tests {
                 },
                 fee: GemTransactionLoadFee {
                     fee: BigInt::ZERO,
-                    gas_price_type: GemGasPriceType::Regular { gas_price: BigInt::from(5) },
+                    gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(5) },
                     gas_limit: BigInt::from(21_000),
                     options: Default::default(),
                     fee_asset: AssetId::from_chain(Chain::Solana),
@@ -539,7 +539,7 @@ mod tests {
     fn rate(priority: FeePriority, gas_price: &str) -> GemFeeRate {
         GemFeeRate {
             priority,
-            gas_price_type: GemGasPriceType::Regular {
+            gas_price_type: GasPriceType::Regular {
                 gas_price: gas_price.parse().unwrap(),
             },
         }
@@ -611,7 +611,7 @@ mod tests {
         let custom = (GemConfirmFeeSelection::Custom { gas_price: BigInt::from(33) }).select_fee_rate(&rates).unwrap();
         assert_eq!(custom.priority, FeePriority::Normal);
         match custom.gas_price_type {
-            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
+            GasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
 
@@ -625,7 +625,7 @@ mod tests {
     fn test_select_fee_rate_custom() {
         let eip1559 = GemFeeRate {
             priority: FeePriority::Normal,
-            gas_price_type: GemGasPriceType::Eip1559 {
+            gas_price_type: GasPriceType::Eip1559 {
                 gas_price: BigInt::from(20),
                 priority_fee: BigInt::from(5),
             },
@@ -635,13 +635,13 @@ mod tests {
         let raised = (GemConfirmFeeSelection::Custom { gas_price: BigInt::from(30) }).select_fee_rate(&rates).unwrap();
         assert_eq!(raised.priority, FeePriority::Normal);
         match raised.gas_price_type {
-            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price, priority_fee), (BigInt::from(25), BigInt::from(5))),
+            GasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price, priority_fee), (BigInt::from(25), BigInt::from(5))),
             gas_price_type => panic!("expected an eip1559 custom gas price, got {gas_price_type:?}"),
         }
 
         let capped = (GemConfirmFeeSelection::Custom { gas_price: BigInt::from(3) }).select_fee_rate(&rates).unwrap();
         match capped.gas_price_type {
-            GemGasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price, priority_fee), (BigInt::from(0), BigInt::from(3))),
+            GasPriceType::Eip1559 { gas_price, priority_fee } => assert_eq!((gas_price, priority_fee), (BigInt::from(0), BigInt::from(3))),
             gas_price_type => panic!("expected a capped eip1559 gas price, got {gas_price_type:?}"),
         }
 
@@ -650,7 +650,7 @@ mod tests {
             .unwrap();
         assert_eq!(without_normal.priority, FeePriority::Fast);
         match without_normal.gas_price_type {
-            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(4)),
+            GasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(4)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
 
@@ -665,7 +665,7 @@ mod tests {
         let rates = vec![rate(FeePriority::Normal, "10")];
         let selection = GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(33) };
         match selection.select_fee_rate(&rates).unwrap().gas_price_type {
-            GemGasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
+            GasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
         }
     }
