@@ -156,24 +156,6 @@ class TransactionDataAggregateImplTest {
     }
 
     @Test
-    fun testIsPending_whenStatePending() {
-        val transaction = createTransaction(state = TransactionState.Pending)
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        assertEquals(true, aggregate.isPending)
-    }
-
-    @Test
-    fun testIsPending_whenStateConfirmed() {
-        val transaction = createTransaction(state = TransactionState.Confirmed)
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        assertEquals(false, aggregate.isPending)
-    }
-
-    @Test
     fun testAddress_transferOutgoing() {
         assumeHostGemstoneRuntime()
         val transaction = createTransaction(

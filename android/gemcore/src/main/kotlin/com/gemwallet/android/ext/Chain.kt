@@ -6,7 +6,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAsset
-import com.wallet.core.primitives.ChainType
 import uniffi.gemstone.Config
 
 
@@ -35,11 +34,6 @@ fun Chain.networkName(): String {
 fun Chain.Companion.available() = Chain.entries.toSet()
 
 
-fun Chain.toChainType(): ChainType = Config().getChainConfig(string).chainType.toPrimitives()
-
-
-
-fun Chain.isSwapSupport(): Boolean = Config().getChainConfig(string).isSwapSupported
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 

@@ -871,6 +871,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   (each kept alive only by its own unit test), `AssetId.subTokenId`, `PerpetualConfig.{defaultLeverage,
   depositAddress, minDeposit, minWithdraw}`, `PerpetualFormatter.formatSize` and `Wallet.makeView`,
   which only the keystore test kit's address-import branch used and which now builds there.
+  A September 2026 rerun that also counts in-file uses (a member used only inside its own file
+  is not dead) removed Android `Chain.toChainType`, `Chain.isSwapSupport`,
+  `TransactionType.isPerpetual`, `TransactionDataAggregate.isPending` and
+  `NftAssetDetailsData.collectionName`, three of them alive only through a test, and found no
+  iOS member without a use.
 - **Android's import screen asks `GemMnemonic` directly.** `GemValidatePhraseOperator`
   (`findInvalidWords` + `isValid` behind a `Result` with `InvalidWords`/`InvalidPhrase`
   exceptions) and `GemFindPhraseWord` were two wrappers around one Core object, and only the

@@ -5,7 +5,6 @@ import com.gemwallet.android.domains.asset.getSupportIconUrl
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -13,7 +12,6 @@ class ChainExtTest {
     @Test
     fun seiEvm_usesEvmMappings() {
         assertEquals(AssetType.ERC20, Chain.SeiEvm.assetType())
-        assertEquals(ChainType.Ethereum, Chain.SeiEvm.toChainType())
         assertEquals("file:///android_asset/chains/icons/sei.svg", Chain.SeiEvm.getIconUrl())
     }
 

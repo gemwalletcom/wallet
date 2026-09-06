@@ -27,8 +27,5 @@ interface TransactionDataAggregate {
     val nftImageUrl: String?
         get() = null
 
-    val isPending: Boolean
-        get() = state == TransactionState.Pending
-
     val createdAt: Long
 }
