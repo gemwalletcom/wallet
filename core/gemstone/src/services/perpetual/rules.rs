@@ -400,11 +400,11 @@ pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) ->
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::TransactionInputType;
     use chrono::DateTime;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::PerpetualId;
+    use primitives::TransactionInputType;
 
     fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData {
