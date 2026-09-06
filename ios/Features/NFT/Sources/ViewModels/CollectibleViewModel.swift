@@ -19,6 +19,7 @@ import SwiftUI
 @MainActor
 public final class CollectibleViewModel {
     private let wallet: Wallet
+    private let isOwned: Bool
     private let service: any GemCollectibleServiceProtocol
 
     let assetData: NFTAssetData
@@ -33,11 +34,13 @@ public final class CollectibleViewModel {
     public init(
         wallet: Wallet,
         assetData: NFTAssetData,
+        isOwned: Bool,
         service: any GemCollectibleServiceProtocol,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
         self.assetData = assetData
+        self.isOwned = isOwned
         self.service = service
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
@@ -145,7 +148,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map())
+        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map(), isOwned: isOwned)
     }
 
     var headerButtons: [HeaderButton] {

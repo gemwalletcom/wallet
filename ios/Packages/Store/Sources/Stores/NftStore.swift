@@ -20,6 +20,15 @@ public struct NftStore: Sendable {
         }
     }
 
+    public func getAssetIds(for walletId: WalletId) throws -> [NFTAssetId] {
+        try db.read { db in
+            try NFTAssetAssociationRecord
+                .filter(NFTAssetAssociationRecord.Columns.walletId == walletId.id)
+                .fetchAll(db)
+                .map(\.assetId)
+        }
+    }
+
     public func getCollection(collectionId: NFTCollectionId) throws -> NFTCollection? {
         try db.read { db in
             try NFTCollectionRecord

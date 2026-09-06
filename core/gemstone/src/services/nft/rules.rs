@@ -69,8 +69,8 @@ pub fn receive_accounts(wallet: &Wallet, query: &str) -> Vec<Account> {
         .collect()
 }
 
-pub fn can_send(wallet_type: &WalletType, chain: Chain) -> bool {
-    *wallet_type != WalletType::View && supports_nft_transfer(chain)
+pub fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool {
+    *wallet_type != WalletType::View && supports_nft_transfer(chain) && is_owned
 }
 
 fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
@@ -94,10 +94,14 @@ mod tests {
     }
 
     #[test]
-    fn test_can_send_needs_a_signing_wallet_on_a_transfer_chain() {
-        assert!(can_send(&WalletType::Multicoin, Chain::Ethereum));
-        assert!(!can_send(&WalletType::View, Chain::Ethereum));
-        assert!(!can_send(&WalletType::Multicoin, Chain::Bitcoin));
+    fn test_can_send_needs_a_signing_wallet_that_still_holds_the_asset_on_a_transfer_chain() {
+        assert!(can_send(&WalletType::Multicoin, Chain::Ethereum, true));
+        assert!(!can_send(&WalletType::View, Chain::Ethereum, true));
+        assert!(!can_send(&WalletType::Multicoin, Chain::Bitcoin, true));
+        assert!(
+            !can_send(&WalletType::Multicoin, Chain::Ethereum, false),
+            "an asset the wallet sent away cannot be sent again"
+        );
     }
 
     #[test]

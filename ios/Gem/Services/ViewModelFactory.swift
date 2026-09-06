@@ -572,6 +572,7 @@ public struct ViewModelFactory: Sendable {
         CollectibleViewModel(
             wallet: wallet,
             assetData: assetData,
+            isOwned: (try? storeManager.nftStore.getAssetIds(for: wallet.id))?.contains(assetData.asset.id) ?? false,
             service: GemCollectibleService(nfts: nftService, avatars: avatarService, explorer: explorerService),
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
         )

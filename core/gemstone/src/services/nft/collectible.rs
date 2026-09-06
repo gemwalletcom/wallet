@@ -28,8 +28,8 @@ impl GemCollectibleService {
         Self { nfts, avatars, explorer }
     }
 
-    pub fn can_send(&self, wallet: Wallet, chain: Chain) -> bool {
-        rules::can_send(&wallet.wallet_type, chain)
+    pub fn can_send(&self, wallet: Wallet, chain: Chain, is_owned: bool) -> bool {
+        rules::can_send(&wallet.wallet_type, chain, is_owned)
     }
 
     pub fn links(&self, chain: Chain, contract_address: String, token_id: String) -> GemCollectibleLinks {

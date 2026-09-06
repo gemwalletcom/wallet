@@ -523,11 +523,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   the unread `Chain.isDefiSupported` / `blockTime` (iOS) and `Chain.hasNativeAsset()` (Android).
   iOS also shows the row without a link now instead of dropping it.
 
-- **Whether a collectible can be sent is Core's answer.** `GemCollectibleService::can_send(chain)`
-  reads the session wallet and needs a signing wallet on a chain with NFT transfers. iOS
-  `CollectibleViewModel.isSendEnabled` held `wallet.canSign && chain.supportsNftTransfer`;
-  Android's `NftDetailsScene` only checked the chain, so a view-only wallet got a send button.
-  `Chain.supportsNftTransfer` is gone from both apps.
+- **Whether a collectible can be sent is Core's answer.** `GemCollectibleService::can_send(wallet, chain, is_owned)`
+  needs a signing wallet, a chain with NFT transfers, and the asset still held by the wallet; the
+  app reads that last fact synchronously from the NFT association table it already keeps (iOS
+  `NftStore.getAssetIds(for:)` in the view model factory, Android `GemstoneNftStore.getWalletAssetIds`
+  in the details coordinator). A collectible opened from the transaction that sent it away offered Send on both apps and
+  the transfer failed in simulation (issue #1153). iOS `CollectibleViewModel.isSendEnabled` held
+  `wallet.canSign && chain.supportsNftTransfer` before; Android's `NftDetailsScene` only checked the
+  chain, so a view-only wallet got a send button. `Chain.supportsNftTransfer` is gone from both apps.
 
 - **Whether the wallet can add a token is Core's answer.** `GemAssetSelectionService::supports_tokens()`
   reads the session wallet and asks `rules::token_chains` for a chain with a token type. iOS

@@ -4,6 +4,7 @@ import uniffi.gemstone.GemCollectibleServiceInterface
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.nft.cases.GetAssetNft
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
 import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.data.coordinators.nft.GetNftAssetDetailsImpl
 import com.gemwallet.android.data.coordinators.nft.GetNftCollectionsImpl
@@ -23,9 +24,10 @@ object NftCoordinatorModule {
     fun provideGetNftAssetDetails(
         getSession: GetSession,
         getAssetNft: GetAssetNft,
+        nftStore: GemstoneNftStore,
         collectibleService: GemCollectibleServiceInterface,
     ): GetNftAssetDetails {
-        return GetNftAssetDetailsImpl(getSession, getAssetNft, collectibleService)
+        return GetNftAssetDetailsImpl(getSession, getAssetNft, nftStore, collectibleService)
     }
 
     @Provides

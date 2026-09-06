@@ -17,6 +17,15 @@ import Testing
 @MainActor
 struct CollectibleViewModelTests {
     @Test
+    func isSendEnabledOnlyWhileTheWalletHoldsTheAsset() {
+        let assetData = NFTAssetData.mock(asset: .mock(chain: .ethereum))
+
+        #expect(CollectibleViewModel.mock(assetData: assetData, isOwned: true).isSendEnabled)
+        #expect(CollectibleViewModel.mock(assetData: assetData, isOwned: false).isSendEnabled == false)
+        #expect(CollectibleViewModel.mock(wallet: .mock(type: .view), assetData: assetData, isOwned: true).isSendEnabled == false)
+    }
+
+    @Test
     func tokenIdValue() {
         #expect(CollectibleViewModel.mock(assetData: .mock(asset: .mock(tokenId: "12345"))).tokenIdValue == "12345")
     }
@@ -102,11 +111,13 @@ extension CollectibleViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         assetData: NFTAssetData = .mock(),
+        isOwned: Bool = true,
         explorerService: GemExplorerService = .mock(),
     ) -> CollectibleViewModel {
         CollectibleViewModel(
             wallet: wallet,
             assetData: assetData,
+            isOwned: isOwned,
             service: GemCollectibleService.mock(explorer: explorerService),
             isPresentingSelectedAssetInput: .constant(.none),
         )
