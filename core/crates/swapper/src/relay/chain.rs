@@ -1,3 +1,5 @@
+use gem_evm::address::ethereum_address_checksum;
+use gem_ton::Address as TonAddress;
 use primitives::{Chain, ChainType, chain_evm::EVMChain};
 
 const SOLANA_CHAIN_ID: u64 = 792703809;
@@ -45,6 +47,14 @@ impl RelayChain {
             SOLANA_CHAIN_ID => Some(Self::Solana),
             TON_CHAIN_ID => Some(Self::Ton),
             _ => Self::from_chain(&Chain::from_chain_id(chain_id)?),
+        }
+    }
+
+    pub fn checksum_address(&self, address: &str) -> String {
+        match self {
+            Self::Evm(_) => ethereum_address_checksum(address).unwrap_or(address.to_string()),
+            Self::Ton => TonAddress::try_parse_base64(address).map_or(address.to_string(), |ton_address| ton_address.encode_non_bounceable()),
+            Self::Tron | Self::Solana => address.to_string(),
         }
     }
 }

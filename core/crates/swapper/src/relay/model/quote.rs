@@ -38,22 +38,9 @@ pub struct RelayAppFee {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RelayFees {
-    pub gas: Option<RelayFeeAmount>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RelayFeeAmount {
-    pub amount: Option<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct RelayQuoteResponse {
     pub steps: Vec<Step>,
     pub details: QuoteDetails,
-    pub fees: Option<RelayFees>,
 }
 
 impl RelayQuoteResponse {
@@ -161,12 +148,8 @@ impl QuoteDetails {
         self.slippage_tolerance.as_ref()?.total.parse().ok()
     }
 
-    pub fn time_estimate_u32(&self) -> Option<u32> {
-        let value = self.time_estimate?;
-        if !value.is_finite() || value < 0.0 || value > u32::MAX as f64 {
-            return None;
-        }
-        Some(value.ceil() as u32)
+    pub fn eta_in_seconds(&self) -> Option<u32> {
+        self.time_estimate.filter(|seconds| *seconds > 0.0).map(|seconds| seconds.ceil() as u32)
     }
 }
 
@@ -216,5 +199,6 @@ mod tests {
         assert_eq!(response.steps.len(), 2);
         assert_eq!(response.steps[0].id, "approve");
         assert_eq!(response.router_address(), response.get_evm_step().map(|evm| evm.to.clone()));
+        assert_eq!(response.get_evm_step().unwrap().gas_limit_with_buffer().as_deref(), Some("724402"));
     }
 }

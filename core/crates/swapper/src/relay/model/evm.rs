@@ -26,15 +26,11 @@ impl EvmStepData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::relay::model::RelayQuoteResponse;
 
     #[test]
-    fn test_evm_step() {
-        let response: RelayQuoteResponse = serde_json::from_str(include_str!("../testdata/quote_celo_native_to_bsc_usdt.json")).unwrap();
-        let evm = response.get_evm_step().unwrap();
-
-        assert_eq!(evm.gas, Some(BigInt::from(482935)));
-        assert_eq!(evm.gas_limit_with_buffer().as_deref(), Some("724402"));
-        assert!(response.get_tron_step().is_none());
+    fn test_gas_limit_with_buffer() {
+        assert_eq!(EvmStepData::mock_with_gas(Some(100_000)).gas_limit_with_buffer().as_deref(), Some("150000"));
+        assert_eq!(EvmStepData::mock_with_gas(Some(0)).gas_limit_with_buffer(), None);
+        assert_eq!(EvmStepData::mock_with_gas(None).gas_limit_with_buffer(), None);
     }
 }

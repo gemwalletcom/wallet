@@ -9,7 +9,6 @@ impl RelayQuoteResponse {
         Self {
             steps,
             details: QuoteDetails::mock(),
-            fees: None,
         }
     }
 }
@@ -24,6 +23,17 @@ impl QuoteDetails {
     }
 }
 
+impl EvmStepData {
+    pub fn mock_with_gas(gas: Option<u64>) -> Self {
+        Self {
+            to: "0xrouter".to_string(),
+            data: None,
+            value: "0".to_string(),
+            gas: gas.map(BigInt::from),
+        }
+    }
+}
+
 impl RelayRequest {
     pub fn mock_with_status(status: RelayStatus) -> Self {
         Self { status, data: None }
@@ -31,21 +41,15 @@ impl RelayRequest {
 }
 
 impl RelayChainInfo {
-    pub fn mock_depository(depository: Option<&str>) -> Self {
+    pub fn mock(id: u64, depository: Option<&str>, solver_addresses: &[&str]) -> Self {
         Self {
-            solver_addresses: vec![],
+            id,
+            solver_addresses: solver_addresses.iter().map(|address| address.to_string()).collect(),
             protocol: Some(RelayProtocol {
                 v2: Some(RelayProtocolV2 {
                     depository: depository.map(str::to_string),
                 }),
             }),
-        }
-    }
-
-    pub fn mock_solvers(solver_addresses: &[&str]) -> Self {
-        Self {
-            solver_addresses: solver_addresses.iter().map(|address| address.to_string()).collect(),
-            protocol: None,
         }
     }
 }

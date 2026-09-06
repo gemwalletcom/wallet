@@ -115,7 +115,6 @@ where
         let response = self.client.get_quote(relay_request).await?;
 
         let to_value = BigUint::from_str(&response.details.currency_out.amount).map_err(SwapperError::compute_quote_error)?;
-        let eta_in_seconds = response.details.time_estimate_u32();
 
         let quote = Quote {
             from_value,
@@ -131,7 +130,7 @@ where
                 slippage_bps: response.details.slippage_bps().unwrap_or(request.options.slippage.bps),
             },
             request: request.clone(),
-            eta_in_seconds,
+            eta_in_seconds: response.details.eta_in_seconds(),
         };
 
         Ok(quote)
@@ -156,12 +155,14 @@ where
     }
 
     async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        if chain == Chain::Ton {
-            return self.get_ton_swap_result(transaction_hash).await;
+        match RelayChain::from_chain(&chain).ok_or(SwapperError::NotSupportedChain)? {
+            RelayChain::Ton => self.get_ton_swap_result(transaction_hash).await,
+            RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana => {
+                let response = self.client.get_request(transaction_hash).await?;
+                let request = response.requests.first().ok_or(SwapperError::InvalidRoute)?;
+                Ok(mapper::map_swap_result(request))
+            }
         }
-        let response = self.client.get_request(transaction_hash).await?;
-        let request = response.requests.first().ok_or(SwapperError::InvalidRoute)?;
-        Ok(mapper::map_swap_result(request))
     }
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
