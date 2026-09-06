@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.Transaction
+import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
@@ -16,8 +18,14 @@ import com.gemwallet.android.data.service.store.database.entities.DbTransactionE
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionSwapMetadata
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 
 const val EXTENDED_COLUMNS = """
     tx.*,
@@ -78,8 +86,23 @@ const val EXTENDED_SOURCE = """
 @Dao
 interface TransactionsDao {
 
-    @Insert(entity = DbTransaction::class, onConflict = OnConflictStrategy.REPLACE)
-    fun insert(transactions: List<DbTransaction>)
+    @Transaction
+    fun insert(transactions: List<DbTransaction>) {
+        transactions.forEach { transaction ->
+            val existing = getTransaction(transaction.id, transaction.walletId)
+            if (existing == null) {
+                insertTransaction(transaction)
+            } else {
+                updateTransaction(transaction.copy(recordId = existing.recordId))
+            }
+        }
+    }
+
+    @Insert
+    fun insertTransaction(transaction: DbTransaction)
+
+    @Update
+    fun updateTransaction(transaction: DbTransaction)
 
     @Query("DELETE FROM transactions WHERE id = :id AND walletId = :walletId")
     fun delete(id: TransactionId, walletId: WalletId)
@@ -113,8 +136,16 @@ interface TransactionsDao {
         filters: List<TransactionsRequestFilter>,
     ): Flow<Int?> = getTransactionsCount(buildTransactionsCountSql(walletId, filters).toSupportSQLiteQuery())
 
-    @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
-    fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
+    fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?> = flow {
+        val recordId = getTransactionRecordId(walletId, id).onEach { if (it == null) emit(null) }.filterNotNull().first()
+        emitAll(getExtendedTransactionByRecordId(walletId, recordId))
+    }
+
+    @Query("SELECT recordId FROM transactions WHERE walletId = :walletId AND id = :id")
+    fun getTransactionRecordId(walletId: WalletId, id: TransactionId): Flow<Long?>
+
+    @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.recordId = :recordId")
+    fun getExtendedTransactionByRecordId(walletId: WalletId, recordId: Long): Flow<DbTransactionExtended?>
 
     @Query("SELECT * FROM transactions WHERE state IN (:states)")
     fun getTransactionsByStates(states: List<TransactionState>): List<DbTransaction>
@@ -125,14 +156,22 @@ interface TransactionsDao {
     @Query("SELECT * FROM transactions WHERE id = :id AND walletId = :walletId")
     fun getTransaction(id: TransactionId, walletId: WalletId): DbTransaction?
 
-    @Query("UPDATE transactions SET id = :newId, hash = :hash, updatedAt = :updatedAt WHERE id = :oldId AND walletId = :walletId")
-    fun updateTransactionId(
+    @Transaction
+    fun updateTransactionHash(
         oldId: TransactionId,
-        newId: TransactionId,
         walletId: WalletId,
         hash: String,
         updatedAt: Long = System.currentTimeMillis(),
-    )
+    ) {
+        val newId = TransactionId(oldId.chain, hash)
+        if (oldId == newId) return
+        val source = getTransaction(oldId, walletId) ?: return
+        val target = getTransaction(newId, walletId)
+        if (target != null) delete(newId, walletId)
+        val transaction = (target ?: source).copy(recordId = source.recordId, id = newId, hash = hash, updatedAt = updatedAt)
+        updateTransaction(transaction)
+        if (transaction.type == TransactionType.Swap) copySwapMetadata(oldId.identifier, newId.identifier)
+    }
 
     @Query(
         "UPDATE transactions SET state = :state, fee = COALESCE(:fee, fee), blockNumber = COALESCE(:blockNumber, blockNumber), " +
@@ -152,6 +191,9 @@ interface TransactionsDao {
 
     @Insert(entity = DbTransactionSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTransactionSwapMetadata>)
+
+    @Query("INSERT OR IGNORE INTO tx_swap_metadata (tx_id, from_asset_id, to_asset_id, from_amount, to_amount) SELECT :newId, from_asset_id, to_asset_id, from_amount, to_amount FROM tx_swap_metadata WHERE tx_id = :oldId")
+    fun copySwapMetadata(oldId: String, newId: String)
 
     @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
     fun deleteUnreferencedSwapMetadata(transactionId: String)

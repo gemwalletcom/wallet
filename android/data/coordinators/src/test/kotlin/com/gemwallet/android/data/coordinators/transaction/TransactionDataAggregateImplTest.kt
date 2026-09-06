@@ -123,6 +123,7 @@ class TransactionDataAggregateImplTest {
         asset: Asset = btcAsset,
         assets: List<Asset> = emptyList(),
     ) = TransactionExtended(
+        recordId = 1,
         transaction = transaction,
         asset = asset,
         feeAsset = asset,

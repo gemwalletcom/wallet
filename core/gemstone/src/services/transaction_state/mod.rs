@@ -165,7 +165,14 @@ async fn apply(
         Err(msg) => return Err(GemServiceError::Gateway { msg }),
     };
     let (transaction_id, current_state) = match rules::new_hash(&update.changes) {
-        Some(hash) => rename(store, &wallet_id, &transaction, hash).await?,
+        Some(hash) => {
+            let new_transaction_id = TransactionId::new(transaction.id.chain, hash.clone());
+            store.update_transaction_hash(wallet_id.clone(), transaction.id.clone(), hash).await?;
+            let Some(state) = store.get_state(wallet_id.clone(), new_transaction_id.clone()).await? else {
+                return Ok(None);
+            };
+            (new_transaction_id, state)
+        }
         None => (transaction.id.clone(), transaction.state),
     };
     let next_state = match current_state.merged_with(update.state) {
@@ -189,20 +196,6 @@ async fn apply(
         state: next_state,
         failures: Vec::new(),
     }))
-}
-
-async fn rename(store: &dyn GemTransactionStateStore, wallet_id: &WalletId, transaction: &Transaction, hash: String) -> Result<(TransactionId, TransactionState), GemServiceError> {
-    let new_transaction_id = TransactionId::new(transaction.asset_id.chain, hash);
-    match store.get_state(wallet_id.clone(), new_transaction_id.clone()).await? {
-        Some(existing_state) => {
-            store.delete_transaction(wallet_id.clone(), transaction.id.clone()).await?;
-            Ok((new_transaction_id, existing_state))
-        }
-        None => {
-            store.rename_transaction(wallet_id.clone(), transaction.id.clone(), new_transaction_id.clone()).await?;
-            Ok((new_transaction_id, transaction.state))
-        }
-    }
 }
 
 #[async_trait]
@@ -310,7 +303,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(result.transaction_id, id("new-hash"));
-        assert_eq!(store.renamed.lock().unwrap().as_slice(), &[(id("hash"), id("new-hash"))]);
+        assert_eq!(store.hash_updates.lock().unwrap().as_slice(), &[(id("hash"), id("new-hash"))]);
         assert_eq!(store.updates.lock().unwrap()[0].0, id("new-hash"));
     }
 
@@ -342,9 +335,37 @@ mod tests {
                 failures: Vec::new(),
             }
         );
-        assert_eq!(store.deleted.lock().unwrap().as_slice(), &[id("hash")]);
-        assert!(store.renamed.lock().unwrap().is_empty());
+        assert_eq!(store.deleted.lock().unwrap().as_slice(), &[]);
+        assert_eq!(store.hash_updates.lock().unwrap().as_slice(), &[(id("hash"), id("new-hash"))]);
+        assert_eq!(store.states.lock().unwrap().as_slice(), &[(id("new-hash"), TransactionState::Confirmed)]);
         assert!(store.updates.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_hash_change_is_idempotent() {
+        let now = Utc::now();
+        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        for hash in ["hash", "new-hash", "new-hash"] {
+            let result = apply_update(
+                &store,
+                transaction("hash", TransactionState::Pending, now),
+                update(
+                    TransactionState::Confirmed,
+                    vec![TransactionChange::HashChange {
+                        old: "hash".into(),
+                        new: hash.into(),
+                    }],
+                ),
+                now,
+            )
+            .unwrap()
+            .unwrap();
+
+            assert_eq!(result.transaction_id, id(hash));
+            assert_eq!(result.state, TransactionState::Confirmed);
+            assert_eq!(store.states.lock().unwrap().as_slice(), &[(id(hash), TransactionState::Confirmed)]);
+            assert_eq!(store.deleted.lock().unwrap().as_slice(), &[]);
+        }
     }
 
     #[test]
@@ -370,15 +391,23 @@ mod tests {
         let now = Utc::now();
         let store = MemoryTransactionStateStore::with(vec![]);
 
-        let result = apply_update(
-            &store,
-            transaction("hash", TransactionState::Pending, now),
-            update(TransactionState::Confirmed, vec![]),
-            now,
-        )
-        .unwrap();
+        for changes in [
+            vec![],
+            vec![TransactionChange::HashChange {
+                old: "hash".into(),
+                new: "new-hash".into(),
+            }],
+        ] {
+            let result = apply_update(
+                &store,
+                transaction("hash", TransactionState::Pending, now),
+                update(TransactionState::Confirmed, changes),
+                now,
+            )
+            .unwrap();
 
-        assert!(result.is_none());
+            assert_eq!(result, None);
+        }
     }
 
     #[test]

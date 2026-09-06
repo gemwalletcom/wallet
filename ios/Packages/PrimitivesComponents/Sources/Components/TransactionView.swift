@@ -50,6 +50,7 @@ public struct TransactionView: View {
         createdAt: Date(),
     )
     let pendingTransactionExtendedMock = TransactionExtended(
+        recordId: 1,
         transaction: pendingTransactionMock,
         asset: Primitives.Chain.smartChain.asset,
         feeAsset: Primitives.Chain.smartChain.asset,

@@ -35,11 +35,11 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
         try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(id: transactionId)).map { $0.map() }
     }
 
-    public func renameTransaction(walletId: String, transactionId: Gemstone.TransactionId, newTransactionId: Gemstone.TransactionId) async throws {
-        try store.renameTransaction(
+    public func updateTransactionHash(walletId: String, transactionId: Gemstone.TransactionId, hash: String) async throws {
+        try store.updateTransactionHash(
             walletId: WalletId.from(id: walletId),
             transactionId: Primitives.TransactionId(id: transactionId),
-            newTransactionId: Primitives.TransactionId(id: newTransactionId),
+            hash: hash,
         )
     }
 

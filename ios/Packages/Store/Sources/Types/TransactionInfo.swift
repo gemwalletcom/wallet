@@ -17,8 +17,12 @@ struct TransactionInfo: Codable, FetchableRecord {
 }
 
 extension TransactionInfo {
-    func mapToTransactionExtended() -> TransactionExtended {
-        TransactionExtended(
+    func mapToTransactionExtended() throws -> TransactionExtended {
+        guard let recordId = transaction.id else {
+            throw RecordError.recordNotFound(databaseTableName: TransactionRecord.databaseTableName, key: [:])
+        }
+        return TransactionExtended(
+            recordId: UInt64(recordId),
             transaction: transaction.mapToTransaction(),
             asset: asset.mapToAsset(),
             feeAsset: feeAsset.mapToAsset(),

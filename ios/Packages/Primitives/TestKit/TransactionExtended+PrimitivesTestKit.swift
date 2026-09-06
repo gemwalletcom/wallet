@@ -5,6 +5,7 @@ import Primitives
 
 public extension TransactionExtended {
     static func mock(
+        recordId: UInt64 = 1,
         transaction: Transaction = .mock(),
         asset: Asset = .mock(),
         assets: [Asset] = [],
@@ -13,6 +14,7 @@ public extension TransactionExtended {
         confirmationEtaSeconds: UInt32? = nil,
     ) -> TransactionExtended {
         TransactionExtended(
+            recordId: recordId,
             transaction: transaction,
             asset: asset,
             feeAsset: .mock(),

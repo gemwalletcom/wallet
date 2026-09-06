@@ -73,4 +73,59 @@ struct TransactionStoreTests {
         #expect(assetIds.count == 2)
         #expect(Set(assetIds) == Set([btc, sol]))
     }
+
+    @Test func mergePreservesIdentityAndAssociationsWithinWallet() throws {
+        let ethereum = Chain.ethereum.assetId
+        let bitcoin = Chain.bitcoin.assetId
+        let solana = Chain.solana.assetId
+        let db = DB.mockAssets(assets: [ethereum, bitcoin, solana].map { .mock(asset: .mock(id: $0)) })
+        let store = TransactionStore(db: db)
+        let walletId = WalletId.mock()
+        let otherWalletId = WalletId.multicoin(address: "other")
+        try WalletStore(db: db).addWallet(.mock(id: otherWalletId))
+        let sourceId = TransactionId(chain: .ethereum, hash: "pending")
+        let targetId = TransactionId(chain: .ethereum, hash: "confirmed")
+        let source = Transaction.mock(
+            transactionId: sourceId,
+            type: .swap,
+            state: .pending,
+            assetId: ethereum,
+            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200", provider: nil)),
+        )
+        let target = Transaction.mock(
+            transactionId: targetId,
+            type: .swap,
+            assetId: ethereum,
+            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300", provider: nil)),
+            fee: "42",
+        )
+        try store.addTransactions(walletId: walletId, transactions: [source, target])
+        try store.addTransactions(walletId: otherWalletId, transactions: [source, target])
+        let storedSource = try store.getTransaction(walletId: walletId, transactionId: sourceId)
+        let storedTarget = try store.getTransaction(walletId: walletId, transactionId: targetId)
+        let sourceRecord = try #require(try db.dbQueue.read {
+            try TransactionRecord.filter(TransactionRecord.Columns.walletId == walletId.id)
+                .filter(TransactionRecord.Columns.transactionId == sourceId.identifier).fetchOne($0)
+        })
+
+        try store.updateTransactionHash(walletId: walletId, transactionId: sourceId, hash: targetId.hash)
+        try store.updateTransactionHash(walletId: walletId, transactionId: sourceId, hash: targetId.hash)
+        try store.updateTransactionHash(walletId: walletId, transactionId: targetId, hash: targetId.hash)
+
+        let result = try store.getTransaction(walletId: walletId, transactionId: targetId)
+        #expect(result.recordId == storedSource.recordId)
+        #expect(throws: RecordError.self) {
+            try db.dbQueue.read { try TransactionRequest(walletId: otherWalletId, recordId: result.recordId).fetch($0) }
+        }
+        #expect(result.transaction == storedTarget.transaction)
+        #expect(Set(result.assets.map(\.id)) == Set([ethereum, solana]))
+        #expect(try store.getTransaction(walletId: otherWalletId, transactionId: sourceId).transaction == storedSource.transaction)
+        #expect(try store.getTransaction(walletId: otherWalletId, transactionId: targetId).transaction == storedTarget.transaction)
+        try db.dbQueue.read { db in
+            let record = try TransactionRecord.filter(TransactionRecord.Columns.walletId == walletId.id).fetchOne(db)
+            let count = try TransactionRecord.fetchCount(db)
+            #expect(record?.id == sourceRecord.id)
+            #expect(count == 3)
+        }
+    }
 }

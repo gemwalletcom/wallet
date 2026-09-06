@@ -6,70 +6,22 @@ import Primitives
 
 public struct TransactionRequest: DatabaseQueryable {
     private let walletId: WalletId
-    private let transactionId: TransactionId
+    private let recordId: UInt64
 
-    public var filters: [TransactionsRequestFilter] = []
-
-    public init(
-        walletId: WalletId,
-        transactionId: TransactionId,
-    ) {
+    public init(walletId: WalletId, recordId: UInt64) {
         self.walletId = walletId
-        self.transactionId = transactionId
+        self.recordId = recordId
     }
 
     public func fetch(_ db: Database) throws -> TransactionExtended {
-        try TransactionsRequest.fetch(
-            db,
-            type: .transaction(id: transactionId.identifier),
-            filters: filters,
-            walletId: walletId,
-        ).first ?? .empty
+        let request = TransactionRecord
+            .filter(TransactionRecord.Columns.walletId == walletId.id)
+            .filter(TransactionRecord.Columns.id == recordId)
+        guard let transaction = try TransactionsRequest.fetch(db, request: request).first else {
+            throw RecordError.recordNotFound(databaseTableName: TransactionRecord.databaseTableName, key: [:])
+        }
+        return transaction
     }
 }
 
 extension TransactionRequest: Equatable {}
-
-public extension TransactionExtended {
-    static let empty: TransactionExtended = {
-        let asset = Asset(
-            id: AssetId(chain: .bitcoin, tokenId: nil),
-            name: "",
-            symbol: "",
-            decimals: 0,
-            type: .native,
-        )
-
-        return TransactionExtended(
-            transaction: Transaction(
-                id: TransactionId(chain: .ethereum, hash: ""),
-                assetId: AssetId(chain: .bitcoin, tokenId: nil),
-                from: "",
-                to: "",
-                contract: nil,
-                type: .transfer,
-                state: .pending,
-                blockNumber: "",
-                sequence: "",
-                fee: "",
-                feeAssetId: AssetId(chain: .bitcoin, tokenId: nil),
-                value: "",
-                memo: nil,
-                direction: .selfTransfer,
-                utxoInputs: [],
-                utxoOutputs: [],
-                metadata: nil,
-                createdAt: .now,
-            ),
-            asset: asset,
-            feeAsset: asset,
-            price: nil,
-            feePrice: nil,
-            assets: [],
-            prices: [],
-            fromAddress: nil,
-            toAddress: nil,
-            confirmationEtaSeconds: nil,
-        )
-    }()
-}

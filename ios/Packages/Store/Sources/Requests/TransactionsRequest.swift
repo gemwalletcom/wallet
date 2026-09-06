@@ -30,7 +30,11 @@ public struct TransactionsRequest: DatabaseQueryable {
         filters: [TransactionsRequestFilter],
         walletId: WalletId,
     ) throws -> [TransactionExtended] {
-        try query(walletId: walletId, type: type, filters: filters)
+        try fetch(db, request: query(walletId: walletId, type: type, filters: filters))
+    }
+
+    static func fetch(_ db: Database, request: QueryInterfaceRequest<TransactionRecord>) throws -> [TransactionExtended] {
+        try request
             .including(required: TransactionRecord.asset)
             .including(required: TransactionRecord.feeAsset)
             .including(optional: TransactionRecord.price)
@@ -42,7 +46,7 @@ public struct TransactionsRequest: DatabaseQueryable {
             .order(TransactionRecord.Columns.date.desc)
             .asRequest(of: TransactionInfo.self)
             .fetchAll(db)
-            .compactMap { $0.mapToTransactionExtended() }
+            .map { try $0.mapToTransactionExtended() }
     }
 
     static func query(

@@ -123,6 +123,7 @@ build-ios-simulator-lib: (build-ios-lib IOS_SIMULATOR_RUST_TARGET)
 
 bindgen-swift:
     #!/usr/bin/env bash
+    set -euo pipefail
     echo "Bindgen swift $STATIC_LIB_NAME"
     mkdir -p ${GEN_SWIFT_FOLDER}
     if [ "${BUILD_MODE}" == "release" ]; then \
@@ -143,6 +144,7 @@ prepare-ios-package: bindgen-swift
 
 bindgen-kotlin:
     #!/usr/bin/env bash
+    set -euo pipefail
     echo "Bindgen kotlin BUILD_MODE: ${BUILD_MODE}"
     rm -rf ${GEN_KOTLIN_FOLDER} ${ANDROID_MODULE_FOLDER}/uniffi
     mkdir -p ${GEN_KOTLIN_FOLDER} ${ANDROID_MODULE_FOLDER}

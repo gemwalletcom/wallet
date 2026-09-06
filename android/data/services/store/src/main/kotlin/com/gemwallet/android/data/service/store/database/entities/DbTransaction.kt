@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.PrimaryKey
 import com.gemwallet.android.ext.hash
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Transaction
@@ -15,11 +16,10 @@ import com.wallet.core.primitives.WalletId
 
 @Entity(
     tableName = "transactions",
-    primaryKeys = ["id", "walletId"],
     foreignKeys = [
         ForeignKey(DbWallet::class, ["id"], ["walletId"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
     ],
-    indices = [Index("walletId")],
+    indices = [Index("walletId"), Index(value = ["walletId", "id"], unique = true)],
 )
 data class DbTransaction(
     val id: TransactionId,
@@ -43,6 +43,7 @@ data class DbTransaction(
     val updatedAt: Long,
     @ColumnInfo(name = "estimatedConfirmationInSeconds")
     val confirmationEtaSeconds: Long? = null,
+    @PrimaryKey(autoGenerate = true) val recordId: Long = 0,
 )
 
 fun Transaction.toRecord(walletId: WalletId): DbTransaction {

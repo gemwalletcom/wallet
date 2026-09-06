@@ -8,6 +8,7 @@ impl TransactionExtended {
     pub fn mock_transaction(transaction: Transaction) -> Self {
         let asset = Asset::from_chain(transaction.asset_id.chain);
         TransactionExtended {
+            record_id: 1,
             transaction,
             fee_asset: asset.clone(),
             asset,

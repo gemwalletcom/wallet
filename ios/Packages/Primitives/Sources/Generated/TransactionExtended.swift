@@ -5,6 +5,7 @@
 import Foundation
 
 public struct TransactionExtended: Codable, Equatable, Hashable, Sendable {
+	public let recordId: UInt64
 	public let transaction: Transaction
 	public let asset: Asset
 	public let feeAsset: Asset
@@ -16,7 +17,8 @@ public struct TransactionExtended: Codable, Equatable, Hashable, Sendable {
 	public let toAddress: AddressName?
 	public let confirmationEtaSeconds: UInt32?
 
-	public init(transaction: Transaction, asset: Asset, feeAsset: Asset, price: Price?, feePrice: Price?, assets: [Asset], prices: [AssetPrice], fromAddress: AddressName?, toAddress: AddressName?, confirmationEtaSeconds: UInt32?) {
+	public init(recordId: UInt64, transaction: Transaction, asset: Asset, feeAsset: Asset, price: Price?, feePrice: Price?, assets: [Asset], prices: [AssetPrice], fromAddress: AddressName?, toAddress: AddressName?, confirmationEtaSeconds: UInt32?) {
+		self.recordId = recordId
 		self.transaction = transaction
 		self.asset = asset
 		self.feeAsset = feeAsset

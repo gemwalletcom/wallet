@@ -55,13 +55,11 @@ class GemstoneTransactionStateStore(
     override suspend fun getState(walletId: String, transactionId: String): uniffi.gemstone.TransactionState? =
         transactionsDao.getTransactionState(TransactionId(transactionId), WalletId(walletId))?.toGem()
 
-    override suspend fun renameTransaction(walletId: String, transactionId: String, newTransactionId: String) {
+    override suspend fun updateTransactionHash(walletId: String, transactionId: String, hash: String) {
         val oldId = TransactionId(transactionId)
-        val newId = TransactionId(newTransactionId)
         val wallet = WalletId(walletId)
         transactionRunner.run {
-            transactionsDao.updateTransactionId(oldId, newId, wallet, newId.hash)
-            transactionsDao.getTransaction(newId, wallet)?.let { transactionsDao.addSwapMetadata(listOf(it.toDTO())) }
+            transactionsDao.updateTransactionHash(oldId, wallet, hash)
             transactionsDao.deleteUnreferencedSwapMetadata(oldId.identifier)
         }
     }

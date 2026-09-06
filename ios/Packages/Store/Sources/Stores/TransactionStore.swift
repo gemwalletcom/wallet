@@ -58,7 +58,12 @@ public struct TransactionStore: Sendable {
 
     public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended {
         try db.read { db in
-            try TransactionRequest(walletId: walletId, transactionId: transactionId).fetch(db)
+            guard let transaction = try TransactionsRequest.fetch(
+                db, type: .transaction(id: transactionId.identifier), filters: [], walletId: walletId,
+            ).first else {
+                throw RecordError.recordNotFound(databaseTableName: TransactionRecord.databaseTableName, key: [:])
+            }
+            return transaction
         }
     }
 
@@ -95,11 +100,28 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    public func renameTransaction(walletId: WalletId, transactionId: TransactionId, newTransactionId: TransactionId) throws {
-        try updateValues(walletId: walletId, transactionId: transactionId, values: [
-            TransactionRecord.Columns.transactionId.set(to: newTransactionId.identifier),
-            TransactionRecord.Columns.hash.set(to: newTransactionId.hash),
-        ])
+    public func updateTransactionHash(walletId: WalletId, transactionId: TransactionId, hash: String) throws {
+        guard transactionId.hash != hash else { return }
+        let newTransactionId = TransactionId(chain: transactionId.chain, hash: hash)
+        try db.write { db in
+            let transactions = TransactionRecord.filter(TransactionRecord.Columns.walletId == walletId.id)
+            let source = transactions.filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
+            guard let sourceId = try source.select(TransactionRecord.Columns.id, as: Int.self).fetchOne(db) else {
+                return
+            }
+            let target = transactions.filter(TransactionRecord.Columns.transactionId == newTransactionId.identifier)
+            if let targetId = try target.select(TransactionRecord.Columns.id, as: Int.self).fetchOne(db) {
+                try source.deleteAll(db)
+                try TransactionAssetAssociationRecord.filter(TransactionAssetAssociationRecord.Columns.transactionId == targetId).deleteAll(db)
+                try target.updateAndFetchAll(db, [TransactionRecord.Columns.id.set(to: sourceId)])
+                    .forEach { try updateAssetAssociations(db, record: $0) }
+            } else {
+                try source.updateAll(db, [
+                    TransactionRecord.Columns.transactionId.set(to: newTransactionId.identifier),
+                    TransactionRecord.Columns.hash.set(to: hash),
+                ])
+            }
+        }
     }
 
     public func deleteTransaction(walletId: WalletId, transactionId: TransactionId) throws {
@@ -162,16 +184,6 @@ public struct TransactionStore: Sendable {
         try assetIds
             .filter { storedIds.contains($0.identifier) }
             .forEach { try TransactionAssetAssociationRecord(transactionId: id, assetId: $0).upsert(db) }
-    }
-
-    @discardableResult
-    private func updateValues(walletId: WalletId, transactionId: TransactionId, values: [ColumnAssignment]) throws -> Int {
-        try db.write { db in
-            try TransactionRecord
-                .filter(TransactionRecord.Columns.walletId == walletId.id)
-                .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
-                .updateAll(db, values)
-        }
     }
 
     @discardableResult

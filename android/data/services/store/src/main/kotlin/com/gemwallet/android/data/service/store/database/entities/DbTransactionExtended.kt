@@ -40,6 +40,7 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
     val swapFrom = fromAsset?.toDTO()
     val swapTo = toAsset?.toDTO()
     return TransactionExtended(
+        recordId = transaction.recordId,
         transaction = transaction.toDTO(),
         asset = asset.toDTO() ?: return null,
         feeAsset = feeAsset.toDTO() ?: return null,
