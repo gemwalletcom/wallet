@@ -3,8 +3,8 @@ use std::sync::Arc;
 use futures::lock::Mutex;
 use primitives::{SimulationResult, Wallet};
 
-use super::rules::confirm_simulation;
-use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmTransferService};
+use super::rules::preload_simulation;
+use super::{GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmTransferService};
 use crate::services::transfer::GemTransferData;
 
 #[derive(uniffi::Object)]
@@ -13,7 +13,7 @@ pub struct GemConfirmSession {
     wallet: Wallet,
     transfer: GemTransferData,
     simulation: Option<SimulationResult>,
-    fee: Mutex<Option<GemConfirmFeeLoad>>,
+    screen: Mutex<Option<GemConfirmLoad>>,
 }
 
 impl GemConfirmSession {
@@ -23,7 +23,7 @@ impl GemConfirmSession {
             wallet,
             transfer,
             simulation,
-            fee: Mutex::new(None),
+            screen: Mutex::new(None),
         }
     }
 }
@@ -31,21 +31,23 @@ impl GemConfirmSession {
 #[uniffi::export]
 impl GemConfirmSession {
     pub async fn state(&self) -> Result<GemConfirmLoad, GemConfirmError> {
-        let fee = self.fee.lock().await.clone();
-        self.screen(fee).await
+        if let Some(screen) = self.screen.lock().await.clone() {
+            return Ok(screen);
+        }
+        let screen = self.service.state(&self.transfer, self.simulation.clone()).await?;
+        *self.screen.lock().await = Some(screen.clone());
+        Ok(screen)
     }
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
         let input = self.service.confirm_input(self.wallet.clone(), self.transfer.clone())?;
         let fee = self.service.preload(self.service.wallet_id()?, input, options).await?;
-        *self.fee.lock().await = Some(fee.clone());
-        self.screen(Some(fee)).await
-    }
-}
-
-impl GemConfirmSession {
-    async fn screen(&self, fee: Option<GemConfirmFeeLoad>) -> Result<GemConfirmLoad, GemConfirmError> {
-        let simulation = confirm_simulation(self.simulation.clone(), fee.as_ref().map(|fee| &fee.preload));
-        self.service.state(self.transfer.clone(), simulation, fee).await
+        let simulation = match preload_simulation(self.simulation.as_ref(), &fee.preload) {
+            Some(simulation) => Some(self.service.simulation_state(self.transfer.input_type.clone(), Some(simulation)).await?),
+            None => None,
+        };
+        let screen = self.state().await?.with_fee(fee, simulation);
+        *self.screen.lock().await = Some(screen.clone());
+        Ok(screen)
     }
 }

@@ -5,8 +5,9 @@ use primitives::{
 
 use super::error::GemConfirmError;
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmData, GemConfirmFeeRow, GemConfirmFeeSelection,
-    GemConfirmInput, GemConfirmMetadata, GemConfirmPhase, GemConfirmPreload, GemConfirmScreen, GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmData, GemConfirmFeeLoad, GemConfirmFeeRow,
+    GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmPhase, GemConfirmPreload, GemConfirmScreen, GemConfirmSimulationState, GemFeeAsset,
+    GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
@@ -149,8 +150,23 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
     }
 }
 
-pub fn confirm_simulation(request: Option<SimulationResult>, preload: Option<&GemConfirmPreload>) -> Option<SimulationResult> {
-    request.or_else(|| preload.and_then(|preload| preload.confirm_data.simulation.clone()))
+pub fn preload_simulation(request: Option<&SimulationResult>, preload: &GemConfirmPreload) -> Option<SimulationResult> {
+    match request {
+        Some(_) => None,
+        None => preload.confirm_data.simulation.clone(),
+    }
+}
+
+impl GemConfirmLoad {
+    pub(super) fn with_fee(self, fee: GemConfirmFeeLoad, simulation: Option<GemConfirmSimulationState>) -> Self {
+        Self {
+            fee_asset: fee.fee_asset,
+            metadata: fee.metadata,
+            simulation: simulation.unwrap_or(self.simulation),
+            preload: Some(fee.preload),
+            ..self
+        }
+    }
 }
 
 pub fn confirm_button(screen: &GemConfirmScreen) -> GemConfirmButton {
@@ -408,6 +424,7 @@ mod tests {
         TransferDataOutputAction, Wallet, WalletId,
         swap::{ApprovalData, SwapData},
     };
+    use primitives::{AddressName, AddressType, VerificationStatus};
 
     fn wallet(chain: Chain) -> Wallet {
         Wallet {
@@ -1058,7 +1075,7 @@ mod tests {
     }
 
     #[test]
-    fn test_confirm_simulation_prefers_the_request_and_falls_back_to_the_preload() {
+    fn test_preload_simulation_is_only_needed_when_the_request_has_none() {
         let simulation = |message: &str| SimulationResult {
             warnings: vec![SimulationWarning::validation_error(message)],
             balance_changes: vec![],
@@ -1078,12 +1095,69 @@ mod tests {
             },
         };
 
-        assert_eq!(
-            confirm_simulation(Some(simulation("request")), Some(&preload)).unwrap().warnings[0].message.as_deref(),
-            Some("request")
+        assert!(
+            preload_simulation(Some(&simulation("request")), &preload).is_none(),
+            "the request simulation is already on the screen"
         );
-        assert_eq!(confirm_simulation(None, Some(&preload)).unwrap().warnings[0].message.as_deref(), Some("preload"));
-        assert!(confirm_simulation(None, None).is_none());
+        assert_eq!(preload_simulation(None, &preload).unwrap().warnings[0].message.as_deref(), Some("preload"));
+        let mut unsimulated = preload.clone();
+        unsimulated.confirm_data.simulation = None;
+        assert!(preload_simulation(None, &unsimulated).is_none());
+    }
+
+    #[test]
+    fn test_with_fee_takes_the_preload_and_keeps_the_rest_of_the_screen() {
+        let eth = Asset::mock_eth();
+        let btc = Asset::mock_btc();
+        let metadata = |available: u32| GemConfirmMetadata {
+            asset_balance: balance(&eth.id, available),
+            fee_asset_balance: balance(&eth.id, available),
+            prices: vec![],
+        };
+        let simulation_state = |warnings: Vec<SimulationWarning>| GemConfirmSimulationState {
+            chain: Chain::Ethereum,
+            result: None,
+            warnings,
+            simulation: None,
+            address_names: vec![],
+        };
+        let screen = GemConfirmLoad {
+            fee_asset: eth.clone(),
+            metadata: metadata(1),
+            fee_assets: vec![GemFeeAsset {
+                asset: eth.clone(),
+                balance: balance(&eth.id, 1),
+                price: None,
+            }],
+            simulation: simulation_state(vec![]),
+            address_name: Some(AddressName::mock("0xrecipient", "recipient.eth", AddressType::Address, VerificationStatus::Verified)),
+            preload: None,
+        };
+        let fee = GemConfirmFeeLoad {
+            fee_asset: btc.clone(),
+            metadata: metadata(2),
+            preload: GemConfirmPreload {
+                confirm_data: send_input(Chain::Ethereum, GemTransactionInputType::Transfer { asset: eth.clone() }).confirm,
+                amount: GemTransferAmountResult::Amount {
+                    amount: GemTransferAmount {
+                        value: GemBigInt::from(1),
+                        network_fee: GemBigInt::from(1),
+                        is_max_amount: false,
+                    },
+                },
+            },
+        };
+
+        let loaded = screen.clone().with_fee(fee.clone(), None);
+        assert_eq!(loaded.fee_asset, btc);
+        assert_eq!(loaded.metadata.asset_balance.available, GemBigUint::from(2u32));
+        assert!(loaded.preload.is_some());
+        assert_eq!(loaded.fee_assets, screen.fee_assets, "the selectable fee assets come from the first answer");
+        assert_eq!(loaded.address_name, screen.address_name, "the recipient's name comes from the first answer");
+        assert!(loaded.simulation.warnings.is_empty(), "without a preload simulation the request simulation state stays");
+
+        let resimulated = screen.with_fee(fee, Some(simulation_state(vec![SimulationWarning::validation_error("preload")])));
+        assert_eq!(resimulated.simulation.warnings.len(), 1);
     }
 
     #[test]

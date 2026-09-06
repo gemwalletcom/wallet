@@ -150,25 +150,21 @@ impl GemConfirmTransferService {
         }
     }
 
-    pub(super) async fn state(&self, transfer: GemTransferData, simulation: Option<SimulationResult>, fee: Option<GemConfirmFeeLoad>) -> Result<GemConfirmLoad, GemConfirmError> {
+    pub(super) async fn state(&self, transfer: &GemTransferData, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
         let wallet_id = self.wallet_id()?;
-        let input_type = transfer.input_type;
+        let input_type = transfer.input_type.clone();
         let chain = input_type.transaction_asset().chain();
-        let (fee_asset, metadata, preload) = match fee {
-            Some(fee) => (fee.fee_asset, fee.metadata, Some(fee.preload)),
-            None => (input_type.fee_asset(), self.metadata(input_type.clone()).await?, None),
-        };
         Ok(GemConfirmLoad {
-            fee_asset,
-            metadata,
+            fee_asset: input_type.fee_asset(),
+            metadata: self.metadata(input_type.clone()).await?,
             fee_assets: self.fee_assets(wallet_id, chain).await?,
             simulation: self.simulation_state(input_type, simulation).await?,
-            address_name: self.names.address_name(chain, transfer.recipient.address).await.unwrap_or_default(),
-            preload,
+            address_name: self.names.address_name(chain, transfer.recipient.address.clone()).await.unwrap_or_default(),
+            preload: None,
         })
     }
 
-    async fn simulation_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulationState, GemConfirmError> {
+    pub(super) async fn simulation_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulationState, GemConfirmError> {
         let chain = input_type.transaction_asset().chain();
         let assets = match &simulation {
             Some(simulation) => self.confirm.ensure_simulation_assets(simulation.asset_ids()).await?,
