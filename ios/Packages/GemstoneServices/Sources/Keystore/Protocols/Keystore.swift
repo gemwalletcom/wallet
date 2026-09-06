@@ -15,8 +15,6 @@ public protocol Keystore: Sendable {
     func migrateV3Keystores(for wallets: [Wallet]) async throws -> [KeystoreMigrationFailure]
     func sign(wallet: Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction]
     func signMessage(signer: MessageSigner, wallet: Wallet) async throws -> String
-    func getPrivateKeyEncoded(wallet: Wallet, chain: Chain) async throws -> String
-    func getMnemonic(wallet: Wallet) async throws -> [String]
     func getPasswordAuthentication() throws -> KeystoreAuthentication
     func destroy() throws
 }

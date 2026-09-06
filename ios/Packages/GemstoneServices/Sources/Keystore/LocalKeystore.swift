@@ -89,31 +89,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
     }
 
-    public func getPrivateKeyEncoded(wallet: Primitives.Wallet, chain: Primitives.Chain) async throws -> String {
-        let password = try await getPassword()
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try gemKeystore.exportPrivateKey(
-                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
-                    chain: chain.rawValue,
-                    password: passwordBytes,
-                )
-            }
-        }
-    }
-
-    public func getMnemonic(wallet: Primitives.Wallet) async throws -> [String] {
-        let password = try await getPassword()
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try gemKeystore.exportRecoveryPhrase(
-                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
-                    password: passwordBytes,
-                )
-            }
-        }
-    }
-
     public func getPasswordAuthentication() throws -> KeystoreAuthentication {
         try keystorePassword.getAuthentication()
     }

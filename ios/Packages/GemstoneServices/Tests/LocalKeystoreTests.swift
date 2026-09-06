@@ -64,7 +64,7 @@ struct LocalKeystoreTests {
                 type: .privateKey(value: hex, chain: Primitives.Chain.solana.map()),
             )
 
-            let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .solana)
+            let exported = try await keystore.exportedPrivateKey(wallet: wallet, chain: .solana)
             #expect(exported == "DTJi5pMtSKZHdkLX4wxwvjGjf2xwXx1LSuuUZhugYWDV")
 
             let keystore2 = LocalKeystore.mock()
@@ -72,7 +72,7 @@ struct LocalKeystoreTests {
                 name: "Test Solana 2",
                 type: .privateKey(value: exported, chain: Primitives.Chain.solana.map()),
             )
-            let exportedKey = try await keystore2.getPrivateKeyEncoded(wallet: wallet2, chain: .solana)
+            let exportedKey = try await keystore2.exportedPrivateKey(wallet: wallet2, chain: .solana)
             #expect(exportedKey == exported)
         }
     }
@@ -103,7 +103,7 @@ struct LocalKeystoreTests {
                 type: .privateKey(value: hex, chain: Primitives.Chain.ethereum.map()),
             )
 
-            let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .ethereum)
+            let exported = try await keystore.exportedPrivateKey(wallet: wallet, chain: .ethereum)
             #expect(exported == hex)
         }
     }
