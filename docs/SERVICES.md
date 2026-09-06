@@ -524,10 +524,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   iOS also shows the row without a link now instead of dropping it.
 
 - **Whether a collectible can be sent is Core's answer.** `GemCollectibleService::can_send(wallet, chain, is_owned)`
-  needs a signing wallet, a chain with NFT transfers, and the asset still held by the wallet; the
-  app reads that last fact synchronously from the NFT association table it already keeps (iOS
-  `NftStore.getAssetIds(for:)` in the view model factory, Android `GemstoneNftStore.getWalletAssetIds`
-  in the details coordinator). A collectible opened from the transaction that sent it away offered Send on both apps and
+  needs a signing wallet, a chain with NFT transfers, and the asset still held by the wallet. The
+  screen observes that last fact the way the asset and transaction screens observe theirs: iOS
+  `NFTAssetRequest` joins the wallet's association rows into `NFTAssetDetails`, Android's details
+  coordinator combines the asset flow with the DAO's ownership flow, so the button follows the sync
+  that removes the row. A collectible opened from the transaction that sent it away offered Send on both apps and
   the transfer failed in simulation (issue #1153). iOS `CollectibleViewModel.isSendEnabled` held
   `wallet.canSign && chain.supportsNftTransfer` before; Android's `NftDetailsScene` only checked the
   chain, so a view-only wallet got a send button. `Chain.supportsNftTransfer` is gone from both apps.

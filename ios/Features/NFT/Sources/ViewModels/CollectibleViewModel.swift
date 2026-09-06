@@ -12,6 +12,7 @@ import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 
@@ -19,10 +20,9 @@ import SwiftUI
 @MainActor
 public final class CollectibleViewModel {
     private let wallet: Wallet
-    private let isOwned: Bool
     private let service: any GemCollectibleServiceProtocol
 
-    let assetData: NFTAssetData
+    public let query: ObservableQuery<NFTAssetRequest>
 
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingToast: ToastMessage?
@@ -34,15 +34,20 @@ public final class CollectibleViewModel {
     public init(
         wallet: Wallet,
         assetData: NFTAssetData,
-        isOwned: Bool,
         service: any GemCollectibleServiceProtocol,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
-        self.assetData = assetData
-        self.isOwned = isOwned
         self.service = service
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
+        query = ObservableQuery(
+            NFTAssetRequest(walletId: wallet.id, assetId: assetData.asset.id),
+            initialValue: NFTAssetDetails(assetData: assetData, isOwned: false),
+        )
+    }
+
+    var assetData: NFTAssetData {
+        query.value.assetData
     }
 
     var title: String {
@@ -148,7 +153,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map(), isOwned: isOwned)
+        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map(), isOwned: query.value.isOwned)
     }
 
     var headerButtons: [HeaderButton] {

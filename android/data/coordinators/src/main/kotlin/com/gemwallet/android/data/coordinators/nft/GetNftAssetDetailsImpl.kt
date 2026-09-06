@@ -12,6 +12,7 @@ import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.NFTAssetId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -30,7 +31,8 @@ class GetNftAssetDetailsImpl(
         return getSession().filterNotNull()
             .flatMapLatest { session ->
                 getAssetNft.getAssetNft(assetId)
-                    .map { nftData ->
+                    .combine(nftStore.observeAssetOwnership(session.wallet.id.id, assetId)) { nftData, isOwned -> nftData to isOwned }
+                    .map { (nftData, isOwned) ->
                         val nftAsset = nftData.assets.firstOrNull() ?: return@map null
                         val chain = nftAsset.chain
                         val account = session.wallet.getAccount(chain) ?: return@map null
@@ -39,11 +41,7 @@ class GetNftAssetDetailsImpl(
                             collection = nftData.collection,
                             asset = nftAsset,
                             account = account,
-                            canSend = collectibleService.canSend(
-                                session.wallet.toGem(),
-                                chain.string,
-                                nftStore.getWalletAssetIds(session.wallet.id.id).contains(assetId),
-                            ),
+                            canSend = collectibleService.canSend(session.wallet.toGem(), chain.string, isOwned),
                             contractExplorerLink = links?.contract?.let { BlockExplorerLink(it.name, it.link) },
                             tokenIdExplorerLink = links?.token?.let { BlockExplorerLink(it.name, it.link) },
                         )

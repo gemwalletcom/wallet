@@ -75,4 +75,7 @@ interface NftDao {
 
     @Query("SELECT * FROM nft_assets WHERE id = :id")
     fun getAsset(id: NFTAssetId): Flow<DbNFTAsset?>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM nft_assets_associations WHERE wallet_id = :walletId AND asset_id = :assetId)")
+    fun isAssetOwned(walletId: String, assetId: NFTAssetId): Flow<Boolean>
 }

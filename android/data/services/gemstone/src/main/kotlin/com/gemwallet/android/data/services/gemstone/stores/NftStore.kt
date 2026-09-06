@@ -59,7 +59,7 @@ class GemstoneNftStore(
 
     fun observeAsset(assetId: NFTAssetId): Flow<DbNFTAsset?> = nftDao.getAsset(assetId)
 
-    suspend fun getWalletAssetIds(walletId: String): List<NFTAssetId> = nftDao.getWalletAssetIds(walletId)
+    fun observeAssetOwnership(walletId: String, assetId: NFTAssetId): Flow<Boolean> = nftDao.isAssetOwned(walletId, assetId)
 
     fun observeCollection(collectionId: NFTCollectionId): Flow<DbNFTCollection?> = nftDao.getCollection(collectionId)
 }

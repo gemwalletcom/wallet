@@ -10,7 +10,7 @@ import GemstoneServicesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
-import Store
+@testable import Store
 import StoreTestKit
 import Testing
 
@@ -19,10 +19,17 @@ struct CollectibleViewModelTests {
     @Test
     func isSendEnabledOnlyWhileTheWalletHoldsTheAsset() {
         let assetData = NFTAssetData.mock(asset: .mock(chain: .ethereum))
+        let held = CollectibleViewModel.mock(assetData: assetData)
+        let viewOnly = CollectibleViewModel.mock(wallet: .mock(type: .view), assetData: assetData)
 
-        #expect(CollectibleViewModel.mock(assetData: assetData, isOwned: true).isSendEnabled)
-        #expect(CollectibleViewModel.mock(assetData: assetData, isOwned: false).isSendEnabled == false)
-        #expect(CollectibleViewModel.mock(wallet: .mock(type: .view), assetData: assetData, isOwned: true).isSendEnabled == false)
+        #expect(held.isSendEnabled == false)
+        held.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
+        #expect(held.isSendEnabled)
+        held.query.value = NFTAssetDetails(assetData: assetData, isOwned: false)
+        #expect(held.isSendEnabled == false)
+
+        viewOnly.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
+        #expect(viewOnly.isSendEnabled == false)
     }
 
     @Test
@@ -111,13 +118,11 @@ extension CollectibleViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         assetData: NFTAssetData = .mock(),
-        isOwned: Bool = true,
         explorerService: GemExplorerService = .mock(),
     ) -> CollectibleViewModel {
         CollectibleViewModel(
             wallet: wallet,
             assetData: assetData,
-            isOwned: isOwned,
             service: GemCollectibleService.mock(explorer: explorerService),
             isPresentingSelectedAssetInput: .constant(.none),
         )
