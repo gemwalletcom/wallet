@@ -11,10 +11,8 @@ use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
-use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[allow(clippy::large_enum_variant)]
 pub enum TransactionInputType {
     Transfer {

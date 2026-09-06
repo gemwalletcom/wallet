@@ -351,7 +351,7 @@ pub use self::transaction_input_type::{SignerInput, TransactionInputType, Transa
 pub mod transfer_amount;
 pub use self::transfer_amount::{TransferAmount, TransferAmountError, TransferAmountInput};
 pub mod transfer_data_extra;
-pub use self::swap::ApprovalData;
+pub use self::swap::{ApprovalData, SwapData};
 pub use self::transfer_data_extra::TransferDataExtra;
 pub mod transaction_data_output;
 pub use self::transaction_data_output::{TransferDataOutputAction, TransferDataOutputType};

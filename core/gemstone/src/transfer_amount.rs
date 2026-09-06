@@ -1,4 +1,3 @@
-use crate::models::GemTransactionInputType;
 use crate::models::custom_types::GemBigInt;
 use primitives::{AssetId, TransactionInputType, TransferAmount, TransferAmountError, TransferAmountInput};
 
@@ -13,7 +12,7 @@ pub struct GemTransferAmount {
 }
 
 pub(crate) struct GemTransferAmountInput {
-    pub(crate) input_type: GemTransactionInputType,
+    pub(crate) input_type: TransactionInputType,
     pub(crate) value: GemBigInt,
     pub(crate) available_value: GemBigInt,
     pub(crate) fee_asset: AssetId,
@@ -26,7 +25,7 @@ pub(crate) struct GemTransferAmountInput {
 impl From<GemTransferAmountInput> for TransferAmountInput {
     fn from(value: GemTransferAmountInput) -> Self {
         Self {
-            input_type: TransactionInputType::from(value.input_type),
+            input_type: value.input_type,
             value: value.value,
             available_value: value.available_value,
             fee_asset: value.fee_asset,
@@ -53,7 +52,7 @@ mod tests {
     fn input(value: u64, available_value: u64, fee_asset_balance: u64) -> GemTransferAmountInput {
         let asset = Asset::from_chain(Chain::Solana);
         GemTransferAmountInput {
-            input_type: GemTransactionInputType::Transfer { asset: asset.clone() },
+            input_type: TransactionInputType::Transfer { asset: asset.clone() },
             value: BigInt::from(value),
             available_value: BigInt::from(available_value),
             fee_asset: asset.id,

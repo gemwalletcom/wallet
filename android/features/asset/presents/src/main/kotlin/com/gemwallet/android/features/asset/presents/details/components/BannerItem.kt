@@ -5,7 +5,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.domains.confirm.account
 import com.wallet.core.primitives.AccountDataType
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import java.math.BigInteger
 import com.gemwallet.android.features.banner.views.BannersScene
@@ -28,7 +28,7 @@ internal fun BannerItem(
                     val owner = assetInfo.owner ?: return@BannersScene
                     onConfirm(
                         GemTransferData(
-                            inputType = GemTransactionInputType.account(assetInfo.asset, AccountDataType.Activate),
+                            inputType = TransactionInputType.account(assetInfo.asset, AccountDataType.Activate),
                             recipient = GemRecipient(owner.address),
                             value = BigInteger.ZERO,
                         )

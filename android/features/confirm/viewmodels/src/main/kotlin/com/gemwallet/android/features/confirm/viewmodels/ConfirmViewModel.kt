@@ -196,8 +196,8 @@ class ConfirmViewModel @Inject constructor(
         val amount = Crypto(transferAmount ?: request.value)
 
         AmountUIModel(
-            transactionType = inputType.transactionType().toPrimitives(),
-            headerKind = inputType.headerKind(),
+            transactionType = request.transactionType().toPrimitives(),
+            headerKind = request.headerKind(),
             amount = amount.atomicValue,
             fromAsset = content.assetPrice(inputType.asset),
             fromAmount = amount.atomicValue,
@@ -250,7 +250,7 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(transfer: GemTransferData, simulationResult: SimulationResult? = null) {
         requestSimulation = simulationResult?.toJson()
-        feeSelection.value = FeeSelection.Preset(transfer.inputType.defaultFeePriority().toPrimitives())
+        feeSelection.value = FeeSelection.Preset(transfer.defaultFeePriority().toPrimitives())
         viewModelScope.launch(Dispatchers.IO) {
             val pack = transfer.pack()
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {

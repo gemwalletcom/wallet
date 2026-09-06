@@ -33,7 +33,7 @@ struct PaymentTransferTests {
             return
         }
 
-        #expect(data.inputType.asset == asset)
+        #expect(data.asset == asset)
         #expect(data.value == "19000000")
         #expect(data.recipient.address == recipient)
         #expect(data.recipient.memo == "payment-memo")

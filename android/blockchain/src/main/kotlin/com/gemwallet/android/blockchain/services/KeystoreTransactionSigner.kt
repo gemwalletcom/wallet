@@ -17,7 +17,7 @@ class KeystoreTransactionSigner(
     override suspend fun sign(wallet: uniffi.gemstone.Wallet, input: GemSignerInput): List<GemSignedTransaction> {
         return try {
             val password = passwordStore.getKeystorePassword()
-            val chain = input.input.inputType.transactionAsset().toPrimitives().id.chain.string
+            val chain = input.input.chain()
             withGemKeystore(baseDir, password) { keystore, passwordBytes ->
                 keystore.sign(keystore.keystoreId(wallet.id), chain, input, passwordBytes)
             }

@@ -2,7 +2,7 @@ package com.gemwallet.android.testkit
 
 import com.gemwallet.android.domains.confirm.swap
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
@@ -73,7 +73,7 @@ fun mockSwapTransferData(
         ),
     )
     return GemTransferData(
-        inputType = GemTransactionInputType.swap(fromAsset, toAsset, swapData),
+        inputType = TransactionInputType.swap(fromAsset, toAsset, swapData),
         recipient = GemRecipient(address = swapData.data.to, memo = swapData.data.memo),
         value = fromAmount,
         useMaxAmount = useMaxAmount,

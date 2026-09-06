@@ -93,9 +93,9 @@ struct AmountPerpetualViewModelTests {
         let increase = AmountPerpetualViewModel(asset: .mock(), action: .increase(data: .mock()), service: GemAmountServiceMock(builder: GemAmountService.mock())).makeTransferData(value: 200, useMaxAmount: false)
         let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), available: 1000), service: GemAmountServiceMock(builder: GemAmountService.mock())).makeTransferData(value: 300, useMaxAmount: false)
 
-        #expect(open.inputType.transactionType().map() == .perpetualOpenPosition)
-        #expect(increase.inputType.transactionType().map() == .perpetualOpenPosition)
-        #expect(reduce.inputType.transactionType().map() == .perpetualClosePosition)
+        #expect(open.transactionType().map() == .perpetualOpenPosition)
+        #expect(increase.transactionType().map() == .perpetualOpenPosition)
+        #expect(reduce.transactionType().map() == .perpetualClosePosition)
         #expect(open.value == "100")
         #expect(increase.value == "200")
         #expect(reduce.value == "300")

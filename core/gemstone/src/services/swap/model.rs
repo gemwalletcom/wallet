@@ -1,12 +1,12 @@
 use crate::models::custom_types::GemBigInt;
 use crate::models::custom_types::GemBigUint;
-use crate::models::transaction::GemTransactionInputType;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use primitives::swap::{SwapData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId};
 use swapper::{Quote, SwapperError};
 
 use super::rules;
+use primitives::TransactionInputType;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Object)]
 pub struct GemSwapQuoteSummary {
@@ -57,7 +57,7 @@ pub struct GemSwapTransfer {
 impl GemSwapTransfer {
     pub fn transfer_data(&self, from_asset: Asset, to_asset: Asset) -> GemTransferData {
         GemTransferData {
-            input_type: GemTransactionInputType::Swap {
+            input_type: TransactionInputType::Swap {
                 from_asset,
                 to_asset,
                 swap_data: SwapData {

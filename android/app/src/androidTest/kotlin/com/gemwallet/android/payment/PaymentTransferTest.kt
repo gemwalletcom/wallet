@@ -6,7 +6,7 @@ import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.toPaymentWalletAsset
 import com.gemwallet.android.serializer.decodeJson
@@ -66,7 +66,7 @@ class PaymentTransferTest {
         val transfer = (confirm as GemPaymentDestination.Confirm).transfer
         assertEquals("10000", transfer.value)
         assertEquals(BITCOIN_ADDRESS, transfer.address)
-        assertTrue(paymentService.transferData(transfer, bitcoin.asset.toGem()).inputType is GemTransactionInputType.Transfer)
+        assertTrue(paymentService.transferData(transfer, bitcoin.asset.toGem()).inputType is TransactionInputType.Transfer)
     }
 
     @Test

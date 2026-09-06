@@ -2,11 +2,12 @@ use std::sync::Arc;
 
 use primitives::{Asset, RecentActivityType, WalletId};
 
-use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::GemAssetAction;
 use crate::services::error::GemServiceError;
+use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::TransactionInputType;
 
 #[derive(uniffi::Object)]
 pub struct GemRecentActivityService {
@@ -44,7 +45,7 @@ impl GemRecentActivityService {
 }
 
 impl GemRecentActivityService {
-    pub async fn add(&self, input_type: GemTransactionInputType, wallet_id: WalletId) -> Result<(), GemServiceError> {
+    pub async fn add(&self, input_type: TransactionInputType, wallet_id: WalletId) -> Result<(), GemServiceError> {
         match input_type.recent_activity() {
             Some(activity) => self.store.add(activity, wallet_id).await,
             None => Ok(()),
@@ -92,11 +93,11 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
-        block_on(service.add(GemTransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone())).unwrap();
+        block_on(service.add(TransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
 
         block_on(service.add(
-            GemTransactionInputType::Stake {
+            TransactionInputType::Stake {
                 asset,
                 stake_type: StakeType::Rewards(vec![]),
             },

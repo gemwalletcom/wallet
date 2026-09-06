@@ -4,10 +4,10 @@ use primitives::{Asset, Chain};
 use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientType, GemRecipientValidation};
 use crate::address::{checksum_address, validate_address};
 use crate::models::custom_types::GemBigInt;
-use crate::models::transaction::GemTransactionInputType;
 use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentRecipient};
 use crate::services::name::rules::is_name_supported;
 use crate::services::transfer::{GemRecipient, GemTransferData};
+use primitives::TransactionInputType;
 
 pub fn validation(chain: Chain, input: &str, name_record: Option<&NameRecord>) -> GemRecipientValidation {
     let is_valid = is_valid(chain, input, name_record);
@@ -90,7 +90,7 @@ pub fn next_step(recipient_type: GemRecipientType, payment: GemPaymentRecipient)
         GemRecipientType::Asset { .. } => GemRecipientNext::Amount { payment },
         GemRecipientType::Nft { nft_asset } => GemRecipientNext::Confirm {
             transfer: GemTransferData {
-                input_type: GemTransactionInputType::TransferNft {
+                input_type: TransactionInputType::TransferNft {
                     asset: Asset::from_chain(nft_asset.chain),
                     nft_asset,
                 },
@@ -233,7 +233,7 @@ mod tests {
 
     fn transfer_data(transfer: GemPaymentConfirmTransfer) -> GemTransferData {
         GemTransferData {
-            input_type: GemTransactionInputType::Transfer {
+            input_type: TransactionInputType::Transfer {
                 asset: Asset::from_chain(Chain::Ethereum),
             },
             recipient: GemRecipient::address(transfer.address),
@@ -301,7 +301,7 @@ mod tests {
         match next_step(GemRecipientType::Nft { nft_asset: nft_asset.clone() }, payment) {
             GemRecipientNext::Confirm { transfer } => {
                 assert!(
-                    matches!(transfer.input_type, GemTransactionInputType::TransferNft { asset, nft_asset: found } if asset == Asset::from_chain(nft_asset.chain) && found.id == nft_asset.id)
+                    matches!(transfer.input_type, TransactionInputType::TransferNft { asset, nft_asset: found } if asset == Asset::from_chain(nft_asset.chain) && found.id == nft_asset.id)
                 );
                 assert_eq!(transfer.recipient.address, ADDRESS);
                 assert_eq!(transfer.value, GemBigInt::from(0));

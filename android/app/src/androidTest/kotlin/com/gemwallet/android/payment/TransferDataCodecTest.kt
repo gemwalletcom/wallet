@@ -27,7 +27,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
@@ -56,7 +56,7 @@ class TransferDataCodecTest {
         gasLimit: BigInteger? = null,
         approval: ApprovalData? = null,
     ) = GemTransferData(
-        inputType = GemTransactionInputType.Generic(
+        inputType = TransactionInputType.Generic(
             asset = asset.toGem(),
             metadata = metadata.toGem(),
             extra = TransferDataExtra(
@@ -78,7 +78,7 @@ class TransferDataCodecTest {
     fun transferPackRoundTripsThroughCoreCodec() {
         val asset = mockAssetSolanaUSDC()
         val original = GemTransferData(
-            inputType = GemTransactionInputType.transfer(asset),
+            inputType = TransactionInputType.transfer(asset),
             recipient = GemRecipient(address = "recipient", name = "recipient.sol", memo = "payment-memo", references = listOf("reference")),
             value = BigInteger("19000000"),
             useMaxAmount = true,
@@ -86,7 +86,7 @@ class TransferDataCodecTest {
 
         val transfer = roundTrip(original)
 
-        assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
+        assertTrue(transfer.inputType is TransactionInputType.Transfer)
         assertEquals(asset, transfer.inputType.asset)
         assertEquals(BigInteger("19000000"), transfer.value)
         assertEquals("recipient", transfer.recipient.address)
@@ -120,7 +120,7 @@ class TransferDataCodecTest {
 
         val transfer = roundTrip(original)
         val assetId = transfer.inputType.asset.id
-        val generic = transfer.inputType as GemTransactionInputType.Generic
+        val generic = transfer.inputType as TransactionInputType.Generic
         val metadata = generic.metadata.toPrimitives()
 
         assertEquals(asset.id, assetId)
@@ -155,7 +155,7 @@ class TransferDataCodecTest {
             transactionType = TransactionType.SmartContractCall,
         )
 
-        val generic = roundTrip(original).inputType as GemTransactionInputType.Generic
+        val generic = roundTrip(original).inputType as TransactionInputType.Generic
 
         assertArrayEquals(data.toTransactionData(), generic.extra.data)
         assertEquals(TransferDataOutputType.Signature, generic.extra.outputType.toPrimitives())
@@ -167,14 +167,14 @@ class TransferDataCodecTest {
     fun nativeTransferPackRoundTripsThroughCoreCodec() {
         val asset = mockAssetSolana()
         val original = GemTransferData(
-            inputType = GemTransactionInputType.transfer(asset),
+            inputType = TransactionInputType.transfer(asset),
             recipient = GemRecipient("recipient"),
             value = BigInteger.ONE,
         )
 
         val transfer = roundTrip(original)
 
-        assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
+        assertTrue(transfer.inputType is TransactionInputType.Transfer)
         assertEquals(asset, transfer.inputType.asset)
         assertEquals(BigInteger.ONE, transfer.value)
         assertEquals(null, transfer.recipient.memo)

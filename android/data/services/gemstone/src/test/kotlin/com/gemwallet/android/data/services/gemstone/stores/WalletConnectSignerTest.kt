@@ -30,7 +30,7 @@ import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
 import com.gemwallet.android.ext.asset
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
@@ -86,7 +86,7 @@ class WalletConnectSignerTest {
     @Test
     fun `send transaction is marked sendable`() = runTest {
         val transfer = GemTransferData(
-            inputType = GemTransactionInputType.Generic(
+            inputType = TransactionInputType.Generic(
                 asset = Chain.Solana.asset().toGem(),
                 metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toGem(),
                 extra = TransferDataExtra(

@@ -15,55 +15,55 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.swap.SwapData
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 
-val GemTransactionInputType.asset: Asset
+val TransactionInputType.asset: Asset
     get() = when (this) {
-        is GemTransactionInputType.Transfer -> asset
-        is GemTransactionInputType.Deposit -> asset
-        is GemTransactionInputType.Withdrawal -> asset
-        is GemTransactionInputType.Stake -> asset
-        is GemTransactionInputType.TokenApprove -> asset
-        is GemTransactionInputType.Account -> asset
-        is GemTransactionInputType.Perpetual -> asset
-        is GemTransactionInputType.TransferNft -> asset
-        is GemTransactionInputType.Generic -> asset
-        is GemTransactionInputType.Earn -> asset
-        is GemTransactionInputType.Swap -> fromAsset
+        is TransactionInputType.Transfer -> asset
+        is TransactionInputType.Deposit -> asset
+        is TransactionInputType.Withdrawal -> asset
+        is TransactionInputType.Stake -> asset
+        is TransactionInputType.TokenApprove -> asset
+        is TransactionInputType.Account -> asset
+        is TransactionInputType.Perpetual -> asset
+        is TransactionInputType.TransferNft -> asset
+        is TransactionInputType.Generic -> asset
+        is TransactionInputType.Earn -> asset
+        is TransactionInputType.Swap -> fromAsset
     }.toPrimitives()
 
-val GemTransactionInputType.chain: Chain
+val TransactionInputType.chain: Chain
     get() = asset.chain
 
-val GemTransactionInputType.toAsset: Asset?
-    get() = (this as? GemTransactionInputType.Swap)?.toAsset?.toPrimitives()
+val TransactionInputType.toAsset: Asset?
+    get() = (this as? TransactionInputType.Swap)?.toAsset?.toPrimitives()
 
-val GemTransactionInputType.applicationMetadata: ApplicationMetadata?
-    get() = (this as? GemTransactionInputType.Generic)?.metadata?.toPrimitives()
+val TransactionInputType.applicationMetadata: ApplicationMetadata?
+    get() = (this as? TransactionInputType.Generic)?.metadata?.toPrimitives()
 
-val GemTransactionInputType.swapData: SwapData?
-    get() = (this as? GemTransactionInputType.Swap)?.swapData?.decodeJson<SwapData>()
+val TransactionInputType.swapData: SwapData?
+    get() = (this as? TransactionInputType.Swap)?.swapData?.decodeJson<SwapData>()
 
-val GemTransactionInputType.nftAsset: NFTAsset?
-    get() = (this as? GemTransactionInputType.TransferNft)?.nftAsset?.toPrimitives()
+val TransactionInputType.nftAsset: NFTAsset?
+    get() = (this as? TransactionInputType.TransferNft)?.nftAsset?.toPrimitives()
 
-val GemTransactionInputType.stakeType: StakeType?
-    get() = (this as? GemTransactionInputType.Stake)?.stakeType?.decodeJson<StakeType>()
+val TransactionInputType.stakeType: StakeType?
+    get() = (this as? TransactionInputType.Stake)?.stakeType?.decodeJson<StakeType>()
 
-val GemTransactionInputType.perpetualType: PerpetualType?
-    get() = (this as? GemTransactionInputType.Perpetual)?.perpetualType?.decodeJson<PerpetualType>()
+val TransactionInputType.perpetualType: PerpetualType?
+    get() = (this as? TransactionInputType.Perpetual)?.perpetualType?.decodeJson<PerpetualType>()
 
-fun GemTransactionInputType.Companion.transfer(asset: Asset): GemTransactionInputType =
-    GemTransactionInputType.Transfer(asset.toGem())
+fun TransactionInputType.Companion.transfer(asset: Asset): TransactionInputType =
+    TransactionInputType.Transfer(asset.toGem())
 
-fun GemTransactionInputType.Companion.deposit(asset: Asset): GemTransactionInputType =
-    GemTransactionInputType.Deposit(asset.toGem())
+fun TransactionInputType.Companion.deposit(asset: Asset): TransactionInputType =
+    TransactionInputType.Deposit(asset.toGem())
 
-fun GemTransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAsset): GemTransactionInputType =
-    GemTransactionInputType.TransferNft(asset.toGem(), nftAsset.toGem())
+fun TransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAsset): TransactionInputType =
+    TransactionInputType.TransferNft(asset.toGem(), nftAsset.toGem())
 
-fun GemTransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): GemTransactionInputType =
-    GemTransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData.toJson())
+fun TransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): TransactionInputType =
+    TransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData.toJson())
 
-fun GemTransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): GemTransactionInputType =
-    GemTransactionInputType.Account(asset.toGem(), accountType.toGem())
+fun TransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): TransactionInputType =
+    TransactionInputType.Account(asset.toGem(), accountType.toGem())

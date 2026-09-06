@@ -23,7 +23,7 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountStakeType
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +70,7 @@ class AmountStakeProviderTest {
         every { stakeAmountType(any(), any()) } returns GemAmountType.Stake(GemAmountStakeType.Stake)
         every { stakeTransferData(any(), any(), any(), any()) } answers {
             GemTransferData(
-                inputType = GemTransactionInputType.Stake(firstArg(), secondArg()),
+                inputType = TransactionInputType.Stake(firstArg(), secondArg()),
                 recipient = GemRecipient(address = ""),
                 value = thirdArg(),
             )

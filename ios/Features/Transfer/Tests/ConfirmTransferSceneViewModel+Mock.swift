@@ -37,7 +37,7 @@ extension ConfirmTransferSceneViewModel {
                 transactionState: transactionStateService,
             ),
             session: GemConfirmSessionMock(
-                state: .mock(feeAsset: data.inputType.transactionAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
+                state: .mock(feeAsset: data.transactionAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
                 load: load,
             ),
             onComplete: onComplete,

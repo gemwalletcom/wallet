@@ -813,7 +813,7 @@ details `amount` getter, the confirm screen's `when`), disagreeing on approvals 
 amount) and contract calls (amount vs symbol). `GemTransactionHeaderKind { Amount { shows_fiat }
 | Swap | Nft | Symbol | AssetImage }` comes from `GemTransactionDetailsService::header_kind` for
 a stored transaction (falling back to an amount when swap or NFT metadata is missing) and
-`GemTransactionInputType::header_kind` for a confirm input; the apps only build the header the
+`GemTransferData::header_kind` for a confirm input; the apps only build the header the
 kind names. The Android details amount also takes its sign from Core's row value now, as iOS
 always did.
 
@@ -976,7 +976,7 @@ already had instead of an id the view model looked back up, and iOS's `SelectAss
 raw API pass-throughs (`GemAssetsService::{get_asset, get_assets, search, search_assets}`),
 whole services only ever passed as dependencies (`GemPriceService`), pieces of a flow Core
 already composes (`GemConfirmService::{preload, simulation, fee_assets}`,
-`GemTransactionInputType::{fee_asset, asset_ids, recent_activity}`) and preferences only Core
+`GemTransferData::fee_asset` and the `TransferInput` rules `asset_ids` and `recent_activity`) and preferences only Core
 reads. Each moved to a plain `impl`. The iOS `GemConfirmTransferServiceMock` had been the only
 thing keeping the confirm pieces exported — it recomposed Core's flow from them — so it now
 answers from premises and takes the concrete confirm mock. Re-run the sweep after removing a

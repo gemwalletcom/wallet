@@ -8,7 +8,7 @@ import enum Gemstone.GemConfirmPhase
 import struct Gemstone.GemConfirmScreen
 import struct Gemstone.GemFeeAsset
 import struct Gemstone.GemFeeRateRows
-import enum Gemstone.GemTransactionInputType
+import struct Gemstone.GemTransferData
 import Components
 import Foundation
 import Primitives
@@ -27,9 +27,9 @@ struct ConfirmTransferState {
 }
 
 extension ConfirmTransferState {
-    init(inputType: GemTransactionInputType, simulation: ConfirmSimulationState) {
+    init(transfer: GemTransferData, simulation: ConfirmSimulationState) {
         self.init(
-            feeAsset: inputType.feeAsset().map(),
+            feeAsset: transfer.feeAsset().map(),
             load: nil,
             simulation: simulation,
             transaction: .loading,

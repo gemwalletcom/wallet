@@ -13,7 +13,7 @@ public import protocol Gemstone.GemConfirmServiceProtocol
 public import struct Gemstone.GemConfirmSimulation
 public import enum Gemstone.GemExecuteResult
 public import struct Gemstone.GemFeeAsset
-public import enum Gemstone.GemTransactionInputType
+public import enum Gemstone.TransactionInputType
 public import protocol Gemstone.GemTransactionSigner
 public import typealias Gemstone.SimulationResult
 public import typealias Gemstone.Transaction

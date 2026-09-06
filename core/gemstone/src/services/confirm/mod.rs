@@ -20,15 +20,18 @@ pub use transfer::GemConfirmTransferService;
 use crate::gateway::GemGateway;
 use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
-use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadInput};
+use crate::models::transaction::{GemSignedTransaction, GemTransactionLoadInput};
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::sleep;
+use crate::services::confirm::rules::ConfirmInput;
 use crate::services::price::GemPriceService;
 use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
+use crate::services::transfer::rules::TransferInput;
 use crate::signer::GemSignerError;
+use primitives::TransactionInputType;
 use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
 
 #[derive(uniffi::Object)]
@@ -83,7 +86,7 @@ impl GemConfirmService {
 
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
         let transfer = &input.transfer;
-        let asset = transfer.input_type.asset();
+        let asset = transfer.input_type.get_asset();
         let chain = asset.id.chain;
         let symbol = asset.symbol.clone();
         let destination = transfer.recipient.address.clone();
@@ -146,7 +149,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>) -> Result<GemConfirmSimulation, GemConfirmError> {
+    pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>) -> Result<GemConfirmSimulation, GemConfirmError> {
         let has_critical_warning = simulation.as_ref().map(SimulationResult::has_critical_warning).unwrap_or(false);
         let approval = input_type.approval_value();
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
@@ -195,7 +198,7 @@ impl GemConfirmService {
 impl GemConfirmService {
     pub async fn execute(&self, input: SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
         let signer_input = input.signer_input()?;
-        let chain = input.confirm.input.transfer.input_type.asset().chain();
+        let chain = input.confirm.input.transfer.input_type.get_asset().chain();
         let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
@@ -278,8 +281,8 @@ impl GemConfirmService {
         stored
     }
 
-    async fn broadcast(&self, input_type: GemTransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
-        let chain = input_type.asset().id.chain;
+    async fn broadcast(&self, input_type: TransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
+        let chain = input_type.get_asset().id.chain;
         let options = input_type.broadcast_options();
         let delay = rules::broadcast_delay_milliseconds(chain);
         let mut hashes: Vec<String> = Vec::with_capacity(transactions.len());
@@ -324,7 +327,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn input_metadata(&self, wallet_id: WalletId, input_type: &GemTransactionInputType, fee_asset_id: AssetId) -> Result<GemConfirmMetadata, GemConfirmError> {
+    async fn input_metadata(&self, wallet_id: WalletId, input_type: &TransactionInputType, fee_asset_id: AssetId) -> Result<GemConfirmMetadata, GemConfirmError> {
         self.metadata(wallet_id, input_type.transaction_asset().id, fee_asset_id, input_type.asset_ids()).await
     }
 }

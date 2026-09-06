@@ -1,5 +1,6 @@
 use crate::models::custom_types::GemBigInt;
-use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
+use primitives::TransactionInputType;
 use primitives::{AssetId, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -23,7 +24,7 @@ pub struct GemRecipient {
 #[uniffi::export]
 impl GemTransferData {
     pub fn identifier(&self) -> String {
-        [self.input_type.asset().chain().as_ref(), &self.recipient.address, &self.value.to_string()].join("-")
+        [self.input_type.get_asset().chain().as_ref(), &self.recipient.address, &self.value.to_string()].join("-")
     }
 }
 
@@ -54,7 +55,7 @@ impl GemRecipient {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransferData {
-    pub input_type: GemTransactionInputType,
+    pub input_type: TransactionInputType,
     pub recipient: GemRecipient,
     pub value: GemBigInt,
     #[uniffi(default = false)]
@@ -99,7 +100,7 @@ mod tests {
     #[test]
     fn test_transfer_identifier_separates_transfers_by_chain_recipient_and_value() {
         let transfer = |address: &str, value: i32| GemTransferData {
-            input_type: GemTransactionInputType::Transfer {
+            input_type: TransactionInputType::Transfer {
                 asset: primitives::Asset::from_chain(primitives::Chain::Bitcoin),
             },
             recipient: GemRecipient::address(address.to_string()),

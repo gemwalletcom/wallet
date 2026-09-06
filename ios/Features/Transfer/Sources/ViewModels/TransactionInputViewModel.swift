@@ -46,7 +46,7 @@ public struct TransactionInputViewModel: Sendable {
     var asset: Asset {
         switch data.inputType {
         case let .perpetual(_, type): Primitives.PerpetualType(core: type).baseAsset
-        default: data.inputType.asset
+        default: data.asset
         }
     }
 
@@ -66,7 +66,7 @@ public struct TransactionInputViewModel: Sendable {
     private var displayAsset: Asset {
         switch data.inputType {
         case .withdrawal: PerpetualConfig.depositAsset
-        default: data.inputType.asset
+        default: data.asset
         }
     }
 
@@ -85,7 +85,7 @@ public struct TransactionInputViewModel: Sendable {
     var headerType: TransactionHeaderType {
         TransactionHeaderTypeBuilder.build(
             infoModel: infoModel,
-            dataType: data.inputType,
+            transfer: data,
             metadata: metaData,
         )
     }

@@ -13,7 +13,7 @@ public import class Gemstone.GemConfirmSession
 public import protocol Gemstone.GemConfirmTransferServiceProtocol
 public import enum Gemstone.GemExecuteResult
 public import enum Gemstone.GemKeystoreAuthentication
-public import enum Gemstone.GemTransactionInputType
+public import enum Gemstone.TransactionInputType
 public import protocol Gemstone.GemTransactionSigner
 public import protocol Gemstone.GemTransactionStateServiceProtocol
 public import struct Gemstone.GemTransferData

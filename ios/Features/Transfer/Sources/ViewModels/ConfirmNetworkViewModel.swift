@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemTransactionInputType
+import struct Gemstone.GemTransferData
+import enum Gemstone.TransactionInputType
 import Components
 import Localization
 import Primitives
 import PrimitivesComponents
 
 struct ConfirmNetworkViewModel: ItemModelProvidable {
-    private let type: GemTransactionInputType
+    private let transfer: GemTransferData
 
-    init(type: GemTransactionInputType) {
-        self.type = type
+    init(transfer: GemTransferData) {
+        self.transfer = transfer
     }
 }
 
@@ -22,7 +23,7 @@ extension ConfirmNetworkViewModel {
             ListItemModel(
                 title: Localized.Transfer.network,
                 subtitle: networkText,
-                imageStyle: .list(assetImage: AssetIdViewModel(assetId: type.chain.asset.id).networkAssetImage),
+                imageStyle: .list(assetImage: AssetIdViewModel(assetId: transfer.chain.asset.id).networkAssetImage),
             ),
         )
     }
@@ -32,8 +33,8 @@ extension ConfirmNetworkViewModel {
 
 extension ConfirmNetworkViewModel {
     private var networkText: String {
-        let model = AssetViewModel(asset: type.asset)
-        switch type {
+        let model = AssetViewModel(asset: transfer.asset)
+        switch transfer.inputType {
         case .transfer, .deposit, .withdrawal:
             return model.networkFullName
         case .transferNft, .swap, .tokenApprove, .stake, .account, .generic, .perpetual, .earn:

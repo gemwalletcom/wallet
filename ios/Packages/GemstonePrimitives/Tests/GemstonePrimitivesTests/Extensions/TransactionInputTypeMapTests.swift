@@ -6,7 +6,7 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 
-final class GemTransactionInputTypeMapTests {
+final class TransactionInputTypeMapTests {
     @Test
     func swapConstructorPreservesGasLimit() throws {
         let swapData = SwapData.mock(data: SwapQuoteData(
@@ -19,7 +19,7 @@ final class GemTransactionInputTypeMapTests {
             gasLimit: "500000",
         ))
 
-        let mapped = GemTransactionInputType.swap(.mockEthereum(), .mockEthereum(), swapData)
+        let mapped = TransactionInputType.swap(.mockEthereum(), .mockEthereum(), swapData)
 
         guard case let .swap(_, _, mappedSwapData) = mapped else {
             Issue.record("Expected swap input type")

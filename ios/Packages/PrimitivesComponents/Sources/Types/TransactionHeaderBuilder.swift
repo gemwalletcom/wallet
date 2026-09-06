@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemTransactionInputType
+import enum Gemstone.TransactionInputType
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
 import BigInt
@@ -10,19 +11,19 @@ import Primitives
 public enum TransactionHeaderTypeBuilder {
     public static func build(
         infoModel: TransactionInfoViewModel,
-        dataType: GemTransactionInputType,
+        transfer: GemTransferData,
         metadata: GemConfirmMetadata?,
     ) -> TransactionHeaderType {
         let inputType: TransactionHeaderInputType = {
-            switch dataType.headerKind() {
+            switch transfer.headerKind() {
             case let .amount(showsFiat):
                 return .amount(showFiat: showsFiat)
             case .nft:
-                guard case let .transferNft(_, nftAsset) = dataType else { return .amount(showFiat: false) }
+                guard case let .transferNft(_, nftAsset) = transfer.inputType else { return .amount(showFiat: false) }
                 let nft = nftAsset.map()
                 return .nft(name: nft.name, id: nft.id.identifier)
             case .swap:
-                guard case let .swap(fromAsset, toAsset, data) = dataType else { return .amount(showFiat: true) }
+                guard case let .swap(fromAsset, toAsset, data) = transfer.inputType else { return .amount(showFiat: true) }
                 let assetPrices = (metadata?.assetPrices ?? [:]).map { assetId, price in
                     price.mapToAssetPrice(assetId: assetId)
                 }

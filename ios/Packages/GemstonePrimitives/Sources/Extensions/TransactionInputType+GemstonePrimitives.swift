@@ -4,22 +4,7 @@ import Foundation
 import Gemstone
 import Primitives
 
-public extension GemTransactionInputType {
-    var asset: Primitives.Asset {
-        inputAsset().map()
-    }
-
-    var chain: Primitives.Chain {
-        Primitives.Chain(core: chain())
-    }
-
-    var applicationMetadata: Primitives.ApplicationMetadata? {
-        guard case let .generic(_, metadata, _) = self else { return nil }
-        return metadata.map()
-    }
-}
-
-public extension GemTransactionInputType {
+public extension TransactionInputType {
     static func transfer(_ asset: Primitives.Asset) -> Self {
         .transfer(asset: asset.map())
     }

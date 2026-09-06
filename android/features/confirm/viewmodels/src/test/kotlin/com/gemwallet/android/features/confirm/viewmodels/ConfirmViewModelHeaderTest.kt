@@ -37,7 +37,7 @@ import org.junit.Test
 import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import java.math.BigInteger
 
@@ -84,7 +84,7 @@ class ConfirmViewModelHeaderTest {
     }
 
     private fun transfer(value: BigInteger, useMaxAmount: Boolean = false) = GemTransferData(
-        inputType = GemTransactionInputType.Transfer(asset.toGem()),
+        inputType = TransactionInputType.Transfer(asset.toGem()),
         recipient = GemRecipient(address = "bc1qrecipient"),
         value = value,
         useMaxAmount = useMaxAmount,

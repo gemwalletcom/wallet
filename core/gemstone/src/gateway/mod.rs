@@ -22,6 +22,7 @@ use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
+use primitives::TransactionInputType;
 use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
 use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Latency, NodeStatus, Transaction, TransactionUpdate};
 
@@ -179,10 +180,8 @@ impl GemGateway {
         self.with_provider(chain, |provider| async move { provider.transaction_broadcast(data, options).await })
             .await
     }
-    pub async fn get_fee_rates(&self, chain: Chain, input: GemTransactionInputType) -> Result<Vec<GemFeeRate>, GatewayError> {
-        let fees = self
-            .with_provider(chain, |provider| async move { provider.get_transaction_fee_rates(input.into()).await })
-            .await?;
+    pub async fn get_fee_rates(&self, chain: Chain, input: TransactionInputType) -> Result<Vec<GemFeeRate>, GatewayError> {
+        let fees = self.with_provider(chain, |provider| async move { provider.get_transaction_fee_rates(input).await }).await?;
         Ok(fees.into_iter().map(|f| f.into()).collect())
     }
     pub async fn get_transaction_preload(&self, chain: Chain, input: GemTransactionPreloadInput) -> Result<GemTransactionLoadMetadata, GatewayError> {

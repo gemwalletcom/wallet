@@ -11,13 +11,13 @@ use primitives::{
     WalletConnectionState, WalletId, WalletType,
 };
 
-use crate::models::transaction::GemTransactionInputType;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
+use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
 pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
@@ -285,7 +285,7 @@ pub fn transfer_data(
             memo: None,
             references: vec![],
         },
-        input_type: GemTransactionInputType::Generic {
+        input_type: TransactionInputType::Generic {
             asset: Asset::from_chain(chain),
             metadata,
             extra,
@@ -522,7 +522,7 @@ mod tests {
 
         assert_eq!(transfer.value, BigInt::from(16));
         assert_eq!(transfer.recipient.address, "0xto");
-        let GemTransactionInputType::Generic { asset, extra, .. } = transfer.input_type else {
+        let TransactionInputType::Generic { asset, extra, .. } = transfer.input_type else {
             panic!("expected a generic input");
         };
         assert_eq!(asset.id, primitives::AssetId::from_chain(Chain::Ethereum));
@@ -541,7 +541,7 @@ mod tests {
         let transfer = transfer_data(Chain::Solana, metadata, solana, GemWalletConnectTransactionAction::Sign).unwrap();
         assert_eq!(transfer.value, BigInt::from(0));
         assert_eq!(transfer.recipient.address, "");
-        let GemTransactionInputType::Generic { extra, .. } = transfer.input_type else {
+        let TransactionInputType::Generic { extra, .. } = transfer.input_type else {
             panic!("expected a generic input");
         };
         assert_eq!(extra.data, Some(b"AQID".to_vec()));

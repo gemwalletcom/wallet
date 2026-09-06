@@ -51,8 +51,8 @@ struct AmountTransferViewModelTests {
         let send = try await AmountTransferViewModel(asset: .mock(), action: .send(.mock()), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
         let deposit = try await AmountTransferViewModel(asset: .mock(), action: .deposit, service: GemAmountService.mock()).makeTransferData(value: 200, useMaxAmount: true)
 
-        #expect(send.inputType.transactionType().map() == .transfer)
-        #expect(deposit.inputType.transactionType().map() == .transfer)
+        #expect(send.transactionType().map() == .transfer)
+        #expect(deposit.transactionType().map() == .transfer)
         #expect(send.value == "100")
         #expect(deposit.value == "200")
         #expect(deposit.useMaxAmount)

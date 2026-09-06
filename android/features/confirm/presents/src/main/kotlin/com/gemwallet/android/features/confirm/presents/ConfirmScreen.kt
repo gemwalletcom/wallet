@@ -55,7 +55,7 @@ import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemTransactionHeaderKind
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
@@ -212,7 +212,7 @@ fun ConfirmScreen(
                     else -> AmountListHead(
                         amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
-                        icon = if (input?.inputType is GemTransactionInputType.Withdrawal) {
+                        icon = if (input?.inputType is TransactionInputType.Withdrawal) {
                             PerpetualConfig.depositAsset
                         } else {
                             amountModel?.asset

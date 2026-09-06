@@ -400,7 +400,7 @@ pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) ->
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::transaction::GemTransactionInputType;
+    use primitives::TransactionInputType;
     use chrono::DateTime;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
@@ -573,7 +573,7 @@ mod tests {
         )
         .unwrap();
         let transfer = order_transfer(open, BigInt::from(50_000_000), false, 8, Some(120.5), None);
-        let GemTransactionInputType::Perpetual {
+        let TransactionInputType::Perpetual {
             perpetual_type: PerpetualType::Open(data),
             ..
         } = &transfer.input_type
@@ -592,7 +592,7 @@ mod tests {
         let close = close_transfer(&market, &asset, Some(position("p"))).unwrap();
         assert!(matches!(
             close.input_type,
-            GemTransactionInputType::Perpetual {
+            TransactionInputType::Perpetual {
                 perpetual_type: PerpetualType::Close(_),
                 ..
             }

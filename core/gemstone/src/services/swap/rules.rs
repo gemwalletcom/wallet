@@ -393,7 +393,7 @@ mod tests {
         assert_eq!(transfer_data.value, num_bigint::BigInt::from(100u64));
         assert_eq!(transfer_data.minimum_value, Some(num_bigint::BigInt::from(90u64)));
         assert!(transfer_data.use_max_amount);
-        assert!(matches!(&transfer_data.input_type, crate::models::transaction::GemTransactionInputType::Swap { swap_data, .. } if swap_data.data == data));
+        assert!(matches!(&transfer_data.input_type, primitives::TransactionInputType::Swap { swap_data, .. } if swap_data.data == data));
 
         assert_eq!(transfer.recipient, "solana-address");
         assert_eq!(transfer.value, BigUint::from(100u64));

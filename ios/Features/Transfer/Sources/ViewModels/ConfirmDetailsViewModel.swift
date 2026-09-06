@@ -3,7 +3,7 @@
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
 import protocol Gemstone.GemConfirmTransferServiceProtocol
-import enum Gemstone.GemTransactionInputType
+import enum Gemstone.TransactionInputType
 import class Gemstone.GemSwapQuoteSummary
 import BigInt
 import Components
@@ -12,13 +12,13 @@ import PrimitivesComponents
 import Swap
 
 public struct ConfirmDetailsViewModel {
-    private let type: GemTransactionInputType
+    private let type: TransactionInputType
     private let metadata: GemConfirmMetadata?
     private let currency: String
     private let service: any GemConfirmTransferServiceProtocol
 
     init(
-        type: GemTransactionInputType,
+        type: TransactionInputType,
         metadata: GemConfirmMetadata?,
         currency: String,
         service: any GemConfirmTransferServiceProtocol,

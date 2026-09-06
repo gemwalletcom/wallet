@@ -5,7 +5,7 @@ import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import com.gemwallet.android.serializer.toJson
@@ -77,7 +77,7 @@ class PaymentNavigationTest {
         val transfer = requireNotNull(unpackTransferData(route.params))
         val assetId = transfer.inputType.asset.id
         val metadataSource = transfer.inputType.applicationMetadata?.source
-        val generic = transfer.inputType as GemTransactionInputType.Generic
+        val generic = transfer.inputType as TransactionInputType.Generic
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
         assertEquals("payment-memo", transfer.recipient.memo)
         assertEquals(assetInfo.asset.id, assetId)
@@ -117,7 +117,7 @@ class PaymentNavigationTest {
         val route = routes.single() as ConfirmRoute
         val transfer = requireNotNull(unpackTransferData(route.params))
         val assetId = transfer.inputType.asset.id
-        val generic = transfer.inputType as GemTransactionInputType.Generic
+        val generic = transfer.inputType as TransactionInputType.Generic
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
         assertEquals(null, transfer.recipient.memo)
         assertEquals(assetInfo.asset.id, assetId)

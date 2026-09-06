@@ -7,7 +7,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -44,7 +44,7 @@ class AmountTransferProviderTest {
     private val transfers = mutableListOf<GemAmountTransfer>()
     private val service = mockk<GemAmountServiceInterface> {
         coEvery { transferData(any(), capture(transfers), any(), any()) } answers {
-            GemTransferData(inputType = GemTransactionInputType.Transfer(firstArg()), recipient = GemRecipient(address = "core"), value = thirdArg(), useMaxAmount = arg(3))
+            GemTransferData(inputType = TransactionInputType.Transfer(firstArg()), recipient = GemRecipient(address = "core"), value = thirdArg(), useMaxAmount = arg(3))
         }
     }
 

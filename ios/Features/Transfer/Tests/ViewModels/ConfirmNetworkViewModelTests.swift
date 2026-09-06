@@ -11,7 +11,7 @@ struct ConfirmNetworkViewModelTests {
     @Test
     func transfer() {
         let asset = Asset.mock()
-        let model = ConfirmNetworkViewModel(type: .transfer(asset))
+        let model = ConfirmNetworkViewModel(transfer: .mock(type: .transfer(asset)))
 
         guard case let .network(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.network)

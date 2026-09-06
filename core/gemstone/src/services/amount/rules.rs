@@ -6,7 +6,6 @@ use primitives::{Asset, AutocloseEstimator, Chain, Delegation, EarnType, Perpetu
 use super::model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
-use crate::models::GemTransactionInputType;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
@@ -16,6 +15,7 @@ use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
 use primitives::PerpetualProvider;
+use primitives::TransactionInputType;
 
 const USDC_SYMBOL: &str = "USDC";
 
@@ -88,16 +88,13 @@ pub fn earn_amount_type(earn_type: EarnType) -> GemAmountType {
 
 pub fn transfer_data(asset: Asset, transfer: GemAmountTransfer, owner: Option<GemRecipient>, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
     let (input_type, recipient) = match transfer {
-        GemAmountTransfer::Send { recipient } => (GemTransactionInputType::Transfer { asset }, recipient),
-        GemAmountTransfer::Deposit => (
-            GemTransactionInputType::Deposit { asset },
-            GemPerpetual::new(PerpetualProvider::Hypercore).deposit_recipient(),
-        ),
+        GemAmountTransfer::Send { recipient } => (TransactionInputType::Transfer { asset }, recipient),
+        GemAmountTransfer::Deposit => (TransactionInputType::Deposit { asset }, GemPerpetual::new(PerpetualProvider::Hypercore).deposit_recipient()),
         GemAmountTransfer::Withdraw => {
             let owner = owner.ok_or_else(|| GemServiceError::NotFound {
                 msg: format!("no {} account to withdraw to", asset.chain()),
             })?;
-            (GemTransactionInputType::Withdrawal { asset }, owner)
+            (TransactionInputType::Withdrawal { asset }, owner)
         }
     };
     Ok(GemTransferData {
@@ -614,16 +611,16 @@ mod tests {
         let owner = GemRecipient::named("owner".into(), "wallet".into());
 
         let send = transfer_data(usdc(), GemAmountTransfer::Send { recipient: recipient.clone() }, None, GemBigInt::from(1), false).unwrap();
-        assert!(matches!(send.input_type, GemTransactionInputType::Transfer { .. }));
+        assert!(matches!(send.input_type, TransactionInputType::Transfer { .. }));
         assert_eq!(send.recipient, recipient);
 
         let deposit = transfer_data(usdc(), GemAmountTransfer::Deposit, None, GemBigInt::from(2), true).unwrap();
-        assert!(matches!(deposit.input_type, GemTransactionInputType::Deposit { .. }));
+        assert!(matches!(deposit.input_type, TransactionInputType::Deposit { .. }));
         assert_eq!(deposit.recipient.address, HYPERLIQUID_DEPOSIT_ADDRESS);
         assert!(deposit.use_max_amount);
 
         let withdraw = transfer_data(usdc(), GemAmountTransfer::Withdraw, Some(owner.clone()), GemBigInt::from(3), false).unwrap();
-        assert!(matches!(withdraw.input_type, GemTransactionInputType::Withdrawal { .. }));
+        assert!(matches!(withdraw.input_type, TransactionInputType::Withdrawal { .. }));
         assert_eq!(withdraw.recipient, owner);
 
         assert!(transfer_data(usdc(), GemAmountTransfer::Withdraw, None, GemBigInt::from(3), false).is_err());

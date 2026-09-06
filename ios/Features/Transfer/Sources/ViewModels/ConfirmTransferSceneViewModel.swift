@@ -84,9 +84,9 @@ public final class ConfirmTransferSceneViewModel {
         self.session = session
         self.onComplete = onComplete
 
-        let feeSelection = GemConfirmFeeSelection.priority(priority: request.data.inputType.defaultFeePriority())
+        let feeSelection = GemConfirmFeeSelection.priority(priority: request.data.defaultFeePriority())
         let state = ConfirmTransferState(
-            inputType: request.data.inputType,
+            transfer: request.data,
             simulation: ConfirmSimulationState(result: request.simulation, chain: request.data.chain),
         )
         let screen = state.screen
@@ -131,7 +131,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var isHeaderVisible: Bool {
-        guard request.data.inputType.applicationMetadata?.source == .payment else {
+        guard request.data.applicationMetadata?.source == .payment else {
             return true
         }
         return state.transaction.value != nil
@@ -208,11 +208,11 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case .app:
-            ConfirmAppViewModel(type: request.data.inputType, shortName: request.data.inputType.applicationShortName())
+            ConfirmAppViewModel(transfer: request.data)
         case .sender:
             ConfirmSenderViewModel(wallet: wallet)
         case .network:
-            ConfirmNetworkViewModel(type: request.data.inputType)
+            ConfirmNetworkViewModel(transfer: request.data)
         case .recipient:
             ConfirmRecipientViewModel(
                 destination: request.data.destination(),
@@ -222,7 +222,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
             )
         case .memo:
-            ConfirmMemoViewModel(type: request.data.inputType, recipient: request.data.recipient)
+            ConfirmMemoViewModel(transfer: request.data)
         case .details:
             detailsViewModel
         case .payload:

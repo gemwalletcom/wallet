@@ -15,7 +15,7 @@ struct ConfirmAppViewModelTests {
             name: "PancakeSwap - Trade",
             url: "https://pancakeswap.finance/swap",
         )
-        let model = ConfirmAppViewModel(type: .generic(asset: .mock(), metadata: metadata, extra: .mock()), shortName: "PancakeSwap")
+        let model = ConfirmAppViewModel(transfer: .mock(type: .generic(asset: .mock(), metadata: metadata, extra: .mock())))
 
         guard case let .app(item) = model.itemModel else { return }
         #expect(item.title == Localized.WalletConnect.app)

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemTransactionInputType
+import enum Gemstone.TransactionInputType
 import Foundation
 import Localization
 import GemstonePrimitives
@@ -12,7 +12,7 @@ import struct Gemstone.GemTransferData
 struct TransferDataViewModel {
     let data: GemTransferData
 
-    var type: GemTransactionInputType {
+    var type: TransactionInputType {
         data.inputType
     }
 
@@ -21,7 +21,7 @@ struct TransferDataViewModel {
     }
 
     var asset: Asset {
-        data.inputType.asset
+        data.asset
     }
 
     var memo: String? {

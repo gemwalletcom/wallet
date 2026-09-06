@@ -1,18 +1,14 @@
 use crate::address::checksum_address;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::*;
-use primitives::ApplicationMetadata;
 use primitives::contract_call_data::ContractCallData;
-use primitives::nft::NFTAsset;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
-    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualType, SignerInput, StakeType, TransactionFee, TransactionInputType,
-    TransactionLoadInput, TransactionLoadMetadata, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData,
+    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData,
 };
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use swap::{GemApprovalData, GemSwapData};
 
 pub type GemFeeOption = FeeOption;
 pub type GemTransferDataOutputType = TransferDataOutputType;
@@ -45,105 +41,9 @@ pub type GemEarnType = EarnType;
 
 pub type GemPerpetualType = PerpetualType;
 
-#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Enum)]
-#[allow(clippy::large_enum_variant)]
-pub enum GemTransactionInputType {
-    Transfer {
-        asset: GemAsset,
-    },
-    Deposit {
-        asset: GemAsset,
-    },
-    Swap {
-        from_asset: GemAsset,
-        to_asset: GemAsset,
-        swap_data: GemSwapData,
-    },
-    Stake {
-        asset: GemAsset,
-        stake_type: StakeType,
-    },
-    TokenApprove {
-        asset: GemAsset,
-        approval_data: GemApprovalData,
-    },
-    Generic {
-        asset: GemAsset,
-        metadata: ApplicationMetadata,
-        extra: TransferDataExtra,
-    },
-    TransferNft {
-        asset: GemAsset,
-        nft_asset: NFTAsset,
-    },
-    Account {
-        asset: GemAsset,
-        account_type: GemAccountDataType,
-    },
-    Perpetual {
-        asset: GemAsset,
-        perpetual_type: GemPerpetualType,
-    },
-    Earn {
-        asset: GemAsset,
-        earn_type: GemEarnType,
-        data: GemContractCallData,
-    },
-    // Gemstone-only: primitives has no withdrawal variant, so it routes to sign_withdrawal but lowers to Transfer.
-    Withdrawal {
-        asset: GemAsset,
-    },
-}
-
-impl GemTransactionInputType {
-    pub fn asset(&self) -> &GemAsset {
-        match self {
-            Self::Transfer { asset }
-            | Self::Deposit { asset }
-            | Self::Stake { asset, .. }
-            | Self::TokenApprove { asset, .. }
-            | Self::Generic { asset, .. }
-            | Self::TransferNft { asset, .. }
-            | Self::Account { asset, .. }
-            | Self::Perpetual { asset, .. }
-            | Self::Earn { asset, .. }
-            | Self::Withdrawal { asset } => asset,
-            Self::Swap { from_asset, .. } => from_asset,
-        }
-    }
-
-    pub fn swap_data(&self) -> Result<&GemSwapData, String> {
-        match self {
-            Self::Swap { swap_data, .. } => Ok(swap_data),
-            _ => Err("Expected Swap".to_string()),
-        }
-    }
-
-    pub fn earn_data(&self) -> Result<&GemContractCallData, String> {
-        match self {
-            Self::Earn { data, .. } => Ok(data),
-            _ => Err("Expected Earn".to_string()),
-        }
-    }
-
-    pub fn stake_type(&self) -> Result<&StakeType, String> {
-        match self {
-            Self::Stake { stake_type, .. } => Ok(stake_type),
-            _ => Err("Expected Stake".to_string()),
-        }
-    }
-
-    pub fn perpetual_type(&self) -> Result<&GemPerpetualType, String> {
-        match self {
-            Self::Perpetual { perpetual_type, .. } => Ok(perpetual_type),
-            _ => Err("Expected Perpetual".to_string()),
-        }
-    }
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransactionLoadInput {
-    pub input_type: GemTransactionInputType,
+    pub input_type: TransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
     pub value: GemBigUint,
@@ -273,7 +173,7 @@ pub enum GemTransactionLoadMetadata {
 
 impl From<GemTransactionLoadInput> for TransactionLoadInput {
     fn from(value: GemTransactionLoadInput) -> Self {
-        let input_type: TransactionInputType = value.input_type.into();
+        let input_type: TransactionInputType = value.input_type;
         let destination_address = checksum_address(&value.destination_address, input_type.get_asset().chain());
         TransactionLoadInput {
             input_type,
@@ -297,7 +197,7 @@ impl From<GemSignerInput> for SignerInput {
 impl From<TransactionLoadInput> for GemTransactionLoadInput {
     fn from(value: TransactionLoadInput) -> Self {
         GemTransactionLoadInput {
-            input_type: value.input_type.into(),
+            input_type: value.input_type,
             sender_address: value.sender_address,
             destination_address: value.destination_address,
             value: value.value,
@@ -314,24 +214,6 @@ impl From<SignerInput> for GemSignerInput {
         GemSignerInput {
             input: value.input.into(),
             fee: value.fee.into(),
-        }
-    }
-}
-
-impl From<TransactionInputType> for GemTransactionInputType {
-    fn from(value: TransactionInputType) -> Self {
-        match value {
-            TransactionInputType::Transfer { asset } => GemTransactionInputType::Transfer { asset },
-            TransactionInputType::Deposit { asset } => GemTransactionInputType::Deposit { asset },
-            TransactionInputType::Withdrawal { asset } => GemTransactionInputType::Withdrawal { asset },
-            TransactionInputType::Swap { from_asset, to_asset, swap_data } => GemTransactionInputType::Swap { from_asset, to_asset, swap_data },
-            TransactionInputType::Stake { asset, stake_type } => GemTransactionInputType::Stake { asset, stake_type },
-            TransactionInputType::TokenApprove { asset, approval_data } => GemTransactionInputType::TokenApprove { asset, approval_data },
-            TransactionInputType::Generic { asset, metadata, extra } => GemTransactionInputType::Generic { asset, metadata, extra },
-            TransactionInputType::TransferNft { asset, nft_asset } => GemTransactionInputType::TransferNft { asset, nft_asset },
-            TransactionInputType::Account { asset, account_type } => GemTransactionInputType::Account { asset, account_type },
-            TransactionInputType::Perpetual { asset, perpetual_type } => GemTransactionInputType::Perpetual { asset, perpetual_type },
-            TransactionInputType::Earn { asset, earn_type, data } => GemTransactionInputType::Earn { asset, earn_type, data },
         }
     }
 }
@@ -391,24 +273,6 @@ impl From<TransactionFee> for GemTransactionLoadFee {
             gas_limit: value.gas_limit,
             options: GemFeeOptions { options: value.options },
             fee_asset: value.fee_asset,
-        }
-    }
-}
-
-impl From<GemTransactionInputType> for TransactionInputType {
-    fn from(value: GemTransactionInputType) -> Self {
-        match value {
-            GemTransactionInputType::Transfer { asset } => TransactionInputType::Transfer { asset },
-            GemTransactionInputType::Deposit { asset } => TransactionInputType::Deposit { asset },
-            GemTransactionInputType::Swap { from_asset, to_asset, swap_data } => TransactionInputType::Swap { from_asset, to_asset, swap_data },
-            GemTransactionInputType::Stake { asset, stake_type } => TransactionInputType::Stake { asset, stake_type },
-            GemTransactionInputType::TokenApprove { asset, approval_data } => TransactionInputType::TokenApprove { asset, approval_data },
-            GemTransactionInputType::Generic { asset, metadata, extra } => TransactionInputType::Generic { asset, metadata, extra },
-            GemTransactionInputType::TransferNft { asset, nft_asset } => TransactionInputType::TransferNft { asset, nft_asset },
-            GemTransactionInputType::Account { asset, account_type } => TransactionInputType::Account { asset, account_type },
-            GemTransactionInputType::Perpetual { asset, perpetual_type } => TransactionInputType::Perpetual { asset, perpetual_type },
-            GemTransactionInputType::Earn { asset, earn_type, data } => TransactionInputType::Earn { asset, earn_type, data },
-            GemTransactionInputType::Withdrawal { asset } => TransactionInputType::Withdrawal { asset },
         }
     }
 }

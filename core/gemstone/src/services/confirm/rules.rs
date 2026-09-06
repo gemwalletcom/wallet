@@ -12,18 +12,20 @@ use super::model::{
 use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
-use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
+use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::transfer::GemPendingTransactionInput;
+use crate::services::transfer::rules::TransferInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
 use num_bigint::BigInt;
 use primitives::AssetPrice;
+use primitives::TransactionInputType;
 
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
         let GemConfirmInput { from, transfer } = &self.confirm.input;
-        let chain = transfer.input_type.asset().chain();
+        let chain = transfer.input_type.get_asset().chain();
         let sender_address = signing_address(&self.wallet, chain, &from.address)?;
         Ok(GemSignerInput {
             input: GemTransactionLoadInput {
@@ -67,8 +69,15 @@ pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asse
     asset_ids
 }
 
-impl GemTransactionInputType {
-    pub(super) fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)> {
+pub(super) trait ConfirmInput {
+    fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)>;
+    fn validate_approvals(&self, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError>;
+    fn simulation_payload(&self) -> Option<String>;
+    fn broadcast_options(&self) -> GemBroadcastOptions;
+}
+
+impl ConfirmInput for TransactionInputType {
+    fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)> {
         match self {
             Self::TokenApprove { asset, approval_data } => Some((asset.id.clone(), gem_approval_value(&approval_data.value, approval_data.is_unlimited))),
             Self::Transfer { .. }
@@ -81,6 +90,31 @@ impl GemTransactionInputType {
             | Self::Perpetual { .. }
             | Self::Earn { .. }
             | Self::Withdrawal { .. } => None,
+        }
+    }
+
+    fn validate_approvals(&self, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError> {
+        for transaction in transactions {
+            self.approval(transaction.transaction_type.clone())
+                .map_err(|msg| GemConfirmError::ApprovalInvalid { msg })?;
+        }
+        Ok(())
+    }
+
+    fn simulation_payload(&self) -> Option<String> {
+        let Self::Generic { metadata, extra, .. } = self else {
+            return None;
+        };
+        match metadata.source {
+            ApplicationMetadataSource::Payment => extra.data.as_ref().and_then(|data| String::from_utf8(data.clone()).ok()),
+            ApplicationMetadataSource::WalletConnect => None,
+        }
+    }
+
+    fn broadcast_options(&self) -> GemBroadcastOptions {
+        match (self.get_asset().chain(), self) {
+            (Chain::Solana, Self::Swap { .. } | Self::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
+            _ => GemBroadcastOptions { skip_preflight: false },
         }
     }
 }
@@ -103,7 +137,7 @@ fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValu
 #[uniffi::export]
 impl GemConfirmData {
     pub fn fee_rate_rows(&self, selection: GemConfirmFeeSelection, fee_asset: Asset) -> GemFeeRateRows {
-        fee_rate_rows(self.input.transfer.input_type.asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee.fee)
+        fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee.fee)
     }
 }
 
@@ -126,7 +160,7 @@ impl GemConfirmData {
         Ok(match input.calculate() {
             Ok(amount) => GemTransferAmountResult::Amount { amount },
             Err(error) => GemTransferAmountResult::Error {
-                error: amount_error(error, transfer.input_type.asset(), fee_asset),
+                error: amount_error(error, transfer.input_type.get_asset(), fee_asset),
             },
         })
     }
@@ -216,16 +250,6 @@ fn asset_balance(balances: &[GemAssetBalance], asset_id: &AssetId) -> Result<Gem
         .ok_or_else(|| GemConfirmError::BalanceMissing { asset_id: asset_id.clone() })
 }
 
-impl GemTransactionInputType {
-    pub(super) fn validate_approvals(&self, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError> {
-        for transaction in transactions {
-            self.approval(transaction.transaction_type.clone())
-                .map_err(|msg| GemConfirmError::ApprovalInvalid { msg })?;
-        }
-        Ok(())
-    }
-}
-
 pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
     match chain {
         Chain::Tron => GemAcquireAssetFlow::Options,
@@ -242,7 +266,7 @@ pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -
 
 impl SendInput {
     pub(super) fn pending_transactions(&self, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
-        let chain = self.confirm.input.transfer.input_type.asset().chain();
+        let chain = self.confirm.input.transfer.input_type.get_asset().chain();
         let sender = self.wallet.account(chain).map(|account| account.address.clone()).ok_or_else(|| GemConfirmError::Record {
             msg: format!("wallet has no {chain} account"),
         })?;
@@ -272,25 +296,6 @@ impl SendInput {
             .map(|result| result.map(|transaction| transaction.into_iter()))
             .collect::<Result<Vec<_>, _>>()
             .map(|transactions| transactions.into_iter().flatten().collect())
-    }
-}
-
-impl GemTransactionInputType {
-    pub(super) fn simulation_payload(&self) -> Option<String> {
-        let Self::Generic { metadata, extra, .. } = self else {
-            return None;
-        };
-        match metadata.source {
-            ApplicationMetadataSource::Payment => extra.data.as_ref().and_then(|data| String::from_utf8(data.clone()).ok()),
-            ApplicationMetadataSource::WalletConnect => None,
-        }
-    }
-
-    pub(super) fn broadcast_options(&self) -> GemBroadcastOptions {
-        match (self.asset().chain(), self) {
-            (Chain::Solana, Self::Swap { .. } | Self::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
-            _ => GemBroadcastOptions { skip_preflight: false },
-        }
     }
 }
 
@@ -433,11 +438,11 @@ mod tests {
         }
     }
 
-    fn send_input(chain: Chain, input_type: GemTransactionInputType) -> SendInput {
+    fn send_input(chain: Chain, input_type: TransactionInputType) -> SendInput {
         send_input_from(chain, input_type, "sender")
     }
 
-    fn send_input_from(chain: Chain, input_type: GemTransactionInputType, from: &str) -> SendInput {
+    fn send_input_from(chain: Chain, input_type: TransactionInputType, from: &str) -> SendInput {
         SendInput {
             wallet: wallet(chain),
             confirm: GemConfirmData {
@@ -476,7 +481,7 @@ mod tests {
 
     #[test]
     fn test_signer_input_uses_wallet_account_and_network_fee() {
-        let input = send_input(Chain::Solana, GemTransactionInputType::Transfer { asset: Asset::mock_sol() });
+        let input = send_input(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
 
         let signer_input = input.signer_input().unwrap();
 
@@ -491,10 +496,10 @@ mod tests {
 
     #[test]
     fn test_signer_input_refuses_to_sign_for_an_address_the_transaction_was_not_priced_for() {
-        let matching = send_input_from(Chain::Solana, GemTransactionInputType::Transfer { asset: Asset::mock_sol() }, "sender");
+        let matching = send_input_from(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() }, "sender");
         assert!(matching.signer_input().is_ok());
 
-        let switched = send_input_from(Chain::Solana, GemTransactionInputType::Transfer { asset: Asset::mock_sol() }, "other");
+        let switched = send_input_from(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() }, "other");
 
         assert!(matches!(
             switched.signer_input().unwrap_err(),
@@ -504,7 +509,7 @@ mod tests {
 
     #[test]
     fn test_signer_input_requires_account_for_chain() {
-        let input = send_input(Chain::Ethereum, GemTransactionInputType::Transfer { asset: Asset::mock_sol() });
+        let input = send_input(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_sol() });
 
         match input.signer_input() {
             Err(GemConfirmError::AccountMissing { chain: Chain::Solana }) => {}
@@ -514,7 +519,7 @@ mod tests {
 
     #[test]
     fn test_only_a_token_approve_input_can_sign_a_token_approval() {
-        let approval = GemTransactionInputType::TokenApprove {
+        let approval = TransactionInputType::TokenApprove {
             asset: Asset::mock_sol(),
             approval_data: ApprovalData::mock(),
         };
@@ -527,7 +532,7 @@ mod tests {
 
         assert!(approval.validate_approvals(&signed(TransactionType::TokenApproval)).is_ok());
 
-        let transfer = GemTransactionInputType::Transfer { asset: Asset::mock_sol() };
+        let transfer = TransactionInputType::Transfer { asset: Asset::mock_sol() };
         assert!(transfer.validate_approvals(&signed(TransactionType::Transfer)).is_ok());
         match transfer.validate_approvals(&signed(TransactionType::TokenApproval)) {
             Err(GemConfirmError::ApprovalInvalid { .. }) => {}
@@ -537,7 +542,7 @@ mod tests {
 
     #[test]
     fn test_output_action_only_generic_transfers_can_sign() {
-        let generic = GemTransactionInputType::Generic {
+        let generic = TransactionInputType::Generic {
             asset: Asset::mock_sol(),
             metadata: ApplicationMetadata::mock(),
             extra: TransferDataExtra {
@@ -549,7 +554,7 @@ mod tests {
 
         assert_eq!(generic.output().output_action, TransferDataOutputAction::Sign);
         assert_eq!(
-            (GemTransactionInputType::Transfer { asset: Asset::mock_sol() }).output().output_action,
+            (TransactionInputType::Transfer { asset: Asset::mock_sol() }).output().output_action,
             TransferDataOutputAction::Send
         );
     }
@@ -689,36 +694,36 @@ mod tests {
 
     #[test]
     fn test_broadcast_policy() {
-        let transfer = GemTransactionInputType::Transfer { asset: Asset::mock_sol() };
-        let swap = GemTransactionInputType::Swap {
+        let transfer = TransactionInputType::Transfer { asset: Asset::mock_sol() };
+        let swap = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
             to_asset: Asset::mock_spl_token(),
             swap_data: SwapData::mock(),
         };
-        let payment = GemTransactionInputType::Generic {
+        let payment = TransactionInputType::Generic {
             asset: Asset::mock_sol(),
             metadata: ApplicationMetadata::mock(),
             extra: TransferDataExtra::mock().into(),
         };
-        let ethereum_payment = GemTransactionInputType::Generic {
+        let ethereum_payment = TransactionInputType::Generic {
             asset: Asset::mock(),
             metadata: ApplicationMetadata::mock(),
             extra: TransferDataExtra::mock().into(),
         };
 
-        let approve = GemTransactionInputType::TokenApprove {
+        let approve = TransactionInputType::TokenApprove {
             asset: Asset::mock_sol(),
             approval_data: ApprovalData::mock(),
         };
-        let stake = GemTransactionInputType::Stake {
+        let stake = TransactionInputType::Stake {
             asset: Asset::mock_sol(),
             stake_type: StakeType::Rewards(vec![]),
         };
-        let perpetual = GemTransactionInputType::Perpetual {
+        let perpetual = TransactionInputType::Perpetual {
             asset: Asset::mock_sol(),
             perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
         };
-        let ethereum_swap = GemTransactionInputType::Swap {
+        let ethereum_swap = TransactionInputType::Swap {
             from_asset: Asset::mock(),
             to_asset: Asset::mock_erc20(),
             swap_data: SwapData::mock(),
@@ -743,7 +748,7 @@ mod tests {
     #[test]
     fn test_scan_payload_covers_every_input_type() {
         let swap = GemTransactionPreloadInput {
-            input_type: GemTransactionInputType::Swap {
+            input_type: TransactionInputType::Swap {
                 from_asset: Asset::mock_sol(),
                 to_asset: Asset::mock_spl_token(),
                 swap_data: SwapData::mock(),
@@ -760,7 +765,7 @@ mod tests {
         assert_eq!(payload.website, None);
 
         let generic = GemTransactionPreloadInput {
-            input_type: GemTransactionInputType::Generic {
+            input_type: TransactionInputType::Generic {
                 asset: Asset::mock_sol(),
                 metadata: ApplicationMetadata::mock(),
                 extra: TransferDataExtra::mock().into(),
@@ -780,7 +785,7 @@ mod tests {
         extra.data = Some(b"0xdeadbeef".to_vec());
         let mut metadata = ApplicationMetadata::mock();
         metadata.source = ApplicationMetadataSource::Payment;
-        let generic = |metadata: ApplicationMetadata, extra: TransferDataExtra| GemTransactionInputType::Generic {
+        let generic = |metadata: ApplicationMetadata, extra: TransferDataExtra| TransactionInputType::Generic {
             asset: Asset::mock_sol(),
             metadata,
             extra: extra.into(),
@@ -800,7 +805,7 @@ mod tests {
         empty.data = None;
         assert_eq!(generic(metadata, empty).simulation_payload(), None);
 
-        let swap = GemTransactionInputType::Swap {
+        let swap = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
             to_asset: Asset::mock_spl_token(),
             swap_data: SwapData::mock(),
@@ -832,7 +837,7 @@ mod tests {
                 input: GemConfirmInput {
                     from: Account::mock(Chain::Solana, "sender"),
                     transfer: GemTransferData {
-                        input_type: GemTransactionInputType::Transfer { asset: Asset::mock_sol() },
+                        input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
                         recipient: crate::services::transfer::GemRecipient {
                             address: "recipient".to_string(),
                             name: None,
@@ -879,20 +884,20 @@ mod tests {
 
     #[test]
     fn test_default_fee_priority_is_fast_only_for_bitcoin_swaps() {
-        let bitcoin_swap = GemTransactionInputType::Swap {
+        let bitcoin_swap = TransactionInputType::Swap {
             from_asset: Asset::from_chain(Chain::Bitcoin),
             to_asset: Asset::mock_sol(),
             swap_data: SwapData::mock(),
         };
         assert_eq!(bitcoin_swap.default_fee_priority(), FeePriority::Fast);
-        let solana_swap = GemTransactionInputType::Swap {
+        let solana_swap = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
             to_asset: Asset::mock_spl_token(),
             swap_data: SwapData::mock(),
         };
         assert_eq!(solana_swap.default_fee_priority(), FeePriority::Normal);
         assert_eq!(
-            (GemTransactionInputType::Transfer {
+            (TransactionInputType::Transfer {
                 asset: Asset::from_chain(Chain::Bitcoin)
             })
             .default_fee_priority(),
@@ -970,7 +975,7 @@ mod tests {
     fn test_preload_reports_the_amount_error_instead_of_failing_the_whole_preload() {
         let chain = Chain::Solana;
         let asset = Asset::from_chain(chain);
-        let mut data = send_input_from(chain, GemTransactionInputType::Transfer { asset: asset.clone() }, "sender").confirm;
+        let mut data = send_input_from(chain, TransactionInputType::Transfer { asset: asset.clone() }, "sender").confirm;
         data.input.transfer.use_max_amount = false;
         data.input.transfer.value = BigInt::from(1_000);
         data.fee.fee = BigInt::from(1);
@@ -1003,7 +1008,7 @@ mod tests {
     #[test]
     fn test_only_a_token_approval_carries_an_approval_header_value() {
         let asset = Asset::from_chain(Chain::Ethereum);
-        let approval = GemTransactionInputType::TokenApprove {
+        let approval = TransactionInputType::TokenApprove {
             asset: asset.clone(),
             approval_data: primitives::swap::ApprovalData {
                 token: String::new(),
@@ -1014,7 +1019,7 @@ mod tests {
         };
 
         assert!(matches!(approval.approval_value(), Some((id, GemApprovalValue::Unlimited)) if id == asset.id));
-        assert!((GemTransactionInputType::Transfer { asset }).approval_value().is_none());
+        assert!((TransactionInputType::Transfer { asset }).approval_value().is_none());
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), true), GemApprovalValue::Unlimited));
     }
@@ -1082,7 +1087,7 @@ mod tests {
             payload: vec![],
             header: None,
         };
-        let mut confirm_data = send_input(Chain::Ethereum, GemTransactionInputType::Transfer { asset: Asset::mock_sol() }).confirm;
+        let mut confirm_data = send_input(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_sol() }).confirm;
         confirm_data.simulation = Some(simulation("preload"));
         let preload = GemConfirmPreload {
             confirm_data,
@@ -1138,7 +1143,7 @@ mod tests {
             fee_asset: btc.clone(),
             metadata: metadata(2),
             preload: GemConfirmPreload {
-                confirm_data: send_input(Chain::Ethereum, GemTransactionInputType::Transfer { asset: eth.clone() }).confirm,
+                confirm_data: send_input(Chain::Ethereum, TransactionInputType::Transfer { asset: eth.clone() }).confirm,
                 amount: GemTransferAmountResult::Amount {
                     amount: GemTransferAmount {
                         value: GemBigInt::from(1),

@@ -99,6 +99,7 @@ remote:
   - TransferDataOutputAction
   - TransferDataOutputType
   - TransferDataExtra
+  - TransactionInputType
 codes:
   - Chain
   - Currency
