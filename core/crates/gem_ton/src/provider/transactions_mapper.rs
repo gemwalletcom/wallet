@@ -1,5 +1,5 @@
 use crate::address::{Address, hex_to_base64_address};
-use crate::constants::{FAILED_OPERATION_OPCODES, STONFI_PTON_V1_ADDRESS};
+use crate::constants::{FAILED_OPERATION_OPCODES, STONFI_PTON_ADDRESSES};
 use crate::models::{
     BroadcastTransaction, JettonSwapDetails, JettonTransferDetails, NftTransferDetails, OutMessage, TRACE_ACTION_JETTON_SWAP, TRACE_ACTION_JETTON_TRANSFER,
     TRACE_ACTION_NFT_TRANSFER, Trace, TraceAction, TransactionMessage,
@@ -182,7 +182,7 @@ fn ton_asset_id(raw_address: Option<&str>) -> Option<AssetId> {
         None => Some(AssetId::from_chain(Chain::Ton)),
         Some(hex_address) => {
             let token_id = hex_to_base64_address(hex_address)?;
-            Some(if token_id == STONFI_PTON_V1_ADDRESS {
+            Some(if STONFI_PTON_ADDRESSES.contains(&token_id.as_str()) {
                 AssetId::from_chain(Chain::Ton)
             } else {
                 AssetId::from_token(Chain::Ton, &token_id)
@@ -320,6 +320,24 @@ mod tests {
                 provider: Some("stonfi".to_string()),
             }
         );
+    }
+
+    #[test]
+    fn test_map_trace_transactions_proxy_ton_v2() {
+        for (mut traces, field) in [
+            (TraceResponse::mock_jetton_swap(), "asset_in"),
+            (TraceResponse::mock_jetton_swap_from_jetton_transfer(), "asset_out"),
+        ] {
+            let expected = map_trace_transactions(traces.traces.clone());
+            traces.traces[0].actions[0].details.as_mut().unwrap()[field] = json!("0:671963027F7F85659AB55B821671688601CDCF1EE674FC7FBBB1A776A18D34A3");
+
+            let transactions = map_trace_transactions(traces.traces);
+
+            assert_eq!(transactions.len(), 1);
+            assert_eq!(transactions[0].asset_id, expected[0].asset_id);
+            assert_eq!(transactions[0].value, expected[0].value);
+            assert_eq!(transactions[0].metadata, expected[0].metadata);
+        }
     }
 
     #[test]

@@ -12,7 +12,7 @@ pub(crate) const NFT_TRANSFER_ATTACHMENT: u64 = 50_000_000;
 // TON proxy jetton used by STON.fi for native TON swaps.
 pub const TON_PROXY_JETTON_ADDRESS: &str = "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c";
 #[cfg(feature = "rpc")]
-pub(crate) const STONFI_PTON_V1_ADDRESS: &str = "EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez";
+pub(crate) const STONFI_PTON_ADDRESSES: &[&str] = &["EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", "EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S"];
 
 // Failed operation opcodes - operations that may show blockchain success but represent failed application operations
 pub const FAILED_OPERATION_OPCODES: &[&str] = &[
