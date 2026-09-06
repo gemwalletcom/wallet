@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.recipient.presents
 
 import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemRecipientType
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
@@ -31,7 +32,6 @@ import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
-import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.wallet.core.primitives.QRScanType
@@ -43,6 +43,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Wallet
 
 @Composable
@@ -69,6 +70,7 @@ fun RecipientScreen(
         RecipientState.Loading -> Unit
         is RecipientState.Ready -> {
             RecipientScreen(
+                asset = currentState.asset,
                 type = currentState.type,
                 hasMemo = hasMemo,
                 address = address,
@@ -84,8 +86,8 @@ fun RecipientScreen(
                         is RecipientAction.SetAddress -> viewModel.onAddress(action.address)
                         is RecipientAction.SetMemo -> viewModel.onMemo(action.memo)
                         is RecipientAction.Scan -> scan = action.field
-                        RecipientAction.Next -> viewModel.onNext(currentState.type, amountAction, confirmAction)
-                        is RecipientAction.Select -> viewModel.onDestination(currentState.type, action.destination, amountAction, confirmAction)
+                        RecipientAction.Next -> viewModel.onNext(currentState, amountAction, confirmAction)
+                        is RecipientAction.Select -> viewModel.onDestination(currentState, action.destination, amountAction, confirmAction)
                         RecipientAction.Cancel -> cancelAction()
                     }
                 },
@@ -109,7 +111,8 @@ fun RecipientScreen(
 
 @Composable
 internal fun RecipientScreen(
-    type: RecipientType,
+    asset: Asset,
+    type: GemRecipientType,
     hasMemo: Boolean,
     address: String,
     memo: String,
@@ -153,10 +156,10 @@ internal fun RecipientScreen(
             contentPadding = PaddingValues(bottom = paddingDefault),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item { RecipientHead(type) }
+            item { RecipientHead(asset, type) }
             destinationView(
                 hasMemo = hasMemo,
-                assetName = type.assetInfo.asset.name,
+                assetName = asset.name,
                 address = address,
                 addressError = addressError,
                 nameResolveState = nameResolveState,
@@ -177,7 +180,7 @@ internal fun RecipientScreen(
                     )
                 )
             }
-            walletsDestination(toChain = type.assetInfo.asset.chain, items = wallets) { wallet, account ->
+            walletsDestination(toChain = asset.chain, items = wallets) { wallet, account ->
                 onAction(
                     RecipientAction.Select(
                         GemRecipient(

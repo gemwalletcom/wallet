@@ -18,8 +18,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
-import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
-import com.gemwallet.android.features.recipient.viewmodel.models.toGem
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -38,6 +36,7 @@ import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemRecipientNext
 import uniffi.gemstone.GemRecipientScan
+import uniffi.gemstone.GemRecipientType
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientServiceInterface
 import com.gemwallet.android.domains.confirm.transferNft
@@ -103,12 +102,12 @@ class RecipientViewModel @Inject constructor(
     val state: StateFlow<RecipientState> = getAssetInfo(assetId)
         .filterNotNull()
         .map { assetInfo ->
-            val type: RecipientType? = if (nftAssetId == null) {
-                RecipientType.Asset(assetInfo)
+            val type: GemRecipientType? = if (nftAssetId == null) {
+                GemRecipientType.Asset(assetInfo.asset.toGem())
             } else {
-                nftAsset.await()?.let { RecipientType.Nft(assetInfo, it) }
+                nftAsset.await()?.let { GemRecipientType.Nft(it.toGem()) }
             }
-            type?.let(RecipientState::Ready) ?: RecipientState.Loading
+            type?.let { RecipientState.Ready(assetInfo.asset, it) } ?: RecipientState.Loading
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
@@ -123,7 +122,7 @@ class RecipientViewModel @Inject constructor(
         .flatMapLatest { state ->
             when (state) {
                 RecipientState.Loading -> flowOf(emptyList())
-                is RecipientState.Ready -> getContacts.getContactRecipients(state.type.assetInfo.asset.chain)
+                is RecipientState.Ready -> getContacts.getContactRecipients(state.asset.chain)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -137,7 +136,7 @@ class RecipientViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             state.filterIsInstance<RecipientState.Ready>()
-                .collect { addressInput.setChain(it.type.assetInfo.asset.chain) }
+                .collect { addressInput.setChain(it.asset.chain) }
         }
     }
 
@@ -145,7 +144,7 @@ class RecipientViewModel @Inject constructor(
         .map {
             when (it) {
                 RecipientState.Loading -> false
-                is RecipientState.Ready -> it.type.assetInfo.asset.chain.isMemoSupport()
+                is RecipientState.Ready -> it.asset.chain.isMemoSupport()
             }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -155,42 +154,42 @@ class RecipientViewModel @Inject constructor(
     }
 
     fun onNext(
-        type: RecipientType,
+        recipient: RecipientState.Ready,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
         if (!addressInput.validate()) return
-        submit(type, address.value, addressInput.nameRecord, amountAction, confirmAction)
+        submit(recipient, address.value, addressInput.nameRecord, amountAction, confirmAction)
     }
 
     fun onDestination(
-        type: RecipientType,
+        recipient: RecipientState.Ready,
         destination: GemRecipient,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        submit(type, destination.address, null, amountAction, confirmAction, destination.name)
+        submit(recipient, destination.address, null, amountAction, confirmAction, destination.name)
     }
 
     private fun submit(
-        type: RecipientType,
+        recipient: RecipientState.Ready,
         input: String,
         nameRecord: NameRecord?,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
         selectedName: String? = null,
     ) {
-        val chain = type.assetInfo.asset.chain
-        val recipient = try {
-            service.recipient(chain.string, input, nameRecord?.toGem(), memo.value, references)
+        val asset = recipient.asset
+        val resolved = try {
+            service.recipient(asset.chain.string, input, nameRecord?.toGem(), memo.value, references)
         } catch (_: GemRecipientException) {
             addressInput.markInvalid()
             return
         }
-        val destination = GemRecipient(address = recipient.address, name = recipient.name ?: selectedName)
-        when (val next = service.next(type.toGem(), GemPaymentRecipient(destination, requestedAmount))) {
+        val destination = GemRecipient(address = resolved.address, name = resolved.name ?: selectedName)
+        when (val next = service.next(recipient.type, GemPaymentRecipient(destination, requestedAmount))) {
             is GemRecipientNext.Amount -> amountAction(
-                AmountParams.Transfer(type.assetInfo.id(), next.payment.recipient, memo.value, references, next.payment.amount)
+                AmountParams.Transfer(asset.id, next.payment.recipient, memo.value, references, next.payment.amount)
             )
             is GemRecipientNext.Confirm -> confirmAction(next.transfer)
         }
@@ -208,7 +207,7 @@ class RecipientViewModel @Inject constructor(
         _memo.value = input
     }
 
-    fun setQrData(type: RecipientType, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
+    fun setQrData(type: GemRecipientType, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
         when (field) {
             QrScanField.None -> Unit
             QrScanField.Memo -> _memo.value = data
@@ -216,9 +215,9 @@ class RecipientViewModel @Inject constructor(
         }
     }
 
-    private fun onAddressScan(type: RecipientType, data: String, confirmAction: ConfirmTransactionAction) {
+    private fun onAddressScan(type: GemRecipientType, data: String, confirmAction: ConfirmTransactionAction) {
         val scan = try {
-            service.scan(data, type.toGem())
+            service.scan(data, type)
         } catch (_: GemRecipientException) {
             addressInput.markInvalid()
             return
