@@ -629,7 +629,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
-- **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
+- **Transfer model collapse.** Make `primitives::TransactionInputType` the one enum, so `GemTransactionInputType`, its two `From` impls in `models/transaction.rs` and the app-side `.map()` chains go the way of `GemGasPriceType`. Measured on 2026-09-06: the primitives enum has 451 tuple-form construction and pattern sites across 20 crates (`Transfer` 132, `Swap` 74, `Stake` 66, `Generic` 34, `TransferNft` 33, `TokenApprove` 24, `Account` 24, `Perpetual` 24, `Earn` 21, `Deposit` 19) that must become named fields first; its `#[typeshare]` attribute produces nothing today (typeshare emits no Swift or Kotlin for it, and neither app references such a type), so the apps only ever see the uniffi enum. The blocker is not the enum but its payloads: `SwapData`, `ApprovalData`, `TransferDataExtra`, `PerpetualType`, `EarnType`, `ContractCallData` and `AccountDataType` each still have a `Gem*` twin because their primitives shape cannot cross uniffi as is, and each twin has to become a `remote` type before the parent can. Order: named fields in primitives (mechanical, compiler-driven), then one payload twin at a time through `remote_types.yml`, then the parent. Transaction construction is wallet-critical — one payload per commit with both apps built. **Not started.**
 - **One-sided calls that are structure, not drift** (from the September 2026 sweep of every
   generated protocol method against both apps — re-run it with the two `rg` lines in Screen
   services): Android carries transfers and position actions through routes, so only it calls
@@ -677,6 +677,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   Both apps' `AutocloseValidator` forwarders are deleted: Core's `validate` takes an optional price,
   so the "unset trigger is valid" rule Android kept in Kotlin lives in Core, and iOS's text
   validator moved into the Perpetuals feature together with `PerpetualError`.
+- **A payment link's asset is Core's answer on both apps.** Android's `PaymentNavigation.linkRoutes` re-derived "the request's asset, else the chain's native asset" with a JSON decode and a chain lookup; it asks `GemPaymentService::transaction_asset_id` like iOS's `NavigationHandler` does.
 - **A recipient with an optional amount is one Core record on both apps.** iOS's `RecipientData`
   and Android's `PaymentRecipient` were the same `{ GemRecipient, amount? }` pair, each rebuilt by
   hand from `GemPaymentDestination`'s loose fields. `GemPaymentRecipient` now sits inside
@@ -875,7 +876,10 @@ Three gotchas if you repeat the sweep, all met on this pass:
   is not dead) removed Android `Chain.toChainType`, `Chain.isSwapSupport`,
   `TransactionType.isPerpetual`, `TransactionDataAggregate.isPending` and
   `NftAssetDetailsData.collectionName`, three of them alive only through a test, and found no
-  iOS member without a use.
+  iOS member without a use. The same pass removed iOS `Keystore.getPrivateKeyEncoded` and
+  `getMnemonic` with their `LocalKeystore` and mock implementations: production exports go through
+  Core's `GemWalletService::export_secret`, and the keystore tests that used the wrappers as their
+  oracle now export through `GemKeystore` directly (`LocalKeystore+Export.swift` in the test target).
 - **Android's import screen asks `GemMnemonic` directly.** `GemValidatePhraseOperator`
   (`findInvalidWords` + `isValid` behind a `Result` with `InvalidWords`/`InvalidPhrase`
   exceptions) and `GemFindPhraseWord` were two wrappers around one Core object, and only the

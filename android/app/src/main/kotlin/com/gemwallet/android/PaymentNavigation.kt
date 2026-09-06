@@ -1,14 +1,10 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PaymentDestination
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
@@ -50,9 +46,7 @@ class PaymentNavigation @Inject constructor(
             link.toJson(),
             accounts.map { ChainAddress(chain = it.chain, address = it.address).toGem() },
         )
-        val chain = payment.account.toPrimitives().chain
-        val assetId = payment.request?.decodeJson<PaymentRequest>()?.assetId ?: chain.asset().id
-        val asset = assetsService.ensureTokenAsset(assetId.toIdentifier())
+        val asset = assetsService.ensureTokenAsset(paymentService.transactionAssetId(payment))
         val transfer = paymentService.transactionTransferData(payment, asset)
         return listOfNotNull(transfer.pack()?.let(::ConfirmRoute))
     }
