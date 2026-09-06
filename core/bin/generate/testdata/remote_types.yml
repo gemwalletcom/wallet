@@ -1,0 +1,35 @@
+# The fixture the generator tests run over; every feature the generator handles has one type here.
+remote:
+  - Account
+  - ConnectionState
+  - GasPriceType
+  - NFTImages
+  - PriceAlert
+  - SwapPriceImpact
+  - TransferDataExtra
+  - Wallet
+codes:
+  - Chain
+identifiers:
+  - WalletId
+
+# Type names the generator has to know besides the ones above: what passes through a mapper
+# untouched, and what gemstone declares under another name (an unqualified name is a gemstone
+# custom type, and the declarations import it).
+scalars:
+  - String
+  - i8
+  - i16
+  - i32
+  - i64
+  - u8
+  - u16
+  - u32
+  - u64
+  - bool
+  - f32
+  - f64
+declared:
+  BigInt: GemBigInt
+  BigUint: GemBigUint
+  DateTime<Utc>: chrono::DateTime<chrono::Utc>

@@ -1,3 +1,4 @@
+mod json_bridge;
 mod localization;
 mod remote_mappers;
 
@@ -75,21 +76,18 @@ fn main() {
 }
 
 fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_path: &str) {
-    let enums = remote_mappers::parse(Path::new("."));
-    if enums.is_empty() {
+    let generator = remote_mappers::Generator::load(Path::new("."));
+    if generator.is_empty() {
         return;
     }
-    write_generated(remote_mappers::REMOTE_TYPES_PATH, remote_mappers::remote_types(&enums));
+    write_generated(remote_mappers::REMOTE_TYPES_PATH, generator.remote_types());
 
     let (contents, path) = match generator_type {
         GeneratorType::Swift => (
-            remote_mappers::swift(&enums),
+            generator.swift(),
             format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift"),
         ),
-        GeneratorType::Kotlin => (
-            remote_mappers::kotlin(&enums),
-            format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt"),
-        ),
+        GeneratorType::Kotlin => (generator.kotlin(), format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt")),
         GeneratorType::TypeScript => return,
     };
     write_generated(&path, contents);
@@ -97,11 +95,11 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
     match generator_type {
         GeneratorType::Swift => write_generated(
             &format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/JsonBridge.swift"),
-            remote_mappers::swift_json_bridge(&remote_mappers::bridge_types(Path::new("."))),
+            json_bridge::swift_json_bridge(&json_bridge::bridge_types(Path::new(json_bridge::JSON_BRIDGE_PATH))),
         ),
         GeneratorType::Kotlin => write_generated(
             &format!("{platform_directory_path}/../../gemwallet/android/serializer/TaggedJsonBridge.kt"),
-            remote_mappers::kotlin_tagged_bridge(&remote_mappers::tagged_bridge_types(Path::new("."))),
+            json_bridge::kotlin_tagged_bridge(&json_bridge::tagged_bridge_types(Path::new(json_bridge::JSON_BRIDGE_PATH), Path::new(remote_mappers::PRIMITIVES_SOURCE))),
         ),
         GeneratorType::TypeScript => {}
     }

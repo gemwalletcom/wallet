@@ -397,7 +397,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `minimum_value`) with the serde derives on `GemTransferData`, `GemRecipient` and
   `GemConfirmInput` that existed only for it; `decimal_string` now serializes the one unsigned
   perpetual amount. Tuple variants still panic the generator; a typeshared data-carrying enum
-  still needs mapper emission before it can cross that way.
+  still needs mapper emission before it can cross that way. The generator is one table-driven
+  emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
+  syntax) with the JSON bridge in its own module, and every type name it knows lives in
+  `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper
+  and the names gemstone declares differently (`BigInt` as `GemBigInt`, `DateTime<Utc>` as
+  `chrono::DateTime<chrono::Utc>`). Its tests run it over `core/bin/generate/testdata/`, a
+  fixture with one primitives type per feature, and compare against the exact files under
+  `testdata/expected/`; `UPDATE_GOLDEN=1 cargo test -p generate` rewrites them after a deliberate
+  change.
 - **Screens read their rows from one Core answer.** `GemTransactionDetailsService::detail_rows`
   (header, header action, swap progress steps, swap-again, provider name, confirmation ETA,
   participant, memo, resource, rate, pnl, price, fee, explorer link) and
