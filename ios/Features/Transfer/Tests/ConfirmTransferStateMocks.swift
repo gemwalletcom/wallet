@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmLoad
+import struct Gemstone.GemConfirmPreload
 import Components
 import Primitives
 import PrimitivesComponents
@@ -25,7 +26,7 @@ extension ConfirmSimulationState {
 
 extension ConfirmTransferState {
     static func mock(
-        transaction: StateViewType<ConfirmTransferInput> = .loading,
+        transaction: StateViewType<GemConfirmPreload> = .loading,
         load: GemConfirmLoad? = nil,
         simulation: ConfirmSimulationState = .mock(),
         feeAsset: Asset = .mock(),

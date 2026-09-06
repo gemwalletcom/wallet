@@ -171,7 +171,7 @@ public final class ConfirmTransferSceneViewModel {
             selection: feeSelection,
             feeRates: feeRates,
             feeAssetPrice: state.metadata?.feePrice,
-            feeAmount: state.transaction.value?.fee.fee,
+            feeAmount: state.fee?.fee,
             feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: currency) },
             onSelect: { [weak self] in self?.feeSelection = $0 },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
@@ -293,11 +293,11 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectConfirm() {
-        guard case let .data(input) = state.transaction, case let .success(amount) = input.transferAmount else {
+        guard let preload = state.transaction.value, case let .success(amount)? = state.transferAmount else {
             Task { await load() }
             return
         }
-        confirm(confirmData: input.confirmData, amount: amount)
+        confirm(confirmData: preload.confirmData, amount: amount)
     }
 
     func load() async {

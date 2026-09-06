@@ -596,7 +596,7 @@ struct ConfirmTransferSceneViewModelTests {
         let asset = Asset.mockTempoPathUSD()
         let feeAsset = Asset.mockTempoUSDC()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.state = .mock(transaction: .data(.mock(feeAsset: feeAsset)), feeAsset: feeAsset)
+        model.state = .mock(transaction: .data(.mock()), feeAsset: feeAsset)
 
         #expect(model.swapFromAsset(to: asset) == feeAsset)
     }

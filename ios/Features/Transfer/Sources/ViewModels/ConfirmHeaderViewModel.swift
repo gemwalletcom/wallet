@@ -62,9 +62,9 @@ private extension ConfirmHeaderViewModel {
 
         return TransactionInputViewModel(
             data: request.data,
-            fee: state.transaction.value?.fee,
+            fee: state.fee,
             metaData: state.metadata,
-            transferAmount: state.transaction.value?.transferAmount,
+            transferAmount: state.transferAmount,
             feeAsset: state.feeAsset,
             currency: currency.rawValue,
         ).headerType
