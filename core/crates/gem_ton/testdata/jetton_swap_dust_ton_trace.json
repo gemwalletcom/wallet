@@ -1,0 +1,100 @@
+{
+  "traces": [
+    {
+      "is_incomplete": false,
+      "actions": [
+        {
+          "success": true,
+          "type": "jetton_swap",
+          "details": {
+            "dex": "stonfi",
+            "sender": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+            "asset_in": "0:65AAC9B5E380EAE928DB3C8E238D9BC0D61A9320FDC2BC7A2F6C87D6FEDF9208",
+            "asset_out": "0:8CDC1D7640AD5EE326527FC1AD0514F468B30DC84B0173F0E155F451B4E11F7C",
+            "dex_incoming_transfer": {
+              "asset": "0:65AAC9B5E380EAE928DB3C8E238D9BC0D61A9320FDC2BC7A2F6C87D6FEDF9208",
+              "source": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+              "destination": "0:779DCC815138D9500E449C5291E7F12738C23D575B5310000F6A253BD607384E",
+              "source_jetton_wallet": "0:587E1063A28428B8AD426C01022CB6122C44FEFF2685C3BB978438FA4D97BE29",
+              "destination_jetton_wallet": "0:45C910DCA956E910A48E0969A1C44B064D287373060FBB569CE5E08FFCD6ACCB",
+              "amount": "2263786603"
+            },
+            "dex_outgoing_transfer": {
+              "asset": "0:8CDC1D7640AD5EE326527FC1AD0514F468B30DC84B0173F0E155F451B4E11F7C",
+              "source": "0:779DCC815138D9500E449C5291E7F12738C23D575B5310000F6A253BD607384E",
+              "destination": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+              "source_jetton_wallet": null,
+              "destination_jetton_wallet": null,
+              "amount": "726191509"
+            },
+            "peer_swaps": []
+          }
+        },
+        {
+          "success": true,
+          "type": "call_contract",
+          "details": {
+            "opcode": "0xf93bb43f",
+            "source": "0:0441CC5A00936CA79F12613049B3D5E4C575996FEAC54A81BD7AC0DD093CFADA",
+            "destination": "0:779DCC815138D9500E449C5291E7F12738C23D575B5310000F6A253BD607384E",
+            "value": "61073231",
+            "extra_currencies": {}
+          }
+        },
+        {
+          "success": true,
+          "type": "jetton_transfer",
+          "details": {
+            "asset": "0:8CDC1D7640AD5EE326527FC1AD0514F468B30DC84B0173F0E155F451B4E11F7C",
+            "sender": "0:779DCC815138D9500E449C5291E7F12738C23D575B5310000F6A253BD607384E",
+            "receiver": "0:F124A6AB3D2A746C2B5AF43160A7CD4CA6DE61A466EE55C4B1C1F7B36B40629F",
+            "sender_jetton_wallet": null,
+            "receiver_jetton_wallet": null,
+            "amount": "727647",
+            "comment": null,
+            "is_encrypted_comment": false,
+            "query_id": "0",
+            "response_destination": "0:F124A6AB3D2A746C2B5AF43160A7CD4CA6DE61A466EE55C4B1C1F7B36B40629F",
+            "custom_payload": null,
+            "forward_payload": "te6cckEBAQEABgAACEUHhUDIvg6R",
+            "forward_amount": "0"
+          }
+        }
+      ],
+      "transactions_order": [
+        "/xLFyrV7sCojCS0uu2tzGc1z8svHMp//XLxIEIlBWe8="
+      ],
+      "transactions": {
+        "/xLFyrV7sCojCS0uu2tzGc1z8svHMp//XLxIEIlBWe8=": {
+          "hash": "/xLFyrV7sCojCS0uu2tzGc1z8svHMp//XLxIEIlBWe8=",
+          "now": 1788668101,
+          "total_fees": "549779",
+          "description": {
+            "aborted": false,
+            "compute_ph": {
+              "success": true,
+              "exit_code": 0
+            },
+            "action": {
+              "success": true
+            }
+          },
+          "out_msgs": [
+            {
+              "source": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+              "destination": "0:587E1063A28428B8AD426C01022CB6122C44FEFF2685C3BB978438FA4D97BE29",
+              "value": "170000000",
+              "opcode": "0x0f8a7ea5"
+            }
+          ],
+          "in_msg": {
+            "source": null,
+            "destination": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+            "value": null,
+            "opcode": "0xfd96b104"
+          }
+        }
+      }
+    }
+  ]
+}

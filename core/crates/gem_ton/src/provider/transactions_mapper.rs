@@ -1,5 +1,5 @@
 use crate::address::{Address, hex_to_base64_address};
-use crate::constants::FAILED_OPERATION_OPCODES;
+use crate::constants::{FAILED_OPERATION_OPCODES, STONFI_PTON_V1_ADDRESS};
 use crate::models::{
     BroadcastTransaction, JettonSwapDetails, JettonTransferDetails, NftTransferDetails, OutMessage, TRACE_ACTION_JETTON_SWAP, TRACE_ACTION_JETTON_TRANSFER,
     TRACE_ACTION_NFT_TRANSFER, Trace, TraceAction, TransactionMessage,
@@ -180,7 +180,14 @@ fn jetton_swap_metadata(actions: &[TraceAction]) -> Option<(String, TransactionS
 fn ton_asset_id(raw_address: Option<&str>) -> Option<AssetId> {
     match raw_address {
         None => Some(AssetId::from_chain(Chain::Ton)),
-        Some(hex_address) => hex_to_base64_address(hex_address).map(|token_id| AssetId::from_token(Chain::Ton, &token_id)),
+        Some(hex_address) => {
+            let token_id = hex_to_base64_address(hex_address)?;
+            Some(if token_id == STONFI_PTON_V1_ADDRESS {
+                AssetId::from_chain(Chain::Ton)
+            } else {
+                AssetId::from_token(Chain::Ton, &token_id)
+            })
+        }
     }
 }
 
@@ -264,6 +271,56 @@ mod tests {
     use serde_json::{Map, Value, json};
 
     const NFT_NEW_OWNER: &str = "UQDSkZZueXRl0lUk4hagLa8KrJzZbmtTE_RPZwTDSIw32WNH";
+
+    #[test]
+    fn test_map_trace_transactions_dust_to_native_ton() {
+        let traces: TraceResponse = serde_json::from_str(include_str!("../../testdata/jetton_swap_dust_ton_trace.json")).unwrap();
+        let transactions = map_trace_transactions(traces.traces);
+
+        assert_eq!(transactions.len(), 1);
+        let transaction = &transactions[0];
+        let dust = AssetId::from_token(Chain::Ton, "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE");
+        assert_eq!(transaction.hash(), "ff12c5cab57bb02a23092d2ebb6b7319cd73f2cbc7329fff5cbc4810894159ef");
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.state, TransactionState::Confirmed);
+        assert_eq!(transaction.asset_id, dust);
+        assert_eq!(transaction.value, BigUint::from(2263786603u64));
+        assert_eq!(
+            serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap(),
+            TransactionSwapMetadata {
+                from_asset: dust,
+                from_value: BigUint::from(2263786603u64),
+                to_asset: Chain::Ton.as_asset_id(),
+                to_value: BigUint::from(726191509u64),
+                provider: Some("stonfi".to_string()),
+            }
+        );
+    }
+
+    #[test]
+    fn test_map_trace_transactions_proxy_ton_input() {
+        let mut traces = TraceResponse::mock_jetton_swap();
+        let details = traces.traces[0].actions[0].details.as_mut().unwrap();
+        details["dex"] = json!("stonfi");
+        details["asset_in"] = json!("0:8cdc1d7640ad5ee326527fc1ad0514f468b30dc84b0173f0e155f451b4e11f7c");
+
+        let transactions = map_trace_transactions(traces.traces);
+
+        assert_eq!(transactions.len(), 1);
+        let transaction = &transactions[0];
+        assert_eq!(transaction.asset_id, Chain::Ton.as_asset_id());
+        assert_eq!(transaction.value, BigUint::from(1000000000u64));
+        assert_eq!(
+            serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap(),
+            TransactionSwapMetadata {
+                from_asset: Chain::Ton.as_asset_id(),
+                from_value: BigUint::from(1000000000u64),
+                to_asset: AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
+                to_value: BigUint::from(2436222u64),
+                provider: Some("stonfi".to_string()),
+            }
+        );
+    }
 
     #[test]
     fn test_transaction_transfer_state_success() {
