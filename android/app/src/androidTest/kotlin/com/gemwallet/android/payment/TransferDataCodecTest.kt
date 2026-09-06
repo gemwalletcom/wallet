@@ -87,7 +87,7 @@ class TransferDataCodecTest {
         val transfer = roundTrip(original)
 
         assertTrue(transfer.inputType is TransactionInputType.Transfer)
-        assertEquals(asset, transfer.inputType.asset)
+        assertEquals(asset, transfer.asset)
         assertEquals(BigInteger("19000000"), transfer.value)
         assertEquals("recipient", transfer.recipient.address)
         assertEquals("recipient.sol", transfer.recipient.name)
@@ -119,7 +119,7 @@ class TransferDataCodecTest {
         )
 
         val transfer = roundTrip(original)
-        val assetId = transfer.inputType.asset.id
+        val assetId = transfer.asset.id
         val generic = transfer.inputType as TransactionInputType.Generic
         val metadata = generic.metadata.toPrimitives()
 
@@ -175,7 +175,7 @@ class TransferDataCodecTest {
         val transfer = roundTrip(original)
 
         assertTrue(transfer.inputType is TransactionInputType.Transfer)
-        assertEquals(asset, transfer.inputType.asset)
+        assertEquals(asset, transfer.asset)
         assertEquals(BigInteger.ONE, transfer.value)
         assertEquals(null, transfer.recipient.memo)
         assertEquals(false, transfer.useMaxAmount)

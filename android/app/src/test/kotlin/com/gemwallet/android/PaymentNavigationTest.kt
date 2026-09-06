@@ -75,7 +75,7 @@ class PaymentNavigationTest {
 
         val route = routes.single() as ConfirmRoute
         val transfer = requireNotNull(unpackTransferData(route.params))
-        val assetId = transfer.inputType.asset.id
+        val assetId = transfer.asset.id
         val metadataSource = transfer.inputType.applicationMetadata?.source
         val generic = transfer.inputType as TransactionInputType.Generic
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
@@ -116,7 +116,7 @@ class PaymentNavigationTest {
 
         val route = routes.single() as ConfirmRoute
         val transfer = requireNotNull(unpackTransferData(route.params))
-        val assetId = transfer.inputType.asset.id
+        val assetId = transfer.asset.id
         val generic = transfer.inputType as TransactionInputType.Generic
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
         assertEquals(null, transfer.recipient.memo)
@@ -155,7 +155,7 @@ class PaymentNavigationTest {
 
         val route = routes.single() as ConfirmRoute
         val transfer = requireNotNull(unpackTransferData(route.params))
-        assertEquals(requestedAsset.id, transfer.inputType.asset.id)
+        assertEquals(requestedAsset.id, transfer.asset.id)
         assertEquals(BigInteger("19000000"), transfer.value)
     }
 

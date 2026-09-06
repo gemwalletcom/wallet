@@ -1,6 +1,5 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
@@ -10,30 +9,15 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AccountDataType
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.swap.SwapData
+import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.TransactionInputType
 
-val TransactionInputType.asset: Asset
-    get() = when (this) {
-        is TransactionInputType.Transfer -> asset
-        is TransactionInputType.Deposit -> asset
-        is TransactionInputType.Withdrawal -> asset
-        is TransactionInputType.Stake -> asset
-        is TransactionInputType.TokenApprove -> asset
-        is TransactionInputType.Account -> asset
-        is TransactionInputType.Perpetual -> asset
-        is TransactionInputType.TransferNft -> asset
-        is TransactionInputType.Generic -> asset
-        is TransactionInputType.Earn -> asset
-        is TransactionInputType.Swap -> fromAsset
-    }.toPrimitives()
-
-val TransactionInputType.chain: Chain
-    get() = asset.chain
+val GemTransferData.asset: Asset
+    get() = inputAsset().toPrimitives()
 
 val TransactionInputType.toAsset: Asset?
     get() = (this as? TransactionInputType.Swap)?.toAsset?.toPrimitives()

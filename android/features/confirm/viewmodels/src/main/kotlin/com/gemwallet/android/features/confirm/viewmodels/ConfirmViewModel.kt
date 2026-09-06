@@ -199,7 +199,7 @@ class ConfirmViewModel @Inject constructor(
             transactionType = request.transactionType().toPrimitives(),
             headerKind = request.headerKind(),
             amount = amount.atomicValue,
-            fromAsset = content.assetPrice(inputType.asset),
+            fromAsset = content.assetPrice(request.asset),
             fromAmount = amount.atomicValue,
             toAsset = inputType.toAsset?.let(content::assetPrice),
             toAmount = inputType.swapData?.quote?.toValue?.let(::BigInteger),
@@ -364,7 +364,7 @@ class ConfirmViewModel @Inject constructor(
     ): ConfirmDetailElement.SwapDetails? {
         val swapData = transfer?.inputType?.swapData ?: return null
         content ?: return null
-        val fromAsset = content.assetPrice(transfer.inputType.asset)
+        val fromAsset = content.assetPrice(transfer.asset)
         val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
         val summary = GemSwapQuoteSummary(swapData.quote.toJson())
 

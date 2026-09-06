@@ -24,7 +24,7 @@ class BuildConfirmPropertiesImpl(
         wallet: Wallet,
         addressName: AddressName?,
     ): List<ConfirmProperty> {
-        val chain = transfer.inputType.asset.id.chain
+        val chain = transfer.asset.id.chain
         return withContext(Dispatchers.IO) {
             mutableListOf<ConfirmProperty?>().apply {
                 add(ConfirmProperty.Source(wallet.name, wallet.type, chain, wallet.imageUrl))
