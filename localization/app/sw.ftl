@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Ufadhili wa APR
 info_perpetual_funding_apr_description = Kiwango cha kila mwaka ambacho nafasi ndefu hulipa nafasi fupi (ikiwa hasi, nafasi fupi hulipa nafasi ndefu). Hakuna ada zinazohusishwa na ufadhili, ambao ni uhamishaji kati ya watumiaji ili kusukuma bei kuelekea bei inayotarajiwa.
 info_minimum_amount_title = Kiasi cha Chini
 info_minimum_amount_description = Kwenye mtandao wa %@, kiasi cha chini kwa muamala huu ni %@.
+info_swap_minimum_amount_description = %@ inahitaji angalau %@, lakini kiasi ni %@. Ongeza %@ ili kuendelea.
 
 # Input
 

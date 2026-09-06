@@ -18,11 +18,13 @@ import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemBalanceRequirement
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemSignerError
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.InfoSheetEntity.BalanceRequiredInfo
+import com.gemwallet.android.ui.components.InfoSheetEntity.SwapMinimumAmountInfo
 import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkBalanceRequiredInfo
 import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkFeeRequiredInfo
 import com.gemwallet.android.ui.components.list_item.WarningItem
@@ -30,16 +32,19 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ext.requireChain
+import java.math.BigInteger
 
 @Composable
 internal fun ConfirmErrorInfo(
     state: ConfirmState,
     fee: FeeUIModel.FeeInfo?,
     isShowBottomSheetInfo: Boolean,
+    onDismissBottomSheetInfo: () -> Unit,
+    assetPrice: AssetPriceValue?,
     acquireFlow: (Asset) -> GemAcquireAssetFlow,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
 ) {
-    var isShowInfoSheet by remember(isShowBottomSheetInfo) { mutableStateOf(isShowBottomSheetInfo) }
+    var isShowInfoSheet by remember { mutableStateOf(false) }
     var isShowGetAssetSheet by remember { mutableStateOf(false) }
     var buyAmount by remember { mutableStateOf<Int?>(null) }
 
@@ -50,10 +55,12 @@ internal fun ConfirmErrorInfo(
     val requiredAsset = when (error) {
         is GemConfirmException.InsufficientBalance -> error.asset.toPrimitives()
         is GemConfirmException.InsufficientNetworkFee -> error.asset.toPrimitives()
+        is GemConfirmException.BelowSwapMinimum -> error.asset.toPrimitives()
         else -> null
     }
     val onSelectAcquireAsset: (Asset, Int?) -> Unit = { asset, amount ->
         isShowInfoSheet = false
+        onDismissBottomSheetInfo()
         if (acquireFlow(asset) == GemAcquireAssetFlow.OPTIONS) {
             buyAmount = amount
             isShowGetAssetSheet = true
@@ -61,7 +68,7 @@ internal fun ConfirmErrorInfo(
             onAcquireAsset(AcquireAssetAction.Buy(amount), asset.id)
         }
     }
-    val infoSheetEntity = error.toInfoSheetEntity(fee, acquireFlow, onSelectAcquireAsset)
+    val infoSheetEntity = error.toInfoSheetEntity(fee, assetPrice, acquireFlow, onSelectAcquireAsset)
 
     WarningItem(
         title = stringResource(R.string.errors_error_occurred),
@@ -71,8 +78,11 @@ internal fun ConfirmErrorInfo(
         onClick = infoSheetEntity?.let { { isShowInfoSheet = true } },
     )
 
-    if (isShowInfoSheet) {
-        InfoBottomSheet(item = infoSheetEntity) { isShowInfoSheet = false }
+    if (isShowInfoSheet || isShowBottomSheetInfo) {
+        InfoBottomSheet(item = infoSheetEntity) {
+            isShowInfoSheet = false
+            onDismissBottomSheetInfo()
+        }
     }
 
     if (isShowGetAssetSheet && requiredAsset != null) {
@@ -91,6 +101,7 @@ internal fun ConfirmErrorInfo(
 @Composable
 private fun Throwable.toInfoSheetEntity(
     fee: FeeUIModel.FeeInfo?,
+    assetPrice: AssetPriceValue?,
     acquireFlow: (Asset) -> GemAcquireAssetFlow,
     onAcquireAsset: (Asset, Int?) -> Unit,
 ): InfoSheetEntity? {
@@ -127,6 +138,19 @@ private fun Throwable.toInfoSheetEntity(
                 )
             }
         }
+        is GemConfirmException.BelowSwapMinimum -> {
+            val asset = asset.toPrimitives()
+            val formatted = requirement.formatted(asset)
+            SwapMinimumAmountInfo(
+                provider = provider,
+                providerName = providerName,
+                required = assetPrice.amountWithFiat(requirement.required, asset),
+                available = formatted.available,
+                shortfall = formatted.shortfall,
+                actionLabel = asset.acquireActionLabel(acquireFlow(asset)),
+                action = { onAcquireAsset(asset, null) },
+            )
+        }
         is GemConfirmException.MinimumAccountBalanceTooLow -> {
             val asset = asset.toPrimitives()
             InfoSheetEntity.MinimumAccountBalanceInfo(
@@ -144,6 +168,12 @@ private fun Asset.acquireActionLabel(flow: GemAcquireAssetFlow): String = string
     if (flow == GemAcquireAssetFlow.OPTIONS) R.string.asset_get_asset else R.string.asset_buy_asset,
     symbol,
 )
+
+private fun AssetPriceValue?.amountWithFiat(value: BigInteger, asset: Asset): String {
+    val amount = ValueFormatter(style = ValueFormatter.Style.Full).string(value, asset)
+    val fiat = this?.let { formatFiat(it.calculateFiat(value)) }.orEmpty()
+    return if (fiat.isEmpty()) amount else "$amount (~$fiat)"
+}
 
 private fun GemBalanceRequirement.formatted(asset: Asset): FormattedBalanceRequirement {
     val formatter = ValueFormatter(style = ValueFormatter.Style.Full)

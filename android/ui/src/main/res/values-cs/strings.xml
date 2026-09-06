@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Anualizovaná sazba, jakou longs platí shorts (pokud jsou záporné, shorts platí longs). S financováním nejsou spojeny žádné poplatky, což je peer-to-peer převod mezi uživateli za účelem tlačení cen směrem k spotové ceně.</string>
   <string name="info_minimum_amount_title">Minimální částka</string>
   <string name="info_minimum_amount_description">V síti %1$s je minimální částka pro tuto transakci %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s vyžaduje minimálně %2$s, ale částka je %3$s. Pro pokračování ji navyšte o %4$s.</string>
   <string name="input_enter_amount_to">Zadejte částku do %1$s</string>
   <string name="nft_properties">Vlastnosti</string>
   <string name="nft_collections">Sbírky</string>

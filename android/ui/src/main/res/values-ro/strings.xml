@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Rata anualizată la care plățile lungi plătesc scurt-uri (dacă este negativ, scurt-urile plătesc lungi). Nu există taxe asociate cu finanțarea, care este un transfer peer-to-peer între utilizatori pentru a împinge prețurile către prețul spot.</string>
   <string name="info_minimum_amount_title">Suma minima</string>
   <string name="info_minimum_amount_description">În rețeaua %1$s, suma minimă pentru această tranzacție este %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s necesită minimum %2$s, dar suma este %3$s. Măriți-o cu %4$s pentru a continua.</string>
   <string name="input_enter_amount_to">Vă rugăm să introduceți suma până la %1$s</string>
   <string name="nft_properties">Proprietăți</string>
   <string name="nft_collections">Colecții</string>

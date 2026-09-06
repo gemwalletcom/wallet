@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = APR de financement
 info_perpetual_funding_apr_description = Le taux annualisé auquel les positions longues paient les positions courtes (si négatif, les positions courtes paient les positions longues). Il n'y a aucun frais associé au financement, qui est un transfert peer-to-peer entre utilisateurs pour pousser les prix vers le prix spot.
 info_minimum_amount_title = Montant minimum
 info_minimum_amount_description = Sur le réseau %@, le montant minimum pour cette transaction est %@.
+info_swap_minimum_amount_description = %@ nécessite au moins %@, mais le montant est de %@. Augmentez-le de %@ pour continuer.
 
 # Input
 

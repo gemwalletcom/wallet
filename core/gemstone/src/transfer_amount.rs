@@ -19,7 +19,6 @@ pub(crate) struct GemTransferAmountInput {
     pub(crate) fee_asset_balance: GemBigInt,
     pub(crate) fee: GemBigInt,
     pub(crate) is_max_amount: bool,
-    pub(crate) minimum_value: Option<GemBigInt>,
 }
 
 impl From<GemTransferAmountInput> for TransferAmountInput {
@@ -32,7 +31,6 @@ impl From<GemTransferAmountInput> for TransferAmountInput {
             fee_asset_balance: value.fee_asset_balance,
             fee: value.fee,
             is_max_amount: value.is_max_amount,
-            minimum_value: value.minimum_value,
         }
     }
 }
@@ -59,7 +57,6 @@ mod tests {
             fee_asset_balance: BigInt::from(fee_asset_balance),
             fee: BigInt::from(5_000),
             is_max_amount: false,
-            minimum_value: None,
         }
     }
 

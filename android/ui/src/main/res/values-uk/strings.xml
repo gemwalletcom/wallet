@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Річна ставка, за якою довгі позиції платять за короткі позиції (якщо від\'ємна, короткі позиції платять за довгі позики). Немає жодної комісії, пов\'язаної з фінансуванням, яке є одноранговою передачею між користувачами для підвищення цін до спотової ціни.</string>
   <string name="info_minimum_amount_title">Мінімальна сума</string>
   <string name="info_minimum_amount_description">У мережі %1$s мінімальна сума для цієї транзакції становить %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s вимагає щонайменше %2$s, але сума становить %3$s. Збільште її на %4$s, щоб продовжити.</string>
   <string name="input_enter_amount_to">Будь ласка, введіть суму для %1$s</string>
   <string name="nft_properties">Властивості</string>
   <string name="nft_collections">Колекції</string>

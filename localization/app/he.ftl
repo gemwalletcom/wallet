@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = APR מימון
 info_perpetual_funding_apr_description = השיעור השנתי שבו לונג משלם שורט (אם שלילי, שורט משלם לונג). אין עמלות הקשורות למימון, שהוא העברה עמית לעמית בין משתמשים כדי לדחוף את המחירים לכיוון מחיר הספוט.
 info_minimum_amount_title = כמות מינימלית
 info_minimum_amount_description = ברשת %@, הסכום המינימלי לעסקה זו הוא %@.
+info_swap_minimum_amount_description = %@ דורש לפחות %@, אבל הסכום הוא %@. הגדילו אותו ב-%@ כדי להמשיך.
 
 # Input
 

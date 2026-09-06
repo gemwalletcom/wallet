@@ -367,7 +367,6 @@ pub fn stake_transfer_data(asset: Asset, stake_type: StakeType, value: BigInt, u
         recipient,
         value,
         use_max_amount,
-        minimum_value: None,
     }
 }
 
@@ -381,7 +380,6 @@ pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallD
         input_type: TransactionInputType::Earn { asset, earn_type, data },
         value,
         use_max_amount,
-        minimum_value: None,
     }
 }
 
@@ -612,7 +610,6 @@ mod tests {
             },
             value: value.parse().unwrap(),
             use_max_amount: false,
-            minimum_value: None,
         }
     }
 

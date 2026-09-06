@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">매수자가 매도자에게 지급하는 연간 비율입니다(음수인 경우 매도자가 매수자에게 지급). 가격을 현물 가격으로 끌어올리기 위해 사용자 간에 P2P(Peer-to-Peer) 전송을 수행하는 자금 조달과 관련된 수수료는 없습니다.</string>
   <string name="info_minimum_amount_title">최소 금액</string>
   <string name="info_minimum_amount_description">%1$s 네트워크에서 이 거래의 최소 금액은 %2$s입니다.</string>
+  <string name="info_swap_minimum_amount_description">%1$s에는 최소 %2$s이 필요하지만 금액은 %3$s입니다. 계속하려면 %4$s을 늘리세요.</string>
   <string name="input_enter_amount_to">%1$s까지 금액을 입력하세요.</string>
   <string name="nft_properties">속성</string>
   <string name="nft_collections">컬렉션</string>

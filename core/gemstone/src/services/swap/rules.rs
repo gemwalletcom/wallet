@@ -391,7 +391,6 @@ mod tests {
         assert_eq!(transfer_data.recipient.address, "solana-address");
         assert_eq!(transfer_data.recipient.memo.as_deref(), Some("swap-memo"));
         assert_eq!(transfer_data.value, num_bigint::BigInt::from(100u64));
-        assert_eq!(transfer_data.minimum_value, Some(num_bigint::BigInt::from(90u64)));
         assert!(transfer_data.use_max_amount);
         assert!(matches!(&transfer_data.input_type, primitives::TransactionInputType::Swap { swap_data, .. } if swap_data.data == data));
 

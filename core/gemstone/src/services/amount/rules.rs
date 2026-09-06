@@ -102,7 +102,6 @@ pub fn transfer_data(asset: Asset, transfer: GemAmountTransfer, owner: Option<Ge
         recipient,
         value,
         use_max_amount,
-        minimum_value: None,
     })
 }
 

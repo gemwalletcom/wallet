@@ -1,4 +1,4 @@
-use crate::{AssetId, AssetType, Chain, EarnType, StakeType, TransactionInputType};
+use crate::{AssetId, AssetType, Chain, EarnType, StakeType, SwapProvider, TransactionInputType};
 use num_bigint::BigInt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,6 +13,7 @@ pub enum TransferAmountError {
     InsufficientBalance { asset_id: AssetId, required: BigInt, available: BigInt },
     InsufficientNetworkFee { asset_id: AssetId, required: BigInt, available: BigInt },
     MinimumAccountBalanceTooLow { asset_id: AssetId, required: BigInt, available: BigInt },
+    BelowSwapMinimum { asset_id: AssetId, provider: SwapProvider, minimum: BigInt, value: BigInt },
 }
 
 impl std::fmt::Display for TransferAmountError {
@@ -26,6 +27,9 @@ impl std::fmt::Display for TransferAmountError {
             }
             Self::MinimumAccountBalanceTooLow { asset_id, required, available } => {
                 write!(f, "{} account balance below minimum: required {}, remaining {}", asset_id, required, available)
+            }
+            Self::BelowSwapMinimum { asset_id, provider, minimum, value } => {
+                write!(f, "{} amount {} is below the {} minimum {}", asset_id, value, provider.name(), minimum)
             }
         }
     }
@@ -68,7 +72,6 @@ pub struct TransferAmountInput {
     pub fee_asset_balance: BigInt,
     pub fee: BigInt,
     pub is_max_amount: bool,
-    pub minimum_value: Option<BigInt>,
 }
 
 impl TransactionInputType {
@@ -133,10 +136,16 @@ impl TransferAmountInput {
             return Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum.clone(), remaining_balance));
         }
 
-        if let Some(minimum_value) = &self.minimum_value
-            && value < *minimum_value
+        if let Ok(swap_data) = self.input_type.get_swap_data()
+            && let Some(minimum) = swap_data.quote.min_from_value.clone().map(BigInt::from)
+            && value < minimum
         {
-            return Err(TransferAmountError::insufficient_balance(&asset.id, minimum_value.clone(), value));
+            return Err(TransferAmountError::BelowSwapMinimum {
+                asset_id: asset.id.clone(),
+                provider: swap_data.quote.provider_data.provider,
+                minimum,
+                value,
+            });
         }
 
         Ok(TransferAmount {
@@ -169,12 +178,27 @@ mod tests {
             fee_asset_balance: BigInt::from(fee_asset_balance),
             fee: BigInt::from(FEE),
             is_max_amount: false,
-            minimum_value: None,
         }
     }
 
     fn solana_transfer(value: u64, available_value: u64) -> TransferAmountInput {
         input(TransactionInputType::Transfer { asset: Asset::mock_sol() }, value, available_value, available_value)
+    }
+
+    fn solana_swap(value: u64, available_value: u64, minimum: Option<u64>) -> TransferAmountInput {
+        let asset = Asset::mock_sol();
+        let mut swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, &value.to_string(), "1000000", "deposit");
+        swap_data.quote.min_from_value = minimum.map(num_bigint::BigUint::from);
+        input(
+            TransactionInputType::Swap {
+                from_asset: asset,
+                to_asset: Asset::mock_eth(),
+                swap_data,
+            },
+            value,
+            available_value,
+            available_value,
+        )
     }
 
     #[test]
@@ -279,16 +303,32 @@ mod tests {
             }
         );
 
-        let mut below_minimum = solana_transfer(100, 100_000_000);
-        below_minimum.minimum_value = Some(BigInt::from(200));
         assert_eq!(
-            below_minimum.calculate().unwrap_err(),
-            TransferAmountError::InsufficientBalance {
+            solana_swap(100, 100_000_000, Some(200)).calculate().unwrap_err(),
+            TransferAmountError::BelowSwapMinimum {
                 asset_id: Asset::mock_sol().id,
-                required: BigInt::from(200),
-                available: BigInt::from(100),
+                provider: SwapProvider::NearIntents,
+                minimum: BigInt::from(200),
+                value: BigInt::from(100),
             }
         );
+
+        // A max swap sends the balance minus the fee, which can land under the provider minimum.
+        let mut max_below_minimum = solana_swap(100_000_000, 100_000_000, Some(100_000_000 - FEE + 1));
+        max_below_minimum.is_max_amount = true;
+        assert_eq!(
+            max_below_minimum.calculate().unwrap_err(),
+            TransferAmountError::BelowSwapMinimum {
+                asset_id: Asset::mock_sol().id,
+                provider: SwapProvider::NearIntents,
+                minimum: BigInt::from(100_000_000 - FEE + 1),
+                value: BigInt::from(100_000_000 - FEE),
+            }
+        );
+
+        let mut max_at_minimum = solana_swap(100_000_000, 100_000_000, Some(100_000_000 - FEE));
+        max_at_minimum.is_max_amount = true;
+        assert!(max_at_minimum.calculate().is_ok(), "a max swap exactly at the minimum still goes through");
     }
 
     #[test]

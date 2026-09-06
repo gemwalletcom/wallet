@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = ファンディングAPR
 info_perpetual_funding_apr_description = ロングがショートに支払うファンディングの年率換算値です（マイナスの場合はショートがロングに支払います）。ファンディングは、パーペチュアル価格を現物価格に近づけるためにユーザー間で行われる直接支払いで、別途手数料はかかりません。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = %@ ネットワークで、この取引の最低金額は %@ です。
+info_swap_minimum_amount_description = %@ には最低%@が必要ですが、金額は%@です。続行するには%@増やしてください。
 
 # Input
 

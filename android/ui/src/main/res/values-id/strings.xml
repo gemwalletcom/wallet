@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Tingkat tahunan di mana posisi long membayar posisi short (jika negatif, posisi short membayar posisi long). Tidak ada biaya yang terkait dengan pendanaan, yang merupakan transfer peer-to-peer antar pengguna untuk mendorong harga menuju harga spot.</string>
   <string name="info_minimum_amount_title">Jumlah Minimum</string>
   <string name="info_minimum_amount_description">Di jaringan %1$s, jumlah minimum untuk transaksi ini adalah %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s memerlukan minimal %2$s, tetapi jumlahnya %3$s. Tambahkan %4$s untuk melanjutkan.</string>
   <string name="input_enter_amount_to">Silakan masukkan jumlah ke %1$s</string>
   <string name="nft_properties">Properti</string>
   <string name="nft_collections">Koleksi</string>

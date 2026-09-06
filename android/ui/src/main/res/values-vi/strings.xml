@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Tỷ lệ hàng năm mà người mua trả tiền cho người bán (nếu âm, người bán trả tiền cho người mua). Không có phí liên quan đến tài trợ, đó là chuyển khoản ngang hàng giữa những người dùng để đẩy giá về giá giao ngay.</string>
   <string name="info_minimum_amount_title">Số tiền tối thiểu</string>
   <string name="info_minimum_amount_description">Trên mạng %1$s, số tiền tối thiểu cho giao dịch này là %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s yêu cầu tối thiểu %2$s, nhưng số tiền là %3$s. Hãy tăng thêm %4$s để tiếp tục.</string>
   <string name="input_enter_amount_to">Vui lòng nhập số tiền tới %1$s</string>
   <string name="nft_properties">Của cải</string>
   <string name="nft_collections">Bộ sưu tập</string>

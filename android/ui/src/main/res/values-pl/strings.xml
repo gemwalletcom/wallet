@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Roczna stopa procentowa, według której pozycje długie opłacają pozycje krótkie (jeśli wartość ujemna, pozycje krótkie opłacają pozycje długie). Nie ma żadnych opłat związanych z finansowaniem, które stanowi transfer typu peer-to-peer pomiędzy użytkownikami w celu podniesienia cen w kierunku ceny spot.</string>
   <string name="info_minimum_amount_title">Minimalna kwota</string>
   <string name="info_minimum_amount_description">W sieci %1$s minimalna kwota tej transakcji to %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s wymaga co najmniej %2$s, ale kwota wynosi %3$s. Zwiększ ją o %4$s, aby kontynuować.</string>
   <string name="input_enter_amount_to">Proszę wpisać kwotę do %1$s</string>
   <string name="nft_properties">Właściwości</string>
   <string name="nft_collections">Kolekcje</string>

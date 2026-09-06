@@ -103,7 +103,6 @@ class WalletConnectSignerTest {
             recipient = GemRecipient(address = "", name = null, memo = null, references = emptyList()),
             value = BigInteger.ZERO,
             useMaxAmount = false,
-            minimumValue = null,
         )
         val result = async { pendingRequests.signTransaction(transactionRequest(transfer, GemWalletConnectTransactionAction.SEND)) }
         val pending = pendingRequests.current.filterNotNull().first() as WalletConnectPendingRequest.Transaction

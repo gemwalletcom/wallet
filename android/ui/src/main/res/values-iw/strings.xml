@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">השיעור השנתי שבו לונג משלם שורט (אם שלילי, שורט משלם לונג). אין עמלות הקשורות למימון, שהוא העברה עמית לעמית בין משתמשים כדי לדחוף את המחירים לכיוון מחיר הספוט.</string>
   <string name="info_minimum_amount_title">כמות מינימלית</string>
   <string name="info_minimum_amount_description">ברשת %1$s, הסכום המינימלי לעסקה זו הוא %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s דורש לפחות %2$s, אבל הסכום הוא %3$s. הגדילו אותו ב-%4$s כדי להמשיך.</string>
   <string name="input_enter_amount_to">נא להזין סכום ל-%1$s</string>
   <string name="nft_properties">מאפיינים</string>
   <string name="nft_collections">אוספים</string>

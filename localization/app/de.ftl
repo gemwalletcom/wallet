@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Finanzierung effektiver Jahreszins
 info_perpetual_funding_apr_description = Der auf das Jahr umgerechnete Zinssatz, zu dem Long-Positionen Short-Positionen zahlen (bei negativem Wert zahlen Short-Positionen Long-Positionen). Mit der Finanzierung sind keine Gebühren verbunden, es handelt sich um einen Peer-to-Peer-Transfer zwischen Nutzern, um die Preise in Richtung des Spotpreises zu drücken.
 info_minimum_amount_title = Mindestbetrag
 info_minimum_amount_description = Im %@-Netzwerk beträgt der Mindestbetrag für diese Transaktion %@.
+info_swap_minimum_amount_description = %@ erfordert mindestens %@, aber der Betrag beträgt %@. Erhöhen Sie ihn um %@, um fortzufahren.
 
 # Input
 

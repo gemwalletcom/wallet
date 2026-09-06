@@ -1082,6 +1082,8 @@ info_perpetual_funding_apr_description = The annualized rate at which longs pay 
 info_minimum_amount_title = Minimum Amount
 # Transfer minimum amount info sheet. First %@ is the network name, second %@ is the minimum amount.
 info_minimum_amount_description = On the %@ network, the minimum amount for this transaction is %@.
+# Used in Info bottom sheets when a swap amount is below the provider minimum. Arguments: provider name, minimum amount, current amount, shortfall.
+info_swap_minimum_amount_description = %@ requires a minimum of %@, but the amount is %@. Increase it by %@ to continue.
 
 # Input
 

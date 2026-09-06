@@ -73,7 +73,6 @@ impl GemSwapTransfer {
             },
             value: self.value.clone().into(),
             use_max_amount: self.use_max_amount,
-            minimum_value: self.quote.min_from_value.clone().map(Into::into),
         }
     }
 }

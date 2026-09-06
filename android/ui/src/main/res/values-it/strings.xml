@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Il tasso annualizzato al quale le posizioni long pagano le posizioni short (se negativo, le posizioni short pagano le posizioni long). Non sono previste commissioni associate al finanziamento, che è un trasferimento peer-to-peer tra utenti per spingere i prezzi verso il prezzo spot.</string>
   <string name="info_minimum_amount_title">Importo minimo</string>
   <string name="info_minimum_amount_description">Sulla rete %1$s, l\'importo minimo per questa transazione è %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s richiede almeno %2$s, ma l\'importo è %3$s. Aumentalo di %4$s per continuare.</string>
   <string name="input_enter_amount_to">Inserisci l\'importo in %1$s</string>
   <string name="nft_properties">Proprietà</string>
   <string name="nft_collections">Collezioni</string>

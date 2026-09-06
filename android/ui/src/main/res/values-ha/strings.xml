@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Matsakaicin adadin shekara-shekara wanda masu doguwa ke biyan masu gajere (idan mara kyau, masu gajere suna biyan masu doguwa). Babu wasu kudade da ke da alaƙa da kudade, wanda shine canja wuri tsakanin-tsara tsakanin masu amfani don tura farashin zuwa farashin tabo.</string>
   <string name="info_minimum_amount_title">Mafi ƙarancin kuɗi</string>
   <string name="info_minimum_amount_description">A kan hanyar sadarwar %1$s, mafi ƙarancin adadin wannan ma\'amala shi ne %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s yana buƙatar aƙalla %2$s, amma adadin shine %3$s. Ƙara shi da %4$s don ci gaba.</string>
   <string name="input_enter_amount_to">Da fatan za a shigar da adadin zuwa %1$s</string>
   <string name="nft_properties">Kayayyaki</string>
   <string name="nft_collections">Tari</string>

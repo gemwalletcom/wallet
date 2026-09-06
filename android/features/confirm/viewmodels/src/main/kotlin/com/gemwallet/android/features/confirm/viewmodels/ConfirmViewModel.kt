@@ -93,6 +93,8 @@ class ConfirmViewModel @Inject constructor(
 
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
+
+    val isNetworkFeeSheetVisible = MutableStateFlow(false)
     val feeSelection = MutableStateFlow<FeeSelection>(FeeSelection.Preset(FeePriority.Normal))
     private val feeAssetSelection = MutableStateFlow<FeeAssetSelection>(FeeAssetSelection.Automatic)
     private var requestSimulation: String? = null
@@ -135,7 +137,7 @@ class ConfirmViewModel @Inject constructor(
             } catch (_: GemConfirmException.AccountMissing) {
                 state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
             } catch (err: Throwable) {
-                state.update { ConfirmState.Error(err) }
+                showError(err)
             }
         }
     }
@@ -177,11 +179,14 @@ class ConfirmViewModel @Inject constructor(
     val feeAssets = content.map { it?.feeAssets.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val assetPrice = combine(request, content) { request, content -> request?.asset?.let { content?.assetPrice(it) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     private val transferAmount = content.map { content ->
         when (val amount = content?.load?.preload?.amount ?: return@map null) {
             is GemTransferAmountResult.Amount -> amount.amount.value
             is GemTransferAmountResult.Error -> {
-                state.update { ConfirmState.Error(amount.error) }
+                showError(amount.error)
                 null
             }
         }
@@ -258,6 +263,15 @@ class ConfirmViewModel @Inject constructor(
             state.update { ConfirmState.Prepare }
             savedStateHandle[RouteArgument.Params.key] = pack
         }
+    }
+
+    fun dismissNetworkFeeSheet() {
+        isNetworkFeeSheetVisible.value = false
+    }
+
+    private fun showError(error: Throwable) {
+        state.update { ConfirmState.Error(error) }
+        isNetworkFeeSheetVisible.value = error is GemConfirmException.InsufficientNetworkFee
     }
 
     fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel, selection: FeeSelection): FeeDetailsModel? {

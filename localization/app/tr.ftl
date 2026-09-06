@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Finansman APR'si
 info_perpetual_funding_apr_description = Uzun pozisyonların kısa pozisyon ödediği yıllık oran (negatifse kısa pozisyonların uzun pozisyon ödediği). Fiyatları spot fiyata doğru itmek için kullanıcılar arasında eşler arası transfer olan finansmanla ilgili herhangi bir ücret yoktur.
 info_minimum_amount_title = Asgari Tutar
 info_minimum_amount_description = %@ ağında, bu işlem için minimum tutar %@.
+info_swap_minimum_amount_description = %@ en az %@ gerektirir, ancak tutar %@. Devam etmek için %@ artırın.
 
 # Input
 

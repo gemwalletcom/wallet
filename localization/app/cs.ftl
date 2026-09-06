@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Financování RPSN
 info_perpetual_funding_apr_description = Anualizovaná sazba, jakou longs platí shorts (pokud jsou záporné, shorts platí longs). S financováním nejsou spojeny žádné poplatky, což je peer-to-peer převod mezi uživateli za účelem tlačení cen směrem k spotové ceně.
 info_minimum_amount_title = Minimální částka
 info_minimum_amount_description = V síti %@ je minimální částka pro tuto transakci %@.
+info_swap_minimum_amount_description = %@ vyžaduje minimálně %@, ale částka je %@. Pro pokračování ji navyšte o %@.
 
 # Input
 

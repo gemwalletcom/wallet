@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">वार्षिक दर जिस पर लॉन्ग शॉर्ट्स को भुगतान करते हैं (यदि नकारात्मक, शॉर्ट्स लॉन्ग्स को भुगतान करते हैं)। फंडिंग से जुड़ी कोई फीस नहीं है, जो कीमतों को स्पॉट कीमत की ओर बढ़ाने के लिए उपयोगकर्ताओं के बीच एक पीयर-टू-पीयर ट्रांसफर है।</string>
   <string name="info_minimum_amount_title">न्यूनतम राशि</string>
   <string name="info_minimum_amount_description">%1$s नेटवर्क पर, इस लेनदेन की न्यूनतम राशि %2$s है।</string>
+  <string name="info_swap_minimum_amount_description">%1$s के लिए न्यूनतम %2$s आवश्यक है, लेकिन राशि %3$s है। जारी रखने के लिए इसे %4$s बढ़ाएँ।</string>
   <string name="input_enter_amount_to">कृपया राशि %1$s दर्ज करें</string>
   <string name="nft_properties">गुण</string>
   <string name="nft_collections">संग्रह</string>

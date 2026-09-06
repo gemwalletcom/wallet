@@ -96,7 +96,6 @@ impl GemPaymentService {
             recipient,
             value: transfer.map(|transfer| transfer.value).unwrap_or_default(),
             use_max_amount: false,
-            minimum_value: None,
         }
     }
 }
@@ -119,7 +118,6 @@ fn transfer_data(transfer: &GemPaymentConfirmTransfer, asset: Asset) -> GemTrans
         },
         value: transfer.value.clone().into(),
         use_max_amount: false,
-        minimum_value: None,
     }
 }
 

@@ -42,6 +42,8 @@ A max swap of a native coin cannot spend the whole balance: the transaction stil
 
 Issue #1154 was the missing attachment: a max TON swap was quoted at the balance minus 0.02 TON, STON.fi attached 0.31 TON, the confirm displayed a trimmed amount, and the wallet skipped the message on chain.
 
+- A flexible-input provider can report a minimum input above what a max swap can send once the network fee is paid: NEAR Intents' minimum is the quoted amount minus slippage, so a 50,200-sat Bitcoin max with a 537-sat fee lands 286 sats under it. The confirm keeps the sendable amount and reports `BelowMinimumValue` with the provider minimum, not an insufficient balance, so the user can lower the amount (issue #1147). The UTXO fee reserves that once buffered this at quote time were removed on 2026-06-11 (`54f237b00e`) together with mode-aware quoting, which skips reserves for flexible providers.
+
 Known gap: for a transfer-type max swap the confirm trims by the fee only when the fee exceeds the chain reserve, while the EVM and Tron signers always subtract the fee (`SignerInput::swap_value`) and the other signers never do, so the confirmed and signed amounts can differ by up to the fee on those providers.
 
 ## Failure and lifetime

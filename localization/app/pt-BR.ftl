@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = APR de financiamento
 info_perpetual_funding_apr_description = A taxa anualizada pela qual as posições compradas pagam as posições vendidas (se for negativa, as posições vendidas pagam as posições compradas). Não há taxas associadas ao financiamento, que é uma transferência ponto a ponto entre usuários para empurrar os preços em direção ao preço à vista.
 info_minimum_amount_title = Quantidade Mínima
 info_minimum_amount_description = Na rede %@, o valor mínimo para esta transação é %@.
+info_swap_minimum_amount_description = %@ requer no mínimo %@, mas o valor é %@. Aumente-o em %@ para continuar.
 
 # Input
 

@@ -77,7 +77,6 @@ fun mockSwapTransferData(
         recipient = GemRecipient(address = swapData.data.to, memo = swapData.data.memo),
         value = fromAmount,
         useMaxAmount = useMaxAmount,
-        minimumValue = minFromAmount,
     )
 }
 

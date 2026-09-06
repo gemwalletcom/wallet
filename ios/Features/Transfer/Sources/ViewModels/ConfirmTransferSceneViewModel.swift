@@ -251,6 +251,7 @@ extension ConfirmTransferSceneViewModel {
         guard let sheet = ConfirmInfoSheetBuilder.build(
             for: error,
             feePrice: state.metadata?.feePrice,
+            prices: state.metadata?.assetPrices ?? [:],
             currency: currency.rawValue,
             acquireFlow: { service.acquireAssetFlow(chain: $0.chain.rawValue) },
             onGetAsset: { [weak self] asset, buyAmount in self?.onSelectGetAsset(asset, buyAmount: buyAmount) },

@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = فنڈنگ APR
 info_perpetual_funding_apr_description = سالانہ شرح جس پر لانگ شارٹس ادا کرتا ہے (اگر منفی، شارٹس لانگ ادا کرتے ہیں)۔ فنڈنگ ​​سے وابستہ کوئی فیس نہیں ہے، جو کہ قیمتوں کو اسپاٹ پرائس کی طرف دھکیلنے کے لیے صارفین کے درمیان پیئر ٹو پیئر ٹرانسفر ہے۔
 info_minimum_amount_title = کم از کم رقم
 info_minimum_amount_description = %@ نیٹ ورک پر، اس ٹرانزیکشن کی کم از کم رقم %@ ہے۔
+info_swap_minimum_amount_description = %@ کے لیے کم از کم %@ درکار ہے، لیکن رقم %@ ہے۔ جاری رکھنے کے لیے اسے %@ بڑھائیں۔
 
 # Input
 

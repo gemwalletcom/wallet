@@ -32,6 +32,7 @@ import com.gemwallet.android.domains.asset.title
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.boldMarkdown
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.ext.toGemNetworkError
 import com.gemwallet.android.ext.toPrimitives
@@ -120,6 +121,7 @@ fun ConfirmScreen(
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val button by viewModel.button.collectAsStateWithLifecycle()
+    val assetPrice by viewModel.assetPrice.collectAsStateWithLifecycle()
     val applicationMetadata = input?.inputType?.applicationMetadata
     val isExternalRequest = applicationMetadata != null
     val isPayment = applicationMetadata?.source == ApplicationMetadataSource.Payment
@@ -131,9 +133,7 @@ fun ConfirmScreen(
     var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.error) {
         mutableStateOf(state is ConfirmState.BroadcastError)
     }
-    var isShowBottomSheetInfo by remember(state as? ConfirmState.Error) {
-        mutableStateOf((state as? ConfirmState.Error)?.error is GemConfirmException.InsufficientNetworkFee)
-    }
+    val isShowBottomSheetInfo by viewModel.isNetworkFeeSheetVisible.collectAsStateWithLifecycle()
 
     LaunchedEffect(input, simulationResult) {
         if (input == null) {
@@ -296,6 +296,8 @@ fun ConfirmScreen(
                     state = state,
                     fee = feeModel as? FeeUIModel.FeeInfo,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
+                    onDismissBottomSheetInfo = viewModel::dismissNetworkFeeSheet,
+                    assetPrice = assetPrice,
                     acquireFlow = viewModel::acquireFlow,
                     onAcquireAsset = onAcquireAsset,
                 )
@@ -429,12 +431,44 @@ fun Throwable.toBroadcastLabel(): String = toConfirmLabel()
 private fun Throwable.toConfirmLabel(): String? = when (this) {
     is GemConfirmException.ScanMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
     is GemConfirmException.ScanMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
-    is GemConfirmException.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, asset.toPrimitives().title.boldMarkdown())
-    is GemConfirmException.InsufficientNetworkFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, asset.toPrimitives().title.boldMarkdown())
+    is GemConfirmException.InsufficientBalance -> {
+        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+        val asset = asset.toPrimitives()
+        stringResource(
+            R.string.info_balance_required_description,
+            formatter.string(requirement.required, asset).boldMarkdown(),
+            formatter.string(requirement.available, asset),
+            formatter.string(requirement.shortfall, asset),
+        )
+    }
+    is GemConfirmException.InsufficientNetworkFee -> {
+        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+        val asset = asset.toPrimitives()
+        requirement?.let {
+            stringResource(
+                R.string.info_insufficient_network_fee_balance_description,
+                formatter.string(it.required, asset).boldMarkdown(),
+                asset.id.chain.networkName().boldMarkdown(),
+                formatter.string(it.available, asset),
+                formatter.string(it.shortfall, asset),
+            )
+        } ?: stringResource(R.string.transfer_insufficient_network_fee_balance, asset.title.boldMarkdown())
+    }
     is GemConfirmException.MinimumAccountBalanceTooLow -> stringResource(
         R.string.transfer_minimum_account_balance,
         ValueFormatter(style = ValueFormatter.Style.Full).string(requirement.required, asset.toPrimitives()).boldMarkdown(),
     )
+    is GemConfirmException.BelowSwapMinimum -> {
+        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+        val asset = asset.toPrimitives()
+        stringResource(
+            R.string.info_swap_minimum_amount_description,
+            providerName.boldMarkdown(),
+            formatter.string(requirement.required, asset).boldMarkdown(),
+            formatter.string(requirement.available, asset),
+            formatter.string(requirement.shortfall, asset),
+        )
+    }
     is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
     is GemConfirmException.Network -> msg
     is GemConfirmException.Broadcast -> "${stringResource(R.string.errors_transfer_error)}: $msg"

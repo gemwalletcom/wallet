@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Uzun pozisyonların kısa pozisyon ödediği yıllık oran (negatifse kısa pozisyonların uzun pozisyon ödediği). Fiyatları spot fiyata doğru itmek için kullanıcılar arasında eşler arası transfer olan finansmanla ilgili herhangi bir ücret yoktur.</string>
   <string name="info_minimum_amount_title">Asgari Tutar</string>
   <string name="info_minimum_amount_description">%1$s ağında, bu işlem için minimum tutar %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s en az %2$s gerektirir, ancak tutar %3$s. Devam etmek için %4$s artırın.</string>
   <string name="input_enter_amount_to">Lütfen tutarı %1$s olarak girin</string>
   <string name="nft_properties">Özellikler</string>
   <string name="nft_collections">Koleksiyonlar</string>

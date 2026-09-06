@@ -16,14 +16,12 @@ public extension GemTransferData {
         recipient: GemRecipient = .mock(),
         value: BigInt = .zero,
         useMaxAmount: Bool = false,
-        minimumValue: BigInt? = nil,
     ) -> GemTransferData {
         GemTransferData(
             inputType: type,
             recipient: recipient,
             value: value,
             useMaxAmount: useMaxAmount,
-            minimumValue: minimumValue,
         )
     }
 

@@ -60,8 +60,6 @@ pub struct GemTransferData {
     pub value: GemBigInt,
     #[uniffi(default = false)]
     pub use_max_amount: bool,
-    #[uniffi(default = None)]
-    pub minimum_value: Option<GemBigInt>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -106,7 +104,6 @@ mod tests {
             recipient: GemRecipient::address(address.to_string()),
             value: value.into(),
             use_max_amount: false,
-            minimum_value: None,
         };
 
         assert_eq!(transfer("bc1q", 10).identifier(), "bitcoin-bc1q-10");

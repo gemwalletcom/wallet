@@ -155,7 +155,6 @@ impl GemConfirmData {
             fee_asset_balance: metadata.fee_asset_balance.available.clone().into(),
             fee: self.fee.fee.clone(),
             is_max_amount: transfer.use_max_amount,
-            minimum_value: transfer.minimum_value.clone(),
         };
         Ok(match input.calculate() {
             Ok(amount) => GemTransferAmountResult::Amount { amount },
@@ -180,6 +179,12 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
         GemTransferAmountError::MinimumAccountBalanceTooLow { asset_id, required, available } => GemConfirmError::MinimumAccountBalanceTooLow {
             asset: error_asset(&asset_id),
             requirement: GemBalanceRequirement::new(required, available),
+        },
+        GemTransferAmountError::BelowSwapMinimum { asset_id, provider, minimum, value } => GemConfirmError::BelowSwapMinimum {
+            asset: error_asset(&asset_id),
+            provider,
+            provider_name: provider.name().to_string(),
+            requirement: GemBalanceRequirement::new(minimum, value),
         },
     }
 }
@@ -425,8 +430,8 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::GasPriceType;
     use primitives::{
-        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, TransactionType, TransferDataExtra,
-        TransferDataOutputAction, Wallet, WalletId,
+        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType,
+        TransferDataExtra, TransferDataOutputAction, Wallet, WalletId,
         swap::{ApprovalData, SwapData},
     };
     use primitives::{AddressName, AddressType, VerificationStatus};
@@ -458,7 +463,6 @@ mod tests {
                         },
                         value: BigInt::from(10),
                         use_max_amount: true,
-                        minimum_value: None,
                     },
                 },
                 fee: GemTransactionLoadFee {
@@ -846,7 +850,6 @@ mod tests {
                         },
                         value: BigInt::from(10),
                         use_max_amount: false,
-                        minimum_value: None,
                     },
                 },
                 fee: primitives::TransactionFee::new_from_fee(BigInt::from(1), AssetId::from_chain(Chain::Solana)).into(),
@@ -969,6 +972,43 @@ mod tests {
         let selectable = selectable_fee_assets(assets, balances, vec![]);
 
         assert_eq!(selectable.iter().map(|fee| fee.asset.id.clone()).collect::<Vec<_>>(), vec![funded.id]);
+    }
+
+    #[test]
+    fn test_a_max_amount_below_the_provider_minimum_reports_the_minimum_not_a_missing_balance() {
+        let chain = Chain::Solana;
+        let asset = Asset::from_chain(chain);
+        let mut swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, "50200", "1000000", "deposit");
+        swap_data.quote.min_from_value = Some(num_bigint::BigUint::from(49_949u64));
+        let input_type = TransactionInputType::Swap {
+            from_asset: asset.clone(),
+            to_asset: Asset::from_chain(Chain::Bitcoin),
+            swap_data,
+        };
+        let mut data = send_input_from(chain, input_type, "sender").confirm;
+        data.input.transfer.use_max_amount = true;
+        data.input.transfer.value = BigInt::from(50_200);
+        data.fee.fee = BigInt::from(537);
+
+        let metadata = GemConfirmMetadata {
+            asset_balance: balance(&asset.id, 50_200),
+            fee_asset_balance: balance(&asset.id, 50_200),
+            prices: vec![],
+        };
+
+        match data.preload_amount(&metadata, &asset).unwrap() {
+            GemTransferAmountResult::Error {
+                error: GemConfirmError::BelowSwapMinimum { asset: error_asset, provider, provider_name, requirement },
+            } => {
+                assert_eq!(error_asset, asset);
+                assert_eq!(provider, SwapProvider::NearIntents, "the sheet shows the icon of the provider that set the minimum");
+                assert_eq!(provider_name, "NEAR Intents", "the sheet names it");
+                assert_eq!(requirement.required, BigInt::from(49_949), "the minimum the provider asked for");
+                assert_eq!(requirement.available, BigInt::from(49_663), "what the balance can send once the fee is paid");
+                assert_eq!(requirement.shortfall, BigInt::from(286));
+            }
+            other => panic!("expected a below minimum value error, got {other:?}"),
+        }
     }
 
     #[test]

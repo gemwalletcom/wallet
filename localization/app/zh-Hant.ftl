@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = 年化資金費率
 info_perpetual_funding_apr_description = 多頭向空頭支付的年化資金費率（為負時由空頭向多頭支付）。資金費是使用者之間的點對點支付，不另收手續費，用於使永續合約價格接近現貨價格。
 info_minimum_amount_title = 最低金額
 info_minimum_amount_description = 在 %@ 網路上，此交易的最低金額為 %@。
+info_swap_minimum_amount_description = %@ 最低需要%@，但金額為%@。請增加%@以繼續。
 
 # Input
 

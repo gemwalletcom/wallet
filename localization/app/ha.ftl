@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Tallafin APR
 info_perpetual_funding_apr_description = Matsakaicin adadin shekara-shekara wanda masu doguwa ke biyan masu gajere (idan mara kyau, masu gajere suna biyan masu doguwa). Babu wasu kudade da ke da alaƙa da kudade, wanda shine canja wuri tsakanin-tsara tsakanin masu amfani don tura farashin zuwa farashin tabo.
 info_minimum_amount_title = Mafi ƙarancin kuɗi
 info_minimum_amount_description = A kan hanyar sadarwar %@, mafi ƙarancin adadin wannan ma'amala shi ne %@.
+info_swap_minimum_amount_description = %@ yana buƙatar aƙalla %@, amma adadin shine %@. Ƙara shi da %@ don ci gaba.
 
 # Input
 

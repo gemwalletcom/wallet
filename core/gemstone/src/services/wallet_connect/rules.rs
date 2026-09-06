@@ -292,7 +292,6 @@ pub fn transfer_data(
         },
         value,
         use_max_amount: false,
-        minimum_value: None,
     })
 }
 

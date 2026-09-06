@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Pagpopondo sa APR
 info_perpetual_funding_apr_description = Ang taunang rate kung saan nagbabayad ang longs ng shorts (kung negatibo, ang shorts ay nagbabayad ng longs). Walang mga bayarin na nauugnay sa pagpopondo, na isang peer-to-peer na paglipat sa pagitan ng mga user upang itulak ang mga presyo patungo sa presyo ng lugar.
 info_minimum_amount_title = Pinakamababang Halaga
 info_minimum_amount_description = Sa %@ network, ang minimum na halaga para sa transaksyong ito ay %@.
+info_swap_minimum_amount_description = Nangangailangan ang %@ ng hindi bababa sa %@, ngunit ang halaga ay %@. Dagdagan ito ng %@ para magpatuloy.
 
 # Input
 

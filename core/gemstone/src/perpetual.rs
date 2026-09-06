@@ -81,7 +81,6 @@ impl GemPerpetual {
             recipient: self.recipient(),
             value,
             use_max_amount,
-            minimum_value: None,
         }
     }
 }

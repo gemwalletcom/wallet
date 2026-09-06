@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = APR التمويل
 info_perpetual_funding_apr_description = المعدل السنوي الذي تدفع به صفقات الشراء صفقات البيع (إذا كانت سلبية، تدفع صفقات البيع صفقات شراء). لا توجد رسوم مرتبطة بالتمويل، وهو عبارة عن تحويل من نظير إلى نظير بين المستخدمين لدفع الأسعار نحو السعر الفوري.
 info_minimum_amount_title = الحد الأدنى للمبلغ
 info_minimum_amount_description = على شبكة %@، الحد الأدنى لمبلغ هذه المعاملة هو %@.
+info_swap_minimum_amount_description = يتطلب %@ حداً أدنى قدره %@، لكن المبلغ هو %@. زِد المبلغ بمقدار %@ للمتابعة.
 
 # Input
 

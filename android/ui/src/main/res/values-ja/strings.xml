@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">ロングがショートに支払うファンディングの年率換算値です（マイナスの場合はショートがロングに支払います）。ファンディングは、パーペチュアル価格を現物価格に近づけるためにユーザー間で行われる直接支払いで、別途手数料はかかりません。</string>
   <string name="info_minimum_amount_title">最低金額</string>
   <string name="info_minimum_amount_description">%1$s ネットワークで、この取引の最低金額は %2$s です。</string>
+  <string name="info_swap_minimum_amount_description">%1$s には最低%2$sが必要ですが、金額は%3$sです。続行するには%4$s増やしてください。</string>
   <string name="input_enter_amount_to">%1$s金額を入力してください</string>
   <string name="nft_properties">プロパティ</string>
   <string name="nft_collections">コレクション</string>

@@ -45077,6 +45077,197 @@
         }
       }
     },
+    "info.swap_minimum_amount_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتطلب %@ حداً أدنى قدره %@، لكن المبلغ هو %@. زِد المبلغ بمقدار %@ للمتابعة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ন্যূনতম %@ প্রয়োজন, কিন্তু পরিমাণ হলো %@। চালিয়ে যেতে %@ বাড়ান।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ vyžaduje minimálně %@, ale částka je %@. Pro pokračování ji navyšte o %@."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kræver mindst %@, men beløbet er %@. Forhøj det med %@ for at fortsætte."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ erfordert mindestens %@, aber der Betrag beträgt %@. Erhöhen Sie ihn um %@, um fortzufahren."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ requires a minimum of %@, but the amount is %@. Increase it by %@ to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ requiere un mínimo de %@, pero la cantidad es %@. Auméntala en %@ para continuar."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ حداقل به %@ نیاز دارد، اما مبلغ %@ است. برای ادامه آن را %@ افزایش دهید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nangangailangan ang %@ ng hindi bababa sa %@, ngunit ang halaga ay %@. Dagdagan ito ng %@ para magpatuloy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ nécessite au moins %@, mais le montant est de %@. Augmentez-le de %@ pour continuer."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ yana buƙatar aƙalla %@, amma adadin shine %@. Ƙara shi da %@ don ci gaba."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ דורש לפחות %@, אבל הסכום הוא %@. הגדילו אותו ב-%@ כדי להמשיך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ के लिए न्यूनतम %@ आवश्यक है, लेकिन राशि %@ है। जारी रखने के लिए इसे %@ बढ़ाएँ।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ memerlukan minimal %@, tetapi jumlahnya %@. Tambahkan %@ untuk melanjutkan."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ richiede almeno %@, ma l'importo è %@. Aumentalo di %@ per continuare."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ には最低%@が必要ですが、金額は%@です。続行するには%@増やしてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@에는 최소 %@이 필요하지만 금액은 %@입니다. 계속하려면 %@을 늘리세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ memerlukan sekurang-kurangnya %@, tetapi jumlahnya %@. Tambah %@ untuk meneruskan."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ vereist minimaal %@, maar het bedrag is %@. Verhoog het met %@ om door te gaan."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wymaga co najmniej %@, ale kwota wynosi %@. Zwiększ ją o %@, aby kontynuować."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ requer no mínimo %@, mas o valor é %@. Aumente-o em %@ para continuar."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ necesită minimum %@, dar suma este %@. Măriți-o cu %@ pentru a continua."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ требует минимум %@, но сумма составляет %@. Увеличьте её на %@, чтобы продолжить."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ inahitaji angalau %@, lakini kiasi ni %@. Ongeza %@ ili kuendelea."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ต้องใช้อย่างน้อย %@ แต่จำนวนคือ %@ เพิ่มอีก %@ เพื่อดำเนินการต่อ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en az %@ gerektirir, ancak tutar %@. Devam etmek için %@ artırın."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ вимагає щонайменше %@, але сума становить %@. Збільште її на %@, щоб продовжити."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ کے لیے کم از کم %@ درکار ہے، لیکن رقم %@ ہے۔ جاری رکھنے کے لیے اسے %@ بڑھائیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ yêu cầu tối thiểu %@, nhưng số tiền là %@. Hãy tăng thêm %@ để tiếp tục."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 最低需要%@，但金额为%@。请增加%@以继续。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 最低需要%@，但金額為%@。請增加%@以繼續。"
+          }
+        }
+      }
+    },
     "info.total_supply.description": {
       "extractionState": "manual",
       "localizations": {
