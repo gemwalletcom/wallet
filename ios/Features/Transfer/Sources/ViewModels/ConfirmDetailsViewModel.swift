@@ -37,8 +37,8 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
         switch type {
         case let .swap(fromAsset, toAsset, swapData):
             let toAsset = toAsset.map()
-            let quote = Primitives.SwapData(core: swapData).quote
-            let summary = GemSwapQuoteSummary(quote: quote.json())
+            let quote = swapData.quote
+            let summary = GemSwapQuoteSummary(quote: quote)
             let fromAssetPrice = AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice)
             let toAssetPrice = AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id])
             return .swapDetails(
@@ -48,8 +48,8 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     selectedQuote: quote,
                     slippage: .manual(bps: quote.slippageBps),
                     currency: currency,
-                    swapPriceImpact: fromAssetPrice.swapValue(BigUInt(quote.fromValueBigInt))
-                        .priceImpact(receive: toAssetPrice.swapValue(BigUInt(quote.toValueBigInt)))
+                    swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
+                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue))
                         .map { $0.map() },
                     minReceiveValue: BigInt(summary.minReceiveValue()),
                     etaMinutes: summary.etaMinutes(),

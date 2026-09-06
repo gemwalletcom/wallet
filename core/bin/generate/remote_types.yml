@@ -105,6 +105,13 @@ remote:
   - Delegation
   - StakeType
   - EarnType
+  - SwapQuoteDataType
+  - ApprovalData
+  - SwapProviderData
+  - SwapQuoteData
+  - SwapQuote
+  - SwapData
+  - ContractCallData
 codes:
   - Chain
   - Currency

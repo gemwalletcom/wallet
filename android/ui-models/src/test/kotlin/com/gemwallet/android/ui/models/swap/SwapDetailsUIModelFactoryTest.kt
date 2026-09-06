@@ -5,7 +5,6 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockSwapQuote
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.model.ValueFormatter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -191,7 +190,7 @@ class SwapDetailsUIModelFactoryTest {
     )
 
     private fun summary(toValue: String, slippageBps: UInt, etaInSeconds: UInt?) = GemSwapQuoteSummary(
-        mockSwapQuote(toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds).toJson(),
+        mockSwapQuote(toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
     )
 
     private fun provider(

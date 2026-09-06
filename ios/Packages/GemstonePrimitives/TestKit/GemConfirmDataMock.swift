@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.ApprovalData
 import struct Gemstone.GemConfirmInput
 public import BigInt
 public import enum Gemstone.FeePriority
@@ -112,7 +113,7 @@ public extension TransferDataExtra {
         outputType: Primitives.TransferDataOutputType = .encodedTransaction,
         outputAction: Primitives.TransferDataOutputAction = .send,
         transactionType: Primitives.TransactionType = .transfer,
-        approval: String? = .none,
+        approval: Gemstone.ApprovalData? = .none,
     ) -> TransferDataExtra {
         TransferDataExtra(
             to: to,

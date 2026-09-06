@@ -8,8 +8,6 @@ import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana
@@ -20,12 +18,12 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
-import com.wallet.core.primitives.swap.ApprovalData
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import uniffi.gemstone.ApprovalData
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
@@ -67,7 +65,7 @@ class TransferDataCodecTest {
                 outputType = outputType.toGem(),
                 outputAction = outputAction.toGem(),
                 transactionType = transactionType.toGem(),
-                approval = approval?.toJson(),
+                approval = approval,
             ),
         ),
         recipient = recipient,
@@ -99,7 +97,7 @@ class TransferDataCodecTest {
     @Test
     fun genericPackRoundTripsThroughCoreCodec() {
         val asset = mockAssetSolana()
-        val approval = ApprovalData(token = "token", spender = "spender", value = "1", isUnlimited = false)
+        val approval = ApprovalData(token = "token", spender = "spender", value = BigInteger.ONE, isUnlimited = false)
         val original = generic(
             asset = asset,
             recipient = GemRecipient(address = "merchant", memo = "payment-memo"),
@@ -133,7 +131,7 @@ class TransferDataCodecTest {
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
         assertEquals(BigInteger("21000"), generic.extra.gasLimit)
         assertEquals(TransactionType.Transfer, generic.extra.transactionType.toPrimitives())
-        assertEquals(approval, requireNotNull(generic.extra.approval).decodeJson<ApprovalData>())
+        assertEquals(approval, generic.extra.approval)
     }
 
     @Test

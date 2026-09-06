@@ -3,7 +3,6 @@
 
 import Primitives
 
-extension Primitives.ApprovalData: JsonCodable {}
 extension Primitives.AssetBasic: JsonCodable {}
 extension Primitives.AssetFull: JsonCodable {}
 extension Primitives.AssetList: JsonCodable {}
@@ -16,7 +15,6 @@ extension Primitives.ChartValuePercentage: JsonCodable {}
 extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
-extension Primitives.ContractCallData: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
 extension Primitives.FiatQuote: JsonCodable {}
 extension Primitives.FiatQuoteRequest: JsonCodable {}
@@ -59,10 +57,6 @@ extension Primitives.StakeValidator: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SupportTyping: JsonCodable {}
-extension Primitives.SwapData: JsonCodable {}
-extension Primitives.SwapProviderData: JsonCodable {}
-extension Primitives.SwapQuote: JsonCodable {}
-extension Primitives.SwapQuoteData: JsonCodable {}
 extension Primitives.TPSLOrderData: JsonCodable {}
 extension Primitives.Transaction: JsonCodable {}
 extension Primitives.TransactionExtended: JsonCodable {}

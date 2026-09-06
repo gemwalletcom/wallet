@@ -2,11 +2,10 @@ use primitives::Charts;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::swap::{ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    AssetList, ChainAsset, ContractCallData, Payment, PaymentAmount, PaymentLink, PaymentRequest, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader,
-    SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    AssetList, ChainAsset, Payment, PaymentAmount, PaymentLink, PaymentRequest, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult,
+    SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset, PortfolioAssets,
@@ -36,7 +35,6 @@ macro_rules! json_bridge {
 }
 
 json_bridge!(
-    ApprovalData,
     AssetBasic,
     AssetFull,
     AssetList,
@@ -49,7 +47,6 @@ json_bridge!(
     Charts,
     ConfigResponse,
     ConfigVersions,
-    ContractCallData,
     FiatAssets,
     FiatQuote,
     FiatQuoteRequest,
@@ -92,10 +89,6 @@ json_bridge!(
     SupportMessage,
     SupportMessageInput,
     SupportTyping,
-    SwapData,
-    SwapProviderData,
-    SwapQuote,
-    SwapQuoteData,
     TPSLOrderData,
     Transaction,
     TransactionExtended,

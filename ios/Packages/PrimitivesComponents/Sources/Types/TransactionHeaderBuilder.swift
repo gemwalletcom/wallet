@@ -30,17 +30,17 @@ public enum TransactionHeaderTypeBuilder {
 
                 let from = fromAsset.map()
                 let to = toAsset.map()
-                let quote = Primitives.SwapData(core: data).quote
+                let quote = data.quote
                 let model = SwapMetadataViewModel(
                     metadata: TransactionExtendedMetadata(
                         assets: [from, to],
                         assetPrices: assetPrices,
                         metadata: .encode(TransactionSwapMetadata(
                             fromAsset: from.id,
-                            fromValue: quote.fromValue,
+                            fromValue: quote.fromValue.description,
                             toAsset: to.id,
-                            toValue: quote.toValue,
-                            provider: quote.providerData.provider.rawValue,
+                            toValue: quote.toValue.description,
+                            provider: quote.providerData.provider.map().rawValue,
                         )),
                     ),
                 )

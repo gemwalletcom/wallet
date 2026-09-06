@@ -2,17 +2,18 @@
 
 import Gemstone
 @testable import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
 
 final class TransactionInputTypeMapTests {
     @Test
-    func swapConstructorPreservesGasLimit() throws {
+    func swapConstructorPreservesGasLimit() {
         let swapData = SwapData.mock(data: SwapQuoteData(
             to: "0x0000000000000000000000000000000000000001",
             dataType: .contract,
-            value: "0",
+            value: 0,
             data: "0x",
             memo: nil,
             approval: .mock(),
@@ -25,6 +26,6 @@ final class TransactionInputTypeMapTests {
             Issue.record("Expected swap input type")
             return
         }
-        #expect(try Primitives.SwapData(mappedSwapData).data.gasLimit == "500000")
+        #expect(mappedSwapData.data.gasLimit == "500000")
     }
 }

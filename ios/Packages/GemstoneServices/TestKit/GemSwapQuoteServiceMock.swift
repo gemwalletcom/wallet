@@ -15,13 +15,15 @@ import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperAssetList
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperSlippage
+import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: @Sendable (BigInt) -> [SwapperQuote]
-    private let quoteData: Primitives.SwapQuoteData
+    private let quoteData: Gemstone.SwapQuoteData
     private let assetList: SwapperAssetList
     private let quotesDelay: Duration?
     private let quotesError: Error?
@@ -31,7 +33,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
-        quoteData: Primitives.SwapQuoteData = .mock(),
+        quoteData: Gemstone.SwapQuoteData = .mock(),
         assetList: SwapperAssetList = .mock(),
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
@@ -51,7 +53,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public convenience init(
         quotes: [SwapperQuote] = [.mock()],
-        quoteData: Primitives.SwapQuoteData = .mock(),
+        quoteData: Gemstone.SwapQuoteData = .mock(),
         assetList: SwapperAssetList = .mock(),
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
@@ -118,9 +120,9 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     }
 
     public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
-        try GemSwapTransfer(
+        GemSwapTransfer(
             quote: GemSwapQuoteSummary.fromQuote(quote: quote).quote(),
-            data: quoteData.json(),
+            data: quoteData,
             recipient: quote.request.destinationAddress,
             value: quote.request.value,
             useMaxAmount: quote.request.options.useMaxAmount,

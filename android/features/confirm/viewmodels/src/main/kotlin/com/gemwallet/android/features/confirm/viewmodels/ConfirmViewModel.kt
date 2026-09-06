@@ -13,7 +13,6 @@ import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
 import com.gemwallet.android.domains.confirm.confirmLoadOptions
 import com.gemwallet.android.domains.confirm.toGem
-import com.gemwallet.android.domains.swap.providerId
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -202,7 +201,7 @@ class ConfirmViewModel @Inject constructor(
             fromAsset = content.assetPrice(request.asset),
             fromAmount = amount.atomicValue,
             toAsset = inputType.toAsset?.let(content::assetPrice),
-            toAmount = inputType.swapData?.quote?.toValue?.let(::BigInteger),
+            toAmount = inputType.swapData?.quote?.toValue,
             nftAsset = inputType.nftAsset,
             currency = content.currency,
         )
@@ -366,27 +365,27 @@ class ConfirmViewModel @Inject constructor(
         content ?: return null
         val fromAsset = content.assetPrice(transfer.asset)
         val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
-        val summary = GemSwapQuoteSummary(swapData.quote.toJson())
+        val summary = GemSwapQuoteSummary(swapData.quote)
 
         val provider = SwapProviderUIModelFactory.create(
-            providerId = swapData.providerId,
+            providerId = swapData.quote.providerData.provider,
             title = swapData.quote.providerData.protocolName,
             receiveAsset = toAsset,
-            toValue = BigInteger(swapData.quote.toValue),
+            toValue = swapData.quote.toValue,
         )
         val model = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
                 payAsset = fromAsset,
                 receiveAsset = toAsset,
                 fromValue = transfer.value,
-                toValue = BigInteger(swapData.quote.toValue),
+                toValue = swapData.quote.toValue,
                 provider = provider,
                 slippageBps = swapData.quote.slippageBps,
                 selectedSlippage = swapData.quote.slippageBps,
                 etaInSeconds = swapData.quote.etaInSeconds,
                 isProviderSelectable = false,
                 priceImpact = fromAsset.swapValue(transfer.value)
-                    .priceImpact(toAsset.swapValue(BigInteger(swapData.quote.toValue)))
+                    .priceImpact(toAsset.swapValue(swapData.quote.toValue))
                     ?.toPrimitives(),
                 minReceiveValue = summary.minReceiveValue(),
                 etaMinutes = summary.etaMinutes(),

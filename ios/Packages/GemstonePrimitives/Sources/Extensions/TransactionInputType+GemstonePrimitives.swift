@@ -17,12 +17,12 @@ public extension TransactionInputType {
         .withdrawal(asset: asset.map())
     }
 
-    static func swap(_ fromAsset: Primitives.Asset, _ toAsset: Primitives.Asset, _ swapData: Primitives.SwapData) -> Self {
-        .swap(fromAsset: fromAsset.map(), toAsset: toAsset.map(), swapData: swapData.json())
+    static func swap(_ fromAsset: Primitives.Asset, _ toAsset: Primitives.Asset, _ swapData: Gemstone.SwapData) -> Self {
+        .swap(fromAsset: fromAsset.map(), toAsset: toAsset.map(), swapData: swapData)
     }
 
-    static func tokenApprove(_ asset: Primitives.Asset, _ approvalData: Primitives.ApprovalData) -> Self {
-        .tokenApprove(asset: asset.map(), approvalData: approvalData.json())
+    static func tokenApprove(_ asset: Primitives.Asset, _ approvalData: Gemstone.ApprovalData) -> Self {
+        .tokenApprove(asset: asset.map(), approvalData: approvalData)
     }
 
     static func stake(_ asset: Primitives.Asset, _ stakeType: Primitives.StakeType) -> Self {
@@ -37,8 +37,8 @@ public extension TransactionInputType {
         .perpetual(asset: asset.map(), perpetualType: perpetualType.json())
     }
 
-    static func earn(_ asset: Primitives.Asset, _ earnType: Primitives.EarnType, _ data: Primitives.ContractCallData) -> Self {
-        .earn(asset: asset.map(), earnType: earnType.map(), data: data.json())
+    static func earn(_ asset: Primitives.Asset, _ earnType: Primitives.EarnType, _ data: Gemstone.ContractCallData) -> Self {
+        .earn(asset: asset.map(), earnType: earnType.map(), data: data)
     }
 
     static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: TransferDataExtra) -> Self {

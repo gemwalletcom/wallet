@@ -12,6 +12,7 @@ import protocol Gemstone.GemSwapQuoteServiceProtocol
 import class Gemstone.GemSwapQuoteSummary
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -104,7 +105,7 @@ public final class SwapSceneViewModel {
     public var swapDetailsViewModel: SwapDetailsViewModel? {
         guard let selectedSwapQuote, let fromAsset, let toAsset else { return nil }
         let summary = GemSwapQuoteSummary.fromQuote(quote: selectedSwapQuote)
-        guard let selectedQuote = try? Primitives.SwapQuote(summary.quote()) else { return nil }
+        let selectedQuote = summary.quote()
         let fromAssetPrice = AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price)
         let toAssetPrice = AssetPriceValue(asset: toAsset.asset, price: toAsset.price)
         return SwapDetailsViewModel(
@@ -115,8 +116,8 @@ public final class SwapSceneViewModel {
             slippage: selectedSlippage,
             currency: service.currency.rawValue,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
-            swapPriceImpact: fromAssetPrice.swapValue(BigUInt(selectedQuote.fromValueBigInt))
-                .priceImpact(receive: toAssetPrice.swapValue(BigUInt(selectedQuote.toValueBigInt)))
+            swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
+                .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue))
                 .map { $0.map() },
             minReceiveValue: BigInt(summary.minReceiveValue()),
             etaMinutes: summary.etaMinutes(),
@@ -126,7 +127,7 @@ public final class SwapSceneViewModel {
         )
     }
 
-    private func providerItems(_ quotes: [SwapperQuote], selectedQuote: SwapQuote, toAssetPrice: AssetPriceValue) -> [SwapProviderItem] {
+    private func providerItems(_ quotes: [SwapperQuote], selectedQuote: Gemstone.SwapQuote, toAssetPrice: AssetPriceValue) -> [SwapProviderItem] {
         quotes.compactMap {
             SwapProviderItem(
                 asset: toAssetPrice.asset,

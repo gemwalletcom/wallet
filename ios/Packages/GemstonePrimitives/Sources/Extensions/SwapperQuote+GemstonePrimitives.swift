@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import struct Gemstone.SwapperQuote
 import class Gemstone.GemSwapQuoteSummary
-import Primitives
+import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapQuote
 
 public extension Gemstone.SwapperQuote {
-    func map() throws -> Primitives.SwapQuote {
-        try Primitives.SwapQuote(GemSwapQuoteSummary.fromQuote(quote: self).quote())
+    var swapQuote: Gemstone.SwapQuote {
+        GemSwapQuoteSummary.fromQuote(quote: self).quote()
     }
 }

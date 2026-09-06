@@ -5,6 +5,7 @@ import Components
 import Formatters
 import Foundation
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapQuote
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -26,7 +27,7 @@ public final class SwapDetailsViewModel {
     private let fromAssetPrice: AssetPriceValue
     private let toAssetPrice: AssetPriceValue
     private let providerViewModel: SwapProviderViewModel
-    private let selectedQuote: SwapQuote
+    private let selectedQuote: Gemstone.SwapQuote
     private let slippage: SwapSlippage
     private var rateDirection: AssetRateFormatter.Direction = .direct
     private let priceViewModel: PriceViewModel
@@ -40,7 +41,7 @@ public final class SwapDetailsViewModel {
         state: StateViewType<[SwapProviderItem]> = .data([]),
         fromAssetPrice: AssetPriceValue,
         toAssetPrice: AssetPriceValue,
-        selectedQuote: SwapQuote,
+        selectedQuote: Gemstone.SwapQuote,
         slippage: SwapSlippage,
         currency: String,
         isProviderSelectionEnabled: Bool = true,
@@ -113,8 +114,8 @@ public final class SwapDetailsViewModel {
         try? rateFormatter.rate(
             fromAsset: fromAssetPrice.asset,
             toAsset: toAssetPrice.asset,
-            fromValue: selectedQuote.fromValueBigInt,
-            toValue: selectedQuote.toValueBigInt,
+            fromValue: BigInt(selectedQuote.fromValue),
+            toValue: BigInt(selectedQuote.toValue),
             direction: rateDirection,
         )
     }

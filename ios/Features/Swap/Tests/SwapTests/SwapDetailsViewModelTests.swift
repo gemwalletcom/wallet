@@ -6,6 +6,7 @@ import Formatters
 import class Gemstone.GemSwapQuoteSummary
 import GemstonePrimitives
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapQuote
 import Preferences
 import Primitives
 import PrimitivesTestKit
@@ -19,15 +20,15 @@ struct SwapDetailsViewModelTests {
     func swapEstimationField() throws {
         #expect(
             try SwapDetailsViewModel
-                .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).map()).swapEstimationField == nil,
+                .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).swapQuote).swapEstimationField == nil,
         )
-        #expect(try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).map()).swapEstimationField == nil)
-        #expect(try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 180).map()).swapEstimationField?.value.text == "≈ 3 min")
+        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField == nil)
+        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 180).swapQuote).swapEstimationField?.value.text == "≈ 3 min")
     }
 
     @Test
     func switchRate() throws {
-        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).map())
+        let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
 
         #expect(model.rateText == "1 ETH ≈ 250,000.00 USDT")
 
@@ -37,15 +38,15 @@ struct SwapDetailsViewModelTests {
 
     @Test
     func minReceiveAppliesSlippageBasisPoints() throws {
-        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).map())
+        let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
 
         #expect(model.minReceiveField.value.text == "248,750 USDT")
     }
 }
 
 extension SwapDetailsViewModel {
-    static func mock(selectedQuote: SwapQuote = try! SwapperQuote.mock().map()) -> SwapDetailsViewModel {
-        let summary = GemSwapQuoteSummary(quote: selectedQuote.json())
+    static func mock(selectedQuote: Gemstone.SwapQuote = SwapperQuote.mock().swapQuote) -> SwapDetailsViewModel {
+        let summary = GemSwapQuoteSummary(quote: selectedQuote)
         return SwapDetailsViewModel(
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
