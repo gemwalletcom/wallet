@@ -35,6 +35,10 @@ const val EXTENDED_COLUMNS = """
     prices.day_changed AS price_day_changed,
     feePrices.value AS fee_price_value,
     feePrices.day_changed AS fee_price_day_changed,
+    from_prices.value AS from_price_value,
+    from_prices.day_changed AS from_price_day_changed,
+    to_prices.value AS to_price_value,
+    to_prices.day_changed AS to_price_day_changed,
     from_asset.id AS from_asset_id,
     from_asset.name AS from_asset_name,
     from_asset.symbol AS from_asset_symbol,
@@ -64,6 +68,8 @@ const val EXTENDED_SOURCE = """
     LEFT JOIN tx_swap_metadata as swap ON tx.id = swap.tx_id
     LEFT JOIN asset as from_asset ON swap.from_asset_id = from_asset.id
     LEFT JOIN asset as to_asset ON swap.to_asset_id = to_asset.id
+    LEFT JOIN prices as from_prices ON swap.from_asset_id = from_prices.asset_id
+    LEFT JOIN prices as to_prices ON swap.to_asset_id = to_prices.asset_id
     LEFT JOIN addresses as from_addr ON from_addr.chain = asset.chain AND from_addr.address = tx.owner
     LEFT JOIN addresses as to_addr ON to_addr.chain = asset.chain AND to_addr.address = tx.recipient
     WHERE tx.walletId = :walletId

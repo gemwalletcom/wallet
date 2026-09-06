@@ -102,8 +102,12 @@ fn row_value(extended: &TransactionExtended, value: GemTransactionValue) -> GemT
         GemTransactionValue::Amount { sign } => GemTransactionRowValue::Amount {
             amount: transaction_amount(extended, sign),
         },
-        GemTransactionValue::SwapReceived => swap_leg(extended, SwapLeg::To).map_or(GemTransactionRowValue::None, |amount| GemTransactionRowValue::Amount { amount }),
-        GemTransactionValue::SwapSpent => swap_leg(extended, SwapLeg::From).map_or(GemTransactionRowValue::None, |amount| GemTransactionRowValue::Amount { amount }),
+        GemTransactionValue::SwapReceived => {
+            swap_leg(extended, SwapLeg::To, GemAmountSign::Incoming).map_or(GemTransactionRowValue::None, |amount| GemTransactionRowValue::Amount { amount })
+        }
+        GemTransactionValue::SwapSpent => {
+            swap_leg(extended, SwapLeg::From, GemAmountSign::Outgoing).map_or(GemTransactionRowValue::None, |amount| GemTransactionRowValue::Amount { amount })
+        }
         GemTransactionValue::PerpetualNotional => perpetual_collateral_asset()
             .and_then(|asset| BigNumberFormatter::value_as_f64(&transaction.value.to_string(), asset.decimals as u32).ok())
             .map_or(GemTransactionRowValue::None, |value| GemTransactionRowValue::Fiat { value }),
@@ -119,7 +123,7 @@ fn header(extended: &TransactionExtended) -> GemTransactionHeader {
     };
     match header_kind(transaction) {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
-        GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From), swap_leg(extended, SwapLeg::To)) {
+        GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From, GemAmountSign::None), swap_leg(extended, SwapLeg::To, GemAmountSign::None)) {
             (Some(from), Some(to)) => GemTransactionHeader::Swap { from, to },
             _ => amount(true),
         },
@@ -167,8 +171,8 @@ fn header_action(transaction: &Transaction) -> Option<GemTransactionHeaderAction
 }
 
 fn swap_rate(extended: &TransactionExtended) -> Option<GemSwapRate> {
-    let from = swap_leg(extended, SwapLeg::From)?;
-    let to = swap_leg(extended, SwapLeg::To)?;
+    let from = swap_leg(extended, SwapLeg::From, GemAmountSign::None)?;
+    let to = swap_leg(extended, SwapLeg::To, GemAmountSign::None)?;
     (from.value != 0u32.into() && to.value != 0u32.into()).then_some(GemSwapRate { from, to })
 }
 
@@ -177,11 +181,11 @@ enum SwapLeg {
     To,
 }
 
-fn swap_leg(extended: &TransactionExtended, leg: SwapLeg) -> Option<GemTransactionAmount> {
+fn swap_leg(extended: &TransactionExtended, leg: SwapLeg, sign: GemAmountSign) -> Option<GemTransactionAmount> {
     let metadata = extended.transaction.swap_metadata()?;
-    let (asset_id, value, sign) = match leg {
-        SwapLeg::From => (metadata.from_asset, metadata.from_value, GemAmountSign::Outgoing),
-        SwapLeg::To => (metadata.to_asset, metadata.to_value, GemAmountSign::Incoming),
+    let (asset_id, value) = match leg {
+        SwapLeg::From => (metadata.from_asset, metadata.from_value),
+        SwapLeg::To => (metadata.to_asset, metadata.to_value),
     };
     let asset = extended.assets.iter().chain([&extended.asset]).find(|asset| asset.id == asset_id)?.clone();
     let price = extended.prices.iter().find(|price| price.asset_id == asset_id).cloned();
@@ -875,7 +879,10 @@ mod tests {
         let swap = extended_with(swap(TransactionState::Confirmed, None, None).transaction, vec![Asset::mock_eth(), Asset::mock_btc()]);
         let rows = detail_rows(&swap, participant(&swap, link), explorer.clone());
         match rows.header {
-            GemTransactionHeader::Swap { from, to } => assert_eq!((from.asset.id, to.asset.id), (AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Bitcoin))),
+            GemTransactionHeader::Swap { from, to } => {
+                assert_eq!((from.asset.id, to.asset.id), (AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Bitcoin)));
+                assert_eq!((from.sign, to.sign), (GemAmountSign::None, GemAmountSign::None), "the header shows both legs unsigned");
+            }
             other => panic!("a swap with both assets shows the swap header, got {other:?}"),
         }
         assert!(rows.rate.is_some());

@@ -985,7 +985,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   its `GetWalletAssets` dependency and its `Amount.None` state, and both apps' details tests feed
   Core rows instead of re-encoding swap metadata. Core tests pin the swap-leg resolution, the
   known-address name, the NFT image and perpetual notional, the detail header/participant/rate/fee
-  build, and the both-legs-non-zero rate rule.
+  build, and the both-legs-non-zero rate rule. The details header carries both swap legs unsigned
+  (`GemAmountSign::None`, pinned by the header test); only the list row signs them as incoming and
+  outgoing, so neither app strips a sign for the header. Core prices the legs from
+  `TransactionExtended.prices`, and Android's extended-transaction query joins the swap legs' prices
+  into that list (it used to hand Core an empty list, which is why the Android swap header lost its
+  fiat lines when the header moved to Core).
 - **The rewards screen state is Core's answer.** `GemRewardsService::state(rewards)` returns
   `GemRewardsState { has_referral_code, has_used_referral_code, can_invite,
   can_use_referral_code, shows_info, is_unverified, has_pending_referral,
