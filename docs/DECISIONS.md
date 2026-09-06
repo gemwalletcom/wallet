@@ -31,6 +31,7 @@ Amount strings come from two sources that must be parsed differently. Confusing 
 - **Human input** (text a person typed into a field): parse locale-aware. iOS `ValueFormatter.inputNumber(from:decimals:)`; Android `String.parseInputNumber()`. These interpret the device's grouping/decimal separators.
 - **Machine strings** (QR/payment-link amounts, API/exchange payloads, `Double.description`, anything the app did not get from a keyboard): parse locale-independently. iOS `BigNumberFormatter.standard.number(from:decimals:)` (fixed `en_US`). A machine string always uses `.` as the decimal point, so feeding it to the human-input parser makes a dot-grouping locale read it 1000x too high.
 - **A value the app itself produced** (e.g. a `Decimal` from fiat/crypto conversion): use iOS `ValueFormatter.displayedNumber(from:decimals:)` so the app never re-parses its own formatted output.
+- **Amounts Core formats for notifications** (`number_formatter::ValueFormatter`, `ValueStyle::Auto`, used by the daemon pusher, the staking rewards notifier and in-app notifications) keep two decimals above one and four significant digits below it, dust included: a push title has no room for `0.000040036032429186 ETH` (issue #1155), so it reads `0.00004003 ETH`. The app list formatters keep full precision for dust on purpose; that is a screen with room, not a title.
 
 ## iOS localization compiles to String Catalogs, accessors are generated in Core
 
