@@ -536,11 +536,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemChainService` for matching; iOS `SelectAssetFlow` filtered `Chain.allCases` itself. Both
   `Chain.isNftSupported` readers are gone.
 
-- **Which icon an asset borrows is Core's answer.** `GemAssetConfigService::icon_asset_id(asset_id)`
-  maps a HyperCore perpetual (`hypercore_perpetual::BTC`) to the chain whose native symbol it
-  names and returns any other id unchanged; iOS `AssetIdViewModel` and Android `Asset.getIconUrl`
-  each scanned every chain for that symbol, and their `twoSubTokenIds` / `twoSubtokenIds`
-  helpers are gone.
+- **An asset's icon is Core's answer, image and badge together.** `GemAssetConfigService::asset_icon(asset_id)`
+  returns `GemAssetIcon { image, badge }`: the image is `Local { chain }` (a bundled chain logo: a native coin,
+  an Ethereum layer 2's ETH drawn as Ethereum, a HyperCore perpetual drawn as the chain whose native symbol it
+  names) or `Remote { url }` (the token image); the badge is the layer 2 for a native coin and the asset's own
+  chain for a token. `ChainConfig.icon_chain` is the chain's own logo (SeiEvm draws Sei's), typed `Chain`.
+  Before this, iOS `AssetIdViewModel` and Android `IconUrlGeneration` each re-derived native-versus-token,
+  and Android badged a Base token with Ethereum (issue #1148) while its network rows drew Ethereum for Base;
+  each app is now one resource lookup (`ChainImage.image`, `chainIconUrl`) over Core's chain.
 
 - **The swap pay/receive lists start from Core's filters on both apps.** With no opposite asset
   chosen, Android's `SearchSwapAssetsImpl` rebuilt the swappable universe itself — every wallet
@@ -1282,4 +1285,4 @@ Two warnings worth keeping:
   Awaiting the poll instead leaves the confirm screen spinning until the transaction is final.
 - Every dependency a service takes is a `Gem*Service`, whether Core owns it or the app implements
   it as a foreign port. Name a port for the domain it serves, not for the mechanism.
-- Chain icons come from the chain config, never an app-side list: `icon_chain` (an Ethereum layer 2 draws the Ethereum icon, SeiEvm draws Sei's) and `badge_chain` (the layer 2's own icon as the badge), both following `EVMChain::is_ethereum_layer2`.
+- Chain and asset icons come from Core, never an app-side list: `ChainConfig.icon_chain` is the chain's own logo and `GemAssetConfigService::asset_icon` decides an asset's image and badge (layer 2 rules follow `EVMChain::is_ethereum_layer2`).

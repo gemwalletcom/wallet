@@ -36,7 +36,7 @@ public struct WalletViewModel: Sendable {
             guard let chain = wallet.accounts.first?.chain else {
                 return Images.Logo.logo
             }
-            return ChainImage(chain: chain).placeholder
+            return ChainImage(chain: chain).image
         }
     }
 

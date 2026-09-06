@@ -40,11 +40,7 @@ public extension Primitives.Chain {
     }
 
     var iconChain: Primitives.Chain {
-        Primitives.Chain(rawValue: ChainConfig.config(chain: self).iconChain) ?? self
-    }
-
-    var badgeChain: Primitives.Chain? {
-        ChainConfig.config(chain: self).badgeChain.flatMap { Primitives.Chain(rawValue: $0) }
+        Primitives.Chain(core: ChainConfig.config(chain: self).iconChain)
     }
 
     func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {

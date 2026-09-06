@@ -104,18 +104,6 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
     .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
 }
 
-pub fn icon_asset_id(asset_id: &AssetId) -> AssetId {
-    perpetual_coin(asset_id)
-        .and_then(|coin| Chain::all().into_iter().find(|chain| Asset::from_chain(*chain).symbol == coin))
-        .map(AssetId::from_chain)
-        .unwrap_or_else(|| asset_id.clone())
-}
-
-fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
-    let ids = AssetId::decode_token_id(asset_id.token_id.as_deref()?);
-    (asset_id.chain == Chain::HyperCore && ids.first().is_some_and(|kind| kind == "perpetual")).then(|| ids.get(1).cloned())?
-}
-
 pub fn network_destination(asset_id: &AssetId) -> Option<GemAssetNetworkDestination> {
     let chain = asset_id.chain;
     if asset_id.is_token() && chain.has_native_asset() {
@@ -337,16 +325,6 @@ mod tests {
         assert_eq!((searching.assets, searching.fetch), (25, 26));
         assert_eq!((initial.perpetuals, initial.nfts, initial.results), (3, 3, 100));
         assert_eq!((searching.perpetuals, searching.nfts, searching.results), (3, 3, 100));
-    }
-
-    #[test]
-    fn test_icon_asset_id_borrows_the_underlying_chain_icon_for_a_perpetual() {
-        let bitcoin_perpetual = AssetId::from(Chain::HyperCore, Some(AssetId::sub_token_id(&["perpetual".to_string(), "BTC".to_string()])));
-        assert_eq!(icon_asset_id(&bitcoin_perpetual), AssetId::from_chain(Chain::Bitcoin));
-        let unknown_perpetual = AssetId::from(Chain::HyperCore, Some(AssetId::sub_token_id(&["perpetual".to_string(), "PUMP".to_string()])));
-        assert_eq!(icon_asset_id(&unknown_perpetual), unknown_perpetual);
-        let token = Asset::mock_ethereum_usdc().id;
-        assert_eq!(icon_asset_id(&token), token);
     }
 
     #[test]

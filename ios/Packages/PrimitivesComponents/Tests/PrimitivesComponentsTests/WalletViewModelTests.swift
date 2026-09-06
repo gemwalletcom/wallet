@@ -11,6 +11,6 @@ struct WalletViewModelTests {
             accounts: [.mock(chain: .seiEvm)],
         )
 
-        #expect(WalletViewModel(wallet: wallet).image == ChainImage(chain: .seiEvm).placeholder)
+        #expect(WalletViewModel(wallet: wallet).image == ChainImage(chain: .seiEvm).image)
     }
 }

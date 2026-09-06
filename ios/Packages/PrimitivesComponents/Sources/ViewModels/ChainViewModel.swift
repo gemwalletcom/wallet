@@ -19,7 +19,7 @@ public struct ChainViewModel: Sendable {
     }
 
     public var image: Image {
-        ChainImage(chain: chain).placeholder
+        ChainImage(chain: chain).image
     }
 }
 

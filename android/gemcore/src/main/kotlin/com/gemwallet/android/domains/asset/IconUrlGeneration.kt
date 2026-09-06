@@ -1,13 +1,12 @@
 package com.gemwallet.android.domains.asset
 
-import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.Config
+import uniffi.gemstone.GemAssetIconImage
 import uniffi.gemstone.GemImage
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
@@ -18,31 +17,18 @@ import uniffi.gemstone.SwapProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
 
-fun Chain.getIconUrl(): String = chainIconUrl(iconChain())
-
-fun Chain.iconChain(): Chain {
-    val icon = Config().getChainConfig(string).iconChain
-    return Chain.entries.firstOrNull { it.string == icon } ?: this
-}
-
-fun Chain.badgeChain(): Chain? {
-    val badge = Config().getChainConfig(string).badgeChain ?: return null
-    return Chain.entries.firstOrNull { it.string == badge }
-}
+fun Chain.getIconUrl(): String = chainIconUrl(Config().getChainConfig(string).iconChain.toChain())
 
 private fun chainIconUrl(chain: Chain): String = "file:///android_asset/chains/icons/${chain.string}.svg"
 
-fun AssetId.getIconUrl(): String = when {
-    tokenId.isNullOrEmpty() -> chain.getIconUrl()
-    else -> GemImage.Asset(toIdentifier()).url()
+fun AssetId.getIconUrl(): String = when (val image = assetConfig.assetIcon(toIdentifier()).image) {
+    is GemAssetIconImage.Local -> chainIconUrl(image.chain.toChain())
+    is GemAssetIconImage.Remote -> image.url
 }
 
-fun AssetId.getSupportIconUrl(): String? = when (type()) {
-    AssetSubtype.NATIVE -> chain.badgeChain()?.let { chainIconUrl(it) }
-    AssetSubtype.TOKEN -> chain.getIconUrl()
-}
+fun AssetId.getSupportIconUrl(): String? = assetConfig.assetIcon(toIdentifier()).badge?.toChain()?.let(::chainIconUrl)
 
-fun Asset.getIconUrl(): String = (assetConfig.iconAssetId(id.toIdentifier()).toAssetId() ?: id).getIconUrl()
+fun Asset.getIconUrl(): String = id.getIconUrl()
 
 fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
 
