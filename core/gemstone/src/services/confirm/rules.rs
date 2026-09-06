@@ -1122,6 +1122,7 @@ mod tests {
             address_names: vec![],
         };
         let screen = GemConfirmLoad {
+            sender: Account::mock(Chain::Ethereum, "sender"),
             fee_asset: eth.clone(),
             metadata: metadata(1),
             fee_assets: vec![GemFeeAsset {

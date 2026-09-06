@@ -371,7 +371,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private var senderAddress: String {
-        (try? service.confirmInput(wallet: wallet.map(), transfer: request.data).from.address) ?? ""
+        state.load?.sender.address ?? ""
     }
 
     public func assetAddress(_ asset: Asset) -> AssetAddress {

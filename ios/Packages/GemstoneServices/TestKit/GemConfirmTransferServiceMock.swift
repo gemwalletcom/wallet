@@ -9,7 +9,6 @@ public import struct Gemstone.GemAutocloseSummary
 public import typealias Gemstone.GemBigInt
 public import struct Gemstone.BlockExplorerLink
 public import struct Gemstone.GemConfirmData
-public import struct Gemstone.GemConfirmInput
 public import class Gemstone.GemConfirmSession
 public import protocol Gemstone.GemConfirmTransferServiceProtocol
 public import enum Gemstone.GemExecuteResult
@@ -56,10 +55,6 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
 
     public func authentication() -> GemKeystoreAuthentication {
         authenticationValue
-    }
-
-    public func confirmInput(wallet _: Gemstone.Wallet, transfer: GemTransferData) throws -> GemConfirmInput {
-        try GemConfirmInput(from: wallet.account(for: transfer.chain).map(), transfer: transfer)
     }
 
     public func session(wallet _: Gemstone.Wallet, transfer _: GemTransferData, simulation _: SimulationResult?) -> GemConfirmSession {

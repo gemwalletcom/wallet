@@ -34,7 +34,8 @@ impl GemConfirmSession {
         if let Some(screen) = self.screen.lock().await.clone() {
             return Ok(screen);
         }
-        let screen = self.service.state(&self.transfer, self.simulation.clone()).await?;
+        let input = self.service.confirm_input(self.wallet.clone(), self.transfer.clone())?;
+        let screen = self.service.state(&input, self.simulation.clone()).await?;
         *self.screen.lock().await = Some(screen.clone());
         Ok(screen)
     }

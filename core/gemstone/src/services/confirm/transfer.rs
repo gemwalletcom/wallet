@@ -69,12 +69,6 @@ impl GemConfirmTransferService {
         self.password.authentication().unwrap_or(GemKeystoreAuthentication::None)
     }
 
-    pub fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
-        let chain = transfer.input_type.asset().chain();
-        let from = wallet.account(chain).cloned().ok_or(GemConfirmError::AccountMissing { chain })?;
-        Ok(GemConfirmInput { from, transfer })
-    }
-
     pub fn session(self: Arc<Self>, wallet: Wallet, transfer: GemTransferData, simulation: Option<SimulationResult>) -> Arc<GemConfirmSession> {
         Arc::new(GemConfirmSession::new(self, wallet, transfer, simulation))
     }
@@ -138,6 +132,12 @@ impl GemConfirmTransferService {
         Ok(self.session.current_wallet_id()?)
     }
 
+    pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
+        let chain = transfer.input_type.asset().chain();
+        let from = wallet.account(chain).cloned().ok_or(GemConfirmError::AccountMissing { chain })?;
+        Ok(GemConfirmInput { from, transfer })
+    }
+
     async fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
         self.confirm.fee_assets(wallet_id, chain).await
     }
@@ -150,16 +150,17 @@ impl GemConfirmTransferService {
         }
     }
 
-    pub(super) async fn state(&self, transfer: &GemTransferData, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
+    pub(super) async fn state(&self, input: &GemConfirmInput, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
         let wallet_id = self.wallet_id()?;
-        let input_type = transfer.input_type.clone();
+        let input_type = input.transfer.input_type.clone();
         let chain = input_type.transaction_asset().chain();
         Ok(GemConfirmLoad {
+            sender: input.from.clone(),
             fee_asset: input_type.fee_asset(),
             metadata: self.metadata(input_type.clone()).await?,
             fee_assets: self.fee_assets(wallet_id, chain).await?,
             simulation: self.simulation_state(input_type, simulation).await?,
-            address_name: self.names.address_name(chain, transfer.recipient.address.clone()).await.unwrap_or_default(),
+            address_name: self.names.address_name(chain, input.transfer.recipient.address.clone()).await.unwrap_or_default(),
             preload: None,
         })
     }

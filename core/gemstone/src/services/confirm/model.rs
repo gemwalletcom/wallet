@@ -143,6 +143,7 @@ impl GemConfirmSimulation {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
+    pub sender: GemAccount,
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,
     pub fee_assets: Vec<GemFeeAsset>,
