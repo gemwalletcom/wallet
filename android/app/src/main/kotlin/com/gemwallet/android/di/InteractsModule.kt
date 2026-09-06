@@ -3,9 +3,9 @@ package com.gemwallet.android.di
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.SecurityStore
-import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
-import com.gemwallet.android.blockchain.services.KeystoreTransactionSigner
+import com.gemwallet.android.data.services.gemstone.keystore.GemMigrateKeystoreOperator
+import com.gemwallet.android.data.services.gemstone.keystore.KeystoreTransactionSigner
+import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
 import uniffi.gemstone.GemMnemonic
 import uniffi.gemstone.GemMnemonicInterface
 import uniffi.gemstone.GemTransactionSigner

@@ -49,7 +49,7 @@ android {
 
 dependencies {
     api(project(":ui-models"))
-    implementation(project(":blockchain"))
+    implementation(project(":gemcore"))
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.ktx)

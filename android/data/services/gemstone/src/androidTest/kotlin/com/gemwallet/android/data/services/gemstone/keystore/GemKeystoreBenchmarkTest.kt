@@ -1,4 +1,4 @@
-package com.gemwallet.android.blockchain.operators.gemstone
+package com.gemwallet.android.data.services.gemstone.keystore
 
 import android.content.Context
 import android.util.Log

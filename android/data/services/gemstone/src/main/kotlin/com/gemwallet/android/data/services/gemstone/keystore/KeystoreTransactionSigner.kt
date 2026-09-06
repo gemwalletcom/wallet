@@ -1,9 +1,8 @@
-package com.gemwallet.android.blockchain.services
+package com.gemwallet.android.data.services.gemstone.keystore
 
 import android.util.Log
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.getKeystorePassword
-import com.gemwallet.android.blockchain.operators.gemstone.withGemKeystore
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSignerInput

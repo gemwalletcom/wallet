@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
+import com.gemwallet.android.data.services.gemstone.keystore.GemMigrateKeystoreOperator
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD

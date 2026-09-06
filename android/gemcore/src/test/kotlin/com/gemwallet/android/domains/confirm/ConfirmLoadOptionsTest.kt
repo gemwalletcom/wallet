@@ -1,4 +1,4 @@
-package com.gemwallet.android.blockchain.services
+package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
@@ -9,7 +9,7 @@ import org.junit.Test
 import uniffi.gemstone.GemConfirmFeeSelection
 import java.math.BigInteger
 
-class GemConfirmMapperTest {
+class ConfirmLoadOptionsTest {
 
     @Test
     fun confirmLoadOptions_mapsTheFeeAndFeeAssetSelection() {

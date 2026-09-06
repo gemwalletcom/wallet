@@ -1,4 +1,4 @@
-package com.gemwallet.android.blockchain.operators
+package com.gemwallet.android.data.services.gemstone.keystore
 
 interface MigrateKeystoreOperator {
     operator fun invoke(

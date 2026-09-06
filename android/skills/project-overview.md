@@ -17,7 +17,6 @@ Gem Wallet Android is a Kotlin and Jetpack Compose application backed by the sha
 ```
 android/
 ├── app/             # Main application module
-├── blockchain/      # Blockchain-specific logic
 ├── data/            # Repositories, services, Room storage
 ├── features/        # Feature modules
 ├── gemcore/         # JNI bindings to the Rust core
@@ -31,7 +30,6 @@ android/
 - `app/` hosts the application entrypoints and Android integration
 - `ui/` contains shared Compose UI, themes, and reusable screens
 - `data/` contains repositories, storage, and service implementations
-- `blockchain/` contains blockchain-specific implementations and models
 - `features/` contains feature-focused modules
 - `gemcore/` bridges Android and the Rust core through JNI
 
