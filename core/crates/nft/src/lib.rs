@@ -1,6 +1,7 @@
 pub mod client;
 pub mod config;
 pub mod factory;
+mod mapper;
 mod offchain_client;
 pub mod provider;
 pub mod provider_client;
