@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use super::error::GemConfirmError;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
@@ -15,7 +13,7 @@ use primitives::{
 
 pub type GemAccount = Account;
 
-#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmInput {
     pub from: GemAccount,
     pub transfer: GemTransferData,

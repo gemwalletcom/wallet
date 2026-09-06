@@ -74,51 +74,17 @@ uniffi::custom_type!(DateTimeUtc, i64, {
 });
 
 pub mod decimal_string {
-    use super::GemBigInt;
+    use super::GemBigUint;
     use serde::{Deserialize, Deserializer, Serializer};
     use std::str::FromStr;
 
-    pub fn serialize<S: Serializer>(value: &GemBigInt, serializer: S) -> Result<S::Ok, S::Error> {
+    pub fn serialize<S: Serializer>(value: &GemBigUint, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(&value.to_string())
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigInt, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigUint, D::Error> {
         let text = String::deserialize(deserializer)?;
-        GemBigInt::from_str(&text).map_err(serde::de::Error::custom)
-    }
-
-    pub mod unsigned {
-        use super::super::GemBigUint;
-        use serde::{Deserialize, Deserializer, Serializer};
-        use std::str::FromStr;
-
-        pub fn serialize<S: Serializer>(value: &GemBigUint, serializer: S) -> Result<S::Ok, S::Error> {
-            serializer.serialize_str(&value.to_string())
-        }
-
-        pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigUint, D::Error> {
-            let text = String::deserialize(deserializer)?;
-            GemBigUint::from_str(&text).map_err(serde::de::Error::custom)
-        }
-    }
-
-    pub mod optional {
-        use super::super::GemBigInt;
-        use serde::{Deserialize, Deserializer, Serializer};
-        use std::str::FromStr;
-
-        pub fn serialize<S: Serializer>(value: &Option<GemBigInt>, serializer: S) -> Result<S::Ok, S::Error> {
-            match value {
-                Some(value) => serializer.serialize_some(&value.to_string()),
-                None => serializer.serialize_none(),
-            }
-        }
-
-        pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<GemBigInt>, D::Error> {
-            Option::<String>::deserialize(deserializer)?
-                .map(|text| GemBigInt::from_str(&text).map_err(serde::de::Error::custom))
-                .transpose()
-        }
+        GemBigUint::from_str(&text).map_err(serde::de::Error::custom)
     }
 }
 

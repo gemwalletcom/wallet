@@ -392,8 +392,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   declaration and no app mappers, so the apps hold the uniffi type itself. `GasPriceType` is the
   first: `GemGasPriceType`, its two conversions, its `decimal_string` serde (nothing serialized it
   once Android's routes moved to the Kotlin serializer) and `custom_gas_price` are gone, and both
-  apps name `GasPriceType`. Tuple variants still panic the generator; a typeshared data-carrying
-  enum still needs mapper emission before it can cross that way.
+  apps name `GasPriceType`. The same wire format is gone from `GemTransferData` (`value`,
+  `minimum_value`) with the serde derives on `GemTransferData`, `GemRecipient` and
+  `GemConfirmInput` that existed only for it; `decimal_string` now serializes the one unsigned
+  perpetual amount. Tuple variants still panic the generator; a typeshared data-carrying enum
+  still needs mapper emission before it can cross that way.
 - **Screens read their rows from one Core answer.** `GemTransactionDetailsService::detail_rows`
   (header, header action, swap progress steps, swap-again, provider name, confirmation ETA,
   participant, memo, resource, rate, pnl, price, fee, explorer link) and
