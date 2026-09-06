@@ -86,13 +86,6 @@ impl TransactionInputType {
             Self::Perpetual { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::TransferNft { .. } => false,
         }
     }
-
-    pub fn has_fixed_value(&self) -> bool {
-        match self {
-            Self::Swap { swap_data, .. } => swap_data.data.data_type.has_fixed_value(),
-            _ => false,
-        }
-    }
 }
 
 impl TransferAmountInput {
@@ -101,7 +94,9 @@ impl TransferAmountInput {
         let spends_balance = self.input_type.spends_balance();
         let should_deduct_fee = spends_balance && asset.id == self.fee_asset;
 
-        let value = match self.is_max_amount && should_deduct_fee && !self.input_type.has_fixed_value() {
+        let has_fixed_value = self.input_type.get_swap_data().is_ok_and(|swap_data| swap_data.data.data_type.has_fixed_value());
+
+        let value = match self.is_max_amount && should_deduct_fee && !has_fixed_value {
             true => self.value.clone().min(&self.available_value - &self.fee),
             false => self.value.clone(),
         };
