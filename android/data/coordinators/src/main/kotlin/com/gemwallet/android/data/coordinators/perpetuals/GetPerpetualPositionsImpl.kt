@@ -5,10 +5,12 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStor
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -23,5 +25,6 @@ class GetPerpetualPositionsImpl @Inject constructor(
             .filterNotNull()
             .flatMapLatest { perpetualStore.observePositions(it.wallet.id) }
             .map { items -> items.map { PerpetualPositionDataAggregateImpl(it) } }
+            .flowOn(Dispatchers.Default)
     }
 }

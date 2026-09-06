@@ -3,15 +3,13 @@ package com.gemwallet.android.domains.asset.aggregates
 import androidx.compose.runtime.Immutable
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.subtype
-import com.gemwallet.android.domains.price.values.EquivalentValue
+import com.gemwallet.android.domains.price.values.PriceValue
+import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
-import com.wallet.core.primitives.Currency
 import java.math.BigDecimal
 
 @Immutable
@@ -22,18 +20,19 @@ data class AssetInfoDataAggregate(
     val balance: String,
     val balanceEquivalent: String,
     val isZeroBalance: Boolean,
-    val price: AssetPriceDataAggregate?,
+    val price: PriceValue?,
     val pinned: Boolean,
     val balanceEnabled: Boolean,
     val accountAddress: String,
 )
 
-@Immutable
-data class AssetPriceDataAggregate(
-    override val currency: Currency,
-    override val value: Double?,
-    override val changePercentage: Double?,
-) : EquivalentValue
+fun List<AssetInfo>.toAssetInfoDataAggregates(
+    naming: AssetRowNaming = AssetRowNaming.Stored,
+    hideBalance: Boolean = false,
+): List<AssetInfoDataAggregate> {
+    val formatters = RowFormatters()
+    return map { it.toAssetInfoDataAggregate(naming = naming, hideBalance = hideBalance, formatters = formatters) }
+}
 
 enum class AssetRowNaming {
     Stored,
@@ -44,6 +43,7 @@ fun AssetInfo.toAssetInfoDataAggregate(
     naming: AssetRowNaming = AssetRowNaming.Stored,
     hideBalance: Boolean = false,
     displayedAmount: Double = balance.totalAmount,
+    formatters: RowFormatters = RowFormatters(),
 ): AssetInfoDataAggregate {
     val assetPrice = price?.price
     val priceValue = assetPrice?.price?.takeIf(Double::isFinite)
@@ -51,8 +51,7 @@ fun AssetInfo.toAssetInfoDataAggregate(
     val formattedBalance = if (hideBalance) {
         "*****"
     } else {
-        ValueFormatter(style = ValueFormatter.Style.Short)
-            .string(BigDecimal.valueOf(displayedAmount), asset.symbol)
+        formatters.value.string(BigDecimal.valueOf(displayedAmount), asset.symbol)
     }
     val balanceEquivalent = if (hideBalance) {
         "*****"
@@ -60,7 +59,7 @@ fun AssetInfo.toAssetInfoDataAggregate(
         price?.let { info ->
             priceValue
                 ?.takeUnless { it == 0.0 }
-                ?.let { CurrencyFormatter(currency = info.currency).string(displayedAmount * it) }
+                ?.let { formatters.currency(info.currency).string(displayedAmount * it) }
         }.orEmpty()
     }
 
@@ -71,13 +70,7 @@ fun AssetInfo.toAssetInfoDataAggregate(
         balance = formattedBalance,
         balanceEquivalent = balanceEquivalent,
         isZeroBalance = displayedAmount == 0.0,
-        price = price?.let {
-            AssetPriceDataAggregate(
-                currency = it.currency,
-                value = priceValue,
-                changePercentage = changePercentage,
-            )
-        },
+        price = price?.let { formatters.price(it.currency, priceValue, changePercentage) },
         pinned = metadata.isPinned,
         balanceEnabled = metadata.isBalanceEnabled,
         accountAddress = owner?.address.orEmpty(),

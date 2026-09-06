@@ -23,6 +23,7 @@ import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
 import com.gemwallet.android.ui.models.AssetToastEmitterImpl
@@ -108,12 +109,13 @@ open class BaseAssetSelectViewModel(
         val chainFilter = filters?.chainFilter.orEmpty()
         val balanceFilter = filters?.hasBalance == true
         val wallet = session.value?.wallet
+        val formatters = RowFormatters()
         items
             .filter { (chainFilter.isEmpty() || it.id().chain in chainFilter) && (!balanceFilter || it.balance.totalAmount > 0.0) }
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
                 val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
-                assetInfo.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative)
+                assetInfo.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative, formatters = formatters)
             }
     }
     .flowOn(Dispatchers.IO)
