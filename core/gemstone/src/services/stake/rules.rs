@@ -361,7 +361,6 @@ mod tests {
                 provider_type: provider,
                 ..validator
             },
-            price: None,
         }
     }
 

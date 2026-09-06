@@ -2,7 +2,7 @@
 
 import Foundation
 import typealias Gemstone.AssetId
-import typealias Gemstone.DelegationBase
+import struct Gemstone.DelegationBase
 import struct Gemstone.DelegationValidator
 import typealias Gemstone.StakeProviderType
 import protocol Gemstone.GemStakeStore
@@ -44,7 +44,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
         try store.updateAndDelete(
             walletId: WalletId.from(id: walletId),
-            delegations: delegations.map { try Primitives.DelegationBase($0) },
+            delegations: delegations.map { Primitives.DelegationBase(core: $0) },
             deleteIds: deleteIds,
         )
     }

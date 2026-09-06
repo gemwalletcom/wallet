@@ -8,6 +8,7 @@ import com.wallet.core.primitives.WalletId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
+import java.math.BigInteger
 
 class DbDelegationBaseTest {
     @Test
@@ -36,9 +37,9 @@ class DbDelegationBaseTest {
         val delegation = DelegationBase(
             assetId = AssetId(Chain.Monad),
             state = DelegationState.Activating,
-            balance = "100",
-            shares = "0",
-            rewards = "0",
+            balance = BigInteger("100"),
+            shares = BigInteger("0"),
+            rewards = BigInteger("0"),
             delegationId = "0xbae:16:activating:0",
             validatorId = "16",
         )
@@ -51,6 +52,6 @@ class DbDelegationBaseTest {
         )
         assertEquals("monad_16", record.validatorId)
         assertEquals("wallet-1", record.walletId)
-        assertEquals(record.id, delegation.copy(balance = "200").toRecord(walletId).id)
+        assertEquals(record.id, delegation.copy(balance = BigInteger("200")).toRecord(walletId).id)
     }
 }

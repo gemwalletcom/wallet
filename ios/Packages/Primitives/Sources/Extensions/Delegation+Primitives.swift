@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 
 extension Delegation: Identifiable {
@@ -18,14 +17,6 @@ extension DelegationBase: Identifiable {
 extension DelegationValidator: Identifiable {}
 
 public extension DelegationBase {
-    var balanceValue: BigInt {
-        BigInt(stringLiteral: balance)
-    }
-
-    var rewardsValue: BigInt {
-        BigInt(stringLiteral: rewards)
-    }
-
     func with(state: DelegationState) -> DelegationBase {
         DelegationBase(
             assetId: assetId,

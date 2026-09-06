@@ -4,19 +4,15 @@
 package com.gemwallet.android.serializer
 
 import kotlinx.serialization.encodeToString
-import com.wallet.core.primitives.EarnType
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentLink
 import com.wallet.core.primitives.PerpetualModifyPositionType
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.SolanaNftStandard
-import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamMessage
 import com.wallet.core.primitives.TronStakeData
-
-fun EarnType.toJson(): String = jsonEncoder.encodeToString<EarnType>(this)
 
 fun Payment.toJson(): String = jsonEncoder.encodeToString<Payment>(this)
 
@@ -29,8 +25,6 @@ fun PerpetualModifyPositionType.toJson(): String = jsonEncoder.encodeToString<Pe
 fun PerpetualType.toJson(): String = jsonEncoder.encodeToString<PerpetualType>(this)
 
 fun SolanaNftStandard.toJson(): String = jsonEncoder.encodeToString<SolanaNftStandard>(this)
-
-fun StakeType.toJson(): String = jsonEncoder.encodeToString<StakeType>(this)
 
 fun StreamEvent.toJson(): String = jsonEncoder.encodeToString<StreamEvent>(this)
 

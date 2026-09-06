@@ -29,6 +29,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DelegationViewModelTest {
@@ -51,8 +52,8 @@ class DelegationViewModelTest {
     fun `delegation lookup is scoped to the session wallet, not just validator and delegation id`() = runTest(testDispatcher) {
         val ownWalletId = mockWalletId("wallet-own")
         val otherWalletId = mockWalletId("wallet-other")
-        val ownDelegation = mockDelegation(assetId = asset.id, balance = "77", validatorId = "v1", delegationId = "d1")
-        val otherWalletDelegation = mockDelegation(assetId = asset.id, balance = "999999", validatorId = "v1", delegationId = "d1")
+        val ownDelegation = mockDelegation(assetId = asset.id, balance = BigInteger("77"), validatorId = "v1", delegationId = "d1")
+        val otherWalletDelegation = mockDelegation(assetId = asset.id, balance = BigInteger("999999"), validatorId = "v1", delegationId = "d1")
 
         every { getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
         every { getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)

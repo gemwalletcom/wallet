@@ -1,23 +1,22 @@
 package com.gemwallet.android.serializer
 
-import com.gemwallet.android.testkit.mockDelegation
-import com.gemwallet.android.testkit.mockDelegationValidator
-import com.wallet.core.primitives.StakeType
+import com.wallet.core.primitives.Resource
+import com.wallet.core.primitives.TronStakeData
+import com.wallet.core.primitives.TronUnfreeze
+import com.wallet.core.primitives.TronVote
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TaggedJsonBridgeTest {
 
+    private val unfreeze = TronStakeData.Unfreeze(listOf(TronUnfreeze(Resource.Bandwidth, 1)))
+    private val votes = TronStakeData.Votes(listOf(TronVote("validator", 2)))
+
     @Test
     fun `a variant built inline keeps its discriminator`() {
-        for (stakeType in listOf(
-            StakeType.Unstake(mockDelegation()),
-            StakeType.Withdraw(mockDelegation()),
-            StakeType.Rewards(listOf(mockDelegationValidator())),
-            StakeType.Stake(mockDelegationValidator()),
-        )) {
-            val json = stakeType.toJson()
+        for (stakeData in listOf(unfreeze, votes)) {
+            val json = stakeData.toJson()
 
             assertTrue("Core cannot lift a payload without a discriminator: $json", json.contains("\"type\""))
         }
@@ -25,17 +24,15 @@ class TaggedJsonBridgeTest {
 
     @Test
     fun `a variant built inline round trips`() {
-        val json = StakeType.Unstake(mockDelegation()).toJson()
+        val decoded = unfreeze.toJson().decodeJson<TronStakeData>()
 
-        val decoded = json.decodeJson<StakeType>()
-
-        assertEquals(StakeType.Unstake::class, decoded::class)
+        assertEquals(unfreeze, decoded)
     }
 
     @Test
     fun `widening by hand and letting the overload widen agree`() {
-        val stakeType: StakeType = StakeType.Withdraw(mockDelegation())
+        val stakeData: TronStakeData = votes
 
-        assertEquals(stakeType.toJson(), StakeType.Withdraw(mockDelegation()).toJson())
+        assertEquals(stakeData.toJson(), TronStakeData.Votes(listOf(TronVote("validator", 2))).toJson())
     }
 }

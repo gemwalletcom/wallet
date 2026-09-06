@@ -12,3 +12,10 @@ pub enum StakeType {
 pub struct Delegation {
     pub validator: DelegationValidator,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum StakeAction {
+    Delegate(DelegationValidator),
+    Claim(Vec<DelegationValidator>),
+    Wait,
+}

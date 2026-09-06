@@ -220,6 +220,11 @@ impl Generator {
                             out.push_str(&format!("    {},\n", variant.name));
                             continue;
                         }
+                        if variant.fields.iter().all(|field| field.rust.is_empty()) {
+                            let types = variant.fields.iter().map(|field| self.declared_type(&field.type_name)).collect::<Vec<_>>();
+                            out.push_str(&format!("    {}({}),\n", variant.name, types.join(", ")));
+                            continue;
+                        }
                         out.push_str(&format!("    {} {{\n", variant.name));
                         for field in &variant.fields {
                             out.push_str(&format!("        {}: {},\n", field.rust, self.declared_type(&field.type_name)));
@@ -375,10 +380,15 @@ fn variants(name: &str, body: &[&str]) -> Vec<Variant> {
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
         }
-        assert!(
-            !trimmed.contains('('),
-            "{name}::{trimmed} carries unnamed fields; the generator handles unit variants and named fields only"
-        );
+        if let Some((variant, rest)) = trimmed.split_once('(') {
+            assert!(!trimmed.contains('{'), "{name}::{trimmed} mixes tuple and named fields");
+            let types = rest.rsplit_once(')').map(|(types, _)| types).unwrap_or_default();
+            variants.push(Variant {
+                name: variant.trim().to_string(),
+                fields: types.split(',').map(str::trim).filter(|type_name| !type_name.is_empty()).map(tuple_field).collect(),
+            });
+            continue;
+        }
         let Some((variant, rest)) = trimmed.split_once('{') else {
             variants.push(Variant {
                 name: trimmed.trim_end_matches(',').to_string(),
@@ -400,6 +410,15 @@ fn variants(name: &str, body: &[&str]) -> Vec<Variant> {
         });
     }
     variants
+}
+
+fn tuple_field(type_name: &str) -> Field {
+    Field {
+        rust: String::new(),
+        serialized: String::new(),
+        type_name: type_name.to_string(),
+        skipped: false,
+    }
 }
 
 fn variant_field(line: &str) -> Option<Field> {

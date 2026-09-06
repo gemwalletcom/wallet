@@ -9,9 +9,9 @@ import Testing
 struct JsonCodableTests {
     @Test
     func roundTripsTaggedEnum() throws {
-        let stakeType = Primitives.StakeType.freeze(.bandwidth)
+        let stakeData = Primitives.TronStakeData.unfreeze([TronUnfreeze(resource: .bandwidth, amount: 1)])
 
-        #expect(try Primitives.StakeType(stakeType.json()) == stakeType)
+        #expect(try Primitives.TronStakeData(stakeData.json()) == stakeData)
     }
 
     @Test
@@ -23,9 +23,9 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsNestedRecord() throws {
-        let delegation = Primitives.Delegation.mock()
-        let decoded = try Primitives.Delegation(delegation.json())
-        #expect(decoded.base.delegationId == delegation.base.delegationId)
-        #expect(decoded.validator.id == delegation.validator.id)
+        let asset = Primitives.AssetBasic.mock()
+        let decoded = try Primitives.AssetBasic(asset.json())
+        #expect(decoded.asset.id == asset.asset.id)
+        #expect(decoded.score.rank == asset.score.rank)
     }
 }

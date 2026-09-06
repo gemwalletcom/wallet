@@ -26,7 +26,7 @@ public extension TransactionInputType {
     }
 
     static func stake(_ asset: Primitives.Asset, _ stakeType: Primitives.StakeType) -> Self {
-        .stake(asset: asset.map(), stakeType: stakeType.json())
+        .stake(asset: asset.map(), stakeType: stakeType.map())
     }
 
     static func account(_ asset: Primitives.Asset, _ accountType: Primitives.AccountDataType) -> Self {
@@ -38,7 +38,7 @@ public extension TransactionInputType {
     }
 
     static func earn(_ asset: Primitives.Asset, _ earnType: Primitives.EarnType, _ data: Primitives.ContractCallData) -> Self {
-        .earn(asset: asset.map(), earnType: earnType.json(), data: data.json())
+        .earn(asset: asset.map(), earnType: earnType.map(), data: data.json())
     }
 
     static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: TransferDataExtra) -> Self {

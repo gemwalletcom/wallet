@@ -27,6 +27,6 @@ public struct DelegationsRequest: DatabaseQueryable {
             .asRequest(of: StakeDelegationInfo.self)
             .fetchAll(db)
             .compactMap { $0.mapToDelegation() }
-            .sorted { $0.base.balanceValue > $1.base.balanceValue }
+            .sorted { $0.base.balance > $1.base.balance }
     }
 }

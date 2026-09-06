@@ -4,6 +4,8 @@ import Foundation
 import GRDB
 import Primitives
 
+internal import BigInt
+
 struct StakeDelegationInfo: Codable, FetchableRecord {
     let delegation: StakeDelegationRecord
     let validator: StakeValidatorRecord
@@ -16,9 +18,9 @@ extension StakeDelegationInfo {
             base: DelegationBase(
                 assetId: delegation.assetId,
                 state: delegation.state,
-                balance: delegation.balance,
-                shares: delegation.shares ?? "0",
-                rewards: delegation.rewards,
+                balance: BigInt(stringLiteral: delegation.balance),
+                shares: BigInt(stringLiteral: delegation.shares ?? "0"),
+                rewards: BigInt(stringLiteral: delegation.rewards),
                 completionDate: delegation.completionDate,
                 delegationId: delegation.delegationId,
                 validatorId: validator.validatorId,

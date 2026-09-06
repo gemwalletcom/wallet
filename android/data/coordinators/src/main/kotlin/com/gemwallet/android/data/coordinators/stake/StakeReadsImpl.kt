@@ -59,7 +59,7 @@ class GetDelegationsImpl(
 
     override fun invoke(walletId: WalletId, assetId: AssetId): Flow<List<Delegation>> =
         stakeStore.observeDelegations(walletId, assetId)
-            .map { delegations -> delegations.sortedByDescending { it.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO } }
+            .map { delegations -> delegations.sortedByDescending { it.base.balance } }
 }
 
 class GetDelegationImpl(

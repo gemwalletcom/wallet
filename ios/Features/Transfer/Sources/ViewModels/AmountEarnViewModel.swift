@@ -43,10 +43,10 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     var gemAmountType: GemAmountType {
-        service.earnAmountType(earnType: action.json())
+        service.earnAmountType(earnType: action.map())
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        try await service.earnTransferData(asset: asset.map(), earnType: action.json(), value: value, useMaxAmount: useMaxAmount)
+        try await service.earnTransferData(asset: asset.map(), earnType: action.map(), value: value, useMaxAmount: useMaxAmount)
     }
 }

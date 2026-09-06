@@ -57,8 +57,8 @@ extension DelegationViewModel {
                 base: .mock(
                     state: state,
                     assetId: .mock(.tron),
-                    balance: "1500000000",
-                    rewards: "500000000",
+                    balance: 1_500_000_000,
+                    rewards: 500_000_000,
                     completionDate: completionDate,
                 ),
             ),

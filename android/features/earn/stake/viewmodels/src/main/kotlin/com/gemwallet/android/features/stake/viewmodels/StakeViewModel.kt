@@ -88,7 +88,7 @@ class StakeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val claimRewards = combine(delegations, assetInfo.filterNotNull()) { delegations, assetInfo ->
-        stakeService.claimRewards(assetInfo.asset.chain.string, delegations.map { it.toJson() })
+        stakeService.claimRewards(assetInfo.asset.chain.string, delegations.map { it.toGem() })
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val rewardsText = combine(claimRewards.filterNotNull(), assetInfo.filterNotNull()) { claimRewards, assetInfo ->
@@ -106,7 +106,7 @@ class StakeViewModel @Inject constructor(
             chain = assetInfo.asset.chain.string,
             hasValidators = hasValidators,
             balance = assetInfo.balance.toGem(),
-            delegations = delegations.map { it.toJson() },
+            delegations = delegations.map { it.toGem() },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -140,7 +140,7 @@ class StakeViewModel @Inject constructor(
     ) {
         val walletType = walletType.value ?: return
         val assetInfo = assetInfo.value ?: return
-        when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toJson())) {
+        when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
             is GemDelegationDestination.Withdraw -> onConfirm(destination.transfer)
         }

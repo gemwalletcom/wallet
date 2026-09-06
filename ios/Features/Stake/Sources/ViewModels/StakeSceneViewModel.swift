@@ -142,7 +142,7 @@ public final class StakeSceneViewModel {
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch service.delegationDestination(walletType: wallet.type.map(), asset: asset.map(), delegation: delegation.delegation.json()) {
+        switch service.delegationDestination(walletType: wallet.type.map(), asset: asset.map(), delegation: delegation.delegation.map()) {
         case let .withdraw(transfer): transfer
         case .details: delegation.delegation
         }
@@ -271,12 +271,12 @@ extension StakeSceneViewModel {
             chain: chain.chain.rawValue,
             hasValidators: validators.isNotEmpty,
             balance: GemAssetBalance(assetData.balance, assetId: asset.id),
-            delegations: delegations.map { $0.json() },
+            delegations: delegations.map { $0.map() },
         )
     }
 
     private var claimRewards: GemClaimRewards {
-        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.json() })
+        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.map() })
     }
 
     private func stakeAction(_ action: GemStakeAction) -> GemStakeActionItem? {

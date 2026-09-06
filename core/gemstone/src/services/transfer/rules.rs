@@ -591,7 +591,6 @@ mod tests {
                 apr: 0.0,
                 provider_type: StakeProviderType::Stake,
             },
-            price: None,
         }
     }
 

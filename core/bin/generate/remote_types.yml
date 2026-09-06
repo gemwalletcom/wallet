@@ -100,6 +100,11 @@ remote:
   - TransferDataOutputType
   - TransferDataExtra
   - TransactionInputType
+  - RedelegateData
+  - DelegationBase
+  - Delegation
+  - StakeType
+  - EarnType
 codes:
   - Chain
   - Currency

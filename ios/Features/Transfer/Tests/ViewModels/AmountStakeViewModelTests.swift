@@ -72,7 +72,7 @@ struct AmountStakeViewModelTests {
 
     @Test
     func availableValue() {
-        let delegation = Delegation.mock(base: .mock(state: .active, balance: "5000000"))
+        let delegation = Delegation.mock(base: .mock(state: .active, balance: 5_000_000))
         let assetData = AssetData.mock(asset: .mockBNB(), balance: .mock(available: 1000))
 
         let stake = AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil), service: GemAmountService.mock())

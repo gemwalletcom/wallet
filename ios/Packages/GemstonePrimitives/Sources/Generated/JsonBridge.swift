@@ -17,9 +17,6 @@ extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.ContractCallData: JsonCodable {}
-extension Primitives.Delegation: JsonCodable {}
-extension Primitives.DelegationBase: JsonCodable {}
-extension Primitives.EarnType: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
 extension Primitives.FiatQuote: JsonCodable {}
 extension Primitives.FiatQuoteRequest: JsonCodable {}
@@ -44,7 +41,6 @@ extension Primitives.PortfolioAssets: JsonCodable {}
 extension Primitives.PortfolioAsset: JsonCodable {}
 extension Primitives.PortfolioAssetsRequest: JsonCodable {}
 extension Primitives.PortfolioData: JsonCodable {}
-extension Primitives.Price: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
 extension Primitives.ReferralCode: JsonCodable {}
@@ -59,7 +55,6 @@ extension Primitives.SimulationHeader: JsonCodable {}
 extension Primitives.SimulationResult: JsonCodable {}
 extension Primitives.SimulationWarning: JsonCodable {}
 extension Primitives.SolanaNftStandard: JsonCodable {}
-extension Primitives.StakeType: JsonCodable {}
 extension Primitives.StakeValidator: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}

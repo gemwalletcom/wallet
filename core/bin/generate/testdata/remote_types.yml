@@ -6,6 +6,7 @@ remote:
   - NFTImages
   - PriceAlert
   - SwapPriceImpact
+  - StakeAction
   - TransferDataExtra
   - Wallet
 codes:

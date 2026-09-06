@@ -280,7 +280,6 @@ mod tests {
                 apr: 0.0,
                 provider_type: StakeProviderType::Stake,
             },
-            price: None,
         }
     }
 
@@ -559,7 +558,6 @@ mod tests {
                 id: "other".into(),
                 ..delegation.validator.clone()
             },
-            price: None,
         };
 
         assert_eq!(stake_amount_type(StakeType::Stake(delegation.validator.clone()), vec![]), stake(GemAmountStakeType::Stake));

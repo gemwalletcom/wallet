@@ -163,13 +163,13 @@ class AmountStakeProvider(
 
     override val amountType: StateFlow<GemAmountType?> =
         combine(delegation, validatorState, selectedResource, rewardsDelegations) { currentDelegation, currentValidator, currentResource, rewards ->
-            stakeType(currentDelegation, currentValidator, currentResource)?.let { service.stakeAmountType(it.toJson(), rewards.map { delegation -> delegation.toJson() }) }
+            stakeType(currentDelegation, currentValidator, currentResource)?.let { service.stakeAmountType(it.toGem(), rewards.map { delegation -> delegation.toGem() }) }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val stakeType = stakeType(delegation.value, validatorState.value, selectedResource.value) ?: throw missingSelection()
-        return service.stakeTransferData(current.asset.toGem(), stakeType.toJson(), amount.atomicValue, isMax)
+        return service.stakeTransferData(current.asset.toGem(), stakeType.toGem(), amount.atomicValue, isMax)
     }
 
     private fun stakeType(delegation: Delegation?, validator: DelegationValidator?, resource: Resource): StakeType? = when (params) {

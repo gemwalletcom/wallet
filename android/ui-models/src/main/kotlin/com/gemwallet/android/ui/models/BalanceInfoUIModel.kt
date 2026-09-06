@@ -24,10 +24,10 @@ open class BalanceInfoUIModel(
 
 class RewardsInfoUIModel(
     assetInfo: AssetInfo,
-    balance: String,
+    balance: BigInteger,
 ) : BalanceInfoUIModel(
     asset = assetInfo.asset,
-    balance = BigInteger(balance),
+    balance = balance,
     price = assetInfo.price?.price?.price,
     currency = assetInfo.price?.currency ?: Currency.USD,
 )
@@ -37,7 +37,7 @@ class DelegationBalanceInfoUIModel(
     delegation: DelegationBase,
 ) : BalanceInfoUIModel(
     asset = assetInfo.asset,
-    balance = BigInteger(delegation.balance),
+    balance = delegation.balance,
     price = assetInfo.price?.price?.price,
     currency = assetInfo.price?.currency ?: Currency.USD,
 )

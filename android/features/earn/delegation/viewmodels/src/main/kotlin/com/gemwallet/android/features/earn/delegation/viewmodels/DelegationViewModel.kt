@@ -11,7 +11,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.ext.changeAmountOnUnstake
 import com.gemwallet.android.model.AmountParams
 import com.wallet.core.primitives.StakeType
@@ -76,7 +75,7 @@ class DelegationViewModel @Inject constructor(
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },
             DelegationProperty.TransactionStatus(delegation.base.state, delegation.validator.isActive),
             delegation.base.state
-                .takeIf { stakeService.showsCompletionDate(delegation.base.toJson()) && availableIn.isNotEmpty() }
+                .takeIf { stakeService.showsCompletionDate(delegation.base.toGem()) && availableIn.isNotEmpty() }
                 ?.let { DelegationProperty.State(it, availableIn) }
         )
     }
@@ -92,19 +91,19 @@ class DelegationViewModel @Inject constructor(
 
         listOfNotNull(
             delegation.base.rewards
-                .takeIf { stakeService.showsRewards(delegation.base.toJson()) }
+                .takeIf { stakeService.showsRewards(delegation.base.toGem()) }
                 ?.let { RewardsInfoUIModel(assetInfo, it) },
         )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val actions = combine(delegation.filterNotNull(), getSession().filterNotNull()) { delegation, session ->
-        stakeService.delegationActions(session.wallet.type.toGem(), delegation.toJson()).mapNotNull { it.toDelegationAction() }
+        stakeService.delegationActions(session.wallet.type.toGem(), delegation.toGem()).mapNotNull { it.toDelegationAction() }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val canClaimRewards = combine(delegation.filterNotNull(), getSession().filterNotNull()) { delegation, session ->
-        stakeService.canClaimDelegationRewards(session.wallet.type.toGem(), delegation.toJson())
+        stakeService.canClaimDelegationRewards(session.wallet.type.toGem(), delegation.toGem())
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -127,7 +126,7 @@ class DelegationViewModel @Inject constructor(
             buildUndelegate()?.let { amountCall(it) }
             return
         }
-        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toJson(), BigInteger(delegation.base.balance), false))
+        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toGem(), delegation.base.balance, false))
     }
 
     fun onRedelegate(call: AmountTransactionAction) {
@@ -137,7 +136,7 @@ class DelegationViewModel @Inject constructor(
     fun onWithdraw(call: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
-        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), BigInteger(delegation.base.balance), false))
+        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toGem(), delegation.base.balance, false))
     }
 
     fun onClaimRewards(call: ConfirmTransactionAction) {
@@ -146,8 +145,8 @@ class DelegationViewModel @Inject constructor(
         call(
             stakeService.stakeTransferData(
                 assetInfo.asset.toGem(),
-                StakeType.Rewards(listOf(delegation.validator)).toJson(),
-                delegation.rewardsBalance(),
+                StakeType.Rewards(listOf(delegation.validator)).toGem(),
+                delegation.base.rewards,
                 false,
             )
         )

@@ -41,7 +41,7 @@ class ValidatorsViewModel @Inject constructor(
                 is ValidatorsSource.Rewards -> getDelegations(source.walletId, source.assetId)
                     .map { delegations ->
                         delegations
-                            .filter { (it.base.rewards.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO }
+                            .filter { it.base.rewards > BigInteger.ZERO }
                             .map { it.validator }
                     }
             }

@@ -102,7 +102,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     var gemAmountType: GemAmountType {
-        service.stakeAmountType(stakeType: stakeType.json(), delegations: rewardsDelegations.map { $0.json() })
+        service.stakeAmountType(stakeType: stakeType.map(), delegations: rewardsDelegations.map { $0.map() })
     }
 
     private var rewardsDelegations: [Delegation] {
@@ -111,7 +111,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) -> GemTransferData {
-        service.stakeTransferData(asset: asset.map(), stakeType: stakeType.json(), value: value, useMaxAmount: useMaxAmount)
+        service.stakeTransferData(asset: asset.map(), stakeType: stakeType.map(), value: value, useMaxAmount: useMaxAmount)
     }
 
     private var stakeType: StakeType {

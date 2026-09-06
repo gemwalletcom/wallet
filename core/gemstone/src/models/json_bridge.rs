@@ -5,15 +5,15 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::swap::{ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    AssetList, ChainAsset, ContractCallData, DelegationBase, Payment, PaymentAmount, PaymentLink, PaymentRequest, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
-    SimulationHeader, SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    AssetList, ChainAsset, ContractCallData, Payment, PaymentAmount, PaymentLink, PaymentRequest, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader,
+    SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset, PortfolioAssets,
     PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription,
     WalletSubscriptionChains,
 };
-use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended};
+use primitives::{PerpetualConfirmData, PerpetualType, Transaction, TransactionExtended};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -50,9 +50,6 @@ json_bridge!(
     ConfigResponse,
     ConfigVersions,
     ContractCallData,
-    Delegation,
-    DelegationBase,
-    EarnType,
     FiatAssets,
     FiatQuote,
     FiatQuoteRequest,
@@ -77,7 +74,6 @@ json_bridge!(
     PortfolioAsset,
     PortfolioAssetsRequest,
     PortfolioData,
-    Price,
     RedemptionRequest,
     RedemptionResult,
     ReferralCode,
@@ -92,7 +88,6 @@ json_bridge!(
     SimulationResult,
     SimulationWarning,
     SolanaNftStandard,
-    StakeType,
     StakeValidator,
     SupportMessage,
     SupportMessageInput,

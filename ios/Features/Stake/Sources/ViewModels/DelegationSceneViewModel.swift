@@ -104,7 +104,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var availableActions: [DelegationActionType] {
-        service.delegationActions(walletType: wallet.type.map(), delegation: model.delegation.json())
+        service.delegationActions(walletType: wallet.type.map(), delegation: model.delegation.map())
             .map(DelegationActionType.init)
     }
 
@@ -113,7 +113,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var canClaimRewards: Bool {
-        service.canClaimDelegationRewards(walletType: wallet.type.map(), delegation: model.delegation.json())
+        service.canClaimDelegationRewards(walletType: wallet.type.map(), delegation: model.delegation.map())
     }
 
     public func actionTitle(_ action: DelegationActionType) -> String {
@@ -168,14 +168,14 @@ extension DelegationSceneViewModel {
     }
 
     private func stakeTransferData(_ stakeType: StakeType) -> GemTransferData {
-        service.stakeTransferData(asset: asset.map(), stakeType: stakeType.json(), value: model.delegation.base.balanceValue, useMaxAmount: false)
+        service.stakeTransferData(asset: asset.map(), stakeType: stakeType.map(), value: model.delegation.base.balance, useMaxAmount: false)
     }
 
     private func claimRewardsTransferData() -> GemTransferData {
         service.stakeTransferData(
             asset: asset.map(),
-            stakeType: StakeType.rewards([model.delegation.validator]).json(),
-            value: model.delegation.base.rewardsValue,
+            stakeType: StakeType.rewards([model.delegation.validator]).map(),
+            value: model.delegation.base.rewards,
             useMaxAmount: false,
         )
     }

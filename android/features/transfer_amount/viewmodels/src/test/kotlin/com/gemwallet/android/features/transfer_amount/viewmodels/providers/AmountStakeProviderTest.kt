@@ -45,8 +45,8 @@ class AmountStakeProviderTest {
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v1")
     private val delegation = mockDelegation(
         assetId = asset.id,
-        balance = "100",
-        rewards = "5",
+        balance = BigInteger("100"),
+        rewards = BigInteger("5"),
         validatorId = "v1",
         delegationId = "d1",
     )
@@ -124,13 +124,13 @@ class AmountStakeProviderTest {
         val otherWalletId = mockWalletId("wallet-other")
         val ownDelegation = mockDelegation(
             assetId = asset.id,
-            balance = "77",
+            balance = BigInteger("77"),
             validatorId = "v1",
             delegationId = "d1",
         )
         val otherWalletDelegation = mockDelegation(
             assetId = asset.id,
-            balance = "999999",
+            balance = BigInteger("999999"),
             validatorId = "v1",
             delegationId = "d1",
         )
@@ -142,7 +142,7 @@ class AmountStakeProviderTest {
         provider.validatorState.filterNotNull().first()
 
         val confirm = provider.stakeType() as StakeType.Unstake
-        assertEquals("77", confirm.content.base.balance)
+        assertEquals(BigInteger("77"), confirm.content.base.balance)
     }
 
     @Test
@@ -184,8 +184,8 @@ class AmountStakeProviderTest {
     fun `rewards canSelectValidator is true only when multiple rewards delegations`() = runBlocking {
         val secondDelegation = mockDelegation(
             assetId = asset.id,
-            balance = "200",
-            rewards = "7",
+            balance = BigInteger("200"),
+            rewards = BigInteger("7"),
             validatorId = "v2",
             delegationId = "d2",
         )

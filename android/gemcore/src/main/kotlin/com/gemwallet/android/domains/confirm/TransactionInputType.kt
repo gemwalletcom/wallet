@@ -32,7 +32,7 @@ val TransactionInputType.nftAsset: NFTAsset?
     get() = (this as? TransactionInputType.TransferNft)?.nftAsset?.toPrimitives()
 
 val TransactionInputType.stakeType: StakeType?
-    get() = (this as? TransactionInputType.Stake)?.stakeType?.decodeJson<StakeType>()
+    get() = (this as? TransactionInputType.Stake)?.stakeType?.toPrimitives()
 
 val TransactionInputType.perpetualType: PerpetualType?
     get() = (this as? TransactionInputType.Perpetual)?.perpetualType?.decodeJson<PerpetualType>()
