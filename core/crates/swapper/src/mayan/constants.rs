@@ -1,4 +1,4 @@
-use primitives::{Chain, contract_constants::MAYAN_SWIFT_CONTRACT};
+use primitives::contract_constants::MAYAN_SWIFT_CONTRACT;
 
 pub const MAYAN_FORWARDER: &str = "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2";
 pub const MAYAN_MCTP: &str = "0x875d6d37EC55c8cF220B9E5080717549d8Aa8EcA";
@@ -28,10 +28,5 @@ pub const SDK_VERSION: &str = "14_1_0";
 // https://docs.mayan.finance/integration/quote-api
 pub const MAYAN_MAX_SLIPPAGE_BPS: u32 = 500;
 
-pub const MAYAN_DEPOSIT_CONTRACTS: [(Chain, &str); 4] = [
-    (Chain::Ethereum, MAYAN_FORWARDER),
-    (Chain::Ethereum, MAYAN_MCTP),
-    (Chain::Ethereum, MAYAN_SWIFT_CONTRACT),
-    (Chain::Sui, SUI_MCTP_PACKAGE_ID),
-];
-pub const MAYAN_SEND_CONTRACTS: [(Chain, &str); 1] = [(Chain::Ethereum, MAYAN_FULFILL_HELPER)];
+pub const MAYAN_DEPOSIT_CONTRACTS: [&str; 4] = [MAYAN_FORWARDER, MAYAN_MCTP, MAYAN_SWIFT_CONTRACT, SUI_MCTP_PACKAGE_ID];
+pub const MAYAN_SEND_CONTRACTS: [&str; 1] = [MAYAN_FULFILL_HELPER];
