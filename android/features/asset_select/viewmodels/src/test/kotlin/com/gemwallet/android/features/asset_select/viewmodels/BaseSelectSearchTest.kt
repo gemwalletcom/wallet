@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.testkit.mockAsset
@@ -35,10 +35,10 @@ class BaseSelectSearchTest {
 
     @Test
     fun `non-empty query with no matches emits empty list`() = runTest {
-        val searchSelectAssets = mockk<SearchSelectAssets> {
-            every { this@mockk(any(), any()) } returns flowOf(emptyList())
+        val searchService = mockk<AssetsSearchService> {
+            every { search(any(), any(), any(), any()) } returns flowOf(emptyList())
         }
-        val search = BaseSelectSearch(searchSelectAssets)
+        val search = BaseSelectSearch(searchService)
 
         val result = search.items(filters("zzqxzzq")).first()
 
@@ -47,14 +47,14 @@ class BaseSelectSearchTest {
 
     @Test
     fun `query and limit are forwarded to repository search`() = runTest {
-        val searchSelectAssets = mockk<SearchSelectAssets> {
-            every { this@mockk(any(), any()) } returns flowOf(results)
+        val searchService = mockk<AssetsSearchService> {
+            every { search(any(), any(), any(), any()) } returns flowOf(results)
         }
-        val search = BaseSelectSearch(searchSelectAssets)
+        val search = BaseSelectSearch(searchService)
 
         val result = search.items(filters(query = "eth", limit = 25)).first()
 
         assertEquals(results, result)
-        verify(exactly = 1) { searchSelectAssets("eth", 25) }
+        verify(exactly = 1) { searchService.search("eth", false, 25, emptySet()) }
     }
 }

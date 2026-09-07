@@ -5,7 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
-import com.gemwallet.android.application.asset_select.cases.GetChainAssets
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
@@ -20,9 +21,11 @@ import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -31,9 +34,11 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class NetworkAssetsViewModel @Inject constructor(
-    getChainAssets: GetChainAssets,
+    assetStore: GemstoneAssetStore,
+    getCurrentWalletId: GetCurrentWalletId,
     private val service: GemWalletHomeServiceInterface,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
@@ -43,7 +48,8 @@ class NetworkAssetsViewModel @Inject constructor(
 
     val title: String = context.getString(R.string.assets_title)
 
-    private val activeAssets = getChainAssets(chain)
+    private val activeAssets = getCurrentWalletId()
+        .flatMapLatest { walletId -> assetStore.observeAssetsInfoByChain(walletId.id, chain) }
         .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE } }
         .flowOn(Dispatchers.IO)
 
@@ -57,7 +63,8 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val hiddenAssets = getChainAssets.hidden(chain)
+    private val hiddenAssets = getCurrentWalletId()
+        .flatMapLatest { walletId -> assetStore.observeHiddenAssetsInfoByChain(walletId.id, chain) }
         .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE } }
         .flowOn(Dispatchers.IO)
 

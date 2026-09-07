@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,13 +12,13 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageSelectViewModel @Inject constructor(
     getSession: GetSession,
-    searchSelectAssets: SearchSelectAssets,
-    getRecentAssets: GetRecentAssets,
+    searchService: AssetsSearchService,
+    recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
 ) : BaseAssetSelectViewModel(
     getSession,
-    getRecentAssets,
+    recentAssetsService,
     service,
-    BaseSelectSearch(searchSelectAssets),
+    BaseSelectSearch(searchService),
     GemSelectAssetType.MANAGE,
 )

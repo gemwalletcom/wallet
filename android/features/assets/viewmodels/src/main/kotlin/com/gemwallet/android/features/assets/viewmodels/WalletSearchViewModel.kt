@@ -7,12 +7,12 @@ import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toIdentifier
@@ -47,17 +47,17 @@ import javax.inject.Inject
 @HiltViewModel
 class WalletSearchViewModel @Inject constructor(
     getSession: GetSession,
-    searchSelectAssets: SearchSelectAssets,
-    getRecentAssets: GetRecentAssets,
+    searchService: AssetsSearchService,
+    recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
     getNftCollections: GetNftCollections,
     getSearchLists: GetSearchLists,
 ) : BaseAssetSelectViewModel(
     getSession,
-    getRecentAssets,
+    recentAssetsService,
     service,
-    BaseSelectSearch(searchSelectAssets),
+    BaseSelectSearch(searchService),
     GemSelectAssetType.WALLET_SEARCH,
 ) {
 

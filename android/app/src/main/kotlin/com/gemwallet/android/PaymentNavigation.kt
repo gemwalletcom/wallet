@@ -2,7 +2,7 @@ package com.gemwallet.android
 
 import com.gemwallet.android.ext.toGem
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.serializer.toJson
@@ -19,7 +19,7 @@ import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPaymentService
 
 class PaymentNavigation @Inject constructor(
-    private val getSelectAssetsInfo: GetSelectAssetsInfo,
+    private val getWalletAssets: GetWalletAssets,
     private val paymentService: GemPaymentService,
     private val assetsService: GemAssetsServiceInterface,
 ) {
@@ -30,7 +30,7 @@ class PaymentNavigation @Inject constructor(
     }
 
     private suspend fun requestRoutes(request: PaymentRequest): List<NavKey> =
-        when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first(), paymentService)) {
+        when (val destination = PaymentDestination.from(request, getWalletAssets().first(), paymentService)) {
             PaymentDestination.Unsupported -> emptyList()
             is PaymentDestination.Confirm -> listOfNotNull(destination.transfer.pack()?.let(::ConfirmRoute))
             is PaymentDestination.Recipient -> listOf(
@@ -40,7 +40,7 @@ class PaymentNavigation @Inject constructor(
         }
 
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {
-        val assets = getSelectAssetsInfo().first()
+        val assets = getWalletAssets().first()
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
         val payment = paymentService.load(
             link.toJson(),

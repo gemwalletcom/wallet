@@ -2,9 +2,9 @@ package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
@@ -20,12 +20,12 @@ import javax.inject.Inject
 @HiltViewModel
 class PriceAlertsSelectViewModel @Inject constructor(
     getSession: GetSession,
-    getRecentAssets: GetRecentAssets,
+    recentAssetsService: RecentAssetsService,
     searchService: AssetsSearchService,
     service: GemAssetSelectionServiceInterface,
 ) : BaseAssetSelectViewModel(
     getSession,
-    getRecentAssets,
+    recentAssetsService,
     service,
     PriceAlertSelectSearch(searchService),
     GemSelectAssetType.PRICE_ALERT,

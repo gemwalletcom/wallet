@@ -5,7 +5,7 @@ import uniffi.gemstone.GemSelectAssetType
 import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.domains.swap.SwapItemType
@@ -32,13 +32,13 @@ import javax.inject.Inject
 @HiltViewModel
 class SwapSelectViewModel @Inject constructor(
     getSession: GetSession,
-    getRecentAssets: GetRecentAssets,
+    recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
     searchSwapAssets: SearchSwapAssets,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
     getSession = getSession,
-    getRecentAssets = getRecentAssets,
+    recentAssetsService = recentAssetsService,
     service = service,
     search = SwapSelectSearch(searchSwapAssets),
     selectType = when (savedStateHandle.requireSwapItemType()) {

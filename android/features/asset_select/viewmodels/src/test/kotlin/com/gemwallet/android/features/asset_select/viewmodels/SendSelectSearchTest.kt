@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
-import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAsset
@@ -39,9 +39,9 @@ class SendSelectSearchTest {
 
     @Test
     fun `empty query uses current wallet assets`() = runTest {
-        val searchSelectAssets = searchCoordinator()
-        val getSelectAssetsInfo = assetsInfoCoordinator()
-        val search = SendSelectSearch(searchSelectAssets, getSelectAssetsInfo)
+        val searchService = searchService()
+        val getWalletAssets = walletAssets()
+        val search = SendSelectSearch(searchService, getWalletAssets)
         val filters = MutableStateFlow(
             SelectAssetFilters(
                 session = null,
@@ -54,15 +54,15 @@ class SendSelectSearchTest {
         val result = search.items(filters).first()
 
         assertEquals(walletAssetResults, result)
-        verify(exactly = 1) { getSelectAssetsInfo.invoke() }
-        verify(exactly = 0) { searchSelectAssets.invoke(any(), any()) }
+        verify(exactly = 1) { getWalletAssets.invoke() }
+        verify(exactly = 0) { searchService.search(any(), any(), any(), any()) }
     }
 
-    private fun searchCoordinator() = mockk<SearchSelectAssets> {
-        every { this@mockk(any(), any()) } returns flowOf(searchResults)
+    private fun searchService() = mockk<AssetsSearchService> {
+        every { search(any(), any(), any(), any()) } returns flowOf(searchResults)
     }
 
-    private fun assetsInfoCoordinator() = mockk<GetSelectAssetsInfo> {
+    private fun walletAssets() = mockk<GetWalletAssets> {
         every { this@mockk() } returns flowOf(walletAssetResults)
     }
 }
