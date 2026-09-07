@@ -79,7 +79,7 @@ pub(super) trait ConfirmInput {
 impl ConfirmInput for TransactionInputType {
     fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)> {
         match self {
-            Self::TokenApprove { asset, approval_data } => Some((asset.id.clone(), gem_approval_value(&approval_data.value, approval_data.is_unlimited))),
+            Self::TokenApprove { asset, approval_data } => Some((asset.id.clone(), approval_value_from(Some(&approval_data.value), approval_data.is_unlimited))),
             Self::Transfer { .. }
             | Self::Deposit { .. }
             | Self::Swap { .. }
@@ -119,18 +119,10 @@ impl ConfirmInput for TransactionInputType {
     }
 }
 
-pub fn approval_value_from(value: &Option<GemBigUint>, is_unlimited: bool) -> GemApprovalValue {
+pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> GemApprovalValue {
     match value {
         Some(value) if !is_unlimited => GemApprovalValue::Exact { value: value.clone() },
         _ => GemApprovalValue::Unlimited,
-    }
-}
-
-fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValue {
-    if is_unlimited {
-        GemApprovalValue::Unlimited
-    } else {
-        GemApprovalValue::Exact { value: value.clone() }
     }
 }
 
@@ -1106,8 +1098,8 @@ mod tests {
 
         assert!(matches!(approval.approval_value(), Some((id, GemApprovalValue::Unlimited)) if id == asset.id));
         assert!((TransactionInputType::Transfer { asset }).approval_value().is_none());
-        assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
-        assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), true), GemApprovalValue::Unlimited));
+        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
+        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), true), GemApprovalValue::Unlimited));
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {
