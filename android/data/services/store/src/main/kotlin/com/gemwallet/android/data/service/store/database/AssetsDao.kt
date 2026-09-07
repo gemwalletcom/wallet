@@ -68,7 +68,7 @@ private const val ASSET_INFO_COLUMNS = """
     COALESCE(balances.earn, '0') AS balanceEarn,
     balances.earn_amount AS balanceEarnAmount,
     balances.total_amount AS balanceTotalAmount,
-    (balances.total_amount * prices.value) AS balanceFiatTotalAmount,
+    (balances.total_amount * COALESCE(prices.value, 0)) AS balanceFiatTotalAmount,
     balances.is_active AS assetIsActive,
     balances.votes AS votes,
     balances.energy_available AS energyAvailable,
