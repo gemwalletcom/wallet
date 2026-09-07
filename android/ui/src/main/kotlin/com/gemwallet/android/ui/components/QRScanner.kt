@@ -79,7 +79,6 @@ import java.util.concurrent.Executors
 import kotlin.math.min
 
 private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
-private const val MAX_IMAGE_SIDE = 1600
 private const val SCAN_FROM_GALLERY_TAG = "scanFromGallery"
 private const val FINDER_SCALE = 0.66f
 private val HINT_SPACING = space24
@@ -168,7 +167,7 @@ fun QRScannerScene(
             try {
                 val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image)) { decoder, info, _ ->
                     decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                    decoder.setTargetSampleSize(maxOf(1, maxOf(info.size.width, info.size.height) / MAX_IMAGE_SIDE))
+                    decoder.setTargetSampleSize(QRCodeDecoder.sampleSize(info.size.width, info.size.height))
                 }
                 val pixels = IntArray(bitmap.width * bitmap.height)
                 bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
@@ -343,11 +342,10 @@ private class QRCodeAnalyzer(
 ) : androidx.camera.core.ImageAnalysis.Analyzer {
 
     override fun analyze(imageProxy: androidx.camera.core.ImageProxy) {
-        val text = imageProxy.use {
+        imageProxy.use {
             val plane = it.planes.first()
-            QRCodeDecoder.decode(plane.buffer.toByteArray(), plane.rowStride, it.width, it.height)
+            QRCodeDecoder.decode(plane.buffer.toByteArray(), plane.rowStride, it.width, it.height)?.let(callback)
         }
-        text?.let(callback)
     }
 }
 
