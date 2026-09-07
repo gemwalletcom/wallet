@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -13,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
@@ -61,7 +61,7 @@ fun FiatTransactionItem(
         modifier = Modifier.clickable(onClick = onClick),
         leading = {
             AsyncImage(
-                model = transaction.provider.getFiatProviderIcon(),
+                model = transaction.provider.iconModel(),
                 size = listItemIconSize,
             )
         },

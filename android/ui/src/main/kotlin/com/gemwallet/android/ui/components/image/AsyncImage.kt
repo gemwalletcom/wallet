@@ -24,6 +24,7 @@ import coil3.transform.CircleCropTransformation
 import coil3.transform.Transformation
 import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.SwapProvider
 import com.gemwallet.android.ui.theme.secondaryFaded
 import com.wallet.core.primitives.Asset
 
@@ -45,6 +46,7 @@ fun AsyncImage(
     val requestData = when (model) {
         is Asset -> model.iconModel()
         is Chain -> model.iconModel()
+        is SwapProvider -> model.iconModel()
         else -> model
     }
     if (requestData is Int) {

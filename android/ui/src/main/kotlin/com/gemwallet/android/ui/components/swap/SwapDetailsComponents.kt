@@ -236,7 +236,7 @@ private fun SwapProviderAmounts(provider: SwapProviderUIModel) {
 }
 
 @Composable
-private fun SwapProviderIcon(icon: Any, size: Dp) {
+private fun SwapProviderIcon(icon: Any?, size: Dp) {
     AsyncImage(model = icon, size = size)
 }
 

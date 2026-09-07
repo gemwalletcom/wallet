@@ -7,7 +7,7 @@ import uniffi.gemstone.SwapProvider
 data class SwapProviderUIModel(
     val id: SwapProvider,
     val title: String,
-    val icon: String,
+    val icon: Any?,
     val amount: String? = null,
     val fiat: String? = null,
 )

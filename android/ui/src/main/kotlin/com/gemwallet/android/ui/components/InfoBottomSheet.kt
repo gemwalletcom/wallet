@@ -24,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getSwapProviderIcon
 import uniffi.gemstone.SwapProvider
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
@@ -136,7 +135,7 @@ sealed class InfoSheetEntity(
         actionLabel: String,
         action: () -> Unit,
     ) : InfoSheetEntity(
-        icon = provider.getSwapProviderIcon(),
+        icon = provider.iconModel(),
         title = R.string.info_minimum_amount_title,
         description = R.string.info_swap_minimum_amount_description,
         action = action,

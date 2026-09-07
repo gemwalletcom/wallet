@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.models.swap
 
-import com.gemwallet.android.domains.asset.getSwapProviderIcon
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
@@ -38,7 +37,7 @@ object SwapProviderUIModelFactory {
         return SwapProviderUIModel(
             id = providerId,
             title = title,
-            icon = providerId.getSwapProviderIcon(),
+            icon = providerId,
             amount = ValueFormatter(style = ValueFormatter.Style.Auto)
                 .string(toValue, receiveAsset.asset),
             fiat = receiveAsset.formatFiat(fiatValue),

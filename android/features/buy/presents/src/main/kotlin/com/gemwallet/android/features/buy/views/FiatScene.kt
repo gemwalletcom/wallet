@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
@@ -171,7 +171,7 @@ fun BuyScene(
                             badge = {
                                 DataBadgeChevron(isShowChevron = uiState.canSelectProvider) {
                                     AsyncImage(
-                                        model = selectedProvider.provider.getFiatProviderIcon(),
+                                        model = selectedProvider.provider.iconModel(),
                                         size = smallIconSize,
                                     )
                                 }
