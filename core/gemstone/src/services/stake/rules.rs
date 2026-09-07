@@ -220,6 +220,10 @@ pub fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>)
         .or_else(|| validators.first().cloned())
 }
 
+pub fn redelegate_validator(chain: Chain, validators: Vec<DelegationValidator>, from_validator_id: &str) -> Option<DelegationValidator> {
+    recommended_validator(chain, validators.into_iter().filter(|validator| validator.id != from_validator_id).collect())
+}
+
 pub fn merge_validators(validators: Vec<DelegationValidator>, delegation_validators: Vec<DelegationValidator>, names: &HashMap<String, String>) -> Vec<DelegationValidator> {
     let active_ids: HashSet<String> = validators.iter().map(|validator| validator.id.clone()).collect();
     validators
@@ -508,6 +512,16 @@ mod tests {
         assert_eq!(recommended_validator(Chain::Cosmos, validators).unwrap().id, recommended[0]);
         assert_eq!(recommended_validator(Chain::Cosmos, vec![validator("other")]).unwrap().id, "other");
         assert!(recommended_validator(Chain::Cosmos, vec![]).is_none());
+    }
+
+    #[test]
+    fn test_a_redelegate_never_lands_on_the_validator_it_leaves() {
+        let recommended = recommended_validator_ids(Chain::Cosmos);
+        let validators = vec![validator("other"), validator(&recommended[0])];
+
+        assert_eq!(redelegate_validator(Chain::Cosmos, validators.clone(), "other").unwrap().id, recommended[0]);
+        assert_eq!(redelegate_validator(Chain::Cosmos, validators, &recommended[0]).unwrap().id, "other");
+        assert!(redelegate_validator(Chain::Cosmos, vec![validator("other")], "other").is_none());
     }
 
     #[test]

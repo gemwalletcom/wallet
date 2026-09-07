@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetRedelegateValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.features.transfer_amount.models.AmountError
@@ -46,6 +47,7 @@ class AmountStakeProvider(
     private val getDelegation: GetDelegation,
     private val getDelegations: GetDelegations,
     private val getRecommendedValidator: GetRecommendedValidator,
+    private val getRedelegateValidator: GetRedelegateValidator,
     private val getStakeValidator: GetStakeValidator,
     private val service: GemAmountServiceInterface,
     scope: CoroutineScope,
@@ -61,7 +63,6 @@ class AmountStakeProvider(
     private val selectedValidatorId = MutableStateFlow<String?>(
         when (params) {
             is AmountParams.Stake.Delegate -> params.validatorId
-            is AmountParams.Stake.Redelegate -> params.validatorId
             else -> null
         }
     )
@@ -115,22 +116,28 @@ class AmountStakeProvider(
         source.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.Eagerly, null)
     }
 
-    private val recommendedValidator: StateFlow<DelegationValidator?> = when (params) {
-        is AmountParams.Stake.Delegate,
-        is AmountParams.Stake.Redelegate -> getRecommendedValidator(params.assetId)
+    private val defaultValidator: StateFlow<DelegationValidator?> = when (params) {
+        is AmountParams.Stake.Delegate -> getRecommendedValidator(params.assetId)
             .flowOn(Dispatchers.IO)
             .stateIn(scope, SharingStarted.Eagerly, null)
-        else -> MutableStateFlow(null)
+        is AmountParams.Stake.Redelegate -> getRedelegateValidator(params.assetId, params.validatorId)
+            .flowOn(Dispatchers.IO)
+            .stateIn(scope, SharingStarted.Eagerly, null)
+        is AmountParams.Stake.Undelegate,
+        is AmountParams.Stake.Withdraw,
+        is AmountParams.Stake.Rewards -> delegation.map { it?.validator }.stateIn(scope, SharingStarted.Eagerly, null)
+        is AmountParams.Stake.Freeze,
+        is AmountParams.Stake.Unfreeze -> MutableStateFlow(null)
     }
 
     val validatorState: StateFlow<DelegationValidator?> =
-        combine(assetInfo, delegation, selectedValidatorId, recommendedValidator) { current, currentDelegation, pickedId, recommended ->
+        combine(assetInfo, selectedValidatorId, defaultValidator) { current, pickedId, default ->
             val byId = if (current != null && pickedId != null) {
                 getStakeValidator(current.asset.id, pickedId)
             } else {
                 null
             }
-            byId ?: currentDelegation?.validator ?: recommended
+            byId ?: default
         }.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.Eagerly, null)
 
     val validatorSource: StateFlow<ValidatorsSource?> = assetInfo.mapLatest { current ->

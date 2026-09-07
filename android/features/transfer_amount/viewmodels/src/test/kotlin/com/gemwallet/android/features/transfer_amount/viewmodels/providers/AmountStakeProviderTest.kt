@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetRedelegateValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.model.AmountParams
@@ -43,6 +44,7 @@ class AmountStakeProviderTest {
     private val asset = mockAssetCosmos()
     private val assetInfo = mockAssetInfo(asset = asset)
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v1")
+    private val otherValidator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
     private val delegation = mockDelegation(
         assetId = asset.id,
         balance = BigInteger("100"),
@@ -62,6 +64,9 @@ class AmountStakeProviderTest {
     }
     private val getRecommendedValidator = mockk<GetRecommendedValidator> {
         every { this@mockk.invoke(any()) } returns flowOf(null)
+    }
+    private val getRedelegateValidator = mockk<GetRedelegateValidator> {
+        every { this@mockk.invoke(any(), any()) } returns flowOf(otherValidator)
     }
     private val getStakeValidator = mockk<GetStakeValidator> {
         coEvery { this@mockk.invoke(asset.id, "v1") } returns validator
@@ -84,6 +89,7 @@ class AmountStakeProviderTest {
         getDelegation = getDelegation,
         getDelegations = getDelegations,
         getRecommendedValidator = getRecommendedValidator,
+        getRedelegateValidator = getRedelegateValidator,
         getStakeValidator = getStakeValidator,
         service = service,
         scope = scope,
@@ -151,6 +157,16 @@ class AmountStakeProviderTest {
         provider.validatorState.filterNotNull().first()
         val confirm = provider.stakeType()
         assertTrue(confirm is StakeType.Redelegate)
+    }
+
+    @Test
+    fun `redelegate defaults to a validator other than the delegated one`() = runBlocking {
+        val provider = makeProvider(AmountParams.Stake.Redelegate(asset.id, "v1", "d1"))
+        provider.validatorState.filterNotNull().first()
+
+        val confirm = provider.stakeType() as StakeType.Redelegate
+        assertEquals("v1", confirm.content.delegation.validator.id)
+        assertEquals("v2", confirm.content.toValidator.id)
     }
 
     @Test

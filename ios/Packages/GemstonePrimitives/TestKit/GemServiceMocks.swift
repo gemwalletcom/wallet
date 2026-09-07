@@ -593,6 +593,10 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         validators.first
     }
 
+    public func redelegateValidator(chain _: Gemstone.Chain, validators: [Gemstone.DelegationValidator], fromValidatorId: String) -> Gemstone.DelegationValidator? {
+        validators.first { $0.id != fromValidatorId }
+    }
+
     public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
         validators
     }

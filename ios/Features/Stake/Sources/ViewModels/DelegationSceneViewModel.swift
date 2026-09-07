@@ -142,7 +142,7 @@ public extension DelegationSceneViewModel {
                 onTransferAction?(stakeTransferData(.unstake(model.delegation)))
             }
         case .redelegate:
-            onAmountInputAction?(amountInput(.stake(.redelegate(model.delegation, validators: validators, recommended: recommendedValidator))))
+            onAmountInputAction?(amountInput(.stake(.redelegate(model.delegation, validators: validators, recommended: redelegateValidator))))
         case .deposit:
             onAmountInputAction?(amountInput(.earn(.deposit(model.delegation.validator))))
         case .withdraw:
@@ -188,10 +188,11 @@ extension DelegationSceneViewModel {
         StakeChain(rawValue: asset.chain.rawValue)!
     }
 
-    private var recommendedValidator: DelegationValidator? {
-        service.recommendedValidator(
+    private var redelegateValidator: DelegationValidator? {
+        service.redelegateValidator(
             chain: model.delegation.base.assetId.chain.rawValue,
             validators: validators.map { $0.map() },
+            fromValidatorId: model.delegation.validator.id,
         ).map { $0.map() }
     }
 }

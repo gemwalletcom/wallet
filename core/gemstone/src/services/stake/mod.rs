@@ -118,6 +118,10 @@ impl GemStakeService {
         rules::recommended_validator(chain, validators)
     }
 
+    pub fn redelegate_validator(&self, chain: Chain, validators: Vec<DelegationValidator>, from_validator_id: String) -> Option<DelegationValidator> {
+        rules::redelegate_validator(chain, validators, &from_validator_id)
+    }
+
     pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
         rules::selectable_validators(validators)
     }

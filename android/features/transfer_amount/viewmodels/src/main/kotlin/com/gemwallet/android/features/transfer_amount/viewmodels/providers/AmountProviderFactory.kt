@@ -6,6 +6,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetRedelegateValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.model.AmountParams
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ class AmountProviderFactory @Inject constructor(
     private val getDelegation: GetDelegation,
     private val getDelegations: GetDelegations,
     private val getRecommendedValidator: GetRecommendedValidator,
+    private val getRedelegateValidator: GetRedelegateValidator,
     private val getStakeValidator: GetStakeValidator,
     private val getPerpetual: GetPerpetual,
     private val getPerpetualBalance: GetPerpetualBalance,
@@ -37,6 +39,7 @@ class AmountProviderFactory @Inject constructor(
             getDelegation = getDelegation,
             getDelegations = getDelegations,
             getRecommendedValidator = getRecommendedValidator,
+            getRedelegateValidator = getRedelegateValidator,
             getStakeValidator = getStakeValidator,
             service = service,
             scope = scope,

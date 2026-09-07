@@ -5,6 +5,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetRedelegateValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
@@ -50,6 +51,17 @@ class GetRecommendedValidatorImpl(
     override fun invoke(assetId: AssetId): Flow<DelegationValidator?> =
         getValidators(assetId).map { validators ->
             stakeService.recommendedValidator(assetId.chain.string, validators.map { it.toGem() })?.toPrimitives()
+        }
+}
+
+class GetRedelegateValidatorImpl(
+    private val getValidators: GetValidators,
+    private val stakeService: GemStakeServiceInterface,
+) : GetRedelegateValidator {
+
+    override fun invoke(assetId: AssetId, fromValidatorId: String): Flow<DelegationValidator?> =
+        getValidators(assetId).map { validators ->
+            stakeService.redelegateValidator(assetId.chain.string, validators.map { it.toGem() }, fromValidatorId)?.toPrimitives()
         }
 }
 

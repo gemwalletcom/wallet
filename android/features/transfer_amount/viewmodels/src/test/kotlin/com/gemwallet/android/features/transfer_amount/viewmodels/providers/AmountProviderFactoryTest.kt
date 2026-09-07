@@ -7,6 +7,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetRedelegateValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -40,6 +41,9 @@ class AmountProviderFactoryTest {
         },
         getRecommendedValidator = mockk<GetRecommendedValidator>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
+        },
+        getRedelegateValidator = mockk<GetRedelegateValidator>(relaxed = true) {
+            every { this@mockk.invoke(any(), any()) } returns flowOf(null)
         },
         getStakeValidator = mockk(relaxed = true),
         getPerpetual = mockk<GetPerpetual>(relaxed = true) {
