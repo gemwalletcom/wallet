@@ -31,7 +31,7 @@ struct AmountInputConfig: CurrencyInputConfigurable {
         case let .stake(stakeType):
             switch stakeType {
             case .stake, .unstake: usesWholeAmounts ? .numberPad : .decimalPad
-            case .redelegate, .withdraw, .claimRewards, .freeze, .unfreeze: .decimalPad
+            case .redelegate, .withdraw, .rewards, .freeze, .unfreeze: .decimalPad
             }
         }
     }

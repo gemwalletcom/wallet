@@ -6,9 +6,8 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
-import com.gemwallet.android.application.stake.cases.GetRedelegateValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
+import com.gemwallet.android.application.stake.cases.GetValidators
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.model.AmountParams
@@ -39,13 +38,10 @@ class AmountProviderFactoryTest {
         getDelegations = mockk<GetDelegations>(relaxed = true) {
             every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList())
         },
-        getRecommendedValidator = mockk<GetRecommendedValidator>(relaxed = true) {
-            every { this@mockk.invoke(any()) } returns flowOf(null)
-        },
-        getRedelegateValidator = mockk<GetRedelegateValidator>(relaxed = true) {
-            every { this@mockk.invoke(any(), any()) } returns flowOf(null)
-        },
         getStakeValidator = mockk(relaxed = true),
+        getValidators = mockk<GetValidators>(relaxed = true) {
+            every { this@mockk.invoke(any()) } returns flowOf(emptyList())
+        },
         getPerpetual = mockk<GetPerpetual>(relaxed = true) {
             every { getPerpetual(any()) } returns flowOf(null)
         },

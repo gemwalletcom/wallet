@@ -5,6 +5,7 @@ import Formatters
 import Foundation
 import enum Gemstone.GemAmountType
 import protocol Gemstone.GemAmountServiceProtocol
+import enum Gemstone.GemStakeAmountInput
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -20,60 +21,45 @@ public enum AmountStakeSelection {
 
 public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
-    let action: AmountStakeType
+    let action: GemStakeAmountInput
     public let selection: AmountStakeSelection
     private let service: any GemAmountServiceProtocol
 
-    init(asset: Asset, type: AmountStakeType, service: any GemAmountServiceProtocol) {
+    init(asset: Asset, type: GemStakeAmountInput, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.service = service
         action = type
-        selection = Self.makeSelection(type: type)
+        selection = Self.makeSelection(asset: asset, type: type, service: service)
     }
 
-    private static func makeSelection(type: AmountStakeType) -> AmountStakeSelection {
+    private static func makeSelection(asset: Asset, type: GemStakeAmountInput, service: any GemAmountServiceProtocol) -> AmountStakeSelection {
         switch type {
-        case let .stake(validators, recommended):
-            .validator(SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator))
-        case let .unstake(delegation):
-            .validator(SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator))
-        case let .redelegate(_, validators, recommended):
-            .validator(SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator))
-        case let .withdraw(delegation):
-            .validator(SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator))
-        case let .claimRewards(delegations):
-            .validator(SelectionState(options: delegations.map(\.validator), selected: selectedClaimRewardsValidator(from: delegations), isEnabled: delegations.count > 1, title: Localized.Stake.validator))
         case let .freeze(resource), let .unfreeze(resource):
-            .resource(SelectionState(options: [.bandwidth, .energy], selected: resource, isEnabled: true, title: Localized.Stake.resource))
-        }
-    }
-
-    private static func selectedClaimRewardsValidator(from delegations: [Delegation]) -> DelegationValidator {
-        guard let first = delegations.first?.validator else {
-            preconditionFailure("Claim rewards selection requires at least one delegation")
-        }
-        return first
-    }
-
-    private static func selectedValidator(
-        from validators: [DelegationValidator],
-        recommended: DelegationValidator?,
-    ) -> DelegationValidator {
-        if let recommended {
-            return recommended
+            return .resource(SelectionState(options: [.bandwidth, .energy], selected: resource.map(), isEnabled: true, title: Localized.Stake.resource))
+        default:
+            break
         }
 
-        guard let selected = validators.first else {
-            preconditionFailure("Stake validator selection requires at least one validator")
+        let selection = service.stakeValidatorSelection(chain: asset.chain.rawValue, input: type)
+        let options = selection.options.map { $0.map() }
+        guard let selected = selection.validator?.map() ?? options.first else {
+            preconditionFailure("Stake action \(type) requires at least one validator")
         }
 
-        return selected
+        return .validator(
+            SelectionState(
+                options: options,
+                selected: selected,
+                isEnabled: selection.canSelect,
+                title: Localized.Stake.validator,
+            ),
+        )
     }
 
     public var validatorSelectType: ValidatorSelectType {
         switch action {
         case .stake, .redelegate: .stake
-        case .unstake, .withdraw, .claimRewards, .freeze, .unfreeze: .unstake
+        case .unstake, .withdraw, .rewards, .freeze, .unfreeze: .unstake
         }
     }
 
@@ -83,7 +69,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         case .unstake: Localized.Transfer.Unstake.title
         case .redelegate: Localized.Transfer.Redelegate.title
         case .withdraw: Localized.Transfer.Withdraw.title
-        case .claimRewards: Localized.Transfer.ClaimRewards.title
+        case .rewards: Localized.Transfer.ClaimRewards.title
         case .freeze: Localized.Transfer.Freeze.title
         case .unfreeze: Localized.Transfer.Unfreeze.title
         }
@@ -94,8 +80,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         case .validator: .stake(action)
         case let .resource(state):
             switch action {
-            case .freeze: .stake(.freeze(state.selected))
-            case .unfreeze: .stake(.unfreeze(state.selected))
+            case .freeze: .stake(.freeze(resource: state.selected.map()))
+            case .unfreeze: .stake(.unfreeze(resource: state.selected.map()))
             default: .stake(action)
             }
         }
@@ -106,8 +92,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     private var rewardsDelegations: [Delegation] {
-        guard case let .claimRewards(delegations) = action else { return [] }
-        return delegations
+        guard case let .rewards(delegations) = action else { return [] }
+        return delegations.map { Delegation(core: $0) }
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) -> GemTransferData {
@@ -117,10 +103,10 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     private var stakeType: StakeType {
         switch action {
         case .stake: .stake(selectedValidator)
-        case let .unstake(delegation): .unstake(delegation)
-        case let .redelegate(delegation, _, _): .redelegate(RedelegateData(delegation: delegation, toValidator: selectedValidator))
-        case let .withdraw(delegation): .withdraw(delegation)
-        case .claimRewards: .rewards([selectedValidator])
+        case let .unstake(delegation): .unstake(Delegation(core: delegation))
+        case let .redelegate(_, delegation): .redelegate(RedelegateData(delegation: Delegation(core: delegation), toValidator: selectedValidator))
+        case let .withdraw(delegation): .withdraw(Delegation(core: delegation))
+        case .rewards: .rewards([selectedValidator])
         case .freeze: .freeze(selectedResource)
         case .unfreeze: .unfreeze(selectedResource)
         }

@@ -1,6 +1,6 @@
 use crate::models::custom_types::GemBigInt;
 use crate::services::transfer::GemTransferData;
-use primitives::Delegation;
+use primitives::{Delegation, DelegationValidator, Resource};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemDelegationAction {
@@ -44,4 +44,23 @@ pub struct GemClaimRewards {
 pub enum GemClaimRewardsDestination {
     Transfer { transfer: GemTransferData },
     Amount { delegations: Vec<Delegation> },
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemStakeAmountInput {
+    Stake { validators: Vec<DelegationValidator>, delegation: Option<Delegation> },
+    Redelegate { validators: Vec<DelegationValidator>, delegation: Delegation },
+    Unstake { delegation: Delegation },
+    Withdraw { delegation: Delegation },
+    Rewards { delegations: Vec<Delegation> },
+    Freeze { resource: Resource },
+    Unfreeze { resource: Resource },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemStakeValidatorSelection {
+    pub options: Vec<DelegationValidator>,
+    pub validator: Option<DelegationValidator>,
+    pub can_select: bool,
 }

@@ -380,6 +380,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         builder.stakeAmountType(stakeType: stakeType, delegations: delegations)
     }
 
+    public func stakeValidatorSelection(chain: Gemstone.Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
+        builder.stakeValidatorSelection(chain: chain, input: input)
+    }
+
     public func earnAmountType(earnType: Gemstone.EarnType) -> GemAmountType {
         builder.earnAmountType(earnType: earnType)
     }
@@ -587,14 +591,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func recommendedValidators(chain _: Gemstone.Chain, validators: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
         validators.filter { self.validators.contains($0) }
-    }
-
-    public func recommendedValidator(chain _: Gemstone.Chain, validators _: [Gemstone.DelegationValidator]) -> Gemstone.DelegationValidator? {
-        validators.first
-    }
-
-    public func redelegateValidator(chain _: Gemstone.Chain, validators: [Gemstone.DelegationValidator], fromValidatorId: String) -> Gemstone.DelegationValidator? {
-        validators.first { $0.id != fromValidatorId }
     }
 
     public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
