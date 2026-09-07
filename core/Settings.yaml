@@ -339,7 +339,7 @@ support:
       - png
 
 nft:
-  url: "https://assets.gemwallet.com/nft"
+  url: "https://nft-assets.gemwallet.com"
   alchemy:
     url: "https://{network}.g.alchemy.com"
     key:
