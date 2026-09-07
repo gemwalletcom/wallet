@@ -180,7 +180,12 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
             asset: error_asset(&asset_id),
             requirement: GemBalanceRequirement::new(required, available),
         },
-        GemTransferAmountError::BelowSwapMinimum { asset_id, provider, minimum, value } => GemConfirmError::BelowSwapMinimum {
+        GemTransferAmountError::BelowSwapMinimum {
+            asset_id,
+            provider,
+            minimum,
+            value,
+        } => GemConfirmError::BelowSwapMinimum {
             asset: error_asset(&asset_id),
             provider,
             provider_name: provider.name().to_string(),
@@ -1033,7 +1038,13 @@ mod tests {
 
         match data.preload_amount(&metadata, &asset).unwrap() {
             GemTransferAmountResult::Error {
-                error: GemConfirmError::BelowSwapMinimum { asset: error_asset, provider, provider_name, requirement },
+                error:
+                    GemConfirmError::BelowSwapMinimum {
+                        asset: error_asset,
+                        provider,
+                        provider_name,
+                        requirement,
+                    },
             } => {
                 assert_eq!(error_asset, asset);
                 assert_eq!(provider, SwapProvider::NearIntents, "the sheet shows the icon of the provider that set the minimum");

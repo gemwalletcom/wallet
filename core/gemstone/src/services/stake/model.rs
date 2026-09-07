@@ -49,13 +49,29 @@ pub enum GemClaimRewardsDestination {
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemStakeAmountInput {
-    Stake { validators: Vec<DelegationValidator>, delegation: Option<Delegation> },
-    Redelegate { validators: Vec<DelegationValidator>, delegation: Delegation },
-    Unstake { delegation: Delegation },
-    Withdraw { delegation: Delegation },
-    Rewards { delegations: Vec<Delegation> },
-    Freeze { resource: Resource },
-    Unfreeze { resource: Resource },
+    Stake {
+        validators: Vec<DelegationValidator>,
+        delegation: Option<Delegation>,
+    },
+    Redelegate {
+        validators: Vec<DelegationValidator>,
+        delegation: Delegation,
+    },
+    Unstake {
+        delegation: Delegation,
+    },
+    Withdraw {
+        delegation: Delegation,
+    },
+    Rewards {
+        delegations: Vec<Delegation>,
+    },
+    Freeze {
+        resource: Resource,
+    },
+    Unfreeze {
+        resource: Resource,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
