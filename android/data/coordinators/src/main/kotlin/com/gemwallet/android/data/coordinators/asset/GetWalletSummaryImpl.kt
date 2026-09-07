@@ -112,15 +112,12 @@ internal class WalletSummaryEquivalentValue(
     override val value: Double?,
     override val changePercentage: Double?,
 ) : EquivalentValue {
-    override val valueFormatted: String
-        get() {
-            val amount = value?.takeIf(Double::isFinite) ?: return ""
-            val formatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency).string(amount)
-            return if (amount > 0) "+$formatted" else formatted
-        }
+    override val valueFormatted: String = value?.takeIf(Double::isFinite)?.let { amount ->
+        val formatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency).string(amount)
+        if (amount > 0) "+$formatted" else formatted
+    }.orEmpty()
 
-    override val changePercentageFormatted: String
-        get() = changePercentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+    override val changePercentageFormatted: String = changePercentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
 }
 
 internal data class WalletSummaryDisplayState(
