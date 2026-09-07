@@ -76,7 +76,7 @@ public struct PriceStore: Sendable {
             try PriceRecord
                 .filter(assetIds.contains(PriceRecord.Columns.assetId))
                 .fetchAll(db)
-                .compactMap { $0.mapToAssetPrice() }
+                .map { $0.mapToAssetPrice() }
         }
     }
 

@@ -193,7 +193,7 @@ fn swap_leg(extended: &TransactionExtended, leg: SwapLeg, sign: GemAmountSign) -
         SwapLeg::To => (metadata.to_asset, metadata.to_value),
     };
     let asset = extended.assets.iter().chain([&extended.asset]).find(|asset| asset.id == asset_id)?.clone();
-    let price = extended.prices.iter().find(|price| price.asset_id == asset_id).cloned();
+    let price = extended.prices.iter().find(|price| price.asset_id == asset_id && price.has_price()).cloned();
     Some(GemTransactionAmount { asset, value, sign, price })
 }
 
@@ -214,12 +214,14 @@ fn value_sign(transaction: &Transaction) -> GemAmountSign {
 }
 
 fn asset_price(price: Option<&Price>, asset_id: &AssetId) -> Option<AssetPrice> {
-    price.map(|price| AssetPrice {
-        asset_id: asset_id.clone(),
-        price: price.price,
-        price_change_percentage_24h: price.price_change_percentage_24h,
-        updated_at: price.updated_at,
-    })
+    price
+        .map(|price| AssetPrice {
+            asset_id: asset_id.clone(),
+            price: price.price,
+            price_change_percentage_24h: price.price_change_percentage_24h,
+            updated_at: price.updated_at,
+        })
+        .filter(AssetPrice::has_price)
 }
 
 fn address_name(extended: &TransactionExtended, address: &str) -> Option<primitives::AddressName> {
@@ -1019,5 +1021,37 @@ mod tests {
         assert_eq!((details(&close).pnl, details(&close).price), (None, None));
         close.transaction.metadata = Some(serde_json::to_value(metadata(-4.5, 12.0)).unwrap());
         assert_eq!((details(&close).pnl, details(&close).price), (Some(-4.5), Some(12.0)));
+    }
+
+    #[test]
+    fn test_a_zero_stored_price_is_not_a_price() {
+        let mut transfer = TransactionExtended::mock();
+        let price = |value| Price {
+            price: value,
+            price_change_percentage_24h: 0.0,
+            updated_at: Utc::now(),
+            provider: Default::default(),
+        };
+        let amount_price = |extended: &TransactionExtended| transaction_amount(extended, GemAmountSign::None).price.map(|price| price.price);
+
+        transfer.price = Some(price(0.0));
+        assert_eq!(amount_price(&transfer), None);
+
+        transfer.price = Some(price(12.0));
+        assert_eq!(amount_price(&transfer), Some(12.0));
+    }
+
+    #[test]
+    fn test_a_zero_swap_leg_price_is_not_a_price() {
+        let mut swap = extended_with(swap(TransactionState::Confirmed, None, None).transaction, vec![Asset::mock_eth(), Asset::mock_btc()]);
+        let ethereum = AssetId::from_chain(Chain::Ethereum);
+        let leg_price =
+            |extended: &TransactionExtended| swap_leg(extended, SwapLeg::From, GemAmountSign::Outgoing).and_then(|amount| amount.price).map(|price| price.price);
+
+        swap.prices = vec![AssetPrice::new(ethereum.clone(), 0.0, 0.0, Utc::now())];
+        assert_eq!(leg_price(&swap), None);
+
+        swap.prices = vec![AssetPrice::new(ethereum, 12.0, 0.0, Utc::now())];
+        assert_eq!(leg_price(&swap), Some(12.0));
     }
 }
