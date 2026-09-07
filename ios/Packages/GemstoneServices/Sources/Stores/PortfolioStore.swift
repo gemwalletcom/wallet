@@ -2,7 +2,7 @@
 
 import Foundation
 import protocol Gemstone.GemPortfolioStore
-import typealias Gemstone.PortfolioAsset
+import struct Gemstone.PortfolioAsset
 import typealias Gemstone.WalletId
 import GemstonePrimitives
 import Primitives
@@ -17,6 +17,6 @@ public final class GemstonePortfolioStore: GemPortfolioStore, @unchecked Sendabl
 
     public func getWalletAssets(walletId: Gemstone.WalletId) async throws -> [Gemstone.PortfolioAsset] {
         try assetStore.getAssetsData(walletId: Primitives.WalletId.from(id: walletId), filters: [.enabledBalance, .hasBalance], limit: nil)
-            .map { Primitives.PortfolioAsset(assetId: $0.asset.id, value: String($0.balance.total)).json() }
+            .map { Gemstone.PortfolioAsset(assetId: $0.asset.id.identifier, value: $0.balance.total.magnitude) }
     }
 }

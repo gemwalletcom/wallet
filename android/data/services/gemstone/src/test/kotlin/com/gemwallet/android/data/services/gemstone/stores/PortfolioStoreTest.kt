@@ -3,15 +3,15 @@ package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockWalletId
-import com.wallet.core.primitives.PortfolioAsset
+import uniffi.gemstone.PortfolioAsset
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.math.BigInteger
 
 class GemstonePortfolioStoreTest {
 
@@ -31,8 +31,8 @@ class GemstonePortfolioStoreTest {
         }
         val subject = GemstonePortfolioStore(assetsDao)
 
-        val assets = subject.getWalletAssets(walletId.id).map { it.decodeJson<PortfolioAsset>() }
+        val assets = subject.getWalletAssets(walletId.id)
 
-        assertEquals(listOf(PortfolioAsset(assetId = bitcoin.id, value = "1000")), assets)
+        assertEquals(listOf(PortfolioAsset(assetId = bitcoin.id.toIdentifier(), value = BigInteger("1000"))), assets)
     }
 }

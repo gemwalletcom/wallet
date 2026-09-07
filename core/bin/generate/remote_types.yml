@@ -38,6 +38,7 @@ remote:
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
+  - PortfolioAsset
   - Perpetual
   - PerpetualBalance
   - PerpetualData

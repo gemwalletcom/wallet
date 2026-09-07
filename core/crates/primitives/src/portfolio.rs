@@ -62,7 +62,6 @@ pub struct PerpetualPortfolio {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioAsset {
     pub asset_id: AssetId,
@@ -71,7 +70,6 @@ pub struct PortfolioAsset {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioAssetsRequest {
     pub assets: Vec<PortfolioAsset>,
@@ -106,7 +104,6 @@ impl ChartValuePercentage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioAssets {
     pub total_value: f32,

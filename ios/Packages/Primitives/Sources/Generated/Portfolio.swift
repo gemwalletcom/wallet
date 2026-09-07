@@ -70,40 +70,6 @@ public struct PortfolioAllocation: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct PortfolioAsset: Codable, Sendable {
-	public let assetId: AssetId
-	public let value: String
-
-	public init(assetId: AssetId, value: String) {
-		self.assetId = assetId
-		self.value = value
-	}
-}
-
-public struct PortfolioAssets: Codable, Equatable, Hashable, Sendable {
-	public let totalValue: Float
-	public let values: [ChartValue]
-	public let allTimeHigh: ChartValuePercentage?
-	public let allTimeLow: ChartValuePercentage?
-	public let allocation: [PortfolioAllocation]
-
-	public init(totalValue: Float, values: [ChartValue], allTimeHigh: ChartValuePercentage?, allTimeLow: ChartValuePercentage?, allocation: [PortfolioAllocation]) {
-		self.totalValue = totalValue
-		self.values = values
-		self.allTimeHigh = allTimeHigh
-		self.allTimeLow = allTimeLow
-		self.allocation = allocation
-	}
-}
-
-public struct PortfolioAssetsRequest: Codable, Sendable {
-	public let assets: [PortfolioAsset]
-
-	public init(assets: [PortfolioAsset]) {
-		self.assets = assets
-	}
-}
-
 public enum PortfolioChartType: String, Codable, CaseIterable, Equatable, Hashable, Identifiable, Sendable {
 	case value
 	case pnl

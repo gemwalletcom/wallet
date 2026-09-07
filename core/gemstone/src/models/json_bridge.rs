@@ -8,8 +8,8 @@ use primitives::{
     TronVote, UTXO,
 };
 use primitives::{
-    AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset, PortfolioAssets,
-    PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription,
+    AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
+    Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription,
     WalletSubscriptionChains,
 };
 use primitives::{PerpetualConfirmData, PerpetualType, Transaction, TransactionExtended};
@@ -67,9 +67,6 @@ json_bridge!(
     PerpetualPortfolioTimeframeData,
     PerpetualReduceData,
     PerpetualType,
-    PortfolioAssets,
-    PortfolioAsset,
-    PortfolioAssetsRequest,
     PortfolioData,
     RedemptionRequest,
     RedemptionResult,

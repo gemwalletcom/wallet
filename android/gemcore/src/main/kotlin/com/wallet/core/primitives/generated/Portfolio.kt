@@ -46,26 +46,6 @@ data class PortfolioAllocation (
 )
 
 @Serializable
-data class PortfolioAsset (
-	val assetId: AssetId,
-	val value: String
-)
-
-@Serializable
-data class PortfolioAssets (
-	val totalValue: Float,
-	val values: List<ChartValue>,
-	val allTimeHigh: ChartValuePercentage? = null,
-	val allTimeLow: ChartValuePercentage? = null,
-	val allocation: List<PortfolioAllocation>
-)
-
-@Serializable
-data class PortfolioAssetsRequest (
-	val assets: List<PortfolioAsset>
-)
-
-@Serializable
 enum class PortfolioChartType(val string: String) {
 	@SerialName("value")
 	Value("value"),

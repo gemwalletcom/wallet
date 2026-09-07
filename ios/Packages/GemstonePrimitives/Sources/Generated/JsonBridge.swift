@@ -35,9 +35,6 @@ extension Primitives.PerpetualPortfolio: JsonCodable {}
 extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}
 extension Primitives.PerpetualReduceData: JsonCodable {}
 extension Primitives.PerpetualType: JsonCodable {}
-extension Primitives.PortfolioAssets: JsonCodable {}
-extension Primitives.PortfolioAsset: JsonCodable {}
-extension Primitives.PortfolioAssetsRequest: JsonCodable {}
 extension Primitives.PortfolioData: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
