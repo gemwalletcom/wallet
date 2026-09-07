@@ -40,6 +40,14 @@ class QRCodeDecoderTest {
     }
 
     @Test
+    fun keepsFullResolutionUpToSixteenMegapixels() {
+        assertEquals(1, QRCodeDecoder.sampleSize(1080, 2340))
+        assertEquals(1, QRCodeDecoder.sampleSize(1440, 6400))
+        assertEquals(1, QRCodeDecoder.sampleSize(4000, 3000))
+        assertEquals(2, QRCodeDecoder.sampleSize(8160, 6120))
+    }
+
+    @Test
     fun returnsNullWithoutCode() {
         assertNull(QRCodeDecoder.decode(ByteArray(width * height) { WHITE }, width, width, height))
     }
