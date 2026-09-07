@@ -267,8 +267,7 @@ extension NavigationHandler {
             return
         }
 
-        await selectWalletIfNeeded(walletId)
-        navigationState.openAsset(asset)
+        try openWallet(walletId, path: getPath(for: asset))
     }
 
     private func trackNotificationTransaction(walletId: WalletId, transaction: Primitives.Transaction) {
@@ -294,32 +293,28 @@ extension NavigationHandler {
         trackNotificationTransaction(walletId: walletId, transaction: transaction)
         let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
-        await selectWalletIfNeeded(walletId)
-        switch asset.type {
-        case .perpetual:
-            navigationState.wallet.setPath([Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)])
-        default:
-            navigationState.wallet.setPath([Scenes.Asset(asset: asset), Scenes.Transaction(transaction: transaction)])
-        }
-
-        navigationState.selectedTab = .wallet
+        try openWallet(walletId, path: getPath(for: asset, transaction: transaction))
     }
 
-    private func selectWalletIfNeeded(_ walletId: WalletId) async {
+    private func openWallet(_ walletId: WalletId, path: [any Hashable & Codable]) throws {
         guard walletSessionService.currentWalletId != walletId else {
-            return
+            return navigationState.openWallet(path: path)
         }
+        try walletSessionService.setCurrent(walletId: walletId)
+        navigationState.pendingWalletPath = path
+    }
 
-        do {
-            try walletSessionService.setCurrent(walletId: walletId)
-        } catch {
-            debugLog("set current wallet error: \(error)")
-            return
+    private func getPath(for asset: Asset) -> [any Hashable & Codable] {
+        switch asset.type {
+        case .perpetual: [Scenes.Perpetual(asset)]
+        default: [Scenes.Asset(asset: asset)]
         }
-        await withCheckedContinuation { continuation in
-            RunLoop.main.perform(inModes: [.common]) {
-                continuation.resume()
-            }
+    }
+
+    private func getPath(for asset: Asset, transaction: TransactionExtended) -> [any Hashable & Codable] {
+        switch asset.type {
+        case .perpetual: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)]
+        default: [Scenes.Asset(asset: asset), Scenes.Transaction(transaction: transaction)]
         }
     }
 
@@ -348,8 +343,7 @@ extension NavigationHandler {
     }
 
     func resetNavigation() {
-        navigationState.clearAll()
-        navigationState.selectedTab = .wallet
+        navigationState.reset()
     }
 }
 
