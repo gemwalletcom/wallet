@@ -99,7 +99,7 @@ pub enum GemTransactionRowValue {
     Pnl { value: f64 },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Object)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionRow {
     pub title: GemTransactionTitle,
     pub subtitle: GemTransactionRowSubtitle,
@@ -109,31 +109,8 @@ pub struct GemTransactionRow {
 }
 
 #[uniffi::export]
-impl GemTransactionRow {
-    #[uniffi::constructor]
-    pub fn new(transaction: TransactionExtended) -> Self {
-        rules::row(&transaction)
-    }
-
-    pub fn title(&self) -> GemTransactionTitle {
-        self.title.clone()
-    }
-
-    pub fn subtitle(&self) -> GemTransactionRowSubtitle {
-        self.subtitle.clone()
-    }
-
-    pub fn value(&self) -> GemTransactionRowValue {
-        self.value.clone()
-    }
-
-    pub fn equivalent_value(&self) -> GemTransactionRowValue {
-        self.equivalent_value.clone()
-    }
-
-    pub fn nft_image_url(&self) -> Option<String> {
-        self.nft_image_url.clone()
-    }
+pub fn transaction_row(transaction: TransactionExtended) -> GemTransactionRow {
+    rules::row(&transaction)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAmountSign
-import uniffi.gemstone.GemTransactionRow
+import uniffi.gemstone.transactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionRowValue
 import uniffi.gemstone.GemTransactionTitle
@@ -83,29 +83,29 @@ class TransactionDataAggregateImpl(
     addressService: GemAddressService,
 ) : TransactionDataAggregate {
 
-    private val row = GemTransactionRow(data.toGem())
+    private val row = transactionRow(data.toGem())
 
     override val id: TransactionId = data.transaction.id
 
     override val asset: Asset = data.asset
 
-    override val title: GemTransactionTitle = row.title()
+    override val title: GemTransactionTitle = row.title
 
-    override val subtitle: GemTransactionRowSubtitle = row.subtitle()
+    override val subtitle: GemTransactionRowSubtitle = row.subtitle
 
     override val address: String = subtitle.address()
         ?.let { AddressFormatter(addressService, it, chain = data.transaction.assetId.chain).value() }
         .orEmpty()
 
-    private val coreValue: GemTransactionRowValue = row.value()
+    private val coreValue: GemTransactionRowValue = row.value
 
     override val valueSign: GemAmountSign = (coreValue as? GemTransactionRowValue.Amount)?.amount?.sign ?: GemAmountSign.NONE
 
     override val value: String = coreValue.format().orEmpty()
 
-    override val equivalentValue: String? = row.equivalentValue().format()
+    override val equivalentValue: String? = row.equivalentValue.format()
 
-    override val nftImageUrl: String? = row.nftImageUrl()
+    override val nftImageUrl: String? = row.nftImageUrl
 
     override val type: TransactionType = data.transaction.type
 
