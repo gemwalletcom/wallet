@@ -1,8 +1,6 @@
 use gem_client::{Client, ClientError, ClientExt};
 use primitives::currency::Currency;
-use primitives::{
-    AssetBasic, AssetFull, AssetId, AssetPrice, AssetPrices, AssetPricesRequest, Chain, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, SearchResponse,
-};
+use primitives::{AssetBasic, AssetFull, AssetId, AssetPrices, AssetPricesRequest, Chain, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, SearchResponse};
 
 use crate::target::GemApiTarget;
 
@@ -41,9 +39,12 @@ impl<C: Client> GemApiClient<C> {
         self.client.get(GemApiTarget::GetSearch { query, chains, tags }).await
     }
 
-    pub async fn get_prices(&self, currency: Option<Currency>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, ClientError> {
-        let request = AssetPricesRequest { currency, asset_ids };
-        Ok(self.client.post::<_, AssetPrices>(GemApiTarget::GetPrices, &request).await?.prices)
+    pub async fn get_prices(&self, asset_ids: Vec<AssetId>) -> Result<AssetPrices, ClientError> {
+        let request = AssetPricesRequest {
+            currency: Some(Currency::USD),
+            asset_ids,
+        };
+        self.client.post(GemApiTarget::GetPrices, &request).await
     }
 
     pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, ClientError> {

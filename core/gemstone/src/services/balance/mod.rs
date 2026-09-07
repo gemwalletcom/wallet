@@ -134,10 +134,7 @@ impl GemBalanceService {
         if asset_ids.is_empty() {
             return;
         }
-        let currency = self.preferences.get_currency();
-        if let Ok(prices) = self.price.get_prices(currency.clone(), asset_ids.clone()).await {
-            let _ = self.price.update_prices(prices, currency).await;
-        }
+        let _ = self.price.sync_prices(asset_ids.clone(), self.preferences.get_currency()).await;
         let _ = self.stream.add_prices(asset_ids.clone()).await;
         let _ = self.update(wallet_id, asset_ids).await;
     }

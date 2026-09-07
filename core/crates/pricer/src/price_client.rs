@@ -97,7 +97,11 @@ impl PriceClient {
             .map(|x| x.as_asset_price_primitive_with_rate(rate))
             .collect();
 
-        Ok(AssetPrices { currency, prices })
+        Ok(AssetPrices {
+            currency,
+            prices,
+            rates: self.get_fiat_rates()?,
+        })
     }
 
     pub async fn aggregate_charts(&self, timeframe: ChartTimeframe) -> Result<usize, Box<dyn Error + Send + Sync>> {

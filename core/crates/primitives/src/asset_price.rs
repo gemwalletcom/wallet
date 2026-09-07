@@ -5,7 +5,7 @@ use typeshare::typeshare;
 
 use crate::currency::Currency;
 use crate::portfolio::ChartValuePercentage;
-use crate::{AssetId, Price};
+use crate::{AssetId, FiatRate, Price};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Sendable, Equatable, Hashable")]
@@ -86,6 +86,8 @@ impl AssetMarket {
 pub struct AssetPrices {
     pub currency: Currency,
     pub prices: Vec<AssetPrice>,
+    #[serde(default)]
+    pub rates: Vec<FiatRate>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -162,5 +164,19 @@ impl ChartPeriod {
             ChartPeriod::Year => 525_600,
             ChartPeriod::All => 10_525_600,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_asset_prices_rates_default_to_empty() {
+        let prices: AssetPrices = serde_json::from_str(r#"{"currency":"USD","prices":[]}"#).unwrap();
+        assert!(prices.rates.is_empty());
+
+        let prices: AssetPrices = serde_json::from_str(r#"{"currency":"USD","prices":[],"rates":[{"symbol":"EUR","rate":0.5}]}"#).unwrap();
+        assert_eq!(prices.rates[0].rate, 0.5);
     }
 }

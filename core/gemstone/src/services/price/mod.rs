@@ -34,8 +34,9 @@ impl GemPriceService {
         self.store.get_prices(asset_ids).await
     }
 
-    pub async fn get_prices(&self, currency: Currency, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
-        Ok(self.api.client.get_prices(Some(currency), asset_ids).await?)
+    pub async fn sync_prices(&self, asset_ids: Vec<AssetId>, currency: Currency) -> Result<(), GemServiceError> {
+        let response = self.api.client.get_prices(asset_ids).await.map_err(GemApiError::from)?;
+        sync_prices(self.store.as_ref(), response.rates, response.prices, currency).await
     }
 
     pub async fn update_prices(&self, prices: Vec<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
@@ -79,6 +80,11 @@ async fn update_prices(store: &dyn GemPriceStore, prices: Vec<AssetPrice>, curre
         return Ok(());
     };
     store.save_prices(currency, rules::fiat_prices(prices, &rate)).await
+}
+
+async fn sync_prices(store: &dyn GemPriceStore, rates: Vec<FiatRate>, prices: Vec<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
+    update_rates(store, rates, currency.clone()).await?;
+    update_prices(store, prices, currency).await
 }
 
 async fn update_rates(store: &dyn GemPriceStore, rates: Vec<FiatRate>, currency: Currency) -> Result<(), GemServiceError> {
@@ -146,6 +152,19 @@ mod tests {
         assert_eq!(saved[0].1[0].asset_id, asset_id);
         assert_eq!(saved[0].1[0].price, 0.0);
         assert_eq!(saved[0].1[0].price_usd, 0.0);
+    }
+
+    #[test]
+    fn test_sync_prices_stores_the_rate_before_converting_a_non_usd_price() {
+        let store = MemoryPriceStore::default();
+        let rates = vec![FiatRate { symbol: Currency::EUR, rate: 0.5 }];
+
+        futures::executor::block_on(sync_prices(&store, rates, vec![price(100.0)], Currency::EUR)).unwrap();
+
+        let saved = store.saved.lock().unwrap();
+        assert_eq!(saved[0].0, Currency::EUR);
+        assert_eq!(saved[0].1[0].price, 50.0);
+        assert_eq!(saved[0].1[0].price_usd, 100.0);
     }
 
     #[test]
