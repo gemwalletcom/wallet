@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemWalletHomeServiceInterface
@@ -48,13 +47,10 @@ class AssetsViewModelTest {
 
     private val service = mockk<GemWalletHomeServiceInterface>(relaxed = true)
     private val getActiveAssetsInfo = object : GetActiveAssetsInfo {
-        override fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> = activeAssetsFlow
+        override fun assetsInfo(): StateFlow<List<AssetInfoDataAggregate>> = activeAssetsFlow
     }
     private val getWalletSummary = mockk<GetWalletSummary>(relaxed = true) {
         every { getWalletSummary() } returns flowOf(null)
-    }
-    private val getHideBalancesState = object : GetHideBalancesState {
-        override fun invoke(): Flow<Boolean> = flowOf(false)
     }
     private val session = MutableStateFlow<Session?>(null)
     private val getSession = object : GetSession {
@@ -125,7 +121,6 @@ class AssetsViewModelTest {
         service = service,
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletSummary = getWalletSummary,
-        getHideBalancesState = getHideBalancesState,
         getSession = getSession,
         userConfig = mockk(relaxed = true),
     )

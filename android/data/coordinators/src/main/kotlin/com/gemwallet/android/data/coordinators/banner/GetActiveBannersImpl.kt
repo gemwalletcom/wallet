@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.banner
 
-import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
@@ -32,7 +32,7 @@ import java.math.BigInteger
 class GetActiveBannersImpl(
     private val getSession: GetSession,
     private val getAssetInfo: GetAssetInfo,
-    private val getActiveAssetsInfo: GetActiveAssetsInfo,
+    private val getWalletAssets: GetWalletAssets,
     private val bannerStore: GemstoneBannerStore,
 ) : GetActiveBanners {
 
@@ -47,7 +47,7 @@ class GetActiveBannersImpl(
             }
             val assetInfo = asset?.id?.let { getAssetInfo(it) } ?: flowOf(null)
             val isWalletEmpty = if (asset == null) {
-                getActiveAssetsInfo.getAssetsInfo(hideBalance = false).map { items -> items.all { it.isZeroBalance } }
+                getWalletAssets().map { items -> items.all { it.balance.totalAmount == 0.0 } }
             } else {
                 flowOf(false)
             }

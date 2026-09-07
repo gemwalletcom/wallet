@@ -202,8 +202,7 @@ private fun ReceiveScene(
                         .clickable(onCopyClick),
                     painter = rememberQRCodePainter(
                         content = assetInfo.owner?.address ?: "",
-                        cacheName = "${assetInfo.owner?.chain?.string}_${assetInfo.owner?.address}",
-                        size = qrSize
+                        size = qrSize,
                     ),
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth

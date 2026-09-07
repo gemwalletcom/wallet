@@ -38,6 +38,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.requireChain
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -121,27 +122,40 @@ open class BaseAssetSelectViewModel(
     .flowOn(Dispatchers.IO)
     .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
+    private data class AssetSections(
+        val popular: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+        val pinned: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+        val unpinned: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+    )
+
+    private fun assetSections(items: List<AssetInfoDataAggregate>): AssetSections {
+        val popularIds = if (flow.popularSection) assetConfig.popularIds().mapNotNull { it.toAssetId() } else emptyList()
+        val (pinned, unpinned) = items.partition { it.pinned }
+        return AssetSections(
+            popular = items.filter { it.asset.id in popularIds }.toImmutableList(),
+            pinned = pinned.toImmutableList(),
+            unpinned = unpinned.toImmutableList(),
+        )
+    }
+
     private val assets = assetsContent
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
-    val popular = assets.map { items ->
-        val popularIds = if (flow.popularSection) assetConfig.popularIds().mapNotNull { it.toAssetId() } else emptyList()
-        items.filter { it.asset.id in popularIds }.toImmutableList()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
+    private val sections = assets
+        .map(::assetSections)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, assetSections(assets.value))
 
-    val pinned = assets.map { items ->
-        items.filter { it.pinned }.toImmutableList()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
+    val popular = sections
+        .map { it.popular }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.popular)
 
-    val unpinned = assets.map { items ->
-        items.filter { !it.pinned }.toImmutableList()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
+    val pinned = sections
+        .map { it.pinned }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.pinned)
+
+    val unpinned = sections
+        .map { it.unpinned }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.unpinned)
 
     val recent = currentQuery
         .flatMapLatest { query ->
