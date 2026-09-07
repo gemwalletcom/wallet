@@ -54,6 +54,7 @@
   <string name="common_earn">Verdien</string>
   <string name="common_method">Methode</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Vervaldatum</string>
   <string name="common_suspicious_address">Verdacht adres</string>
   <string name="common_refresh">Vernieuwen</string>
   <string name="common_no_thanks">Nee bedankt</string>

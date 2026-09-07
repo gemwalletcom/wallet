@@ -54,6 +54,7 @@ common_get_started = Začít
 common_earn = Vydělat
 common_method = Metoda
 common_token = Token
+common_expiration = Vypršení platnosti
 common_suspicious_address = Podezřelá adresa
 common_refresh = Obnovit
 common_no_thanks = Ne, děkuji

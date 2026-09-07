@@ -54,6 +54,7 @@
   <string name="common_earn">يكسب</string>
   <string name="common_method">طريقة</string>
   <string name="common_token">رمز مميز</string>
+  <string name="common_expiration">انتهاء الصلاحية</string>
   <string name="common_suspicious_address">عنوان مشبوه</string>
   <string name="common_refresh">ينعش</string>
   <string name="common_no_thanks">ًلا شكرا</string>

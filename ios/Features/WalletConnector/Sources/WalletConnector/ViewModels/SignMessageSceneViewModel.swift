@@ -33,7 +33,7 @@ public final class SignMessageSceneViewModel {
         self.service = service
         self.payload = payload
         self.confirmTransferDelegate = confirmTransferDelegate
-        preview = service.preview(message: payload.message, simulation: payload.simulation)
+        preview = service.preview(message: payload.message, simulation: payload.simulation, assets: payload.assets.map { $0.map() })
     }
 
     public var networkText: String {
@@ -82,6 +82,10 @@ public final class SignMessageSceneViewModel {
             name: appName,
             subtitleSymbol: connectionViewModel.hostText,
         )
+    }
+
+    public var headerData: AssetValueHeaderData? {
+        preview.header?.map()
     }
 
     var messageText: String {

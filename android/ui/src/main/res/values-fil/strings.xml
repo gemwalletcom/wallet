@@ -54,6 +54,7 @@
   <string name="common_earn">Kumita</string>
   <string name="common_method">Paraan</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Pag-expire</string>
   <string name="common_suspicious_address">Kahina-hinalang address</string>
   <string name="common_refresh">I-refresh</string>
   <string name="common_no_thanks">Hindi salamat</string>

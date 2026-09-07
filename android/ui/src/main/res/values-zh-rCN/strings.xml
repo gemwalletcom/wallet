@@ -54,6 +54,7 @@
   <string name="common_earn">赚取</string>
   <string name="common_method">方法</string>
   <string name="common_token">代币</string>
+  <string name="common_expiration">有效期</string>
   <string name="common_suspicious_address">可疑地址</string>
   <string name="common_refresh">刷新</string>
   <string name="common_no_thanks">不用了, 谢谢</string>

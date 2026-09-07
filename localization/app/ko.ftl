@@ -54,6 +54,7 @@ common_get_started = 시작하기
 common_earn = 적립
 common_method = 방법
 common_token = 토큰
+common_expiration = 만료
 common_suspicious_address = 의심스러운 주소
 common_refresh = 새로고침
 common_no_thanks = 사양할게요

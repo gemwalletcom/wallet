@@ -1,10 +1,9 @@
-import Foundation
-import struct Gemstone.SignMessage
 import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import WalletConnector
 import WalletConnectorService
+import WalletConnectorServiceTestKit
 
 struct WalletConnectorPresenterTests {
     @Test
@@ -13,13 +12,7 @@ struct WalletConnectorPresenterTests {
         let presenter = WalletConnectorPresenter()
         let type = WalletConnectorSheetType.signMessage(
             TransferDataCallback(
-                payload: SignMessagePayload(
-                    chain: .ethereum,
-                    session: .mock(),
-                    wallet: .mock(),
-                    message: SignMessage(chain: "ethereum", signType: .eip191, data: Data("test".utf8)),
-                    simulation: .mock(),
-                ),
+                payload: .mock(),
                 delegate: { _ in },
             ),
         )

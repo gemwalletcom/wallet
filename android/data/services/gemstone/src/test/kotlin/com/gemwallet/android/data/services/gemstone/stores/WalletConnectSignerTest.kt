@@ -58,6 +58,7 @@ class WalletConnectSignerTest {
         session = session.toGem(),
         simulation = simulation,
         message = message,
+        assets = emptyList(),
     )
 
     private fun transactionRequest(transfer: GemTransferData, action: GemWalletConnectTransactionAction) = GemWalletConnectTransactionRequest(

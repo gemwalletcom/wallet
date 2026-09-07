@@ -54,6 +54,7 @@ common_get_started = Начать
 common_earn = Заработать
 common_method = Метод
 common_token = Токен
+common_expiration = Срок действия
 common_suspicious_address = Подозрительный адрес
 common_refresh = Обновить
 common_no_thanks = Нет, спасибо

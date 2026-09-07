@@ -435,7 +435,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   connection lookup and the per-request origin check are gone, and `WCRequestViewModel` holds
   the Core service plus the SDK responder, the pending-request port, `GemSignMessageService` and the
   active-request tracker. The one-click-auth method list is Core's too: `GemWalletConnectService::authentication_methods()` returns the EVM session methods (`WalletConnectionMethods::chain_type` says which namespace a method belongs to), and Android's `ChainNamespace` enum, which spelled every namespace's method list a second time, is gone. `GemSignMessageService { names, explorer }` answers the preview (text,
-  payload fields and `has_critical_warning`, which is what disables the sign button — the
+  payload fields, the approval `header` a Permit-style request shows in place of the app hero (`GemWalletConnectService` resolves the simulation's assets onto the request before the signer port, and the preview derives the header from them, so it stays synchronous; the approval rows keep only spender and expiration on the main screen, contract and method sit in the details sheet, and token and value give way to the header) and `has_critical_warning`, which is what disables the sign button — the
   per-app "any warning is critical" helpers are gone; the confirm screen reads the same flag off
   `GemConfirmSimulation`), the payload address names and the explorer links for the
   sign-message screen on both apps.

@@ -69,6 +69,7 @@ import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -170,7 +171,7 @@ fun ConfirmScreen(
         ) {
             item {
                 when {
-                    isPayment && simulation.headerAsset == null && state is ConfirmState.Prepare -> Box(
+                    isPayment && simulation.header == null && state is ConfirmState.Prepare -> Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0f)
@@ -178,16 +179,7 @@ fun ConfirmScreen(
                     ) {
                         AmountListHead(amount = "", icon = input.asset)
                     }
-                    simulation.headerAsset != null -> {
-                        val asset = requireNotNull(simulation.headerAsset)
-                        val title = if (simulation.headerIsUnlimited) {
-                            stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
-                        } else {
-                            simulation.headerValue
-                                ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: asset.symbol
-                        }
-                        AmountListHead(amount = title, icon = asset)
-                    }
+                    simulation.header != null -> AssetValueListHead(requireNotNull(simulation.header))
                     amountModel?.headerKind is GemTransactionHeaderKind.Swap -> {
                         val model = requireNotNull(amountModel)
                         SwapListHead(

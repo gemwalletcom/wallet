@@ -54,6 +54,7 @@
   <string name="common_earn">کسب درآمد</string>
   <string name="common_method">روش</string>
   <string name="common_token">توکن</string>
+  <string name="common_expiration">انقضا</string>
   <string name="common_suspicious_address">آدرس مشکوک</string>
   <string name="common_refresh">تازه کردن</string>
   <string name="common_no_thanks">خیر. سپاس.</string>

@@ -54,6 +54,7 @@ common_get_started = 開始使用
 common_earn = 賺取
 common_method = 方法
 common_token = 代幣
+common_expiration = 有效期限
 common_suspicious_address = 可疑地址
 common_refresh = 重新整理
 common_no_thanks = 不用，謝謝

@@ -54,6 +54,7 @@
   <string name="common_earn">Ganar</string>
   <string name="common_method">Método</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Vencimiento</string>
   <string name="common_suspicious_address">Dirección sospechosa</string>
   <string name="common_refresh">Refrescar</string>
   <string name="common_no_thanks">No, gracias</string>

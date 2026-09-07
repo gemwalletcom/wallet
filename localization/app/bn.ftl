@@ -54,6 +54,7 @@ common_get_started = শুরু করুন
 common_earn = আয় করুন
 common_method = পদ্ধতি
 common_token = টোকেন
+common_expiration = মেয়াদ শেষ
 common_suspicious_address = সন্দেহজনক ঠিকানা
 common_refresh = রিফ্রেশ
 common_no_thanks = না ধন্যবাদ

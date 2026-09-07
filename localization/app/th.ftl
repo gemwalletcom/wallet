@@ -54,6 +54,7 @@ common_get_started = เริ่มต้นใช้งาน
 common_earn = รับผลตอบแทน
 common_method = วิธี
 common_token = โทเค็น
+common_expiration = วันหมดอายุ
 common_suspicious_address = ที่อยู่น่าสงสัย
 common_refresh = รีเฟรช
 common_no_thanks = ไม่ล่ะ ขอบคุณ

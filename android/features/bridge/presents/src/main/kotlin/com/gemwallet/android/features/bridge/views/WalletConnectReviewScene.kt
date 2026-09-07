@@ -15,8 +15,10 @@ import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectRevie
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
@@ -30,7 +32,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 internal fun WalletConnectReviewScene(
     model: WalletConnectReviewModel,
     buttonState: ButtonState,
-    walletRow: @Composable () -> Unit,
+    walletRow: @Composable (ListPosition) -> Unit,
     onApprove: () -> Unit,
     onReject: () -> Unit,
 ) {
@@ -57,16 +59,23 @@ internal fun WalletConnectReviewScene(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding() + paddingDefault),
         ) {
-            item {
-                CenteredListHead(
-                    icon = model.icon,
-                    title = model.name,
-                    subtitle = model.uri,
-                    contentDescription = "wallet_connect_app_icon",
-                    subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
-                )
+            val header = model.header
+            if (header == null) {
+                item {
+                    CenteredListHead(
+                        icon = model.icon,
+                        title = model.name,
+                        subtitle = model.uri,
+                        contentDescription = "wallet_connect_app_icon",
+                        subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
+                    )
+                }
+                item { walletRow(ListPosition.First) }
+            } else {
+                item { AssetValueListHead(header) }
+                item { PropertyItem(R.string.wallet_connect_app, model.name, listPosition = ListPosition.First) }
+                item { walletRow(ListPosition.Middle) }
             }
-            item { walletRow() }
             item {
                 PropertyNetworkItem(model.chain, listPosition = ListPosition.Last)
             }

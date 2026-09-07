@@ -21,9 +21,20 @@ public struct SignMessageScene: View {
 
     public var body: some View {
         List {
-            ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
+            if let headerData = model.headerData {
+                TransactionHeaderListItemView(headerType: .assetValue(headerData), showClearHeader: true)
+            } else {
+                ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
+            }
 
             Section {
+                if model.headerData != nil {
+                    ListItemImageView(
+                        title: Localized.WalletConnect.app,
+                        subtitle: model.appText,
+                        assetImage: model.appAssetImage,
+                    )
+                }
                 ListItemImageView(
                     title: Localized.Common.wallet,
                     subtitle: model.walletText,

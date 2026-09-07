@@ -8,6 +8,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletSessionService
@@ -38,11 +39,13 @@ object BridgesModule {
         connectionStore: GemstoneConnectionStore,
         pendingRequests: WalletConnectPendingRequests,
         walletSessionService: GemWalletSessionService,
+        assetsService: GemAssetsService,
     ): GemWalletConnectService = GemWalletConnectService(
         simulation = simulationService,
         store = connectionStore,
         signer = pendingRequests,
         session = walletSessionService,
+        assets = assetsService,
     )
 
     @Provides

@@ -54,6 +54,7 @@ common_get_started = Fara
 common_earn = Sami
 common_method = Hanyar
 common_token = Alamar Token
+common_expiration = Ƙarewa
 common_suspicious_address = Adireshin da ake zargi
 common_refresh = Sabuntawa
 common_no_thanks = A'a na gode

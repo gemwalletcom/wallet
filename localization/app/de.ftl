@@ -54,6 +54,7 @@ common_get_started = Los geht's
 common_earn = Verdienen
 common_method = Methode
 common_token = Token
+common_expiration = Ablauf
 common_suspicious_address = Verdächtige Adresse
 common_refresh = Aktualisieren
 common_no_thanks = Nein danke

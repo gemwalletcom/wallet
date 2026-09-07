@@ -66,7 +66,7 @@ fun RequestScene(
                 is WCRequest.SignMessage -> WalletConnectReviewScene(
                     model = request,
                     buttonState = buttonState,
-                    walletRow = { PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = ListPosition.First) },
+                    walletRow = { position -> PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = position) },
                     onApprove = { viewModel.onSign(reportError) },
                     onReject = viewModel::onReject,
                 )

@@ -13,6 +13,7 @@ use std::sync::{Arc, Mutex};
 use chrono::{DateTime, Utc};
 use primitives::{Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
+use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -34,6 +35,7 @@ pub struct GemWalletConnectService {
     store: Arc<dyn GemConnectionStore>,
     signer: Arc<dyn GemWalletConnectSigner>,
     session: Arc<GemWalletSessionService>,
+    assets: Arc<GemAssetsService>,
     seen_messages: Mutex<Vec<String>>,
 }
 
@@ -42,13 +44,20 @@ const SEEN_MESSAGES_LIMIT: usize = 512;
 #[uniffi::export]
 impl GemWalletConnectService {
     #[uniffi::constructor]
-    pub fn new(simulation: Arc<GemSimulationService>, store: Arc<dyn GemConnectionStore>, signer: Arc<dyn GemWalletConnectSigner>, session: Arc<GemWalletSessionService>) -> Self {
+    pub fn new(
+        simulation: Arc<GemSimulationService>,
+        store: Arc<dyn GemConnectionStore>,
+        signer: Arc<dyn GemWalletConnectSigner>,
+        session: Arc<GemWalletSessionService>,
+        assets: Arc<GemAssetsService>,
+    ) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
             simulation,
             store,
             signer,
             session,
+            assets,
             seen_messages: Mutex::new(Vec::new()),
         }
     }
@@ -192,6 +201,7 @@ impl GemWalletConnectService {
             WalletConnectAction::SignMessage { chain, sign_type, data } => {
                 let (connection, account) = self.connection_account(&session_id, chain).await?;
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain).await?;
+                let assets = self.assets.ensure_simulation_assets(simulation.asset_ids()).await?;
                 let message = self.wallet_connect.decode_sign_message(chain, sign_type, data);
                 let signature = self
                     .signer
@@ -203,6 +213,7 @@ impl GemWalletConnectService {
                         session: connection.session,
                         simulation,
                         message,
+                        assets,
                     })
                     .await?;
                 self.wallet_connect.encode_sign_message(chain, signature)
@@ -305,6 +316,14 @@ impl GemWalletConnectService {
 mod tests {
     use super::testkit::{MemoryConnectionStore, TestWalletConnectSigner};
     use super::*;
+    use crate::alien::AlienProvider;
+    use crate::api::GemApiClient;
+    use crate::gateway::{EmptyPreferences, GemGateway};
+    use crate::services::assets::testkit::MemoryAssetStore;
+    use crate::services::preferences::GemPreferencesService;
+    use crate::services::preferences::testkit::MemoryPreferencesStore;
+    use crate::services::price::GemPriceService;
+    use crate::services::price::testkit::MemoryPriceStore;
     use crate::services::wallet::testkit::MemoryWalletStore;
     use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
     use crate::testkit::TestAlienProvider;
@@ -313,14 +332,26 @@ mod tests {
         let store = Arc::new(MemoryConnectionStore::default());
         let session = rules::session("topic".to_string(), vec![Chain::Ethereum], Utc::now(), ApplicationMetadata::mock());
         store.add_connection(WalletConnection { session, wallet: Wallet::mock() }).await.unwrap();
+        let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(200));
+        let api = Arc::new(GemApiClient::new(provider.clone()));
+        let wallet_session = Arc::new(GemWalletSessionService::new(
+            Arc::new(MemoryWalletSessionStore::default()),
+            Arc::new(MemoryWalletStore::default()),
+        ));
+        let assets = Arc::new(GemAssetsService::new(
+            api.clone(),
+            Arc::new(GemGateway::new(provider.clone(), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences))),
+            Arc::new(MemoryAssetStore::default()),
+            Arc::new(GemPriceService::new(api, Arc::new(MemoryPriceStore::default()))),
+            Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
+            wallet_session.clone(),
+        ));
         GemWalletConnectService::new(
-            Arc::new(GemSimulationService::new(Arc::new(TestAlienProvider::with_status(200)))),
+            Arc::new(GemSimulationService::new(provider)),
             store,
             Arc::new(TestWalletConnectSigner { result: signer }),
-            Arc::new(GemWalletSessionService::new(
-                Arc::new(MemoryWalletSessionStore::default()),
-                Arc::new(MemoryWalletStore::default()),
-            )),
+            wallet_session,
+            assets,
         )
     }
 

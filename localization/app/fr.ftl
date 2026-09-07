@@ -54,6 +54,7 @@ common_get_started = Commencer
 common_earn = Gagner
 common_method = Méthode
 common_token = Jeton
+common_expiration = Expiration
 common_suspicious_address = Adresse suspecte
 common_refresh = Rafraîchir
 common_no_thanks = Non merci
