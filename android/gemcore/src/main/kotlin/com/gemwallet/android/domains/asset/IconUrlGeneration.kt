@@ -17,6 +17,8 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
 private val assetIcons = ConcurrentHashMap<String, GemAssetIcon>()
+private val validatorIcons = ConcurrentHashMap<String, String>()
+private val nftImages = ConcurrentHashMap<String, String>()
 
 private fun AssetId.icon(): GemAssetIcon = assetIcons.computeIfAbsent(toIdentifier(), assetConfig::assetIcon)
 
@@ -34,12 +36,15 @@ fun AssetId.remoteIconUrl(): String? = when (val image = icon().image) {
     is GemAssetIconImage.Remote -> image.url
 }
 
-fun DelegationValidator.getIconUrl(): String = GemImage.Validator(chain.string, id).url()
+fun DelegationValidator.getIconUrl(): String =
+    validatorIcons.computeIfAbsent("${chain.string}/$id") { GemImage.Validator(chain.string, id).url() }
 
 fun FiatProvider.providerName(): FiatProviderName? = FiatProviderName.entries.firstOrNull { it.string == id.lowercase() }
 
 fun getListIconUrl(listId: String): String = GemImage.AssetList(listId).url()
 
-fun NFTAsset.getImageUrl(): String = GemImage.NftAsset(id.toIdentifier()).url()
+fun NFTAsset.getImageUrl(): String = nftImageUrl(id.toIdentifier())
 
-fun TransactionNFTTransferMetadata.getImageUrl(): String = GemImage.NftAsset(assetId.toIdentifier()).url()
+fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId.toIdentifier())
+
+private fun nftImageUrl(identifier: String): String = nftImages.computeIfAbsent(identifier) { GemImage.NftAsset(it).url() }

@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -47,7 +48,7 @@ class GetTransactionsImpl(
 
     private val transactions: StateFlow<List<TransactionDataAggregate>> =
         transactionStore.walletTransactions(getCurrentWalletId, emptyList())
-            .map { items -> items.map { TransactionDataAggregateImpl(it, addressService) } }
+            .aggregates()
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun transactions(): StateFlow<List<TransactionDataAggregate>> = transactions
@@ -55,8 +56,25 @@ class GetTransactionsImpl(
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
     ): Flow<List<TransactionDataAggregate>> = transactionStore.walletTransactions(getCurrentWalletId, filters)
-        .map { items -> items.map { TransactionDataAggregateImpl(it, addressService) } }
+        .aggregates()
         .flowOn(Dispatchers.IO)
+
+    private fun Flow<List<TransactionExtended>>.aggregates(): Flow<List<TransactionDataAggregate>> = flow {
+        val rows = TransactionRows(addressService)
+        collect { emit(rows.aggregates(it)) }
+    }
+}
+
+internal class TransactionRows(private val addressService: GemAddressService) {
+
+    private var previous: Map<TransactionExtended, TransactionDataAggregate> = emptyMap()
+
+    fun aggregates(items: List<TransactionExtended>): List<TransactionDataAggregate> {
+        val reused = previous
+        val rows = items.map { reused[it] ?: TransactionDataAggregateImpl(it, addressService) }
+        previous = items.zip(rows).toMap()
+        return rows
+    }
 }
 
 @Stable
