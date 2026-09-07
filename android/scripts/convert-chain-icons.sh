@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Converts the chain SVGs into vector drawables so the app renders them from
-# resources instead of decoding SVG at runtime. Run after adding a chain icon.
+# Converts the chain SVGs the iOS app ships into Android vector drawables, so
+# both platforms draw the same artwork and Android renders it from resources
+# instead of decoding SVG at runtime. Run after adding a chain icon.
 set -euo pipefail
 
 studio="/Applications/Android Studio.app/Contents"
 jbr="$studio/jbr/Contents/Home/bin"
 classpath="$studio/plugins/android/lib/*:$studio/lib/*"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-icons="$root/app/src/main/assets/chains/icons"
+icons="$root/../ios/Packages/Style/Sources/Resources/Assets.xcassets/chains"
 drawables="$root/ui/src/main/res/drawable"
 mapping="$root/ui/src/main/kotlin/com/gemwallet/android/ui/components/image/ChainIcon.kt"
 work="$(mktemp -d)"
@@ -33,8 +34,8 @@ JAVA
 "$jbr/javac" -cp "$classpath" -d "$work" "$work/Convert.java"
 
 names=()
-for svg in "$icons"/*.svg; do
-    name="$(basename "$svg" .svg)"
+for svg in "$icons"/*.imageset/*.svg; do
+    name="$(basename "$(dirname "$svg")" .imageset)"
     "$jbr/java" -cp "$work:$classpath" Convert "$svg" "$drawables/chain_$name.xml"
     names+=("$name")
 done
@@ -43,9 +44,8 @@ done
     echo "package com.gemwallet.android.ui.components.image"
     echo
     echo "import androidx.annotation.DrawableRes"
-    echo "import com.gemwallet.android.domains.asset.getIconUrl"
-    echo "import com.gemwallet.android.domains.asset.getSupportIconUrl"
     echo "import com.gemwallet.android.domains.asset.iconChain"
+    echo "import com.gemwallet.android.domains.asset.remoteIconUrl"
     echo "import com.gemwallet.android.domains.asset.supportIconChain"
     echo "import com.gemwallet.android.ui.R"
     echo "import com.wallet.core.primitives.Asset"
@@ -61,13 +61,13 @@ done
     echo "    else -> null"
     echo "}"
     echo
-    echo "fun Chain.iconModel(): Any = iconChain().iconResource() ?: getIconUrl()"
+    echo "fun Chain.iconModel(): Any? = iconChain().iconResource()"
     echo
-    echo "fun AssetId.iconModel(): Any = iconChain()?.iconResource() ?: getIconUrl()"
+    echo "fun AssetId.iconModel(): Any? = iconChain()?.iconResource() ?: remoteIconUrl()"
     echo
-    echo "fun AssetId.supportIconModel(): Any? = supportIconChain()?.iconResource() ?: getSupportIconUrl()"
+    echo "fun AssetId.supportIconModel(): Any? = supportIconChain()?.iconResource()"
     echo
-    echo "fun Asset.iconModel(): Any = id.iconModel()"
+    echo "fun Asset.iconModel(): Any? = id.iconModel()"
     echo
     echo "fun Asset.supportIconModel(): Any? = id.supportIconModel()"
 } > "$mapping"

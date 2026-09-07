@@ -23,6 +23,7 @@ import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import coil3.transform.Transformation
 import com.gemwallet.android.ui.theme.iconSize
+import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ui.theme.secondaryFaded
 import com.wallet.core.primitives.Asset
 
@@ -41,7 +42,11 @@ fun AsyncImage(
     if (model == null) {
         return
     }
-    val requestData = if (model is Asset) model.iconModel() else model
+    val requestData = when (model) {
+        is Asset -> model.iconModel()
+        is Chain -> model.iconModel()
+        else -> model
+    }
     if (requestData is Int) {
         BundledImage(resource = requestData, contentDescription = contentDescription, size = size, modifier = modifier)
         return

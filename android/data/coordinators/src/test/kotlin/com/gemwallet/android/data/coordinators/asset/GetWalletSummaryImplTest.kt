@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
@@ -78,6 +77,6 @@ class GetWalletSummaryImplTest {
             headerButtons = emptyList(),
         )
 
-        assertEquals(Chain.Base.getIconUrl(), summary.walletIcon.placeholder)
+        assertEquals(Chain.Base, summary.walletIcon.placeholder)
     }
 }

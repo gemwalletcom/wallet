@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -26,7 +27,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorString
 import com.gemwallet.android.ui.R
@@ -160,7 +160,7 @@ private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
         )
     }
     if (showInfoSheet) {
-        InfoBottomSheet(InfoSheetEntity.ReserveForFee(asset.getIconUrl())) {
+        InfoBottomSheet(InfoSheetEntity.ReserveForFee(asset.iconModel())) {
             showInfoSheet = false
         }
     }

@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.activities.presents.details.components
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -24,7 +24,7 @@ fun TransactionStatusProperty(asset: Asset, property: TransactionDetailsValue.St
 
     PropertyItem(
         title = {
-            PropertyTitleText(R.string.transaction_status, info = InfoSheetEntity.TransactionInfo(icon = asset.getIconUrl(), state = property.data))
+            PropertyTitleText(R.string.transaction_status, info = InfoSheetEntity.TransactionInfo(icon = asset.iconModel(), state = property.data))
         },
         data = {
             PropertyDataText(

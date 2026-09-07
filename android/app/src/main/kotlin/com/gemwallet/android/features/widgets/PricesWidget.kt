@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.widgets
 
+import com.gemwallet.android.ui.components.image.iconModel
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -39,7 +40,6 @@ import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.gemwallet.android.MainActivity
 import com.gemwallet.android.data.services.gemstone.di.WidgetEntryPoint
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.CurrencyFormatter
@@ -97,13 +97,14 @@ class PricesWidget : GlanceAppWidget() {
 
     private suspend fun loadItems(context: Context, assets: List<AssetInfo>): List<WidgetAsset> = coroutineScope {
         assets.map { asset ->
-            async { WidgetAsset(asset, loadIcon(context, asset.id().getIconUrl())) }
+            async { WidgetAsset(asset, loadIcon(context, asset.id().iconModel())) }
         }.awaitAll()
     }
 
-    private suspend fun loadIcon(context: Context, url: String): Bitmap? = withContext(Dispatchers.IO) {
+    private suspend fun loadIcon(context: Context, model: Any?): Bitmap? = withContext(Dispatchers.IO) {
+        model ?: return@withContext null
         runCatching {
-            val request = ImageRequest.Builder(context).data(url).build()
+            val request = ImageRequest.Builder(context).data(model).build()
             (context.imageLoader.execute(request) as? SuccessResult)?.image?.toBitmap()
         }.getOrNull()
     }

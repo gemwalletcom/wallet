@@ -7,7 +7,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
@@ -148,7 +147,7 @@ internal class WalletSummaryAggregateImpl(
             WalletType.Multicoin -> null
             WalletType.Single,
             WalletType.PrivateKey,
-            WalletType.View -> walletAccount?.chain?.getIconUrl()
+            WalletType.View -> walletAccount?.chain
         },
     )
 

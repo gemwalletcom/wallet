@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.stake.presents.components
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
@@ -8,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Resource
@@ -59,7 +59,7 @@ internal fun LazyListScope.stakeActions(
             }
             GemStakeAction.CLAIM_REWARDS -> onRewards
         }
-        val info = InfoSheetEntity.StakeFrozenRequired(assetId.getIconUrl()).takeIf { item.requiresFrozenBalance }
+        val info = InfoSheetEntity.StakeFrozenRequired(assetId.iconModel()).takeIf { item.requiresFrozenBalance }
         var showInfo by remember { mutableStateOf(false) }
         PropertyItem(
             modifier = Modifier.clickable(enabled = item.isEnabled) {

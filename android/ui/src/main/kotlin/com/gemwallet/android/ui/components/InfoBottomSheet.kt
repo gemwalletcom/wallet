@@ -48,7 +48,7 @@ import com.wallet.core.primitives.StakeChain
 internal val infoSheetIconSize = 120.dp
 
 sealed class InfoSheetEntity(
-    val icon: Any,
+    val icon: Any?,
     val badgeIcon: Any? = null,
     @param:StringRes val title: Int? = null,
     @param:StringRes val description: Int? = null,
@@ -152,20 +152,20 @@ sealed class InfoSheetEntity(
         descriptionArgs = listOf("**${chain.networkName()}**"),
     )
 
-    class ReserveForFee(icon: Any) : InfoSheetEntity(
+    class ReserveForFee(icon: Any?) : InfoSheetEntity(
         icon = icon,
         title = R.string.info_stake_reserved_title,
         description = R.string.info_stake_reserved_description,
     )
 
-    class StakeLockTimeInfo(icon: Any) : InfoSheetEntity(
+    class StakeLockTimeInfo(icon: Any?) : InfoSheetEntity(
         icon = icon,
         title = R.string.stake_lock_time,
         description = R.string.info_lock_time_description,
         infoUrl = { AppUrl.docs(DocsUrl.StakingLockTime) },
     )
 
-    class StakeAprInfo(icon: Any) : InfoSheetEntity(
+    class StakeAprInfo(icon: Any?) : InfoSheetEntity(
         icon = icon,
         title = R.string.stake_apr,
         titleArgs = listOf(""),
@@ -173,14 +173,14 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.StakingApr) },
     )
 
-    class StakeFrozenRequired(icon: Any) : InfoSheetEntity(
+    class StakeFrozenRequired(icon: Any?) : InfoSheetEntity(
         icon = icon,
         title = R.string.info_stake_frozen_required_title,
         description = R.string.info_stake_frozen_required_description,
         infoUrl = { AppUrl.docs(DocsUrl.Staking(StakeChain.Tron.string)) },
     )
 
-    class TransactionInfo(icon: Any, state: TransactionState) : InfoSheetEntity(
+    class TransactionInfo(icon: Any?, state: TransactionState) : InfoSheetEntity(
         icon = icon,
         badgeIcon = state.statusBadgeIconRes(),
         title = state.statusLabelRes(),

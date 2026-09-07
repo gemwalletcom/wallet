@@ -17,8 +17,6 @@ import uniffi.gemstone.SwapProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
 
-fun Chain.getIconUrl(): String = chainIconUrl(iconChain())
-
 fun Chain.iconChain(): Chain = Config().getChainConfig(string).iconChain.toChain()
 
 fun AssetId.iconChain(): Chain? = when (val image = assetConfig.assetIcon(toIdentifier()).image) {
@@ -28,18 +26,10 @@ fun AssetId.iconChain(): Chain? = when (val image = assetConfig.assetIcon(toIden
 
 fun AssetId.supportIconChain(): Chain? = assetConfig.assetIcon(toIdentifier()).badge?.toChain()
 
-private fun chainIconUrl(chain: Chain): String = "file:///android_asset/chains/icons/${chain.string}.svg"
-
-fun AssetId.getIconUrl(): String = when (val image = assetConfig.assetIcon(toIdentifier()).image) {
-    is GemAssetIconImage.Local -> chainIconUrl(image.chain.toChain())
+fun AssetId.remoteIconUrl(): String? = when (val image = assetConfig.assetIcon(toIdentifier()).image) {
+    is GemAssetIconImage.Local -> null
     is GemAssetIconImage.Remote -> image.url
 }
-
-fun AssetId.getSupportIconUrl(): String? = assetConfig.assetIcon(toIdentifier()).badge?.toChain()?.let(::chainIconUrl)
-
-fun Asset.getIconUrl(): String = id.getIconUrl()
-
-fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
 
 fun DelegationValidator.getIconUrl(): String = GemImage.Validator(chain.string, id).url()
 
@@ -53,7 +43,7 @@ fun SwapProvider.getSwapProviderIcon(): String {
         SwapProvider.UNISWAP_V3 -> "uniswap"
         SwapProvider.PANCAKESWAP_V3 -> "pancakeswap"
         SwapProvider.THORCHAIN -> "thorchain"
-        SwapProvider.MAYACHAIN -> return Chain.Mayachain.getIconUrl()
+        SwapProvider.MAYACHAIN -> "mayachain"
         SwapProvider.JUPITER -> "jupiter"
         SwapProvider.ACROSS -> "across"
         SwapProvider.OKU -> "oku"

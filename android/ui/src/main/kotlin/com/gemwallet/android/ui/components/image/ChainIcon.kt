@@ -1,9 +1,8 @@
 package com.gemwallet.android.ui.components.image
 
 import androidx.annotation.DrawableRes
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.asset.getSupportIconUrl
 import com.gemwallet.android.domains.asset.iconChain
+import com.gemwallet.android.domains.asset.remoteIconUrl
 import com.gemwallet.android.domains.asset.supportIconChain
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Asset
@@ -70,12 +69,12 @@ fun Chain.iconResource(): Int? = when (string) {
     else -> null
 }
 
-fun Chain.iconModel(): Any = iconChain().iconResource() ?: getIconUrl()
+fun Chain.iconModel(): Any? = iconChain().iconResource()
 
-fun AssetId.iconModel(): Any = iconChain()?.iconResource() ?: getIconUrl()
+fun AssetId.iconModel(): Any? = iconChain()?.iconResource() ?: remoteIconUrl()
 
-fun AssetId.supportIconModel(): Any? = supportIconChain()?.iconResource() ?: getSupportIconUrl()
+fun AssetId.supportIconModel(): Any? = supportIconChain()?.iconResource()
 
-fun Asset.iconModel(): Any = id.iconModel()
+fun Asset.iconModel(): Any? = id.iconModel()
 
 fun Asset.supportIconModel(): Any? = id.supportIconModel()
