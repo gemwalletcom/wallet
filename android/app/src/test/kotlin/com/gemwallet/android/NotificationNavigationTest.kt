@@ -87,7 +87,7 @@ class NotificationNavigationTest {
             GemPushNotification.Transaction(
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
-                transaction = transaction.toJson(),
+                transaction = transaction.toGem(),
             )
         )
 
@@ -108,7 +108,7 @@ class NotificationNavigationTest {
             GemPushNotification.Transaction(
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
-                transaction = transaction.toJson(),
+                transaction = transaction.toGem(),
             )
         )
 
@@ -142,7 +142,7 @@ class NotificationNavigationTest {
             GemPushNotification.Transaction(
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
-                transaction = transaction.toJson(),
+                transaction = transaction.toGem(),
             )
         )
 

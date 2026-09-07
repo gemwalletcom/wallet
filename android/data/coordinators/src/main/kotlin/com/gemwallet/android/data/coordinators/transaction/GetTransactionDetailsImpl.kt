@@ -10,6 +10,7 @@ import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAg
 import com.gemwallet.android.domains.transaction.format
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetPriceInfo
@@ -18,7 +19,6 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -55,7 +55,7 @@ class GetTransactionDetailsImpl(
         getTransaction(id),
     ) { session, data -> Pair(session, data) }
         .mapNotNull { (session, data) ->
-            data?.let { TransactionDetailsAggregateImpl(it, transactionDetailsService.detailRows(it.toJson()), session.currency) }
+            data?.let { TransactionDetailsAggregateImpl(it, transactionDetailsService.detailRows(it.toGem()), session.currency) }
         }
         .flowOn(Dispatchers.IO)
 }

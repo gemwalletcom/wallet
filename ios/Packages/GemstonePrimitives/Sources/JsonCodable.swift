@@ -34,3 +34,5 @@ public extension JsonCodable {
         return String(decoding: data, as: UTF8.self)
     }
 }
+
+extension AnyCodableValue: JsonCodable {}

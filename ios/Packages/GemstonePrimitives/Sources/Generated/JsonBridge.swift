@@ -49,8 +49,6 @@ extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SupportTyping: JsonCodable {}
 extension Primitives.TPSLOrderData: JsonCodable {}
-extension Primitives.Transaction: JsonCodable {}
-extension Primitives.TransactionExtended: JsonCodable {}
 extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
 extension Primitives.TransactionsResponse: JsonCodable {}
 extension Primitives.TronStakeData: JsonCodable {}

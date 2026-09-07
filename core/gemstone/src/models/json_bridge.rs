@@ -11,7 +11,7 @@ use primitives::{
     AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
     Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
-use primitives::{PerpetualConfirmData, PerpetualType, Transaction, TransactionExtended};
+use primitives::{PerpetualConfirmData, PerpetualType};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -80,8 +80,6 @@ json_bridge!(
     SupportMessageInput,
     SupportTyping,
     TPSLOrderData,
-    Transaction,
-    TransactionExtended,
     TransactionPerpetualMetadata,
     TransactionsResponse,
     TronStakeData,

@@ -153,7 +153,7 @@ extension TransactionSceneViewModel {
 
 extension TransactionSceneViewModel {
     private var rows: GemTransactionDetailRows {
-        service.detailRows(transaction: transactionExtended.json())
+        service.detailRows(transaction: transactionExtended.map())
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {

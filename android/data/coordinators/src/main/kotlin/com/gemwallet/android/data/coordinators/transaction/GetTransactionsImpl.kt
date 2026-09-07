@@ -8,11 +8,11 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionSt
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.transaction.format
 import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
@@ -83,7 +83,7 @@ class TransactionDataAggregateImpl(
     addressService: GemAddressService,
 ) : TransactionDataAggregate {
 
-    private val row = GemTransactionRow(data.toJson())
+    private val row = GemTransactionRow(data.toGem())
 
     override val id: TransactionId = data.transaction.id
 

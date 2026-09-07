@@ -22,7 +22,7 @@ public struct TransactionViewModel: Sendable {
         transaction: TransactionExtended,
         currency: String,
     ) {
-        row = GemTransactionRow(transaction: transaction.json())
+        row = GemTransactionRow(transaction: transaction.map())
         self.transaction = transaction
         self.currency = currency
     }

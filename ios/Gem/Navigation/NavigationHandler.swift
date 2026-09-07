@@ -222,7 +222,7 @@ extension NavigationHandler {
             try await navigateToTransaction(
                 walletId: Primitives.WalletId.from(id: walletId),
                 assetId: Primitives.AssetId(id: assetId),
-                transaction: Primitives.Transaction(transaction),
+                transaction: transaction.map(),
             )
         case let .buyAsset(assetId):
             try await presentFiat(type: .buy, assetId: Primitives.AssetId(id: assetId), amount: .none)
@@ -273,7 +273,7 @@ extension NavigationHandler {
     private func trackNotificationTransaction(walletId: WalletId, transaction: Primitives.Transaction) {
         Task {
             do {
-                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.json()])
+                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.map()])
             } catch {
                 debugLog("navigation: transaction tracking failed \(error)")
             }
@@ -285,7 +285,7 @@ extension NavigationHandler {
               let asset = try await transactionStateService.addNotificationTransaction(
                   wallet: wallet.map(),
                   assetId: assetId.identifier,
-                  transaction: transaction.json(),
+                  transaction: transaction.map(),
               ).map({ $0.map() })
         else {
             return

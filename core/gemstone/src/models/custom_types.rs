@@ -62,6 +62,14 @@ uniffi::custom_type!(GemBigUint, String, {
         .map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid BigUint")),
 });
 
+pub type GemJsonValue = serde_json::Value;
+
+uniffi::custom_type!(GemJsonValue, String, {
+    remote,
+    lower: |value: GemJsonValue| value.to_string(),
+    try_lift: |value: String| serde_json::from_str(&value).map_err(|error| uniffi::deps::anyhow::Error::msg(format!("invalid json value: {error}"))),
+});
+
 pub type DateTimeUtc = DateTime<Utc>;
 
 uniffi::custom_type!(DateTimeUtc, i64, {
