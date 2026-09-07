@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -85,18 +86,20 @@ class WCRequestViewModel @Inject constructor(
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
         Log.d(TAG, "Resolving request method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
-        val job = viewModelScope.launch(Dispatchers.IO) {
-            val outcome = service.processRequest(
-                GemWalletConnectSessionRequest(
-                    topic = sessionRequest.topic,
-                    requestId = sessionRequest.request.id.toString(),
-                    method = sessionRequest.request.method,
-                    params = sessionRequest.request.params,
-                    chainId = sessionRequest.chainId,
-                    origin = verifyContext.origin,
-                    validation = verifyContext.map(),
-                ),
-            )
+        val job = viewModelScope.launch {
+            val outcome = withContext(Dispatchers.IO) {
+                service.processRequest(
+                    GemWalletConnectSessionRequest(
+                        topic = sessionRequest.topic,
+                        requestId = sessionRequest.request.id.toString(),
+                        method = sessionRequest.request.method,
+                        params = sessionRequest.request.params,
+                        chainId = sessionRequest.chainId,
+                        origin = verifyContext.origin,
+                        validation = verifyContext.map(),
+                    ),
+                )
+            }
             when (val failure = outcome.failure) {
                 null -> Unit
                 GemWalletConnectFailure.MaliciousOrigin -> onNotify(BridgeRequestError.MaliciousSession)
