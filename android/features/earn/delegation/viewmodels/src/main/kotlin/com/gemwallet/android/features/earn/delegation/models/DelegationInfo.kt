@@ -37,4 +37,8 @@ class HeadDelegationInfo(
     override val asset: Asset
         get() = assetInfo.asset
 
+    override val cryptoFormatted: String by lazy { super<CryptoFormattedUIModel>.cryptoFormatted }
+
+    override val fiatFormatted: String by lazy { super<FiatFormattedUIModel>.fiatFormatted }
+
 }
