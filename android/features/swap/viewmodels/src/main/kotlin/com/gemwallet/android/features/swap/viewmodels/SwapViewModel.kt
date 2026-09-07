@@ -378,7 +378,7 @@ class SwapViewModel @Inject constructor(
     private fun applyMinimumAmount(amount: BigInteger) {
         val asset = payAsset.value?.asset ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).toString())
+        payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).stripTrailingZeros().toPlainString())
     }
 
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {

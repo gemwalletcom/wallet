@@ -672,6 +672,23 @@ class SwapViewModelTest {
     }
 
     @Test
+    fun `small minimum amount uses editable decimal notation`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("1"))
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.UseMinimumAmount(BigInteger.ONE) }
+
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
+        advanceUntilIdle()
+
+        assertEquals("0.000000001", viewModel.payValue.text.toString())
+    }
+
+    @Test
     fun `only retryable quote failures offer a retry`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
