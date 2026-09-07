@@ -137,7 +137,7 @@ fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValu
 #[uniffi::export]
 impl GemConfirmData {
     pub fn fee_rate_rows(&self, selection: GemConfirmFeeSelection, fee_asset: Asset) -> GemFeeRateRows {
-        fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee.fee)
+        fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee)
     }
 }
 
@@ -352,7 +352,7 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
     }
 }
 
-pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &BigInt) -> GemFeeRateRows {
+pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &GemTransactionLoadFee) -> GemFeeRateRows {
     let unit_value = |rate: &GemFeeRate| rate.gas_price_type.clone().total_fee();
     let rate_total = |priority: FeePriority| rates.iter().find(|rate| rate.priority == priority).map(unit_value);
     let selected_total = match selection {
@@ -360,6 +360,8 @@ pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], sele
         GemConfirmFeeSelection::Custom { gas_price } => Some(gas_price.clone()),
     };
     let base = selected_total.clone().filter(|total| total > &BigInt::ZERO);
+    let fixed_fee = loaded_fee.options.total();
+    let rate_fee = &loaded_fee.fee - &fixed_fee;
     let unit_type = chain.fee_unit_type();
     GemFeeRateRows {
         rows: rates
@@ -368,7 +370,7 @@ pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], sele
                 let unit_value = unit_value(rate);
                 GemFeeRateRow {
                     priority: rate.priority,
-                    fee: base.as_ref().map(|base| loaded_fee * &unit_value / base),
+                    fee: base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee),
                     unit_value,
                 }
             })
@@ -423,11 +425,12 @@ mod tests {
     use super::*;
     use crate::models::custom_types::GemBigInt;
     use crate::models::custom_types::GemBigUint;
-    use crate::models::transaction::GemTransactionLoadMetadata;
+    use crate::models::transaction::{GemFeeOptions, GemTransactionLoadMetadata};
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use crate::transfer_amount::GemTransferAmount;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
+    use primitives::FeeOption;
     use primitives::GasPriceType;
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType,
@@ -435,6 +438,7 @@ mod tests {
         swap::{ApprovalData, SwapData},
     };
     use primitives::{AddressName, AddressType, VerificationStatus};
+    use std::collections::HashMap;
 
     fn wallet(chain: Chain) -> Wallet {
         Wallet {
@@ -571,13 +575,23 @@ mod tests {
         }
     }
 
+    fn loaded_fee(fee: u64, options: HashMap<FeeOption, BigInt>) -> GemTransactionLoadFee {
+        GemTransactionLoadFee {
+            fee: BigInt::from(fee),
+            gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(1) },
+            gas_limit: BigInt::from(1),
+            options: GemFeeOptions { options },
+            fee_asset: AssetId::from_chain(Chain::Ethereum),
+        }
+    }
+
     #[test]
     fn test_fee_rate_rows_scale_the_loaded_fee_by_each_rate() {
         let rates = vec![rate(FeePriority::Normal, "10"), rate(FeePriority::Fast, "25")];
         let ethereum = Asset::from_chain(Chain::Ethereum);
         let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
 
-        let rows = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, &normal, &BigInt::from(1_000));
+        let rows = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, &normal, &loaded_fee(1_000, HashMap::new()));
         assert_eq!(rows.rows[0].fee, Some(BigInt::from(1_000)), "the selected rate shows the fee that was loaded");
         assert_eq!(rows.rows[1].fee, Some(BigInt::from(2_500)), "another rate scales the loaded fee by its unit value");
         assert_eq!((rows.unit_type, rows.unit_decimals), (FeeUnitType::Gwei, 9));
@@ -590,7 +604,7 @@ mod tests {
             &ethereum,
             &rates,
             &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(50) },
-            &BigInt::from(5_000),
+            &loaded_fee(5_000, HashMap::new()),
         );
         assert_eq!(custom.rows[0].fee, Some(BigInt::from(1_000)), "a custom rate is the base the loaded fee was computed for");
         assert_eq!(custom.selected_total, Some(BigInt::from(50)));
@@ -600,20 +614,41 @@ mod tests {
             &ethereum,
             &rates,
             &GemConfirmFeeSelection::Custom { gas_price: BigInt::ZERO },
-            &BigInt::from(5_000),
+            &loaded_fee(5_000, HashMap::new()),
         );
         assert!(zero.rows.iter().all(|row| row.fee.is_none()), "nothing scales against a zero base");
 
         let bitcoin = Asset::from_chain(Chain::Bitcoin);
-        assert!(fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &BigInt::from(5_000)).supports_custom_fee);
+        assert!(fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &loaded_fee(5_000, HashMap::new())).supports_custom_fee);
         assert!(
-            !fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &BigInt::from(5_000)).supports_custom_fee,
+            !fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &loaded_fee(5_000, HashMap::new())).supports_custom_fee,
             "one rate is nothing to pick a custom value against"
         );
 
         let solana = Asset::from_chain(Chain::Solana);
-        let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &BigInt::from(5_000));
+        let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &loaded_fee(5_000, HashMap::new()));
         assert_eq!((native.unit_type, native.unit_decimals), (FeeUnitType::Native, solana.decimals as u32));
+    }
+
+    #[test]
+    fn test_fee_rate_rows_keep_fixed_options_out_of_the_scaling() {
+        let rates = vec![rate(FeePriority::Normal, "10000"), rate(FeePriority::Fast, "20000")];
+        let solana = Asset::from_chain(Chain::Solana);
+        let rent = BigInt::from(2_039_280u64);
+        let loaded = loaded_fee(2_049_280, HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())]));
+
+        let rows = fee_rate_rows(Chain::Solana, &solana, &rates, &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }, &loaded);
+        assert_eq!(rows.rows[0].fee, Some(loaded.fee.clone()), "the selected rate shows the fee that was loaded");
+        assert_eq!(rows.rows[1].fee, Some(BigInt::from(20_000) + &rent), "the rent does not grow with the priority");
+
+        let fast = fee_rate_rows(
+            Chain::Solana,
+            &solana,
+            &rates,
+            &GemConfirmFeeSelection::Priority { priority: FeePriority::Fast },
+            &loaded_fee(2_059_280, HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())])),
+        );
+        assert_eq!(fast.rows[0].fee, Some(BigInt::from(10_000) + &rent), "the rent does not shrink with the priority either");
     }
 
     #[test]

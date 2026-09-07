@@ -251,6 +251,10 @@ impl GemFeeOptions {
     pub fn is_empty(&self) -> bool {
         self.options.is_empty()
     }
+
+    pub fn total(&self) -> GemBigInt {
+        self.options.values().sum()
+    }
 }
 
 impl From<GemTransactionLoadFee> for TransactionFee {
