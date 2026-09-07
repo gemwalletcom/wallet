@@ -31,24 +31,24 @@ use std::{fmt::Debug, sync::Arc};
 const DEFAULT_DEADLINE_MINUTES: i64 = 30;
 const BITCOIN_DEADLINE_MINUTES: i64 = 120;
 
-const TREASURY_ADDRESSES: [&str; 17] = [
-    "0x2CfF890f0378a11913B6129B2E97417a2c302680",
-    "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd",
-    "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra",
-    "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ",
-    "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD",
-    "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc",
-    "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX",
-    "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML",
-    "intents.near",
-    "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16",
-    "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ",
-    "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK",
-    "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138",
-    "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446",
-    "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke",
-    "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH",
-    "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm",
+pub const TREASURY_ADDRESSES: [(Chain, &str); 17] = [
+    (Chain::Ethereum, "0x2CfF890f0378a11913B6129B2E97417a2c302680"),
+    (Chain::Monad, "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd"),
+    (Chain::Bitcoin, "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra"),
+    (Chain::BitcoinCash, "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ"),
+    (Chain::Doge, "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD"),
+    (Chain::Dash, "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc"),
+    (Chain::Litecoin, "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX"),
+    (Chain::Zcash, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML"),
+    (Chain::Near, "intents.near"),
+    (Chain::Solana, "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16"),
+    (Chain::Ton, "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ"),
+    (Chain::Stellar, "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK"),
+    (Chain::Sui, "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138"),
+    (Chain::Aptos, "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446"),
+    (Chain::Tron, "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke"),
+    (Chain::Xrp, "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH"),
+    (Chain::Cardano, "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm"),
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -379,7 +379,7 @@ where
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: vec![],
-            send: TREASURY_ADDRESSES.iter().map(ToString::to_string).collect(),
+            send: TREASURY_ADDRESSES.iter().map(|(_, address)| address.to_string()).collect(),
         })
     }
 }
