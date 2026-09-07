@@ -4,7 +4,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.wallet.core.primitives.Chain
 import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
@@ -73,15 +73,15 @@ class PerpetualMarketViewModelTest {
         every { getPositions.getPerpetualPositions() } returns flowOf(emptyList())
         val getBalance = mockk<GetPerpetualBalance>()
         every { getBalance.getDisplayBalance() } returns emptyFlow()
-        val getRecentAssets = mockk<GetRecentAssets>()
-        every { getRecentAssets(any()) } returns flowOf(emptyList())
+        val recentAssetsService = mockk<RecentAssetsService>()
+        every { recentAssetsService.getRecentAssets(any()) } returns flowOf(emptyList())
         val perpetualObserver = mockk<PerpetualObserver>()
 
         return PerpetualMarketViewModel(
             getPerpetuals = getPerpetuals,
             getPositions = getPositions,
             getBalance = getBalance,
-            getRecentAssets = getRecentAssets,
+            recentAssetsService = recentAssetsService,
             service = service,
             recentActivity = mockk(),
             perpetualObserver = perpetualObserver,

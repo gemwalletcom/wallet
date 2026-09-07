@@ -8,7 +8,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
@@ -61,7 +61,7 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
     getSession: GetSession,
-    private val getRecentAssets: GetRecentAssets,
+    private val recentAssetsService: RecentAssetsService,
     protected val service: GemAssetSelectionServiceInterface,
     val search: SelectSearch,
     selectType: GemSelectAssetType,
@@ -148,7 +148,7 @@ open class BaseAssetSelectViewModel(
             if (query.isNotEmpty() || !flow.recents) {
                 flow { emit(emptyList()) }
             } else {
-                getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = assetFilters()))
+                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = assetFilters()))
             }
         }
     .map { items -> items.map { it.asset }.toImmutableList() }

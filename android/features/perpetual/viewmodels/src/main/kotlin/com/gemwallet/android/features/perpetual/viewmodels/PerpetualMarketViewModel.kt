@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import uniffi.gemstone.GemAssetAction
 import androidx.lifecycle.viewModelScope
 import android.util.Log
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
@@ -44,7 +44,7 @@ class PerpetualMarketViewModel @Inject constructor(
     private val getPerpetuals: GetPerpetuals,
     private val getPositions: GetPerpetualPositions,
     private val getBalance: GetPerpetualBalance,
-    private val getRecentAssets: GetRecentAssets,
+    private val recentAssetsService: RecentAssetsService,
     private val service: GemPerpetualServiceInterface,
     private val recentActivity: GemRecentActivityServiceInterface,
     private val perpetualObserver: PerpetualObserver,
@@ -72,7 +72,7 @@ class PerpetualMarketViewModel @Inject constructor(
     val balance = getBalance.getDisplayBalance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
     val recent: StateFlow<List<Asset>> =
-        getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
+        recentAssetsService.getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
             .map { items -> items.map { it.asset } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

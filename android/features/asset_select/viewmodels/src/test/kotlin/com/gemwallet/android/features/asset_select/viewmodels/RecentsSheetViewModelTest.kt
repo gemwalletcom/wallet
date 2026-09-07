@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.ext.toGem
@@ -47,7 +47,7 @@ class RecentsSheetViewModelTest {
         RecentAsset(asset = ethAsset, addedAt = 2000L),
     )
 
-    private val getRecentAssets = mockk<GetRecentAssets>(relaxed = true)
+    private val recentAssetsService = mockk<RecentAssetsService>(relaxed = true)
     private val recentActivityService = mockk<GemRecentActivityService>(relaxed = true)
 
     @Before
@@ -62,7 +62,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `show makes visible and dismiss hides`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
+        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, GemAssetConfigService())
 
         assertFalse(vm.visible.value)
 
@@ -77,8 +77,8 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `uiModel keeps content after dismiss`() = runTest(testDispatcher) {
-        every { getRecentAssets(any()) } returns flowOf(recentItems)
-        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
+        every { recentAssetsService.getRecentAssets(any()) } returns flowOf(recentItems)
+        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, GemAssetConfigService())
 
         vm.show()
         vm.uiModel.first { it.items.isNotEmpty() }
@@ -90,7 +90,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `clear delegates to coordinator with current types`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
+        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, GemAssetConfigService())
         val types = listOf(RecentActivityType.Swap)
         vm.show(types = types)
         advanceUntilIdle()

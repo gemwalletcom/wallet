@@ -2,9 +2,9 @@ package com.gemwallet.android.features.asset_select.viewmodels
 
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
-import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.eligible
 import com.gemwallet.android.domains.asset.queryFilters
@@ -23,31 +23,31 @@ import javax.inject.Inject
 @HiltViewModel
 open class SendSelectViewModel @Inject constructor(
     getSession: GetSession,
-    searchSelectAssets: SearchSelectAssets,
-    getSelectAssetsInfo: GetSelectAssetsInfo,
-    getRecentAssets: GetRecentAssets,
+    searchService: AssetsSearchService,
+    getWalletAssets: GetWalletAssets,
+    recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
 ) : BaseAssetSelectViewModel(
     getSession,
-    getRecentAssets,
+    recentAssetsService,
     service,
-    SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
+    SendSelectSearch(searchService, getWalletAssets),
     GemSelectAssetType.SEND,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendSelectSearch(
-    private val searchSelectAssets: SearchSelectAssets,
-    private val getSelectAssetsInfo: GetSelectAssetsInfo,
-) : BaseSelectSearch(searchSelectAssets) {
+    private val searchService: AssetsSearchService,
+    private val getWalletAssets: GetWalletAssets,
+) : BaseSelectSearch(searchService) {
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return filters
             .map { filters -> filters?.query.orEmpty() }
             .flatMapLatest { query ->
                 val source = if (query.isEmpty()) {
-                    getSelectAssetsInfo()
+                    getWalletAssets()
                 } else {
-                    searchSelectAssets(query, filters = GemAssetAction.SEND.queryFilters())
+                    searchService.search(query, byAllWallets = false, filters = GemAssetAction.SEND.queryFilters())
                 }
 
                 source.map(::filter)

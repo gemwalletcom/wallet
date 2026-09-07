@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.AssetFilter
@@ -38,7 +38,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecentsSheetViewModel @Inject constructor(
-    private val getRecentAssets: GetRecentAssets,
+    private val recentAssetsService: RecentAssetsService,
     private val recentActivityService: GemRecentActivityServiceInterface,
     private val assetConfig: GemAssetConfigServiceInterface,
 ) : ViewModel() {
@@ -55,7 +55,7 @@ class RecentsSheetViewModel @Inject constructor(
         .filterNotNull()
         .flatMapLatest { config ->
             combine(
-                getRecentAssets(RecentAssetsRequest(types = config.types, filters = config.filters, limit = 0)),
+                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = config.types, filters = config.filters, limit = 0)),
                 snapshotFlow { query.text.toString() },
                 ::buildUIModel,
             )

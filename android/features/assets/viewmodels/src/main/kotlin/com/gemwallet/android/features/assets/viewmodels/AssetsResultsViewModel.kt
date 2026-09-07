@@ -11,11 +11,10 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SearchListAssets
-import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.gemstone.assets.listPriorityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
@@ -52,18 +51,17 @@ import javax.inject.Inject
 @HiltViewModel
 class AssetsResultsViewModel @Inject constructor(
     private val getSession: GetSession,
-    searchSelectAssets: SearchSelectAssets,
-    searchListAssets: SearchListAssets,
-    getRecentAssets: GetRecentAssets,
+    searchService: AssetsSearchService,
+    recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
     getSession,
-    getRecentAssets,
+    recentAssetsService,
     service,
-    selectSearchOf(savedStateHandle, searchSelectAssets, searchListAssets),
+    selectSearchOf(savedStateHandle, searchService),
     GemSelectAssetType.WALLET_SEARCH_RESULTS,
 ) {
 
@@ -141,11 +139,10 @@ class AssetsResultsViewModel @Inject constructor(
 
 private fun selectSearchOf(
     savedStateHandle: SavedStateHandle,
-    searchSelectAssets: SearchSelectAssets,
-    searchListAssets: SearchListAssets,
+    searchService: AssetsSearchService,
 ): SelectSearch {
     return when (val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
-        is WalletSearchTag.List -> ListSelectSearch(searchListAssets, scope.id)
-        WalletSearchTag.All -> BaseSelectSearch(searchSelectAssets)
+        is WalletSearchTag.List -> ListSelectSearch(searchService, scope.id)
+        WalletSearchTag.All -> BaseSelectSearch(searchService)
     }
 }

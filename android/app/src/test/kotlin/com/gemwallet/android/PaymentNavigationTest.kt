@@ -1,7 +1,7 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
@@ -51,7 +51,7 @@ class PaymentNavigationTest {
             asset = mockAssetSolanaUSDC(),
             owner = mockAccount(chain = Chain.Solana, address = SOLANA_ADDRESS),
         )
-        val getSelectAssetsInfo = mockk<GetSelectAssetsInfo>()
+        val getWalletAssets = mockk<GetWalletAssets>()
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
         val account = requireNotNull(assetInfo.owner)
         val request = PaymentRequest(
@@ -61,13 +61,13 @@ class PaymentNavigationTest {
             references = null,
             assetId = assetInfo.asset.id,
         )
-        every { getSelectAssetsInfo() } returns flowOf(listOf(assetInfo))
+        every { getWalletAssets() } returns flowOf(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = "payment-memo",
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, assetsService(assetInfo.asset))
+        val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
@@ -91,7 +91,7 @@ class PaymentNavigationTest {
     @Test
     fun routes_paymentLink_confirmsDecodedTransferWithoutMemo() = runTest {
         val assetInfo = mockAssetInfo(asset = mockAssetSolanaUSDC())
-        val getSelectAssetsInfo = mockk<GetSelectAssetsInfo>()
+        val getWalletAssets = mockk<GetWalletAssets>()
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
         val account = requireNotNull(assetInfo.owner)
         val recipient = SOLANA_ADDRESS
@@ -102,13 +102,13 @@ class PaymentNavigationTest {
             references = null,
             assetId = assetInfo.asset.id,
         )
-        every { getSelectAssetsInfo() } returns flowOf(listOf(assetInfo))
+        every { getWalletAssets() } returns flowOf(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = null,
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, assetsService(assetInfo.asset))
+        val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
@@ -131,11 +131,11 @@ class PaymentNavigationTest {
             asset = mockAssetSolana(),
             owner = mockAccount(chain = Chain.Solana, address = SOLANA_ADDRESS),
         )
-        val getSelectAssetsInfo = mockk<GetSelectAssetsInfo>()
+        val getWalletAssets = mockk<GetWalletAssets>()
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
         val account = requireNotNull(assetInfo.owner)
         val requestedAsset = mockAssetSolanaUSDC()
-        every { getSelectAssetsInfo() } returns flowOf(listOf(assetInfo))
+        every { getWalletAssets() } returns flowOf(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = "payment-memo",
@@ -147,7 +147,7 @@ class PaymentNavigationTest {
                 assetId = requestedAsset.id,
             ),
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, assetsService(requestedAsset))
+        val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(requestedAsset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))

@@ -2,8 +2,8 @@ package com.gemwallet.android.features.asset_select.viewmodels
 
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.eligible
 import com.gemwallet.android.application.session.cases.GetSession
@@ -18,20 +18,20 @@ import javax.inject.Inject
 @HiltViewModel
 class BuySelectViewModel @Inject constructor(
     getSession: GetSession,
-    searchSelectAssets: SearchSelectAssets,
-    getRecentAssets: GetRecentAssets,
+    searchService: AssetsSearchService,
+    recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
 ) : BaseAssetSelectViewModel(
     getSession,
-    getRecentAssets,
+    recentAssetsService,
     service,
-    BuySelectSearch(searchSelectAssets),
+    BuySelectSearch(searchService),
     GemSelectAssetType.BUY,
 )
 
 class BuySelectSearch(
-    searchSelectAssets: SearchSelectAssets,
-) : BaseSelectSearch(searchSelectAssets, GemAssetAction.BUY) {
+    searchService: AssetsSearchService,
+) : BaseSelectSearch(searchService, GemAssetAction.BUY) {
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return super.items(filters).map { items -> filter(items) }
