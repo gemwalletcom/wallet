@@ -112,7 +112,20 @@ The active price controls are `getPrices`, `subscribePrices`, `addPrices`, and `
 }
 ```
 
-Transaction updates include affected assets so clients can refresh the corresponding balances.
+Transaction updates include affected assets so clients can refresh the corresponding balances. The server does not emit separate balance events for these transactions.
+
+**Balance Update:**
+```json
+{
+  "event": "balances",
+  "data": {
+    "walletId": "multicoin_0x742d35...",
+    "assetIds": ["ethereum", "ethereum_0xtoken..."]
+  }
+}
+```
+
+Both update types require `assetIds`. Balance updates no longer include the legacy singular `assetId`. iOS and Android releases starting with [2.104](https://github.com/gemwalletcom/wallet/releases/tag/2.104) consume the arrays for both event types.
 
 All server event variants are defined by `StreamEvent`:
 
