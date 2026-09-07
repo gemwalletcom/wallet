@@ -8,40 +8,25 @@ use swapper::{Quote, SwapperError};
 use super::rules;
 use primitives::TransactionInputType;
 
-#[derive(Debug, Clone, PartialEq, uniffi::Object)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapQuoteSummary {
-    quote: SwapQuote,
-    min_receive_value: GemBigUint,
-    eta_minutes: Option<u32>,
+    pub quote: SwapQuote,
+    pub min_receive_value: GemBigUint,
+    pub eta_minutes: Option<u32>,
 }
 
 #[uniffi::export]
-impl GemSwapQuoteSummary {
-    #[uniffi::constructor]
-    pub fn new(quote: SwapQuote) -> Self {
-        Self {
-            min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
-            eta_minutes: quote.eta_in_seconds.and_then(rules::eta_minutes),
-            quote,
-        }
+pub fn swap_quote_summary(quote: SwapQuote) -> GemSwapQuoteSummary {
+    GemSwapQuoteSummary {
+        min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
+        eta_minutes: quote.eta_in_seconds.and_then(rules::eta_minutes),
+        quote,
     }
+}
 
-    #[uniffi::constructor]
-    pub fn from_quote(quote: Quote) -> Self {
-        Self::new(rules::swap_quote(&quote))
-    }
-
-    pub fn quote(&self) -> SwapQuote {
-        self.quote.clone()
-    }
-
-    pub fn min_receive_value(&self) -> GemBigUint {
-        self.min_receive_value.clone()
-    }
-
-    pub fn eta_minutes(&self) -> Option<u32> {
-        self.eta_minutes
-    }
+#[uniffi::export]
+pub fn swapper_quote_summary(quote: Quote) -> GemSwapQuoteSummary {
+    swap_quote_summary(rules::swap_quote(&quote))
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

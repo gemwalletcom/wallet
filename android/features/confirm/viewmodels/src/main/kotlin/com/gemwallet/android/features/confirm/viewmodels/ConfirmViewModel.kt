@@ -35,7 +35,7 @@ import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
-import uniffi.gemstone.GemSwapQuoteSummary
+import uniffi.gemstone.swapQuoteSummary
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.FeeAssetSelection
@@ -379,7 +379,7 @@ class ConfirmViewModel @Inject constructor(
         content ?: return null
         val fromAsset = content.assetPrice(transfer.asset)
         val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
-        val summary = GemSwapQuoteSummary(swapData.quote)
+        val summary = swapQuoteSummary(swapData.quote)
 
         val provider = SwapProviderUIModelFactory.create(
             providerId = swapData.quote.providerData.provider,
@@ -401,8 +401,8 @@ class ConfirmViewModel @Inject constructor(
                 priceImpact = fromAsset.swapValue(transfer.value)
                     .priceImpact(toAsset.swapValue(swapData.quote.toValue))
                     ?.toPrimitives(),
-                minReceiveValue = summary.minReceiveValue(),
-                etaMinutes = summary.etaMinutes(),
+                minReceiveValue = summary.minReceiveValue,
+                etaMinutes = summary.etaMinutes,
             ),
         ) ?: return null
 

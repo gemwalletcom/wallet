@@ -67,7 +67,7 @@ import uniffi.gemstone.Config
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSlippageCheck
 import uniffi.gemstone.GemSwapQuoteServiceInterface
-import uniffi.gemstone.GemSwapQuoteSummary
+import uniffi.gemstone.swapperQuoteSummary
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapProvider
 import java.math.BigDecimal
@@ -186,7 +186,7 @@ class SwapViewModel @Inject constructor(
             if (quote == null) {
                 return@combine null
             }
-            val summary = GemSwapQuoteSummary.fromQuote(quote.quote)
+            val summary = swapperQuoteSummary(quote.quote)
 
             val provider = providers.firstOrNull { item ->
                 item.id == quote.quote.data.provider.id &&
@@ -212,8 +212,8 @@ class SwapViewModel @Inject constructor(
                     priceImpact = quote.pay.swapValue(quote.quote.fromValue)
                         .priceImpact(quote.receive.swapValue(quote.quote.toValue))
                         ?.toPrimitives(),
-                    minReceiveValue = summary.minReceiveValue(),
-                    etaMinutes = summary.etaMinutes(),
+                    minReceiveValue = summary.minReceiveValue,
+                    etaMinutes = summary.etaMinutes,
                 ),
             )
         }
