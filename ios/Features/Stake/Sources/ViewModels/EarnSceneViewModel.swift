@@ -94,7 +94,7 @@ public final class EarnSceneViewModel {
 
     var positionModels: [DelegationViewModel] {
         positions
-            .filter { (BigInt($0.base.balance) ?? .zero) > 0 }
+            .filter { (BigInt($0.base.balance)) > 0 }
             .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currencyCode: service.getCurrency()) }
     }
 
