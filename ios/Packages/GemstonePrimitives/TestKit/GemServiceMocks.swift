@@ -340,9 +340,38 @@ public final class GemFileStoreMock: GemFileStore, @unchecked Sendable {
 }
 
 public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {
-    public init() {}
+    private let prepare: @Sendable () async throws -> Bool
+    private let onConnected: @Sendable () async throws -> Void
+    private let onDisconnected: @Sendable () async -> Void
+    private let onEvent: @Sendable (Gemstone.StreamEvent) async throws -> Void
 
-    public func handle(event _: Gemstone.StreamEvent, currency _: Gemstone.Currency) async throws {}
+    public init(
+        prepare: @escaping @Sendable () async throws -> Bool = { true },
+        onConnected: @escaping @Sendable () async throws -> Void = {},
+        onDisconnected: @escaping @Sendable () async -> Void = {},
+        onEvent: @escaping @Sendable (Gemstone.StreamEvent) async throws -> Void = { _ in },
+    ) {
+        self.prepare = prepare
+        self.onConnected = onConnected
+        self.onDisconnected = onDisconnected
+        self.onEvent = onEvent
+    }
+
+    public func prepareConnection() async throws -> Bool {
+        try await prepare()
+    }
+
+    public func connected() async throws {
+        try await onConnected()
+    }
+
+    public func disconnected() async {
+        await onDisconnected()
+    }
+
+    public func handle(event: Gemstone.StreamEvent) async throws {
+        try await onEvent(event)
+    }
 }
 
 public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Sendable {
@@ -877,18 +906,6 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
     public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
         assets.map { $0.json() }
     }
-}
-
-public final class GemStreamSubscriptionServiceMock: GemStreamSubscriptionServiceProtocol, @unchecked Sendable {
-    public init() {}
-
-    public func setupAssets(walletId _: Gemstone.WalletId) async throws {}
-
-    public func resubscribe() async throws {}
-
-    public func addPrices(assetIds _: [Gemstone.AssetId]) async throws {}
-
-    public func reset() async {}
 }
 
 public final class GemAvatarServiceMock: GemAvatarServiceProtocol, @unchecked Sendable {

@@ -64,6 +64,17 @@ The active price controls are `getPrices`, `subscribePrices`, `addPrices`, and `
 
 `subscribeRealtimePrices` and `unsubscribeRealtimePrices` remain accepted wire variants for compatibility, but the server currently treats them as no-ops.
 
+### Asset Price Lifecycle
+
+- Both apps use `GemStreamService` for connection preparation, session eligibility, device synchronization, reconnect subscription resets, and event application using the current Core currency. Native observers own foreground/session observation, socket I/O, cancellation, and ordered event forwarding.
+- Foreground observers prepare each wallet session in Core. Losing the session clears retained subscription intent; wallet changes cancel and finish the prior observer before opening its replacement. Session changes while backgrounded cannot open a connection.
+- Wallet setup and asset enable/disable changes rebuild price subscriptions from stored enabled assets; they do not call `POST /v1/prices`.
+- The first price request on each connection is `subscribePrices`, which returns current USD prices and fiat rates. Later `addPrices` requests return prices for the expanded subscription without rates.
+- Core retains additional requests from asset details and swaps while disconnected and across reconnects. Switching wallets clears those extra requests and builds the subscription from the new wallet's enabled assets and price alerts.
+- Subscription changes are serialized. A failed send keeps the requested assets pending, and each new connection resets the sent subscription state before resubscribing.
+- Clients process received events in order, saving the initial exchange rates before applying later price updates. Both apps cancel event handling when backgrounded and finish transport cleanup before a replacement observer starts.
+- The server closes the connection when a client message cannot be processed, allowing clients to reconnect and replay subscriptions instead of keeping a silently failed subscription open.
+
 ### Server → Client Messages
 
 **Price Update:**

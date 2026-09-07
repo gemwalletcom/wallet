@@ -140,6 +140,9 @@ let package = Package(
             dependencies: [
                 "AppService",
                 "AppServiceTestKit",
+                "StreamService",
+                "StreamServiceTestKit",
+                .product(name: "WebSocketClientTestKit", package: "SwiftHTTPClient"),
                 "WalletConnectorService",
                 "WalletConnectorServiceTestKit",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),

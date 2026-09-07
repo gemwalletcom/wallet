@@ -15,8 +15,6 @@ pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
-use crate::services::preferences::GemPreferencesService;
-use crate::services::price::GemPriceService;
 use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::wallet::GemWalletStore;
 use rules::{BalanceKind, BalanceRequest};
@@ -28,9 +26,7 @@ pub struct GemBalanceService {
     asset_store: Arc<dyn GemAssetStore>,
     store: Arc<dyn GemBalanceStore>,
     assets: Arc<GemAssetsService>,
-    price: Arc<GemPriceService>,
     stream: Arc<GemStreamSubscriptionService>,
-    preferences: Arc<GemPreferencesService>,
 }
 
 #[uniffi::export]
@@ -46,9 +42,7 @@ impl GemBalanceService {
         asset_store: Arc<dyn GemAssetStore>,
         store: Arc<dyn GemBalanceStore>,
         assets: Arc<GemAssetsService>,
-        price: Arc<GemPriceService>,
         stream: Arc<GemStreamSubscriptionService>,
-        preferences: Arc<GemPreferencesService>,
     ) -> Self {
         Self {
             gateway,
@@ -56,9 +50,7 @@ impl GemBalanceService {
             asset_store,
             store,
             assets,
-            price,
             stream,
-            preferences,
         }
     }
 
@@ -75,6 +67,8 @@ impl GemBalanceService {
         self.store.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), enabled).await?;
         if enabled {
             self.refresh_enabled_assets(wallet_id, rules::newly_enabled_asset_ids(&asset_ids, &enabled_ids)).await;
+        } else {
+            let _ = self.stream.resubscribe().await;
         }
         Ok(())
     }
@@ -134,11 +128,7 @@ impl GemBalanceService {
         if asset_ids.is_empty() {
             return;
         }
-        let currency = self.preferences.get_currency();
-        if let Ok(prices) = self.price.get_prices(currency.clone(), asset_ids.clone()).await {
-            let _ = self.price.update_prices(prices, currency).await;
-        }
-        let _ = self.stream.add_prices(asset_ids.clone()).await;
+        let _ = self.stream.resubscribe().await;
         let _ = self.update(wallet_id, asset_ids).await;
     }
 

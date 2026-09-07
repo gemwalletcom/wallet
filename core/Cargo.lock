@@ -4164,6 +4164,7 @@ dependencies = [
  "support",
  "swapper",
  "tempfile",
+ "tracing",
  "uniffi",
  "url",
  "uuid",

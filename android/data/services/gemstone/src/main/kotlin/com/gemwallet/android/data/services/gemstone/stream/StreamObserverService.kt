@@ -1,71 +1,72 @@
 package com.gemwallet.android.data.services.gemstone.stream
 
-import com.gemwallet.android.ext.toGem
 import android.util.Log
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemStreamService
-import uniffi.gemstone.GemStreamSubscriptionService
-import com.gemwallet.android.ext.runCatchingCancellable
-import uniffi.gemstone.GemDeviceService
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemStreamServiceInterface
 
 class StreamObserverService(
     private val getSession: GetSession,
-    private val getCurrentCurrency: GetCurrentCurrency,
-    private val subscriptionService: GemStreamSubscriptionService,
-    private val streamService: GemStreamService,
+    private val service: GemStreamServiceInterface,
     private val connection: WebSocketConnectable,
-    private val deviceService: GemDeviceService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
     private var connectionJob: Job? = null
-    private var currentWalletId: String? = null
 
-    init {
-        scope.launch {
-            getSession().collectLatest { session ->
-                val wallet = session?.wallet ?: return@collectLatest
-                if (wallet.id.id == currentWalletId) return@collectLatest
-                currentWalletId = wallet.id.id
-                runCatchingCancellable { subscriptionService.setupAssets(wallet.id.id) }
-                    .onFailure { Log.e(TAG, "Setup assets error", it) }
-                if (connectionJob == null) start()
-            }
-        }
-    }
-
+    @Synchronized
     fun start() {
-        if (connectionJob != null) return
-        if (getSession().value?.wallet == null) return
+        if (connectionJob?.isActive == true) return
+        val previousJob = connectionJob
         connectionJob = scope.launch {
-            runCatchingCancellable { deviceService.synchronizeIfNeeded() }
-                .onFailure { Log.e(TAG, "Device synchronization error", it) }
-            connection.connect().collect { event ->
-                when (event) {
-                    WebSocketEvent.Connected -> runCatchingCancellable { subscriptionService.resubscribe() }
-                        .onFailure { Log.e(TAG, "Resubscribe error", it) }
-                    is WebSocketEvent.Message -> handleMessage(event.text)
-                    WebSocketEvent.Disconnected -> subscriptionService.reset()
+            withContext(NonCancellable) { previousJob?.join() }
+            currentCoroutineContext().ensureActive()
+            getSession()
+                .map { it?.wallet?.id?.id }
+                .distinctUntilChanged()
+                .collectLatest {
+                    runCatchingCancellable {
+                        val connects = service.prepareConnection()
+                        currentCoroutineContext().ensureActive()
+                        if (connects) {
+                            observeConnection()
+                        }
+                    }.onFailure { Log.e(TAG, "Stream connection error", it) }
                 }
-            }
         }
     }
 
+    @Synchronized
     fun stop() {
         connectionJob?.cancel()
-        connectionJob = null
     }
 
-    private fun handleMessage(text: String) {
-        scope.launch {
-            runCatchingCancellable { streamService.handle(text, getCurrentCurrency.getCurrency().value.toGem()) }
-                .onFailure { Log.e(TAG, "Event handler error", it) }
+    private suspend fun observeConnection() {
+        try {
+            connection.connect().collect { event ->
+                runCatchingCancellable {
+                    when (event) {
+                        WebSocketEvent.Connected -> service.connected()
+                        is WebSocketEvent.Message -> service.handle(event.text)
+                        WebSocketEvent.Disconnected -> service.disconnected()
+                    }
+                }.onFailure { Log.e(TAG, "Stream event error", it) }
+            }
+        } finally {
+            withContext(NonCancellable) {
+                runCatchingCancellable { service.disconnected() }
+                    .onFailure { Log.e(TAG, "Stream disconnect error", it) }
+            }
         }
     }
 

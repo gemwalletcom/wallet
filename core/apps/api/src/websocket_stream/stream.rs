@@ -65,6 +65,7 @@ pub async fn new_stream(redis_url: &str, cacher_client: &CacherClient, retention
                     Some(Ok(message)) => {
                         if let Err(e) = observer.handle_ws_message(message, &mut redis_connection, &mut stream).await {
                             error_fields!("websocket message handler error", message = format!("{e:?}"));
+                            break;
                         }
                     }
                     Some(Err(e)) => {

@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPerpetualServiceProtocol
-import protocol Gemstone.GemStreamSubscriptionServiceProtocol
-import protocol Gemstone.GemTransactionStateServiceProtocol
-import GemstonePrimitives
-import WalletConnectorService
 import ConnectionStatusService
-import GemstoneServices
-import protocol Gemstone.GemDeviceServiceProtocol
-import Store
-import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import protocol Gemstone.GemWalletSessionServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Primitives
+import Store
 import StreamService
 import SwiftUI
+import WalletConnectorService
 
 public actor AppLifecycleService: Sendable {
     private let walletConnector: any WalletConnectorServiceable
@@ -21,7 +20,6 @@ public actor AppLifecycleService: Sendable {
     private let deviceService: any GemDeviceServiceProtocol
     private let subscriptionsObserver: SubscriptionsObserver
     private let streamObserverService: StreamObserverService
-    private let streamSubscriptionService: any GemStreamSubscriptionServiceProtocol
     private let perpetualService: any GemPerpetualServiceProtocol
     private let perpetualObserver: any PerpetualObservable
     private let walletSessionService: any GemWalletSessionServiceProtocol
@@ -33,7 +31,6 @@ public actor AppLifecycleService: Sendable {
         deviceService: any GemDeviceServiceProtocol,
         subscriptionsObserver: SubscriptionsObserver,
         streamObserverService: StreamObserverService,
-        streamSubscriptionService: any GemStreamSubscriptionServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
         perpetualObserver: any PerpetualObservable,
         walletSessionService: any GemWalletSessionServiceProtocol,
@@ -44,7 +41,6 @@ public actor AppLifecycleService: Sendable {
         self.deviceService = deviceService
         self.subscriptionsObserver = subscriptionsObserver
         self.streamObserverService = streamObserverService
-        self.streamSubscriptionService = streamSubscriptionService
         self.perpetualService = perpetualService
         self.perpetualObserver = perpetualObserver
         self.walletSessionService = walletSessionService
@@ -60,10 +56,9 @@ public actor AppLifecycleService: Sendable {
     }
 
     public func updateWalletConnections() async {
-        async let assets: () = setupPriceAssets()
         async let perpetual: () = connectPerpetual()
-        async let stream: () = connectStreamObserver()
-        _ = await (assets, perpetual, stream)
+        async let stream: () = streamObserverService.update()
+        _ = await (perpetual, stream)
     }
 
     public func updatePerpetualConnection() async {
@@ -116,18 +111,9 @@ extension AppLifecycleService {
         }
     }
 
-    private func setupPriceAssets() async {
-        guard let walletId = walletSessionService.currentWalletId else { return }
-        do {
-            try await streamSubscriptionService.setupAssets(walletId: walletId.id)
-        } catch {
-            debugLog("AppLifecycleService setupPriceAssets error: \(error)")
-        }
-    }
-
     private func connectObservers() async {
         async let connection: () = connectionStatusObserver.start()
-        async let stream: () = connectStreamObserver()
+        async let stream: () = streamObserverService.connect()
         async let perpetual: () = connectPerpetual()
         async let pending: () = trackPendingTransactions()
         _ = await (connection, stream, perpetual, pending)
@@ -138,23 +124,6 @@ extension AppLifecycleService {
             try await transactionStateService.trackPending()
         } catch {
             debugLog("AppLifecycleService pending tracking error: \(error)")
-        }
-    }
-
-    private func connectStreamObserver() async {
-        guard walletSessionService.currentWalletId != nil else {
-            await streamObserverService.disconnect()
-            return
-        }
-        await registerDevice()
-        await streamObserverService.connect()
-    }
-
-    private func registerDevice() async {
-        do {
-            try await deviceService.synchronizeIfNeeded()
-        } catch {
-            debugLog("AppLifecycleService registerDevice error: \(error)")
         }
     }
 
