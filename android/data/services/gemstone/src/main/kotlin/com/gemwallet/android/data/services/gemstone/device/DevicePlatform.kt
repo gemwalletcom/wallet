@@ -9,7 +9,6 @@ import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
 import com.gemwallet.android.model.NotificationsAvailable
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
 import uniffi.gemstone.GemDeviceInfo
@@ -33,7 +32,7 @@ class GemstoneDevicePlatform(
     override suspend fun deviceId(): String = deviceKeyService.deviceId()
 
     override suspend fun deviceInfo(): GemDeviceInfo = GemDeviceInfo(
-        platform = Platform.Android.toJson(),
+        platform = Platform.Android.toGem(),
         platformStore = platformStore.toGem(),
         os = Platform.os,
         model = Platform.model,

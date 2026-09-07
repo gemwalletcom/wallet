@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.ext.toGem
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.ext.toPrimitives
@@ -11,7 +12,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
@@ -99,7 +99,7 @@ class NotificationNavigation @Inject constructor(
     private suspend fun prepareWalletAssetRoutes(walletId: WalletId, assetId: AssetId?): List<NavKey> {
         val assetId = assetId ?: return emptyList()
         val wallet = getWallet(walletId).firstOrNull() ?: return emptyList()
-        val asset = assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier())?.toPrimitives() ?: return emptyList()
+        val asset = assetsService.openWalletAsset(wallet.toGem(), assetId.toIdentifier())?.toPrimitives() ?: return emptyList()
         selectWallet(wallet)
         return listOf(AssetRoute(asset.id))
     }

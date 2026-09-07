@@ -469,9 +469,9 @@ fee_rates_normal = Normaal
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = Aangepast
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Funding APR
 info_perpetual_funding_apr_description = Het op jaarbasis berekende percentage waarmee longs shorts betalen (indien negatief, shorts betalen longs). Er zijn geen kosten verbonden aan financiering, wat een peer-to-peer overdracht tussen gebruikers is om de prijzen richting de spotprijs te duwen.
 info_minimum_amount_title = Minimumbedrag
 info_minimum_amount_description = Op het %@-netwerk is het minimumbedrag voor deze transactie %@.
+info_swap_minimum_amount_description = %@ vereist minimaal %@, maar het bedrag is %@. Verhoog het met %@ om door te gaan.
 
 # Input
 

@@ -151,7 +151,6 @@ struct WalletNavigationView: View {
                         walletId: model.wallet.id,
                         searchBy: destination.searchQuery,
                         scope: destination.scope,
-                        limit: AssetsResultsSceneViewModel.defaultLimit,
                     ),
                     title: destination.title ?? Localized.Assets.title,
                     onSelectAsset: navigationState.openAsset,
@@ -206,6 +205,8 @@ struct WalletNavigationView: View {
                     PortfolioScene(model: viewModelFactory.portfolioScene(wallet: model.wallet, defaultType: defaultType))
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
+                case .swap:
+                    SwapNavigationStack(wallet: model.wallet, onComplete: model.onTransferComplete)
                 }
             }
             .id(sheet.id)

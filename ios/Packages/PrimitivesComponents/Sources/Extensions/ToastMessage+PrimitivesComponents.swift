@@ -2,13 +2,13 @@
 
 import Components
 import Localization
-import enum Gemstone.GemTransactionInputType
+import enum Gemstone.TransactionInputType
 import GemstonePrimitives
 import Primitives
 import Style
 
 public extension ToastMessage {
-    static func transfer(for type: GemTransactionInputType) -> ToastMessage? {
+    static func transfer(for type: TransactionInputType) -> ToastMessage? {
         guard case let .perpetual(_, perpetualType) = type else {
             return nil
         }

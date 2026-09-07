@@ -7,7 +7,7 @@ GEMSTONE_IOS_PROFILE := if XCODE_CONFIGURATION == "Release" { "release" } else {
 DERIVED_DATA := "build/DerivedData"
 SPM_CACHE := "build/SourcePackages"
 FAST_BUILD_FLAGS := "GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone SWIFT_COMPILATION_MODE=incremental ENABLE_TESTABILITY=NO"
-GEMSTONE_LINKER_FLAGS := '"LIBRARY_SEARCH_PATHS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/' + GEMSTONE_IOS_PROFILE + '" "OTHER_LDFLAGS=\$(inherited) -lgemstone"'
+GEMSTONE_LINKER_FLAGS := '"OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/' + GEMSTONE_IOS_PROFILE + '/libgemstone.a"'
 
 default:
     @just --list

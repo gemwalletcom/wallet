@@ -3,7 +3,7 @@ package com.gemwallet.android.domains.transaction.values
 import com.gemwallet.android.domains.price.ValueDirection
 import uniffi.gemstone.GemSwapProgressStep
 import com.gemwallet.android.domains.swap.AssetRatePair
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -19,9 +19,9 @@ sealed interface TransactionDetailsValue {
 
     sealed interface Amount : TransactionDetailsValue {
         class Swap(
-            val fromAsset: AssetInfo,
+            val fromAsset: AssetPriceValue,
             val fromValue: BigInteger,
-            val toAsset: AssetInfo,
+            val toAsset: AssetPriceValue,
             val toValue: BigInteger,
             val currency: Currency,
         ) : Amount
@@ -33,8 +33,6 @@ sealed interface TransactionDetailsValue {
             val value: String,
             val equivalent: String?,
         ) : Amount
-
-        object None : Amount
     }
 
     class Fee(

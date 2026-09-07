@@ -9,6 +9,7 @@ use storage::models::{NewNftAssetRow, NewNftCollectionRow, NftCollectionRow, Nft
 use storage::{Database, DatabaseError, NftRepository, WalletsRepository};
 
 use crate::NFTProviderConfig;
+use crate::mapper::map_nft_data;
 use crate::provider_client::NFTProviderClient;
 
 pub struct NFTClient {
@@ -221,19 +222,18 @@ impl NFTClient {
     }
 
     fn get_nfts(&self, assets: Vec<NFTAssetId>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
-        let mut by_collection: HashMap<NFTCollectionId, Vec<NFTAssetId>> = HashMap::new();
-        for asset in assets {
-            by_collection.entry(asset.get_collection_id()).or_default().push(asset);
-        }
-
-        by_collection
+        let assets = self.load_nft_assets(assets.into_iter().map(|asset| asset.to_string()).collect())?;
+        let collection_ids = assets.iter().map(|asset| asset.collection_id.to_string()).collect::<HashSet<_>>().into_iter().collect();
+        let collections = self.database.nft()?.get_nft_collections_by_filter(vec![NftCollectionFilter::Identifiers(collection_ids)])?;
+        let collections = collections
             .into_iter()
-            .map(|(collection_id, asset_ids)| {
-                let collection = self.load_nft_collection(&collection_id.to_string())?;
-                let assets = self.load_nft_assets(asset_ids.into_iter().map(|x| x.to_string()).collect())?;
-                Ok(self.with_urls_data(NFTData { collection, assets }))
+            .map(|row| {
+                let links = self.database.nft()?.get_nft_collection_links(row.id)?.into_iter().map(|link| link.as_primitive()).collect();
+                Ok(row.as_primitive(links))
             })
-            .collect()
+            .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()?;
+
+        Ok(map_nft_data(assets, collections).into_iter().map(|data| self.with_urls_data(data)).collect())
     }
 
     pub fn load_nft_asset(&self, asset_id: &str) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {

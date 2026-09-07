@@ -10,7 +10,7 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
-pub use model::{GemAssetPrice, GemPriceUpdate};
+pub use model::GemPriceUpdate;
 pub use store::GemPriceStore;
 
 use crate::api::{GemApiClient, GemApiError};
@@ -30,7 +30,7 @@ impl GemPriceService {
 }
 
 impl GemPriceService {
-    pub async fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+    pub async fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemServiceError> {
         self.store.get_prices(asset_ids).await
     }
 

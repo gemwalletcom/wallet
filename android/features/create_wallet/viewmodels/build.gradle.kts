@@ -51,7 +51,6 @@ dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
     implementation(project(":data:services:gemstone"))
-    implementation(project(":blockchain"))
     implementation(project(":gemcore"))
 
     implementation(libs.hilt.android)

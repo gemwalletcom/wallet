@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.stake.viewmodels
 
 import uniffi.gemstone.GemClaimRewardsDestination
+import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemStakeServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -18,7 +19,6 @@ import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
-import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.toGem
@@ -26,8 +26,6 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Delegation
-import com.wallet.core.primitives.DelegationState
-import com.gemwallet.android.ext.isViewOnly
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,7 +42,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import uniffi.gemstone.DocsUrl
-import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -91,7 +88,7 @@ class StakeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val claimRewards = combine(delegations, assetInfo.filterNotNull()) { delegations, assetInfo ->
-        stakeService.claimRewards(assetInfo.asset.chain.string, delegations.map { it.toJson() })
+        stakeService.claimRewards(assetInfo.asset.chain.string, delegations.map { it.toGem() })
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val rewardsText = combine(claimRewards.filterNotNull(), assetInfo.filterNotNull()) { claimRewards, assetInfo ->
@@ -109,7 +106,7 @@ class StakeViewModel @Inject constructor(
             chain = assetInfo.asset.chain.string,
             hasValidators = hasValidators,
             balance = assetInfo.balance.toGem(),
-            delegations = delegations.map { it.toJson() },
+            delegations = delegations.map { it.toGem() },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -141,12 +138,12 @@ class StakeViewModel @Inject constructor(
         onOpenDetail: (String, String) -> Unit,
         onConfirm: ConfirmTransactionAction,
     ) {
-        if (walletType.value?.isViewOnly == true || delegation.base.state != DelegationState.AwaitingWithdrawal) {
-            onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            return
-        }
+        val walletType = walletType.value ?: return
         val assetInfo = assetInfo.value ?: return
-        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), BigInteger(delegation.base.balance), false))
+        when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
+            GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
+            is GemDelegationDestination.Withdraw -> onConfirm(destination.transfer)
+        }
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

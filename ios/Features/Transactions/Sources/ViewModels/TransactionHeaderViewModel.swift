@@ -1,36 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemTransactionHeaderKind
-import Primitives
+import Foundation
+import enum Gemstone.GemTransactionHeader
 import PrimitivesComponents
 
 struct TransactionHeaderViewModel {
-    private let transaction: TransactionExtended
-    private let kind: GemTransactionHeaderKind
-    private let infoModel: TransactionInfoViewModel
+    private let header: GemTransactionHeader
+    private let currency: String
 
-    init(
-        transaction: TransactionExtended,
-        kind: GemTransactionHeaderKind,
-        infoModel: TransactionInfoViewModel,
-    ) {
-        self.transaction = transaction
-        self.kind = kind
-        self.infoModel = infoModel
+    init(header: GemTransactionHeader, currency: String) {
+        self.header = header
+        self.currency = currency
     }
 
     var headerType: TransactionHeaderType {
-        TransactionHeaderTypeBuilder.build(
-            infoModel: infoModel,
-            kind: kind,
-            transaction: transaction.transaction,
-            metadata: TransactionExtendedMetadata(
-                assets: transaction.assets,
-                assetPrices: transaction.prices,
-                metadata: transaction.transaction.metadata,
-            ),
-        )
+        header.headerType(currency: currency)
     }
 
     var showClearHeader: Bool {
@@ -40,8 +25,6 @@ struct TransactionHeaderViewModel {
         }
     }
 }
-
-// MARK: - ItemModelProvidable
 
 extension TransactionHeaderViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {

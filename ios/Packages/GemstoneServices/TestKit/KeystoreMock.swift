@@ -28,14 +28,6 @@ public struct KeystoreMock: Keystore {
         .empty
     }
 
-    public func getPrivateKeyEncoded(wallet _: Primitives.Wallet, chain _: Primitives.Chain) throws -> String {
-        .empty
-    }
-
-    public func getMnemonic(wallet _: Primitives.Wallet) throws -> [String] {
-        LocalKeystore.words
-    }
-
     public func getPasswordAuthentication() throws -> KeystoreAuthentication {
         .none
     }

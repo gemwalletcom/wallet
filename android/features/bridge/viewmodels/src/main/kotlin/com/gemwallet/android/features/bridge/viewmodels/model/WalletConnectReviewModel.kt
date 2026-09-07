@@ -2,7 +2,7 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 
 import com.gemwallet.android.ui.models.PayloadField
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SimulationWarning
+import uniffi.gemstone.SimulationWarning
 
 interface WalletConnectReviewModel {
     val icon: String

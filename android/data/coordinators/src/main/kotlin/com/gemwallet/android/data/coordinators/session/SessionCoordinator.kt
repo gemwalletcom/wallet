@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.session
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
@@ -10,8 +11,6 @@ import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
@@ -66,7 +65,7 @@ class SessionCoordinator(
     override fun invoke(): StateFlow<Session?> = session
 
     override suspend fun getCurrentWallet(): Wallet? = withContext(Dispatchers.IO) {
-        walletSessionService.getCurrentWallet()?.decodeJson<Wallet>()
+        walletSessionService.getCurrentWallet()?.toPrimitives()
     }
 
     override fun observe(): Flow<Wallet?> = session.map { it?.wallet }.distinctUntilChanged()

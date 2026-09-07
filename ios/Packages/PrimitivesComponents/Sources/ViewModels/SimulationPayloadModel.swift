@@ -3,6 +3,7 @@
 import Foundation
 import Localization
 import Primitives
+import struct Gemstone.SimulationPayloadField
 
 public struct SimulationPayloadModel: Sendable {
     public let chain: Chain

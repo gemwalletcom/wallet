@@ -1,8 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
+import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -11,16 +14,16 @@ import SwiftUI
 
 public struct SwapProviderItem: Sendable {
     public let asset: Asset
-    public let swapQuote: SwapQuote
-    public let selectedProvider: SwapProvider?
+    public let swapQuote: Gemstone.SwapQuote
+    public let selectedProvider: Gemstone.SwapProvider?
     public let priceViewModel: PriceViewModel
     public let valueFormatter: ValueFormatter
     public let swapperQuote: SwapperQuote?
 
     public init(
         asset: Asset,
-        swapQuote: SwapQuote,
-        selectedProvider: SwapProvider?,
+        swapQuote: Gemstone.SwapQuote,
+        selectedProvider: Gemstone.SwapProvider?,
         priceViewModel: PriceViewModel,
         valueFormatter: ValueFormatter,
     ) {
@@ -35,11 +38,11 @@ public struct SwapProviderItem: Sendable {
     public init?(
         asset: Asset,
         swapperQuote: Gemstone.SwapperQuote?,
-        selectedProvider: SwapProvider?,
+        selectedProvider: Gemstone.SwapProvider?,
         priceViewModel: PriceViewModel,
         valueFormatter: ValueFormatter,
     ) {
-        guard let swapperQuote, let swapQuote = try? swapperQuote.map() else { return nil }
+        guard let swapQuote = swapperQuote?.swapQuote else { return nil }
         self.asset = asset
         self.swapQuote = swapQuote
         self.swapperQuote = swapperQuote
@@ -49,7 +52,7 @@ public struct SwapProviderItem: Sendable {
     }
 
     private var amount: String {
-        valueFormatter.string(swapQuote.toValueBigInt, decimals: asset.decimals.asInt)
+        valueFormatter.string(BigInt(swapQuote.toValue), decimals: asset.decimals.asInt)
     }
 
     private var isSelected: Bool {
@@ -84,7 +87,7 @@ extension SwapProviderItem: SimpleListItemViewable {
 
     public var assetImage: AssetImage {
         AssetImage(
-            placeholder: swapQuote.providerData.provider.image,
+            placeholder: swapQuote.providerData.provider.map().image,
             chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
         )
     }
@@ -107,9 +110,9 @@ extension SwapProviderItem: SimpleListItemViewable {
 extension SwapProviderItem: Identifiable {
     public var id: String {
         [
-            swapQuote.toValue,
-            swapQuote.fromValue,
-            swapQuote.providerData.provider.rawValue,
+            swapQuote.toValue.description,
+            swapQuote.fromValue.description,
+            swapQuote.providerData.provider.map().rawValue,
         ].joined(separator: "_")
     }
 }

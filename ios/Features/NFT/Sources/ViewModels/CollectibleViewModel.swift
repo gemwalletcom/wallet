@@ -12,6 +12,7 @@ import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 
@@ -21,7 +22,7 @@ public final class CollectibleViewModel {
     private let wallet: Wallet
     private let service: any GemCollectibleServiceProtocol
 
-    let assetData: NFTAssetData
+    public let query: ObservableQuery<NFTAssetRequest>
 
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingToast: ToastMessage?
@@ -37,9 +38,16 @@ public final class CollectibleViewModel {
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
-        self.assetData = assetData
         self.service = service
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
+        query = ObservableQuery(
+            NFTAssetRequest(walletId: wallet.id, assetId: assetData.asset.id),
+            initialValue: NFTAssetDetails(assetData: assetData, isOwned: false),
+        )
+    }
+
+    var assetData: NFTAssetData {
+        query.value.assetData
     }
 
     var title: String {
@@ -83,7 +91,7 @@ public final class CollectibleViewModel {
     }
 
     var contractExplorerLink: BlockExplorerLink? {
-        links.contract.map { BlockExplorerLink($0) }
+        links.contract.map { $0.map() }
     }
 
     var contractExplorerContext: ExplorerContextData? {
@@ -115,7 +123,7 @@ public final class CollectibleViewModel {
     }
 
     var tokenIdExplorerLink: BlockExplorerLink? {
-        links.token.map { BlockExplorerLink($0) }
+        links.token.map { $0.map() }
     }
 
     var tokenIdExplorerContext: ExplorerContextData? {
@@ -145,7 +153,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        service.canSend(wallet: wallet.json(), chain: assetData.asset.chain.map())
+        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map(), isOwned: query.value.isOwned)
     }
 
     var headerButtons: [HeaderButton] {
@@ -216,7 +224,7 @@ extension CollectibleViewModel {
         switch type {
         case .send:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
-                type: .send(.nft(assetData.asset)),
+                type: .send(.nft(nftAsset: assetData.asset.map())),
                 assetData: .with(asset: account.chain.asset, account: account),
             )
         case .buy, .sell, .receive, .swap, .stake, .more, .deposit, .withdraw:

@@ -469,9 +469,9 @@ fee_rates_normal = 普通
 
 # Fee Rate
 
-fee_rate_satvB = %@ 聪/vB
+fee_rate_satvB = 聪/vB
 fee_rate_satB = %@ 聪/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = 自定义
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = 资金费率年化
 info_perpetual_funding_apr_description = 多头向空头支付的年化资金费率（为负时由空头向多头支付）。资金费是用户之间的点对点支付，不另收手续费，用于使永续合约价格接近现货价格。
 info_minimum_amount_title = 最低金额
 info_minimum_amount_description = 在 %@ 网络上，此交易的最低金额为 %@。
+info_swap_minimum_amount_description = %@ 最低需要%@，但金额为%@。请增加%@以继续。
 
 # Input
 

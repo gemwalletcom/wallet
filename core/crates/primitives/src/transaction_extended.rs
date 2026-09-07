@@ -1,10 +1,12 @@
-use crate::{AddressName, Asset, AssetPrice, Price, Transaction};
+use crate::{AddressName, Asset, AssetPrice, Price, Transaction, UInt64};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Sendable, Equatable, Hashable")]
 pub struct TransactionExtended {
+    #[serde(rename = "recordId")]
+    pub record_id: UInt64,
     pub transaction: Transaction,
     pub asset: Asset,
     #[serde(rename = "feeAsset")]

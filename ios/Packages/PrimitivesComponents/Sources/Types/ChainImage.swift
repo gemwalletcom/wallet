@@ -75,14 +75,6 @@ public struct ChainImage: Sendable {
         case .tempo: Images.Chains.tempo
         }
     }
-
-    public var placeholder: Image {
-        l2Image ?? image
-    }
-
-    public var l2Image: Image? {
-        chain.badgeChain.map { Self.asset(for: $0) }
-    }
 }
 
 // MARK: - Identifiable

@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -15,11 +15,11 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 
 fun LazyListScope.manageAssetItem(
-    assetInfo: AssetInfo,
+    uiState: AssetInfoUIModel,
     onPin: () -> Unit,
     onAdd: () -> Unit,
 ) {
-    if (assetInfo.metadata.isBalanceEnabled || !assetInfo.metadata.isEnabled) {
+    if (!uiState.detailsState.showsManage) {
         return
     }
 

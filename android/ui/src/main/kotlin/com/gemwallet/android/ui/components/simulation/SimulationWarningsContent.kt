@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.models.ListPosition
-import com.wallet.core.primitives.SimulationWarning
+import uniffi.gemstone.SimulationWarning
 
 fun LazyListScope.simulationWarningsContent(allWarnings: List<SimulationWarning>) {
     val warnings = allWarnings.filter(SimulationWarning::isVisible)

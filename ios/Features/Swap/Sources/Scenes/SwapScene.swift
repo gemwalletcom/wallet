@@ -23,7 +23,7 @@ public struct SwapScene: View {
                 additionalInfoSectionView
             }
 
-            if let error = model.swapState.error {
+            if let error = model.error {
                 Section {
                     ListItemErrorView(
                         errorTitle: model.errorTitle,
@@ -93,6 +93,7 @@ public struct SwapScene: View {
         }
         .onAppear {
             focusedField = true
+            model.onAppear()
         }
         .task {
             await model.suggestPair()

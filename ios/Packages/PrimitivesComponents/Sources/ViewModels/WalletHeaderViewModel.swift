@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import struct Gemstone.GemHeaderButton
 import Primitives
 import Style
 import SwiftUI
@@ -9,7 +10,7 @@ import SwiftUI
 public struct WalletHeaderViewModel {
     private let walletType: WalletType
     private let totalValue: TotalFiatValue
-    private let bannerEventsViewModel: HeaderBannerEventViewModel
+    private let headerButtons: [GemHeaderButton]
     private let totalValueViewModel: TotalValueViewModel
 
     public init(
@@ -17,11 +18,11 @@ public struct WalletHeaderViewModel {
         totalValue: TotalFiatValue,
         currencyCode: String,
         showsPnl: Bool,
-        bannerEventsViewModel: HeaderBannerEventViewModel,
+        buttons: [GemHeaderButton],
     ) {
         self.walletType = walletType
         self.totalValue = totalValue
-        self.bannerEventsViewModel = bannerEventsViewModel
+        headerButtons = buttons
         let formatter = CurrencyFormatter(type: .fiat, currencyCode: currencyCode)
         totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter, showsPnl: showsPnl)
     }
@@ -57,10 +58,6 @@ extension WalletHeaderViewModel: ValueHeaderViewModel {
     }
 
     public var buttons: [HeaderButton] {
-        [
-            HeaderButton(type: .send, isEnabled: bannerEventsViewModel.isButtonsEnabled),
-            HeaderButton(type: .receive, isEnabled: bannerEventsViewModel.isButtonsEnabled),
-            HeaderButton(type: .buy, isEnabled: bannerEventsViewModel.isButtonsEnabled),
-        ]
+        headerButtons.map { HeaderButton(type: $0.kind.headerButtonType, isEnabled: $0.isEnabled) }
     }
 }

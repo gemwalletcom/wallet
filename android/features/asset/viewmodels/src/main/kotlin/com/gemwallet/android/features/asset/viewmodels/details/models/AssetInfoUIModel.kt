@@ -10,7 +10,7 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.VerificationStatus
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemAssetDetailsState
 
 class AssetInfoUIModel(
     val assetInfo: AssetInfo,
@@ -31,13 +31,13 @@ class AssetInfoUIModel(
     val verificationStatus: VerificationStatus? = null,
     val networkDestination: NetworkDestination? = null,
     val shareUrl: String = "",
+    val detailsState: GemAssetDetailsState,
     val updated: Long = System.currentTimeMillis(),
 ) {
 
     val asset: Asset get() = assetInfo.asset
 
     data class AccountInfoUIModel(
-        val walletType: WalletType = WalletType.View,
         val totalBalance: String = "0",
         val totalFiat: String = "",
         val owner: String = "",

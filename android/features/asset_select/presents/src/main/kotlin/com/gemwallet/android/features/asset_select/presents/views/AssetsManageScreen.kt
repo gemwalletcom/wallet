@@ -11,7 +11,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.ManageSelectViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 
@@ -21,7 +21,7 @@ fun AssetsManageScreen(
     onAssetClick: (AssetId) -> Unit,
     onCancel: () -> Unit,
     chain: Chain? = null,
-    viewModel: AssetSelectViewModel = hiltViewModel(),
+    viewModel: ManageSelectViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(chain) {
         viewModel.setChainFilter(listOfNotNull(chain))

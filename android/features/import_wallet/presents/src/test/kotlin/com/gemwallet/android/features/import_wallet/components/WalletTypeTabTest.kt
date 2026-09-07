@@ -7,8 +7,9 @@ import org.junit.Test
 class WalletTypeTabTest {
 
     @Test
-    fun nullChain_returnsPhaseAndAddress() {
-        val tabs = importWalletTabs(null)
-        assertEquals(listOf(WalletType.Single, WalletType.View), tabs)
+    fun selectedTabIndexFallsBackToTheFirstTab() {
+        val tabs = listOf(WalletType.Single, WalletType.View)
+        assertEquals(1, importTypeTabIndex(WalletType.View, tabs))
+        assertEquals(0, importTypeTabIndex(WalletType.PrivateKey, tabs))
     }
 }

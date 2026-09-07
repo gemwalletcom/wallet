@@ -11,7 +11,6 @@ import GemstonePrimitives
 import InfoSheet
 import Localization
 import NFT
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -149,7 +148,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             totalValue: totalFiatValue,
             currencyCode: currencyCode,
             showsPnl: service.showsPnl(total: totalFiatValue.map()),
-            bannerEventsViewModel: HeaderBannerEventViewModel(events: banners.map(\.event)),
+            buttons: service.headerButtons(wallet: wallet.map(), isEnabled: HeaderBannerEventViewModel(events: banners.map(\.event)).isButtonsEnabled),
         )
     }
 
@@ -163,7 +162,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     private var bannerContext: GemBannerContext {
         GemBannerContext(
-            wallet: wallet.json(),
+            wallet: wallet.map(),
             hasAsset: false,
             isStakeable: false,
             hasStakeBalance: false,
@@ -215,7 +214,8 @@ public extension WalletSceneViewModel {
         case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
         case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
-        case .sell, .swap, .more, .stake, .deposit, .withdraw: break
+        case .swap: isPresentingSheet = .swap
+        case .sell, .more, .stake, .deposit, .withdraw: break
         }
     }
 

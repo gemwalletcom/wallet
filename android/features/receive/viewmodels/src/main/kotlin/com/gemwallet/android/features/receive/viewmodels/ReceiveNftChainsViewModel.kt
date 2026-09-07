@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.receive.viewmodels
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -31,7 +30,7 @@ class ReceiveNftChainsViewModel @Inject constructor(
     private val session = getSession()
 
     private val accounts = combine(snapshotFlow { chainFilter.text.toString() }, session) { query, session ->
-        session?.wallet?.let { service.receiveAccounts(it.toJson(), query).mapNotNull { account -> account.toPrimitives() } } ?: emptyList()
+        session?.wallet?.let { service.receiveAccounts(it.toGem(), query).mapNotNull { account -> account.toPrimitives() } } ?: emptyList()
     }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

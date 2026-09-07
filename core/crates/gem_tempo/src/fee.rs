@@ -12,7 +12,7 @@ pub(crate) const USD_CURRENCY: &str = "USD";
 const FEE_SCALE: u64 = 1_000_000_000_000;
 
 pub(crate) fn decode_set_user_fee_token(input_type: &TransactionInputType) -> Option<Address> {
-    let TransactionInputType::Generic(_, _, extra) = input_type else {
+    let TransactionInputType::Generic { extra, .. } = input_type else {
         return None;
     };
     if ethereum_address_checksum(&extra.to).ok().as_deref() != Some(FEE_MANAGER_ADDRESS) {
@@ -43,7 +43,12 @@ mod tests {
             None
         );
         assert_eq!(decode_set_user_fee_token(&mock_tempo_generic_input(FEE_MANAGER_ADDRESS, vec![0xab, 0xcd])), None);
-        assert_eq!(decode_set_user_fee_token(&TransactionInputType::Transfer(Asset::mock_with_chain(Chain::Tempo))), None);
+        assert_eq!(
+            decode_set_user_fee_token(&TransactionInputType::Transfer {
+                asset: Asset::mock_with_chain(Chain::Tempo)
+            }),
+            None
+        );
     }
 
     #[test]

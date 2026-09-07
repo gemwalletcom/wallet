@@ -70,7 +70,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         let connection: GemPerpetualConnection?
         do {
-            connection = try await perpetualService.connection(wallet: wallet.json())
+            connection = try await perpetualService.connection(wallet: wallet.map())
         } catch {
             debugLog("HyperliquidObserver: connection failed: \(error)")
             return
@@ -111,7 +111,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
     private func handle(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
         do {
             guard let candle = try await streamService.handle(walletId: walletId.id, mode: mode.map(), data: data) else { return }
-            try await chartService.yield(Primitives.ChartCandleUpdate(candle))
+            await chartService.yield(candle.map())
         } catch {
             debugLog("HyperliquidObserver: handle message failed: \(error)")
         }

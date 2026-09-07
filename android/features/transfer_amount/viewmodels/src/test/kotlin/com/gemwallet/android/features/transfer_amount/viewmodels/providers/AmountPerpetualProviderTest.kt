@@ -10,7 +10,6 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
@@ -28,7 +27,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemPerpetualAutoclose
 import java.math.BigInteger
 
@@ -72,6 +73,9 @@ class AmountPerpetualProviderTest {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         }
         val service = mockk<GemAmountServiceInterface> {
+            every { perpetualAmountType(any(), any()) } answers {
+                GemAmountType.Perpetual(position = GemAmountPerpetualPosition.Open, direction = direction.toGem(), price = 0.0, leverage = 1u, sizeDecimals = 0)
+            }
             every { perpetualLeverage(any()) } returns 5u
             every { perpetualAutoclose(any(), any(), any()) } returns GemPerpetualAutoclose(takeProfit = null, stopLoss = null)
         }

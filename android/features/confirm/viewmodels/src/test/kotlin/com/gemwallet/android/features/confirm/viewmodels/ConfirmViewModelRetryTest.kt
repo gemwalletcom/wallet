@@ -2,7 +2,6 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
-import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmState
@@ -14,14 +13,15 @@ import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmPreload
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemFeeOptions
-import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.GasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
+import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
 import com.gemwallet.android.testkit.mockGemConfirmLoad
@@ -59,12 +59,12 @@ import java.math.BigInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRetryTest {
 
-    private val transferService = GemTransferService()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
     private val account = mockAccount(chain = Chain.HyperCore)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
+    private val confirmSession = mockk<GemConfirmSession>()
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -75,20 +75,20 @@ class ConfirmViewModelRetryTest {
     @Test
     fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
         val transfer = GemTransferData(
-            inputType = GemTransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)).toGem()),
+            inputType = TransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)).toGem()),
             recipient = GemRecipient(address = ""),
             value = BigInteger.TEN,
         )
         val viewModel = viewModel(transfer)
         runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { confirmService.load(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 1) { confirmSession.load(any()) }
 
         assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
-        coVerify(timeout = 5_000, exactly = 2) { confirmService.load(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 2) { confirmSession.load(any()) }
         assertTrue(viewModel.state.first { it is ConfirmState.Ready } is ConfirmState.Ready)
         assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
     }
@@ -96,10 +96,10 @@ class ConfirmViewModelRetryTest {
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
-        every { confirmService.confirmInput(any(), transfer) } returns input
-        coEvery { confirmService.initialState(any(), any()) } returns mockGemConfirmLoad(asset)
+        every { confirmService.session(any(), transfer, any()) } returns confirmSession
+        coEvery { confirmSession.state() } returns mockGemConfirmLoad(asset, preload = null)
         var calls = 0
-        coEvery { confirmService.load(any(), any(), any()) } answers {
+        coEvery { confirmSession.load(any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
@@ -110,7 +110,7 @@ class ConfirmViewModelRetryTest {
                         confirmData = GemConfirmData(
                             fee = GemTransactionLoadFee(
                                 fee = BigInteger.ONE,
-                                gasPriceType = GemGasPriceType.Regular(gasPrice = BigInteger.ONE),
+                                gasPriceType = GasPriceType.Regular(gasPrice = BigInteger.ONE),
                                 gasLimit = BigInteger.ONE,
                                 options = GemFeeOptions(emptyMap()),
                                 feeAsset = asset.id.chain.string,
@@ -134,8 +134,7 @@ class ConfirmViewModelRetryTest {
             },
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(transfer)))),
-            transferService = uniffi.gemstone.GemTransferService(),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
         )
     }
 }

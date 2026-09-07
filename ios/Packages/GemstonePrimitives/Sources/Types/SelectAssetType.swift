@@ -3,6 +3,8 @@
 import Foundation
 import enum Gemstone.GemAssetAction
 import struct Gemstone.GemPaymentRecipient
+import struct Gemstone.GemSelectAssetFlow
+import enum Gemstone.GemSelectAssetType
 import Primitives
 
 public enum SelectAssetType: Identifiable, Hashable, Sendable {
@@ -30,15 +32,27 @@ public enum SelectAssetType: Identifiable, Hashable, Sendable {
 }
 
 public extension SelectAssetType {
-    var action: GemAssetAction? {
+    var flowType: GemSelectAssetType {
         switch self {
         case .send: .send
-        case .receive: .receive
+        case .receive(.asset): .receive
+        case .receive(.collection): .receiveCollection
         case .buy: .buy
         case .swap(.pay): .swapPay
         case .swap(.receive): .swapReceive
-        case .manage, .priceAlert, .deposit, .withdraw: .none
+        case .manage: .manage
+        case .priceAlert: .priceAlert
+        case .deposit: .deposit
+        case .withdraw: .withdraw
         }
+    }
+
+    var flow: GemSelectAssetFlow {
+        flowType.flow()
+    }
+
+    var action: GemAssetAction? {
+        flow.action
     }
 }
 

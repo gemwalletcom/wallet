@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
@@ -15,14 +16,11 @@ import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualMarketData
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
@@ -44,8 +42,8 @@ class GemstonePerpetualStore(
     private val transactionRunner: StoreTransactionRunner,
 ) : GemPerpetualStore {
 
-    override suspend fun savePerpetuals(data: List<String>) =
-        perpetualDao.upsert(data.map { it.decodeJson<PerpetualData>().perpetual.toDB() })
+    override suspend fun savePerpetuals(data: List<uniffi.gemstone.PerpetualData>) =
+        perpetualDao.upsert(data.map { it.perpetual.toPrimitives().toDB() })
 
     override suspend fun setPinned(perpetualIds: List<String>, pinned: Boolean) = perpetualDao.setPinned(perpetualIds, pinned)
 
@@ -55,18 +53,17 @@ class GemstonePerpetualStore(
         balancesDao.deleteByAssetId(HypercoreUSDC.id.toIdentifier())
     }
 
-    override suspend fun getPositions(walletId: String, provider: GemPerpetualProvider): List<String> =
-        perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.toDto().toJson() }
+    override suspend fun getPositions(walletId: String, provider: GemPerpetualProvider): List<uniffi.gemstone.PerpetualPosition> =
+        perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.toDto().toGem() }
 
-    override suspend fun updateMarket(market: String) {
-        val data = market.decodeJson<PerpetualMarketData>()
+    override suspend fun updateMarket(market: uniffi.gemstone.PerpetualMarketData) {
         perpetualDao.updateMarket(
-            coin = data.coin,
-            price = data.price,
-            pricePercentChange24h = data.pricePercentChange24h,
-            openInterest = data.openInterest,
-            volume24h = data.volume24h,
-            funding = data.funding,
+            coin = market.coin,
+            price = market.price,
+            pricePercentChange24h = market.pricePercentChange24h,
+            openInterest = market.openInterest,
+            volume24h = market.volume24h,
+            funding = market.funding,
         )
     }
 
@@ -75,8 +72,8 @@ class GemstonePerpetualStore(
     override suspend fun getPositionIds(walletId: String, provider: GemPerpetualProvider): List<String> =
         perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.id }
 
-    override suspend fun updatePositions(walletId: String, positions: List<String>, deleteIds: List<String>) =
-        putPositions(WalletId(walletId), positions.map { it.decodeJson<PerpetualPosition>() }, deleteIds)
+    override suspend fun updatePositions(walletId: String, positions: List<uniffi.gemstone.PerpetualPosition>, deleteIds: List<String>) =
+        putPositions(WalletId(walletId), positions.map { it.toPrimitives() }, deleteIds)
 
     private suspend fun putPositions(walletId: WalletId, positions: List<PerpetualPosition>, deleteIds: List<String>) {
         if (deleteIds.isEmpty() && positions.isEmpty()) return

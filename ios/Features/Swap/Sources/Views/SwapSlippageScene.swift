@@ -38,6 +38,7 @@ public struct SwapSlippageScene: View {
                                 .fixedSize(horizontal: true, vertical: false)
                             InfoButton { model.onSelectInfo() }
                             SuffixTextField(
+                                placeholder: model.placeholder,
                                 suffix: "%",
                                 sanitizer: model.sanitize,
                                 text: $model.inputModel.text,

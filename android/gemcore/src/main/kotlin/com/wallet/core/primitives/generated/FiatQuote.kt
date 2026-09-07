@@ -10,6 +10,7 @@ import kotlinx.serialization.SerialName
 @Serializable
 data class FiatQuote (
 	val id: String,
+	val asset: Asset,
 	val provider: FiatProvider,
 	val type: FiatQuoteType,
 	val fiatAmount: Double,

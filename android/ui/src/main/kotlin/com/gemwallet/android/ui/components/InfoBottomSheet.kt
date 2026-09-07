@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.domains.asset.getSwapProviderIcon
+import uniffi.gemstone.SwapProvider
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
@@ -123,6 +125,23 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.AccountMinimalBalance) },
         titleArgs = listOf(asset.symbol),
         descriptionArgs = listOf("**$value**"),
+    )
+
+    class SwapMinimumAmountInfo(
+        provider: SwapProvider,
+        providerName: String,
+        required: String,
+        available: String,
+        shortfall: String,
+        actionLabel: String,
+        action: () -> Unit,
+    ) : InfoSheetEntity(
+        icon = provider.getSwapProviderIcon(),
+        title = R.string.info_minimum_amount_title,
+        description = R.string.info_swap_minimum_amount_description,
+        action = action,
+        actionLabel = actionLabel,
+        descriptionArgs = listOf("**$providerName**", "**$required**", available, shortfall),
     )
 
     class DustThresholdInfo(chain: Chain) : InfoSheetEntity(

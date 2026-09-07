@@ -14,6 +14,7 @@ import Store
 import StoreTestKit
 @testable import Transfer
 import TransferTestKit
+import struct Gemstone.SimulationResult
 
 @MainActor
 extension ConfirmTransferSceneViewModel {
@@ -34,8 +35,11 @@ extension ConfirmTransferSceneViewModel {
             service: GemConfirmTransferServiceMock(
                 wallet: wallet,
                 confirm: gemConfirmService,
-                load: load,
                 transactionState: transactionStateService,
+            ),
+            session: GemConfirmSessionMock(
+                state: .mock(feeAsset: data.transactionAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
+                load: load,
             ),
             onComplete: onComplete,
         )

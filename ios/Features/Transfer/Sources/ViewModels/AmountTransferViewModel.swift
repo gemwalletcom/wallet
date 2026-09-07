@@ -1,35 +1,31 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemPaymentRecipient
-import enum Gemstone.GemTransactionInputType
 import BigInt
 import Foundation
+import protocol Gemstone.GemAmountServiceProtocol
+import enum Gemstone.GemAmountTransfer
 import enum Gemstone.GemAmountType
+import struct Gemstone.GemPaymentRecipient
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Localization
 import Primitives
-import struct Gemstone.GemTransferData
 
 enum TransferAction {
     case send(GemPaymentRecipient)
-    case deposit(GemPaymentRecipient)
-    case withdraw(GemPaymentRecipient)
-
-    var recipient: GemPaymentRecipient {
-        switch self {
-        case let .send(data), let .deposit(data), let .withdraw(data):
-            data
-        }
-    }
+    case deposit
+    case withdraw
 }
 
 public final class AmountTransferViewModel: AmountDataProvidable {
     let asset: Asset
     let action: TransferAction
+    private let service: any GemAmountServiceProtocol
 
-    init(asset: Asset, action: TransferAction) {
+    init(asset: Asset, action: TransferAction, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.action = action
+        self.service = service
     }
 
     var displayAsset: Asset {
@@ -50,8 +46,8 @@ public final class AmountTransferViewModel: AmountDataProvidable {
     var amountType: AmountType {
         switch action {
         case let .send(recipient): .transfer(recipient: recipient)
-        case let .deposit(recipient): .deposit(recipient: recipient)
-        case let .withdraw(recipient): .withdraw(recipient: recipient)
+        case .deposit: .deposit
+        case .withdraw: .withdraw
         }
     }
 
@@ -63,21 +59,17 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
     }
 
-    func recipientData() -> GemPaymentRecipient {
-        action.recipient
+    var prefilledAmount: String? {
+        guard case let .send(recipient) = action else { return nil }
+        return recipient.amount
     }
 
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
-        let transferType: GemTransactionInputType = switch action {
-        case .send: .transfer(asset)
-        case .deposit: .deposit(asset)
-        case .withdraw: .withdrawal(asset)
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
+        let transfer: GemAmountTransfer = switch action {
+        case let .send(recipient): .send(recipient: recipient.recipient)
+        case .deposit: .deposit
+        case .withdraw: .withdraw
         }
-        return GemTransferData(
-            inputType: transferType,
-            recipient: action.recipient.recipient,
-            value: value,
-            useMaxAmount: useMaxAmount,
-        )
+        return try await service.transferData(asset: asset.map(), transfer: transfer, value: value, useMaxAmount: useMaxAmount)
     }
 }

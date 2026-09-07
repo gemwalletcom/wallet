@@ -10,6 +10,8 @@ import typealias Gemstone.Currency
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemNftSearchItem
+import struct Gemstone.GemWalletSearchLimits
+import struct Gemstone.Wallet
 import typealias Gemstone.NftData
 import enum Gemstone.GemSearchScope
 import Primitives
@@ -38,11 +40,15 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     public var filterChainsResult: [Gemstone.Chain] = []
     public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
 
+    public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
+        GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)
+    }
+
     public func getCurrency() -> Currency {
         Primitives.Currency.usd.rawValue
     }
 
-    public func showPerpetuals(wallet _: String?) -> Bool {
+    public func showPerpetuals(wallet _: Gemstone.Wallet?) -> Bool {
         perpetualsShown
     }
 
@@ -50,11 +56,11 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         nftSearchItems
     }
 
-    public func supportsTokens(wallet _: String?) -> Bool {
+    public func supportsTokens(wallet _: Gemstone.Wallet?) -> Bool {
         tokensSupported
     }
 
-    public func filterChains(wallet _: String) -> [Gemstone.Chain] {
+    public func filterChains(wallet _: Gemstone.Wallet) -> [Gemstone.Chain] {
         filterChainsResult
     }
 

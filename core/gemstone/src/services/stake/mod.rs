@@ -13,10 +13,9 @@ use crate::gateway::GemGateway;
 use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
-pub use model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemStakeAction, GemStakeActionItem};
+pub use model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationDestination, GemStakeAction, GemStakeActionItem};
 pub use store::GemStakeStore;
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::balance::GemAssetBalance;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemAddressStore;
@@ -24,6 +23,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::BlockExplorerLink;
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -67,7 +67,7 @@ impl GemStakeService {
         transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
     }
 
-    pub fn validator_url(&self, validator: DelegationValidator) -> Option<GemBlockExplorerLink> {
+    pub fn validator_url(&self, validator: DelegationValidator) -> Option<BlockExplorerLink> {
         let address = rules::validator_explorer_address(&validator)?;
         self.explorer.get_validator_url(validator.chain, address)
     }
@@ -84,6 +84,10 @@ impl GemStakeService {
 
     pub fn delegation_actions(&self, wallet_type: WalletType, delegation: Delegation) -> Vec<GemDelegationAction> {
         rules::delegation_actions(wallet_type, &delegation)
+    }
+
+    pub fn delegation_destination(&self, wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
+        rules::delegation_destination(wallet_type, asset, delegation)
     }
 
     pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, delegation: Delegation) -> bool {

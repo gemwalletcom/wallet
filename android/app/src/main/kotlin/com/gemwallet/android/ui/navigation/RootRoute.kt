@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.navigation
 
 import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalDeeplinkService
-import com.gemwallet.android.ui.LocalTransferService
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
@@ -101,7 +100,6 @@ import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferService
 import uniffi.gemstone.UrlAction
 
 @Serializable
@@ -118,17 +116,15 @@ fun rememberWalletNavigationState(
     startDestination: NavKey,
     currentTab: MutableState<String>,
 ): WalletNavigator {
-    val transferService = LocalTransferService.current
     val deeplinkService = LocalDeeplinkService.current
     val assetsService = LocalAssetsService.current
     val scope = rememberCoroutineScope()
     return key(startDestination) {
         val backStack = rememberWalletNavBackStack(startDestination)
-        remember(backStack, currentTab, transferService, deeplinkService, assetsService, scope) {
+        remember(backStack, currentTab, deeplinkService, assetsService, scope) {
             WalletNavigator(
                 backStack = backStack,
                 currentTab = currentTab,
-                transferService = transferService,
                 deeplinkService = deeplinkService,
                 assetsService = assetsService,
                 scope = scope,
@@ -140,7 +136,6 @@ fun rememberWalletNavigationState(
 class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
-    private val transferService: GemTransferService,
     private val deeplinkService: GemDeeplinkService,
     private val assetsService: GemAssetsServiceInterface,
     private val scope: CoroutineScope,
@@ -318,7 +313,7 @@ class WalletNavigator(
     }
     fun openFiatTransactions() = push(FiatTransactionsRoute)
     fun openConfirm(transfer: GemTransferData) {
-        val pack = transferService.pack(transfer) ?: return
+        val pack = transfer.pack() ?: return
         push(ConfirmRoute(pack))
     }
     fun openNftList() = push(NftListRoute)

@@ -7,6 +7,7 @@ import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
+import java.math.BigInteger
 
 fun mockDelegationValidator(
     chain: Chain = Chain.Bitcoin,
@@ -29,9 +30,9 @@ fun mockDelegationValidator(
 fun mockDelegation(
     assetId: AssetId = mockAssetId(),
     state: DelegationState = DelegationState.Active,
-    balance: String = "0",
-    shares: String = balance,
-    rewards: String = "0",
+    balance: BigInteger = BigInteger.ZERO,
+    shares: BigInteger = balance,
+    rewards: BigInteger = BigInteger.ZERO,
     delegationId: String = "delegation-id",
     validatorId: String = "validator-id",
     validator: DelegationValidator = mockDelegationValidator(

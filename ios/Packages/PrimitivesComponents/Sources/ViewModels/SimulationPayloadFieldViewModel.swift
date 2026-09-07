@@ -7,6 +7,7 @@ import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
+import struct Gemstone.SimulationPayloadField
 
 public struct SimulationPayloadFieldViewModel: Identifiable {
     public let field: SimulationPayloadField

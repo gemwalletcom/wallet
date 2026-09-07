@@ -13,7 +13,6 @@ import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
 import LockManager
 import Onboarding
-import Preferences
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -168,7 +167,7 @@ extension RootSceneViewModel {
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
         Task {
-            for failure in await appStartService.setupWallet(wallet: wallet.json()) {
+            for failure in await appStartService.setupWallet(wallet: wallet.map()) {
                 debugLog("wallet start \(failure.step) failed: \(failure.message)")
             }
             await appLifecycleService.updateWalletConnections()

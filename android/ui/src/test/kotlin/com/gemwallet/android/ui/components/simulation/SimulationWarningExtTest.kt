@@ -1,25 +1,27 @@
 package com.gemwallet.android.ui.components.simulation
 
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.SimulationSeverity
-import com.wallet.core.primitives.SimulationWarning
-import com.wallet.core.primitives.SimulationWarningApproval
-import com.wallet.core.primitives.SimulationWarningType
+import uniffi.gemstone.SimulationSeverity
+import uniffi.gemstone.SimulationWarning
+import uniffi.gemstone.SimulationWarningApproval
+import uniffi.gemstone.SimulationWarningType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigInteger
 
 class SimulationWarningExtTest {
-    private val assetId = mockAsset().id
+    private val assetId = mockAsset().id.toIdentifier()
 
     @Test
     fun finiteTokenApproval_isHidden() {
         val warning = approvalWarning(
             warning = SimulationWarningType.TokenApproval(
-                SimulationWarningApproval(assetId = assetId, value = "1"),
+                SimulationWarningApproval(assetId = assetId, value = BigInteger("1")),
             ),
         )
 
@@ -32,7 +34,7 @@ class SimulationWarningExtTest {
     fun finitePermitApproval_isHidden() {
         val warning = approvalWarning(
             warning = SimulationWarningType.PermitApproval(
-                SimulationWarningApproval(assetId = assetId, value = "1"),
+                SimulationWarningApproval(assetId = assetId, value = BigInteger("1")),
             ),
         )
 
@@ -44,7 +46,7 @@ class SimulationWarningExtTest {
     @Test
     fun finitePermitBatchApproval_isHidden() {
         val warning = approvalWarning(
-            warning = SimulationWarningType.PermitBatchApproval("1"),
+            warning = SimulationWarningType.PermitBatchApproval(BigInteger("1")),
         )
 
         assertFalse(warning.isVisible())
@@ -92,7 +94,7 @@ class SimulationWarningExtTest {
     @Test
     fun validationWarning_keepsExistingWarningBehavior() {
         val warning = SimulationWarning(
-            severity = SimulationSeverity.Warning,
+            severity = SimulationSeverity.WARNING,
             warning = SimulationWarningType.ValidationError,
             message = "Chain ID mismatch",
         )
@@ -105,7 +107,7 @@ class SimulationWarningExtTest {
     @Test
     fun externallyOwnedSpender_usesSpecificWarningDescription() {
         val warning = SimulationWarning(
-            severity = SimulationSeverity.Warning,
+            severity = SimulationSeverity.WARNING,
             warning = SimulationWarningType.ExternallyOwnedSpender,
             message = null,
         )
@@ -117,7 +119,7 @@ class SimulationWarningExtTest {
 
     private fun approvalWarning(warning: SimulationWarningType): SimulationWarning {
         return SimulationWarning(
-            severity = SimulationSeverity.Warning,
+            severity = SimulationSeverity.WARNING,
             warning = warning,
             message = null,
         )

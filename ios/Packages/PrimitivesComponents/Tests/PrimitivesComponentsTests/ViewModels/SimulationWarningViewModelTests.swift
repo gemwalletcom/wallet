@@ -6,6 +6,8 @@ import Primitives
 import PrimitivesTestKit
 import Style
 import Testing
+import struct Gemstone.SimulationWarning
+import struct Gemstone.SimulationWarningApproval
 
 struct SimulationWarningViewModelTests {
     @Test
@@ -26,7 +28,7 @@ struct SimulationWarningViewModelTests {
     func titleUsesWarningTitleWhenDefaultMessageExists() {
         let warning = SimulationWarning(
             severity: .warning,
-            warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: nil)),
+            warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id.identifier, value: nil)),
             message: nil,
         )
         let model = SimulationWarningViewModel(warning: warning)
@@ -51,7 +53,7 @@ struct SimulationWarningViewModelTests {
         #expect(SimulationWarningViewModel(
             warning: SimulationWarning(
                 severity: .warning,
-                warning: .tokenApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: "1")),
+                warning: .tokenApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id.identifier, value: 1)),
                 message: nil,
             ),
         ).isVisible == false)
@@ -59,7 +61,7 @@ struct SimulationWarningViewModelTests {
         #expect(SimulationWarningViewModel(
             warning: SimulationWarning(
                 severity: .warning,
-                warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: "1")),
+                warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id.identifier, value: 1)),
                 message: nil,
             ),
         ).isVisible == false)

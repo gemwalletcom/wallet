@@ -9,7 +9,6 @@ import WalletConnectorService
 import ConnectionStatusService
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
-import Preferences
 import protocol Gemstone.GemDeviceServiceProtocol
 import Primitives
 import PrimitivesComponents

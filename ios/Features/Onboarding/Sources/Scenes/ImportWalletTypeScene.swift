@@ -37,7 +37,7 @@ struct ImportWalletTypeScene: View {
                         NavigationLink(value: ImportWalletType.chain(chain)) {
                             ListItemView(
                                 title: chain.networkName,
-                                imageStyle: .asset(assetImage: AssetImage.image(ChainImage(chain: chain).placeholder)),
+                                imageStyle: .asset(assetImage: AssetImage.image(ChainImage(chain: chain).image)),
                             )
                         }
                     }

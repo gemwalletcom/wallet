@@ -16,11 +16,11 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.VerificationStatus
-import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemAssetDetailsState
 import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemSwapPairSuggestion
@@ -33,12 +33,12 @@ class AssetInfoUIModelFactory @Inject constructor() {
         chainAssetInfo: ChainAssetInfo,
         swapPair: GemSwapPairSuggestion,
         explorerName: String,
-        walletType: WalletType,
         explorerAddressUrl: String?,
         explorerTokenUrl: String?,
         verificationStatus: VerificationStatus?,
         networkDestination: GemAssetNetworkDestination?,
         shareUrl: String,
+        detailsState: GemAssetDetailsState,
     ): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
@@ -67,8 +67,8 @@ class AssetInfoUIModelFactory @Inject constructor() {
             verificationStatus = verificationStatus,
             networkDestination = networkDestination?.let(::networkDestination),
             shareUrl = shareUrl,
+            detailsState = detailsState,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
-                walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
                 totalFiat = fiatTotal,
                 owner = assetInfo.owner?.address ?: "",

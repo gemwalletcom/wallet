@@ -12,7 +12,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SimulationResult
+import uniffi.gemstone.SimulationResult
 import com.wallet.core.primitives.WalletConnectionSession
 import com.wallet.core.primitives.WalletConnectionState
 import kotlinx.coroutines.async
@@ -30,9 +30,9 @@ import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
 import com.gemwallet.android.ext.asset
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferDataExtra
+import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
 
 class WalletConnectSignerTest {
@@ -48,14 +48,14 @@ class WalletConnectSignerTest {
         metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp", icon = "", source = ApplicationMetadataSource.WalletConnect),
     )
     private val pendingRequests = WalletConnectPendingRequests()
-    private val simulation = SimulationResult(warnings = emptyList(), balanceChanges = emptyList(), payload = emptyList()).toJson()
+    private val simulation = SimulationResult(warnings = emptyList(), balanceChanges = emptyList(), payload = emptyList(), header = null)
 
     private fun messageRequest(message: SignMessage) = GemWalletConnectMessageRequest(
         sessionId = "topic",
         chain = Chain.Ethereum.string,
-        wallet = wallet.toJson(),
+        wallet = wallet.toGem(),
         account = account.toGem(),
-        session = session.toJson(),
+        session = session.toGem(),
         simulation = simulation,
         message = message,
     )
@@ -63,9 +63,9 @@ class WalletConnectSignerTest {
     private fun transactionRequest(transfer: GemTransferData, action: GemWalletConnectTransactionAction) = GemWalletConnectTransactionRequest(
         sessionId = "topic",
         chain = Chain.Ethereum.string,
-        wallet = wallet.toJson(),
+        wallet = wallet.toGem(),
         account = account.toGem(),
-        session = session.toJson(),
+        session = session.toGem(),
         simulation = simulation,
         transfer = transfer,
         action = action,
@@ -86,10 +86,10 @@ class WalletConnectSignerTest {
     @Test
     fun `send transaction is marked sendable`() = runTest {
         val transfer = GemTransferData(
-            inputType = GemTransactionInputType.Generic(
+            inputType = TransactionInputType.Generic(
                 asset = Chain.Solana.asset().toGem(),
-                metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toJson(),
-                extra = GemTransferDataExtra(
+                metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toGem(),
+                extra = TransferDataExtra(
                     to = "",
                     gasLimit = null,
                     gasPrice = null,
@@ -103,7 +103,6 @@ class WalletConnectSignerTest {
             recipient = GemRecipient(address = "", name = null, memo = null, references = emptyList()),
             value = BigInteger.ZERO,
             useMaxAmount = false,
-            minimumValue = null,
         )
         val result = async { pendingRequests.signTransaction(transactionRequest(transfer, GemWalletConnectTransactionAction.SEND)) }
         val pending = pendingRequests.current.filterNotNull().first() as WalletConnectPendingRequest.Transaction

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import typealias Gemstone.NftAssetData
+import struct Gemstone.NftAssetData
 import typealias Gemstone.NftAssetId
-import typealias Gemstone.NftData
+import struct Gemstone.NftData
 import protocol Gemstone.GemNftStore
 import GemstonePrimitives
 import Primitives
@@ -17,7 +17,7 @@ public final class GemstoneNftStore: GemNftStore, @unchecked Sendable {
     }
 
     public func saveNfts(walletId: String, data: [Gemstone.NftData]) async throws {
-        try store.save(data.map { try NFTData($0) }, for: WalletId.from(id: walletId))
+        try store.save(data.map { $0.map() }, for: WalletId.from(id: walletId))
     }
 
     public func getAssetData(assetId: Gemstone.NftAssetId) async throws -> Gemstone.NftAssetData? {
@@ -26,11 +26,11 @@ public final class GemstoneNftStore: GemNftStore, @unchecked Sendable {
         else {
             return nil
         }
-        return NFTAssetData(collection: collection, asset: asset).json()
+        return NFTAssetData(collection: collection, asset: asset).map()
     }
 
     public func saveAsset(data: Gemstone.NftAssetData) async throws {
-        let data = try NFTAssetData(data)
+        let data = data.map()
         try store.add(asset: data.asset, collection: data.collection)
     }
 }

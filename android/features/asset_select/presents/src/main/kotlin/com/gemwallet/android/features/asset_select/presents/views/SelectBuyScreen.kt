@@ -8,7 +8,6 @@ import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.features.asset_select.viewmodels.BuySelectViewModel
 import com.wallet.core.primitives.AssetId
-import uniffi.gemstone.GemAssetAction
 
 @Composable
 fun SelectBuyScreen(
@@ -19,8 +18,6 @@ fun SelectBuyScreen(
     AssetSelectScreen(
         title = stringResource(id = R.string.wallet_buy),
         titleBadge = { null },
-        showPopular = true,
-        action = GemAssetAction.BUY,
         itemTrailing = { getBalanceInfo(it)() },
         onSelect = onSelect,
         onSelectRecent = onSelect,

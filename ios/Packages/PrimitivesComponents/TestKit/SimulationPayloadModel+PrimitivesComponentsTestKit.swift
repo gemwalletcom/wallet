@@ -2,6 +2,7 @@
 
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.SimulationPayloadField
 
 public extension SimulationPayloadModel {
     static func mock(

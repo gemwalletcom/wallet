@@ -52,13 +52,13 @@ impl GemNameService {
     pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
         Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
     }
-
-    pub async fn address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
-        self.store.get_address_name(chain, address).await
-    }
 }
 
 impl GemNameService {
+    pub async fn address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
+        self.store.get_address_name(chain, address).await
+    }
+
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemServiceError> {
         let requests = rules::unique_requests(requests);
         if requests.is_empty() {

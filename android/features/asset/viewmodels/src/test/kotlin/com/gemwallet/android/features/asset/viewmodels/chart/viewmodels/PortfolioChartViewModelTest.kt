@@ -96,7 +96,7 @@ class PortfolioChartViewModelTest {
         viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 2 }
 
         assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.chart != StateViewType.Loading }.period)
-        coVerify(exactly = 1) { service.portfolioData(session.wallet.toJson(), PortfolioType.Wallet.toGem(), ChartPeriod.All.toGem()) }
+        coVerify(exactly = 1) { service.portfolioData(session.wallet.toGem(), PortfolioType.Wallet.toGem(), ChartPeriod.All.toGem()) }
     }
 
     @Test

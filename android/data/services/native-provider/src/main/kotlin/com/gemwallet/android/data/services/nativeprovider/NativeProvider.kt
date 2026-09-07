@@ -7,8 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import uniffi.gemstone.AlienException
+import uniffi.gemstone.AlienHttpMethod
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.AlienResponse
 import uniffi.gemstone.AlienTarget
@@ -26,7 +28,7 @@ class NativeProvider(
     override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
         val requestBuilder = Request.Builder()
             .url(target.url)
-            .method(target.method.name, target.body?.toRequestBody())
+            .method(target.method.name, target.requestBody())
         target.headers?.forEach { (key, value) -> requestBuilder.addHeader(key, value) }
         try {
             httpClient.newCall(requestBuilder.build()).execute().use { response ->
@@ -43,4 +45,9 @@ class NativeProvider(
             AlienResponse(500.toUShort(), byteArrayOf())
         }
     }
+}
+
+private fun AlienTarget.requestBody(): RequestBody? = body?.toRequestBody() ?: when (method) {
+    AlienHttpMethod.POST, AlienHttpMethod.PUT, AlienHttpMethod.PATCH -> ByteArray(0).toRequestBody()
+    else -> null
 }

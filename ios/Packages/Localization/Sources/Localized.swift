@@ -531,18 +531,14 @@ public enum Localized {
   public enum FeeRate {
     /// Custom
     public static let custom = Localized.tr("Localizable", "fee_rate.custom", fallback: "Custom")
-    /// %@ gwei
-    public static func gwei(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "fee_rate.gwei", String(describing: p1), fallback: "%@ gwei")
-    }
+    /// gwei
+    public static let gwei = Localized.tr("Localizable", "fee_rate.gwei", fallback: "gwei")
     /// %@ sat/B
     public static func satB(_ p1: Any) -> String {
       return Localized.tr("Localizable", "fee_rate.satB", String(describing: p1), fallback: "%@ sat/B")
     }
-    /// %@ sat/vB
-    public static func satvB(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "fee_rate.satvB", String(describing: p1), fallback: "%@ sat/vB")
-    }
+    /// sat/vB
+    public static let satvB = Localized.tr("Localizable", "fee_rate.satvB", fallback: "sat/vB")
   }
   public enum FeeRates {
     /// Fast
@@ -579,6 +575,10 @@ public enum Localized {
     public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
     /// Freeze TRX to Stake
     public static let stakeFrozenRequiredTitle = Localized.tr("Localizable", "info.stake_frozen_required_title", fallback: "Freeze TRX to Stake")
+    /// %@ requires a minimum of %@, but the amount is %@. Increase it by %@ to continue.
+    public static func swapMinimumAmountDescription(_ p1: Any, _ p2: Any, _ p3: Any, _ p4: Any) -> String {
+      return Localized.tr("Localizable", "info.swap_minimum_amount_description", String(describing: p1), String(describing: p2), String(describing: p3), String(describing: p4), fallback: "%@ requires a minimum of %@, but the amount is %@. Increase it by %@ to continue.")
+    }
     public enum AccountMinimumBalance {
       /// Minimum balance
       public static let title = Localized.tr("Localizable", "info.account_minimum_balance.title", fallback: "Minimum balance")

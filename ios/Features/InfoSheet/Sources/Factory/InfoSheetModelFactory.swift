@@ -35,7 +35,7 @@ public enum InfoSheetModelFactory {
         case let .insufficientNetworkFee(asset, image, requirement, price, currency, button):
             let description: String = if let requirement {
                 Localized.Info.InsufficientNetworkFeeBalance.description(
-                    Self.requiredFeeText(requirement.required, feeAsset: asset, price: price, currency: currency).boldMarkdown(),
+                    Self.amountWithFiat(requirement.required, asset: asset, price: price, currency: currency).boldMarkdown(),
                     asset.chain.networkName.boldMarkdown(),
                     Self.formatted(requirement.available, asset: asset),
                     Self.formatted(requirement.shortfall, asset: asset),
@@ -131,6 +131,18 @@ public enum InfoSheetModelFactory {
                 description: Localized.Info.MinimumAmount.description(chain, amount),
                 image: .image(Images.Logo.logo),
                 button: .action(title: Localized.Asset.buyAsset(asset.symbol), action: action),
+            )
+        case let .swapMinimumAmount(asset, providerName, image, requirement, price, currency, button):
+            return InfoSheetModel(
+                title: Localized.Info.MinimumAmount.title,
+                description: Localized.Info.swapMinimumAmountDescription(
+                    providerName.boldMarkdown(),
+                    Self.amountWithFiat(requirement.required, asset: asset, price: price, currency: currency).boldMarkdown(),
+                    Self.formatted(requirement.available, asset: asset),
+                    Self.formatted(requirement.shortfall, asset: asset),
+                ),
+                image: .assetImage(image),
+                button: button,
             )
         case let .stakingReservedFees(image):
             return InfoSheetModel(
@@ -237,15 +249,15 @@ public enum InfoSheetModelFactory {
         ValueFormatter(style: .full).string(value, asset: asset).boldMarkdown()
     }
 
-    private static func requiredFeeText(_ required: BigInt, feeAsset: Asset, price: Price?, currency: String) -> String {
-        let feeDisplay = NumericViewModel(
-            data: AssetValuePrice(asset: feeAsset, value: required, price: price?.price == 0 ? nil : price),
+    private static func amountWithFiat(_ value: BigInt, asset: Asset, price: Price?, currency: String) -> String {
+        let display = NumericViewModel(
+            data: AssetValuePrice(asset: asset, value: value, price: price?.price == 0 ? nil : price),
             style: AmountDisplayStyle(currencyCode: currency),
         )
-        let feeText = feeDisplay.amount.text
-        guard let fiatText = feeDisplay.fiat?.text else {
-            return feeText
+        let amountText = display.amount.text
+        guard let fiatText = display.fiat?.text else {
+            return amountText
         }
-        return "\(feeText) (~\(fiatText))"
+        return "\(amountText) (~\(fiatText))"
     }
 }

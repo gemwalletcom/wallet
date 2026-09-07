@@ -23,8 +23,6 @@ class PerpetualPositionDataAggregateImpl(
     override val direction: PerpetualDirection = data.position.direction
     override val leverage: Int = data.position.leverage.toInt()
     override val marginAmount: String = marginFormatter.string(data.position.marginAmount)
-    override val pnlWithPercentage: String
-        get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
-    override val pnlState: ValueDirection
-        get() = data.position.pnl.toValueDirection()
+    override val pnlWithPercentage: String = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
+    override val pnlState: ValueDirection = data.position.pnl.toValueDirection()
 }

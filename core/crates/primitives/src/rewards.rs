@@ -119,6 +119,7 @@ pub struct ReferralAllowance {
 pub struct Rewards {
     pub code: Option<String>,
     #[typeshare(skip)]
+    #[serde(default = "invite_reward_points")]
     pub invite_reward_points: i32,
     pub referral_count: i32,
     pub points: i32,
@@ -131,14 +132,19 @@ pub struct Rewards {
     pub redemption_options: Vec<RewardRedemptionOption>,
     pub disable_reason: Option<String>,
     #[typeshare(skip)]
+    #[serde(default)]
     pub referral_allowance: ReferralAllowance,
+}
+
+fn invite_reward_points() -> i32 {
+    RewardEventType::InviteNew.points()
 }
 
 impl Default for Rewards {
     fn default() -> Self {
         Self {
             code: None,
-            invite_reward_points: RewardEventType::InviteNew.points(),
+            invite_reward_points: invite_reward_points(),
             referral_count: 0,
             points: 0,
             used_referral_code: None,

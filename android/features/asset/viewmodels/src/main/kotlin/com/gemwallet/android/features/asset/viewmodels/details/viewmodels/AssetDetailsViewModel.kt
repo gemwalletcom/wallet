@@ -15,10 +15,12 @@ import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.application.banner.cases.HasMultiSign
+import com.gemwallet.android.application.banner.cases.GetActiveBanners
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.ChainAssetInfo
+import com.gemwallet.android.model.toGem
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
@@ -36,7 +38,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
@@ -50,7 +51,8 @@ class AssetDetailsViewModel @Inject constructor(
     private val getChainAssetInfo: GetChainAssetInfo,
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsServiceInterface,
-    private val hasMultiSign: HasMultiSign,
+    private val getActiveBanners: GetActiveBanners,
+    private val getPriceAlerts: GetPriceAlerts,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {
     private var syncJob: Job? = null
@@ -64,11 +66,6 @@ class AssetDetailsViewModel @Inject constructor(
     private val chainAssetInfo = getChainAssetInfo(assetId)
         .onStart { restartAssetSync() }
         .filterNotNull()
-
-    val isOperationEnabled = session.filterNotNull().flatMapLatest {
-        hasMultiSign.hasMultiSign(it.wallet).mapLatest { !it }
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     private val model = chainAssetInfo.map { chainInfo ->
         val explorerName = assetDetailsService.explorerName(chainInfo.assetInfo.asset.chain.string)
@@ -86,15 +83,21 @@ class AssetDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val uiModel = combine(model, session) { current, session ->
+    private val bannerEvents = chainAssetInfo
+        .flatMapLatest { getActiveBanners(it.assetInfo.asset, isGlobal = false) }
+        .map { banners -> banners.map { it.event } }
+
+    private val priceAlertsCount = getPriceAlerts(assetId).map { it.size }
+
+    val uiModel = combine(model, session, bannerEvents, priceAlertsCount) { current, session, bannerEvents, priceAlertsCount ->
         val wallet = session?.wallet ?: return@combine null
         current?.let {
-            val asset = it.chainAssetInfo.assetInfo.asset
+            val assetInfo = it.chainAssetInfo.assetInfo
+            val asset = assetInfo.asset
             assetInfoUIModelFactory.create(
                 chainAssetInfo = it.chainAssetInfo,
-                swapPair = assetDetailsService.swapPair(asset.id.toIdentifier(), it.chainAssetInfo.assetInfo.balance.balance.available.toBigInteger() > BigInteger.ZERO),
+                swapPair = assetDetailsService.swapPair(asset.id.toIdentifier(), assetInfo.balance.balance.available.toBigInteger() > BigInteger.ZERO),
                 explorerName = it.explorerName,
-                walletType = wallet.type,
                 explorerAddressUrl = it.chainAssetInfo.assetInfo.owner?.address?.let { address ->
                     assetDetailsService.addressUrl(asset.chain.string, address).link
                 },
@@ -104,6 +107,15 @@ class AssetDetailsViewModel @Inject constructor(
                 verificationStatus = assetDetailsService.verificationStatus(asset.toGem(), it.chainAssetInfo.assetInfo.metadata.rankScore)?.toPrimitives(),
                 networkDestination = assetDetailsService.networkDestination(asset.id.toIdentifier()),
                 shareUrl = assetDetailsService.deeplinkUrl(Deeplink.Asset(assetId = asset.id.toIdentifier())),
+                detailsState = assetDetailsService.state(
+                    walletType = wallet.type.toGem(),
+                    chain = asset.chain.string,
+                    metadata = assetInfo.metadata.toGem(),
+                    balance = assetInfo.balance.toGem(),
+                    bannerEvents = bannerEvents.map { event -> event.toGem() },
+                    hasPrice = (assetInfo.price?.price?.price ?: 0.0) != 0.0,
+                    priceAlertsCount = priceAlertsCount.toUInt(),
+                ),
             )
         }
     }

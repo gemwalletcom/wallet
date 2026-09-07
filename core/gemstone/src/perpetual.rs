@@ -11,12 +11,13 @@ use primitives::{
 };
 
 use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
+use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
-use crate::models::{GemAsset, GemTransactionInputType};
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
+use primitives::TransactionInputType;
 
 const HYPERLIQUID_NAME: &str = "Hyperliquid";
 
@@ -50,7 +51,9 @@ impl GemPerpetual {
             references: vec![],
         }
     }
+}
 
+impl GemPerpetual {
     pub fn deposit_recipient(&self) -> GemRecipient {
         let address = match self.provider {
             PerpetualProvider::Hypercore => HYPERLIQUID_DEPOSIT_ADDRESS.to_string(),
@@ -74,11 +77,10 @@ impl GemPerpetual {
     }
     pub fn transfer_data(&self, asset: GemAsset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
         GemTransferData {
-            input_type: GemTransactionInputType::Perpetual { asset, perpetual_type },
+            input_type: TransactionInputType::Perpetual { asset, perpetual_type },
             recipient: self.recipient(),
             value,
             use_max_amount,
-            minimum_value: None,
         }
     }
 }

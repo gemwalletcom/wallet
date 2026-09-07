@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AmountInputConfig: CurrencyInputConfigurable {
     let sceneType: AmountType
+    let canSwitchInputType: Bool
     let inputType: AmountInputType
     let asset: Asset
     let currencyFormatter: CurrencyFormatter
@@ -50,13 +51,11 @@ struct AmountInputConfig: CurrencyInputConfigurable {
     }
 
     var actionStyle: CurrencyInputActionStyle? {
-        switch sceneType {
-        case .transfer: CurrencyInputActionStyle(
-                position: .secondary,
-                image: Images.Actions.swap.renderingMode(.template),
-            )
-        case .deposit, .withdraw, .perpetual, .stake, .earn: nil
-        }
+        guard canSwitchInputType else { return nil }
+        return CurrencyInputActionStyle(
+            position: .secondary,
+            image: Images.Actions.swap.renderingMode(.template),
+        )
     }
 
     var sanitizer: ((String) -> String)? {

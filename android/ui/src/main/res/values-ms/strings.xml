@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Kelajuan transaksi ditentukan oleh bayaran rangkaian yang dibayar kepada pelombong rangkaian.</string>
   <string name="fee_rates_fast">Cepat</string>
   <string name="fee_rates_normal">Biasa</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tersuai</string>
   <string name="banner_account_activation_title">Yuran Pengaktifan Akaun</string>
   <string name="banner_account_activation_description">Rangkaian %1$s memerlukan bayaran sekali sebanyak %2$s.</string>
@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Kadar tahunan di mana long membayar short (jika negatif, short membayar long). Tiada yuran yang berkaitan dengan pembiayaan, yang merupakan pemindahan rakan ke rakan antara pengguna untuk menolak harga ke arah harga spot.</string>
   <string name="info_minimum_amount_title">Jumlah Minimum</string>
   <string name="info_minimum_amount_description">Pada rangkaian %1$s, jumlah minimum untuk transaksi ini ialah %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s memerlukan sekurang-kurangnya %2$s, tetapi jumlahnya %3$s. Tambah %4$s untuk meneruskan.</string>
   <string name="input_enter_amount_to">Sila masukkan amaun kepada %1$s</string>
   <string name="nft_properties">Hartanah</string>
   <string name="nft_collections">Koleksi</string>

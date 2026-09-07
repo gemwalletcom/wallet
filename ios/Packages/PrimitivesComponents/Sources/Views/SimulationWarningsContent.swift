@@ -3,6 +3,7 @@
 import Components
 import Primitives
 import SwiftUI
+import struct Gemstone.SimulationWarning
 
 public struct SimulationWarningsContent: View {
     private let warnings: [SimulationWarning]

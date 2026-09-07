@@ -73,11 +73,8 @@ public struct AddressListItemViewModel {
         SystemImage.personCircle
     }
 
-    public var addContactRecipient: ChainRecipient {
-        ChainRecipient(
-            recipient: GemRecipient(address: account.address, memo: account.memo),
-            chain: account.chain,
-        )
+    public var addContactRecipient: GemRecipient {
+        GemRecipient(address: account.address, memo: account.memo)
     }
 
     public var canToggleAddress: Bool {

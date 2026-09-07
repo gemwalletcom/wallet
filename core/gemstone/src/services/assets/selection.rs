@@ -3,7 +3,7 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet};
 
-use super::model::GemAssetAction;
+use super::model::{GemAssetAction, GemWalletSearchLimits};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
 use crate::services::nft::GemNftSearchItem;
@@ -50,6 +50,10 @@ impl GemAssetSelectionService {
             perpetuals,
             session,
         }
+    }
+
+    pub fn wallet_search_limits(&self, query: String) -> GemWalletSearchLimits {
+        rules::wallet_search_limits(&query)
     }
 
     pub fn get_currency(&self) -> Currency {

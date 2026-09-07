@@ -10,10 +10,12 @@ public extension FiatQuote {
         cryptoAmount: Double = 0,
         type: FiatQuoteType = .buy,
         fiatCurrency: String = Currency.usd.rawValue,
+        providerId: String = "moonpay",
     ) -> FiatQuote {
         FiatQuote(
             id: id,
-            provider: FiatProvider(id: "moonpay", name: "", imageUrl: "", paymentMethods: []),
+            asset: .mock(),
+            provider: FiatProvider(id: providerId, name: "", imageUrl: "", paymentMethods: []),
             type: type,
             fiatAmount: fiatAmount,
             fiatCurrency: fiatCurrency,

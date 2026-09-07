@@ -123,6 +123,7 @@ class TransactionDataAggregateImplTest {
         asset: Asset = btcAsset,
         assets: List<Asset> = emptyList(),
     ) = TransactionExtended(
+        recordId = 1,
         transaction = transaction,
         asset = asset,
         feeAsset = asset,
@@ -152,24 +153,6 @@ class TransactionDataAggregateImplTest {
         assertEquals(TransactionDirection.Incoming, aggregate.direction)
         assertEquals(TransactionState.Pending, aggregate.state)
         assertEquals(transaction.createdAt, aggregate.createdAt)
-    }
-
-    @Test
-    fun testIsPending_whenStatePending() {
-        val transaction = createTransaction(state = TransactionState.Pending)
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        assertEquals(true, aggregate.isPending)
-    }
-
-    @Test
-    fun testIsPending_whenStateConfirmed() {
-        val transaction = createTransaction(state = TransactionState.Confirmed)
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        assertEquals(false, aggregate.isPending)
     }
 
     @Test

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 import Foundation
+import struct Gemstone.GemSocialLinks
 import GemstonePrimitives
 import Primitives
 
@@ -11,8 +12,8 @@ public struct SocialLinksViewModel {
     }
 
     var links: [InsightLink] {
-        assetLinks
-            .sortedByType
-            .compactMap { AssetLinkViewModel($0).insightLink }
+        GemSocialLinks(links: assetLinks.map { $0.map() })
+            .sorted()
+            .compactMap { AssetLinkViewModel($0.map()).insightLink }
     }
 }

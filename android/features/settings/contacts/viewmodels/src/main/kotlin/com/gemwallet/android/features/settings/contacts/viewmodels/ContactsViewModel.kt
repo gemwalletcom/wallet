@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemContactServiceInterface
 import android.util.Log
 import com.gemwallet.android.application.contacts.cases.GetContacts
@@ -28,7 +28,7 @@ class ContactsViewModel @Inject constructor(
 
     fun deleteContact(contact: Contact) {
         viewModelScope.launch(Dispatchers.IO) {
-            runCatchingCancellable { service.deleteContact(contact.toJson()) }
+            runCatchingCancellable { service.deleteContact(contact.toGem()) }
                 .onFailure { Log.e(TAG, "deleting contact ${contact.id} failed", it) }
         }
     }

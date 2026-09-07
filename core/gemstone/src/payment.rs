@@ -5,12 +5,12 @@ use crate::address::{checksum_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
 use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentLink, GemPaymentRequest, GemPaymentTransaction};
-use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use payment::PaymentService as CorePaymentService;
-use primitives::{Asset, AssetId, Chain, ChainAddress, ChainType, PaymentURLDecoder, TransferDataOutputAction, TransferDataOutputType, hex};
+use primitives::TransactionInputType;
+use primitives::{Asset, AssetId, Chain, ChainAddress, ChainType, PaymentURLDecoder, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex};
 
 pub type GemPaymentError = payment::PaymentError;
 
@@ -79,10 +79,10 @@ impl GemPaymentService {
             },
         };
         GemTransferData {
-            input_type: GemTransactionInputType::Generic {
+            input_type: TransactionInputType::Generic {
                 asset,
                 metadata: transaction.merchant,
-                extra: GemTransferDataExtra {
+                extra: TransferDataExtra {
                     to: recipient.address.clone(),
                     gas_limit: None,
                     gas_price: None,
@@ -96,7 +96,6 @@ impl GemPaymentService {
             recipient,
             value: transfer.map(|transfer| transfer.value).unwrap_or_default(),
             use_max_amount: false,
-            minimum_value: None,
         }
     }
 }
@@ -110,7 +109,7 @@ fn transaction_data(transaction: &str) -> Vec<u8> {
 
 fn transfer_data(transfer: &GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
     GemTransferData {
-        input_type: GemTransactionInputType::Transfer { asset },
+        input_type: TransactionInputType::Transfer { asset },
         recipient: GemRecipient {
             address: transfer.address.clone(),
             name: None,
@@ -119,7 +118,6 @@ fn transfer_data(transfer: &GemPaymentConfirmTransfer, asset: Asset) -> GemTrans
         },
         value: transfer.value.clone().into(),
         use_max_amount: false,
-        minimum_value: None,
     }
 }
 
@@ -298,6 +296,7 @@ mod tests {
             address: address.to_string(),
             amount,
             memo: memo.map(str::to_string),
+            label: None,
             references: None,
             asset_id,
         }
@@ -466,6 +465,7 @@ mod tests {
                 address: SOLANA_ADDRESS.to_string(),
                 amount: None,
                 memo: None,
+                label: None,
                 references: None,
                 asset_id,
             }),
@@ -509,7 +509,7 @@ mod tests {
         assert_eq!(decoded.recipient.address, SOLANA_ADDRESS);
         assert_eq!(decoded.value, 19_000_000.into());
         match &decoded.input_type {
-            GemTransactionInputType::Generic { extra, .. } => {
+            TransactionInputType::Generic { extra, .. } => {
                 assert_eq!(extra.to, SOLANA_ADDRESS);
                 assert_eq!(extra.data.as_deref(), Some(b"encoded".as_slice()));
                 assert_eq!(extra.output_type, TransferDataOutputType::EncodedTransaction);
@@ -522,7 +522,7 @@ mod tests {
             ..transaction(None)
         };
         match &service.transaction_transfer_data(hex_encoded, asset.clone()).input_type {
-            GemTransactionInputType::Generic { extra, .. } => assert_eq!(extra.data.as_deref(), Some([0x0a, 0x0b].as_slice())),
+            TransactionInputType::Generic { extra, .. } => assert_eq!(extra.data.as_deref(), Some([0x0a, 0x0b].as_slice())),
             input_type => panic!("expected a generic input type, got {input_type:?}"),
         }
 
@@ -541,6 +541,7 @@ mod tests {
                 address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
                 amount: Some(GemPaymentAmount::ExactValue("0.42301".to_string())),
                 memo: None,
+                label: None,
                 asset_id: Some(AssetId::from_chain(Chain::Solana)),
                 references: None,
             })

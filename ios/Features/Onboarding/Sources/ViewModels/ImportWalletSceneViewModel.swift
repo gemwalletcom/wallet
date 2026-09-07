@@ -1,14 +1,16 @@
 import protocol Gemstone.GemNameServiceProtocol
+import enum Gemstone.GemWalletImportKind
+import enum Gemstone.GemWalletImportType
 import protocol Gemstone.GemWalletServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import Preferences
 
 @Observable
 @MainActor
@@ -20,7 +22,7 @@ final class ImportWalletSceneViewModel {
 
     var input: String = ""
     var wordsSuggestion: [String] = []
-    var importType: WalletImportType = .phrase
+    var importType: GemWalletImportKind = .phrase
     let nameRecordViewModel: NameRecordViewModel?
     var buttonState = ButtonState.normal
 
@@ -85,23 +87,12 @@ final class ImportWalletSceneViewModel {
         importTypes.count > 1
     }
 
-    var importTypes: [WalletImportType] {
-        switch type {
-        case .multicoin:
-            return [.phrase]
-        case let .chain(chain):
-            if chain.isPrivateKeyImportSupported {
-                return [.phrase, .privateKey, .address]
-            }
-            return [.phrase, .address]
-        }
+    var importTypes: [GemWalletImportKind] {
+        service.importKinds(chain: chain?.map())
     }
 
     var footerText: String? {
-        switch importType {
-        case .phrase, .privateKey: .none
-        case .address: Localized.Wallet.importAddressWarning
-        }
+        importType.showsViewOnlyWarning() ? Localized.Wallet.importAddressWarning : nil
     }
 
     var docsUrl: URL {
@@ -109,28 +100,22 @@ final class ImportWalletSceneViewModel {
     }
 
     var shouldProtectInput: Bool {
-        switch importType {
-        case .phrase, .privateKey: true
-        case .address: false
-        }
+        importType.protectsInput()
     }
 }
 
 // MARK: - Business Logic
 
 extension ImportWalletSceneViewModel {
-    func onChangeImportType(_: WalletImportType, _: WalletImportType) {
+    func onChangeImportType(_: GemWalletImportKind, _: GemWalletImportKind) {
         input = ""
     }
 
     func onChangeInput(_: String, newValue: String) {
         wordsSuggestion = wordSuggester.wordSuggestionCalculate(value: newValue)
-        switch importType {
-        case .address:
-            if let chain {
-                nameRecordViewModel?.getNameRecord(name: newValue, chain: chain)
-            }
-        case .phrase, .privateKey:
+        if importType == .address, let chain {
+            nameRecordViewModel?.getNameRecord(name: newValue, chain: chain)
+        } else {
             nameRecordViewModel?.reset()
         }
     }
@@ -185,36 +170,16 @@ extension ImportWalletSceneViewModel {
 
 extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
-        let trimmedInput = input.trim()
-        let recipient: RecipientImport = if let result = nameRecordViewModel?.state.result {
-            RecipientImport(name: result.name, address: result.address)
-        } else {
-            RecipientImport(name: try await service.defaultWalletName(chain: type.chain?.rawValue).name, address: trimmedInput)
-        }
-        switch importType {
-        case .phrase:
-            let words = trimmedInput.split(separator: " ").map { String($0) }
-            switch type {
-            case .multicoin:
-                try await importWallet(
-                    name: recipient.name,
-                    keystoreType: .phrase(words: words, chains: AssetConfiguration.allChains),
-                )
-            case let .chain(chain):
-                try await importWallet(
-                    name: recipient.name,
-                    keystoreType: .single(words: words, chain: chain),
-                )
-            }
-        case .privateKey:
-            try await importWallet(name: recipient.name, keystoreType: .privateKey(text: trimmedInput, chain: chain!))
-        case .address:
-            try await importWallet(name: recipient.name, keystoreType: .address(address: recipient.address, chain: chain!))
-        }
+        let nameRecord = nameRecordViewModel?.state.result?.map()
+        let defaultName = try await service.defaultWalletName(chain: chain?.map()).name
+        try await importWallet(
+            name: service.importName(nameRecord: nameRecord, defaultName: defaultName),
+            type: try service.importRequest(kind: importType, chain: chain?.map(), input: input, nameRecord: nameRecord),
+        )
     }
 
-    private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
-        let result = try await service.importWallet(name: name, type: keystoreType, source: .import)
+    private func importWallet(name: String, type: GemWalletImportType) async throws {
+        let result = try await service.importWallet(name: name, type: type, source: .import)
 
         switch result {
         case let .new(wallet):

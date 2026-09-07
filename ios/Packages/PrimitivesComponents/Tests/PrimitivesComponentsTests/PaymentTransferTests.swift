@@ -21,6 +21,7 @@ struct PaymentTransferTests {
                 address: recipient,
                 amount: .atomicValue("19000000"),
                 memo: "payment-memo",
+                label: nil,
                 references: nil,
                 assetId: asset.id,
             ),
@@ -32,7 +33,7 @@ struct PaymentTransferTests {
             return
         }
 
-        #expect(data.inputType.asset == asset)
+        #expect(data.asset == asset)
         #expect(data.value == "19000000")
         #expect(data.recipient.address == recipient)
         #expect(data.recipient.memo == "payment-memo")
@@ -49,6 +50,7 @@ struct PaymentTransferTests {
                 address: recipient,
                 amount: .atomicValue("19000000"),
                 memo: nil,
+                label: nil,
                 references: nil,
                 assetId: asset.id,
             ),
@@ -75,6 +77,7 @@ struct PaymentTransferTests {
                 address: "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n",
                 amount: .atomicValue("19000000"),
                 memo: "payment-memo",
+                label: nil,
                 references: nil,
                 assetId: Primitives.Chain.solana.assetId,
             ),
@@ -130,8 +133,8 @@ struct PaymentTransferTests {
                 url: "https://example.com",
                 icon: "https://example.com/icon.png",
                 source: .payment,
-            ).json(),
-            account: try Primitives.ChainAddress(chain: .solana, address: "account").json(),
+            ).map(),
+            account: Primitives.ChainAddress(chain: .solana, address: "account").map(),
             transaction: "encoded-transaction",
             transactionType: Primitives.TransactionType.transfer.map(),
             memo: memo,

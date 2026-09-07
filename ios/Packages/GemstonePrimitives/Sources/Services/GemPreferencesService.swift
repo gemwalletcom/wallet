@@ -22,14 +22,14 @@ public extension GemPreferencesServiceProtocol {
     }
 
     var appearanceValue: Primitives.Appearance {
-        (try? Primitives.Appearance(getAppearance())) ?? .system
+        getAppearance().map()
     }
 
     func setAppearanceValue(_ appearance: Primitives.Appearance) throws {
-        try setAppearance(appearance: appearance.json())
+        try setAppearance(appearance: appearance.map())
     }
 
     func showPerpetuals(for wallet: Wallet) -> Bool {
-        showPerpetuals(wallet: wallet.json())
+        showPerpetuals(wallet: wallet.map())
     }
 }

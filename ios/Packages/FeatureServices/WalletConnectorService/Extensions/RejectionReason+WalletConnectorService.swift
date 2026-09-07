@@ -11,28 +11,14 @@ extension RejectionReason {
             return
         }
 
-        if let walletConnectError = error as? GemWalletConnectError {
-            self = switch walletConnectError {
-            case .UnsupportedChains: .unsupportedChains
-            case .UnsupportedWallets: .unsupportedAccounts
-            case .InvalidOrigin, .Service: .userRejected
-            }
-            return
-        }
-        guard let serviceError = error as? WalletConnectorServiceError else {
+        guard let walletConnectError = error as? GemWalletConnectError else {
             self = .userRejected
             return
         }
-
-        switch serviceError {
-        case .unresolvedMethod:
-            self = .unsupportedMethods
-        case .unresolvedChainId:
-            self = .unsupportedChains
-        case .walletsUnsupported:
-            self = .unsupportedAccounts
-        case .wrongSignParameters, .wrongSendParameters, .invalidOrigin:
-            self = .userRejected
+        self = switch walletConnectError {
+        case .UnsupportedChains: .unsupportedChains
+        case .UnsupportedWallets: .unsupportedAccounts
+        case .InvalidOrigin, .Service: .userRejected
         }
     }
 }

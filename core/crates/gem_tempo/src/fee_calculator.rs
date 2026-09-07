@@ -118,11 +118,11 @@ mod tests {
 
     fn swap_input(from_asset: Asset) -> TransactionLoadInput {
         TransactionLoadInput::mock_evm(
-            TransactionInputType::Swap(
+            TransactionInputType::Swap {
                 from_asset,
-                TEMPO_BRIDGED_USDC.clone(),
-                SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None),
-            ),
+                to_asset: TEMPO_BRIDGED_USDC.clone(),
+                swap_data: SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None),
+            },
             "0",
         )
     }
@@ -137,7 +137,12 @@ mod tests {
             }
         });
         let gas_limit = BigInt::from(21_000u64);
-        let mut input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_BRIDGED_USDC.clone()), "1000000");
+        let mut input = TransactionLoadInput::mock_evm(
+            TransactionInputType::Transfer {
+                asset: TEMPO_BRIDGED_USDC.clone(),
+            },
+            "1000000",
+        );
         input.gas_price = GasPriceType::eip1559(BigInt::from(20_000_000_001u64), BigInt::from(0u64));
         let fee = calculator.calculate_fee(&input, &get_transaction_params(EVMChain::Tempo, &input)?, &gas_limit).await?;
 
@@ -147,7 +152,7 @@ mod tests {
         assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(20_000_000_001u64));
 
         let token_asset = TEMPO_BRIDGED_USDC.clone();
-        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(token_asset.clone()), "1000000");
+        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer { asset: token_asset.clone() }, "1000000");
         let fee = calculator
             .calculate_fee(&input, &get_transaction_params(EVMChain::Tempo, &input)?, &BigInt::from(TOKEN_TRANSFER_GAS_LIMIT))
             .await?;
@@ -192,7 +197,12 @@ mod tests {
                 Ok(encode_currency("BTC"))
             }
         });
-        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_BRIDGED_USDC.clone()), "1000000");
+        let input = TransactionLoadInput::mock_evm(
+            TransactionInputType::Transfer {
+                asset: TEMPO_BRIDGED_USDC.clone(),
+            },
+            "1000000",
+        );
 
         assert!(calculator.fee_asset(&input).await.is_err());
     }

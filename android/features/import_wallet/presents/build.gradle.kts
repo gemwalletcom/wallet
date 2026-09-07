@@ -55,7 +55,6 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":gemcore"))
-    implementation(project(":blockchain"))
     implementation(project(":features:import_wallet:viewmodels"))
     implementation(project(":features:add_asset:viewmodels"))
 

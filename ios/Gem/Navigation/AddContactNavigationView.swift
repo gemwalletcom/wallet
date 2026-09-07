@@ -16,10 +16,10 @@ struct AddContactNavigationView: View {
         NavigationStack {
             Group {
                 switch action {
-                case let .new(recipient):
-                    ManageContactScene(model: viewModelFactory.manageContactScene(mode: .add(recipient)))
-                case let .existing(recipient):
-                    ContactsNavigationView(model: viewModelFactory.contactsScene(mode: .addAddress(recipient)))
+                case let .new(recipient, chain):
+                    ManageContactScene(model: viewModelFactory.manageContactScene(mode: .add(recipient: recipient, chain: chain)))
+                case let .existing(recipient, chain):
+                    ContactsNavigationView(model: viewModelFactory.contactsScene(mode: .addAddress(recipient, chain: chain)))
                 }
             }
             .toolbarDismissItem(type: .close, placement: .cancellationAction)

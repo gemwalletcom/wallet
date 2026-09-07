@@ -15,7 +15,6 @@ import GemstonePrimitives
 import Localization
 import GemstoneServices
 import NativeProviderService
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -383,7 +382,6 @@ struct ServicesFactory {
             swapService: swapService,
             transactionStateService: transactionStateService,
             transactionsService: transactionsService,
-            transferService: Gemstone.GemTransferService(),
             walletService: walletService,
             walletSessionService: walletSessionService,
             serviceStatusService: serviceStatusService,

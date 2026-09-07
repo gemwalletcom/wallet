@@ -8,7 +8,6 @@ import Components
 import Foundation
 import GemstonePrimitives
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store

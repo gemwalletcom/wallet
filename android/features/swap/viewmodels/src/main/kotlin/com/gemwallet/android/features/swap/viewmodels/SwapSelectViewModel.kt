@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels
 
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -12,9 +13,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
-import uniffi.gemstone.GemAssetAction
-import com.gemwallet.android.domains.asset.recentFilters
-import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
@@ -43,7 +41,10 @@ class SwapSelectViewModel @Inject constructor(
     getRecentAssets = getRecentAssets,
     service = service,
     search = SwapSelectSearch(searchSwapAssets),
-    remoteSearch = savedStateHandle.requireSwapItemType() == SwapItemType.Receive,
+    selectType = when (savedStateHandle.requireSwapItemType()) {
+        SwapItemType.Pay -> GemSelectAssetType.SWAP_PAY
+        SwapItemType.Receive -> GemSelectAssetType.SWAP_RECEIVE
+    },
 ) {
 
     val payAssetId = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
@@ -67,10 +68,6 @@ class SwapSelectViewModel @Inject constructor(
             this.receiveId.update { receiveId }
         }
     }
-
-    override fun assetFilters() = GemAssetAction.SWAP_PAY.recentFilters()
-
-    override val action: GemAssetAction get() = GemAssetAction.SWAP_PAY
 }
 
 private fun SavedStateHandle.requireSwapItemType(): SwapItemType =

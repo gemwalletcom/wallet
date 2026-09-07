@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.aggregates.AssetPriceDataAggregate
+import com.gemwallet.android.domains.price.values.PriceValue
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
@@ -101,7 +101,7 @@ fun Badge(text: String?) {
     )
 }
 
-fun assetPriceSupport(price: AssetPriceDataAggregate?): (@Composable () -> Unit)? {
+fun assetPriceSupport(price: PriceValue?): (@Composable () -> Unit)? {
     if (price == null || price.valueFormatted.isEmpty()) {
         return null
     }

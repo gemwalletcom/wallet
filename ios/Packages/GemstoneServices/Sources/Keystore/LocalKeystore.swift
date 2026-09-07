@@ -71,7 +71,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     public func sign(wallet: Primitives.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
         let password = try await getPassword()
         let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
-        let chain = input.input.inputType.transactionAsset().map().id.chain.rawValue
+        let chain = input.input.chain()
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)
@@ -85,31 +85,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try signer.signWithKeystore(keystore: gemKeystore, keystoreId: keystoreId, password: passwordBytes)
-            }
-        }
-    }
-
-    public func getPrivateKeyEncoded(wallet: Primitives.Wallet, chain: Primitives.Chain) async throws -> String {
-        let password = try await getPassword()
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try gemKeystore.exportPrivateKey(
-                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
-                    chain: chain.rawValue,
-                    password: passwordBytes,
-                )
-            }
-        }
-    }
-
-    public func getMnemonic(wallet: Primitives.Wallet) async throws -> [String] {
-        let password = try await getPassword()
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try gemKeystore.exportRecoveryPhrase(
-                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
-                    password: passwordBytes,
-                )
             }
         }
     }
@@ -200,4 +175,10 @@ func withV4Password<T>(
     var passwordBytes = keystore.decodePassword(password: password)
     defer { passwordBytes.zeroize() }
     return try operation(passwordBytes)
+}
+
+extension Primitives.Wallet {
+    var legacyV3Id: String {
+        externalId ?? id.id
+    }
 }

@@ -34,18 +34,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelHeaderTest {
 
-    private val transferService = GemTransferService()
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAsset()
     private val account = mockAccount(chain = Chain.Bitcoin)
@@ -86,7 +84,7 @@ class ConfirmViewModelHeaderTest {
     }
 
     private fun transfer(value: BigInteger, useMaxAmount: Boolean = false) = GemTransferData(
-        inputType = GemTransactionInputType.Transfer(asset.toGem()),
+        inputType = TransactionInputType.Transfer(asset.toGem()),
         recipient = GemRecipient(address = "bc1qrecipient"),
         value = value,
         useMaxAmount = useMaxAmount,
@@ -94,9 +92,10 @@ class ConfirmViewModelHeaderTest {
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
-        every { confirmService.confirmInput(any(), transfer) } returns GemConfirmInput(from = account.toGem(), transfer = transfer)
-        coEvery { confirmService.initialState(any(), any()) } returns mockGemConfirmLoad(asset)
-        coEvery { confirmService.load(any(), any(), any()) } coAnswers { awaitCancellation() }
+        val confirmSession = mockk<GemConfirmSession>()
+        coEvery { confirmSession.state() } returns mockGemConfirmLoad(asset, preload = null)
+        coEvery { confirmSession.load(any()) } coAnswers { awaitCancellation() }
+        every { confirmService.session(any(), transfer, any()) } returns confirmSession
         return ConfirmViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(
@@ -105,8 +104,7 @@ class ConfirmViewModelHeaderTest {
             },
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(transfer)))),
-            transferService = transferService,
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
         )
     }
 }

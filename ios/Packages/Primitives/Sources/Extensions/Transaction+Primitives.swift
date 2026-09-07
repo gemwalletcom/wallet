@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 
 public extension Transaction {
@@ -10,14 +9,6 @@ public extension Transaction {
 
     var chain: Chain {
         assetId.chain
-    }
-
-    var valueBigInt: BigInt {
-        BigInt(value) ?? .zero
-    }
-
-    var feeBigInt: BigInt {
-        BigInt(fee) ?? .zero
     }
 
     var assetIds: [AssetId] {
@@ -46,10 +37,6 @@ public extension Transaction {
             }
             return [swapMetadata.fromAsset, swapMetadata.toAsset]
         }
-    }
-
-    var swapProvider: String? {
-        metadata?.decode(TransactionSwapMetadata.self)?.provider
     }
 }
 

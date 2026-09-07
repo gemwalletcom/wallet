@@ -33,7 +33,7 @@ struct BannerViewModel {
         case .moneyBag:
             return AssetImage(type: .emoji(Emoji.WalletAvatar.moneyBag.rawValue))
         case let .network(chain):
-            return Primitives.Chain(rawValue: chain).map { AssetImage.image(ChainImage(chain: $0).placeholder) }
+            return Primitives.Chain(rawValue: chain).map { AssetImage.image(ChainImage(chain: $0).image) }
         case .warning:
             return AssetImage.image(Images.System.exclamationmarkTriangle)
         case .suspicious:

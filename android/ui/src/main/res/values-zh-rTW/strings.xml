@@ -388,9 +388,9 @@
   <string name="fee_rates_info">交易速度取決於向礦工支付的網路費用</string>
   <string name="fee_rates_fast">快速</string>
   <string name="fee_rates_normal">普通</string>
-  <string name="fee_rate_satvB">%1$s 聰/vB</string>
+  <string name="fee_rate_satvB">聰/vB</string>
   <string name="fee_rate_satB">%1$s 聰/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">自訂</string>
   <string name="banner_account_activation_title">帳戶啟動費用</string>
   <string name="banner_account_activation_description">%1$s 網路需支付一次性費用：%2$s。</string>
@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">多頭向空頭支付的年化資金費率（為負時由空頭向多頭支付）。資金費是使用者之間的點對點支付，不另收手續費，用於使永續合約價格接近現貨價格。</string>
   <string name="info_minimum_amount_title">最低金額</string>
   <string name="info_minimum_amount_description">在 %1$s 網路上，此交易的最低金額為 %2$s。</string>
+  <string name="info_swap_minimum_amount_description">%1$s 最低需要%2$s，但金額為%3$s。請增加%4$s以繼續。</string>
   <string name="input_enter_amount_to">請輸入要%1$s的數量</string>
   <string name="nft_properties">屬性</string>
   <string name="nft_collections">NFT 系列</string>

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import androidx.core.net.toUri
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthObject
@@ -20,7 +21,6 @@ import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConne
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.CoroutineScope
@@ -56,6 +56,7 @@ class WalletConnectCoordinator(
 
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
+    private val approvingWallet = MutableStateFlow<Wallet?>(null)
     val bridgeEvents = isWalletConnectInit.flatMapLatest {
         if (it) {
             merge(walletConnectClient.events, pendingEvents)
@@ -77,6 +78,7 @@ class WalletConnectCoordinator(
             bridgeEvents.collect { event ->
                 when (event) {
                     is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
+                    is WalletConnectEvent.SessionSettled -> storeSettledSession(event.session)
                     else -> Unit
                 }
             }
@@ -123,7 +125,7 @@ class WalletConnectCoordinator(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        val approval = walletConnectService.sessionApproval(wallet = wallet.toJson())
+        val approval = walletConnectService.sessionApproval(wallet = wallet.toGem())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
             supportedNamespaces = approval.toSupportedNamespaces(chainService),
@@ -223,7 +225,7 @@ class WalletConnectCoordinator(
 
     private suspend fun sync() {
         val sessions = activeSessions() ?: return
-        walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService)?.toJson() })
+        walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService)?.toGem() })
     }
 
     private fun handlePendingRequests() {
@@ -252,6 +254,7 @@ class WalletConnectCoordinator(
         onError: (String) -> Unit,
         approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit,
     ) {
+        approvingWallet.value = wallet
         val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
         approve(
             { persistNewSessions(wallet, activeBefore, failureMessage, onSuccess, onError) },
@@ -280,9 +283,19 @@ class WalletConnectCoordinator(
     private suspend fun addNewSessions(wallet: Wallet, activeBefore: Set<String>) {
         activeSessions().orEmpty()
             .filter { it.topic !in activeBefore }
-            .mapNotNull { it.toConnectionSession(walletConnectService) }
-            .forEach { session ->
-                walletConnectService.addConnection(WalletConnection(session = session, wallet = wallet).toJson())
-            }
+            .forEach { storeSession(it, wallet) }
+    }
+
+    private suspend fun storeSettledSession(session: WalletConnectSession) {
+        val wallet = approvingWallet.value ?: return
+        storeSession(session, wallet)
+    }
+
+    private suspend fun storeSession(session: WalletConnectSession, wallet: Wallet) {
+        if (connectionStore.getConnectionBySessionId(session.topic) != null) {
+            return
+        }
+        val connectionSession = session.toConnectionSession(walletConnectService) ?: return
+        walletConnectService.addConnection(WalletConnection(session = connectionSession, wallet = wallet).toGem())
     }
 }

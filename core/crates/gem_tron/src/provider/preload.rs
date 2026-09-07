@@ -67,7 +67,10 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
         };
         let has_memo = input.get_memo().is_some();
         let fee = match &input.input_type {
-            TransactionInputType::Transfer(asset) | TransactionInputType::TransferNft(asset, _) | TransactionInputType::Account(asset, _) => match &asset.id.token_id {
+            TransactionInputType::Transfer { asset }
+            | TransactionInputType::Withdrawal { asset }
+            | TransactionInputType::TransferNft { asset, .. }
+            | TransactionInputType::Account { asset, .. } => match &asset.id.token_id {
                 None => native_transfer_fee(&fee_context, has_memo)?,
                 Some(token_id) => {
                     self.estimate_token_transfer_fee(
@@ -82,7 +85,7 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                     .await?
                 }
             },
-            TransactionInputType::Generic(_, _, extra) => match extra.output_action {
+            TransactionInputType::Generic { extra, .. } => match extra.output_action {
                 TransferDataOutputAction::Send => match self
                     .estimate_fee_with_data(&input.sender_address, extra.data.as_deref(), &chain_parameters, &account_usage)
                     .await?
@@ -92,11 +95,13 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                 },
                 TransferDataOutputAction::Sign => native_transfer_fee(&fee_context, false)?,
             },
-            TransactionInputType::Stake(_asset, stake_type) => {
+            TransactionInputType::Stake { asset: _asset, stake_type } => {
                 TransactionFee::new_from_fee(calculate_stake_fee_rate(&chain_parameters, &account_usage, stake_type)?, AssetId::from_chain(Chain::Tron))
             }
-            TransactionInputType::TokenApprove(_, approval) => self.estimate_token_approval_fee(&input.sender_address, approval, &chain_parameters, &account_usage).await?,
-            TransactionInputType::Swap(from_asset, _, swap_data) => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
+            TransactionInputType::TokenApprove { approval_data: approval, .. } => {
+                self.estimate_token_approval_fee(&input.sender_address, approval, &chain_parameters, &account_usage).await?
+            }
+            TransactionInputType::Swap { from_asset, swap_data, .. } => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
             _ => native_transfer_fee(&fee_context, has_memo)?,
         };
 
@@ -290,10 +295,11 @@ impl<C: Client> TronClient<C> {
 
     async fn get_is_new_account_for_input_type(&self, input: &TransactionLoadInput) -> Result<bool, Box<dyn Error + Send + Sync>> {
         match &input.input_type {
-            TransactionInputType::Transfer(asset)
-            | TransactionInputType::TransferNft(asset, _)
-            | TransactionInputType::Account(asset, _)
-            | TransactionInputType::Swap(asset, _, _) => match asset.id.token_subtype() {
+            TransactionInputType::Transfer { asset }
+            | TransactionInputType::Withdrawal { asset }
+            | TransactionInputType::TransferNft { asset, .. }
+            | TransactionInputType::Account { asset, .. }
+            | TransactionInputType::Swap { from_asset: asset, .. } => match asset.id.token_subtype() {
                 AssetSubtype::NATIVE => self.is_new_account(input.input_type.swap_to_address().unwrap_or(&input.destination_address)).await,
                 AssetSubtype::TOKEN => Ok(false),
             },
@@ -303,7 +309,7 @@ impl<C: Client> TronClient<C> {
 
     async fn get_stake_data(&self, input: &TransactionLoadInput) -> Result<TronStakeData, Box<dyn Error + Send + Sync>> {
         match &input.input_type {
-            TransactionInputType::Stake(asset, stake_type) => {
+            TransactionInputType::Stake { asset, stake_type } => {
                 let account = self.get_account(&input.sender_address).await?;
                 let raw_amount = BigNumberFormatter::value_as_u64(&input.value.to_string(), 0)?;
                 let vote_amount = BigNumberFormatter::value_as_u64(&input.value.to_string(), asset.decimals as u32)?;
@@ -375,7 +381,7 @@ mod chain_integration_tests {
         let client = create_test_client();
         let asset = Asset::from_chain(Chain::Tron);
 
-        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer(asset));
+        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset });
         let input = TransactionLoadInput {
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: "TGas3vJWx6R9wZEq66T3p7T5QAkXHRzh2q".to_string(),
@@ -401,7 +407,7 @@ mod chain_integration_tests {
         let asset_id = AssetId::from(Chain::Tron, Some(TEST_USDT_TOKEN_ID.to_string()));
         let asset = Asset::new(asset_id, "Tether USD".to_string(), "USDT".to_string(), 6, AssetType::TRC20);
 
-        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer(asset));
+        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset });
         let input = TransactionLoadInput {
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: "TGas3vJWx6R9wZEq66T3p7T5QAkXHRzh2q".to_string(),

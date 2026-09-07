@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
 
@@ -7,9 +8,9 @@ public extension DelegationBase {
     static func mock(
         state: DelegationState,
         assetId: AssetId = .mock(),
-        balance: String = "0",
-        shares: String = "0",
-        rewards: String = "0",
+        balance: BigInt = .zero,
+        shares: BigInt = .zero,
+        rewards: BigInt = .zero,
         completionDate: Date? = nil,
         delegationId: String = .empty,
         validatorId: String = .empty,

@@ -72,15 +72,8 @@ fn format_auto(decimal: &BigDecimal) -> String {
 
     let abs = decimal.abs();
     let one = BigDecimal::from(1);
-    let threshold = BigDecimal::new(1.into(), 4); // 0.0001
 
-    if abs >= one {
-        format_short(decimal)
-    } else if abs >= threshold {
-        format_middle(decimal)
-    } else {
-        format_full(decimal)
-    }
+    if abs >= one { format_short(decimal) } else { format_middle(decimal) }
 }
 
 fn format_short(decimal: &BigDecimal) -> String {
@@ -159,6 +152,9 @@ mod tests {
         assert_eq!(ValueFormatter::format(ValueStyle::Auto, "1", 4).unwrap(), "0.0001");
         assert_eq!(ValueFormatter::format(ValueStyle::Auto, "1", 5).unwrap(), "0.00001");
         assert_eq!(ValueFormatter::format(ValueStyle::Auto, "4162", 18).unwrap(), "0.000000000000004162");
+        assert_eq!(ValueFormatter::format(ValueStyle::Auto, "40036032429186", 18).unwrap(), "0.00004003");
+        assert_eq!(ValueFormatter::format(ValueStyle::Auto, "123456789012", 18).unwrap(), "0.0000001234");
+        assert_eq!(ValueFormatter::format(ValueStyle::Auto, "1", 8).unwrap(), "0.00000001");
         assert_eq!(ValueFormatter::format(ValueStyle::Auto, "0", 0).unwrap(), "0");
     }
 

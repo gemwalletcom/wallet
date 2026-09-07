@@ -61,7 +61,7 @@ public final class AmountSceneViewModel {
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
         amountInputModel.update(validators: inputValidators)
 
-        if let amount = provider.recipientData().amount {
+        if let amount = provider.prefilledAmount {
             amountInputModel.update(text: amount)
         }
     }
@@ -131,6 +131,7 @@ public final class AmountSceneViewModel {
     var inputConfig: any CurrencyInputConfigurable {
         AmountInputConfig(
             sceneType: provider.amountType,
+            canSwitchInputType: provider.gemAmountType.canSwitchInputType(),
             inputType: amountInputType,
             asset: asset,
             currencyFormatter: currencyFormatter,

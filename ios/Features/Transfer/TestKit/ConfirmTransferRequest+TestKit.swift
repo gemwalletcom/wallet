@@ -8,6 +8,7 @@ import PrimitivesTestKit
 import Transfer
 import WalletConnector
 import struct Gemstone.GemTransferData
+import struct Gemstone.SimulationResult
 
 public extension ConfirmTransferRequest {
     static func mock(

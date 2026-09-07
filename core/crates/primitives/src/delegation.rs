@@ -6,19 +6,16 @@ use strum::{AsRefStr, Display, EnumString};
 use typeshare::typeshare;
 
 use crate::stake_provider_type::StakeProviderType;
-use crate::{AssetId, Chain, Price, StakeValidator};
+use crate::{AssetId, Chain, StakeValidator};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Delegation {
     pub base: DelegationBase,
     pub validator: DelegationValidator,
-    pub price: Option<Price>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationBase {
     pub asset_id: AssetId,
@@ -66,7 +63,7 @@ impl From<DelegationValidator> for StakeValidator {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationValidator {

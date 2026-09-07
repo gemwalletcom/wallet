@@ -236,7 +236,13 @@ mod tests {
     #[test]
     fn test_sign_transfer() {
         let signer = EvmChainSigner::default();
-        let input = SignerInput::mock_evm(TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)), "1000000000000000000", 21000);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Ethereum),
+            },
+            "1000000000000000000",
+            21000,
+        );
         assert_eq!(
             signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
             "02f8730180843b9aca008504a817c800825208942b5ad5c4795c026514f8317c7a215e218dccd6cf880de0b6b3a764000080c001a0ea6700354e2542e163e08c111d7b1d7e2a9d371a06977c9a79c42783c3237af9a001809a71f1fa2309f204b4ebed1a9e68f0e60ab736b98284727f2d8427ab705f"
@@ -246,7 +252,7 @@ mod tests {
     #[test]
     fn test_sign_token_transfer() {
         let signer = EvmChainSigner::default();
-        let input = SignerInput::mock_evm(TransactionInputType::Transfer(Asset::mock_erc20()), "1000000", 65000);
+        let input = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock_erc20() }, "1000000", 65000);
         assert_eq!(
             signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
             "02f8b00180843b9aca008504a817c80082fde894a0b86a33e6441066d64bb38954e41f6b4b925c5980b844a9059cbb0000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cf00000000000000000000000000000000000000000000000000000000000f4240c001a09ca8ae6c1d3e9a70465ae36e44c4ca9982a0b94c3cb8ec7c56e6a183f2d04f16a02275a147339b8a41e36670cbec2df08df035ea3b403eedd8325b150b53a3d7f4"
@@ -257,14 +263,24 @@ mod tests {
     fn test_sign_nft_transfer() {
         let signer = EvmChainSigner::default();
 
-        let input = SignerInput::mock_evm(TransactionInputType::TransferNft(Asset::from_chain(Chain::Ethereum), NFTAsset::mock()), "0", 100000);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Ethereum),
+                nft_asset: NFTAsset::mock(),
+            },
+            "0",
+            100000,
+        );
         assert_eq!(
             signer.sign_nft_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
             "02f8d10180843b9aca008504a817c800830186a094dac17f958d2ee523a2206206994597c13d831ec780b86442842e0e0000000000000000000000007e5f4552091a69125d5dfcb7b8c2659029395bdf0000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cf0000000000000000000000000000000000000000000000000000000000000001c080a08371f982a5384532d5ac3336a174239f571cd75663ddc1d6f3892a59c940c983a035902737dfc2f2af6df4244e741f652f4d764230aecf9d5a910d0d027dc4238d"
         );
 
         let input = SignerInput::mock_evm(
-            TransactionInputType::TransferNft(Asset::from_chain(Chain::Ethereum), NFTAsset::mock_with_type(NFTType::ERC1155)),
+            TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Ethereum),
+                nft_asset: NFTAsset::mock_with_type(NFTType::ERC1155),
+            },
             "0",
             100000,
         );
@@ -277,7 +293,14 @@ mod tests {
     #[test]
     fn test_sign_token_approval() {
         let signer = EvmChainSigner::default();
-        let input = SignerInput::mock_evm(TransactionInputType::TokenApprove(Asset::from_chain(Chain::Ethereum), ApprovalData::mock()), "0", 65000);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::TokenApprove {
+                asset: Asset::from_chain(Chain::Ethereum),
+                approval_data: ApprovalData::mock(),
+            },
+            "0",
+            65000,
+        );
         assert_eq!(
             signer.sign_token_approval(&input, &TEST_PRIVATE_KEY).unwrap(),
             "02f8b00180843b9aca008504a817c80082fde894dac17f958d2ee523a2206206994597c13d831ec780b844095ea7b30000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc001a02fde3a01cfa4c2349782fa026932003f5eae7077763db75b31be593e7c15f4a3a048071a05fccf3905cb59be79fc9a0442d801907506193c158858cd6b7ef31fa3"
@@ -297,7 +320,11 @@ mod tests {
             },
         };
         let input = SignerInput::mock_evm(
-            TransactionInputType::Swap(Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Ethereum), swap_data),
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Ethereum),
+                swap_data,
+            },
             "1000000000000000000",
             200000,
         );
@@ -322,7 +349,11 @@ mod tests {
             },
         };
         let input = SignerInput::mock_evm(
-            TransactionInputType::Swap(Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Ethereum), swap_data),
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Ethereum),
+                swap_data,
+            },
             "0",
             65000,
         );
@@ -349,7 +380,10 @@ mod tests {
             )),
         };
         let input = SignerInput::mock_evm_with_metadata(
-            TransactionInputType::Stake(Asset::from_chain(Chain::Ethereum), StakeType::Stake(DelegationValidator::mock())),
+            TransactionInputType::Stake {
+                asset: Asset::from_chain(Chain::Ethereum),
+                stake_type: StakeType::Stake(DelegationValidator::mock()),
+            },
             "1000000000000000000",
             200000,
             metadata,
@@ -367,7 +401,11 @@ mod tests {
         let signer = EvmChainSigner::default();
         let extra = TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]);
         let input = SignerInput::mock_evm(
-            TransactionInputType::Generic(Asset::from_chain(Chain::Ethereum), ApplicationMetadata::mock(), extra),
+            TransactionInputType::Generic {
+                asset: Asset::from_chain(Chain::Ethereum),
+                metadata: ApplicationMetadata::mock(),
+                extra,
+            },
             "0",
             100000,
         );
@@ -381,11 +419,11 @@ mod tests {
     fn test_sign_earn() {
         let signer = EvmChainSigner::default();
         let input = SignerInput::mock_evm(
-            TransactionInputType::Earn(
-                Asset::from_chain(Chain::Ethereum),
-                primitives::EarnType::Deposit(DelegationValidator::mock()),
-                ContractCallData::mock(),
-            ),
+            TransactionInputType::Earn {
+                asset: Asset::from_chain(Chain::Ethereum),
+                earn_type: primitives::EarnType::Deposit(DelegationValidator::mock()),
+                data: ContractCallData::mock(),
+            },
             "0",
             200000,
         );
@@ -406,7 +444,11 @@ mod tests {
             ..ContractCallData::mock()
         };
         let input = SignerInput::mock_evm(
-            TransactionInputType::Earn(Asset::from_chain(Chain::Ethereum), primitives::EarnType::Deposit(DelegationValidator::mock()), earn_data),
+            TransactionInputType::Earn {
+                asset: Asset::from_chain(Chain::Ethereum),
+                earn_type: primitives::EarnType::Deposit(DelegationValidator::mock()),
+                data: earn_data,
+            },
             "0",
             65000,
         );
@@ -426,7 +468,9 @@ mod tests {
     fn test_invalid_metadata() {
         let signer = EvmChainSigner::default();
         let input = SignerInput::mock_evm_with_metadata(
-            TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
+            TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Ethereum),
+            },
             "1000000000000000000",
             21000,
             TransactionLoadMetadata::None,

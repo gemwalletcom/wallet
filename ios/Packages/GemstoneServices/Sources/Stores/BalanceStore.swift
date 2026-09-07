@@ -51,20 +51,20 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         try store.pinAsset(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), value: pinned)
     }
 
-    private func updateType(_ type: GemBalanceUpdateType) throws -> UpdateBalanceType {
+    private func updateType(_ type: GemBalanceUpdateType) -> UpdateBalanceType {
         switch type {
         case let .coin(available, frozen, reserved, pendingUnconfirmed):
             .coin(UpdateCoinBalance(available: value(available), frozen: value(frozen), reserved: value(reserved), pendingUnconfirmed: value(pendingUnconfirmed)))
         case let .token(available):
             .token(UpdateTokenBalance(available: value(available)))
         case let .stake(staked, pending, rewards, locked, frozen, metadata):
-            try .stake(UpdateStakeBalance(
+            .stake(UpdateStakeBalance(
                 staked: value(staked),
                 pending: value(pending),
                 frozen: value(frozen),
                 locked: value(locked),
                 rewards: value(rewards),
-                metadata: metadata.map { try BalanceMetadata($0) },
+                metadata: metadata.map { $0.map() },
             ))
         case let .earn(balance):
             .earn(UpdateEarnBalance(balance: value(balance)))

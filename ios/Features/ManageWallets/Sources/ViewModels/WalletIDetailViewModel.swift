@@ -9,7 +9,7 @@ import Style
 import SwiftUI
 import enum Gemstone.GemWalletSecret
 import protocol Gemstone.GemWalletServiceProtocol
-import Preferences
+import GemstoneServices
 
 @Observable
 @MainActor
@@ -70,7 +70,7 @@ public final class WalletDetailViewModel {
     }
 
     func addressLink(account: SimpleAccount) -> BlockExplorerLink {
-        BlockExplorerLink(service.addressUrl(chain: account.chain.rawValue, address: account.address))
+        service.addressUrl(chain: account.chain.rawValue, address: account.address).map()
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {

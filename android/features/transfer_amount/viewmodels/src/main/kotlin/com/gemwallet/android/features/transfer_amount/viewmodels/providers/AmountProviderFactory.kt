@@ -27,6 +27,7 @@ class AmountProviderFactory @Inject constructor(
         is AmountParams.Deposit,
         is AmountParams.Withdraw -> AmountTransferProvider(
             params = params,
+            service = service,
             getAssetInfo = getAssetInfo,
             scope = scope,
         )

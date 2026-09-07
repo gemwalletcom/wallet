@@ -1,11 +1,11 @@
 package com.gemwallet.android.application.wallet_connect
 
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.WalletConnectionSession
 import uniffi.gemstone.GemSessionApproval
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemChainServiceInterface
+import com.gemwallet.android.ext.toGem
 
 fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
     val metadata = metadata ?: return null
@@ -14,9 +14,9 @@ fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInt
             topic = topic,
             accounts = namespaces.values.flatMap { it.accounts },
             expireAt = expiry,
-            metadata = metadata.toJson(),
+            metadata = metadata.toGem(),
         )
-    }.getOrNull()?.decodeJson()
+    }.getOrNull()?.toPrimitives()
 }
 
 fun GemSessionApproval.toSupportedNamespaces(chainService: GemChainServiceInterface): Map<String, WalletConnectSessionNamespace> {

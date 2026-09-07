@@ -5,10 +5,9 @@ import GemstonePrimitives
 import GemstoneServices
 import GemstoneServicesTestKit
 import protocol Gemstone.GemNameServiceProtocol
+import enum Gemstone.GemWalletImportKind
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
-import Preferences
-import PreferencesTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit
@@ -27,13 +26,13 @@ struct ImportWalletSceneViewModelTests {
 
         let walletA = try await service.importWallet(
             name: "Wallet A",
-            type: .single(words: LocalKeystore.words, chain: .ethereum),
+            type: .singlePhrase(words: LocalKeystore.words, chain: Primitives.Chain.ethereum.map()),
             source: .import,
         ).wallet
 
         let walletB = try await service.importWallet(
             name: "Wallet B",
-            type: .single(words: service.createWallet(), chain: .ethereum),
+            type: .singlePhrase(words: service.createWallet(), chain: Primitives.Chain.ethereum.map()),
             source: .import,
         ).wallet
         try await session.setCurrent(wallet: walletB)
@@ -63,7 +62,7 @@ struct ImportWalletSceneViewModelTests {
         #expect(nameService.requestedNames == ["vitalik.eth"])
     }
 
-    private func enterName(in model: ImportWalletSceneViewModel, importType: WalletImportType) async throws {
+    private func enterName(in model: ImportWalletSceneViewModel, importType: GemWalletImportKind) async throws {
         model.importType = importType
         model.onChangeInput("", newValue: "vitalik.eth")
         try await Task.sleep(for: .milliseconds(500))

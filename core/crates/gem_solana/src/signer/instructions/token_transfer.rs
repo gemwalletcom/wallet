@@ -99,7 +99,7 @@ mod tests {
     fn test_sign_token_transfer() {
         let signer = SolanaChainSigner;
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(123456u64),
@@ -133,7 +133,7 @@ mod tests {
             AssetType::SPL2022,
         );
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(spl2022_asset),
+            input_type: TransactionInputType::Transfer { asset: spl2022_asset },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(7u64),
@@ -153,7 +153,7 @@ mod tests {
 
         let mismatched_asset = Asset::mock_spl_token();
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(mismatched_asset),
+            input_type: TransactionInputType::Transfer { asset: mismatched_asset },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(7u64),
@@ -169,7 +169,7 @@ mod tests {
         );
 
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(123456u64),
@@ -199,7 +199,7 @@ mod tests {
             &references,
         );
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(123456u64),

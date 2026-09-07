@@ -5,6 +5,7 @@ import Localization
 import Primitives
 import Style
 import SwiftUI
+import struct Gemstone.SimulationPayloadField
 
 public struct SimulationPayloadDetailsScene: View {
     @Environment(\.dismiss) private var dismiss

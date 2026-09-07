@@ -27,8 +27,8 @@ pub use types::{BitcoinSignDataResponse, BitcoinSignMessageData};
 pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionLoadInput) -> Result<TransactionFee, SignerError> {
     let signer_input = SignerInput::new(input.clone(), input.default_fee());
     let request = match &input.input_type {
-        TransactionInputType::Transfer(_) => planner::SpendRequest::transfer(chain, &signer_input)?,
-        TransactionInputType::Swap(_, _, _) => planner::SpendRequest::swap(chain, &signer_input)?,
+        TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => planner::SpendRequest::transfer(chain, &signer_input)?,
+        TransactionInputType::Swap { .. } => planner::SpendRequest::swap(chain, &signer_input)?,
         _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
     };
     let plan = planner::UtxoPlanner::plan(request)?;

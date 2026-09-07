@@ -12,15 +12,15 @@ pub(crate) const TEMPO_TEST_ADDRESS: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d27
 #[cfg(feature = "signer")]
 pub(crate) const TEMPO_TEST_ROUTER_ADDRESS: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91";
 pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionInputType {
-    TransactionInputType::Generic(
-        TEMPO_PATHUSD.clone(),
-        ApplicationMetadata::mock(),
-        TransferDataExtra {
+    TransactionInputType::Generic {
+        asset: TEMPO_PATHUSD.clone(),
+        metadata: ApplicationMetadata::mock(),
+        extra: TransferDataExtra {
             to: to.to_string(),
             data: Some(data),
             ..TransferDataExtra::mock()
         },
-    )
+    }
 }
 
 #[cfg(feature = "signer")]
@@ -29,10 +29,10 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, appro
     let gas_limit = if has_approval { TOKEN_TRANSFER_GAS_LIMIT } else { DEFAULT_SWAP_GAS_LIMIT };
     let swap_data = SwapData::mock();
     let mut input = SignerInput::mock_evm_with_metadata(
-        TransactionInputType::Swap(
+        TransactionInputType::Swap {
             from_asset,
-            TEMPO_PATHUSD.clone(),
-            SwapData {
+            to_asset: TEMPO_PATHUSD.clone(),
+            swap_data: SwapData {
                 data: SwapQuoteData {
                     to: TEMPO_TEST_ROUTER_ADDRESS.to_string(),
                     data: "abcd".to_string(),
@@ -42,7 +42,7 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, appro
                 },
                 ..swap_data
             },
-        ),
+        },
         "0",
         gas_limit,
         TransactionLoadMetadata::mock_evm(0, Chain::Tempo.network_id().parse().unwrap()),

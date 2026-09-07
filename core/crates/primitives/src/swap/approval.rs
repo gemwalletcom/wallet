@@ -1,12 +1,10 @@
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, serialize_biguint, serialize_option_biguint};
-use typeshare::typeshare;
 
 use crate::{SwapProvider, TransactionState};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ApprovalData {
     pub token: String,
@@ -17,15 +15,22 @@ pub struct ApprovalData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum SwapQuoteDataType {
     Contract,
     Transfer,
 }
 
+impl SwapQuoteDataType {
+    pub fn has_fixed_value(&self) -> bool {
+        match self {
+            Self::Contract => true,
+            Self::Transfer => false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SwapQuoteData {
     pub to: String,
@@ -69,7 +74,6 @@ impl SwapQuoteData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SwapData {
     pub quote: SwapQuote,
@@ -77,7 +81,6 @@ pub struct SwapData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SwapQuote {
     pub from_address: String,
@@ -95,7 +98,6 @@ pub struct SwapQuote {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SwapProviderData {
     pub provider: SwapProvider,

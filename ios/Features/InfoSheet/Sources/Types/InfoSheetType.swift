@@ -29,6 +29,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case accountMinimalBalance(Asset, required: BigInt)
     /// stake / perpetual / earn
     case minimumAmount(Asset, required: BigInt, action: InfoSheetAction)
+    case swapMinimumAmount(Asset, providerName: String, image: AssetImage, requirement: BalanceRequirement, price: Price?, currency: String, button: InfoSheetButton)
     // stake
     case stakingReservedFees(image: AssetImage)
     case pendingUnconfirmedBalance
@@ -63,6 +64,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         case let .assetStatus(status): "assetStatus_\(status.rawValue)"
         case let .accountMinimalBalance(asset, amount): "accountMinimalBalance_\(asset.id.identifier)\(amount)"
         case let .minimumAmount(asset, amount, _): "minimumAmount_\(asset.id.identifier)\(amount)"
+        case let .swapMinimumAmount(asset, provider, _, requirement, _, _, _): "swapMinimumAmount_\(asset.id.identifier)\(provider)\(requirement.required)"
         case .stakingReservedFees: "stakingReservedFees"
         case .pendingUnconfirmedBalance: "pendingUnconfirmedBalance"
         case .stakeFrozenRequired: "stakeFrozenRequired"

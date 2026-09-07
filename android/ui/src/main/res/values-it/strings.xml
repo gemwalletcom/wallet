@@ -388,9 +388,9 @@
   <string name="fee_rates_info">La velocità della transazione è determinata dalla tariffa di rete pagata ai minatori della rete.</string>
   <string name="fee_rates_fast">Veloce</string>
   <string name="fee_rates_normal">Normale</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizzato</string>
   <string name="banner_account_activation_title">Commissione di attivazione del conto</string>
   <string name="banner_account_activation_description">La rete %1$s richiede una tariffa una tantum di %2$s.</string>
@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Il tasso annualizzato al quale le posizioni long pagano le posizioni short (se negativo, le posizioni short pagano le posizioni long). Non sono previste commissioni associate al finanziamento, che è un trasferimento peer-to-peer tra utenti per spingere i prezzi verso il prezzo spot.</string>
   <string name="info_minimum_amount_title">Importo minimo</string>
   <string name="info_minimum_amount_description">Sulla rete %1$s, l\'importo minimo per questa transazione è %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s richiede almeno %2$s, ma l\'importo è %3$s. Aumentalo di %4$s per continuare.</string>
   <string name="input_enter_amount_to">Inserisci l\'importo in %1$s</string>
   <string name="nft_properties">Proprietà</string>
   <string name="nft_collections">Collezioni</string>

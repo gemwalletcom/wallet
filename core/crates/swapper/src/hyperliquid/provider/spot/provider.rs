@@ -306,6 +306,7 @@ mod tests {
             id: asset.id.to_string(),
             symbol: asset.symbol.clone(),
             decimals: asset.decimals as u32,
+            asset_type: asset.asset_type.clone(),
         }
     }
 

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemKeystoreAuthentication
 import GemstoneServices
 import Localization
@@ -10,28 +11,28 @@ import SwiftUI
 
 struct ConfirmButtonViewModel: StateButtonViewable {
     private let onAction: @MainActor @Sendable () -> Void
-    private let state: StateViewType<ConfirmTransferInput>
+    private let button: GemConfirmButton
     private let authentication: GemKeystoreAuthentication?
-    private let isDisabled: Bool
 
     init(
-        state: StateViewType<ConfirmTransferInput>,
+        button: GemConfirmButton,
         authentication: GemKeystoreAuthentication?,
-        isDisabled: Bool = false,
         onAction: @MainActor @Sendable @escaping () -> Void,
     ) {
-        self.state = state
+        self.button = button
         self.authentication = authentication
-        self.isDisabled = isDisabled
         self.onAction = onAction
     }
 
     var title: String {
-        state.isError ? Localized.Common.tryAgain : Localized.Transfer.confirm
+        switch button.kind {
+        case .confirm: Localized.Transfer.confirm
+        case .retry: Localized.Common.tryAgain
+        }
     }
 
     var icon: Image? {
-        guard !state.isError, state.value?.transferAmount.isSuccess == true,
+        guard button.kind == .confirm, button.state == .enabled,
               let authentication,
               let systemName = KeystoreAuthenticationViewModel(authentication: authentication).authenticationImage
         else { return nil }
@@ -39,8 +40,11 @@ struct ConfirmButtonViewModel: StateButtonViewable {
     }
 
     var type: ButtonType {
-        let isDisabled = isDisabled || state.value?.transferAmount.isFailure == true
-        return .primary(state, isDisabled: isDisabled)
+        switch button.state {
+        case .disabled: .primary(.disabled)
+        case .loading: .primary(.loading())
+        case .enabled: .primary(.normal)
+        }
     }
 
     func action() {

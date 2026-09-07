@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +10,6 @@ import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -108,7 +108,7 @@ class PriceAlertViewModel @Inject constructor(
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
         val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
-        runCatchingCancellable { service.deletePriceAlerts(listOf(alert.priceAlert.toJson())) }
+        runCatchingCancellable { service.deletePriceAlerts(listOf(alert.priceAlert.toGem())) }
             .onFailure { Log.e(TAG, "deleting the price alert for ${alert.assetId.toIdentifier()} failed", it) }
     }
 

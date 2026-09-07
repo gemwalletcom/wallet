@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import typealias Gemstone.Chain
 import Components
 import Primitives
 import Style
@@ -51,9 +50,10 @@ public struct TransactionView: View {
         createdAt: Date(),
     )
     let pendingTransactionExtendedMock = TransactionExtended(
+        recordId: 1,
         transaction: pendingTransactionMock,
-        asset: .init(.smartChain),
-        feeAsset: .init(.smartChain),
+        asset: Primitives.Chain.smartChain.asset,
+        feeAsset: Primitives.Chain.smartChain.asset,
         price: nil,
         feePrice: nil,
         assets: [],

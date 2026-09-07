@@ -32,9 +32,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemAssetBalance
-import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountType
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
 
@@ -49,7 +47,6 @@ class AmountPerpetualProvider(
 ) : AmountDataProvider(scope) {
 
     override val title: AmountTitle = AmountTitle.Perpetual(params.positionAction)
-    override val canSwitchInputType: Boolean = false
 
     private val isOpenAction: Boolean =
         params.positionAction is GemPerpetualPositionAction.Open
@@ -137,14 +134,8 @@ class AmountPerpetualProvider(
     override val amountType: StateFlow<GemAmountType?> = combine(
         perpetual.filterNotNull(),
         leverageState,
-    ) { current, state ->
-        val position = when (val action = params.positionAction) {
-            is GemPerpetualPositionAction.Reduce -> GemAmountPerpetualPosition.Reduce(action.available)
-            is GemPerpetualPositionAction.Increase -> GemAmountPerpetualPosition.Increase
-            is GemPerpetualPositionAction.Open -> GemAmountPerpetualPosition.Open
-        }
-        val leverage = state?.current ?: params.positionAction.data.leverage.toInt()
-        GemAmountType.Perpetual(position = position, price = current.price, leverage = leverage.toUByte(), sizeDecimals = current.asset.decimals)
+    ) { _, state ->
+        service.perpetualAmountType(params.positionAction, (state?.current ?: params.positionAction.data.leverage.toInt()).toUByte())
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()

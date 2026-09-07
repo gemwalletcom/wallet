@@ -1,6 +1,7 @@
 pub mod model;
 pub mod quote;
 pub mod rules;
+pub mod session;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -14,6 +15,7 @@ use crate::services::assets::GemAssetsService;
 
 pub use model::GemFiatAmountCheck;
 pub use quote::GemFiatQuoteService;
+pub use session::{GemFiatButtonAction, GemFiatButtonState, GemFiatOperation, GemFiatQuotePhase, GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
 pub use store::GemFiatStore;
 
 const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
@@ -47,7 +49,7 @@ impl GemFiatService {
         let transactions = self.api.client.get_fiat_transactions(wallet_id.id()).await.map_err(GemApiError::from)?;
         let asset_ids = transactions.iter().map(|data| data.transaction.asset_id.clone()).collect();
         self.assets.sync_missing_assets(asset_ids).await?;
-        self.store.save_transactions(wallet_id, transactions).await
+        self.store.set_transactions(wallet_id, transactions).await
     }
 
     pub async fn get_quotes(&self, wallet_id: WalletId, quote_type: FiatQuoteType, asset_id: AssetId, amount: f64, currency: Currency) -> Result<Vec<FiatQuote>, GemServiceError> {

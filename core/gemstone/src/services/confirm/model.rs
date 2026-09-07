@@ -1,13 +1,11 @@
-use serde::{Deserialize, Serialize};
-
 use super::error::GemConfirmError;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
-use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::GemTransferAmount;
+use primitives::AssetPrice;
 use primitives::{
     Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, SimulationWarning,
     Transaction, Wallet,
@@ -15,7 +13,7 @@ use primitives::{
 
 pub type GemAccount = Account;
 
-#[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmInput {
     pub from: GemAccount,
     pub transfer: GemTransferData,
@@ -90,20 +88,20 @@ pub enum GemAcquireAssetFlow {
 pub struct GemConfirmMetadata {
     pub asset_balance: GemAssetBalance,
     pub fee_asset_balance: GemAssetBalance,
-    pub prices: Vec<GemAssetPrice>,
+    pub prices: Vec<AssetPrice>,
 }
 
 #[uniffi::export]
 impl GemConfirmMetadata {
-    pub fn price(&self, asset_id: AssetId) -> Option<GemAssetPrice> {
+    pub fn price(&self, asset_id: AssetId) -> Option<AssetPrice> {
         self.prices.iter().find(|price| price.asset_id == asset_id).cloned()
     }
 
-    pub fn asset_price(&self) -> Option<GemAssetPrice> {
+    pub fn asset_price(&self) -> Option<AssetPrice> {
         self.price(self.asset_balance.asset_id.clone())
     }
 
-    pub fn fee_price(&self) -> Option<GemAssetPrice> {
+    pub fn fee_price(&self) -> Option<AssetPrice> {
         self.price(self.fee_asset_balance.asset_id.clone())
     }
 }
@@ -129,7 +127,7 @@ pub struct GemFeeRateRows {
 pub struct GemFeeAsset {
     pub asset: Asset,
     pub balance: GemAssetBalance,
-    pub price: Option<GemAssetPrice>,
+    pub price: Option<AssetPrice>,
 }
 
 impl GemConfirmSimulation {
@@ -145,6 +143,7 @@ impl GemConfirmSimulation {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
+    pub sender: GemAccount,
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,
     pub fee_assets: Vec<GemFeeAsset>,
@@ -168,6 +167,7 @@ pub enum GemTransferAmountResult {
     Error { error: GemConfirmError },
 }
 
+#[derive(Debug, Clone)]
 pub struct GemConfirmFeeLoad {
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,
@@ -207,6 +207,58 @@ pub struct GemConfirmSimulation {
     pub has_critical_warning: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmPhase {
+    Loading,
+    Ready,
+    Confirming,
+    Failed,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmScreen {
+    pub phase: GemConfirmPhase,
+    pub amount_failed: bool,
+    pub has_critical_warning: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmButtonKind {
+    Confirm,
+    Retry,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmButtonState {
+    Disabled,
+    Loading,
+    Enabled,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmButton {
+    pub kind: GemConfirmButtonKind,
+    pub state: GemConfirmButtonState,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemConfirmFeeRow {
+    Loading,
+    Ready,
+    Unavailable,
+}
+
+#[uniffi::export]
+impl GemConfirmScreen {
+    pub fn button(&self) -> GemConfirmButton {
+        super::rules::confirm_button(self)
+    }
+
+    pub fn fee_row(&self) -> GemConfirmFeeRow {
+        super::rules::confirm_fee_row(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -217,7 +269,7 @@ mod tests {
             asset_id: AssetId::from_chain(chain),
             ..GemAssetBalance::mock()
         };
-        let price = |chain: primitives::Chain, value: f64| GemAssetPrice {
+        let price = |chain: primitives::Chain, value: f64| AssetPrice {
             asset_id: AssetId::from_chain(chain),
             price: value,
             price_change_percentage_24h: 0.0,

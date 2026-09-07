@@ -17,8 +17,8 @@ public enum AmountStakeType: Equatable, Hashable, Sendable {
 
 public enum AmountType: Equatable, Hashable, Sendable {
     case transfer(recipient: GemPaymentRecipient)
-    case deposit(recipient: GemPaymentRecipient)
-    case withdraw(recipient: GemPaymentRecipient)
+    case deposit
+    case withdraw
     case stake(AmountStakeType)
     case perpetual(GemPerpetualPositionAction)
     case earn(EarnType)

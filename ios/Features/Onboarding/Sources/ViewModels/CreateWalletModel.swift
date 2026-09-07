@@ -5,7 +5,6 @@ import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
-import Preferences
 import Primitives
 import SwiftUI
 
@@ -72,7 +71,7 @@ extension CreateWalletModel {
         let name = try await service.defaultWalletName(chain: .none)
         let result = try await service.importWallet(
             name: name.name,
-            type: .phrase(words: words, chains: AssetConfiguration.allChains),
+            type: try service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
             source: .create,
         )
         preferences.acceptTerms()

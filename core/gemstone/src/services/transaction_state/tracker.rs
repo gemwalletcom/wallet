@@ -143,7 +143,7 @@ mod tests {
             Ok(None)
         }
 
-        async fn rename_transaction(&self, _wallet_id: WalletId, _transaction_id: TransactionId, _new_transaction_id: TransactionId) -> Result<(), GemServiceError> {
+        async fn update_transaction_hash(&self, _wallet_id: WalletId, _transaction_id: TransactionId, _hash: String) -> Result<(), GemServiceError> {
             Ok(())
         }
 

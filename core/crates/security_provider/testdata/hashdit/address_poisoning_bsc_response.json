@@ -1,0 +1,15 @@
+{
+  "code": "0",
+  "status": "ok",
+  "data": {
+    "target_address": {
+      "is_poisoning": "1",
+      "mimics_user": "1",
+      "mimics_exchange": "0"
+    },
+    "token_address": {},
+    "user_address_input": "0x938915fd4b7c188a21ad73ed655ae1f18c334146",
+    "target_address_input": "0x938915fd4b7c188a211113ed655ae1f18c334146",
+    "token_address_input": ""
+  }
+}

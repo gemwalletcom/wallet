@@ -385,7 +385,7 @@ async fn get_provider_quote(
         response.quote_id,
         asset.clone(),
         provider.name().as_fiat_provider(),
-        request.quote_type.clone(),
+        request.quote_type,
         response.fiat_amount,
         request.currency.clone(),
         response.crypto_amount,

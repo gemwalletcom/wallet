@@ -5,7 +5,6 @@ import Components
 import Foundation
 import GemstoneServices
 import Localization
-import Preferences
 import Store
 
 @Observable

@@ -44,7 +44,7 @@ mod tests {
     fn test_sign_transfer() {
         let signer = SolanaChainSigner;
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_sol()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(42u64),
@@ -91,7 +91,7 @@ mod tests {
         let signer = SolanaChainSigner;
         let private_key = private_key_base58(REFERENCE_TRANSFER_PRIVATE_KEY);
         let transfer = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_sol()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
             sender_address: sender_address_for_key(&private_key),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(42u64),
@@ -111,7 +111,7 @@ mod tests {
     fn test_sign_payment_references() {
         let references = ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny", "7GUcQZQwHHa9GBPhVq7v2LArSsp5VmGXV5zXnQ8Q7N3a"];
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_sol()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(42u64),

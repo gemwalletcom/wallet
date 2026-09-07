@@ -469,9 +469,9 @@ fee_rates_normal = Biasa
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = Kustom
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = APR Pendanaan
 info_perpetual_funding_apr_description = Tingkat tahunan di mana posisi long membayar posisi short (jika negatif, posisi short membayar posisi long). Tidak ada biaya yang terkait dengan pendanaan, yang merupakan transfer peer-to-peer antar pengguna untuk mendorong harga menuju harga spot.
 info_minimum_amount_title = Jumlah Minimum
 info_minimum_amount_description = Di jaringan %@, jumlah minimum untuk transaksi ini adalah %@.
+info_swap_minimum_amount_description = %@ memerlukan minimal %@, tetapi jumlahnya %@. Tambahkan %@ untuk melanjutkan.
 
 # Input
 

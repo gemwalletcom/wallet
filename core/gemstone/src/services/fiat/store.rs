@@ -5,5 +5,5 @@ use primitives::{FiatTransactionData, WalletId};
 #[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemFiatStore: Send + Sync {
-    async fn save_transactions(&self, wallet_id: WalletId, transactions: Vec<FiatTransactionData>) -> Result<(), GemServiceError>;
+    async fn set_transactions(&self, wallet_id: WalletId, transactions: Vec<FiatTransactionData>) -> Result<(), GemServiceError>;
 }

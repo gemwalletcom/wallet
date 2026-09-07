@@ -305,7 +305,7 @@ TypeShare-only `SimulationResult.asset_ids()` should reach mobile without duplic
 A rule that answers for one value is a constructor on that value, not a method on an object with
 nothing in it: `GemSwapQuoteSummary::new(quote)` carries the minimum receive and the ETA of a
 quote, `GemSwapValue::price_impact(receive)` compares two priced amounts, `GemCustomFee::estimate`
-and `GemTransactionSummary::new` do the same for fees and rows. The apps and their tests construct
+and `GemTransactionRow::new` do the same for fees and rows. The apps and their tests construct
 the value; nothing has to be mocked to reach a rule. `GemSwapQuoteService` carried those rules as
 a `new()` with no fields until it became the swap screen's real service — swap, balances,
 preferences and the price stream behind one object — and the rules moved onto their values.
@@ -328,12 +328,17 @@ Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remo
 lists what `just generate-models` maps: `remote` types get `#[uniffi::remote]` and structural
 mappers on both apps; `codes` are string-backed enums that cross as their code and get
 `Primitives.X(core:)` / `.rawValue` on iOS and `toX()` / `toGem()` on Android; `identifiers` are
-hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier`,
-`toX()` / `toIdentifier()`). Before adding a `remote` type, verify that the generator can represent
-its full shape and inspect both generated mappers. It handles fieldless enums; `StakeType` has
-data-carrying variants, so adding it mechanically would produce an incomplete mapping. Keep a single
-JSON bridge at the boundary until the generator supports the type; never add a second app-side
-model or copy policy to avoid that bridge.
+hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier` on iOS,
+the `X(identifier)` constructor / `toIdentifier()` on Android). Before adding a `remote` type,
+verify that the generator can represent its full shape and inspect both generated mappers. It
+handles fieldless enums and records whose fields are scalars, `DateTime<Utc>`, other remote
+types, codes or identifiers, plain or wrapped in `Option` / `Vec`, whatever subdirectory of
+`primitives/src` declares them; a `#[typeshare(skip)]` field
+travels Core → app only and is filled with its empty value on the way back (scalars, `Option`,
+`Vec` and `String` have one; anything else fails generation). `StakeType` has data-carrying
+variants, so adding it mechanically would produce an incomplete mapping. Keep a single JSON bridge at the
+boundary until the generator supports the type; never add a second app-side model or copy policy
+to avoid that bridge.
 
 ## 7. At most one Core service on iOS; narrow cases on Android
 
@@ -808,7 +813,7 @@ details `amount` getter, the confirm screen's `when`), disagreeing on approvals 
 amount) and contract calls (amount vs symbol). `GemTransactionHeaderKind { Amount { shows_fiat }
 | Swap | Nft | Symbol | AssetImage }` comes from `GemTransactionDetailsService::header_kind` for
 a stored transaction (falling back to an amount when swap or NFT metadata is missing) and
-`GemTransactionInputType::header_kind` for a confirm input; the apps only build the header the
+`GemTransferData::header_kind` for a confirm input; the apps only build the header the
 kind names. The Android details amount also takes its sign from Core's row value now, as iOS
 always did.
 
@@ -971,7 +976,7 @@ already had instead of an id the view model looked back up, and iOS's `SelectAss
 raw API pass-throughs (`GemAssetsService::{get_asset, get_assets, search, search_assets}`),
 whole services only ever passed as dependencies (`GemPriceService`), pieces of a flow Core
 already composes (`GemConfirmService::{preload, simulation, fee_assets}`,
-`GemTransactionInputType::{fee_asset, asset_ids, recent_activity}`) and preferences only Core
+`GemTransferData::fee_asset` and the `TransferInput` rules `asset_ids` and `recent_activity`) and preferences only Core
 reads. Each moved to a plain `impl`. The iOS `GemConfirmTransferServiceMock` had been the only
 thing keeping the confirm pieces exported — it recomposed Core's flow from them — so it now
 answers from premises and takes the concrete confirm mock. Re-run the sweep after removing a

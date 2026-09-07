@@ -469,9 +469,9 @@ fee_rates_normal = Bình thường
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = Tùy chỉnh
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = APR tài trợ
 info_perpetual_funding_apr_description = Tỷ lệ hàng năm mà người mua trả tiền cho người bán (nếu âm, người bán trả tiền cho người mua). Không có phí liên quan đến tài trợ, đó là chuyển khoản ngang hàng giữa những người dùng để đẩy giá về giá giao ngay.
 info_minimum_amount_title = Số tiền tối thiểu
 info_minimum_amount_description = Trên mạng %@, số tiền tối thiểu cho giao dịch này là %@.
+info_swap_minimum_amount_description = %@ yêu cầu tối thiểu %@, nhưng số tiền là %@. Hãy tăng thêm %@ để tiếp tục.
 
 # Input
 

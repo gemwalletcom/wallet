@@ -5,10 +5,11 @@ import androidx.annotation.StringRes
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.linkType
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.LinkType
-import uniffi.gemstone.linkTypeOrder
+import uniffi.gemstone.GemSocialLinks
 
 class SocialLinkUIModel(
     val type: String,
@@ -18,8 +19,9 @@ class SocialLinkUIModel(
     val host: String? = null,
 )
 
-fun List<AssetLink>.toSocialLinks(): List<SocialLinkUIModel> = sortedByDescending { it.linkType?.order ?: 0 }
-    .mapNotNull(AssetLink::toSocialLink)
+fun List<AssetLink>.toSocialLinks(): List<SocialLinkUIModel> = GemSocialLinks(map { it.toGem() })
+    .sorted()
+    .mapNotNull { it.toPrimitives().toSocialLink() }
 
 private fun AssetLink.toSocialLink(): SocialLinkUIModel? {
     val linkType = linkType ?: return null
@@ -69,6 +71,3 @@ private val LinkType.icon: Int
         LinkType.CoinMarketCap -> R.drawable.coinmarketcap
         LinkType.TikTok -> R.drawable.tiktok
     }
-
-private val LinkType.order: Int
-    get() = linkTypeOrder(toGem())

@@ -1,11 +1,10 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, BannerEvent, Chain, Deeplink, VerificationStatus};
+use primitives::{Asset, AssetId, AssetMetaData, BannerEvent, Chain, Deeplink, VerificationStatus, WalletType};
 
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::deeplink::GemDeeplinkService;
-use crate::services::balance::GemBalanceService;
+use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -14,10 +13,11 @@ use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::swap::{GemSwapPairSuggestion, GemSwapService};
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_session::GemWalletSessionService;
+use primitives::BlockExplorerLink;
 
 use crate::services::failures::{StepFailure, record};
 
-use super::{GemAssetNetworkDestination, GemAssetsService, rules};
+use super::{GemAssetDetailsState, GemAssetNetworkDestination, GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetRefreshStep {
@@ -160,6 +160,19 @@ impl GemAssetDetailsService {
         rules::verification_status(&asset, rank)
     }
 
+    pub fn state(
+        &self,
+        wallet_type: WalletType,
+        chain: Chain,
+        metadata: AssetMetaData,
+        balance: GemAssetBalance,
+        banner_events: Vec<BannerEvent>,
+        has_price: bool,
+        price_alerts_count: u32,
+    ) -> GemAssetDetailsState {
+        rules::details_state(wallet_type, chain, &metadata, &balance, &banner_events, has_price, price_alerts_count)
+    }
+
     pub fn swap_pair(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
         self.swap.pair_for_asset(asset_id, has_balance)
     }
@@ -168,11 +181,11 @@ impl GemAssetDetailsService {
         self.explorer.get_explorer_name(chain)
     }
 
-    pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
+    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }
 
-    pub fn token_url(&self, chain: Chain, address: String) -> Option<GemBlockExplorerLink> {
+    pub fn token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
         self.explorer.get_token_url(chain, address)
     }
 

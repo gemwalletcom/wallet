@@ -5,6 +5,8 @@ import Localization
 @testable import Primitives
 import PrimitivesTestKit
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import struct Gemstone.GemConfirmPreload
 import Testing
 @testable import Transfer
 import TransferTestKit
@@ -26,7 +28,7 @@ struct ConfirmErrorViewModelTests {
 
     @Test
     func transferFailure() {
-        let input = ConfirmTransferInput.mock(transferAmount: .failure(.InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: 1, available: 0, shortfall: 1))))
+        let input = GemConfirmPreload.mock(amount: .error(error: .InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: 1, available: 0, shortfall: 1))))
         let state = ConfirmTransferState.mock(transaction: .data(input))
         let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })
 

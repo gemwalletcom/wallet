@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui
 
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
@@ -21,7 +22,6 @@ import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import android.util.Log
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAppStartServiceInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +106,7 @@ class AppViewModel @Inject constructor(
                 .filterNotNull()
                 .distinctUntilChangedBy { it.wallet.id }
                 .collectLatest { session ->
-                    appStartService.setupWallet(session.wallet.toJson()).forEach { failure ->
+                    appStartService.setupWallet(session.wallet.toGem()).forEach { failure ->
                         Log.e(TAG, "${failure.step} failed: ${failure.message}")
                     }
                 }

@@ -3,6 +3,7 @@
 import BigInt
 import Components
 import struct Gemstone.GemAssetBalance
+import struct Gemstone.GemAssetDetailsState
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
 import enum Gemstone.GemBalanceRow
@@ -14,7 +15,6 @@ import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -121,20 +121,20 @@ public final class AssetSceneViewModel: Sendable {
         #endif
     }
 
-    var showResources: Bool {
-        assetDataModel.showResources
+    var detailsState: GemAssetDetailsState {
+        service.state(
+            walletType: wallet.type.map(),
+            chain: asset.chain.rawValue,
+            metadata: assetData.metadata.map(),
+            balance: stakeBalance,
+            bannerEvents: visibleBanners.map { $0.event.map() },
+            hasPrice: assetDataModel.isPriceAvailable,
+            priceAlertsCount: UInt32(assetData.priceAlerts.count),
+        )
     }
 
     var showTransactions: Bool {
         transactions.isNotEmpty
-    }
-
-    var showManageToken: Bool {
-        !assetData.metadata.isBalanceEnabled
-    }
-
-    var canSign: Bool {
-        wallet.canSign
     }
 
     var pinText: String {
@@ -163,7 +163,7 @@ public final class AssetSceneViewModel: Sendable {
 
     var showEarnButton: Bool {
         #if DEBUG
-            assetData.metadata.isEarnEnabled && !wallet.isViewOnly && !balanceRows.contains { if case .earn = $0 { true } else { false } }
+            detailsState.showsEarn
         #else
             false
         #endif
@@ -181,10 +181,11 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
-        let buy = assetData.metadata.isBuyEnabled ? onSelectBuy : nil
-        let swap = buy == nil && assetData.metadata.isSwapEnabled ? onSelectSwap : nil
+        let state = detailsState
+        let buy: (() -> Void)? = state.emptyTransactionsAction == .buy ? { self.onSelectBuy() } : nil
+        let swap: (() -> Void)? = state.emptyTransactionsAction == .swap ? { self.onSelectSwap() } : nil
         return EmptyContentTypeViewModel(
-            type: .asset(symbol: assetModel.symbol, buy: buy, swap: swap, isViewOnly: wallet.isViewOnly),
+            type: .asset(symbol: assetModel.symbol, buy: buy, swap: swap, isViewOnly: state.isViewOnly),
         )
     }
 
@@ -206,7 +207,7 @@ public final class AssetSceneViewModel: Sendable {
 
     private var bannerContext: GemBannerContext {
         GemBannerContext(
-            wallet: wallet.json(),
+            wallet: wallet.map(),
             hasAsset: true,
             isStakeable: assetData.metadata.isStakeEnabled,
             hasStakeBalance: stakedValue > .zero,
@@ -218,11 +219,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var assetHeaderModel: AssetHeaderViewModel {
-        AssetHeaderViewModel(
-            assetDataModel: assetDataModel,
-            walletModel: walletModel,
-            bannerEventsViewModel: HeaderBannerEventViewModel(events: visibleBanners.map(\.event)),
-        )
+        AssetHeaderViewModel(assetDataModel: assetDataModel, state: detailsState)
     }
 
     public var shareAssetUrl: URL {
@@ -247,10 +244,6 @@ public final class AssetSceneViewModel: Sendable {
 
     public var priceAlertsImage: Image {
         Image(systemName: priceAlertsSystemImage)
-    }
-
-    public var showPriceAlerts: Bool {
-        priceAlertsViewModel.hasPriceAlerts && assetDataModel.isPriceAvailable
     }
 
     public var menuItems: [ActionMenuItemType] {
@@ -315,7 +308,7 @@ public extension AssetSceneViewModel {
         let selectType: SelectedAssetType = switch buttonType {
         case .buy: .buy(assetData.asset, amount: nil)
         case .sell: .sell(assetData.asset, amount: nil)
-        case .send: .send(.asset(assetData.asset))
+        case .send: .send(.asset(asset: assetData.asset.map()))
         case .swap: swapAssetType
         case .receive: .receive(.asset)
         case .stake: .stake(assetData.asset)
@@ -465,11 +458,11 @@ extension AssetSceneViewModel {
         guard let tokenId = assetModel.asset.tokenId else {
             return .none
         }
-        return service.tokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
+        return service.tokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { $0.map() }
     }
 
     private var addressLink: BlockExplorerLink {
-        BlockExplorerLink(service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
+        service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address).map()
     }
 
     private var stakeBalance: GemAssetBalance {

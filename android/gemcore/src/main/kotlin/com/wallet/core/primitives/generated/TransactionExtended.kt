@@ -9,6 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class TransactionExtended (
+	val recordId: Long,
 	val transaction: Transaction,
 	val asset: Asset,
 	val feeAsset: Asset,

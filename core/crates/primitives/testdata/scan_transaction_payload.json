@@ -1,0 +1,11 @@
+{
+  "origin": {
+    "assetId": "smartchain",
+    "address": "0x938915fd4b7c188a21ad73ed655ae1f18c334146"
+  },
+  "target": {
+    "assetId": "smartchain",
+    "address": "0x45BeBa0913382F5371E288f08E841FEfb01355B6"
+  },
+  "type": "transfer"
+}

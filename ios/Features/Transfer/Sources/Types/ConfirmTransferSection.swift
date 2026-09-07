@@ -6,6 +6,8 @@ import Primitives
 import PrimitivesComponents
 import Swap
 import SwiftUI
+import struct Gemstone.SimulationPayloadField
+import struct Gemstone.SimulationWarning
 
 enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case header

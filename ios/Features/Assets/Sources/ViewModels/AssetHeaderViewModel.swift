@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemAssetDetailsState
 import Primitives
 import PrimitivesComponents
 import Style
@@ -9,13 +10,12 @@ import SwiftUI
 
 struct AssetHeaderViewModel {
     let assetDataModel: AssetDataViewModel
-    let walletModel: WalletViewModel
-    let bannerEventsViewModel: HeaderBannerEventViewModel
+    let state: GemAssetDetailsState
 }
 
 extension AssetHeaderViewModel: ValueHeaderViewModel {
     var isWatchWallet: Bool {
-        walletModel.wallet.type == .view
+        state.isViewOnly
     }
 
     var assetImage: AssetImage? {
@@ -38,17 +38,6 @@ extension AssetHeaderViewModel: ValueHeaderViewModel {
     }
 
     var buttons: [HeaderButton] {
-        let values: [(type: HeaderButtonType, isShown: Bool, isEnabled: Bool)] = [
-            (HeaderButtonType.send, true, bannerEventsViewModel.isButtonsEnabled),
-            (HeaderButtonType.receive, true, bannerEventsViewModel.isButtonsEnabled),
-            (HeaderButtonType.buy, assetDataModel.isBuyEnabled, bannerEventsViewModel.isButtonsEnabled),
-            (HeaderButtonType.swap, assetDataModel.isSwapEnabled, bannerEventsViewModel.isButtonsEnabled),
-        ]
-        return values.compactMap {
-            if $0.isShown {
-                return HeaderButton(type: $0.type, isEnabled: $0.isEnabled)
-            }
-            return .none
-        }
+        state.headerButtons.map { HeaderButton(type: $0.kind.headerButtonType, isEnabled: $0.isEnabled) }
     }
 }

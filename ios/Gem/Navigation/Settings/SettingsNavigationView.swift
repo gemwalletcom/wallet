@@ -4,7 +4,6 @@ import Contacts
 import GemstoneServices
 import InAppNotifications
 import MarketInsight
-import Preferences
 import PriceAlerts
 import Primitives
 import PrimitivesComponents

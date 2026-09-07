@@ -8,12 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class RedelegateData (
-	val delegation: Delegation,
-	val toValidator: DelegationValidator
-)
-
-@Serializable
 enum class Resource(val string: String) {
 	@SerialName("bandwidth")
 	Bandwidth("bandwidth"),
@@ -32,31 +26,6 @@ data class TronVote (
 	val validator: String,
 	val count: Long
 )
-
-@Serializable
-sealed class StakeType {
-	@Serializable
-	@SerialName("Stake")
-	data class Stake(val content: DelegationValidator): StakeType()
-	@Serializable
-	@SerialName("Unstake")
-	data class Unstake(val content: Delegation): StakeType()
-	@Serializable
-	@SerialName("Redelegate")
-	data class Redelegate(val content: RedelegateData): StakeType()
-	@Serializable
-	@SerialName("Rewards")
-	data class Rewards(val content: List<DelegationValidator>): StakeType()
-	@Serializable
-	@SerialName("Withdraw")
-	data class Withdraw(val content: Delegation): StakeType()
-	@Serializable
-	@SerialName("Freeze")
-	data class Freeze(val content: Resource): StakeType()
-	@Serializable
-	@SerialName("Unfreeze")
-	data class Unfreeze(val content: Resource): StakeType()
-}
 
 @Serializable
 sealed class TronStakeData {

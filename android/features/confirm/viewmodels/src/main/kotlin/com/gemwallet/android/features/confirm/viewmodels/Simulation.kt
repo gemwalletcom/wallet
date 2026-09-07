@@ -11,8 +11,7 @@ import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Asset
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.SimulationWarning
+import uniffi.gemstone.SimulationWarning
 import java.math.BigInteger
 
 data class Simulation(
@@ -34,7 +33,7 @@ data class SimulationAssetChange(
 fun GemConfirmSimulationState.toSimulation(
     confirmService: GemConfirmTransferServiceInterface,
 ): Simulation {
-    val simulationWarnings = warnings.map { it.decodeJson<SimulationWarning>() }
+    val simulationWarnings = warnings
     val details = simulation ?: return Simulation(warnings = simulationWarnings)
     val header = details.header
     val chain = this.chain.requireChain()
@@ -42,9 +41,9 @@ fun GemConfirmSimulationState.toSimulation(
     return Simulation(
         warnings = simulationWarnings,
         hasCriticalWarning = details.hasCriticalWarning,
-        primaryPayloadFields = details.primaryFields.map { it.toPrimitives() }
+        primaryPayloadFields = details.primaryFields
             .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
-        secondaryPayloadFields = details.secondaryFields.map { it.toPrimitives() }
+        secondaryPayloadFields = details.secondaryFields
             .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
         headerAsset = header?.asset?.toPrimitives(),
         headerValue = (header?.value as? GemApprovalValue.Exact)?.value,

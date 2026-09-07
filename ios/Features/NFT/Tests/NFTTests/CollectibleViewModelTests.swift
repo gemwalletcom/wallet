@@ -10,12 +10,28 @@ import GemstoneServicesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
-import Store
+@testable import Store
 import StoreTestKit
 import Testing
 
 @MainActor
 struct CollectibleViewModelTests {
+    @Test
+    func isSendEnabledOnlyWhileTheWalletHoldsTheAsset() {
+        let assetData = NFTAssetData.mock(asset: .mock(chain: .ethereum))
+        let held = CollectibleViewModel.mock(assetData: assetData)
+        let viewOnly = CollectibleViewModel.mock(wallet: .mock(type: .view), assetData: assetData)
+
+        #expect(held.isSendEnabled == false)
+        held.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
+        #expect(held.isSendEnabled)
+        held.query.value = NFTAssetDetails(assetData: assetData, isOwned: false)
+        #expect(held.isSendEnabled == false)
+
+        viewOnly.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
+        #expect(viewOnly.isSendEnabled == false)
+    }
+
     @Test
     func tokenIdValue() {
         #expect(CollectibleViewModel.mock(assetData: .mock(asset: .mock(tokenId: "12345"))).tokenIdValue == "12345")

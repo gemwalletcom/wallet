@@ -60,9 +60,9 @@ fun DelegationBase.toRecord(walletId: WalletId): DbDelegationBase {
         validatorId = validatorRecordId(chain = assetId.chain, validatorId = validatorId),
         state = state,
         delegationId = delegationId,
-        balance = balance,
-        shares = shares,
-        rewards = rewards,
+        balance = balance.toString(),
+        shares = shares.toString(),
+        rewards = rewards.toString(),
         completionDate = completionDate,
     )
 }

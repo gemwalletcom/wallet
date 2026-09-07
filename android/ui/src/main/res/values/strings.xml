@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Speed of transaction is determined by network fee paid to the network miners.</string>
   <string name="fee_rates_fast">Fast</string>
   <string name="fee_rates_normal">Normal</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Custom</string>
   <string name="banner_account_activation_title">Account Activation Fee</string>
   <string name="banner_account_activation_description">The %1$s network requires a one time fee of %2$s.</string>
@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.</string>
   <string name="info_minimum_amount_title">Minimum Amount</string>
   <string name="info_minimum_amount_description">On the %1$s network, the minimum amount for this transaction is %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s requires a minimum of %2$s, but the amount is %3$s. Increase it by %4$s to continue.</string>
   <string name="input_enter_amount_to">Please enter amount to %1$s</string>
   <string name="nft_properties">Properties</string>
   <string name="nft_collections">Collections</string>

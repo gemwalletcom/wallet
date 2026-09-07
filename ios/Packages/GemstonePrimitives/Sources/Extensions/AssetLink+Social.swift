@@ -8,9 +8,3 @@ public extension AssetLink {
         LinkType(rawValue: name)
     }
 }
-
-public extension [AssetLink] {
-    var sortedByType: [AssetLink] {
-        sorted { ($0.linkType?.order ?? 0) > ($1.linkType?.order ?? 0) }
-    }
-}

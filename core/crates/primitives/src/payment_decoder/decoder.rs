@@ -1,7 +1,13 @@
-use super::error::{PaymentDecoderError, Result};
-use crate::payment::Payment;
+use std::str::FromStr;
 
-use super::{bip21, erc681, solana_pay, ton_pay};
+use super::error::{PaymentDecoderError, Result};
+use crate::{Chain, ChainType, payment::Payment};
+
+use super::{bip21, bip321, erc681, solana_pay, ton_pay, xrp};
+
+const DOGECOIN_SCHEME: &str = "dogecoin";
+const RIPPLE_SCHEME: &str = "ripple";
+const XRPL_SCHEME: &str = "xrpl";
 
 #[derive(Debug)]
 pub struct PaymentURLDecoder;
@@ -9,26 +15,33 @@ pub struct PaymentURLDecoder;
 impl PaymentURLDecoder {
     pub fn decode(string: &str) -> Result<Payment> {
         let uri = string.trim();
-        let payment = Self::decode_uri(uri.split_once('#').map_or(uri, |(uri, _)| uri))?;
-
-        match payment {
-            Payment::Request(request) if request.address.is_empty() => Err(PaymentDecoderError::MissingField("address".to_string())),
-            payment @ (Payment::Request(_) | Payment::Link(_)) => Ok(payment),
-        }
-    }
-
-    fn decode_uri(uri: &str) -> Result<Payment> {
+        let uri = uri.split_once('#').map_or(uri, |(uri, _)| uri);
         let Some((scheme, path)) = uri.split_once(':') else {
             return bip21::decode(None, uri);
         };
-        let scheme = scheme.to_ascii_lowercase();
+        let path = path.strip_prefix("//").unwrap_or(path);
 
-        match scheme.as_str() {
-            erc681::ETHEREUM_SCHEME => erc681::decode(path),
-            solana_pay::SOLANA_PAY_SCHEME => solana_pay::decode(path),
-            ton_pay::TON_PAY_SCHEME => ton_pay::decode(path),
-            _ => bip21::decode(Some(&scheme), path),
+        match get_chain(&scheme.to_ascii_lowercase()).ok_or(PaymentDecoderError::InvalidScheme)? {
+            Chain::Bitcoin => bip321::decode(path),
+            Chain::Ethereum => erc681::decode(path),
+            Chain::Solana => solana_pay::decode(path),
+            Chain::Ton => ton_pay::decode(path),
+            Chain::Xrp => xrp::decode(path),
+            chain => bip21::decode(Some(chain), path),
         }
+    }
+}
+
+fn get_chain(scheme: &str) -> Option<Chain> {
+    let chain = match scheme {
+        DOGECOIN_SCHEME => Chain::Doge,
+        RIPPLE_SCHEME | XRPL_SCHEME => Chain::Xrp,
+        scheme => Chain::from_str(scheme).ok()?,
+    };
+    match chain {
+        Chain::Ethereum | Chain::Solana | Chain::Ton | Chain::Xrp => Some(chain),
+        chain if chain.chain_type() == ChainType::Bitcoin => Some(chain),
+        _ => None,
     }
 }
 
@@ -82,17 +95,18 @@ mod tests {
         assert_eq!(PaymentURLDecoder::decode(&format!("{uri}#note")).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode(&format!("BITCOIN:{BITCOIN_ADDRESS}?amount=0.1")).unwrap(), bitcoin);
 
-        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?AMOUNT=0.1")).unwrap(), address_only);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?AMOUNT=0.1")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:?bc={BITCOIN_ADDRESS}&amount=0.1")).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?amount=&memo=")).unwrap(), address_only);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}")).unwrap(), address_only);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin://{BITCOIN_ADDRESS}")).unwrap(), address_only);
         assert_eq!(
-            PaymentURLDecoder::decode("algorand://TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD").unwrap(),
-            Payment::Request(PaymentRequest {
-                address: "TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD".to_string(),
-                asset_id: Some(AssetId::from_chain(Chain::Algorand)),
-                ..PaymentRequest::mock()
-            })
+            PaymentURLDecoder::decode("dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L").unwrap(),
+            PaymentURLDecoder::decode("doge:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L").unwrap()
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh").unwrap(),
+            PaymentURLDecoder::decode("xrpl:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh").unwrap()
         );
 
         assert_eq!(
@@ -126,10 +140,21 @@ mod tests {
         assert!(PaymentURLDecoder::decode("eip155:1:0xcB3028d6120802148f03d6c884D6AD6A210Df62A").is_err());
         assert!(PaymentURLDecoder::decode("web+stellar:pay?destination=GABC").is_err());
         assert!(PaymentURLDecoder::decode("monero:4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge").is_err());
+        assert!(PaymentURLDecoder::decode("algorand://TIQ4WPFJQYLA5PBQFQZLLBKMDNQFGZDLTKLGPKCUOJPLQZQPQFQZLLBKMD").is_err());
+        assert!(PaymentURLDecoder::decode("polygon:0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326").is_err());
+        assert!(PaymentURLDecoder::decode("cosmos:cosmos1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu").is_err());
 
         assert!(PaymentURLDecoder::decode("bitcoin:").is_err());
         assert!(PaymentURLDecoder::decode("bitcoin:?amount=0.1").is_err());
+        assert!(PaymentURLDecoder::decode("bitcoin:?lightning=lnbc420bogusinvoice").is_err());
+        assert!(PaymentURLDecoder::decode(&format!("litecoin:?bc={BITCOIN_ADDRESS}")).is_err());
+        assert!(PaymentURLDecoder::decode("ripple:?dt=12345").is_err());
         assert!(PaymentURLDecoder::decode("ethereum:").is_err());
+        assert!(PaymentURLDecoder::decode("ethereum:?value=1").is_err());
+        assert!(PaymentURLDecoder::decode("solana:").is_err());
+        assert!(PaymentURLDecoder::decode("solana:?amount=1").is_err());
+        assert!(PaymentURLDecoder::decode("ton:").is_err());
+        assert!(PaymentURLDecoder::decode("ton://transfer/").is_err());
         assert!(PaymentURLDecoder::decode("").is_err());
     }
 }

@@ -1,14 +1,15 @@
 use std::sync::Arc;
 
 use primitives::name::NameRecord;
-use primitives::{Asset, Chain, Wallet};
+use primitives::{Chain, Wallet};
 
-use super::model::GemRecipientError;
+use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientType};
+use super::rules::{next_step, scan_route};
 use crate::GemstoneError;
 use crate::models::payment::GemPayment;
-use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentService, GemPaymentWalletAsset};
+use crate::payment::{GemPaymentDestination, GemPaymentRecipient, GemPaymentService, GemPaymentWalletAsset};
 use crate::services::name::GemNameService;
-use crate::services::transfer::model::{GemRecipient, GemTransferData};
+use crate::services::transfer::model::GemRecipient;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -41,14 +42,30 @@ impl GemRecipientService {
         wallets.into_iter().filter(|wallet| Some(&wallet.id) != current.as_ref()).collect()
     }
 
-    pub fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {
+    pub fn scan(&self, url: String, recipient_type: GemRecipientType) -> Result<GemRecipientScan, GemRecipientError> {
+        let asset = recipient_type.asset();
+        let destination = self
+            .scan_destination(
+                url,
+                GemPaymentWalletAsset {
+                    asset_id: asset.id.clone(),
+                    decimals: asset.decimals,
+                },
+            )
+            .map_err(|_| GemRecipientError::InvalidAddress)?;
+        scan_route(destination, &recipient_type, |transfer| self.payments.transfer_data(transfer, asset))
+    }
+
+    pub fn next(&self, recipient_type: GemRecipientType, payment: GemPaymentRecipient) -> GemRecipientNext {
+        next_step(recipient_type, payment)
+    }
+}
+
+impl GemRecipientService {
+    fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {
         Ok(match self.payments.decode_url(url)? {
             GemPayment::Request(request) => self.payments.transfer_destination(request, asset),
             GemPayment::Link(_) => GemPaymentDestination::Unsupported,
         })
-    }
-
-    pub fn transfer_data(&self, transfer: GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
-        self.payments.transfer_data(transfer, asset)
     }
 }

@@ -9,24 +9,20 @@ import Primitives
 
 public extension Primitives.Banner {
     var gemKey: GemBannerKey {
-        get throws {
-            GemBannerKey(
-                walletId: walletId?.id,
-                assetId: asset?.id.identifier,
-                event: event.map(),
-            )
-        }
+        GemBannerKey(
+            walletId: walletId?.id,
+            assetId: asset?.id.identifier,
+            event: event.map(),
+        )
     }
 }
 
 public extension Primitives.BannerActionType {
     var gemAction: GemBannerAction {
-        get throws {
-            switch self {
-            case let .event(event): .event(event: event.map())
-            case .button: .button
-            case .closeBanner: .close
-            }
+        switch self {
+        case let .event(event): .event(event: event.map())
+        case .button: .button
+        case .closeBanner: .close
         }
     }
 }

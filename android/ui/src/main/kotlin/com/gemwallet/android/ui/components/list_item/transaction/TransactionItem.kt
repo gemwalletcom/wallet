@@ -44,7 +44,7 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import uniffi.gemstone.GemAmountSign
-import uniffi.gemstone.GemTransactionSubtitle
+import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionTitle
 
 @Composable
@@ -171,7 +171,7 @@ fun PreviewTransactionItem() {
                 override val value = "-0.9998888999 BTC"
                 override val equivalentValue: String? = null
                 override val title = GemTransactionTitle.Transfer
-                override val subtitle = GemTransactionSubtitle.ToAddress("btc12312sdfksdjfks")
+                override val subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks", null)
                 override val valueSign = GemAmountSign.OUTGOING
                 override val type = TransactionType.Transfer
                 override val direction = TransactionDirection.Outgoing
@@ -202,7 +202,7 @@ fun PreviewSwapTransactionItem() {
                 override val value = "+19 TON"
                 override val equivalentValue = "-0.09 BNB"
                 override val title = GemTransactionTitle.Swap
-                override val subtitle = GemTransactionSubtitle.None
+                override val subtitle = GemTransactionRowSubtitle.None
                 override val valueSign = GemAmountSign.INCOMING
                 override val type = TransactionType.Swap
                 override val direction = TransactionDirection.Outgoing

@@ -4,78 +4,65 @@ import Components
 import Foundation
 import struct Gemstone.GemTransactionParticipant
 import enum Gemstone.GemTransactionParticipantRole
+import enum Gemstone.Resource
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 
 struct TransactionParticipantViewModel {
-    private let transactionViewModel: TransactionViewModel
     private let participant: GemTransactionParticipant?
+    private let resource: Gemstone.Resource?
+    private let chain: Chain
+    private let memo: String?
     private let onAddContact: ((AddContactType) -> Void)?
 
     init(
-        transactionViewModel: TransactionViewModel,
         participant: GemTransactionParticipant?,
+        resource: Gemstone.Resource?,
+        chain: Chain,
+        memo: String?,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
-        self.transactionViewModel = transactionViewModel
         self.participant = participant
+        self.resource = resource
+        self.chain = chain
+        self.memo = memo
         self.onAddContact = onAddContact
     }
 }
 
-// MARK: - ItemModelProvidable
-
 extension TransactionParticipantViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        switch transactionViewModel.transaction.transaction.type {
-        case .stakeFreeze, .stakeUnfreeze: resourceItemModel
-        case .transfer, .transferNFT, .tokenApproval, .smartContractCall, .stakeDelegate, .earnDeposit, .earnWithdraw,
-             .swap, .stakeUndelegate, .stakeRedelegate, .stakeRewards, .stakeWithdraw, .assetActivation,
-             .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition: participantItemModel
+        if let participant {
+            return participantItemModel(participant)
         }
+        if let resource {
+            return .listItem(ListItemModel(title: Localized.Stake.resource, subtitle: ResourceViewModel(resource: resource.map()).title))
+        }
+        return .empty
     }
 }
 
-// MARK: - Private
-
 extension TransactionParticipantViewModel {
-    private var participantItemModel: TransactionItemModel {
-        guard let participant else { return .empty }
-
-        let addressName = transactionViewModel.getAddressName(address: participant.address)
+    private func participantItemModel(_ participant: GemTransactionParticipant) -> TransactionItemModel {
+        let name = participant.name?.map()
         let account = SimpleAccount(
-            name: addressName?.name,
-            chain: transactionViewModel.transaction.transaction.assetId.chain,
+            name: name?.name,
+            chain: chain,
             address: participant.address,
-            memo: transactionViewModel.transaction.transaction.memo,
+            memo: memo,
             assetImage: nil,
-            addressType: addressName?.type,
+            addressType: name?.type,
         )
-
         return .participant(
             TransactionParticipantItemModel(
                 title: title(for: participant.role),
                 account: account,
-                addressLink: BlockExplorerLink(participant.link),
-                onAddContact: canAddContact(addressName: addressName) ? onAddContact : nil,
+                addressLink: participant.link.map(),
+                onAddContact: participant.canAddContact ? onAddContact : nil,
             ),
         )
-    }
-
-    private func canAddContact(addressName: AddressName?) -> Bool {
-        guard addressName == nil else { return false }
-        let type = transactionViewModel.transaction.transaction.type
-        return type == .transfer || type == .transferNFT
-    }
-
-    private var resourceItemModel: TransactionItemModel {
-        guard let resourceType = transactionViewModel.transaction.transaction.metadata?.decode(TransactionResourceTypeMetadata.self)?.resourceType else {
-            return .empty
-        }
-        let resourceTitle = ResourceViewModel(resource: resourceType).title
-        return .listItem(ListItemModel(title: Localized.Stake.resource, subtitle: resourceTitle))
     }
 
     private func title(for role: GemTransactionParticipantRole) -> String {

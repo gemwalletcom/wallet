@@ -7,6 +7,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemTransactionHeaderAction
 import uniffi.gemstone.GemTransactionTitle
 
 interface TransactionDetailsAggregate {
@@ -21,6 +22,7 @@ interface TransactionDetailsAggregate {
     val currency: Currency
 
     val amount: TransactionDetailsValue.Amount
+    val headerAction: GemTransactionHeaderAction?
     val fee: TransactionDetailsValue.Fee
     val date: TransactionDetailsValue.Date
     val status: TransactionDetailsValue.Status

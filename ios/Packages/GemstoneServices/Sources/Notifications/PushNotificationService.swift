@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemPreferencesServiceProtocol
 import Foundation
-import Preferences
 import UIKit
 
 public struct PushNotificationEnablerService: PushNotificationEnabler {

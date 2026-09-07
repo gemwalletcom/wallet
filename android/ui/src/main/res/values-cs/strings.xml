@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Rychlost transakce je určena síťovým poplatkem placeným síťovým těžařům.</string>
   <string name="fee_rates_fast">Rychle</string>
   <string name="fee_rates_normal">Normální</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Vlastní</string>
   <string name="banner_account_activation_title">Poplatek za aktivaci účtu</string>
   <string name="banner_account_activation_description">Síť %1$s vyžaduje jednorázový poplatek %2$s.</string>
@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Anualizovaná sazba, jakou longs platí shorts (pokud jsou záporné, shorts platí longs). S financováním nejsou spojeny žádné poplatky, což je peer-to-peer převod mezi uživateli za účelem tlačení cen směrem k spotové ceně.</string>
   <string name="info_minimum_amount_title">Minimální částka</string>
   <string name="info_minimum_amount_description">V síti %1$s je minimální částka pro tuto transakci %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s vyžaduje minimálně %2$s, ale částka je %3$s. Pro pokračování ji navyšte o %4$s.</string>
   <string name="input_enter_amount_to">Zadejte částku do %1$s</string>
   <string name="nft_properties">Vlastnosti</string>
   <string name="nft_collections">Sbírky</string>

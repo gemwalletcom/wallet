@@ -6,7 +6,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockSession
@@ -19,7 +18,8 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -63,7 +63,7 @@ class AddAssetViewModelTest {
             assertEquals(TokenSearchState.Found(token), viewModel.searchState.first { it is TokenSearchState.Found })
             assertEquals(token, viewModel.token.first { it != null })
         } finally {
-            viewModel.viewModelScope.cancel()
+            viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         }
     }
 
@@ -78,10 +78,10 @@ class AddAssetViewModelTest {
             var finished = false
             viewModel.addAsset { finished = true }.join()
 
-            coVerify(exactly = 1) { service.add(wallet.toJson(), token.id.toIdentifier()) }
+            coVerify(exactly = 1) { service.add(wallet.toGem(), token.id.toIdentifier()) }
             assertEquals(true, finished)
         } finally {
-            viewModel.viewModelScope.cancel()
+            viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         }
     }
 }

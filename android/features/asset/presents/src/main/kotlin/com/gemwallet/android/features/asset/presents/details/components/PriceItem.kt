@@ -46,7 +46,7 @@ internal fun LazyListScope.price(
         )
     }
 
-    if (priceAlertsCount > 0) {
+    if (uiState.detailsState.showsPriceAlerts) {
         item {
             PropertyItem(
                 modifier = Modifier

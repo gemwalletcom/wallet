@@ -5,6 +5,7 @@ import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 
@@ -52,6 +53,7 @@ public struct CollectibleScene: View {
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(model: InfoSheetModelFactory.create(from: $0))
         }
+        .bindQuery(model.query)
     }
 }
 

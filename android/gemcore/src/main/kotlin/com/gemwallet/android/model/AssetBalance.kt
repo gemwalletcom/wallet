@@ -1,8 +1,8 @@
 package com.gemwallet.android.model
 
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Asset
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
 import java.math.BigInteger
@@ -101,5 +101,5 @@ fun AssetBalance.toGem() = GemAssetBalance(
     reserved = BigInteger(balance.reserved),
     withdrawable = BigInteger(balance.withdrawable),
     earn = BigInteger(balance.earn),
-    metadata = metadata?.toJson(),
+    metadata = metadata?.toGem(),
 )

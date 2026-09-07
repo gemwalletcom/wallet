@@ -2,7 +2,10 @@
 
 import GemstonePrimitivesTestKit
 import struct Gemstone.GemBalanceRequirement
+import struct Gemstone.GemFiatQuoteRequest
+import struct Gemstone.GemFiatQuotesResult
 import protocol Gemstone.GemFiatQuoteServiceProtocol
+import enum Gemstone.GemServiceError
 import GemstoneServicesTestKit
 import BigInt
 @testable import FiatConnect
@@ -31,6 +34,16 @@ final class FiatSceneViewModelTests {
             type: type,
             amount: amount,
             locale: .US,
+        )
+    }
+
+    private static func load(_ model: FiatSceneViewModel, quotes: [FiatQuote], amount: Double = 50, type: FiatQuoteType = .buy, error: GemServiceError? = nil) {
+        model.session = model.session.onQuoteResults(
+            results: GemFiatQuotesResult(
+                request: GemFiatQuoteRequest(quoteType: type.map(), amount: amount),
+                quotes: quotes.map { $0.json() },
+                error: error,
+            ),
         )
     }
 
@@ -130,129 +143,92 @@ final class FiatSceneViewModelTests {
 
         #expect(!model.showFiatTypePicker)
         #expect(model.type == .buy)
-        #expect(model.sellViewModel.amount == "40")
-        #expect(model.buyViewModel.amount == "40")
+        #expect(model.session.sell.amount == "40")
+        #expect(model.session.buy.amount == "40")
+        #expect(model.inputValidationModel.text == "40")
+        #expect(model.loadTrigger == FiatLoadTrigger(type: .buy, amount: "40", isImmediate: true))
         #expect(model.title == Localized.Buy.title(model.asset.name))
     }
 
     @Test
     func testRateValue() {
         let model = FiatSceneViewModelTests.mock()
-        let quote = FiatQuote.mock(fiatAmount: 1200, cryptoAmount: 2.0, type: model.type)
-        model.buyViewModel.selectedQuote = quote
+        FiatSceneViewModelTests.load(model, quotes: [.mock(fiatAmount: 1200, cryptoAmount: 2.0)])
 
         #expect(model.rateValue == "1 \(model.asset.symbol) ≈ $600.00")
+        #expect(model.cryptoAmountValue == "≈ 2.00 BTC")
     }
 
     @Test
-    func sellValidationRefreshesAfterBalanceChange() {
+    func balanceChangeReachesTheSession() {
         let asset = Asset.mockEthereumUSDT()
-        let service = GemFiatQuoteServiceMock(check: { quote in
-            quote == nil ? .valid : .insufficientBalance(requirement: GemBalanceRequirement(required: 104_970_000, available: 0, shortfall: 104_970_000))
-        })
-        let model = FiatSceneViewModelTests.mock(service: service, assetAddress: .mock(asset: asset), type: .sell)
-        model.sellViewModel.selectedQuote = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 104.97, type: .sell)
-        model.inputValidationModel.text = "100"
-
-        #expect(model.inputValidationModel.update() == false)
+        let model = FiatSceneViewModelTests.mock(assetAddress: .mock(asset: asset), type: .sell)
 
         model.onAssetDataChange(
             .mock(asset: asset),
             .mock(asset: asset, balance: .mock(available: BigInt(415_650_000))),
         )
 
-        #expect(model.buyViewModel.availableBalance == BigInt(415_650_000))
-        #expect(model.sellViewModel.availableBalance == BigInt(415_650_000))
+        #expect(model.session.available == 415_650_000)
     }
 
     @Test
     func selectingProviderRevalidatesSellBalance() {
-        let asset = Asset.mockEthereumUSDT()
-        let formatter = CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue)
-        let affordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 100, type: .sell)
-        let unaffordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 300, type: .sell)
+        let affordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 1, type: .sell)
+        let unaffordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 3, type: .sell, providerId: "transak")
         let service = GemFiatQuoteServiceMock(check: { quote in
-            quote?.cryptoAmount == 300 ? .insufficientBalance(requirement: GemBalanceRequirement(required: 300_000_000, available: 200_000_000, shortfall: 100_000_000)) : .valid
+            quote?.cryptoAmount == 3 ? .insufficientBalance(requirement: GemBalanceRequirement(required: 300_000_000, available: 200_000_000, shortfall: 100_000_000)) : .valid
         })
-        let model = FiatSceneViewModelTests.mock(service: service, assetAddress: .mock(asset: asset), type: .sell)
+        let model = FiatSceneViewModelTests.mock(service: service, type: .sell)
 
         model.onAssetDataChange(
-            .mock(asset: asset),
-            .mock(asset: asset, balance: .mock(available: BigInt(200_000_000))),
+            .mock(),
+            .mock(balance: .mock(available: BigInt(200_000_000))),
         )
-        model.inputValidationModel.text = "100"
-        model.sellViewModel.quotesState = .data(FiatQuotes(amount: 100, quotes: [affordable, unaffordable]))
-        model.sellViewModel.selectedQuote = affordable
+        FiatSceneViewModelTests.load(model, quotes: [affordable, unaffordable], amount: 100, type: .sell)
 
-        #expect(model.actionButtonState.value != nil)
+        #expect(model.selectedQuote == affordable)
+        #expect(model.allowSelectProvider)
+        #expect(model.actionButtonState == .normal)
 
-        model.onSelectQuotes([FiatQuoteViewModel(asset: asset, quote: unaffordable, formatter: formatter)])
+        model.onSelectQuotes([FiatQuoteViewModel(asset: model.asset, quote: unaffordable, formatter: CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue))])
 
+        #expect(model.selectedQuote == unaffordable)
         #expect(model.inputValidationModel.isInvalid)
-        #expect(model.actionButtonState.value == nil)
+        #expect(model.actionButtonState == .disabled)
+        #expect(!model.isPresentingFiatProvider)
     }
 
     @Test
-    func actionButtonStateInvalidInput() {
-        let model = FiatSceneViewModelTests.mock(service: GemFiatQuoteServiceMock(check: { _ in .belowMinimum(minimum: 5) }))
-        model.buyViewModel.quotesState = .data(FiatQuotes(amount: 100, quotes: []))
-
-        model.inputValidationModel.text = "4"
-        model.inputValidationModel.update()
-
-        #expect(model.actionButtonState.value == nil)
-    }
-
-    @Test
-    func actionButtonStateLoading() {
+    func actionButtonStateFollowsTheSession() {
         let model = FiatSceneViewModelTests.mock()
-        model.buyViewModel.quotesState = .loading
+        #expect(model.actionButtonState == .loading(showProgress: true))
 
-        model.inputValidationModel.text = "100"
-        model.inputValidationModel.update()
+        FiatSceneViewModelTests.load(model, quotes: [])
+        #expect(model.actionButtonState == .disabled)
+        #expect(model.emptyTitle == Localized.Buy.noResults)
 
-        #expect(model.actionButtonState.value == nil)
-    }
+        model.onChangeAmountText("", text: "0")
+        #expect(model.actionButtonState == .disabled)
+        #expect(model.emptyTitle == Localized.Input.enterAmountTo(Localized.Wallet.buy))
 
-    @Test
-    func actionButtonStateValidWithQuote() {
-        let model = FiatSceneViewModelTests.mock()
-        let quote = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 1, type: .buy)
-
-        model.buyViewModel.quotesState = .data(FiatQuotes(amount: 100, quotes: [quote]))
-        model.buyViewModel.selectedQuote = quote
-        model.inputValidationModel.text = "100"
-        model.inputValidationModel.update()
-
-        #expect(model.actionButtonState.value != nil)
-    }
-
-    @Test
-    func actionButtonStateValidNoQuote() {
-        let model = FiatSceneViewModelTests.mock()
-        model.buyViewModel.quotesState = .noData
-
-        model.inputValidationModel.text = "100"
-        model.inputValidationModel.update()
-
-        #expect(model.actionButtonState.value == nil)
-    }
-
-    @Test
-    func urlStateBlocksButton() {
-        let model = FiatSceneViewModelTests.mock()
-        let quote = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 1, type: .buy)
-
-        model.buyViewModel.quotesState = .data(FiatQuotes(amount: 100, quotes: [quote]))
-        model.buyViewModel.selectedQuote = quote
-        model.inputValidationModel.text = "100"
-        model.inputValidationModel.update()
-
-        #expect(model.actionButtonState.value != nil)
+        model.onChangeAmountText("", text: "100")
+        FiatSceneViewModelTests.load(model, quotes: [.mock(fiatAmount: 100, cryptoAmount: 1)], amount: 100)
+        #expect(model.actionButtonState == .normal)
+        #expect(model.actionButtonTitle == Localized.Common.continue)
 
         model.urlState = .loading
+        #expect(model.actionButtonState == .loading(showProgress: true))
+    }
 
-        #expect(model.actionButtonState.value == nil)
+    @Test
+    func failedQuotesOfferARetry() {
+        let model = FiatSceneViewModelTests.mock()
+        FiatSceneViewModelTests.load(model, quotes: [], error: .Api(msg: "offline"))
+
+        #expect(model.quotesState.isError)
+        #expect(model.actionButtonTitle == Localized.Common.tryAgain)
+        #expect(model.actionButtonState == .normal)
     }
 
     @Test
@@ -291,6 +267,7 @@ final class FiatSceneViewModelTests {
 
         #expect(model.loadTrigger.amount == "123")
         #expect(model.loadTrigger.isImmediate == false)
+        #expect(model.session.amount == "123")
     }
 
     @Test
@@ -305,13 +282,13 @@ final class FiatSceneViewModelTests {
     @Test
     func presetSelectionDoesNotScheduleSecondDebouncedFetch() {
         let model = FiatSceneViewModelTests.mock()
-        model.buyViewModel.quotesState = .error(NSError(domain: "test", code: 1))
+        FiatSceneViewModelTests.load(model, quotes: [], error: .Api(msg: "offline"))
 
         model.onSelect(amount: 250)
 
-        #expect(model.buyViewModel.amount == "250")
-        #expect(model.buyViewModel.inputValidationModel.text == "250")
-        #expect(model.buyViewModel.quotesState.isLoading == true)
+        #expect(model.session.amount == "250")
+        #expect(model.inputValidationModel.text == "250")
+        #expect(model.quotesState.isLoading == true)
         #expect(model.loadTrigger.amount == "250")
         #expect(model.loadTrigger.isImmediate == true)
 
@@ -329,32 +306,10 @@ final class FiatSceneViewModelTests {
         #expect(model.loadTrigger.amount == "100")
     }
 
-    // MARK: - ShouldSkipFetch Tests
-
-    @Test
-    func secondFetchSkippedWhenSameAmountLoading() {
-        let model = FiatSceneViewModelTests.mock()
-
-        model.buyViewModel.loadingAmount = 100.0
-
-        #expect(model.buyViewModel.shouldSkipFetch(for: 100.0) == true)
-    }
-
-    @Test
-    func fetchAllowedForDifferentAmount() {
-        let model = FiatSceneViewModelTests.mock()
-
-        model.buyViewModel.loadingAmount = 100.0
-        model.buyViewModel.quotesState = .data(FiatQuotes(amount: 100.0, quotes: []))
-
-        #expect(model.buyViewModel.shouldSkipFetch(for: 200.0) == false)
-    }
-
     @Test
     func fiatProviderRowsUseUsdPriceSource() {
         let model = FiatSceneViewModelTests.mock()
-        let quote = FiatQuote.mock(fiatAmount: 50, cryptoAmount: 0.000488, type: .buy)
-        model.buyViewModel.quotesState = .data(FiatQuotes(amount: 50, quotes: [quote]))
+        FiatSceneViewModelTests.load(model, quotes: [.mock(fiatAmount: 50, cryptoAmount: 0.000488)])
         model.priceUsdQuery.value = 100_000
 
         let row = model.fiatProviderViewModel.state.value?.items.first

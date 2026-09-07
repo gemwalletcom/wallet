@@ -10,7 +10,6 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
@@ -27,12 +26,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSlippageCheck
+import uniffi.gemstone.GemSwapQuotePhase
 import uniffi.gemstone.GemSwapQuoteServiceInterface
+import uniffi.gemstone.GemSwapSession
+import uniffi.gemstone.GemSwapTransferPhase
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapTransfer
 import uniffi.gemstone.SwapperAssetList
-import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -290,6 +291,8 @@ class RequestSwapQuotesImplTest {
         private val firstRequestStarted = CompletableDeferred<Unit>()
         var requestCount = 0
 
+        override fun newSession(): GemSwapSession = GemSwapSession(quotePhase = GemSwapQuotePhase.NoInput, transferPhase = GemSwapTransferPhase.Idle)
+
         override suspend fun getQuotes(
             fromAsset: uniffi.gemstone.Asset,
             toAsset: uniffi.gemstone.Asset,
@@ -322,8 +325,6 @@ class RequestSwapQuotesImplTest {
         override fun defaultSlippage(chain: String): SwapperSlippage = throw UnsupportedOperationException()
 
         override fun quoteDebounceMilliseconds(): ULong = 0u
-
-        override fun selectedQuote(quotes: List<SwapperQuote>, preferred: SwapProvider?): SwapperQuote? = throw UnsupportedOperationException()
 
         override fun refreshIntervalMilliseconds(): ULong = 0u
 

@@ -5,6 +5,7 @@ import androidx.room.Relation
 import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationBase
+import java.math.BigInteger
 
 data class DbDelegationData(
     @Embedded val base: DbDelegationBase,
@@ -22,11 +23,10 @@ fun DbDelegationData.toModel(): Delegation? {
             validatorId = validatorDTO.id,
             delegationId = base.delegationId,
             state = base.state,
-            balance = base.balance,
+            balance = BigInteger(base.balance),
             completionDate = base.completionDate,
-            rewards = base.rewards,
-            shares = base.shares,
+            rewards = BigInteger(base.rewards),
+            shares = BigInteger(base.shares),
         ),
-        price = null,
     )
 }

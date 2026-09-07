@@ -26,16 +26,15 @@ public struct FeeUnitViewModel {
 
     public var value: String {
         switch unit.type {
-        case .satVb: Localized.FeeRate.satvB(unitValueText)
-        case .gwei: Localized.FeeRate.gwei(unitValueText)
+        case .satVb, .gwei: "\(unitValueText) \(suffix)"
         case .native: unitValueText
         }
     }
 
     public var suffix: String {
         switch unit.type {
-        case .satVb: Localized.FeeRate.satvB("")
-        case .gwei: Localized.FeeRate.gwei("")
+        case .satVb: Localized.FeeRate.satvB
+        case .gwei: Localized.FeeRate.gwei
         case .native: symbol
         }
     }

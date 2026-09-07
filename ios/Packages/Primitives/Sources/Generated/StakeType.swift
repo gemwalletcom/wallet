@@ -4,16 +4,6 @@
 
 import Foundation
 
-public struct RedelegateData: Codable, Equatable, Hashable, Sendable {
-	public let delegation: Delegation
-	public let toValidator: DelegationValidator
-
-	public init(delegation: Delegation, toValidator: DelegationValidator) {
-		self.delegation = delegation
-		self.toValidator = toValidator
-	}
-}
-
 public enum Resource: String, Codable, Equatable, Hashable, Sendable {
 	case bandwidth
 	case energy
@@ -36,101 +26,6 @@ public struct TronVote: Codable, Equatable, Hashable, Sendable {
 	public init(validator: String, count: UInt64) {
 		self.validator = validator
 		self.count = count
-	}
-}
-
-public enum StakeType: Codable, Equatable, Hashable, Sendable {
-	case stake(DelegationValidator)
-	case unstake(Delegation)
-	case redelegate(RedelegateData)
-	case rewards([DelegationValidator])
-	case withdraw(Delegation)
-	case freeze(Resource)
-	case unfreeze(Resource)
-
-	enum CodingKeys: String, CodingKey, Codable {
-		case stake = "Stake",
-			unstake = "Unstake",
-			redelegate = "Redelegate",
-			rewards = "Rewards",
-			withdraw = "Withdraw",
-			freeze = "Freeze",
-			unfreeze = "Unfreeze"
-	}
-
-	private enum ContainerCodingKeys: String, CodingKey {
-		case type, content
-	}
-
-	public init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
-		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
-			switch type {
-			case .stake:
-				if let content = try? container.decode(DelegationValidator.self, forKey: .content) {
-					self = .stake(content)
-					return
-				}
-			case .unstake:
-				if let content = try? container.decode(Delegation.self, forKey: .content) {
-					self = .unstake(content)
-					return
-				}
-			case .redelegate:
-				if let content = try? container.decode(RedelegateData.self, forKey: .content) {
-					self = .redelegate(content)
-					return
-				}
-			case .rewards:
-				if let content = try? container.decode([DelegationValidator].self, forKey: .content) {
-					self = .rewards(content)
-					return
-				}
-			case .withdraw:
-				if let content = try? container.decode(Delegation.self, forKey: .content) {
-					self = .withdraw(content)
-					return
-				}
-			case .freeze:
-				if let content = try? container.decode(Resource.self, forKey: .content) {
-					self = .freeze(content)
-					return
-				}
-			case .unfreeze:
-				if let content = try? container.decode(Resource.self, forKey: .content) {
-					self = .unfreeze(content)
-					return
-				}
-			}
-		}
-		throw DecodingError.typeMismatch(StakeType.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for StakeType"))
-	}
-
-	public func encode(to encoder: Encoder) throws {
-		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
-		switch self {
-		case .stake(let content):
-			try container.encode(CodingKeys.stake, forKey: .type)
-			try container.encode(content, forKey: .content)
-		case .unstake(let content):
-			try container.encode(CodingKeys.unstake, forKey: .type)
-			try container.encode(content, forKey: .content)
-		case .redelegate(let content):
-			try container.encode(CodingKeys.redelegate, forKey: .type)
-			try container.encode(content, forKey: .content)
-		case .rewards(let content):
-			try container.encode(CodingKeys.rewards, forKey: .type)
-			try container.encode(content, forKey: .content)
-		case .withdraw(let content):
-			try container.encode(CodingKeys.withdraw, forKey: .type)
-			try container.encode(content, forKey: .content)
-		case .freeze(let content):
-			try container.encode(CodingKeys.freeze, forKey: .type)
-			try container.encode(content, forKey: .content)
-		case .unfreeze(let content):
-			try container.encode(CodingKeys.unfreeze, forKey: .type)
-			try container.encode(content, forKey: .content)
-		}
 	}
 }
 

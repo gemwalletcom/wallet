@@ -4,7 +4,6 @@ use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub struct RedelegateData {
     pub delegation: Delegation,
     #[serde(rename = "toValidator")]
@@ -22,7 +21,6 @@ pub enum Resource {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content")]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub enum StakeType {
     Stake(DelegationValidator),
     Unstake(Delegation),

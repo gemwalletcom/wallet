@@ -4,6 +4,7 @@ use primitives::currency::Currency;
 use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl};
 
 use super::model::GemFiatAmountCheck;
+use super::session::GemFiatSession;
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::{FiatConfig, get_fiat_config};
 use crate::models::custom_types::GemBigUint;
@@ -35,8 +36,8 @@ impl GemFiatQuoteService {
         get_fiat_config()
     }
 
-    pub fn default_amount(&self, quote_type: FiatQuoteType) -> u32 {
-        rules::default_amount(&get_fiat_config(), quote_type)
+    pub fn new_session(&self, quote_type: FiatQuoteType, amount: Option<u32>) -> GemFiatSession {
+        GemFiatSession::new(quote_type, amount)
     }
 
     pub fn random_amount(&self) -> u32 {

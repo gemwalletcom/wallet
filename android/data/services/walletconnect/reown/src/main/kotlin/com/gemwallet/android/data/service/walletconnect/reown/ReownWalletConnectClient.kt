@@ -31,9 +31,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemWalletConnectService
-import com.gemwallet.android.serializer.decodeJson
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.gemwallet.android.ext.toPrimitives
 
 @Singleton
 class ReownWalletConnectClient @Inject constructor(
@@ -274,7 +274,11 @@ class ReownWalletConnectClient @Inject constructor(
         walletEvents.tryEmit(WalletConnectEvent.SessionRequest(sessionRequest.toWalletConnectSessionRequest(), verifyContext.toWalletConnectVerifyContext()))
     }
 
-    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) = Unit
+    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
+        if (settleSessionResponse is Wallet.Model.SettledSessionResponse.Result) {
+            walletEvents.tryEmit(WalletConnectEvent.SessionSettled(settleSessionResponse.session.toWalletConnectSession()))
+        }
+    }
 
     override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) = Unit
 
@@ -297,7 +301,7 @@ class ReownWalletConnectClient @Inject constructor(
     }
 
     private fun Core.Model.AppMetaData.toApplicationMetadata(): ApplicationMetadata =
-        walletConnectService.applicationMetadata(name, description, url, icons).decodeJson()
+        walletConnectService.applicationMetadata(name, description, url, icons).toPrimitives()
 
     private fun WalletConnectSessionProposal.pendingReownProposal(): Wallet.Model.SessionProposal? {
         return WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposerPublicKey }

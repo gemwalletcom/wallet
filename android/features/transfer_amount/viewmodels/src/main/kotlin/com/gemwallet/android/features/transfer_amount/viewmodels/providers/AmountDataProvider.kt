@@ -20,7 +20,6 @@ abstract class AmountDataProvider(
     private val scope: CoroutineScope,
 ) {
     abstract val title: AmountTitle
-    abstract val canSwitchInputType: Boolean
     abstract val assetInfo: StateFlow<AssetInfo?>
     abstract val amountType: StateFlow<GemAmountType?>
 

@@ -18,7 +18,7 @@ public extension GemAssetBalance {
             reserved: BigUInt(balance.reserved),
             withdrawable: BigUInt(balance.withdrawable),
             earn: BigUInt(balance.earn),
-            metadata: balance.metadata?.json(),
+            metadata: balance.metadata?.map(),
         )
     }
 }

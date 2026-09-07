@@ -13,7 +13,6 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
-import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
@@ -29,6 +28,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
+import com.gemwallet.android.ext.toGem
+import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
@@ -74,7 +75,7 @@ class GetWalletSummaryImpl(
                     showsPnl = walletHomeService.showsPnl(total),
                 ),
                 isBalanceHidden = hideBalances,
-                isOperationsAvailable = !hasMultiSign,
+                headerButtons = walletHomeService.headerButtons(wallet.toGem(), isEnabled = !hasMultiSign),
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -133,7 +134,7 @@ internal class WalletSummaryAggregateImpl(
     wallet: Wallet,
     displayState: WalletSummaryDisplayState,
     override val isBalanceHidden: Boolean,
-    override val isOperationsAvailable: Boolean,
+    override val headerButtons: List<GemHeaderButton>,
 ) : WalletSummaryAggregate {
     private val walletAccount = wallet.accounts.firstOrNull()
 
@@ -155,10 +156,4 @@ internal class WalletSummaryAggregateImpl(
 
     override val changedValue: EquivalentValue? = displayState.changedValue
 
-    override val isSwapAvailable: Boolean = when (wallet.type) {
-        WalletType.Multicoin -> true
-        WalletType.Single,
-        WalletType.PrivateKey -> walletAccount?.chain?.isSwapSupport() == true
-        WalletType.View -> false
-    }
 }

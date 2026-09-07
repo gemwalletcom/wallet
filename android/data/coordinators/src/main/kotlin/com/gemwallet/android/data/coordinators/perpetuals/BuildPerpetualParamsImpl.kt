@@ -5,7 +5,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPosition
@@ -22,13 +21,13 @@ class BuildPerpetualParamsImpl(
 
     override suspend fun position(perpetualId: PerpetualId, kind: GemPerpetualPositionKind): AmountParams.Perpetual? {
         val data = getPerpetual(perpetualId) ?: return null
-        val action = service.positionAction(data.perpetual.toJson(), data.asset.toGem(), getPosition(perpetualId)?.toJson(), kind)
+        val action = service.positionAction(data.perpetual.toGem(), data.asset.toGem(), getPosition(perpetualId)?.toGem(), kind)
         return AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action)
     }
 
     override suspend fun close(perpetualId: PerpetualId): GemTransferData? {
         val data = getPerpetual(perpetualId) ?: return null
-        return service.closeTransfer(data.perpetual.toJson(), data.asset.toGem(), getPosition(perpetualId)?.toJson())
+        return service.closeTransfer(data.perpetual.toGem(), data.asset.toGem(), getPosition(perpetualId)?.toGem())
     }
 
     private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =

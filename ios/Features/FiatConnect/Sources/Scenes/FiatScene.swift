@@ -26,7 +26,7 @@ public struct FiatScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.actionButtonTitle,
-                type: .primary(model.actionButtonState, showProgress: true),
+                type: .primary(model.actionButtonState),
                 action: model.onSelectContinue,
             )
         }

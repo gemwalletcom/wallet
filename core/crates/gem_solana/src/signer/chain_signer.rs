@@ -128,7 +128,7 @@ mod tests {
         let encoded = encode_base64(&transaction.serialize().unwrap());
         let blockhash = bs58::encode([4; 32]).into_string();
         let mut input = TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction);
-        let TransactionInputType::Generic(_, metadata, _) = &mut input.input_type else {
+        let TransactionInputType::Generic { metadata, .. } = &mut input.input_type else {
             panic!("expected generic transaction input");
         };
         metadata.source = ApplicationMetadataSource::Payment;

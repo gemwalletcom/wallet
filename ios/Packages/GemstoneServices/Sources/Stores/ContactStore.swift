@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import typealias Gemstone.Contact
-import typealias Gemstone.ContactAddress
+import struct Gemstone.Contact
+import struct Gemstone.ContactAddress
 import protocol Gemstone.GemContactStore
 import GemstonePrimitives
 import Primitives
@@ -16,18 +16,18 @@ public final class GemstoneContactStore: GemContactStore, @unchecked Sendable {
     }
 
     public func getAddresses(contactId: String) async throws -> [Gemstone.ContactAddress] {
-        try store.getAddresses(contactId: contactId).map { $0.json() }
+        try store.getAddresses(contactId: contactId).map { $0.map() }
     }
 
     public func saveContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
-        try store.addContact(Primitives.Contact(contact), addresses: addresses.map { try Primitives.ContactAddress($0) })
+        try store.addContact(contact.map(), addresses: addresses.map { $0.map() })
     }
 
     public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress], deleteAddressIds: [String]) async throws {
         try store.updateContact(
-            Primitives.Contact(contact),
+            contact.map(),
             deleteAddressIds: deleteAddressIds,
-            addresses: addresses.map { try Primitives.ContactAddress($0) },
+            addresses: addresses.map { $0.map() },
         )
     }
 

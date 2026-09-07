@@ -191,13 +191,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages\/Preferences",
-        "identifier": "PreferencesTest",
-        "name": "PreferencesTest"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages\/GemstonePrimitives",
         "identifier": "GemstonePrimitivesTests",
         "name": "GemstonePrimitivesTests"

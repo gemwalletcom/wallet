@@ -3,12 +3,11 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatQuote {
     pub id: String,
-    #[typeshare(skip)]
     pub asset: Asset,
     pub provider: FiatProvider,
     #[serde(rename = "type")]
@@ -17,8 +16,10 @@ pub struct FiatQuote {
     pub fiat_currency: String,
     pub crypto_amount: f64,
     #[typeshare(skip)]
+    #[serde(default)]
     pub value: BigUint,
     #[typeshare(skip)]
+    #[serde(default)]
     pub latency: u64,
     pub payment_methods: Vec<PaymentType>,
 }

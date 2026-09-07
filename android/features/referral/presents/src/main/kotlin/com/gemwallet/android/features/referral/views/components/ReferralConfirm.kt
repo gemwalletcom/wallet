@@ -28,11 +28,13 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.tinyIconSize
-import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
+import com.gemwallet.android.ui.models.buttonState
+import uniffi.gemstone.GemRewardsState
 import com.wallet.core.primitives.RewardStatus
 import com.wallet.core.primitives.Rewards
 
-internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: RewardsUIState, onConfirm: (String) -> Unit) {
+internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: GemRewardsState, onConfirm: (String) -> Unit) {
+    if (!uiState.hasPendingReferral) return
     val code = rewards.usedReferralCode ?: return
     val pendingDate = rewards.verifyAfter ?: return
     item {
@@ -63,7 +65,7 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: Reward
             HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = 0.5.dp)
             MainActionButton(
                 title = stringResource(R.string.transfer_confirm),
-                state = uiState.buttonState
+                state = buttonState(enabled = uiState.canActivatePendingReferral)
             ) {
                 onConfirm(code)
             }
@@ -86,7 +88,7 @@ private fun ReferralConfirmCodePendingPreview() {
                     usedReferralCode = "some_code_1",
                     verifyAfter = System.currentTimeMillis() + 86400000,
                 ),
-                RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = true, canActivatePendingReferral = false),
+                pendingState(canActivate = false),
             ) {}
         }
     }
@@ -107,8 +109,19 @@ private fun ReferralConfirmCodeReadyPreview() {
                     usedReferralCode = "some_code_1",
                     verifyAfter = 0,
                 ),
-                RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = true, canActivatePendingReferral = true),
+                pendingState(canActivate = true),
             ) {}
         }
     }
 }
+
+private fun pendingState(canActivate: Boolean) = GemRewardsState(
+    hasReferralCode = true,
+    hasUsedReferralCode = true,
+    canInvite = false,
+    canUseReferralCode = false,
+    showsInfo = true,
+    isUnverified = false,
+    hasPendingReferral = true,
+    canActivatePendingReferral = canActivate,
+)

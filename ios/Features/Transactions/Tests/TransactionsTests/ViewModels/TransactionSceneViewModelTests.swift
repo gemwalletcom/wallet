@@ -3,8 +3,6 @@ import GemstonePrimitivesTestKit
 import Components
 import Foundation
 import Localization
-import Preferences
-import PreferencesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

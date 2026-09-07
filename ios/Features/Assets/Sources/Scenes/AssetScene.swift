@@ -30,7 +30,7 @@ public struct AssetScene: View {
             }
             .cleanListRow()
 
-            if model.canSign, let banner = model.visibleBanners.first {
+            if model.detailsState.showsBanners, let banner = model.visibleBanners.first {
                 Section {
                     BannerView(
                         banner: banner,
@@ -47,7 +47,7 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.showManageToken {
+            if model.detailsState.showsManage {
                 Section(Localized.Common.manage) {
                     NavigationCustomLink(with:
                         ListItemView(
@@ -73,7 +73,7 @@ public struct AssetScene: View {
                 )
                 .accessibilityIdentifier("price")
 
-                if model.showPriceAlerts {
+                if model.detailsState.showsPriceAlerts {
                     NavigationLink(
                         value: Scenes.AssetPriceAlert(asset: model.assetData.asset),
                         label: {
@@ -170,7 +170,7 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.showResources {
+            if model.detailsState.showsResources {
                 Section(model.resourcesTitle) {
                     ListItemView(field: model.energyField)
                     ListItemView(field: model.bandwidthField)

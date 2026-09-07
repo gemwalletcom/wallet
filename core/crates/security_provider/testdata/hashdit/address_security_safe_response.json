@@ -1,0 +1,51 @@
+{
+  "code": "0",
+  "status": "ok",
+  "data": {
+    "market": {
+      "low_activity": "",
+      "days_deployed": ""
+    },
+    "status": 200,
+    "address": "bsc:0x45beba0913382f5371e288f08e841fefb01355b6",
+    "rugpull": {
+      "is_ponzi": "",
+      "is_honeypot": "",
+      "has_backdoor": "",
+      "has_migrator": "",
+      "is_metamorphic": "",
+      "code_obfuscation": "",
+      "is_known_rugpull": ""
+    },
+    "security": {
+      "has_external_calls": "",
+      "malicious_activity": "",
+      "risky_external_calls": "",
+      "has_known_vulnerability": "",
+      "has_insecure_code_practice": ""
+    },
+    "privilege": {
+      "owner_type": "",
+      "has_hidden_owner": "",
+      "has_trade_limitation": "",
+      "overpowered_function": ""
+    },
+    "address_type": "EOA",
+    "result_stage": "complete",
+    "scanned_time": 1788574609,
+    "transparency": {
+      "is_proxy": "",
+      "verified": "",
+      "can_self_destruct": "",
+      "dependency_unverified": "",
+      "proxy_implementation_verified": ""
+    },
+    "contract_name": "",
+    "overall_score": "100",
+    "overall_risk_level": "No Obvious Risk",
+    "threat_intelligence": {
+      "risk_level": "0",
+      "trust_level": "0"
+    }
+  }
+}

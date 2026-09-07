@@ -1,7 +1,6 @@
 use num_bigint::{BigInt, BigUint};
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_option_bigint_from_str, serialize_option_bigint};
-use typeshare::typeshare;
 
 use crate::{Asset, AssetId};
 
@@ -29,7 +28,6 @@ impl SimulationInput {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum SimulationSeverity {
     Low,
@@ -38,7 +36,6 @@ pub enum SimulationSeverity {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationWarningApproval {
     pub asset_id: AssetId,
@@ -47,7 +44,6 @@ pub struct SimulationWarningApproval {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]
 pub enum SimulationWarningType {
     TokenApproval(SimulationWarningApproval),
@@ -86,7 +82,6 @@ impl SimulationWarningType {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationWarning {
     pub severity: SimulationSeverity,
@@ -113,7 +108,6 @@ impl SimulationWarning {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
@@ -146,7 +140,6 @@ impl SimulationBalanceChange {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum SimulationPayloadFieldType {
     Text,
@@ -155,7 +148,6 @@ pub enum SimulationPayloadFieldType {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum SimulationPayloadFieldDisplay {
     Primary,
@@ -163,7 +155,6 @@ pub enum SimulationPayloadFieldDisplay {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum SimulationPayloadFieldKind {
     Contract,
@@ -175,7 +166,6 @@ pub enum SimulationPayloadFieldKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationPayloadField {
     pub kind: SimulationPayloadFieldKind,
@@ -187,7 +177,6 @@ pub struct SimulationPayloadField {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationHeader {
     pub asset_id: AssetId,
@@ -231,7 +220,6 @@ impl SimulationPayloadField {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationResult {
     pub warnings: Vec<SimulationWarning>,

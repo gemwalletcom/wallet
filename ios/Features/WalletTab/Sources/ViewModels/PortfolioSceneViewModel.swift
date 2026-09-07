@@ -6,7 +6,7 @@ import Foundation
 import protocol Gemstone.GemPortfolioServiceProtocol
 import GemstonePrimitives
 import Localization
-import Preferences
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style
@@ -92,7 +92,7 @@ extension PortfolioSceneViewModel {
     public func load() async {
         selectedState = .loading
         do {
-            let data = try await PortfolioData(service.portfolioData(wallet: wallet.json(), portfolioType: state.selectedType.map(), period: selectedPeriod.map()))
+            let data = try await PortfolioData(service.portfolioData(wallet: wallet.map(), portfolioType: state.selectedType.map(), period: selectedPeriod.map()))
             if data.availablePeriods.isNotEmpty, !data.availablePeriods.contains(selectedPeriod) {
                 selectedPeriod = data.availablePeriods.first ?? selectedPeriod
             }

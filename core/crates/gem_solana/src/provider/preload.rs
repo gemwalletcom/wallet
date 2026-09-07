@@ -38,12 +38,12 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
         } = input;
 
         let (sender_lookup, recipient_lookup) = match input_type {
-            TransactionInputType::Swap(_, _, _) => (sender_address.as_str(), sender_address.as_str()),
+            TransactionInputType::Swap { .. } => (sender_address.as_str(), sender_address.as_str()),
             _ => (sender_address.as_str(), destination_address.as_str()),
         };
 
         let (sender_mint, recipient_mint, token_program, nft) = match &input_type {
-            TransactionInputType::TransferNft(_, nft_asset) => {
+            TransactionInputType::TransferNft { nft_asset, .. } => {
                 let SolanaNftPreload { token_program, standard } = self.detect_solana_nft(&nft_asset.token_id).await?;
                 let mint = token_program.is_some().then_some(nft_asset.token_id.as_str());
                 (mint, mint, token_program, Some(standard))
@@ -75,7 +75,7 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
 
         let (block_hash, sender_token_address, recipient_token_address) = futures::try_join!(self.get_latest_blockhash(), sender_token_future, recipient_token_future)?;
 
-        if let TransactionInputType::TransferNft(_, _) = input_type
+        if let TransactionInputType::TransferNft { .. } = input_type
             && sender_mint.is_some()
             && sender_token_address.is_none()
         {
@@ -141,7 +141,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_solana_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_solana_test_client();
-        let rates = client.get_transaction_fee_rates(TransactionInputType::Transfer(Asset::mock_sol())).await?;
+        let rates = client.get_transaction_fee_rates(TransactionInputType::Transfer { asset: Asset::mock_sol() }).await?;
         assert!(rates.len() == 3);
         Ok(())
     }
@@ -151,7 +151,7 @@ mod chain_integration_tests {
         let client = create_solana_test_client();
         let references = vec!["11111111111111111111111111111111".to_string()];
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_sol()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: TEST_SOLANA_SENDER.to_string(),
             references: references.clone(),
@@ -172,7 +172,7 @@ mod chain_integration_tests {
     async fn test_get_solana_transaction_preload_transfer_spl_token() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_solana_test_client();
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: "4BgapREafMMprtU6CehRmH8LUY26PRFmGf7K4S44oSMW".to_string(),
             references: vec![],
@@ -194,7 +194,11 @@ mod chain_integration_tests {
         let client = create_solana_test_client();
         let swap_data = SwapData::mock_with_provider(SwapProvider::Jupiter);
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Swap(Asset::mock_spl_token().clone(), Asset::mock_ethereum_usdc().clone(), swap_data),
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_spl_token().clone(),
+                to_asset: Asset::mock_ethereum_usdc().clone(),
+                swap_data,
+            },
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: TEST_SOLANA_SENDER.to_string(),
             references: vec![],
@@ -221,7 +225,11 @@ mod chain_integration_tests {
         let client = create_solana_test_client();
         let swap_data = SwapData::mock_with_provider(SwapProvider::Jupiter);
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Swap(Asset::mock_spl_token(), Asset::mock_spl_token(), swap_data),
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_spl_token(),
+                to_asset: Asset::mock_spl_token(),
+                swap_data,
+            },
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
             references: vec![],

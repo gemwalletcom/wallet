@@ -9,64 +9,69 @@ fn get_fee(chain: CosmosChain, input_type: &TransactionInputType) -> BigInt {
     match chain {
         CosmosChain::Thorchain | CosmosChain::Mayachain => BigInt::from(get_base_fee(chain)),
         CosmosChain::Cosmos => match input_type {
-            TransactionInputType::Transfer(_)
-            | TransactionInputType::Deposit(_)
-            | TransactionInputType::TransferNft(_, _)
-            | TransactionInputType::Account(_, _)
-            | TransactionInputType::TokenApprove(_, _)
-            | TransactionInputType::Generic(_, _, _)
-            | TransactionInputType::Perpetual(_, _)
-            | TransactionInputType::Earn(_, _, _) => BigInt::from(3_000u64),
-            TransactionInputType::Swap(_, _, _) => BigInt::from(3_000u64),
-            TransactionInputType::Stake(_, _) => BigInt::from(25_000u64),
+            TransactionInputType::Transfer { .. }
+            | TransactionInputType::Withdrawal { .. }
+            | TransactionInputType::Deposit { .. }
+            | TransactionInputType::TransferNft { .. }
+            | TransactionInputType::Account { .. }
+            | TransactionInputType::TokenApprove { .. }
+            | TransactionInputType::Generic { .. }
+            | TransactionInputType::Perpetual { .. }
+            | TransactionInputType::Earn { .. } => BigInt::from(3_000u64),
+            TransactionInputType::Swap { .. } => BigInt::from(3_000u64),
+            TransactionInputType::Stake { .. } => BigInt::from(25_000u64),
         },
         CosmosChain::Osmosis => match input_type {
-            TransactionInputType::Transfer(_)
-            | TransactionInputType::Deposit(_)
-            | TransactionInputType::TransferNft(_, _)
-            | TransactionInputType::Account(_, _)
-            | TransactionInputType::TokenApprove(_, _)
-            | TransactionInputType::Generic(_, _, _)
-            | TransactionInputType::Perpetual(_, _)
-            | TransactionInputType::Earn(_, _, _) => BigInt::from(10_000u64),
-            TransactionInputType::Swap(_, _, _) => BigInt::from(10_000u64),
-            TransactionInputType::Stake(_, _) => BigInt::from(100_000u64),
+            TransactionInputType::Transfer { .. }
+            | TransactionInputType::Withdrawal { .. }
+            | TransactionInputType::Deposit { .. }
+            | TransactionInputType::TransferNft { .. }
+            | TransactionInputType::Account { .. }
+            | TransactionInputType::TokenApprove { .. }
+            | TransactionInputType::Generic { .. }
+            | TransactionInputType::Perpetual { .. }
+            | TransactionInputType::Earn { .. } => BigInt::from(10_000u64),
+            TransactionInputType::Swap { .. } => BigInt::from(10_000u64),
+            TransactionInputType::Stake { .. } => BigInt::from(100_000u64),
         },
         CosmosChain::Celestia => match input_type {
-            TransactionInputType::Transfer(_)
-            | TransactionInputType::Deposit(_)
-            | TransactionInputType::TransferNft(_, _)
-            | TransactionInputType::Account(_, _)
-            | TransactionInputType::TokenApprove(_, _)
-            | TransactionInputType::Generic(_, _, _)
-            | TransactionInputType::Perpetual(_, _)
-            | TransactionInputType::Earn(_, _, _) => BigInt::from(3_000u64),
-            TransactionInputType::Swap(_, _, _) => BigInt::from(3_000u64),
-            TransactionInputType::Stake(_, _) => BigInt::from(10_000u64),
+            TransactionInputType::Transfer { .. }
+            | TransactionInputType::Withdrawal { .. }
+            | TransactionInputType::Deposit { .. }
+            | TransactionInputType::TransferNft { .. }
+            | TransactionInputType::Account { .. }
+            | TransactionInputType::TokenApprove { .. }
+            | TransactionInputType::Generic { .. }
+            | TransactionInputType::Perpetual { .. }
+            | TransactionInputType::Earn { .. } => BigInt::from(3_000u64),
+            TransactionInputType::Swap { .. } => BigInt::from(3_000u64),
+            TransactionInputType::Stake { .. } => BigInt::from(10_000u64),
         },
         CosmosChain::Sei => match input_type {
-            TransactionInputType::Transfer(_)
-            | TransactionInputType::Deposit(_)
-            | TransactionInputType::TransferNft(_, _)
-            | TransactionInputType::Account(_, _)
-            | TransactionInputType::TokenApprove(_, _)
-            | TransactionInputType::Generic(_, _, _)
-            | TransactionInputType::Perpetual(_, _)
-            | TransactionInputType::Earn(_, _, _) => BigInt::from(100_000u64),
-            TransactionInputType::Swap(_, _, _) => BigInt::from(100_000u64),
-            TransactionInputType::Stake(_, _) => BigInt::from(200_000u64),
+            TransactionInputType::Transfer { .. }
+            | TransactionInputType::Withdrawal { .. }
+            | TransactionInputType::Deposit { .. }
+            | TransactionInputType::TransferNft { .. }
+            | TransactionInputType::Account { .. }
+            | TransactionInputType::TokenApprove { .. }
+            | TransactionInputType::Generic { .. }
+            | TransactionInputType::Perpetual { .. }
+            | TransactionInputType::Earn { .. } => BigInt::from(100_000u64),
+            TransactionInputType::Swap { .. } => BigInt::from(100_000u64),
+            TransactionInputType::Stake { .. } => BigInt::from(200_000u64),
         },
         CosmosChain::Injective => match input_type {
-            TransactionInputType::Transfer(_)
-            | TransactionInputType::Deposit(_)
-            | TransactionInputType::TransferNft(_, _)
-            | TransactionInputType::Account(_, _)
-            | TransactionInputType::TokenApprove(_, _)
-            | TransactionInputType::Generic(_, _, _)
-            | TransactionInputType::Perpetual(_, _)
-            | TransactionInputType::Earn(_, _, _) => BigInt::from(100_000_000_000_000u64),
-            TransactionInputType::Swap(_, _, _) => BigInt::from(100_000_000_000_000u64),
-            TransactionInputType::Stake(_, _) => BigInt::from(1_000_000_000_000_000u64),
+            TransactionInputType::Transfer { .. }
+            | TransactionInputType::Withdrawal { .. }
+            | TransactionInputType::Deposit { .. }
+            | TransactionInputType::TransferNft { .. }
+            | TransactionInputType::Account { .. }
+            | TransactionInputType::TokenApprove { .. }
+            | TransactionInputType::Generic { .. }
+            | TransactionInputType::Perpetual { .. }
+            | TransactionInputType::Earn { .. } => BigInt::from(100_000_000_000_000u64),
+            TransactionInputType::Swap { .. } => BigInt::from(100_000_000_000_000u64),
+            TransactionInputType::Stake { .. } => BigInt::from(1_000_000_000_000_000u64),
         },
         CosmosChain::Noble => BigInt::from(25_000u64),
     }
@@ -74,19 +79,20 @@ fn get_fee(chain: CosmosChain, input_type: &TransactionInputType) -> BigInt {
 
 fn get_gas_limit(input_type: &TransactionInputType, _chain: CosmosChain) -> Result<u64, Box<dyn Error + Send + Sync>> {
     Ok(match input_type {
-        TransactionInputType::Transfer(_)
-        | TransactionInputType::Deposit(_)
-        | TransactionInputType::TransferNft(_, _)
-        | TransactionInputType::Account(_, _)
-        | TransactionInputType::TokenApprove(_, _)
-        | TransactionInputType::Generic(_, _, _)
-        | TransactionInputType::Perpetual(_, _)
-        | TransactionInputType::Earn(_, _, _) => 200_000,
-        TransactionInputType::Swap(_, _, swap_data) => match swap_data.quote.provider_data.provider {
+        TransactionInputType::Transfer { .. }
+        | TransactionInputType::Withdrawal { .. }
+        | TransactionInputType::Deposit { .. }
+        | TransactionInputType::TransferNft { .. }
+        | TransactionInputType::Account { .. }
+        | TransactionInputType::TokenApprove { .. }
+        | TransactionInputType::Generic { .. }
+        | TransactionInputType::Perpetual { .. }
+        | TransactionInputType::Earn { .. } => 200_000,
+        TransactionInputType::Swap { swap_data, .. } => match swap_data.quote.provider_data.provider {
             SwapProvider::Thorchain => 200_000,
             _ => 2_000_000,
         },
-        TransactionInputType::Stake(_, operation) => match operation {
+        TransactionInputType::Stake { stake_type: operation, .. } => match operation {
             StakeType::Stake(_) | StakeType::Unstake(_) => 1_000_000,
             StakeType::Redelegate(_) => 1_250_000,
             StakeType::Rewards(_) => 750_000,
@@ -116,7 +122,10 @@ mod tests {
 
     #[test]
     fn calculate_transaction_fee_rejects_freeze_without_panicking() {
-        let input_type = TransactionInputType::Stake(Asset::from_chain(Chain::Cosmos), StakeType::Freeze(Resource::Bandwidth));
+        let input_type = TransactionInputType::Stake {
+            asset: Asset::from_chain(Chain::Cosmos),
+            stake_type: StakeType::Freeze(Resource::Bandwidth),
+        };
 
         assert_eq!(
             calculate_transaction_fee(&input_type, CosmosChain::Cosmos, &GasPriceType::regular(1u64))

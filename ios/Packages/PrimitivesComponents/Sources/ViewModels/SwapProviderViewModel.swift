@@ -2,12 +2,14 @@
 
 import Components
 import Foundation
+import struct Gemstone.SwapProviderData
+import GemstonePrimitives
 import Primitives
 
 public struct SwapProviderViewModel {
-    private let providerData: SwapProviderData
+    private let providerData: Gemstone.SwapProviderData
 
-    public init(providerData: SwapProviderData) {
+    public init(providerData: Gemstone.SwapProviderData) {
         self.providerData = providerData
     }
 
@@ -18,7 +20,7 @@ public struct SwapProviderViewModel {
     public var providerImage: AssetImage {
         AssetImage(
             imageURL: .none,
-            placeholder: providerData.provider.image,
+            placeholder: providerData.provider.map().image,
             chainPlaceholder: .none,
         )
     }

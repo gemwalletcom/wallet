@@ -13,7 +13,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerEvent
@@ -67,7 +66,7 @@ class GetActiveBannersImpl(
         .flowOn(Dispatchers.IO)
 
     private fun bannerContext(wallet: Wallet?, assetInfo: AssetInfo?, isWalletEmpty: Boolean) = GemBannerContext(
-        wallet = wallet?.toJson(),
+        wallet = wallet?.toGem(),
         hasAsset = assetInfo != null,
         isStakeable = assetInfo?.metadata?.isStakeEnabled == true,
         hasStakeBalance = hasStakeBalance(assetInfo),

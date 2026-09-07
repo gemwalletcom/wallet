@@ -5,6 +5,8 @@ import struct Gemstone.GemConfirmSimulationState
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.SimulationResult
+import struct Gemstone.SimulationWarning
 
 struct ConfirmSimulationState {
     let result: SimulationResult?
@@ -43,16 +45,16 @@ struct ConfirmSimulationState {
 
     init(_ state: GemConfirmSimulationState) throws {
         let details = state.simulation
-        let simulation = try state.result.map { try Primitives.SimulationResult($0) }
+        let simulation = state.result
         var payload = SimulationPayloadModel(
             chain: Primitives.Chain(core: state.chain),
-            primaryFields: details?.primaryFields.map { $0.map() } ?? [],
-            secondaryFields: details?.secondaryFields.map { $0.map() } ?? [],
+            primaryFields: details?.primaryFields ?? [],
+            secondaryFields: details?.secondaryFields ?? [],
         )
         payload.addressNames = state.names
         self.init(
             result: simulation,
-            warnings: try state.warnings.map { try SimulationWarning($0) },
+            warnings: state.warnings,
             hasCriticalWarning: details?.hasCriticalWarning ?? false,
             payload: payload,
             headerData: details?.header.flatMap {

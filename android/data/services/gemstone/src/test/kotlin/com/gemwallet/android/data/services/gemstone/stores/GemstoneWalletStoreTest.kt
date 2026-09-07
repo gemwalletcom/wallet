@@ -7,7 +7,6 @@ import com.gemwallet.android.data.service.store.database.entities.DbAccount
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isStakeSupported
-import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockWallet
@@ -72,8 +71,6 @@ class GemstoneWalletStoreTest {
 
         every { Chain.Ethereum.asset() } returns mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18)
         every { Chain.Solana.asset() } returns mockAsset(chain = Chain.Solana, name = "Solana", symbol = "SOL", decimals = 9)
-        every { Chain.Ethereum.isSwapSupport() } returns true
-        every { Chain.Solana.isSwapSupport() } returns true
         every { Chain.Ethereum.isStakeSupported() } returns false
         every { Chain.Solana.isStakeSupported() } returns true
     }

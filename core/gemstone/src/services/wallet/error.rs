@@ -6,6 +6,7 @@ pub enum GemWalletImportError {
     InvalidSecretPhraseWords { words: Vec<String> },
     InvalidPrivateKey,
     InvalidAddress,
+    MissingChain,
 }
 
 impl std::fmt::Display for GemWalletImportError {
@@ -15,6 +16,7 @@ impl std::fmt::Display for GemWalletImportError {
             Self::InvalidSecretPhraseWords { words } => write!(f, "invalid secret phrase words: {}", words.join(", ")),
             Self::InvalidPrivateKey => write!(f, "invalid private key"),
             Self::InvalidAddress => write!(f, "invalid address"),
+            Self::MissingChain => write!(f, "import requires a chain"),
         }
     }
 }

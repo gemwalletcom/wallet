@@ -1,13 +1,13 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.eligible
 import com.gemwallet.android.domains.asset.queryFilters
-import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
@@ -32,10 +32,8 @@ open class SendSelectViewModel @Inject constructor(
     getRecentAssets,
     service,
     SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
-    remoteSearch = false,
-) {
-    override fun assetFilters() = setOf(AssetFilter.HasBalance)
-}
+    GemSelectAssetType.SEND,
+)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendSelectSearch(

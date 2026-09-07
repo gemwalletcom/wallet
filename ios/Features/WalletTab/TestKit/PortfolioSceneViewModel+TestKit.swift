@@ -3,8 +3,8 @@
 import Foundation
 import protocol Gemstone.GemPortfolioServiceProtocol
 import GemstonePrimitivesTestKit
-import Preferences
-import PreferencesTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import WalletTab

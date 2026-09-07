@@ -388,9 +388,9 @@
   <string name="fee_rates_info">Kasi ya ununuzi imedhamiriwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.</string>
   <string name="fee_rates_fast">Haraka</string>
   <string name="fee_rates_normal">Kawaida</string>
-  <string name="fee_rate_satvB">%1$s sat/vB</string>
+  <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_satB">%1$s sat/B</string>
-  <string name="fee_rate_gwei">%1$s gwei</string>
+  <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Maalum</string>
   <string name="banner_account_activation_title">Ada ya Kuanzisha Akaunti</string>
   <string name="banner_account_activation_description">Mtandao wa %1$s unahitaji ada ya mara moja ya %2$s.</string>
@@ -481,6 +481,7 @@
   <string name="info_perpetual_funding_apr_description">Kiwango cha kila mwaka ambacho nafasi ndefu hulipa nafasi fupi (ikiwa hasi, nafasi fupi hulipa nafasi ndefu). Hakuna ada zinazohusishwa na ufadhili, ambao ni uhamishaji kati ya watumiaji ili kusukuma bei kuelekea bei inayotarajiwa.</string>
   <string name="info_minimum_amount_title">Kiasi cha Chini</string>
   <string name="info_minimum_amount_description">Kwenye mtandao wa %1$s, kiasi cha chini kwa muamala huu ni %2$s.</string>
+  <string name="info_swap_minimum_amount_description">%1$s inahitaji angalau %2$s, lakini kiasi ni %3$s. Ongeza %4$s ili kuendelea.</string>
   <string name="input_enter_amount_to">Tafadhali weka kiasi hadi %1$s</string>
   <string name="nft_properties">Mali</string>
   <string name="nft_collections">Mikusanyiko</string>

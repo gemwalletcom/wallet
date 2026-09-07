@@ -94,11 +94,16 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func hideFeeDetailsWithoutLoadedSingleRate() {
+    func showFeeDetailsForSingleRateWhileReloading() {
         let model = NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil)]))
 
         #expect(model.showFeeRates == false)
-        #expect(model.showFeeDetails == false)
+        #expect(model.showFeeDetails)
+    }
+
+    @Test
+    func hideFeeDetailsBeforePreload() {
+        #expect(NetworkFeeSceneViewModel.mock().showFeeDetails == false)
     }
 
     @Test

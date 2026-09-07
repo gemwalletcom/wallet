@@ -5,7 +5,7 @@ import Primitives
 
 public extension GemAddAssetServiceProtocol {
     func chains(wallet: Wallet) -> [Chain] {
-        chains(wallet: wallet.json()).map { Chain(core: $0) }
+        chains(wallet: wallet.map()).map { Chain(core: $0) }
     }
 
     func defaultChain(chains: [Chain]) -> Chain? {
@@ -13,7 +13,7 @@ public extension GemAddAssetServiceProtocol {
     }
 
     func tokenUrl(chain: Chain, tokenId: String) -> BlockExplorerLink? {
-        tokenUrl(chain: chain.rawValue, tokenId: tokenId).map { BlockExplorerLink($0) }
+        tokenUrl(chain: chain.rawValue, tokenId: tokenId).map { $0.map() }
     }
 
     func token(chain: Chain, address: String) async throws -> Asset {
@@ -21,6 +21,6 @@ public extension GemAddAssetServiceProtocol {
     }
 
     func add(wallet: Wallet, assetId: AssetId) async throws {
-        try await add(wallet: wallet.json(), assetId: assetId.identifier)
+        try await add(wallet: wallet.map(), assetId: assetId.identifier)
     }
 }

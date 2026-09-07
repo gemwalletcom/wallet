@@ -2,9 +2,9 @@
 
 import Foundation
 import enum Gemstone.PerpetualProvider
-import typealias Gemstone.PerpetualData
-import typealias Gemstone.PerpetualMarketData
-import typealias Gemstone.PerpetualPosition
+import struct Gemstone.PerpetualData
+import struct Gemstone.PerpetualMarketData
+import struct Gemstone.PerpetualPosition
 import protocol Gemstone.GemPerpetualStore
 import GemstonePrimitives
 import Primitives
@@ -20,7 +20,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
     }
 
     public func savePerpetuals(data: [Gemstone.PerpetualData]) async throws {
-        try store.upsertPerpetuals(data.map { try Primitives.PerpetualData($0).perpetual })
+        try store.upsertPerpetuals(data.map { $0.map().perpetual })
     }
 
     public func setPinned(perpetualIds: [String], pinned: Bool) async throws {
@@ -33,11 +33,10 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
     }
 
     public func getPositions(walletId: String, provider: Gemstone.PerpetualProvider) async throws -> [Gemstone.PerpetualPosition] {
-        try store.getPositions(walletId: WalletId.from(id: walletId), provider: provider.map()).map { $0.json() }
+        try store.getPositions(walletId: WalletId.from(id: walletId), provider: provider.map()).map { $0.map() }
     }
 
     public func updateMarket(market: Gemstone.PerpetualMarketData) async throws {
-        let market = try Primitives.PerpetualMarketData(market)
         try store.updateMarket(
             coin: market.coin,
             price: market.price,
@@ -59,7 +58,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
     public func updatePositions(walletId: String, positions: [Gemstone.PerpetualPosition], deleteIds: [String]) async throws {
         try store.diffPositions(
             deleteIds: deleteIds,
-            positions: positions.map { try Primitives.PerpetualPosition($0) },
+            positions: positions.map { $0.map() },
             walletId: WalletId.from(id: walletId),
         )
     }

@@ -13,7 +13,7 @@ public extension GemPaymentService {
     func load(link: Primitives.PaymentLink, addresses: [Primitives.ChainAddress]) async throws -> GemPaymentTransaction {
         try await load(
             link: link.json(),
-            addresses: addresses.map { $0.json() },
+            addresses: addresses.map { $0.map() },
         )
     }
 }

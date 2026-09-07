@@ -23,7 +23,7 @@ struct KeystoreBenchmarkTests {
             let start = clock.now
             wallet = try keystore.importWallet(
                 name: "Benchmark",
-                type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+                type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }),
             )
             if index > 0 {
                 encryptDurations.append(clock.now - start)
@@ -34,7 +34,7 @@ struct KeystoreBenchmarkTests {
         var decryptDurations: [Duration] = []
         for index in 0 ... Self.iterations {
             let start = clock.now
-            let words = try await keystore.getMnemonic(wallet: imported)
+            let words = try await keystore.exportedWords(wallet: imported)
             if index > 0 {
                 decryptDurations.append(clock.now - start)
             }
@@ -43,7 +43,7 @@ struct KeystoreBenchmarkTests {
         _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: imported.id.id))
 
         print("keystore_v4 encrypt(importWallet) median: \(Self.median(encryptDurations))")
-        print("keystore_v4 decrypt(getMnemonic) median: \(Self.median(decryptDurations))")
+        print("keystore_v4 decrypt(exportRecoveryPhrase) median: \(Self.median(decryptDurations))")
     }
 
     private static func median(_ durations: [Duration]) -> Duration {

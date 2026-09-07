@@ -11,14 +11,14 @@ use primitives::{
     WalletConnectionState, WalletId, WalletType,
 };
 
-use crate::models::gateway::GemGasPriceType;
-use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
 use crate::services::error::GemServiceError;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
-use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+use primitives::GasPriceType;
+use primitives::TransactionInputType;
+use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
 pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
 const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
@@ -175,6 +175,14 @@ pub fn session_methods() -> Vec<String> {
     WalletConnectionMethods::all().iter().filter_map(serde_name).collect()
 }
 
+pub fn authentication_methods() -> Vec<String> {
+    WalletConnectionMethods::all()
+        .iter()
+        .filter(|method| method.chain_type() == ChainType::Ethereum)
+        .filter_map(serde_name)
+        .collect()
+}
+
 pub fn session_events() -> Vec<String> {
     WalletConnectionEvents::all().iter().filter_map(serde_name).collect()
 }
@@ -234,7 +242,7 @@ pub fn transfer_data(
             let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO);
             let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?;
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
-                (Some(max_fee), Some(priority_fee)) => Some(GemGasPriceType::Eip1559 {
+                (Some(max_fee), Some(priority_fee)) => Some(GasPriceType::Eip1559 {
                     gas_price: hex_value(max_fee)?,
                     priority_fee: hex_value(priority_fee)?,
                 }),
@@ -245,7 +253,7 @@ pub fn transfer_data(
                 EvmTransactionKind::ContractCall => (TransactionType::SmartContractCall, None),
                 EvmTransactionKind::TokenApproval { approval } => (TransactionType::TokenApproval, Some(approval)),
             };
-            let extra = GemTransferDataExtra {
+            let extra = TransferDataExtra {
                 to: data.to,
                 gas_limit,
                 gas_price,
@@ -277,19 +285,18 @@ pub fn transfer_data(
             memo: None,
             references: vec![],
         },
-        input_type: GemTransactionInputType::Generic {
+        input_type: TransactionInputType::Generic {
             asset: Asset::from_chain(chain),
             metadata,
             extra,
         },
         value,
         use_max_amount: false,
-        minimum_value: None,
     })
 }
 
-fn encoded_extra(encoded: String, output_type: TransferDataOutputType, output_action: TransferDataOutputAction, transaction_type: TransactionType) -> GemTransferDataExtra {
-    GemTransferDataExtra {
+fn encoded_extra(encoded: String, output_type: TransferDataOutputType, output_action: TransferDataOutputAction, transaction_type: TransactionType) -> TransferDataExtra {
+    TransferDataExtra {
         to: String::new(),
         gas_limit: None,
         gas_price: None,
@@ -449,6 +456,19 @@ mod tests {
     }
 
     #[test]
+    fn test_authentication_methods_are_the_evm_session_methods() {
+        let methods = authentication_methods();
+        assert!(methods.contains(&"personal_sign".to_string()));
+        assert!(methods.contains(&"eth_sendTransaction".to_string()));
+        assert!(
+            !methods
+                .iter()
+                .any(|method| method.starts_with("solana_") || method.starts_with("sui_") || method.starts_with("ton_") || method.starts_with("tron_"))
+        );
+        assert!(methods.iter().all(|method| session_methods().contains(method)));
+    }
+
+    #[test]
     fn test_validate_transaction_sender_binds_an_evm_request_to_the_session_account() {
         let account = Account::mock(Chain::Ethereum, "0xAbC");
         let evm = |from: &str| WalletConnectTransaction::Ethereum {
@@ -501,14 +521,12 @@ mod tests {
 
         assert_eq!(transfer.value, BigInt::from(16));
         assert_eq!(transfer.recipient.address, "0xto");
-        let GemTransactionInputType::Generic { asset, extra, .. } = transfer.input_type else {
+        let TransactionInputType::Generic { asset, extra, .. } = transfer.input_type else {
             panic!("expected a generic input");
         };
         assert_eq!(asset.id, primitives::AssetId::from_chain(Chain::Ethereum));
         assert_eq!(extra.gas_limit, Some(BigInt::from(21000)));
-        assert!(
-            matches!(extra.gas_price, Some(GemGasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if *gas_price == BigInt::from(100) && *priority_fee == BigInt::from(2))
-        );
+        assert!(matches!(extra.gas_price, Some(GasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if *gas_price == BigInt::from(100) && *priority_fee == BigInt::from(2)));
         assert_eq!(extra.data, Some(vec![0xde, 0xad, 0xbe, 0xef]));
         assert_eq!(extra.transaction_type, TransactionType::TokenApproval);
         assert!(extra.approval.is_some());
@@ -522,7 +540,7 @@ mod tests {
         let transfer = transfer_data(Chain::Solana, metadata, solana, GemWalletConnectTransactionAction::Sign).unwrap();
         assert_eq!(transfer.value, BigInt::from(0));
         assert_eq!(transfer.recipient.address, "");
-        let GemTransactionInputType::Generic { extra, .. } = transfer.input_type else {
+        let TransactionInputType::Generic { extra, .. } = transfer.input_type else {
             panic!("expected a generic input");
         };
         assert_eq!(extra.data, Some(b"AQID".to_vec()));

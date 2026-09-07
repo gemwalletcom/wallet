@@ -47,7 +47,9 @@ mod chain_integration_tests {
         let client = create_test_client();
 
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Stellar),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             references: vec![],
@@ -66,7 +68,9 @@ mod chain_integration_tests {
         let client = create_test_client();
 
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Stellar),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
             references: vec![],
@@ -85,7 +89,9 @@ mod chain_integration_tests {
         let client = create_test_client();
 
         let preload_input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Stellar),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             references: vec![],
@@ -94,7 +100,9 @@ mod chain_integration_tests {
         let metadata = client.get_transaction_preload(preload_input).await?;
 
         let load_input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Stellar),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             value: BigUint::from(1000000u64),
@@ -117,7 +125,9 @@ mod chain_integration_tests {
         let client = create_test_client();
 
         let preload_input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Stellar),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
             references: vec![],
@@ -126,7 +136,9 @@ mod chain_integration_tests {
         let metadata = client.get_transaction_preload(preload_input).await?;
 
         let load_input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Stellar),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
             value: BigUint::from(15000000u64),

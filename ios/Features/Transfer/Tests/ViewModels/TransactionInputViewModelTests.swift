@@ -1,14 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemTransferAmount
-import struct Gemstone.GemAssetPrice
 import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmMetadata
 import GemstonePrimitivesTestKit
 import BigInt
 import GemstonePrimitives
-import Preferences
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -92,7 +90,7 @@ struct TransactionInputViewModelTests {
         let metaData = GemConfirmMetadata(
             assetBalance: .mock(assetId: assetId.identifier),
             feeAssetBalance: .mock(assetId: assetId.identifier),
-            prices: [GemAssetPrice(assetId: assetId.identifier, price: Price.mock().price, priceChangePercentage24h: 0, updatedAt: 0)],
+            prices: [AssetPrice.mock(assetId: assetId, price: Price.mock().price, priceChangePercentage24h: 0).map()],
         )
         let viewModel = TransactionInputViewModel(
             data: .mock(),

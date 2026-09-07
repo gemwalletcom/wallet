@@ -57,11 +57,11 @@ impl EvmTransferProvider {
         let private_key = self.get_private_key(wallet)?;
         let client = self.get_client(evm_chain)?;
 
-        let fee_rates = client.get_transaction_fee_rates(TransactionInputType::Transfer(asset.clone())).await?;
+        let fee_rates = client.get_transaction_fee_rates(TransactionInputType::Transfer { asset: asset.clone() }).await?;
         let fee_rate = FeeRate::find(&fee_rates, FeePriority::Fast).ok_or("No fast fee rate")?;
 
         let preload_input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(asset.clone()),
+            input_type: TransactionInputType::Transfer { asset: asset.clone() },
             sender_address: wallet.address.clone(),
             destination_address: request.recipient_address.clone(),
             references: vec![],
@@ -69,7 +69,7 @@ impl EvmTransferProvider {
         let metadata = client.get_transaction_preload(preload_input).await?;
 
         let load_input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(asset.clone()),
+            input_type: TransactionInputType::Transfer { asset: asset.clone() },
             sender_address: wallet.address.clone(),
             destination_address: request.recipient_address.clone(),
             value: value.clone(),

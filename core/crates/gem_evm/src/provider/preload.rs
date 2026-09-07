@@ -55,7 +55,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = match &input.input_type {
-            TransactionInputType::Stake(_, stake_type) => self.provider.encode_stake(stake_type, &input.value_as_bigint())?,
+            TransactionInputType::Stake { stake_type, .. } => self.provider.encode_stake(stake_type, &input.value_as_bigint())?,
             _ => get_transaction_params(self.chain, &input)?,
         };
 
@@ -73,7 +73,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
         let gas_limit = calculate_gas_limit_with_increase(gas_estimate);
         let fee = self.provider.calculate_fee(&input, &params, &gas_limit).await?;
 
-        let metadata = if let TransactionInputType::Stake(_, _) = &input.input_type {
+        let metadata = if let TransactionInputType::Stake { .. } = &input.input_type {
             match input.metadata {
                 TransactionLoadMetadata::Evm { nonce, chain_id, .. } => TransactionLoadMetadata::Evm {
                     nonce,
@@ -117,7 +117,14 @@ mod tests {
     #[test]
     fn test_calculate_fee_swap_approval_keeps_transaction_gas_limit() -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
         let swap_data = SwapData::mock_with_data_and_approval("0x", Some("200000"));
-        let input = TransactionLoadInput::mock_evm(TransactionInputType::Swap(Asset::mock_erc20(), Asset::from_chain(Chain::Ethereum), swap_data), "1000000");
+        let input = TransactionLoadInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::mock_erc20(),
+                to_asset: Asset::from_chain(Chain::Ethereum),
+                swap_data,
+            },
+            "1000000",
+        );
         let approval_gas_limit = BigInt::from(80_000u64);
         let swap_gas_limit = BigInt::from(200_000u64);
         let fee = calculate_fee(&input, &approval_gas_limit)?;
@@ -142,7 +149,9 @@ mod chain_integration_tests {
     async fn test_ethereum_get_transaction_preload() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_ethereum_test_client();
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Ethereum),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             references: vec![],
@@ -162,7 +171,9 @@ mod chain_integration_tests {
     async fn test_smartchain_get_transaction_preload() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_smartchain_test_client();
         let input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::SmartChain)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::SmartChain),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             references: vec![],
@@ -181,7 +192,9 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_ethereum_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_ethereum_test_client();
-        let input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum));
+        let input_type = TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::Ethereum),
+        };
 
         let fee_rates = client.get_transaction_fee_rates(input_type).await?;
 
@@ -200,7 +213,9 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_arbitrum_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_arbitrum_test_client();
-        let input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::Arbitrum));
+        let input_type = TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::Arbitrum),
+        };
 
         let fee_rates = client.get_transaction_fee_rates(input_type).await?;
 
@@ -219,7 +234,9 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_smartchain_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_smartchain_test_client();
-        let input_type = TransactionInputType::Transfer(Asset::from_chain(Chain::SmartChain));
+        let input_type = TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::SmartChain),
+        };
 
         let fee_rates = client.get_transaction_fee_rates(input_type).await?;
 
@@ -240,7 +257,9 @@ mod chain_integration_tests {
         let client = create_ethereum_test_client();
 
         let preload_input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Ethereum),
+            },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             references: vec![],
@@ -281,7 +300,7 @@ mod chain_integration_tests {
         let client = create_ethereum_test_client();
 
         let preload_input = TransactionPreloadInput {
-            input_type: TransactionInputType::Transfer(Asset::mock_erc20()),
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_erc20() },
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             references: vec![],

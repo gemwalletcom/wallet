@@ -12,7 +12,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
-import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -48,11 +48,13 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     val pinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+        .map { assets -> assets.filter { it.metadata.isPinned }.toAssetInfoDataAggregates(AssetRowNaming.CanonicalNative) }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unpinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { !it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+        .map { assets -> assets.filter { !it.metadata.isPinned }.toAssetInfoDataAggregates(AssetRowNaming.CanonicalNative) }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val hiddenAssets = getChainAssets.hidden(chain)
@@ -60,7 +62,8 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     val hidden: StateFlow<List<AssetInfoDataAggregate>> = hiddenAssets
-        .map { assets -> assets.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+        .map { assets -> assets.toAssetInfoDataAggregates(AssetRowNaming.CanonicalNative) }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isEmpty: StateFlow<Boolean> = combine(pinned, unpinned, hidden) { pinned, unpinned, hidden ->

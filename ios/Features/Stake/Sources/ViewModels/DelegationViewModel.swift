@@ -70,31 +70,31 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var balanceText: String {
-        formatter.string(delegation.base.balanceValue, decimals: asset.decimals.asInt, currency: asset.symbol)
+        formatter.string(delegation.base.balance, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     public var fiatValueText: String? {
         guard
             let price = delegation.price,
-            let balance = try? formatter.double(from: delegation.base.balanceValue, decimals: asset.decimals.asInt)
+            let balance = try? formatter.double(from: delegation.base.balance, decimals: asset.decimals.asInt)
         else { return nil }
         return priceFormatter.string(price.price * balance)
     }
 
     private var showsRewards: Bool {
-        service.showsRewards(delegation: delegation.base.json())
+        service.showsRewards(delegation: delegation.base.map())
     }
 
     public var rewardsText: String? {
         guard showsRewards else { return nil }
-        return formatter.string(delegation.base.rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
+        return formatter.string(delegation.base.rewards, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     public var rewardsFiatValueText: String? {
         guard
             showsRewards,
             let price = delegation.price,
-            let rewards = try? formatter.double(from: delegation.base.rewardsValue, decimals: asset.decimals.asInt)
+            let rewards = try? formatter.double(from: delegation.base.rewards, decimals: asset.decimals.asInt)
         else { return nil }
         return priceFormatter.string(price.price * rewards)
     }
@@ -112,11 +112,11 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        service.validatorUrl(validator: delegation.validator.json()).map { BlockExplorerLink($0) }?.url
+        service.validatorUrl(validator: delegation.validator.map()).map { $0.map() }?.url
     }
 
     public var completionDateText: String? {
-        guard service.showsCompletionDate(delegation: delegation.base.json()) else { return nil }
+        guard service.showsCompletionDate(delegation: delegation.base.map()) else { return nil }
         let now = Date.now
         if let completionDate = delegation.base.completionDate, completionDate > now {
             if now.distance(to: completionDate) < 86400 {

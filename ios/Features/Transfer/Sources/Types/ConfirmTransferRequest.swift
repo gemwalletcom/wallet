@@ -5,6 +5,7 @@ import GemstonePrimitives
 import Primitives
 import WalletConnector
 import struct Gemstone.GemTransferData
+import struct Gemstone.SimulationResult
 
 public struct ConfirmTransferRequest: Sendable {
     public let data: GemTransferData

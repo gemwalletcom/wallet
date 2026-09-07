@@ -23,12 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
-import com.gemwallet.android.features.buy.viewmodels.models.BuyError
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
+import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -53,19 +51,20 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuoteType
+import uniffi.gemstone.GemFiatButtonAction
+import uniffi.gemstone.GemFiatQuotePhase
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BuyScene(
     asset: Asset,
     assetInfo: AssetInfoDataAggregate?,
-    state: FiatSceneState,
+    uiState: FiatUiState,
     type: FiatQuoteType,
     providers: List<BuyFiatProviderUIModel>,
     selectedProvider: BuyFiatProviderUIModel?,
     fiatAmount: String,
     suggestedAmounts: List<FiatSuggestion>,
-    buttonState: ButtonState,
     cancelAction: CancelAction,
     titleContent: @Composable () -> Unit,
     onLotSelect: (FiatSuggestion) -> Unit,
@@ -93,12 +92,18 @@ fun BuyScene(
             }
         },
         mainAction = {
-            val canRetry = (state as? FiatSceneState.Error)?.error is BuyError.QuoteRequestFailed
-            MainActionButton(
-                title = stringResource(if (canRetry) R.string.common_try_again else R.string.common_continue),
-                state = if (canRetry) ButtonState.Enabled else buttonState,
-                onClick = if (canRetry) onRetry else onBuy,
-            )
+            when (uiState.buttonAction) {
+                GemFiatButtonAction.CONTINUE -> MainActionButton(
+                    title = stringResource(R.string.common_continue),
+                    state = uiState.buttonState,
+                    onClick = onBuy,
+                )
+                GemFiatButtonAction.RETRY_QUOTE -> MainActionButton(
+                    title = stringResource(R.string.common_try_again),
+                    state = uiState.buttonState,
+                    onClick = onRetry,
+                )
+            }
         }
     ) {
         Spacer16()
@@ -127,20 +132,9 @@ fun BuyScene(
             },
         )
 
-        when (state) {
-            is FiatSceneState.Error -> {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.error,
-                    text = state.error?.mapError(type, asset) ?: "",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-            FiatSceneState.Loading -> {
+        val errorText = uiState.errorText(type, asset)
+        when {
+            uiState.phase is GemFiatQuotePhase.Loading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -155,15 +149,27 @@ fun BuyScene(
                 }
             }
 
-            FiatSceneState.Ready -> if (selectedProvider != null) {
+            errorText != null -> {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.error,
+                    text = errorText,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            selectedProvider != null -> {
                 PropertyItem(
-                    modifier = Modifier.clickable(enabled = providers.size > 1) { isShowProviders.value = true },
+                    modifier = Modifier.clickable(enabled = uiState.canSelectProvider) { isShowProviders.value = true },
                     title = { PropertyTitleText(R.string.common_provider) },
                     data = {
                         PropertyDataText(
                             selectedProvider.provider.name,
                             badge = {
-                                DataBadgeChevron(isShowChevron = providers.size > 1) {
+                                DataBadgeChevron(isShowChevron = uiState.canSelectProvider) {
                                     AsyncImage(
                                         model = selectedProvider.provider.getFiatProviderIcon(),
                                         size = smallIconSize,

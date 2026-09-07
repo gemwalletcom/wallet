@@ -2,8 +2,6 @@
 
 import enum Gemstone.GemAmountSign
 import enum Gemstone.PerpetualDirection
-import enum Gemstone.GemTransactionSubtitle
-import enum Gemstone.GemTransactionValue
 import enum Gemstone.GemTransactionTitle
 import GemstonePrimitives
 import Localization

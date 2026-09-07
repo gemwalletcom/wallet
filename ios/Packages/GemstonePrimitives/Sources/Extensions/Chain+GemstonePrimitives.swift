@@ -14,9 +14,6 @@ private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.
 }
 
 public extension Primitives.Chain {
-    func map() -> Gemstone.Chain {
-        rawValue
-    }
 
     var asset: Primitives.Asset {
         chainAsset.asset
@@ -43,15 +40,7 @@ public extension Primitives.Chain {
     }
 
     var iconChain: Primitives.Chain {
-        Primitives.Chain(rawValue: ChainConfig.config(chain: self).iconChain) ?? self
-    }
-
-    var badgeChain: Primitives.Chain? {
-        ChainConfig.config(chain: self).badgeChain.flatMap { Primitives.Chain(rawValue: $0) }
-    }
-
-    var defaultAssets: [Primitives.Asset] {
-        GemAssetConfigService.shared.walletDefaultAssets(chain: map()).map { $0.map() }
+        Primitives.Chain(core: ChainConfig.config(chain: self).iconChain)
     }
 
     func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {
@@ -61,9 +50,6 @@ public extension Primitives.Chain {
         return asset.map()
     }
 
-    var isPrivateKeyImportSupported: Bool {
-        Gemstone.supportsPrivateKeyImport(chain: rawValue)
-    }
 }
 
 private extension Primitives.Chain {

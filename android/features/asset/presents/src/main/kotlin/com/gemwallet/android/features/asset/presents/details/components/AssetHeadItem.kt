@@ -6,12 +6,10 @@ import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.WalletType
 
 @Composable
 internal fun AssetHeadItem(
     uiState: AssetInfoUIModel,
-    isOperationEnabled: Boolean,
     onTransfer: AssetIdAction,
     onReceive: (AssetId) -> Unit,
     onBuy: (AssetId) -> Unit,
@@ -23,16 +21,11 @@ internal fun AssetHeadItem(
         icon = uiState.asset,
     ) {
         AssetHeadActions(
-            walletType = uiState.accountInfoUIModel.walletType,
-            transferEnabled = uiState.accountInfoUIModel.walletType != WalletType.View,
-            operationsEnabled = isOperationEnabled,
+            isViewOnly = uiState.detailsState.isViewOnly,
+            buttons = uiState.detailsState.headerButtons,
             onTransfer = { onTransfer(uiState.asset.id) },
             onReceive = { onReceive(uiState.asset.id) },
-            onBuy = if (uiState.isBuyEnabled) {
-                { onBuy(uiState.asset.id) }
-            } else {
-                null
-            },
+            onBuy = { onBuy(uiState.asset.id) },
             onSwap = onSwap,
         )
     }

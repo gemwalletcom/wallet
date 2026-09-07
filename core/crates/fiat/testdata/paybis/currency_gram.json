@@ -1,0 +1,7 @@
+{
+  "name": "Gram (prev. Toncoin)",
+  "code": "GRAM",
+  "hasDestinationTag": true,
+  "image": "https://cdn.paybis.com/shared/icons/default/money-services/gram.svg",
+  "blockchainName": "ton"
+}

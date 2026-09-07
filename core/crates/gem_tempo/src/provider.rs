@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn test_maps_pathusd_transfer_as_tip20() {
-        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer(TEMPO_PATHUSD.clone()), "1000000");
+        let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer { asset: TEMPO_PATHUSD.clone() }, "1000000");
         let params = get_transaction_params(EVMChain::Tempo, &input).unwrap();
 
         assert_eq!(params.to, TEMPO_PATHUSD_TOKEN_ID);
@@ -274,7 +274,7 @@ mod chain_integration_tests {
         let settings = settings::testkit::get_test_settings();
         let client = ReqwestClient::new_test_client(settings.chains.tempo.url.clone());
         let provider = TempoProvider::new(EthereumClient::new(JsonRpcClient::new(client), EVMChain::Tempo));
-        let input_type = TransactionInputType::Transfer(TEMPO_PATHUSD.clone());
+        let input_type = TransactionInputType::Transfer { asset: TEMPO_PATHUSD.clone() };
 
         let metadata = provider
             .get_transaction_preload(TransactionPreloadInput {

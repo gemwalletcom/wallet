@@ -14,13 +14,14 @@ enum ConfirmInfoSheetBuilder {
     static func build(
         for error: ConfirmTransferError,
         feePrice: Price?,
+        prices: [AssetId: Price],
         currency: String,
         acquireFlow: (Asset) -> GemAcquireAssetFlow,
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
     ) -> InfoSheetType? {
         switch error {
         case let .confirm(error):
-            confirmSheet(for: error, feePrice: feePrice, currency: currency, acquireFlow: acquireFlow, onGetAsset: onGetAsset)
+            confirmSheet(for: error, feePrice: feePrice, prices: prices, currency: currency, acquireFlow: acquireFlow, onGetAsset: onGetAsset)
         case .other:
             nil
         }
@@ -29,6 +30,7 @@ enum ConfirmInfoSheetBuilder {
     private static func confirmSheet(
         for error: GemConfirmError,
         feePrice: Price?,
+        prices: [AssetId: Price],
         currency: String,
         acquireFlow: (Asset) -> GemAcquireAssetFlow,
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
@@ -44,6 +46,17 @@ enum ConfirmInfoSheetBuilder {
             })
         case let .MinimumAccountBalanceTooLow(asset, requirement):
             return .accountMinimalBalance(asset.map(), required: requirement.required)
+        case let .BelowSwapMinimum(asset, provider, providerName, requirement):
+            let asset = asset.map()
+            return .swapMinimumAmount(
+                asset,
+                providerName: providerName,
+                image: AssetImage(placeholder: provider.map().image),
+                requirement: requirement.map(),
+                price: prices[asset.id],
+                currency: currency,
+                button: acquireButton(asset, flow: acquireFlow(asset)) { onGetAsset(asset, nil) },
+            )
         case let .Sign(.dustThreshold, chain, _):
             let chain = Chain(core: chain)
             return .dustThreshold(chain, image: image(for: chain.asset))

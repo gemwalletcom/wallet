@@ -7,12 +7,12 @@ use primitives::currency::Currency;
 use primitives::{AssetId, Chain, ChartDateValue, ChartPeriod};
 
 use crate::api::{GemApiClient, GemApiError};
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
+use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
@@ -48,7 +48,7 @@ impl GemChartService {
         }
     }
 
-    pub fn token_url(&self, chain: Chain, address: String) -> Option<GemBlockExplorerLink> {
+    pub fn token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
         self.explorer.get_token_url(chain, address)
     }
 

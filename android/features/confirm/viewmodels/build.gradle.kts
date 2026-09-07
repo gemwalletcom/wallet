@@ -52,7 +52,6 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":data:services:gemstone"))
     implementation(project(":gemcore"))
-    implementation(project(":blockchain"))
 
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.savedstate)

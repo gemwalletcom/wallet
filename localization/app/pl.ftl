@@ -469,9 +469,9 @@ fee_rates_normal = Normalne
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = Niestandardowe
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Finansowanie RRSO
 info_perpetual_funding_apr_description = Roczna stopa procentowa, według której pozycje długie opłacają pozycje krótkie (jeśli wartość ujemna, pozycje krótkie opłacają pozycje długie). Nie ma żadnych opłat związanych z finansowaniem, które stanowi transfer typu peer-to-peer pomiędzy użytkownikami w celu podniesienia cen w kierunku ceny spot.
 info_minimum_amount_title = Minimalna kwota
 info_minimum_amount_description = W sieci %@ minimalna kwota tej transakcji to %@.
+info_swap_minimum_amount_description = %@ wymaga co najmniej %@, ale kwota wynosi %@. Zwiększ ją o %@, aby kontynuować.
 
 # Input
 

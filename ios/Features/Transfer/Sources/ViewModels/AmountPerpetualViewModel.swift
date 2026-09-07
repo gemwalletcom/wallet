@@ -3,10 +3,8 @@
 import BigInt
 import Formatters
 import Foundation
-import enum Gemstone.GemAmountPerpetualPosition
 import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountType
-import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemPerpetualTransferData
 import struct Gemstone.GemTransferData
@@ -91,16 +89,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var gemAmountType: GemAmountType {
-        let position: GemAmountPerpetualPosition = switch action {
-        case .open: .open
-        case .increase: .increase
-        case let .reduce(_, available): .reduce(available: available)
-        }
-        return .perpetual(position: position, price: transferData.price, leverage: leverage, sizeDecimals: transferData.asset.decimals)
-    }
-
-    func recipientData() -> GemPaymentRecipient {
-        GemPaymentRecipient(recipient: action.recipient())
+        service.perpetualAmountType(action: action, leverage: leverage)
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) -> GemTransferData {

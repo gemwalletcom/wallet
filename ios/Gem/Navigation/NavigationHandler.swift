@@ -284,7 +284,7 @@ extension NavigationHandler {
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
         guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
               let asset = try await transactionStateService.addNotificationTransaction(
-                  wallet: wallet.json(),
+                  wallet: wallet.map(),
                   assetId: assetId.identifier,
                   transaction: transaction.json(),
               ).map({ $0.map() })

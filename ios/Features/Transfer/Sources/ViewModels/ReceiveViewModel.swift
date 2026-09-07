@@ -40,7 +40,7 @@ public final class ReceiveViewModel: Sendable {
         networkAssetIds = service.networkAssetIds(
             assetId: asset.id.identifier,
             associations: associations.map(\.assetId.identifier),
-            wallet: wallet.json(),
+            wallet: wallet.map(),
         ).map { AssetId(core: $0) }
     }
 

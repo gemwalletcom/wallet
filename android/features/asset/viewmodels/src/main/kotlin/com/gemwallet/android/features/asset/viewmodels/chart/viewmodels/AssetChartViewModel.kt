@@ -13,7 +13,6 @@ import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketU
 import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.BlockExplorerLink
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import com.gemwallet.android.ext.toPrimitives
 
 @HiltViewModel
 class AssetChartViewModel internal constructor(
@@ -62,7 +62,7 @@ class AssetChartViewModel internal constructor(
                 currency = currency,
                 marketInfo = market,
                 tokenExplorerLink = it.id.tokenId?.let { tokenId ->
-                    chartService.tokenUrl(it.id.chain.string, tokenId)?.let { url -> BlockExplorerLink(url.name, url.link) }
+                    chartService.tokenUrl(it.id.chain.string, tokenId)?.toPrimitives()
                 },
             )
         }

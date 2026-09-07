@@ -3,6 +3,7 @@
 import Components
 import Primitives
 import SwiftUI
+import struct Gemstone.SimulationPayloadField
 
 public struct SimulationPayloadFieldsContent: View {
     private let fields: [SimulationPayloadField]

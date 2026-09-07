@@ -5,7 +5,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import Preferences
+import GemstoneServices
 
 public struct ImportWalletTypeViewModel {
     private let preferences: ObservablePreferences

@@ -5,7 +5,6 @@ import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemDeviceRequestSigner
 import GemstonePrimitives
 import GemstoneServices
-import Preferences
 import Primitives
 import WebSocketClient
 

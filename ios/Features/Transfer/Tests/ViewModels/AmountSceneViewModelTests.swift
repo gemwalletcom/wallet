@@ -140,7 +140,7 @@ struct AmountSceneViewModelTests {
 
     @Test
     func onAppearSetsMaxForFixedValue() {
-        let delegation = Delegation.mock(base: .mock(state: .active, balance: "1000000"))
+        let delegation = Delegation.mock(base: .mock(state: .active, balance: 1_000_000))
         let assetData = AssetData.mock(asset: .mockBNB())
         let model = AmountSceneViewModel.mock(
             type: .stake(.withdraw(delegation)),

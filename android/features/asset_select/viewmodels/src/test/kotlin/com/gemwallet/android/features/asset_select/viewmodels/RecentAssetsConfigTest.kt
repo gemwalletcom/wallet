@@ -24,22 +24,22 @@ class RecentAssetsConfigTest {
 
     @Test
     fun `receive shows recents without filters`() {
-        val vm = AssetSelectViewModel(getSession, searchSelectAssets, getRecentAssets, service)
-        assertTrue(vm.showRecents)
+        val vm = ReceiveSelectViewModel(getSession, searchSelectAssets, getRecentAssets, service)
+        assertTrue(vm.flow.recents)
         assertEquals(emptySet<AssetFilter>(), vm.assetFilters())
     }
 
     @Test
     fun `buy filters recents to buyable`() {
         val vm = BuySelectViewModel(getSession, searchSelectAssets, getRecentAssets, service)
-        assertTrue(vm.showRecents)
+        assertTrue(vm.flow.recents)
         assertEquals(setOf(AssetFilter.Buyable), vm.assetFilters())
     }
 
     @Test
     fun `send filters recents to has balance`() {
         val vm = SendSelectViewModel(getSession, searchSelectAssets, getSelectAssetsInfo, getRecentAssets, service)
-        assertTrue(vm.showRecents)
+        assertTrue(vm.flow.recents)
         assertEquals(setOf(AssetFilter.HasBalance), vm.assetFilters())
     }
 

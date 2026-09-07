@@ -1,9 +1,7 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.GemRecipientSerializer
 import uniffi.gemstone.GemRecipient
-import com.gemwallet.android.serializer.GemPerpetualPositionActionSerializer
 import com.gemwallet.android.domains.perpetual.data
 import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -16,6 +14,7 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Contextual
 
 @Serializable
 sealed interface AmountParams {
@@ -29,7 +28,7 @@ sealed interface AmountParams {
     @SerialName("transfer")
     data class Transfer(
         override val assetId: AssetId,
-        val destination: @Serializable(with = GemRecipientSerializer::class) GemRecipient,
+        val destination: @Contextual GemRecipient,
         val memo: String? = null,
         val references: List<String> = emptyList(),
         override val amount: String? = null,
@@ -120,8 +119,7 @@ sealed interface AmountParams {
     data class Perpetual(
         override val assetId: AssetId,
         val perpetualId: PerpetualId,
-        @Serializable(GemPerpetualPositionActionSerializer::class)
-        val positionAction: GemPerpetualPositionAction,
+        val positionAction: @Contextual GemPerpetualPositionAction,
     ) : AmountParams {
         val direction: PerpetualDirection get() = positionAction.transferData().direction.toPrimitives()
 

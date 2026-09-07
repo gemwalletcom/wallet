@@ -4,43 +4,39 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemSwapRate
+import GemstonePrimitives
 import Localization
 import Primitives
+import PrimitivesComponents
 
 struct TransactionRateViewModel {
-    private let transaction: TransactionExtended
+    private let rate: GemSwapRate?
     private let direction: AssetRateFormatter.Direction
 
     init(
-        transaction: TransactionExtended,
+        rate: GemSwapRate?,
         direction: AssetRateFormatter.Direction,
     ) {
-        self.transaction = transaction
+        self.rate = rate
         self.direction = direction
     }
 }
 
-// MARK: - ItemModelProvidable
-
 extension TransactionRateViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
         guard
-            let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self),
-            let fromAsset = transaction.assets.first(where: { $0.id == metadata.fromAsset }),
-            let toAsset = transaction.assets.first(where: { $0.id == metadata.toAsset }),
-            let fromValue = BigInt(metadata.fromValue),
-            let toValue = BigInt(metadata.toValue),
-            let rate = try? AssetRateFormatter().rate(
-                fromAsset: fromAsset,
-                toAsset: toAsset,
-                fromValue: fromValue,
-                toValue: toValue,
+            let rate,
+            let value = try? AssetRateFormatter().rate(
+                fromAsset: rate.from.asset.map(),
+                toAsset: rate.to.asset.map(),
+                fromValue: BigInt(rate.from.value),
+                toValue: BigInt(rate.to.value),
                 direction: direction,
             )
         else {
             return .empty
         }
-
-        return .rate(title: Localized.Buy.rate, value: rate)
+        return .rate(title: Localized.Buy.rate, value: value)
     }
 }

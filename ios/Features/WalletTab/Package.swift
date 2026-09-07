@@ -29,7 +29,6 @@ let package = Package(
         .package(name: "InfoSheet", path: "../InfoSheet"),
 
         .package(name: "Store", path: "../../Packages/Store"),
-        .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Perpetuals", path: "../Perpetuals"),
         .package(name: "Recents", path: "../Recents"),
@@ -48,7 +47,6 @@ let package = Package(
                 "GemstonePrimitives",
                 "InfoSheet",
                 "Store",
-                "Preferences",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Perpetuals",
                 "Recents",
@@ -62,7 +60,6 @@ let package = Package(
                 "Gemstone",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
-                .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "WalletTab",
@@ -74,7 +71,6 @@ let package = Package(
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
-                .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StoreTestKit", package: "Store"),
                 "NFT",

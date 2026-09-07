@@ -19,6 +19,7 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
+import struct Gemstone.SimulationPayloadField
 @testable import Transfer
 
 @MainActor
@@ -117,7 +118,7 @@ struct ConfirmSubmissionTests {
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: GemConfirmSimulation(primaryFields: [primary.map()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
+            simulation: GemConfirmSimulation(primaryFields: [primary], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
         )))
         await model.load()
 

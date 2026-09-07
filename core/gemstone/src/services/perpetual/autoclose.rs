@@ -183,7 +183,7 @@ mod tests {
         let modify = modify(field(Some(120.0), Some(100.0), true, Some(7)), field(None, None, false, None));
         let transfer = modify.transfer(PerpetualProvider::Hypercore, Asset::from_chain(primitives::Chain::HyperCore));
 
-        let crate::models::transaction::GemTransactionInputType::Perpetual {
+        let primitives::TransactionInputType::Perpetual {
             perpetual_type: PerpetualType::Modify(data),
             ..
         } = &transfer.input_type

@@ -36,6 +36,25 @@ struct ConfirmInfoSheetBuilderTests {
     }
 
     @Test
+    func swapBelowMinimumSheetNamesTheProvider() {
+        let asset = Asset.mock()
+        let error = GemConfirmError.BelowSwapMinimum(
+            asset: asset.map(),
+            provider: .nearIntents,
+            providerName: "NEAR Intents",
+            requirement: GemBalanceRequirement(required: 200, available: 150, shortfall: 50),
+        )
+
+        guard case let .swapMinimumAmount(sheetAsset, providerName, _, requirement, _, _, _) = build(for: error) else {
+            Issue.record("Expected swapMinimumAmount sheet")
+            return
+        }
+        #expect(sheetAsset == asset)
+        #expect(providerName == "NEAR Intents")
+        #expect(requirement == BalanceRequirement(required: 200, available: 150, shortfall: 50))
+    }
+
+    @Test
     func dustThresholdSheet() {
         let error = GemConfirmError.Sign(error: .dustThreshold, chain: Chain.bitcoin.rawValue, msg: "message can change")
 
@@ -59,6 +78,7 @@ struct ConfirmInfoSheetBuilderTests {
         ConfirmInfoSheetBuilder.build(
             for: ConfirmTransferError(error: error),
             feePrice: nil,
+            prices: [:],
             currency: Currency.usd.rawValue,
             acquireFlow: { _ in .fiat },
             onGetAsset: { _, _ in },

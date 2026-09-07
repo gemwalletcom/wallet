@@ -17,7 +17,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 
@@ -53,13 +52,11 @@ object TransactionModule {
     fun provideGetTransactionDetails(
         getSession: GetSession,
         getTransaction: GetTransaction,
-        getWalletAssets: GetWalletAssets,
         transactionDetailsService: GemTransactionDetailsService,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
             getSession = getSession,
             getTransaction = getTransaction,
-            getWalletAssets = getWalletAssets,
             transactionDetailsService = transactionDetailsService,
         )
     }

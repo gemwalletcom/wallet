@@ -1,6 +1,7 @@
 use num_bigint::BigInt;
 use serde::{Deserialize, Serialize};
 
+use crate::swap::ApprovalData;
 use crate::{GasPriceType, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,6 +13,7 @@ pub struct TransferDataExtra {
     pub output_type: TransferDataOutputType,
     pub output_action: TransferDataOutputAction,
     pub transaction_type: TransactionType,
+    pub approval: Option<ApprovalData>,
 }
 
 impl TransferDataExtra {
@@ -31,6 +33,7 @@ impl Default for TransferDataExtra {
             output_type: TransferDataOutputType::EncodedTransaction,
             output_action: TransferDataOutputAction::Send,
             transaction_type: TransactionType::SmartContractCall,
+            approval: None,
         }
     }
 }

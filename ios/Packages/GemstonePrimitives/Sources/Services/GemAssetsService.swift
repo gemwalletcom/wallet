@@ -10,7 +10,7 @@ public extension GemAssetsServiceProtocol {
     }
 
     func openWalletAsset(wallet: Primitives.Wallet, assetId: Primitives.AssetId) async throws -> Primitives.Asset? {
-        try await openWalletAsset(wallet: wallet.json(), assetId: assetId.identifier).map { $0.map() }
+        try await openWalletAsset(wallet: wallet.map(), assetId: assetId.identifier).map { $0.map() }
     }
 
     func openAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset? {

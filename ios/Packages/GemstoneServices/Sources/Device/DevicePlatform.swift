@@ -6,7 +6,6 @@ import struct Gemstone.GemDeviceInfo
 import protocol Gemstone.GemDevicePlatform
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
-import Preferences
 import Primitives
 import UIKit
 import UserNotifications
@@ -37,7 +36,7 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
 
     public func deviceInfo() async throws -> GemDeviceInfo {
         GemDeviceInfo(
-            platform: Platform.ios.json(),
+            platform: Platform.ios.map(),
             platformStore: PlatformStore.current.map(),
             os: os,
             model: model,

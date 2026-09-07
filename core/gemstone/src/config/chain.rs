@@ -20,8 +20,7 @@ pub struct ChainConfig {
     pub is_stake_supported: bool,
     pub is_nft_supported: bool,
     pub supports_nft_transfer: bool,
-    pub icon_chain: String,
-    pub badge_chain: Option<String>,
+    pub icon_chain: Chain,
     pub is_defi_supported: bool,
     pub is_memo_supported: bool,
     pub has_native_asset: bool,
@@ -47,8 +46,7 @@ pub fn get_chain_config(chain: Chain) -> ChainConfig {
         is_stake_supported: chain.is_stake_supported(),
         is_nft_supported: chain.is_nft_supported(),
         supports_nft_transfer: supports_nft_transfer(chain),
-        icon_chain: icon_chain(chain).as_ref().to_string(),
-        badge_chain: badge_chain(chain).map(|chain| chain.as_ref().to_string()),
+        icon_chain: icon_chain(chain),
         is_defi_supported: chain.is_defi_supported(),
         is_memo_supported: is_memo_supported(chain),
         has_native_asset: chain.has_native_asset(),
@@ -58,16 +56,15 @@ pub fn get_chain_config(chain: Chain) -> ChainConfig {
 pub fn icon_chain(chain: Chain) -> Chain {
     match chain {
         Chain::SeiEvm => Chain::Sei,
-        chain if is_ethereum_layer2(chain) => Chain::Ethereum,
         chain => chain,
     }
 }
 
-pub fn badge_chain(chain: Chain) -> Option<Chain> {
+pub(crate) fn badge_chain(chain: Chain) -> Option<Chain> {
     is_ethereum_layer2(chain).then_some(chain)
 }
 
-fn is_ethereum_layer2(chain: Chain) -> bool {
+pub(crate) fn is_ethereum_layer2(chain: Chain) -> bool {
     EVMChain::from_chain(chain).is_some_and(|chain| chain.is_ethereum_layer2())
 }
 
@@ -128,11 +125,10 @@ mod tests {
     }
 
     #[test]
-    fn test_ethereum_layer2_chains_draw_the_ethereum_icon_with_their_own_badge() {
-        assert_eq!(icon_chain(Chain::Base), Chain::Ethereum);
+    fn test_chain_icon_is_its_own_logo_and_only_ethereum_layer2_chains_badge() {
+        assert_eq!(icon_chain(Chain::Base), Chain::Base);
         assert_eq!(icon_chain(Chain::SeiEvm), Chain::Sei);
         assert_eq!(icon_chain(Chain::OpBNB), Chain::OpBNB);
-        assert_eq!(icon_chain(Chain::Bitcoin), Chain::Bitcoin);
         assert_eq!(icon_chain(Chain::Ethereum), Chain::Ethereum);
 
         assert_eq!(badge_chain(Chain::Base), Some(Chain::Base));

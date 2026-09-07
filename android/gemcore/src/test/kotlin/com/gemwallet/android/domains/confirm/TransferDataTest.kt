@@ -5,24 +5,24 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
+import com.gemwallet.android.domains.confirm.unpackTransferData
+import com.gemwallet.android.domains.confirm.pack
 
 class TransferDataTest {
 
-    private val transferService = GemTransferService()
 
     @Test
     fun theRoutePayloadKeepsTheMemoAndReferences() {
         val transfer = GemTransferData(
-            inputType = GemTransactionInputType.transfer(mockAsset()),
+            inputType = TransactionInputType.transfer(mockAsset()),
             recipient = GemRecipient(address = "destination", memo = "memo", references = listOf("reference")),
             value = BigInteger.ONE,
         )
 
-        val decoded = requireNotNull(transferService.unpack(requireNotNull(transferService.pack(transfer))))
+        val decoded = requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))
 
         assertEquals("destination", decoded.recipient.address)
         assertEquals("memo", decoded.recipient.memo)
@@ -32,6 +32,6 @@ class TransferDataTest {
 
     @Test
     fun anInvalidRoutePayloadDecodesToNothing() {
-        assertNull(transferService.unpack("invalid"))
+        assertNull(unpackTransferData("invalid"))
     }
 }

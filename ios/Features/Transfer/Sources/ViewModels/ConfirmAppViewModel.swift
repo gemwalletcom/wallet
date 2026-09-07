@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemTransactionInputType
+import struct Gemstone.GemTransferData
 import Components
 import Foundation
 import GemstonePrimitives
@@ -9,12 +9,10 @@ import Primitives
 import PrimitivesComponents
 
 public struct ConfirmAppViewModel: ItemModelProvidable {
-    private let type: GemTransactionInputType
-    private let shortName: String?
+    private let transfer: GemTransferData
 
-    init(type: GemTransactionInputType, shortName: String?) {
-        self.shortName = shortName
-        self.type = type
+    init(transfer: GemTransferData) {
+        self.transfer = transfer
     }
 }
 
@@ -38,10 +36,10 @@ public extension ConfirmAppViewModel {
 
 extension ConfirmAppViewModel {
     private var appValue: String? {
-        shortName
+        transfer.applicationShortName()
     }
 
     private var assetImage: AssetImage? {
-        type.applicationMetadata.map { AssetImage(imageURL: $0.icon.asURL) }
+        transfer.applicationMetadata.map { AssetImage(imageURL: $0.icon.asURL) }
     }
 }

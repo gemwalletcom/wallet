@@ -20,6 +20,7 @@ const V2_DEFAULT_DEADLINE_SECONDS: u64 = 15 * 60;
 const V2_TON_TO_JETTON_DEADLINE_SECONDS: u64 = 60;
 const PTON_V2_TON_TRANSFER_OPCODE: u32 = 0x01F3835D;
 const PTON_V2_TON_TRANSFER_GAS: u64 = 10_000_000;
+pub(super) const TON_TO_JETTON_ATTACHMENT: u64 = V2_TON_TO_JETTON_FORWARD_GAS + PTON_V2_TON_TRANSFER_GAS;
 
 pub fn build_swap_transaction(params: SwapTransactionParams<'_>) -> Result<TxParams, SwapperError> {
     let swap_body = build_swap_body(&params)?.into_arc();
@@ -32,7 +33,7 @@ pub fn build_swap_transaction(params: SwapTransactionParams<'_>) -> Result<TxPar
 fn build_ton_to_jetton(params: SwapTransactionParams<'_>, swap_body: &CellArc) -> Result<TxParams, SwapperError> {
     let from_value = BigUint::from_str(params.from_value)?;
     let body = build_pton_ton_transfer_body(&from_value, &params.wallet_address, Some(swap_body))?;
-    let forward_gas = V2_TON_TO_JETTON_FORWARD_GAS + next_swap_forward_gas(&params) + PTON_V2_TON_TRANSFER_GAS;
+    let forward_gas = TON_TO_JETTON_ATTACHMENT + next_swap_forward_gas(&params);
 
     let value = from_value + BigUint::from(forward_gas);
 

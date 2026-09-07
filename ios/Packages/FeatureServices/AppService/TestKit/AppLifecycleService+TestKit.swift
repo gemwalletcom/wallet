@@ -17,7 +17,6 @@ import GemstoneServicesTestKit
 import class Gemstone.GemWalletSessionService
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
-import PreferencesTestKit
 import StreamService
 import StreamServiceTestKit
 

@@ -124,7 +124,7 @@ pub enum GemPerpetualPositionAction {
     },
     Reduce {
         data: GemPerpetualTransferData,
-        #[serde(with = "crate::models::custom_types::decimal_string::unsigned")]
+        #[serde(with = "crate::models::custom_types::decimal_string")]
         available: GemBigUint,
     },
 }

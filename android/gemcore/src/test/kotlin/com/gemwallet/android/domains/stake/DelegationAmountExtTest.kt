@@ -3,20 +3,16 @@ package com.gemwallet.android.domains.stake
 import com.gemwallet.android.testkit.mockDelegation
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigInteger
 
 class DelegationAmountExtTest {
 
     @Test
-    fun testRewardsAmount_usesRewardsField() {
-        val delegation = mockDelegation(
-            assetId = AssetId(Chain.Monad),
-            balance = "2",
-            rewards = "53",
-        )
-
-        assertEquals(BigInteger("53"), delegation.rewardsBalance())
+    fun hasRewards_readsTheRewardsField() {
+        assertTrue(mockDelegation(assetId = AssetId(Chain.Monad), balance = BigInteger("2"), rewards = BigInteger("53")).hasRewards())
+        assertFalse(mockDelegation(assetId = AssetId(Chain.Monad), balance = BigInteger("2")).hasRewards())
     }
 }

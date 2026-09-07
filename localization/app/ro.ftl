@@ -469,9 +469,9 @@ fee_rates_normal = Normal
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = Personalizat
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = APR finanțare
 info_perpetual_funding_apr_description = Rata anualizată la care plățile lungi plătesc scurt-uri (dacă este negativ, scurt-urile plătesc lungi). Nu există taxe asociate cu finanțarea, care este un transfer peer-to-peer între utilizatori pentru a împinge prețurile către prețul spot.
 info_minimum_amount_title = Suma minima
 info_minimum_amount_description = În rețeaua %@, suma minimă pentru această tranzacție este %@.
+info_swap_minimum_amount_description = %@ necesită minimum %@, dar suma este %@. Măriți-o cu %@ pentru a continua.
 
 # Input
 

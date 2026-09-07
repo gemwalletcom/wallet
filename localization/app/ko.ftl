@@ -469,9 +469,9 @@ fee_rates_normal = 보통
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = 사용자 지정
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = 펀딩 APR
 info_perpetual_funding_apr_description = 매수자가 매도자에게 지급하는 연간 비율입니다(음수인 경우 매도자가 매수자에게 지급). 가격을 현물 가격으로 끌어올리기 위해 사용자 간에 P2P(Peer-to-Peer) 전송을 수행하는 자금 조달과 관련된 수수료는 없습니다.
 info_minimum_amount_title = 최소 금액
 info_minimum_amount_description = %@ 네트워크에서 이 거래의 최소 금액은 %@입니다.
+info_swap_minimum_amount_description = %@에는 최소 %@이 필요하지만 금액은 %@입니다. 계속하려면 %@을 늘리세요.
 
 # Input
 

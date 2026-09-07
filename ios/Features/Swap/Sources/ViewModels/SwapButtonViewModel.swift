@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemSwapButtonAction
+import struct Gemstone.GemSwapSession
 import Localization
 import Primitives
 import Style
@@ -11,18 +12,18 @@ import SwiftUI
 struct SwapButtonViewModel: StateButtonViewable {
     let buttonAction: GemSwapButtonAction
 
-    private let swapState: SwapState
+    private let session: GemSwapSession
     private let fromAsset: AssetData?
 
     private let perform: @MainActor @Sendable () -> Void
 
     init(
-        swapState: SwapState,
+        session: GemSwapSession,
         buttonAction: GemSwapButtonAction,
         fromAsset: AssetData?,
         onAction: @MainActor @Sendable @escaping () -> Void,
     ) {
-        self.swapState = swapState
+        self.session = session
         self.buttonAction = buttonAction
         self.fromAsset = fromAsset
         perform = onAction
@@ -42,17 +43,15 @@ struct SwapButtonViewModel: StateButtonViewable {
     }
 
     var type: ButtonType {
-        switch buttonAction {
-        case .retryQuote: swapState.quotes.isLoading ? .primary(swapState.quotes) : .primary(.normal)
-        case .insufficientBalance: .primary(.disabled)
-        case .useMinimumAmount: .primary(.normal)
-        case .retryTransfer: swapState.swapTransferData.isLoading ? .primary(swapState.swapTransferData) : .primary(.normal)
-        case .swap: swapState.swapTransferData.isLoading ? .primary(swapState.swapTransferData) : .primary(swapState.quotes)
+        switch session.buttonState(action: buttonAction) {
+        case .disabled: .primary(.disabled)
+        case .loading: .primary(.loading(showProgress: true))
+        case .enabled: .primary(.normal)
         }
     }
 
     var isVisible: Bool {
-        !swapState.quotes.isNoData
+        !session.isInputEmpty()
     }
 
     func action() {

@@ -3,8 +3,10 @@
 import Foundation
 import struct Gemstone.SignMessage
 import Primitives
+import GemstonePrimitivesTestKit
 import PrimitivesTestKit
 import WalletConnectorService
+import struct Gemstone.SimulationResult
 
 public extension SignMessagePayload {
     static func mock(

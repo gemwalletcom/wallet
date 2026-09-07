@@ -31,7 +31,7 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
         let fee = TransactionFee::calculate(gas_limit, &input.gas_price, AssetId::from_chain(Chain::Aptos));
 
         let data = match &input.input_type {
-            TransactionInputType::Stake(_, stake_type) => match stake_type {
+            TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(validator) => Some(build_stake_payload_data(&validator.id, &input.value.to_string())),
                 StakeType::Unstake(delegation) => Some(build_unstake_payload_data(&delegation.validator.id, &input.value.to_string())),
                 StakeType::Withdraw(delegation) => Some(build_withdraw_payload_data(&delegation.validator.id, &input.value.to_string())),
@@ -71,10 +71,10 @@ mod chain_integration_tests {
         let client = create_aptos_test_client();
         let metadata = client
             .get_transaction_preload(TransactionPreloadInput {
-                input_type: TransactionInputType::Stake(
-                    Asset::from_chain(Chain::Aptos),
-                    StakeType::Stake(DelegationValidator::stake(Chain::Aptos, KNOWN_VALIDATOR_POOL.to_string(), String::new(), true, 0.0, 0.0)),
-                ),
+                input_type: TransactionInputType::Stake {
+                    asset: Asset::from_chain(Chain::Aptos),
+                    stake_type: StakeType::Stake(DelegationValidator::stake(Chain::Aptos, KNOWN_VALIDATOR_POOL.to_string(), String::new(), true, 0.0, 0.0)),
+                },
                 sender_address: TEST_ADDRESS_STAKING.to_string(),
                 destination_address: KNOWN_VALIDATOR_POOL.to_string(),
                 references: vec![],
@@ -83,10 +83,10 @@ mod chain_integration_tests {
 
         let load = client
             .get_transaction_load(TransactionLoadInput {
-                input_type: TransactionInputType::Stake(
-                    Asset::from_chain(Chain::Aptos),
-                    StakeType::Stake(DelegationValidator::stake(Chain::Aptos, KNOWN_VALIDATOR_POOL.to_string(), String::new(), true, 0.0, 0.0)),
-                ),
+                input_type: TransactionInputType::Stake {
+                    asset: Asset::from_chain(Chain::Aptos),
+                    stake_type: StakeType::Stake(DelegationValidator::stake(Chain::Aptos, KNOWN_VALIDATOR_POOL.to_string(), String::new(), true, 0.0, 0.0)),
+                },
                 sender_address: TEST_ADDRESS_STAKING.to_string(),
                 destination_address: KNOWN_VALIDATOR_POOL.to_string(),
                 value: BigUint::from(1100000000u64),

@@ -1,62 +1,47 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
-import com.gemwallet.android.model.AssetInfo
-import com.wallet.core.primitives.Transaction
-import com.wallet.core.primitives.TransactionExtended
-import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetPrice
+import com.gemwallet.android.testkit.mockGemTransactionAmount
+import com.gemwallet.android.testkit.mockGemTransactionDetailRows
 import com.gemwallet.android.testkit.mockNftAssetId
+import com.gemwallet.android.testkit.mockTransaction
+import com.gemwallet.android.testkit.mockTransactionExtended
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.Price
-import com.wallet.core.primitives.TransactionNFTTransferMetadata
-import com.wallet.core.primitives.SwapProvider
-import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.Resource
+import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.VerificationStatus
 import org.junit.Assert
 import org.junit.Test
-import java.text.DateFormat
-import java.util.Date
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.testkit.mockGemTransactionDetails
-import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.BlockExplorerLink
+import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSwapAgain
 import uniffi.gemstone.GemSwapProgress
 import uniffi.gemstone.GemSwapProgressStep
-import uniffi.gemstone.GemTransactionDetails
-import uniffi.gemstone.GemTransactionHeaderKind
+import uniffi.gemstone.GemSwapRate
+import uniffi.gemstone.GemTransactionDetailRows
+import uniffi.gemstone.GemTransactionHeader
+import uniffi.gemstone.GemTransactionHeaderAction
 import uniffi.gemstone.GemTransactionParticipant
 import uniffi.gemstone.GemTransactionParticipantRole
 import java.math.BigInteger
+import java.text.DateFormat
+import java.util.Date
 
 class TransactionDetailsAggregateImplTest {
 
-    private val btcAsset = mockAsset(
-        chain = Chain.Bitcoin,
-        name = "Bitcoin",
-        symbol = "BTC",
-        decimals = 8,
-    )
-
-    private val ethAsset = mockAsset(
-        chain = Chain.Ethereum,
-        name = "Ethereum",
-        symbol = "ETH",
-        decimals = 18,
-    )
-
+    private val btcAsset = mockAsset(chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC", decimals = 8)
+    private val ethAsset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18)
     private val usdtAsset = mockAsset(
         chain = Chain.Ethereum,
         tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7",
@@ -66,237 +51,197 @@ class TransactionDetailsAggregateImplTest {
         type = AssetType.ERC20,
     )
 
-    private val tonAsset = mockAsset(
-        chain = Chain.Ton,
-        name = "TON",
-        symbol = "GRAM",
-        decimals = 9,
-    )
+    private val link = BlockExplorerLink("Explorer", "https://example.com/address")
 
-    private val zecAsset = mockAsset(
-        chain = Chain.Zcash,
-        name = "Zcash",
-        symbol = "ZEC",
-    )
-
-    private fun createTransaction(
-        id: String = "tx123",
-        assetId: AssetId = btcAsset.id,
-        from: String = "bc1qsender",
-        to: String = "bc1qreceiver",
+    private fun createExtended(
         type: TransactionType = TransactionType.Transfer,
         state: TransactionState = TransactionState.Confirmed,
-        direction: TransactionDirection = TransactionDirection.Outgoing,
-        value: String = "100000000",
-        fee: String = "1000",
-        metadata: String? = null,
-        memo: String? = null,
-    ) = Transaction(
-        id = TransactionId(assetId.chain, id),
-        assetId = assetId,
-        from = from,
-        to = to,
-        contract = null,
-        type = type,
-        state = state,
-        blockNumber = "123456",
-        sequence = null,
-        fee = fee,
-        feeAssetId = assetId,
-        value = value,
-        memo = memo,
-        direction = direction,
-        utxoInputs = null,
-        utxoOutputs = null,
-        metadata = metadata,
-        createdAt = 1767694414000,
+    ): TransactionExtended = mockTransactionExtended(
+        transaction = mockTransaction(assetId = btcAsset.id, id = TransactionId(Chain.Bitcoin, "tx123"), type = type, state = state, createdAt = 1767694414000),
+        asset = btcAsset,
     )
-
-    private fun createTransactionExtended(
-        transaction: Transaction,
-        asset: Asset = btcAsset,
-        feeAsset: Asset = asset,
-        price: Price? = null,
-        feePrice: Price? = null,
-        assets: List<Asset> = emptyList(),
-        confirmationEtaSeconds: UInt? = null,
-    ) = TransactionExtended(
-        transaction = transaction,
-        asset = asset,
-        feeAsset = feeAsset,
-        price = price,
-        feePrice = feePrice,
-        assets = assets,
-        prices = emptyList(),
-        confirmationEtaSeconds = confirmationEtaSeconds,
-    )
-
-    private fun createAssetInfo(asset: Asset) = mockAssetInfo(asset = asset, owner = null, walletId = null)
 
     private fun createAggregate(
-        data: TransactionExtended,
-        associatedAssets: List<AssetInfo> = emptyList(),
+        data: TransactionExtended = createExtended(),
+        rows: GemTransactionDetailRows = mockGemTransactionDetailRows(),
         currency: Currency = Currency.USD,
-        swapMetadata: TransactionSwapMetadata? = null,
-        participant: GemTransactionParticipant? = null,
-        headerKind: GemTransactionHeaderKind = headerKind(data.transaction),
-        details: GemTransactionDetails = mockGemTransactionDetails(),
-    ) = TransactionDetailsAggregateImpl(
-        data = data,
-        associatedAssets = associatedAssets,
-        swapMetadata = swapMetadata,
-        explorer = TransactionDetailsValue.Explorer("https://example.com", "Explorer"),
-        currency = currency,
-        participant = participant,
-        headerKind = headerKind,
-        details = details,
-    )
-
-    private fun headerKind(transaction: Transaction): GemTransactionHeaderKind = when (transaction.type) {
-        TransactionType.Swap -> GemTransactionHeaderKind.Swap
-        TransactionType.TransferNFT -> GemTransactionHeaderKind.Nft
-        else -> GemTransactionHeaderKind.Amount(showsFiat = true)
-    }
+    ) = TransactionDetailsAggregateImpl(data = data, rows = rows, currency = currency)
 
     @Test
     fun testBasicProperties() {
-        val transaction = createTransaction(id = "test-id-123")
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
-        val aggregate = createAggregate(extended)
+        val aggregate = createAggregate(rows = mockGemTransactionDetailRows(explorer = BlockExplorerLink("Mempool", "https://mempool.space/tx/1")))
 
-        Assert.assertEquals("bitcoin_test-id-123", aggregate.id)
+        Assert.assertEquals("bitcoin_tx123", aggregate.id)
         Assert.assertEquals(btcAsset, aggregate.asset)
         Assert.assertEquals(Currency.USD, aggregate.currency)
-        Assert.assertEquals("Explorer", aggregate.explorer.name)
+        Assert.assertEquals("Mempool", aggregate.explorer.name)
+        Assert.assertEquals("https://mempool.space/tx/1", aggregate.explorer.url)
     }
 
     @Test
-    fun testAmountPlain_withPrice() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            value = "100000000",
+    fun testAmountPlain_formatsTheCoreAmountAndItsFiat() {
+        val amount = mockGemTransactionAmount(
+            asset = btcAsset,
+            value = BigInteger("100000000"),
+            sign = GemAmountSign.OUTGOING,
+            price = mockAssetPrice(assetId = btcAsset.id, price = 50000.0),
         )
-        val price = Price(
-            price = 50000.0,
-            priceChangePercentage24h = 0.0,
-            updatedAt = System.currentTimeMillis(),
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, price = price)
-        val aggregate = createAggregate(extended)
 
-        val amount = aggregate.amount
-        Assert.assertTrue(amount is TransactionDetailsValue.Amount.Plain)
-        val plainAmount = amount as TransactionDetailsValue.Amount.Plain
-        Assert.assertEquals(btcAsset, plainAmount.asset)
-        Assert.assertEquals("-1 BTC", plainAmount.value)
-        Assert.assertEquals("\$50,000.00", plainAmount.equivalent)
+        val withFiat = createAggregate(rows = mockGemTransactionDetailRows(header = GemTransactionHeader.Amount(amount, showsFiat = true))).amount as TransactionDetailsValue.Amount.Plain
+        Assert.assertEquals(btcAsset, withFiat.asset)
+        Assert.assertEquals("-1 BTC", withFiat.value)
+        Assert.assertEquals("\$50,000.00", withFiat.equivalent)
+
+        val hiddenFiat = createAggregate(rows = mockGemTransactionDetailRows(header = GemTransactionHeader.Amount(amount, showsFiat = false))).amount as TransactionDetailsValue.Amount.Plain
+        Assert.assertEquals("", hiddenFiat.equivalent)
+
+        val noPrice = createAggregate(rows = mockGemTransactionDetailRows(header = GemTransactionHeader.Amount(amount.copy(price = null), showsFiat = true))).amount as TransactionDetailsValue.Amount.Plain
+        Assert.assertEquals("", noPrice.equivalent)
     }
 
     @Test
-    fun testAmountPlain_withoutPrice() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            value = "100000000",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, price = null)
-        val aggregate = createAggregate(extended)
+    fun testAmountSwap_carriesBothLegsWithTheirPrices() {
+        val from = mockGemTransactionAmount(asset = ethAsset, value = BigInteger("90"), sign = GemAmountSign.OUTGOING, price = mockAssetPrice(assetId = ethAsset.id, price = 3000.0))
+        val to = mockGemTransactionAmount(asset = usdtAsset, value = BigInteger("190"), sign = GemAmountSign.INCOMING)
 
-        val amount = aggregate.amount
-        Assert.assertTrue(amount is TransactionDetailsValue.Amount.Plain)
-        val plainAmount = amount as TransactionDetailsValue.Amount.Plain
-        Assert.assertEquals(btcAsset, plainAmount.asset)
-        Assert.assertEquals("-1 BTC", plainAmount.value)
-        Assert.assertEquals("", plainAmount.equivalent)
+        val swap = createAggregate(rows = mockGemTransactionDetailRows(header = GemTransactionHeader.Swap(from, to))).amount as TransactionDetailsValue.Amount.Swap
+        Assert.assertEquals(ethAsset, swap.fromAsset.asset)
+        Assert.assertEquals(3000.0, swap.fromAsset.price?.price?.price)
+        Assert.assertEquals(Currency.USD, swap.fromAsset.currency)
+        Assert.assertEquals(usdtAsset, swap.toAsset.asset)
+        Assert.assertNull(swap.toAsset.price)
+        Assert.assertEquals(BigInteger("90"), swap.fromValue)
+        Assert.assertEquals(BigInteger("190"), swap.toValue)
+        Assert.assertEquals(Currency.USD, swap.currency)
     }
 
     @Test
-    fun testAmountSwap_withValidMetadata() {
-        val bnbAsset = mockAsset(
-            chain = Chain.SmartChain,
-            name = "BNB",
-            symbol = "BNB",
-            decimals = 18,
-        )
-        val tonAsset = mockAsset(
-            chain = Chain.SmartChain,
-            tokenId = "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
-            name = "TON",
-            symbol = "TON",
-            decimals = 9,
-            type = AssetType.BEP20,
-        )
+    fun testAmountNft_andSymbolHeaders() {
+        val assetId = mockNftAssetId()
+        val nft = createAggregate(
+            rows = mockGemTransactionDetailRows(header = GemTransactionHeader.Nft(assetId = assetId.toIdentifier(), name = "NFT Name", imageUrl = "https://image")),
+        ).amount as TransactionDetailsValue.Amount.NFT
+        Assert.assertEquals("NFT Name", nft.metadata.name)
+        Assert.assertEquals(assetId, nft.metadata.assetId)
 
-        val swapMetadata = TransactionSwapMetadata(
-            fromAsset = bnbAsset.id,
-            toAsset = tonAsset.id,
-            fromValue = "90",
-            toValue = "190",
-            provider = SwapProvider.PancakeswapV3.string,
-        )
-        val metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata)
-
-        val transaction = createTransaction(
-            type = TransactionType.Swap,
-            assetId = bnbAsset.id,
-            value = "90000000000000000",
-            metadata = metadata,
-        )
-        val extended = createTransactionExtended(
-            transaction = transaction,
-            asset = bnbAsset,
-            assets = listOf(bnbAsset, tonAsset),
-                    )
-        val associatedAssets = listOf(createAssetInfo(bnbAsset), createAssetInfo(tonAsset))
-        val aggregate = createAggregate(extended, associatedAssets, swapMetadata = swapMetadata)
-
-        val amount = aggregate.amount
-        Assert.assertTrue(amount is TransactionDetailsValue.Amount.Swap)
-        val swapAmount = amount as TransactionDetailsValue.Amount.Swap
-        Assert.assertEquals(bnbAsset, swapAmount.fromAsset.asset)
-        Assert.assertEquals(tonAsset, swapAmount.toAsset.asset)
-        Assert.assertEquals(BigInteger("90"), swapAmount.fromValue)
-        Assert.assertEquals(BigInteger("190"), swapAmount.toValue)
-        Assert.assertEquals(Currency.USD, swapAmount.currency)
+        val symbol = createAggregate(rows = mockGemTransactionDetailRows(header = GemTransactionHeader.Symbol(usdtAsset.toGem()))).amount as TransactionDetailsValue.Amount.Plain
+        Assert.assertEquals(usdtAsset, symbol.asset)
+        Assert.assertEquals("USDT", symbol.value)
+        Assert.assertNull(symbol.equivalent)
     }
 
+    @Test
+    fun testHeaderAction_passesTheCoreAnswerThrough() {
+        val action = GemTransactionHeaderAction.Asset(btcAsset.id.toIdentifier())
+
+        Assert.assertEquals(action, createAggregate(rows = mockGemTransactionDetailRows(headerAction = action)).headerAction)
+        Assert.assertNull(createAggregate().headerAction)
+    }
 
     @Test
-    fun testAmountSwap_missingAssets() {
-        val bnbAsset = mockAsset(
-            chain = Chain.SmartChain,
-            name = "BNB",
-            symbol = "BNB",
-            decimals = 18,
+    fun testFee_formatsTheCoreFeeAndItsFiat() {
+        val fee = mockGemTransactionAmount(asset = btcAsset, value = BigInteger("1000"), price = mockAssetPrice(assetId = btcAsset.id, price = 50000.0))
+
+        val withPrice = createAggregate(rows = mockGemTransactionDetailRows(fee = fee)).fee
+        Assert.assertEquals(btcAsset, withPrice.asset)
+        Assert.assertEquals("0.00001 BTC", withPrice.value)
+        Assert.assertEquals("\$0.5", withPrice.equivalent)
+
+        val smallPrice = createAggregate(rows = mockGemTransactionDetailRows(fee = fee.copy(price = mockAssetPrice(assetId = btcAsset.id, price = 4.2795161).toGem()))).fee
+        Assert.assertEquals("\$0.0000428", smallPrice.equivalent)
+
+        val noPrice = createAggregate(rows = mockGemTransactionDetailRows(fee = fee.copy(price = null))).fee
+        Assert.assertEquals("", noPrice.equivalent)
+
+        val otherAsset = createAggregate(rows = mockGemTransactionDetailRows(fee = mockGemTransactionAmount(asset = ethAsset, value = BigInteger("1000000000000000")))).fee
+        Assert.assertEquals(ethAsset, otherAsset.asset)
+        Assert.assertEquals("0.001 ETH", otherAsset.value)
+    }
+
+    @Test
+    fun testDate() {
+        val data = createExtended()
+        val date = createAggregate(data).date
+
+        Assert.assertTrue(date.data.contains("January 6, 2026"))
+        Assert.assertTrue(date.data.contains(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(data.transaction.createdAt))))
+    }
+
+    @Test
+    fun testStatusAndNetwork() {
+        val aggregate = createAggregate(createExtended(state = TransactionState.Pending))
+
+        Assert.assertEquals(TransactionState.Pending, aggregate.status.data)
+        Assert.assertEquals(btcAsset, aggregate.network.data)
+    }
+
+    @Test
+    fun testRate_formatsBothDirectionsFromTheCoreRate() {
+        val rate = GemSwapRate(
+            from = mockGemTransactionAmount(asset = ethAsset, value = BigInteger("1000000000000000000")),
+            to = mockGemTransactionAmount(asset = usdtAsset, value = BigInteger("3000000000")),
         )
 
-        val swapMetadata = TransactionSwapMetadata(
-            fromAsset = bnbAsset.id,
-            toAsset = AssetId(Chain.SmartChain, "0xMISSING"),
-            fromValue = "90000000000000000",
-            toValue = "19000000000",
-        )
-        val metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata)
+        val formatted = createAggregate(rows = mockGemTransactionDetailRows(rate = rate)).rate
+        Assert.assertTrue(formatted!!.rate.forward.startsWith("1 ETH"))
+        Assert.assertTrue(formatted.rate.reverse.startsWith("1 USDT"))
+        Assert.assertNull(createAggregate().rate)
+    }
 
-        val transaction = createTransaction(
-            type = TransactionType.Swap,
-            assetId = bnbAsset.id,
-            value = "90000000000000000",
-            metadata = metadata,
-        )
-        val extended = createTransactionExtended(transaction, asset = bnbAsset)
-        val associatedAssets = listOf(createAssetInfo(bnbAsset))
-        val aggregate = createAggregate(extended, associatedAssets)
+    @Test
+    fun testMemoAndResource_comeFromCore() {
+        val aggregate = createAggregate(rows = mockGemTransactionDetailRows(memo = "Test memo", resource = uniffi.gemstone.Resource.ENERGY))
 
-        val amount = aggregate.amount
-        Assert.assertTrue(amount is TransactionDetailsValue.Amount.None)
+        Assert.assertEquals("Test memo", aggregate.memo?.data)
+        Assert.assertEquals(Resource.Energy, aggregate.resourceType?.data)
+        Assert.assertTrue(aggregate.valueGroups[1].items.any { it is TransactionDetailsValue.ResourceType && it.data == Resource.Energy })
+
+        val empty = createAggregate()
+        Assert.assertNull(empty.memo)
+        Assert.assertNull(empty.resourceType)
+        Assert.assertTrue(empty.valueGroups[1].items.none { it is TransactionDetailsValue.ResourceType })
+    }
+
+    @Test
+    fun testDestination_showsTheCoreParticipantWithItsName() {
+        val name = AddressName(Chain.Bitcoin, "sender-address", "Alice", AddressType.Contact, VerificationStatus.Verified)
+        val sender = createAggregate(
+            rows = mockGemTransactionDetailRows(
+                participant = GemTransactionParticipant(GemTransactionParticipantRole.SENDER, "sender-address", name.toGem(), link, canAddContact = false),
+            ),
+        ).destination
+        Assert.assertTrue(sender is TransactionDetailsValue.Destination.Sender)
+        Assert.assertEquals("sender-address", sender?.data)
+        Assert.assertEquals(Chain.Bitcoin, sender?.chain)
+        Assert.assertEquals("Alice", sender?.name)
+        Assert.assertEquals(AddressType.Contact, sender?.addressType)
+        Assert.assertEquals("https://example.com/address", sender?.explorerLink?.link)
+
+        val validator = createAggregate(
+            rows = mockGemTransactionDetailRows(
+                participant = GemTransactionParticipant(GemTransactionParticipantRole.VALIDATOR, "validator-address", null, link, canAddContact = false),
+            ),
+        ).destination
+        Assert.assertTrue(validator is TransactionDetailsValue.Destination.Validator)
+        Assert.assertNull(validator?.name)
+
+        Assert.assertNull(createAggregate().destination)
+    }
+
+    @Test
+    fun testDestination_prefersTheProviderName() {
+        val aggregate = createAggregate(createExtended(type = TransactionType.Swap), rows = mockGemTransactionDetailRows(providerName = "unswap"))
+
+        val destination = aggregate.destination
+        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Provider)
+        Assert.assertEquals("unswap", destination?.data)
+        Assert.assertTrue(aggregate.valueGroups[1].items.last() is TransactionDetailsValue.Destination.Provider)
     }
 
     @Test
     fun testSwapProgressAndSwapAgain_placeCoreAnswersInTheGroups() {
-        val transaction = createTransaction(type = TransactionType.Swap, state = TransactionState.Pending, assetId = ethAsset.id)
         val progress = createAggregate(
-            data = createTransactionExtended(transaction, asset = ethAsset, assets = listOf(ethAsset, btcAsset)),
-            details = mockGemTransactionDetails(
+            rows = mockGemTransactionDetailRows(
                 swapProgress = GemSwapProgress(
                     fromAsset = ethAsset.toGem(),
                     fromValue = BigInteger("1000000000000000000"),
@@ -314,292 +259,34 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(GemSwapProgressStep.PENDING, swapProgress?.transfer)
         Assert.assertEquals(GemSwapProgressStep.WAITING, swapProgress?.swap)
         Assert.assertEquals(720u, swapProgress?.etaInSeconds)
-        Assert.assertNull(progress.estimatedConfirmation)
         Assert.assertEquals(5, progress.valueGroups.size)
         Assert.assertTrue(progress.valueGroups[1].items.single() is TransactionDetailsValue.SwapProgress)
 
         val again = createAggregate(
-            data = createTransactionExtended(transaction, asset = ethAsset),
-            details = mockGemTransactionDetails(swapAgain = GemSwapAgain(fromAssetId = ethAsset.id.toIdentifier(), toAssetId = btcAsset.id.toIdentifier())),
+            rows = mockGemTransactionDetailRows(swapAgain = GemSwapAgain(fromAssetId = ethAsset.id.toIdentifier(), toAssetId = btcAsset.id.toIdentifier())),
         )
         Assert.assertEquals(ethAsset.id, again.swapAgain?.fromAssetId)
         Assert.assertEquals(btcAsset.id, again.swapAgain?.toAssetId)
         Assert.assertTrue(again.valueGroups[1].items.single() is TransactionDetailsValue.SwapAgain)
-        Assert.assertNull(createAggregate(data = createTransactionExtended(transaction, asset = ethAsset)).swapAgain)
+        Assert.assertNull(createAggregate().swapAgain)
     }
 
     @Test
-    fun testAmountNFT_withMetadata() {
-        val assetId = mockNftAssetId()
-        val metadata = TransactionNFTTransferMetadata(
-            assetId = assetId,
-            name = "NFT Name",
-        )
-        val nftMetadata = jsonEncoder.encodeToString(TransactionNFTTransferMetadata.serializer(), metadata)
-
-        val transaction = createTransaction(
-            type = TransactionType.TransferNFT,
-            value = "1",
-            metadata = nftMetadata,
-        )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
-        val aggregate = createAggregate(extended)
-
-        val amount = aggregate.amount
-        Assert.assertTrue(amount is TransactionDetailsValue.Amount.NFT)
-        val nftAmount = amount as TransactionDetailsValue.Amount.NFT
-        Assert.assertEquals("NFT Name", nftAmount.metadata.name)
-        Assert.assertEquals(assetId, nftAmount.metadata.assetId)
-    }
-
-
-    @Test
-    fun testFee_withPrice() {
-        val transaction = createTransaction(
-            fee = "1000",
-        )
-        val feePrice = Price(
-            price = 50000.0,
-            priceChangePercentage24h = 0.0,
-            updatedAt = System.currentTimeMillis(),
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = feePrice)
-        val aggregate = createAggregate(extended)
-
-        val fee = aggregate.fee
-        Assert.assertEquals(btcAsset, fee.asset)
-        Assert.assertEquals("0.00001 BTC", fee.value)
-        Assert.assertEquals("\$0.5", fee.equivalent)
-    }
-
-    @Test
-    fun testFee_withSmallPrice_usesShortFiatFormatting() {
-        val transaction = createTransaction(
-            fee = "1000",
-        )
-        val feePrice = Price(
-            price = 4.2795161,
-            priceChangePercentage24h = 0.0,
-            updatedAt = System.currentTimeMillis(),
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = feePrice)
-        val aggregate = createAggregate(extended)
-
-        val fee = aggregate.fee
-        Assert.assertEquals("0.00001 BTC", fee.value)
-        Assert.assertEquals("\$0.0000428", fee.equivalent)
-    }
-
-    @Test
-    fun testFee_withoutPrice() {
-        val transaction = createTransaction(
-            fee = "1000",
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = null)
-        val aggregate = createAggregate(extended)
-
-        val fee = aggregate.fee
-        Assert.assertEquals(btcAsset, fee.asset)
-        Assert.assertEquals("0.00001 BTC", fee.value)
-        Assert.assertEquals("", fee.equivalent)
-    }
-
-    @Test
-    fun testFee_differentAsset() {
-        val transaction = createTransaction(
-            fee = "1000000000000000",
-        )
-        val extended = createTransactionExtended(
-            transaction,
-            asset = usdtAsset,
-            feeAsset = ethAsset,
-        )
-        val aggregate = createAggregate(extended)
-
-        val fee = aggregate.fee
-        Assert.assertEquals(ethAsset, fee.asset)
-        Assert.assertEquals("0.001 ETH", fee.value)
-        Assert.assertEquals("", fee.equivalent)
-    }
-
-    @Test
-    fun testDate() {
-        val transaction = createTransaction()
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val date = aggregate.date
-        Assert.assertTrue(date.data.contains("January 6, 2026"))
-        Assert.assertTrue(
-            date.data.contains(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(transaction.createdAt)))
-        )
-    }
-
-    @Test
-    fun testStatus() {
-        val transaction = createTransaction(state = TransactionState.Pending)
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val status = aggregate.status
-        Assert.assertEquals(TransactionState.Pending, status.data)
-    }
-
-    @Test
-    fun testRate() {
-        val swapMetadata = TransactionSwapMetadata(
-            fromAsset = ethAsset.id,
-            toAsset = usdtAsset.id,
-            fromValue = "1000000000000000000",
-            toValue = "3000000000",
-            provider = SwapProvider.UniswapV3.string,
-        )
-        val swapTransaction = createTransaction(
-            type = TransactionType.Swap,
-            assetId = ethAsset.id,
-            metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata),
-        )
-        val swapAggregate = createAggregate(
-            data = createTransactionExtended(swapTransaction, asset = ethAsset, assets = listOf(ethAsset, usdtAsset)),
-            associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(usdtAsset)),
-            swapMetadata = swapMetadata,
-        )
-
-        val rate = swapAggregate.rate
-        Assert.assertNotNull(rate)
-        Assert.assertTrue(rate!!.rate.forward.startsWith("1 ETH"))
-        Assert.assertTrue(rate.rate.reverse.startsWith("1 USDT"))
-
-        Assert.assertNull(createAggregate(createTransactionExtended(createTransaction())).rate)
-    }
-
-    @Test
-    fun testMemo_present() {
-        val transaction = createTransaction(memo = "Test memo")
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val memo = aggregate.memo
-        Assert.assertNotNull(memo)
-        Assert.assertEquals("Test memo", memo?.data)
-    }
-
-    @Test
-    fun testMemo_absent() {
-        val transaction = createTransaction(memo = null)
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val memo = aggregate.memo
-        Assert.assertNull(memo)
-    }
-
-    @Test
-    fun testMemo_empty() {
-        val transaction = createTransaction(memo = "")
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val memo = aggregate.memo
-        Assert.assertNull(memo)
-    }
-
-    @Test
-    fun testNetwork() {
-        val transaction = createTransaction()
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
-        val aggregate = createAggregate(extended)
-
-        val network = aggregate.network
-        Assert.assertEquals(btcAsset, network.data)
-    }
-
-    @Test
-    fun testAmountSwap_invalidMetadataValues() {
-        val swapMetadata = TransactionSwapMetadata(
-            fromAsset = ethAsset.id,
-            toAsset = usdtAsset.id,
-            fromValue = "1.5",
-            toValue = "",
-        )
-        val transaction = createTransaction(type = TransactionType.Swap)
-        val extended = createTransactionExtended(
-            transaction = transaction,
-            asset = ethAsset,
-            assets = listOf(ethAsset, usdtAsset),
-                    )
-        val aggregate = createAggregate(
-            data = extended,
-            associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(usdtAsset)),
-            swapMetadata = swapMetadata,
-        )
-
-        Assert.assertTrue(aggregate.amount is TransactionDetailsValue.Amount.None)
-        Assert.assertNull(aggregate.rate)
-    }
-
-    @Test
-    fun testDestination_showsCoreParticipantWithItsAddressName() {
-        val transaction = createTransaction(type = TransactionType.Transfer, direction = TransactionDirection.Incoming, from = "sender-address")
-        val extended = createTransactionExtended(transaction).copy(fromAddress = AddressName(Chain.Bitcoin, "sender-address", "Alice", AddressType.Contact, VerificationStatus.Verified))
-        val link = GemBlockExplorerLink("Explorer", "https://example.com/sender-address")
-
-        val sender = createAggregate(extended, participant = GemTransactionParticipant(GemTransactionParticipantRole.SENDER, "sender-address", link)).destination
-        Assert.assertTrue(sender is TransactionDetailsValue.Destination.Sender)
-        Assert.assertEquals("sender-address", sender?.data)
-        Assert.assertEquals("Alice", sender?.name)
-        Assert.assertEquals(AddressType.Contact, sender?.addressType)
-        Assert.assertEquals("https://example.com/sender-address", sender?.explorerLink?.link)
-
-        val validator = createAggregate(extended, participant = GemTransactionParticipant(GemTransactionParticipantRole.VALIDATOR, "validator-address", link)).destination
-        Assert.assertTrue(validator is TransactionDetailsValue.Destination.Validator)
-        Assert.assertNull(validator?.name)
-
-        Assert.assertNull(createAggregate(extended, participant = null).destination)
-    }
-
-    @Test
-    fun testDestination_swapWithProvider() {
-        val transaction = createTransaction(type = TransactionType.Swap)
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
-
-        val destination = createAggregate(extended, details = mockGemTransactionDetails(providerName = "unswap")).destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Provider)
-        Assert.assertEquals("unswap", (destination as TransactionDetailsValue.Destination.Provider).data)
-        Assert.assertNull(createAggregate(extended).destination)
-    }
-
-    @Test
-    fun testValueGroups() {
-        val transaction = createTransaction(memo = "Test memo")
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val valueGroups = aggregate.valueGroups
-        Assert.assertEquals(4, valueGroups.size)
-    }
-
-    @Test
-    fun testValueGroups_differentCurrency() {
-        val transaction = createTransaction()
-        val price = Price(
-            price = 50000.0,
-            priceChangePercentage24h = 0.0,
-            updatedAt = System.currentTimeMillis(),
-        )
-        val extended = createTransactionExtended(transaction, asset = btcAsset, price = price)
-        val aggregate = createAggregate(extended, currency = Currency.EUR)
-
+    fun testValueGroups_andEstimatedConfirmation() {
+        val aggregate = createAggregate(currency = Currency.EUR)
         Assert.assertEquals(Currency.EUR, aggregate.currency)
-        val valueGroups = aggregate.valueGroups
-        Assert.assertEquals(4, valueGroups.size)
+        Assert.assertEquals(4, aggregate.valueGroups.size)
+
+        Assert.assertEquals(720u, createAggregate(rows = mockGemTransactionDetailRows(estimatedConfirmationSeconds = 720u)).estimatedConfirmation?.seconds)
+        Assert.assertNull(aggregate.estimatedConfirmation)
     }
 
     @Test
-    fun estimatedConfirmation_showsCoreSeconds() {
-        val pending = createTransactionExtended(createTransaction(state = TransactionState.Pending), confirmationEtaSeconds = 720u)
+    fun testPnlAndPrice_formatInUsd() {
+        val aggregate = createAggregate(rows = mockGemTransactionDetailRows(pnl = -12.5, price = 3000.0))
 
-        Assert.assertEquals(720u, createAggregate(pending, details = mockGemTransactionDetails(estimatedConfirmationSeconds = 720u)).estimatedConfirmation?.seconds)
-        Assert.assertNull(createAggregate(pending).estimatedConfirmation)
+        Assert.assertEquals("-\$12.50", aggregate.pnl?.value)
+        Assert.assertEquals("\$3,000.00", aggregate.price?.data)
+        Assert.assertEquals("+\$12.50", createAggregate(rows = mockGemTransactionDetailRows(pnl = 12.5)).pnl?.value)
     }
 }

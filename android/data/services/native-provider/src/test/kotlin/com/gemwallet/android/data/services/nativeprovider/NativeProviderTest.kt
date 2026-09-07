@@ -3,6 +3,10 @@ package com.gemwallet.android.data.services.nativeprovider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import io.mockk.every
@@ -97,6 +101,39 @@ class NativeProviderTest {
             return
         }
         throw AssertionError("Expected cancellation exception")
+    }
+
+    @Test
+    fun requestSendsABodylessPostWithAnEmptyBody() {
+        var sent: Request? = null
+        val provider = nativeProvider(
+            httpClient = OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    sent = chain.request()
+                    Response.Builder()
+                        .request(chain.request())
+                        .protocol(Protocol.HTTP_1_1)
+                        .code(200)
+                        .message("OK")
+                        .body("true".toResponseBody())
+                        .build()
+                }
+                .build(),
+        )
+
+        runBlocking {
+            provider.request(
+                AlienTarget(
+                    url = "https://api.gemwallet.com/v2/devices/nft_assets/1/refresh",
+                    method = AlienHttpMethod.POST,
+                    headers = null,
+                    body = null,
+                )
+            )
+        }
+
+        assertEquals("POST", sent?.method)
+        assertEquals(0L, sent?.body?.contentLength())
     }
 
     @Test

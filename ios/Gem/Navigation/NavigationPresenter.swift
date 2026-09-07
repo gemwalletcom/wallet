@@ -97,7 +97,7 @@ extension NavigationPresenter {
                 wallet: wallet,
             )
         case let .nft(assetId):
-            let assetData = try await NFTAssetData(nftService.ensureAsset(assetId: assetId.identifier))
+            let assetData = try await nftService.ensureAsset(assetId: assetId.identifier).map()
             nftDestination.append(Scenes.Collectible(assetData: assetData))
         }
     }

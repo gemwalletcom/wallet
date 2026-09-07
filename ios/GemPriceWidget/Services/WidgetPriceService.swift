@@ -3,7 +3,6 @@
 import Foundation
 import GemAPI
 import Primitives
-import SharedPreferences
 import Style
 import SwiftUI
 import WidgetKit

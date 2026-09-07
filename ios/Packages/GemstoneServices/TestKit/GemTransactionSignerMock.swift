@@ -3,6 +3,7 @@
 public import struct Gemstone.GemSignedTransaction
 public import struct Gemstone.GemSignerInput
 public import protocol Gemstone.GemTransactionSigner
+public import struct Gemstone.Wallet
 public import GemstonePrimitives
 import Primitives
 
@@ -15,7 +16,7 @@ public final class GemTransactionSignerMock: GemTransactionSigner {
         self.signedTransactions = signedTransactions
     }
 
-    public func sign(wallet _: String, input _: GemSignerInput) throws -> [GemSignedTransaction] {
+    public func sign(wallet _: Gemstone.Wallet, input _: GemSignerInput) throws -> [GemSignedTransaction] {
         signedTransactions
     }
 }

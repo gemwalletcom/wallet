@@ -2,7 +2,7 @@
 
 import Components
 import class Gemstone.GemAssetConfigService
-import enum Gemstone.GemImage
+import enum Gemstone.GemAssetIconImage
 import GemstonePrimitives
 import Primitives
 import SwiftUI
@@ -19,49 +19,22 @@ public struct AssetIdViewModel: Sendable {
         AssetImage(
             type: .text(.empty),
             imageURL: .none,
-            placeholder: ChainImage(chain: assetId.chain).l2Image ?? imagePlaceholder,
+            placeholder: ChainImage(chain: assetId.chain).image,
             chainPlaceholder: .none,
         )
     }
 
     public var assetImage: AssetImage {
-        let defaultAssetImage = AssetImage(
+        let icon = GemAssetConfigService.shared.assetIcon(assetId: assetId.identifier)
+        let (imageURL, placeholder): (URL?, Image?) = switch icon.image {
+        case let .local(chain): (.none, ChainImage(chain: Chain(core: chain)).image)
+        case let .remote(url): (URL(string: url), .none)
+        }
+        return AssetImage(
             type: .text(assetId.assetType?.rawValue ?? .empty),
             imageURL: imageURL,
-            placeholder: imagePlaceholder,
-            chainPlaceholder: chainPlaceholder,
+            placeholder: placeholder,
+            chainPlaceholder: icon.badge.map { ChainImage(chain: Chain(core: $0)).image },
         )
-        let iconAssetId = AssetId(core: GemAssetConfigService.shared.iconAssetId(assetId: assetId.identifier))
-        guard iconAssetId != assetId else {
-            return defaultAssetImage
-        }
-        let iconAssetImage = AssetIdViewModel(assetId: iconAssetId).assetImage
-        return AssetImage(
-            type: defaultAssetImage.type,
-            imageURL: iconAssetImage.imageURL,
-            placeholder: iconAssetImage.placeholder,
-            chainPlaceholder: chainPlaceholder,
-        )
-    }
-
-    private var imageURL: URL? {
-        switch assetId.type {
-        case .native: .none
-        case .token: GemImage.asset(assetId: assetId.identifier).imageURL
-        }
-    }
-
-    private var imagePlaceholder: Image? {
-        switch assetId.type {
-        case .native: ChainImage(chain: assetId.chain).image
-        case .token: .none
-        }
-    }
-
-    private var chainPlaceholder: Image? {
-        switch assetId.type {
-        case .native: ChainImage(chain: assetId.chain).l2Image
-        case .token: ChainImage(chain: assetId.chain).placeholder
-        }
     }
 }

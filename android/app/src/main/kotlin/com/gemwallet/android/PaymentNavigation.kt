@@ -1,12 +1,10 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.ext.toGem
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PaymentDestination
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
@@ -19,12 +17,10 @@ import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPaymentService
-import uniffi.gemstone.GemTransferService
 
 class PaymentNavigation @Inject constructor(
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
     private val paymentService: GemPaymentService,
-    private val transferService: GemTransferService,
     private val assetsService: GemAssetsServiceInterface,
 ) {
 
@@ -36,7 +32,7 @@ class PaymentNavigation @Inject constructor(
     private suspend fun requestRoutes(request: PaymentRequest): List<NavKey> =
         when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first(), paymentService)) {
             PaymentDestination.Unsupported -> emptyList()
-            is PaymentDestination.Confirm -> listOfNotNull(transferService.pack(destination.transfer)?.let(::ConfirmRoute))
+            is PaymentDestination.Confirm -> listOfNotNull(destination.transfer.pack()?.let(::ConfirmRoute))
             is PaymentDestination.Recipient -> listOf(
                 RecipientInputRoute(destination.assetId, nftAssetId = null, payment = destination.payment)
             )
@@ -48,12 +44,10 @@ class PaymentNavigation @Inject constructor(
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
         val payment = paymentService.load(
             link.toJson(),
-            accounts.map { ChainAddress(chain = it.chain, address = it.address).toJson() },
+            accounts.map { ChainAddress(chain = it.chain, address = it.address).toGem() },
         )
-        val chain = payment.account.decodeJson<ChainAddress>().chain
-        val assetId = payment.request?.decodeJson<PaymentRequest>()?.assetId ?: chain.asset().id
-        val asset = assetsService.ensureTokenAsset(assetId.toIdentifier())
+        val asset = assetsService.ensureTokenAsset(paymentService.transactionAssetId(payment))
         val transfer = paymentService.transactionTransferData(payment, asset)
-        return listOfNotNull(transferService.pack(transfer)?.let(::ConfirmRoute))
+        return listOfNotNull(transfer.pack()?.let(::ConfirmRoute))
     }
 }

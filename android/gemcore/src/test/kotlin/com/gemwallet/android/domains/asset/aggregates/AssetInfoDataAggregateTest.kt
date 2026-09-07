@@ -372,6 +372,52 @@ class AssetInfoDataAggregateTest {
         assertEquals("1 BTC", aggregate.balance)
     }
 
+    @Test
+    fun assetInfoDataAggregate_price_formatsValueChangeAndDirection() {
+        val assetInfo = createAssetInfo(
+            asset = btcAsset,
+            price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 2.5)
+        )
+        val price = assetInfo.toAssetInfoDataAggregate(hideBalance = false).price
+
+        assertEquals("\$50,000.00", price?.valueFormatted)
+        assertEquals("+2.50%", price?.changePercentageFormatted)
+        assertEquals(ValueDirection.Up, price?.state)
+    }
+
+    @Test
+    fun assetInfoDataAggregate_price_nonFinitePrice_formatsEmptyValue() {
+        val assetInfo = createAssetInfo(
+            asset = btcAsset,
+            price = createAssetPriceInfo(price = Double.NaN, priceChangePercentage24h = -5.2)
+        )
+        val price = assetInfo.toAssetInfoDataAggregate(hideBalance = false).price
+
+        assertEquals("", price?.valueFormatted)
+        assertEquals("-5.20%", price?.changePercentageFormatted)
+        assertEquals(ValueDirection.Down, price?.state)
+    }
+
+    @Test
+    fun toAssetInfoDataAggregates_matchesMappingEachItem() {
+        val items = listOf(
+            createAssetInfo(
+                asset = btcAsset,
+                balance = AssetBalance.create(btcAsset, available = "150000000"),
+                price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 1.0)
+            ),
+            createAssetInfo(
+                asset = ethAsset,
+                balance = AssetBalance.create(ethAsset, available = "2000000000000000000"),
+                price = createAssetPriceInfo(price = 3000.0, priceChangePercentage24h = -1.0, currency = Currency.EUR)
+            ),
+            createAssetInfo(asset = btcAsset, price = null),
+        )
+
+        assertEquals(items.map { it.toAssetInfoDataAggregate(hideBalance = false) }, items.toAssetInfoDataAggregates(hideBalance = false))
+        assertEquals(items.map { it.toAssetInfoDataAggregate(hideBalance = true) }, items.toAssetInfoDataAggregates(hideBalance = true))
+    }
+
     private fun createAssetInfo(
         asset: Asset,
         owner: Account? = null,

@@ -2,7 +2,7 @@
 
 import Foundation
 import typealias Gemstone.Chain
-import typealias Gemstone.Node
+import struct Gemstone.Node
 import protocol Gemstone.GemNodeStore
 import GemstonePrimitives
 import Primitives
@@ -16,11 +16,11 @@ public final class GemstoneNodeStore: GemNodeStore, Sendable {
     }
 
     public func getNodes(chain: Gemstone.Chain) async throws -> [Gemstone.Node] {
-        try store.nodes(chain: Primitives.Chain(id: chain)).map { $0.node.json() }
+        try store.nodes(chain: Primitives.Chain(id: chain)).map { $0.node.map() }
     }
 
     public func addNode(chain: Gemstone.Chain, node: Gemstone.Node) async throws {
-        try store.addNodes(chainNodes: [ChainNodes(chain: chain, nodes: [Primitives.Node(node)])])
+        try store.addNodes(chainNodes: [ChainNodes(chain: chain, nodes: [node.map()])])
     }
 
     public func deleteNode(chain: Gemstone.Chain, url: String) async throws {

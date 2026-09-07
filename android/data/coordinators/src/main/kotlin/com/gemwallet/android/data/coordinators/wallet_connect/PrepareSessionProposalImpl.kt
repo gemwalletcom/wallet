@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.application.wallet_connect.values.WalletConnectPairingProposal
-import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,7 @@ class PrepareSessionProposalImpl(
             )
         }
         return WalletConnectPairingProposal(
-            proposal = prepared.proposal.decodeJson(),
+            proposal = prepared.proposal.toPrimitives(),
             verificationStatus = prepared.verificationStatus,
         )
     }

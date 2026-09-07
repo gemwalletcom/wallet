@@ -14,8 +14,8 @@ class GemstoneFiatStore(
     private val fiatTransactionsDao: FiatTransactionsDao,
 ) : GemFiatStore {
 
-    override suspend fun saveTransactions(walletId: String, transactions: List<String>) {
-        fiatTransactionsDao.insert(transactions.map { it.decodeJson<FiatTransactionData>() }.toRecord(walletId))
+    override suspend fun setTransactions(walletId: String, transactions: List<String>) {
+        fiatTransactionsDao.setFiatTransactions(walletId, transactions.map { it.decodeJson<FiatTransactionData>() }.toRecord(walletId))
     }
 
     fun observeTransactions(walletId: String): Flow<List<FiatTransactionAssetData>> =

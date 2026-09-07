@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstoneServices
 import Localization
-import Preferences
 import Primitives
 
 @Observable

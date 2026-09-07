@@ -56,7 +56,6 @@ import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSwapService
 import class Gemstone.GemTransactionDetailsService
 import class Gemstone.GemTransactionStateService
-import class Gemstone.GemTransferService
 import class Gemstone.GemWalletHomeService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
@@ -72,7 +71,6 @@ import ManageWallets
 import MarketInsight
 import NFT
 import Onboarding
-import Preferences
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -93,7 +91,9 @@ import class Gemstone.GemAddAssetService
 import class Gemstone.GemAssetSelectionService
 import class Gemstone.GemBannerService
 import class Gemstone.GemTransactionsService
+import enum Gemstone.GemRecipientType
 import struct Gemstone.GemTransferData
+import struct Gemstone.SimulationResult
 
 public struct ViewModelFactory: Sendable {
     let apiClient: GemApiClient
@@ -128,7 +128,6 @@ public struct ViewModelFactory: Sendable {
     let swapService: GemSwapService
     let transactionStateService: GemTransactionStateService
     let transactionsService: GemTransactionsService
-    let transferService: GemTransferService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService
     let serviceStatusService: GemServiceStatus
@@ -520,14 +519,16 @@ public struct ViewModelFactory: Sendable {
         simulation: SimulationResult? = nil,
         onComplete: VoidAction,
     ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
+        let service = confirmTransferService()
+        return ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(
                 data: data,
                 simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
             wallet: wallet,
-            service: confirmTransferService(),
+            service: service,
+            session: service.session(wallet: wallet.map(), transfer: data, simulation: simulation),
             onComplete: { [toastPresenter] in
                 Task { toastPresenter.present(.transfer(for: data.inputType)) }
                 onComplete?()
@@ -579,7 +580,7 @@ public struct ViewModelFactory: Sendable {
     @MainActor
     public func rewardsScene(activateCode: String?) -> RewardsViewModel? {
         let wallets = currentWallets()
-        return try? RewardsViewModel(
+        return RewardsViewModel(
             service: rewardsService,
             wallets: wallets,
             currentWallet: currentWallet(in: wallets),
@@ -618,7 +619,7 @@ public struct ViewModelFactory: Sendable {
     public func recipientScene(
         wallet: Wallet,
         asset: Asset,
-        type: RecipientAssetType,
+        type: GemRecipientType,
         recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,

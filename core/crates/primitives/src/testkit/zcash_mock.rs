@@ -8,7 +8,9 @@ pub const TEST_ZCASH_BRANCH_ID: &str = "4dec4df0";
 pub fn mock_signer_input(sender_address: String, destination_address: String) -> SignerInput {
     SignerInput::new(
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Zcash)),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Zcash),
+            },
             sender_address: sender_address.clone(),
             destination_address,
             value: BigUint::from(20000u64),

@@ -469,9 +469,9 @@ fee_rates_normal = Нормальний
 
 # Fee Rate
 
-fee_rate_satvB = %@ sat/vB
+fee_rate_satvB = sat/vB
 fee_rate_satB = %@ sat/B
-fee_rate_gwei = %@ gwei
+fee_rate_gwei = gwei
 fee_rate_custom = Свій
 
 # Banner
@@ -586,6 +586,7 @@ info_perpetual_funding_apr_title = Фінансування річних
 info_perpetual_funding_apr_description = Річна ставка, за якою довгі позиції платять за короткі позиції (якщо від'ємна, короткі позиції платять за довгі позики). Немає жодної комісії, пов'язаної з фінансуванням, яке є одноранговою передачею між користувачами для підвищення цін до спотової ціни.
 info_minimum_amount_title = Мінімальна сума
 info_minimum_amount_description = У мережі %@ мінімальна сума для цієї транзакції становить %@.
+info_swap_minimum_amount_description = %@ вимагає щонайменше %@, але сума становить %@. Збільште її на %@, щоб продовжити.
 
 # Input
 

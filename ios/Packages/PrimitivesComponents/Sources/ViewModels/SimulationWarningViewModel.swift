@@ -4,6 +4,9 @@ import Localization
 import Primitives
 import Style
 import SwiftUI
+import enum Gemstone.SimulationSeverity
+import struct Gemstone.SimulationWarning
+import enum Gemstone.SimulationWarningType
 
 public struct SimulationWarningViewModel: Identifiable {
     private let warning: SimulationWarning

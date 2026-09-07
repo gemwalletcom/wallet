@@ -10,7 +10,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemAssetDetailsState
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -94,12 +94,21 @@ class AssetInfoUIModelFactoryTest {
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
             swapPair = GemSwapPairSuggestion(asset.id.toIdentifier(), null),
             explorerName = "Explorer",
-            walletType = WalletType.Multicoin,
             explorerAddressUrl = null,
             explorerTokenUrl = null,
             verificationStatus = null,
             networkDestination = null,
             shareUrl = "",
+            detailsState = GemAssetDetailsState(
+                isViewOnly = false,
+                headerButtons = emptyList(),
+                showsBanners = true,
+                showsManage = false,
+                showsResources = false,
+                showsPriceAlerts = false,
+                showsEarn = false,
+                emptyTransactionsAction = null,
+            ),
         )
     }
 }

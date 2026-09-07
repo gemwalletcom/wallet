@@ -1,12 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationBase
@@ -32,12 +31,12 @@ class GemstoneStakeStore(
         }
     }
 
-    override suspend fun getValidators(assetId: String, providerType: uniffi.gemstone.StakeProviderType): List<String> {
-        return stakeDao.getValidators(AssetId(assetId), providerType.toPrimitives()).first().toDTO().map { it.toJson() }
+    override suspend fun getValidators(assetId: String, providerType: uniffi.gemstone.StakeProviderType): List<uniffi.gemstone.DelegationValidator> {
+        return stakeDao.getValidators(AssetId(assetId), providerType.toPrimitives()).first().toDTO().map { it.toGem() }
     }
 
-    override suspend fun saveValidators(validators: List<String>) =
-        stakeDao.upsertValidators(validators.map { it.decodeJson<DelegationValidator>() }.toRecord())
+    override suspend fun saveValidators(validators: List<uniffi.gemstone.DelegationValidator>) =
+        stakeDao.upsertValidators(validators.map { it.toPrimitives() }.toRecord())
 
     override suspend fun deactivateValidators(assetId: String, validatorIds: List<String>) {
         if (validatorIds.isEmpty()) {
@@ -50,9 +49,9 @@ class GemstoneStakeStore(
         return stakeDao.getDelegationIds(WalletId(walletId), AssetId(assetId), providerType.toPrimitives())
     }
 
-    override suspend fun updateDelegations(walletId: String, delegations: List<String>, deleteIds: List<String>) {
+    override suspend fun updateDelegations(walletId: String, delegations: List<uniffi.gemstone.DelegationBase>, deleteIds: List<String>) {
         val wallet = WalletId(walletId)
-        stakeDao.updateAndDeleteDelegations(wallet, delegations.map { it.decodeJson<DelegationBase>() }.toRecord(wallet), deleteIds)
+        stakeDao.updateAndDeleteDelegations(wallet, delegations.map { it.toPrimitives() }.toRecord(wallet), deleteIds)
     }
 
     fun observeValidators(assetId: AssetId, providerType: StakeProviderType): Flow<List<DelegationValidator>> =

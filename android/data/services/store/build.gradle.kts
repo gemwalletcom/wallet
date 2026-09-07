@@ -81,4 +81,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit.ktx)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.room.testing)
+    androidTestImplementation(testFixtures(project(":gemcore")))
 }

@@ -9,6 +9,7 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
+import struct Gemstone.SimulationPayloadField
 
 struct SimulationPayloadFieldViewModelTests {
     @Test

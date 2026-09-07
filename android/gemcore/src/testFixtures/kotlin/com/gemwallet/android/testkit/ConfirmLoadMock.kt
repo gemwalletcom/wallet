@@ -20,9 +20,10 @@ fun mockGemConfirmLoad(
         simulation = null,
         addressNames = emptyList(),
     ),
-    addressName: String? = null,
+    addressName: uniffi.gemstone.AddressName? = null,
     preload: GemConfirmPreload? = null,
 ) = GemConfirmLoad(
+    sender = mockAccount(chain = asset.id.chain).toGem(),
     feeAsset = asset.toGem(),
     metadata = metadata,
     feeAssets = feeAssets,

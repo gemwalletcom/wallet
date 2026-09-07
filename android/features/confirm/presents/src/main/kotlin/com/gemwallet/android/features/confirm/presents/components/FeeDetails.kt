@@ -86,8 +86,7 @@ fun FeeDetails(
     val model = remember(currentFee, feeAsset, selection) {
         feeDetailsModel(currentFee, feeAsset, selection)
     } ?: return
-    val unitSuffix = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
-    val unitSymbol = unitSuffix.trim()
+    val unitSymbol = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
     val decimals = model.decimals
 
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
@@ -150,7 +149,6 @@ fun FeeDetails(
             )
             FeeDetailsPage.CustomFee -> CustomFeeInput(
                 model = customModel,
-                unitSuffix = unitSuffix,
                 unitSymbol = unitSymbol,
             )
             FeeDetailsPage.FeeAssets -> FeeAssets(
@@ -287,7 +285,6 @@ private fun FeeAssetRow(
 @Composable
 private fun ColumnScope.CustomFeeInput(
     model: NetworkFeeCustomViewModel,
-    unitSuffix: String,
     unitSymbol: String,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -300,7 +297,7 @@ private fun ColumnScope.CustomFeeInput(
             modifier = Modifier.weight(1f),
             value = model.input,
             onValueChange = model::onInputChange,
-            suffix = unitSuffix,
+            suffix = unitSymbol,
             placeholder = model.placeholder,
             focusRequester = focusRequester,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -417,9 +414,9 @@ private fun EmojiCircle(emoji: String, size: Dp, isSelected: Boolean = false) {
 
 @Composable
 private fun feeUnitSuffix(feeUnitType: FeeUnitType?, assetSymbol: String): String = when (feeUnitType) {
-    FeeUnitType.SatVb -> stringResource(R.string.fee_rate_satvB, "")
-    FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei, "")
-    else -> " $assetSymbol"
+    FeeUnitType.SatVb -> stringResource(R.string.fee_rate_satvB)
+    FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei)
+    else -> assetSymbol
 }
 
 private enum class FeeDetailsPage {

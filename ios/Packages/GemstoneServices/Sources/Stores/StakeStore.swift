@@ -2,8 +2,8 @@
 
 import Foundation
 import typealias Gemstone.AssetId
-import typealias Gemstone.DelegationBase
-import typealias Gemstone.DelegationValidator
+import struct Gemstone.DelegationBase
+import struct Gemstone.DelegationValidator
 import typealias Gemstone.StakeProviderType
 import protocol Gemstone.GemStakeStore
 import GemstonePrimitives
@@ -26,11 +26,11 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func getValidators(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [Gemstone.DelegationValidator] {
-        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: providerType.map()).map { $0.json() }
+        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: providerType.map()).map { $0.map() }
     }
 
     public func saveValidators(validators: [Gemstone.DelegationValidator]) async throws {
-        try store.updateValidators(validators.map { try Primitives.DelegationValidator($0) })
+        try store.updateValidators(validators.map { $0.map() })
     }
 
     public func deactivateValidators(assetId: Gemstone.AssetId, validatorIds: [String]) async throws {
@@ -44,7 +44,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
         try store.updateAndDelete(
             walletId: WalletId.from(id: walletId),
-            delegations: delegations.map { try Primitives.DelegationBase($0) },
+            delegations: delegations.map { Primitives.DelegationBase(core: $0) },
             deleteIds: deleteIds,
         )
     }

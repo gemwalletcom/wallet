@@ -13,9 +13,9 @@ import com.gemwallet.android.ui.components.list_item.property.AddressPropertyIte
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.PayloadField
-import com.wallet.core.primitives.SimulationPayloadField
-import com.wallet.core.primitives.SimulationPayloadFieldKind
-import com.wallet.core.primitives.SimulationPayloadFieldType
+import uniffi.gemstone.SimulationPayloadField
+import uniffi.gemstone.SimulationPayloadFieldKind
+import uniffi.gemstone.SimulationPayloadFieldType
 import java.time.Instant
 
 fun LazyListScope.simulationPayloadFieldsContent(
@@ -32,7 +32,7 @@ fun LazyListScope.simulationPayloadFieldsContent(
         val field = payload.field
         val titleRes = fieldTitleRes(field)
         when {
-            titleRes != null && field.fieldType == SimulationPayloadFieldType.Address -> AddressPropertyItem(
+            titleRes != null && field.fieldType == SimulationPayloadFieldType.ADDRESS -> AddressPropertyItem(
                 title = titleRes,
                 displayText = addressDisplay(payload, addressNames, LocalAddressService.current),
                 copyValue = field.value,
@@ -75,17 +75,17 @@ fun LazyListScope.simulationPayloadDetailsContent(
 }
 
 private fun fieldTitleRes(field: SimulationPayloadField): Int? = when (field.kind) {
-    SimulationPayloadFieldKind.Contract -> R.string.asset_contract
-    SimulationPayloadFieldKind.Method -> R.string.common_method
-    SimulationPayloadFieldKind.Token -> R.string.common_token
-    SimulationPayloadFieldKind.Spender -> R.string.transfer_to
-    SimulationPayloadFieldKind.Value -> R.string.perpetual_value
+    SimulationPayloadFieldKind.CONTRACT -> R.string.asset_contract
+    SimulationPayloadFieldKind.METHOD -> R.string.common_method
+    SimulationPayloadFieldKind.TOKEN -> R.string.common_token
+    SimulationPayloadFieldKind.SPENDER -> R.string.transfer_to
+    SimulationPayloadFieldKind.VALUE -> R.string.perpetual_value
     else -> null
 }
 
 private fun fieldValue(payload: PayloadField, addressNames: Map<String, String>, addressService: GemAddressService): String = when (payload.field.fieldType) {
-    SimulationPayloadFieldType.Address -> addressDisplay(payload, addressNames, addressService)
-    SimulationPayloadFieldType.Timestamp -> payload.field.value.toTimestampText()
+    SimulationPayloadFieldType.ADDRESS -> addressDisplay(payload, addressNames, addressService)
+    SimulationPayloadFieldType.TIMESTAMP -> payload.field.value.toTimestampText()
     else -> payload.field.value
 }
 

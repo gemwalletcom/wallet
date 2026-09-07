@@ -1,6 +1,7 @@
 pub mod add;
 pub mod config;
 pub mod details;
+pub mod icon;
 pub mod model;
 pub mod rules;
 pub mod selection;
@@ -13,7 +14,10 @@ use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, Confi
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
-pub use model::{AssetList, GemAssetAction, GemAssetFilter, GemAssetNetworkDestination};
+pub use model::{
+    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow,
+    GemSelectAssetType, GemSelectRowAction, GemWalletSearchLimits,
+};
 pub use selection::GemAssetSelectionService;
 pub use store::GemAssetStore;
 

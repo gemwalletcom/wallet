@@ -3,7 +3,6 @@ package com.gemwallet.android.features.swap.viewmodels
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
@@ -14,7 +13,10 @@ import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
+import uniffi.gemstone.GemSwapQuotePhase
+import uniffi.gemstone.GemSwapSession
+import uniffi.gemstone.GemSwapSessionAction
+import uniffi.gemstone.GemSwapTransferPhase
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.model.AssetBalance
 import uniffi.gemstone.GemTransferData
@@ -102,12 +104,11 @@ class SwapViewModelTest {
         every { this@mockk(solAsset.id) } returns flowOf(solInfo)
         every { this@mockk(usdcAsset.id) } returns flowOf(usdcInfo)
     }
-    private val enableAsset = mockk<EnableAsset>(relaxed = true)
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
-        every { selectedQuote(any(), any()) } answers { firstArg<List<SwapperQuote>>().firstOrNull() }
+        every { newSession() } answers { GemSwapSession(quotePhase = GemSwapQuotePhase.NoInput, transferPhase = GemSwapTransferPhase.Idle) }
     }
 
     private val createdViewModels = mutableListOf<SwapViewModel>()
@@ -134,9 +135,7 @@ class SwapViewModelTest {
     }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
-        getSession = getSession,
         getAssetInfo = getAssetInfo,
-        enableAsset = enableAsset,
         requestSwapQuotes = requestSwapQuotes,
         swapQuoteService = swapQuoteService,
         savedStateHandle = savedStateHandle,
@@ -305,17 +304,17 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         val quotesState = seedReadyQuote(viewModel, quotesFlow)
-        assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
+        assertEquals(GemSwapSessionAction.Ready, viewModel.uiState.value.action)
         assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
 
         var confirmCalls = 0
         viewModel.swap { confirmCalls++ }
-        awaitCondition { viewModel.uiState.value.action == SwapActionState.TransferLoading }
+        awaitCondition { viewModel.uiState.value.action == GemSwapSessionAction.TransferLoading }
 
         quotesFlow.emit(quotesState.copy(items = listOf(mockQuote(toValue = "2600000"))))
         advanceUntilIdle()
 
-        assertEquals(SwapActionState.TransferLoading, viewModel.uiState.value.action)
+        assertEquals(GemSwapSessionAction.TransferLoading, viewModel.uiState.value.action)
         assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
         assertEquals(0, confirmCalls)
 
@@ -342,9 +341,9 @@ class SwapViewModelTest {
         seedReadyQuote(viewModel, quotesFlow)
 
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.action is SwapActionState.TransferError }
+        awaitCondition { viewModel.uiState.value.action is GemSwapSessionAction.TransferError }
 
-        val action = viewModel.uiState.value.action as SwapActionState.TransferError
+        val action = viewModel.uiState.value.action as GemSwapSessionAction.TransferError
         assertTrue(action.error is SwapperException.NoQuoteAvailable)
         assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
     }
@@ -366,7 +365,7 @@ class SwapViewModelTest {
         seedReadyQuote(viewModel, quotesFlow)
 
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.action is SwapActionState.TransferError }
+        awaitCondition { viewModel.uiState.value.action is GemSwapSessionAction.TransferError }
 
         val state = viewModel.uiState.value
         assertEquals(GemSwapButtonAction.Swap, state.buttonAction)
@@ -404,19 +403,19 @@ class SwapViewModelTest {
 
         seedReadyQuote(viewModel, quotesFlow)
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.action is SwapActionState.TransferError }
+        awaitCondition { viewModel.uiState.value.action is GemSwapSessionAction.TransferError }
 
         viewModel.setProvider(SwapProvider.UNISWAP_V3)
         advanceUntilIdle()
 
-        assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
+        assertEquals(GemSwapSessionAction.Ready, viewModel.uiState.value.action)
 
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.action is SwapActionState.TransferError }
+        awaitCondition { viewModel.uiState.value.action is GemSwapSessionAction.TransferError }
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
         Snapshot.sendApplyNotifications()
-        awaitCondition { viewModel.uiState.value.action == SwapActionState.QuoteLoading }
+        awaitCondition { viewModel.uiState.value.action == GemSwapSessionAction.QuoteLoading }
     }
 
     @Test
@@ -450,9 +449,9 @@ class SwapViewModelTest {
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.action == SwapActionState.TransferLoading }
+        awaitCondition { viewModel.uiState.value.action == GemSwapSessionAction.TransferLoading }
         confirmInputGate.complete(Unit)
-        awaitCondition { viewModel.uiState.value.action == SwapActionState.Ready }
+        awaitCondition { viewModel.uiState.value.action == GemSwapSessionAction.Ready }
         advanceUntilIdle()
         assertEquals(false, refreshStates.last())
 
@@ -482,12 +481,12 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         val seededQuotes = seedReadyQuote(viewModel, quotesFlow)
-        assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
+        assertEquals(GemSwapSessionAction.Ready, viewModel.uiState.value.action)
 
         onFetchStarted.captured(seededQuotes.requestKey)
         advanceUntilIdle()
 
-        assertEquals(SwapActionState.QuoteLoading, viewModel.uiState.value.action)
+        assertEquals(GemSwapSessionAction.QuoteLoading, viewModel.uiState.value.action)
     }
 
     @Test
@@ -518,7 +517,7 @@ class SwapViewModelTest {
         awaitCondition { !viewModel.uiState.value.isTransferLoading }
 
         assertTrue(wasTransferLoadingOnConfirm)
-        assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
+        assertEquals(GemSwapSessionAction.Ready, viewModel.uiState.value.action)
     }
 
     @Test
@@ -631,7 +630,7 @@ class SwapViewModelTest {
         assertEquals(1, showWarningCalls)
         assertEquals(0, swapCalls)
         assertEquals(0, confirmCalls)
-        assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
+        assertEquals(GemSwapSessionAction.Ready, viewModel.uiState.value.action)
     }
 
     @Test
@@ -738,7 +737,7 @@ class SwapViewModelTest {
     ): SwapQuotesResult {
         viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
         Snapshot.sendApplyNotifications()
-        awaitCondition { viewModel.uiState.value.action == SwapActionState.QuoteLoading }
+        awaitCondition { viewModel.uiState.value.action == GemSwapSessionAction.QuoteLoading }
 
         val quotesState = SwapQuotesResult(
             items = listOf(quote),
@@ -748,7 +747,7 @@ class SwapViewModelTest {
         )
         quotesFlow.emit(quotesState)
         testDispatcher.scheduler.advanceUntilIdle()
-        awaitCondition { viewModel.uiState.value.action == SwapActionState.Ready }
+        awaitCondition { viewModel.uiState.value.action == GemSwapSessionAction.Ready }
         return quotesState
     }
 

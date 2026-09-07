@@ -11,13 +11,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
-import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.ReceiveSelectViewModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import uniffi.gemstone.GemAssetAction
 
 @Composable
 fun SelectReceiveScreen(
@@ -25,8 +24,8 @@ fun SelectReceiveScreen(
     onSelect: ((AssetId) -> Unit)?,
     titleContent: (@Composable () -> Unit)? = null,
     closeIcon: Boolean = false,
-    showFilter: Boolean = true,
-    viewModel: AssetSelectViewModel = hiltViewModel(),
+    showFilter: Boolean? = null,
+    viewModel: ReceiveSelectViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
@@ -36,7 +35,6 @@ fun SelectReceiveScreen(
         closeIcon = closeIcon,
         showFilter = showFilter,
         titleBadge = ::getAssetBadge,
-        action = GemAssetAction.RECEIVE,
         onSelectRecent = onSelect,
         itemTrailing = {
             IconButton(

@@ -3,7 +3,6 @@
 import GemstonePrimitives
 import GemstoneServicesTestKit
 import NFT
-import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -76,10 +75,10 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        service.nftSearchItems = (0 ..< 3).map { _ in .asset(data: NFTAssetData.mock().json()) }
+        service.nftSearchItems = (0 ..< 3).map { _ in .asset(data: NFTAssetData.mock().map()) }
         #expect(model.hasMoreNFTs == false)
 
-        service.nftSearchItems = (0 ..< 4).map { _ in .asset(data: NFTAssetData.mock().json()) }
+        service.nftSearchItems = (0 ..< 4).map { _ in .asset(data: NFTAssetData.mock().map()) }
         #expect(model.hasMoreNFTs == true)
     }
 
@@ -91,8 +90,8 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.showNFTs == false)
 
         service.nftSearchItems = [
-            .collection(data: NFTData(collection: .mock(), assets: [.mock(), .mock()]).json()),
-            .asset(data: NFTAssetData.mock().json()),
+            .collection(data: NFTData(collection: .mock(), assets: [.mock(), .mock()]).map()),
+            .asset(data: NFTAssetData.mock().map()),
         ]
 
         #expect(model.showNFTs == true)

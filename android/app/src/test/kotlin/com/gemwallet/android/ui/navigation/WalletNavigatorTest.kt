@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.navigation
 
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
-import uniffi.gemstone.GemTransferService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
@@ -549,7 +548,6 @@ class WalletNavigatorTest {
         return WalletNavigator(
             backStack = NavBackStack(*routes),
             currentTab = mutableStateOf(assetsRoute),
-            transferService = GemTransferService(),
             deeplinkService = GemDeeplinkService(),
             assetsService = assetsService,
             scope = scope,

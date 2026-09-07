@@ -7,7 +7,6 @@ import com.gemwallet.android.application.assets.cases.walletChartPeriods
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
@@ -73,7 +72,7 @@ class PortfolioChartViewModel internal constructor(
         .transformLatest { (state, wallet) ->
             emit(state)
             val data = try {
-                service.portfolioData(wallet.toJson(), state.type.toGem(), state.period.toGem()).decodeJson<PortfolioData>()
+                service.portfolioData(wallet.toGem(), state.type.toGem(), state.period.toGem()).decodeJson<PortfolioData>()
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 null

@@ -3,7 +3,7 @@ use crate::gateway::GatewayError;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
-use primitives::{Asset, AssetId, Chain};
+use primitives::{Asset, AssetId, Chain, SwapProvider};
 
 #[derive(Debug, Clone, uniffi::Error)]
 pub enum GemConfirmError {
@@ -20,6 +20,7 @@ pub enum GemConfirmError {
     InsufficientBalance { asset: Asset, requirement: GemBalanceRequirement },
     InsufficientNetworkFee { asset: Asset, requirement: Option<GemBalanceRequirement> },
     MinimumAccountBalanceTooLow { asset: Asset, requirement: GemBalanceRequirement },
+    BelowSwapMinimum { asset: Asset, provider: SwapProvider, provider_name: String, requirement: GemBalanceRequirement },
     SenderMismatch { from: String, signer: String },
     Sign { error: GemSignerError, chain: Chain, msg: String },
     ApprovalInvalid { msg: String },
@@ -38,6 +39,9 @@ impl std::fmt::Display for GemConfirmError {
             Self::InsufficientBalance { asset, .. } => write!(f, "not enough {} balance", asset.symbol),
             Self::InsufficientNetworkFee { asset, .. } => write!(f, "not enough {} to pay the network fee", asset.symbol),
             Self::MinimumAccountBalanceTooLow { asset, requirement } => write!(f, "{} balance must stay above {}", asset.symbol, requirement.required),
+            Self::BelowSwapMinimum { asset, provider_name, requirement, .. } => {
+                write!(f, "{} amount is below the {} minimum {}", asset.symbol, provider_name, requirement.required)
+            }
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
             Self::Cancelled => write!(f, "cancelled"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {

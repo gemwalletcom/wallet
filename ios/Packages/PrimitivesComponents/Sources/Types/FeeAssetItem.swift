@@ -82,8 +82,8 @@ extension FeeAssetItem {
 }
 
 public extension GemFeeAsset {
-    func feeAssetItem(currency: Currency) throws -> FeeAssetItem {
-        let mapped = try map()
+    func feeAssetItem(currency: Currency) -> FeeAssetItem {
+        let mapped = map()
         return FeeAssetItem(asset: mapped.asset, balance: mapped.balance, price: mapped.price, currency: currency, isSelected: false)
     }
 }

@@ -1,12 +1,11 @@
 package com.gemwallet.android.data.coordinators.nft
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
 import com.gemwallet.android.data.services.gemstone.nft.toNftData
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
@@ -51,7 +50,7 @@ class GetAssetNftImpl(
 
     private fun storedAsset(assetId: NFTAssetId): Flow<NFTData> {
         return flow {
-            val assetData = nftService.ensureAsset(assetId.toIdentifier()).decodeJson<NFTAssetData>()
+            val assetData = nftService.ensureAsset(assetId.toIdentifier()).toPrimitives()
             emit(NFTData(collection = assetData.collection, assets = listOf(assetData.asset)))
         }.flowOn(Dispatchers.IO)
     }

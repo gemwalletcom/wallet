@@ -1,5 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.ApprovalData
+public import struct Gemstone.SimulationResult
+public import struct Gemstone.SimulationWarning
+import struct Gemstone.GemConfirmInput
 public import BigInt
 public import enum Gemstone.FeePriority
 public import struct Gemstone.GemConfirmData
@@ -15,8 +19,8 @@ public import struct Gemstone.GemTransferAmount
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemFeeOptions
 public import struct Gemstone.GemFeeRate
-public import enum Gemstone.GemGasPriceType
-public import struct Gemstone.GemTransferDataExtra
+public import enum Gemstone.GasPriceType
+public import struct Gemstone.TransferDataExtra
 public import enum Gemstone.GemTransactionLoadMetadata
 public import struct Gemstone.GemTransactionLoadFee
 import Foundation
@@ -28,12 +32,12 @@ import struct Gemstone.GemTransferData
 
 public extension GemConfirmData {
     static func mock(
-        input: GemConfirmInput = GemTransferData.mock().confirmInput(from: .mock()),
+        input: GemConfirmInput = GemConfirmInput(from: Primitives.Account.mock().map(), transfer: GemTransferData.mock()),
         fee: GemTransactionLoadFee = .mock(),
         selectedPriority: Gemstone.FeePriority = .normal,
         feeRates: [GemFeeRate] = [],
         metadata: GemTransactionLoadMetadata = .none,
-        simulation: String? = .none,
+        simulation: SimulationResult? = .none,
     ) -> GemConfirmData {
         GemConfirmData(
             input: input,
@@ -49,7 +53,7 @@ public extension GemConfirmData {
 public extension GemTransactionLoadFee {
     static func mock(
         fee: BigInt = 1,
-        gasPriceType: GemGasPriceType = .regular(gasPrice: 1),
+        gasPriceType: GasPriceType = .regular(gasPrice: 1),
         gasLimit: BigInt = 1,
         options: GemFeeOptions = GemFeeOptions(options: [:]),
         feeAsset: String = "bitcoin",
@@ -102,18 +106,18 @@ public extension GemConfirmMetadata {
     }
 }
 
-public extension GemTransferDataExtra {
+public extension TransferDataExtra {
     static func mock(
         to: String = "",
         gasLimit: BigInt? = .none,
-        gasPrice: GemGasPriceType? = .none,
+        gasPrice: GasPriceType? = .none,
         data: Data? = .none,
         outputType: Primitives.TransferDataOutputType = .encodedTransaction,
         outputAction: Primitives.TransferDataOutputAction = .send,
         transactionType: Primitives.TransactionType = .transfer,
-        approval: String? = .none,
-    ) -> GemTransferDataExtra {
-        GemTransferDataExtra(
+        approval: Gemstone.ApprovalData? = .none,
+    ) -> TransferDataExtra {
+        TransferDataExtra(
             to: to,
             gasLimit: gasLimit,
             gasPrice: gasPrice,
@@ -138,20 +142,22 @@ public extension GemTransferAmount {
 
 public extension GemConfirmLoad {
     static func mock(
+        sender: Primitives.Account = .mock(),
         feeAsset: Primitives.Asset = .mockEthereum(),
         metadata: GemConfirmMetadata = .mock(),
         feeAssets: [GemFeeAsset] = [],
         simulation: GemConfirmSimulation? = nil,
-        warnings: [Primitives.SimulationWarning] = [],
+        warnings: [SimulationWarning] = [],
         addressName: Primitives.AddressName? = nil,
         preload: GemConfirmPreload? = .mock(),
     ) -> GemConfirmLoad {
         GemConfirmLoad(
+            sender: sender.map(),
             feeAsset: feeAsset.map(),
             metadata: metadata,
             feeAssets: feeAssets,
-            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings.map { $0.json() }, simulation: simulation, addressNames: []),
-            addressName: addressName?.json(),
+            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings, simulation: simulation, addressNames: []),
+            addressName: addressName?.map(),
             preload: preload,
         )
     }

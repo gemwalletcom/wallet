@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.nft
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockNftAssetData
@@ -68,7 +68,7 @@ class NftCasesTest {
         coEvery { nftService.ensureAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = collectionId),
             asset = mockNftAsset(id = assetId, collectionId = collectionId),
-        ).toJson()
+        ).toGem()
 
         val result = getAssetNft.getAssetNft(assetId).first()
 
@@ -84,7 +84,7 @@ class NftCasesTest {
         coEvery { nftService.ensureAsset(assetId.toIdentifier()) } returns mockNftAssetData(
             collection = mockNftCollection(id = otherCollectionId),
             asset = mockNftAsset(id = assetId, collectionId = otherCollectionId),
-        ).toJson()
+        ).toGem()
 
         val result = getAssetNft.getAssetNft(assetId).first()
 

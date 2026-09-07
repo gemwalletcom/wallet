@@ -870,12 +870,12 @@ fee_rates_normal = Normal
 
 # Fee Rate
 
-# Used in network fee rate selector for the satvB label. Contains 1 string placeholder.
-fee_rate_satvB = %@ sat/vB
+# Fee unit label for satoshis per virtual byte.
+fee_rate_satvB = sat/vB
 # Used in network fee rate selector for the satB label. Contains 1 string placeholder.
 fee_rate_satB = %@ sat/B
-# Used in network fee rate selector for the gwei label. Contains 1 string placeholder.
-fee_rate_gwei = %@ gwei
+# Fee unit label for gwei.
+fee_rate_gwei = gwei
 # Used in the network fee rate selector for the custom fee rate row label.
 fee_rate_custom = Custom
 
@@ -1082,6 +1082,8 @@ info_perpetual_funding_apr_description = The annualized rate at which longs pay 
 info_minimum_amount_title = Minimum Amount
 # Transfer minimum amount info sheet. First %@ is the network name, second %@ is the minimum amount.
 info_minimum_amount_description = On the %@ network, the minimum amount for this transaction is %@.
+# Used in Info bottom sheets when a swap amount is below the provider minimum. Arguments: provider name, minimum amount, current amount, shortfall.
+info_swap_minimum_amount_description = %@ requires a minimum of %@, but the amount is %@. Increase it by %@ to continue.
 
 # Input
 
