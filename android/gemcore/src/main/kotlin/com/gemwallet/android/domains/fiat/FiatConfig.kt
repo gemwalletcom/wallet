@@ -1,9 +1,9 @@
 package com.gemwallet.android.domains.fiat
 
-import uniffi.gemstone.Config
+import com.gemwallet.android.domains.gemConfig
 
 object FiatConfig {
-    private val config get() = Config().getFiatConfig()
+    private val config by lazy { gemConfig.getFiatConfig() }
 
     val insufficientNetworkFeeBuyAmount: Int get() = config.insufficientNetworkFeeBuyAmount
 }

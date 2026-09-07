@@ -73,6 +73,7 @@ import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemNodeServiceInterface
 import uniffi.gemstone.GemDeviceKeyService
+import com.gemwallet.android.domains.gemConfig
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -269,7 +270,7 @@ object GatewayModule {
             NativeProvider(
                 nodeService = nodeService,
                 httpClient = okHttpClient.newBuilder()
-                    .callTimeout(Config().getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                    .callTimeout(gemConfig.getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
                     .build(),
             ),
             deviceKeyService,

@@ -74,6 +74,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.domains.gemConfig
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -387,6 +388,6 @@ class SwapViewModel @Inject constructor(
     }
 
     companion object {
-        val percentSuggestions = Config().getSwapConfig().amountPercentPresets.map { it.toInt() }
+        val percentSuggestions = gemConfig.getSwapConfig().amountPercentPresets.map { it.toInt() }
     }
 }

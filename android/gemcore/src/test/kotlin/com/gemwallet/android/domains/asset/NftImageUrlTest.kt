@@ -9,11 +9,11 @@ import org.junit.Test
 class NftImageUrlTest {
 
     @Test
-    fun transactionNftImageUrl_usesAssetsUrlWithNftPrefix() {
+    fun transactionNftImageUrl_usesNftAssetsHost() {
         val assetId = mockNftAssetId()
 
         assertEquals(
-            "https://assets.gemwallet.com/nft/assets/${assetId.toIdentifier()}/preview",
+            "https://nft-assets.gemwallet.com/assets/${assetId.toIdentifier()}/preview",
             TransactionNFTTransferMetadata(assetId = assetId).getImageUrl(),
         )
     }

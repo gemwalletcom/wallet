@@ -51,7 +51,7 @@ import uniffi.gemstone.GemStakeActionItem
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
-import uniffi.gemstone.Config
+import com.gemwallet.android.domains.gemConfig
 
 @Composable
 internal fun StakeScene(
@@ -131,7 +131,7 @@ private sealed interface StakeInfoRow {
 }
 
 private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
-    val minAmountValue = Config().getStakeConfig(assetInfo.asset.chain.string).minAmount.toLong()
+    val minAmountValue = gemConfig.getStakeConfig(assetInfo.asset.chain.string).minAmount.toLong()
     val iconUrl = assetInfo.id().iconModel()
     val rows = listOfNotNull(
         StakeInfoRow.Apr(assetInfo.metadata.stakingApr ?: 0.0, iconUrl),

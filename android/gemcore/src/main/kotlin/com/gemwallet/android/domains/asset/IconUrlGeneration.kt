@@ -5,25 +5,31 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.Config
+import com.gemwallet.android.ext.chainConfig
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetIconImage
 import uniffi.gemstone.GemImage
+import java.util.concurrent.ConcurrentHashMap
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
-fun Chain.iconChain(): Chain = Config().getChainConfig(string).iconChain.toChain()
+private val assetIcons = ConcurrentHashMap<String, GemAssetIcon>()
 
-fun AssetId.iconChain(): Chain? = when (val image = assetConfig.assetIcon(toIdentifier()).image) {
+private fun AssetId.icon(): GemAssetIcon = assetIcons.computeIfAbsent(toIdentifier(), assetConfig::assetIcon)
+
+fun Chain.iconChain(): Chain = chainConfig().iconChain.toChain()
+
+fun AssetId.iconChain(): Chain? = when (val image = icon().image) {
     is GemAssetIconImage.Local -> image.chain.toChain()
     is GemAssetIconImage.Remote -> null
 }
 
-fun AssetId.supportIconChain(): Chain? = assetConfig.assetIcon(toIdentifier()).badge?.toChain()
+fun AssetId.supportIconChain(): Chain? = icon().badge?.toChain()
 
-fun AssetId.remoteIconUrl(): String? = when (val image = assetConfig.assetIcon(toIdentifier()).image) {
+fun AssetId.remoteIconUrl(): String? = when (val image = icon().image) {
     is GemAssetIconImage.Local -> null
     is GemAssetIconImage.Remote -> image.url
 }

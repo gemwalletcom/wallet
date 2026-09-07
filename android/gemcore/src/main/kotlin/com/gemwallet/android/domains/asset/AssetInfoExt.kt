@@ -10,7 +10,7 @@ import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
-import uniffi.gemstone.Config
+import com.gemwallet.android.domains.gemConfig
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -31,7 +31,7 @@ val AssetInfo.chain: Chain
 
 val AssetInfo.lockTime: Int?  // TODO: Out to StakeExt
     get() = owner?.chain?.string?.let {
-        (Config().getStakeConfig(it).timeLock.toLong() / DateUtils.DAY_IN_MILLIS.millisToSeconds()).toInt()
+        (gemConfig.getStakeConfig(it).timeLock.toLong() / DateUtils.DAY_IN_MILLIS.millisToSeconds()).toInt()
     }
 
 val AssetInfo.availableBalance: String  // TODO: Out to BalanceExt
