@@ -1,37 +1,40 @@
 package com.gemwallet.android.features.nft.presents
 
-import com.gemwallet.android.ui.LocalAddressService
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.features.nft.presents.components.NftHeaderActions
+import com.gemwallet.android.features.nft.presents.components.NftTitle
+import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
+import com.gemwallet.android.ui.LocalAddressService
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -39,28 +42,19 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkIte
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.toSocialLinks
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
+import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.gemwallet.android.features.nft.presents.components.NftTitle
-import com.gemwallet.android.domains.nft.NftAssetDetailsData
-import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
-import androidx.compose.foundation.clickable
-import androidx.compose.material3.MaterialTheme
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
-import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.wallet.core.primitives.ReportReason
 import kotlinx.coroutines.launch
 
@@ -79,7 +73,6 @@ fun NFTDetailsScene(
     val refreshFailed = stringResource(R.string.errors_error_occurred)
 
     val model = assetData ?: return
-    var isMenuExpanded by remember { mutableStateOf(false) }
     var isReportVisible by remember { mutableStateOf(false) }
     val reported = stringResource(R.string.transaction_status_confirmed)
     Scene(
@@ -89,43 +82,6 @@ fun NFTDetailsScene(
                 status = model.collection.status,
                 iconSize = compactIconSize,
             )
-        },
-        actions = {
-            if (model.canSend) {
-                IconButton(onClick = { onRecipient(AssetId(model.asset.chain), model.asset.id) }) {
-                    Icon(AppIcons.ArrowUpward, contentDescription = "Send nft")
-                }
-            }
-            IconButton(onClick = { isMenuExpanded = true }) {
-                Icon(AppIcons.MoreVert, contentDescription = stringResource(R.string.wallet_more))
-            }
-            DropdownMenu(
-                expanded = isMenuExpanded,
-                onDismissRequest = { isMenuExpanded = false },
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.common_refresh)) },
-                    leadingIcon = { Icon(AppIcons.Refresh, contentDescription = null) },
-                    onClick = {
-                        isMenuExpanded = false
-                        scope.launch {
-                            if (viewModel.refresh()) {
-                                snackbar.showSnackbar(refresh, R.drawable.ic_check_circle)
-                            } else {
-                                snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
-                            }
-                        }
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.nft_report_report_button_title), color = MaterialTheme.colorScheme.error) },
-                    leadingIcon = { Icon(AppIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                    onClick = {
-                        isMenuExpanded = false
-                        isReportVisible = true
-                    },
-                )
-            }
         },
         onClose = { cancelAction() },
         snackbar = snackbar,
@@ -141,7 +97,29 @@ fun NFTDetailsScene(
                         .clip(RoundedCornerShape(paddingDefault)),
                 )
             }
-            item { Spacer(Modifier.height(paddingSmall)) }
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = paddingDefault, bottom = paddingSmall),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    NftHeaderActions(
+                        canSend = model.canSend,
+                        onSend = { onRecipient(AssetId(model.asset.chain), model.asset.id) },
+                        onRefresh = {
+                            scope.launch {
+                                if (viewModel.refresh()) {
+                                    snackbar.showSnackbar(refresh, R.drawable.ic_check_circle)
+                                } else {
+                                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
+                                }
+                            }
+                        },
+                        onReport = { isReportVisible = true },
+                    )
+                }
+            }
             verificationStatusItem(model.collection.status)
             generalInfo(model)
             nftAttributes(model.attributes)
