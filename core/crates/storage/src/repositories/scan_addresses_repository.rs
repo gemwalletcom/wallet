@@ -10,6 +10,7 @@ pub trait ScanAddressesRepository {
     fn get_scan_addresses(&mut self, queries: &[(Chain, &str)]) -> Result<Vec<ScanAddressRow>, DatabaseError>;
     fn get_scan_addresses_by_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<ScanAddressRow>, DatabaseError>;
     fn add_scan_addresses(&mut self, values: Vec<ScanAddress>) -> Result<usize, DatabaseError>;
+    fn upsert_scan_addresses(&mut self, values: Vec<ScanAddress>) -> Result<usize, DatabaseError>;
 }
 
 impl ScanAddressesRepository for DatabaseClient {
@@ -32,6 +33,11 @@ impl ScanAddressesRepository for DatabaseClient {
     fn add_scan_addresses(&mut self, values: Vec<ScanAddress>) -> Result<usize, DatabaseError> {
         let new_addresses = values.into_iter().map(NewScanAddressRow::from_primitive).collect();
         Ok(ScanAddressesStore::add_scan_addresses(self, new_addresses)?)
+    }
+
+    fn upsert_scan_addresses(&mut self, values: Vec<ScanAddress>) -> Result<usize, DatabaseError> {
+        let new_addresses = values.into_iter().map(NewScanAddressRow::from_primitive).collect();
+        Ok(ScanAddressesStore::upsert_scan_addresses(self, new_addresses)?)
     }
 }
 

@@ -185,8 +185,12 @@ where
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         let api_addresses = MayanChain::unique_addresses(self.price_client.get_chains().await?);
-        let deposit: BTreeSet<String> = MAYAN_DEPOSIT_CONTRACTS.iter().map(|s| s.to_string()).chain(api_addresses.iter().cloned()).collect();
-        let send: BTreeSet<String> = MAYAN_SEND_CONTRACTS.iter().map(|s| s.to_string()).chain(api_addresses).collect();
+        let deposit: BTreeSet<String> = MAYAN_DEPOSIT_CONTRACTS
+            .iter()
+            .map(|(_, address)| address.to_string())
+            .chain(api_addresses.iter().cloned())
+            .collect();
+        let send: BTreeSet<String> = MAYAN_SEND_CONTRACTS.iter().map(|(_, address)| address.to_string()).chain(api_addresses).collect();
 
         Ok(VaultAddresses {
             deposit: deposit.into_iter().collect(),
@@ -298,14 +302,14 @@ mod tests {
         let api_address = gem_evm::ethereum_address_checksum("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").unwrap();
         let expected_deposit = MAYAN_DEPOSIT_CONTRACTS
             .iter()
-            .map(|address| address.to_string())
+            .map(|(_, address)| address.to_string())
             .chain([api_address.clone()])
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
         let expected_send = MAYAN_SEND_CONTRACTS
             .iter()
-            .map(|address| address.to_string())
+            .map(|(_, address)| address.to_string())
             .chain([api_address])
             .collect::<BTreeSet<_>>()
             .into_iter()

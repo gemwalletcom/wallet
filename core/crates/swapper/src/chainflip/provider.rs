@@ -41,10 +41,12 @@ const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
 const REFUND_RETRY_BLOCKS: u32 = 150;
 const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
 
-const VAULT_ETH: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
-const VAULT_ARB: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
-const VAULT_SOL: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
-const VAULT_TRON: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
+pub const VAULT_ADDRESSES: [(Chain, &str); 4] = [
+    (Chain::Ethereum, "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc"),
+    (Chain::Arbitrum, "0x79001a5e762f3bEFC8e5871b42F6734e00498920"),
+    (Chain::Solana, "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT"),
+    (Chain::Tron, "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC"),
+];
 
 #[derive(Debug)]
 pub struct ChainflipProvider<CX, BR>
@@ -85,7 +87,7 @@ where
 }
 
 fn vault_deposit_addresses() -> Vec<String> {
-    vec![VAULT_ETH.to_string(), VAULT_ARB.to_string(), VAULT_SOL.to_string(), VAULT_TRON.to_string()]
+    VAULT_ADDRESSES.iter().map(|(_, address)| address.to_string()).collect()
 }
 
 fn map_asset_id(asset: &QuoteAsset) -> ChainflipAsset {
