@@ -173,7 +173,7 @@ where
     }
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
-        let address = SQUID_COSMOS_MULTICALL.1.to_string();
+        let address = SQUID_COSMOS_MULTICALL.to_string();
         Ok(VaultAddresses {
             deposit: vec![address.clone()],
             send: vec![address],

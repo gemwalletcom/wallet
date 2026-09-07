@@ -29,23 +29,23 @@ const DEFAULT_DEADLINE_MINUTES: i64 = 30;
 const BITCOIN_DEADLINE_MINUTES: i64 = 120;
 
 // Supported-chain subset of https://docs.near-intents.org/security-compliance/treasury-addresses
-pub const TREASURY_ADDRESSES: [(Chain, &str); 16] = [
-    (Chain::Ethereum, "0x2CfF890f0378a11913B6129B2E97417a2c302680"), // every EVM chain except Monad and XLayer
-    (Chain::Monad, "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd"),    // Monad and XLayer
-    (Chain::Bitcoin, "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra"),
-    (Chain::BitcoinCash, "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ"),
-    (Chain::Doge, "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD"),
-    (Chain::Litecoin, "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX"),
-    (Chain::Zcash, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML"),
-    (Chain::Near, "intents.near"),
-    (Chain::Solana, "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16"),
-    (Chain::Ton, "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ"),
-    (Chain::Stellar, "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK"),
-    (Chain::Sui, "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138"),
-    (Chain::Aptos, "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446"),
-    (Chain::Tron, "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke"),
-    (Chain::Xrp, "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH"),
-    (Chain::Cardano, "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm"),
+const TREASURY_ADDRESSES: [&str; 16] = [
+    "0x2CfF890f0378a11913B6129B2E97417a2c302680",                         // EVM chains
+    "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd",                         // Monad, XLayer
+    "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra",                                 // Bitcoin
+    "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ",                                 // Bitcoin Cash
+    "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD",                                 // Dogecoin
+    "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX",                                 // Litecoin
+    "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML",                                // Zcash
+    "intents.near",                                                       // NEAR
+    "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16",                       // Solana
+    "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ",                   // TON
+    "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK",           // Stellar
+    "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138", // Sui
+    "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446", // Aptos
+    "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke",                                 // TRON
+    "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH",                                 // XRP
+    "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm",         // Cardano
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -399,7 +399,7 @@ where
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: vec![],
-            send: TREASURY_ADDRESSES.iter().map(|(_, address)| address.to_string()).collect(),
+            send: TREASURY_ADDRESSES.iter().map(|s| s.to_string()).collect(),
         })
     }
 }
