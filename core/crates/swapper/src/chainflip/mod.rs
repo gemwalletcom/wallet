@@ -9,4 +9,4 @@ pub mod seed;
 pub mod tx_builder;
 
 pub use model::*;
-pub use provider::ChainflipProvider;
+pub use provider::{ChainflipProvider, VAULT_ADDRESSES};
