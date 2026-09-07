@@ -26,7 +26,7 @@ fun AssetIcon(
 ) {
     IconWithBadge(
         icon = asset.getIconUrl(),
-        placeholder = asset.type.string,
+        placeholder = asset.symbol,
         supportIcon = asset.getSupportIconUrl(),
         size = size,
         badgeBackgroundColor = badgeBackgroundColor,

@@ -103,7 +103,7 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
     }
     IconWithBadge(
         icon = data.nftImageUrl ?: data.asset.getIconUrl(),
-        placeholder = if (data.nftImageUrl != null) "NFT" else data.asset.type.string,
+        placeholder = if (data.nftImageUrl != null) "NFT" else data.asset.symbol,
         size = size,
     ) {
         BadgeCircle(size = size, color = color) {
