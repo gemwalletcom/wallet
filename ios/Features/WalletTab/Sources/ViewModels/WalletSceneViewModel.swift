@@ -114,10 +114,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Images.Actions.manage
     }
 
-    var showPinnedSection: Bool {
-        !sections.pinned.isEmpty
-    }
-
     var showPerpetuals: Bool {
         observablePreferences.showPerpetuals(for: wallet)
     }
