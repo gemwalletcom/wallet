@@ -32,7 +32,6 @@ class AssetInfoUIModel(
     val networkDestination: NetworkDestination? = null,
     val shareUrl: String = "",
     val detailsState: GemAssetDetailsState,
-    val updated: Long = System.currentTimeMillis(),
 ) {
 
     val asset: Asset get() = assetInfo.asset

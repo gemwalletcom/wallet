@@ -26,7 +26,7 @@ class WalletsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val wallets = getAllWallets.getAllWallets()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getAllWallets.getAllWallets().value)
 
     fun selectWallet(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
         setCurrentWallet.setCurrentWallet(walletId)

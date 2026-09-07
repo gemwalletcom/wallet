@@ -13,6 +13,8 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -27,7 +29,7 @@ class GetActiveAssetsInfoImplTest {
     )
 
     private val getWalletAssets = object : GetWalletAssets {
-        override fun invoke(): Flow<List<AssetInfo>> = flowOf(assets)
+        override fun invoke(): StateFlow<List<AssetInfo>> = MutableStateFlow(assets)
         override fun invoke(walletId: WalletId): Flow<List<AssetInfo>> = flowOf(assets)
         override fun invoke(assetIds: List<AssetId>): Flow<List<AssetInfo>> = flowOf(assets)
         override fun byIdentifiers(assetIds: List<String>): Flow<List<AssetInfo>> = flowOf(assets)

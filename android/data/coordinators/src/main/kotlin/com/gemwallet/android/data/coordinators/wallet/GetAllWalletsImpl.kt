@@ -13,8 +13,12 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemWalletService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.Dispatchers
@@ -25,9 +29,15 @@ class GetAllWalletsImpl(
     private val getSession: GetSession,
     private val walletStore: GemstoneWalletStore,
     private val walletService: GemWalletService,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetAllWallets {
 
-    override fun getAllWallets(): Flow<List<WalletDataAggregate>> {
+    private val wallets: StateFlow<List<WalletDataAggregate>> = walletAggregates()
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    override fun getAllWallets(): StateFlow<List<WalletDataAggregate>> = wallets
+
+    private fun walletAggregates(): Flow<List<WalletDataAggregate>> {
         return getSession().flatMapLatest { session ->
             val currentWalletId = session?.wallet?.id
             walletStore.observeWallets().map { items ->
