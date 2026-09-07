@@ -21,10 +21,13 @@ import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.ChainAssetInfo
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.toGem
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.BannerEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -93,12 +96,21 @@ class AssetDetailsViewModel @Inject constructor(
     private val bannerEvents = chainAssetInfo
         .flatMapLatest { getActiveBanners(it.assetInfo.asset, isGlobal = false) }
         .map { banners -> banners.map { it.event } }
+        .onStart { emit(emptyList()) }
 
-    private val priceAlertsCount = getPriceAlerts(assetId).map { it.size }
+    private val priceAlertsCount = getPriceAlerts(assetId).map { it.size }.onStart { emit(0) }
 
-    val uiModel = combine(model, session, bannerEvents, priceAlertsCount) { current, session, bannerEvents, priceAlertsCount ->
-        val wallet = session?.wallet ?: return@combine null
-        current?.let {
+    val uiModel = combine(model, session, bannerEvents, priceAlertsCount, ::uiModel)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, uiModel(model.value, session.value, emptyList(), 0))
+
+    private fun uiModel(
+        current: Model?,
+        session: Session?,
+        bannerEvents: List<BannerEvent>,
+        priceAlertsCount: Int,
+    ): AssetInfoUIModel? {
+        val wallet = session?.wallet ?: return null
+        return current?.let {
             val assetInfo = it.chainAssetInfo.assetInfo
             val asset = assetInfo.asset
             assetInfoUIModelFactory.create(
@@ -126,7 +138,6 @@ class AssetDetailsViewModel @Inject constructor(
             )
         }
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun refresh() {
         if (syncJob?.isActive == true) {
