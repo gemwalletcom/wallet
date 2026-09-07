@@ -1,15 +1,19 @@
 package com.gemwallet.android.ui.components.image
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import coil3.compose.AsyncImage
@@ -18,7 +22,6 @@ import coil3.request.ImageRequest
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import coil3.transform.Transformation
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.secondaryFaded
 import com.wallet.core.primitives.Asset
@@ -38,7 +41,11 @@ fun AsyncImage(
     if (model == null) {
         return
     }
-    val requestData = if (model is Asset) model.getIconUrl() else model
+    val requestData = if (model is Asset) model.iconModel() else model
+    if (requestData is Int) {
+        BundledImage(resource = requestData, contentDescription = contentDescription, size = size, modifier = modifier)
+        return
+    }
     val context = LocalContext.current
     val density = LocalDensity.current
     val placeholderColor = MaterialTheme.colorScheme.secondaryFaded
@@ -92,11 +99,25 @@ fun AsyncImage(
     errorImageVector: ImageVector? = null,
 ) {
     AsyncImage(
-        model = model.getIconUrl(),
+        model = model.iconModel(),
         size = size,
         contentDescription = "asset_icon",
         modifier = modifier,
         placeholderText = placeholderText,
         errorImageVector = errorImageVector
+    )
+}
+
+@Composable
+private fun BundledImage(
+    resource: Int,
+    contentDescription: String?,
+    size: Dp?,
+    modifier: Modifier,
+) {
+    Image(
+        painter = painterResource(resource),
+        contentDescription = contentDescription,
+        modifier = (size?.let { modifier.size(it) } ?: modifier).clip(CircleShape),
     )
 }

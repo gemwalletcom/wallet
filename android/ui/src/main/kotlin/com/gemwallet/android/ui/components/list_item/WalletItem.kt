@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
@@ -120,7 +120,7 @@ fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (typ
     WalletType.Multicoin -> R.drawable.multicoin_wallet
     WalletType.Single,
     WalletType.PrivateKey,
-    WalletType.View -> walletChain?.getIconUrl()
+    WalletType.View -> walletChain?.iconModel()
 }
 
 @Preview

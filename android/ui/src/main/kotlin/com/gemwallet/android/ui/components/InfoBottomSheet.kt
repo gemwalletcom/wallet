@@ -24,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.getSwapProviderIcon
 import uniffi.gemstone.SwapProvider
 import com.gemwallet.android.ext.asset
@@ -32,6 +31,7 @@ import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -76,7 +76,7 @@ sealed class InfoSheetEntity(
         actionLabel: String,
         action: () -> Unit,
     ) : InfoSheetEntity(
-        icon = chain.asset().getIconUrl(),
+        icon = chain.asset().iconModel(),
         title = R.string.info_balance_required_title,
         description = R.string.info_insufficient_network_fee_balance_description,
         infoUrl = { AppUrl.docs(DocsUrl.NetworkFees) },
@@ -91,7 +91,7 @@ sealed class InfoSheetEntity(
         actionLabel: String,
         action: () -> Unit,
     ) : InfoSheetEntity(
-        icon = chain.asset().getIconUrl(),
+        icon = chain.asset().iconModel(),
         title = R.string.info_balance_required_title,
         description = R.string.transfer_insufficient_network_fee_balance,
         infoUrl = { AppUrl.docs(DocsUrl.NetworkFees) },
@@ -109,7 +109,7 @@ sealed class InfoSheetEntity(
         actionLabel: String,
         action: () -> Unit,
     ) : InfoSheetEntity(
-        icon = asset.getIconUrl(),
+        icon = asset.iconModel(),
         title = R.string.info_balance_required_title,
         description = R.string.info_balance_required_description,
         action = action,
@@ -119,7 +119,7 @@ sealed class InfoSheetEntity(
     )
 
     class MinimumAccountBalanceInfo(asset: Asset, value: String) : InfoSheetEntity(
-        icon = asset.getIconUrl(),
+        icon = asset.iconModel(),
         title = R.string.info_account_minimum_balance_title,
         description = R.string.transfer_minimum_account_balance,
         infoUrl = { AppUrl.docs(DocsUrl.AccountMinimalBalance) },
@@ -145,7 +145,7 @@ sealed class InfoSheetEntity(
     )
 
     class DustThresholdInfo(chain: Chain) : InfoSheetEntity(
-        icon = chain.asset().getIconUrl(),
+        icon = chain.asset().iconModel(),
         title = R.string.errors_transfer_error,
         description = R.string.errors_dust_threshold,
         infoUrl = { AppUrl.docs(DocsUrl.Dust) },

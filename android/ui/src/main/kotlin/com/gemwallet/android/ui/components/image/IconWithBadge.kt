@@ -13,8 +13,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.asset.getSupportIconUrl
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.wallet.core.primitives.Asset
 
@@ -25,9 +23,9 @@ fun AssetIcon(
     badgeBackgroundColor: Color? = null,
 ) {
     IconWithBadge(
-        icon = asset.getIconUrl(),
+        icon = asset.iconModel(),
         placeholder = asset.symbol,
-        supportIcon = asset.getSupportIconUrl(),
+        supportIcon = asset.supportIconModel(),
         size = size,
         badgeBackgroundColor = badgeBackgroundColor,
     )

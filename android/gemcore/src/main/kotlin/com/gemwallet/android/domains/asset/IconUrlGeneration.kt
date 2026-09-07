@@ -17,7 +17,16 @@ import uniffi.gemstone.SwapProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
 
-fun Chain.getIconUrl(): String = chainIconUrl(Config().getChainConfig(string).iconChain.toChain())
+fun Chain.getIconUrl(): String = chainIconUrl(iconChain())
+
+fun Chain.iconChain(): Chain = Config().getChainConfig(string).iconChain.toChain()
+
+fun AssetId.iconChain(): Chain? = when (val image = assetConfig.assetIcon(toIdentifier()).image) {
+    is GemAssetIconImage.Local -> image.chain.toChain()
+    is GemAssetIconImage.Remote -> null
+}
+
+fun AssetId.supportIconChain(): Chain? = assetConfig.assetIcon(toIdentifier()).badge?.toChain()
 
 private fun chainIconUrl(chain: Chain): String = "file:///android_asset/chains/icons/${chain.string}.svg"
 
