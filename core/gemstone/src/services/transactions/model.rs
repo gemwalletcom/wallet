@@ -99,8 +99,24 @@ pub enum GemTransactionRowValue {
     Pnl { value: f64 },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemTransactionStateTone {
+    Pending,
+    Success,
+    Error,
+    Refunded,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+pub struct GemTransactionStatus {
+    pub tone: GemTransactionStateTone,
+    pub shows_badge: bool,
+    pub shows_progress: bool,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionRow {
+    pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub subtitle: GemTransactionRowSubtitle,
     pub value: GemTransactionRowValue,
@@ -138,6 +154,7 @@ pub struct GemSwapRate {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionDetailRows {
+    pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub header: GemTransactionHeader,
     pub header_action: Option<GemTransactionHeaderAction>,

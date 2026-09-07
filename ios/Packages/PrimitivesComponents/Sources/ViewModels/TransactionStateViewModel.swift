@@ -1,16 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemTransactionStateTone
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
-public struct TransactionStateViewModel {
-    let state: TransactionState
+public struct TransactionStateViewModel: Equatable, Sendable {
+    public let state: TransactionState
+    public let tone: GemTransactionStateTone
 
-    public init(state: TransactionState) {
+    public init(state: TransactionState, tone: GemTransactionStateTone) {
         self.state = state
+        self.tone = tone
     }
 
     public var title: String {
@@ -24,41 +27,30 @@ public struct TransactionStateViewModel {
     }
 
     public var description: String {
-        switch state {
-        case .pending, .inTransit: Localized.Info.Transaction.Pending.description
-        case .confirmed: Localized.Info.Transaction.Success.description
-        case .failed, .reverted, .refunded: Localized.Info.Transaction.Error.description
+        switch tone {
+        case .pending: Localized.Info.Transaction.Pending.description
+        case .success: Localized.Info.Transaction.Success.description
+        case .error, .refunded: Localized.Info.Transaction.Error.description
         }
     }
 
     public var stateImage: Image {
-        switch state {
-        case .pending, .inTransit: Images.Transaction.State.pending
-        case .confirmed: Images.Transaction.State.success
-        case .failed, .reverted, .refunded: Images.Transaction.State.error
+        switch tone {
+        case .pending: Images.Transaction.State.pending
+        case .success: Images.Transaction.State.success
+        case .error, .refunded: Images.Transaction.State.error
         }
     }
 
     public var color: Color {
-        switch state {
-        case .confirmed: Colors.green
-        case .pending, .inTransit, .refunded: Colors.orange
-        case .failed, .reverted: Colors.red
+        switch tone {
+        case .success: Colors.green
+        case .pending, .refunded: Colors.orange
+        case .error: Colors.red
         }
     }
 
     public var background: Color {
-        switch state {
-        case .confirmed: Colors.green.opacity(.light)
-        case .pending, .inTransit, .refunded: Colors.orange.opacity(.light)
-        case .failed, .reverted: Colors.red.opacity(.light)
-        }
-    }
-
-    public var showsProgress: Bool {
-        switch state {
-        case .pending, .inTransit: true
-        case .confirmed, .failed, .reverted, .refunded: false
-        }
+        color.opacity(.light)
     }
 }

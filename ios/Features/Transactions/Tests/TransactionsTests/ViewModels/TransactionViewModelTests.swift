@@ -198,14 +198,14 @@ final class TransactionViewModelTests {
         } else {
             Issue.record("Expected progress indicator for pending title tag")
         }
-        #expect(pendingModel.titleTagTextValue?.text == TransactionStateViewModel(state: .pending).title)
+        #expect(pendingModel.titleTagTextValue?.text == TransactionStateViewModel(state: .pending, tone: .pending).title)
 
         let inTransitModel = TransactionViewModel.mock(state: .inTransit)
         if case .progressView = inTransitModel.titleTagType {
         } else {
             Issue.record("Expected progress indicator for in-transit title tag")
         }
-        #expect(inTransitModel.titleTagTextValue?.text == TransactionStateViewModel(state: .inTransit).title)
+        #expect(inTransitModel.titleTagTextValue?.text == TransactionStateViewModel(state: .inTransit, tone: .pending).title)
     }
 
     func testTransactionTitle(expectedTitle: String, transaction: Transaction) {

@@ -7,6 +7,7 @@ import Foundation
 import GemstonePrimitives
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
@@ -14,7 +15,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Asset)
     case balanceRequired(Asset, image: AssetImage, requirement: BalanceRequirement, button: InfoSheetButton)
     case insufficientNetworkFee(Asset, image: AssetImage, requirement: BalanceRequirement?, price: Price?, currency: String, button: InfoSheetButton)
-    case transactionState(imageURL: URL?, placeholder: Image?, state: TransactionState)
+    case transactionState(imageURL: URL?, placeholder: Image?, model: TransactionStateViewModel)
     case estimatedConfirmation(Chain)
     case watchWallet
     case stakeLockTime(Image?)
@@ -54,7 +55,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         case .networkFee: "networkFees"
         case let .insufficientNetworkFee(asset, _, _, _, _, _): "insufficientNetworkFee_\(asset.id.identifier)"
         case let .balanceRequired(asset, _, _, _): "balanceRequired_\(asset.id.identifier)"
-        case let .transactionState(_, _, state): state.id
+        case let .transactionState(_, _, model): model.state.id
         case let .estimatedConfirmation(chain): "estimatedConfirmation_\(chain.rawValue)"
         case .watchWallet: "watchWallet"
         case .stakeLockTime: "stakeLockTime"

@@ -78,15 +78,12 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleTagType: TitleTagType {
-        TransactionStateViewModel(state: transaction.transaction.state).showsProgress ? .progressView() : .none
+        row.status.showsProgress ? .progressView() : .none
     }
 
     public var titleTagTextValue: TextValue? {
-        let model = TransactionStateViewModel(state: transaction.transaction.state)
-        let title: String? = switch transaction.transaction.state {
-        case .confirmed: .none
-        case .pending, .inTransit, .failed, .reverted, .refunded: model.title
-        }
+        let model = TransactionStateViewModel(state: transaction.transaction.state, tone: row.status.tone)
+        let title: String? = row.status.showsBadge ? model.title : .none
         return title.map {
             TextValue(
                 text: $0,

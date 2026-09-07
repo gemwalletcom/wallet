@@ -104,7 +104,7 @@ class TransactionDetailsAggregateImpl(
 
     override val date: TransactionDetailsValue.Date = TransactionDetailsValue.Date(getRelativeDate(data.transaction.createdAt))
 
-    override val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state)
+    override val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state, rows.status)
 
     override val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = rows.estimatedConfirmationSeconds
         ?.let { TransactionDetailsValue.EstimatedConfirmation(it) }

@@ -40,6 +40,7 @@ import com.gemwallet.android.domains.asset.title
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.GemTransactionStateTone
 import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 import com.wallet.core.primitives.StakeChain
@@ -179,11 +180,11 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.Staking(StakeChain.Tron.string)) },
     )
 
-    class TransactionInfo(icon: Any?, state: TransactionState) : InfoSheetEntity(
+    class TransactionInfo(icon: Any?, state: TransactionState, tone: GemTransactionStateTone) : InfoSheetEntity(
         icon = icon,
-        badgeIcon = state.statusBadgeIconRes(),
+        badgeIcon = tone.badgeIconRes(),
         title = state.statusLabelRes(),
-        description = state.statusInfoDescriptionRes(),
+        description = tone.infoDescriptionRes(),
         infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
     )
 

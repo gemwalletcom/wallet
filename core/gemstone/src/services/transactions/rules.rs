@@ -10,7 +10,7 @@ use primitives::{
 use super::model::{
     GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRows, GemTransactionDetails, GemTransactionHeader,
     GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
-    GemTransactionRowValue, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
@@ -29,6 +29,7 @@ pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
 pub fn row(extended: &TransactionExtended) -> GemTransactionRow {
     let transaction = &extended.transaction;
     GemTransactionRow {
+        status: status(transaction.state),
         title: transaction_title(transaction),
         subtitle: row_subtitle(extended),
         value: row_value(extended, transaction_value(transaction)),
@@ -55,6 +56,7 @@ pub fn detail_rows(extended: &TransactionExtended, participant: Option<GemTransa
     let transaction = &extended.transaction;
     let details = details(extended);
     GemTransactionDetailRows {
+        status: status(transaction.state),
         title: transaction_title(transaction),
         header: header(extended),
         header_action: header_action(transaction),
@@ -90,6 +92,20 @@ fn row_subtitle(extended: &TransactionExtended) -> GemTransactionRowSubtitle {
         GemTransactionSubtitle::ToResource { resource } => GemTransactionRowSubtitle::ToResource { resource },
         GemTransactionSubtitle::FromResource { resource } => GemTransactionRowSubtitle::FromResource { resource },
         GemTransactionSubtitle::Price { value } => GemTransactionRowSubtitle::Price { value },
+    }
+}
+
+pub fn status(state: TransactionState) -> GemTransactionStatus {
+    let tone = match state {
+        TransactionState::Pending | TransactionState::InTransit => GemTransactionStateTone::Pending,
+        TransactionState::Confirmed => GemTransactionStateTone::Success,
+        TransactionState::Failed | TransactionState::Reverted => GemTransactionStateTone::Error,
+        TransactionState::Refunded => GemTransactionStateTone::Refunded,
+    };
+    GemTransactionStatus {
+        tone,
+        shows_badge: state != TransactionState::Confirmed,
+        shows_progress: tone == GemTransactionStateTone::Pending,
     }
 }
 
@@ -823,6 +839,16 @@ mod tests {
             GemTransactionRowValue::None,
             "a leg whose asset is unknown is not shown as a number"
         );
+    }
+
+    #[test]
+    fn test_status_groups_the_states_the_screens_render_alike() {
+        assert_eq!(status(TransactionState::InTransit).tone, GemTransactionStateTone::Pending);
+        assert_eq!(status(TransactionState::Reverted).tone, GemTransactionStateTone::Error);
+        assert_eq!(status(TransactionState::Refunded).tone, GemTransactionStateTone::Refunded);
+        assert!(!status(TransactionState::Confirmed).shows_badge, "a confirmed transaction carries no badge");
+        assert!(status(TransactionState::Pending).shows_progress);
+        assert!(!status(TransactionState::Refunded).shows_progress, "a refund is settled, so nothing spins");
     }
 
     #[test]

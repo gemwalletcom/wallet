@@ -3,53 +3,27 @@ package com.gemwallet.android.ui.components
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.TransactionState
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemTransactionStateTone
 
 class TransactionStateExtTest {
     @Test
-    fun pending_usesPendingBadgeWithSpinner() {
-        val state = TransactionState.Pending
-
-        assertEquals(R.string.transaction_status_pending, state.statusLabelRes())
-        assertEquals(TransactionStateTone.Pending, state.statusTone())
-        assertTrue(state.showsStatusBadge())
-        assertTrue(state.showsStatusProgress())
+    fun everyStateNamesItsOwnLabel() {
+        assertEquals(R.string.transaction_status_pending, TransactionState.Pending.statusLabelRes())
+        assertEquals(R.string.transaction_status_pending, TransactionState.InTransit.statusLabelRes())
+        assertEquals(R.string.transaction_status_confirmed, TransactionState.Confirmed.statusLabelRes())
+        assertEquals(R.string.transaction_status_failed, TransactionState.Failed.statusLabelRes())
+        assertEquals(R.string.transaction_status_reverted, TransactionState.Reverted.statusLabelRes())
+        assertEquals(R.string.transaction_status_refunded, TransactionState.Refunded.statusLabelRes())
     }
 
     @Test
-    fun inTransit_usesPendingBadgeWithSpinner() {
-        val state = TransactionState.InTransit
-
-        assertEquals(R.string.transaction_status_pending, state.statusLabelRes())
-        assertEquals(R.string.info_transaction_pending_description, state.statusInfoDescriptionRes())
-        assertEquals(R.drawable.transaction_state_pending, state.statusBadgeIconRes())
-        assertEquals(TransactionStateTone.Pending, state.statusTone())
-        assertTrue(state.showsStatusBadge())
-        assertTrue(state.showsStatusProgress())
-    }
-
-    @Test
-    fun refunded_usesRefundedBadgeWithoutSpinner() {
-        val state = TransactionState.Refunded
-
-        assertEquals(R.string.transaction_status_refunded, state.statusLabelRes())
-        assertEquals(R.drawable.transaction_state_error, state.statusBadgeIconRes())
-        assertEquals(TransactionStateTone.Refunded, state.statusTone())
-        assertTrue(state.showsStatusBadge())
-        assertFalse(state.showsStatusProgress())
-    }
-
-    @Test
-    fun confirmed_hidesCompactBadgeAndUsesSuccessPresentation() {
-        val state = TransactionState.Confirmed
-
-        assertEquals(R.string.transaction_status_confirmed, state.statusLabelRes())
-        assertEquals(R.string.info_transaction_success_description, state.statusInfoDescriptionRes())
-        assertEquals(R.drawable.transaction_state_success, state.statusBadgeIconRes())
-        assertEquals(TransactionStateTone.Success, state.statusTone())
-        assertFalse(state.showsStatusBadge())
-        assertFalse(state.showsStatusProgress())
+    fun aRefundReadsAsAnErrorAndSuccessStandsAlone() {
+        assertEquals(R.drawable.transaction_state_error, GemTransactionStateTone.REFUNDED.badgeIconRes())
+        assertEquals(R.string.info_transaction_error_description, GemTransactionStateTone.REFUNDED.infoDescriptionRes())
+        assertEquals(R.drawable.transaction_state_success, GemTransactionStateTone.SUCCESS.badgeIconRes())
+        assertEquals(R.string.info_transaction_success_description, GemTransactionStateTone.SUCCESS.infoDescriptionRes())
+        assertEquals(R.drawable.transaction_state_pending, GemTransactionStateTone.PENDING.badgeIconRes())
+        assertEquals(R.string.info_transaction_pending_description, GemTransactionStateTone.PENDING.infoDescriptionRes())
     }
 }

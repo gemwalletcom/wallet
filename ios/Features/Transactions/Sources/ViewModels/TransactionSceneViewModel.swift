@@ -75,7 +75,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .swapProgress: TransactionSwapProgressViewModel(progress: rows.swapProgress)
         case .swapButton: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
         case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
-        case .status: TransactionStatusViewModel(state: transactionExtended.transaction.state, onInfoAction: onSelectStatusInfo)
+        case .status: TransactionStatusViewModel(status: rows.status, state: transactionExtended.transaction.state, onInfoAction: onSelectStatusInfo)
         case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: rows.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
         case .participant: TransactionParticipantViewModel(
                 participant: rows.participant,
@@ -140,7 +140,7 @@ extension TransactionSceneViewModel {
         isPresentingTransactionSheet = .info(.transactionState(
             imageURL: assetImage.imageURL,
             placeholder: assetImage.placeholder,
-            state: transactionExtended.transaction.state,
+            model: TransactionStateViewModel(state: transactionExtended.transaction.state, tone: rows.status.tone),
         ))
     }
 

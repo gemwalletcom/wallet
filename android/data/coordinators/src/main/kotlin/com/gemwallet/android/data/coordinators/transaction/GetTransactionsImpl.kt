@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.transactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
+import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionRowValue
 import uniffi.gemstone.GemTransactionTitle
 
@@ -84,6 +85,8 @@ class TransactionDataAggregateImpl(
     override val id: TransactionId = data.transaction.id
 
     override val asset: Asset = data.asset
+
+    override val status: GemTransactionStatus = row.status
 
     override val title: GemTransactionTitle = row.title
 
