@@ -83,8 +83,8 @@ pub struct GemTransactionAmount {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionRowSubtitle {
     None,
-    ToAddress { address: String, name: Option<String> },
-    FromAddress { address: String, name: Option<String> },
+    ToAddress { participant: String },
+    FromAddress { participant: String },
     ToResource { resource: Resource },
     FromResource { resource: Resource },
     Price { value: f64 },

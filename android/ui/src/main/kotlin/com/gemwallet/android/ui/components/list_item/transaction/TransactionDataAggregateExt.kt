@@ -70,8 +70,8 @@ fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 
 @Composable
 fun TransactionDataAggregate.formatAddress(): String? = when (val subtitle = subtitle) {
-    is GemTransactionRowSubtitle.ToAddress -> prefixed(R.string.transfer_to, subtitle.name ?: address)
-    is GemTransactionRowSubtitle.FromAddress -> prefixed(R.string.transfer_from, subtitle.name ?: address)
+    is GemTransactionRowSubtitle.ToAddress -> prefixed(R.string.transfer_to, subtitle.participant)
+    is GemTransactionRowSubtitle.FromAddress -> prefixed(R.string.transfer_from, subtitle.participant)
     is GemTransactionRowSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.toPrimitives().titleRes()))
     is GemTransactionRowSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.toPrimitives().titleRes()))
     is GemTransactionRowSubtitle.Price -> "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(subtitle.value)}"

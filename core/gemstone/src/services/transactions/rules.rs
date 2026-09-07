@@ -12,6 +12,7 @@ use super::model::{
     GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
     GemTransactionRowValue, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
+use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
 use crate::models::asset::wallet_default_assets;
 use crate::services::collections::unique;
@@ -81,17 +82,21 @@ fn row_subtitle(extended: &TransactionExtended) -> GemTransactionRowSubtitle {
     match transaction_subtitle(&extended.transaction) {
         GemTransactionSubtitle::None => GemTransactionRowSubtitle::None,
         GemTransactionSubtitle::ToAddress { address } => GemTransactionRowSubtitle::ToAddress {
-            name: address_name(extended, &address).map(|name| name.name),
-            address,
+            participant: participant_name(extended, &address),
         },
         GemTransactionSubtitle::FromAddress { address } => GemTransactionRowSubtitle::FromAddress {
-            name: address_name(extended, &address).map(|name| name.name),
-            address,
+            participant: participant_name(extended, &address),
         },
         GemTransactionSubtitle::ToResource { resource } => GemTransactionRowSubtitle::ToResource { resource },
         GemTransactionSubtitle::FromResource { resource } => GemTransactionRowSubtitle::FromResource { resource },
         GemTransactionSubtitle::Price { value } => GemTransactionRowSubtitle::Price { value },
     }
+}
+
+fn participant_name(extended: &TransactionExtended, address: &str) -> String {
+    address_name(extended, address)
+        .map(|name| name.name)
+        .unwrap_or_else(|| format_address(address, Some(extended.transaction.asset_id.chain), GemAddressFormatStyle::Short))
 }
 
 fn row_value(extended: &TransactionExtended, value: GemTransactionValue) -> GemTransactionRowValue {
@@ -819,14 +824,13 @@ mod tests {
     }
 
     #[test]
-    fn test_row_names_the_counterparty_when_the_wallet_knows_the_address() {
+    fn test_row_shows_the_counterparty_name_when_the_wallet_knows_the_address() {
         let mut incoming = extended_with(typed(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Incoming), vec![]);
         incoming.from_address = Some(named("from", "Alice"));
         assert_eq!(
             row(&incoming).subtitle,
             GemTransactionRowSubtitle::FromAddress {
-                address: "from".to_string(),
-                name: Some("Alice".to_string())
+                participant: "Alice".to_string()
             }
         );
 
@@ -834,8 +838,7 @@ mod tests {
         assert_eq!(
             row(&outgoing).subtitle,
             GemTransactionRowSubtitle::ToAddress {
-                address: "to".to_string(),
-                name: None
+                participant: "to".to_string()
             }
         );
         match row(&outgoing).value {

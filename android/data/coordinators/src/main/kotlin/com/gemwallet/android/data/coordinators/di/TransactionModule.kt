@@ -29,7 +29,7 @@ object TransactionModule {
         getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
         addressService: GemAddressService,
-    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore, addressService)
+    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore)
 
     @Provides
     @Singleton

@@ -8,11 +8,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertSame
 import org.junit.Test
-import uniffi.gemstone.GemAddressService
 
 class TransactionRowsTest {
 
-    private val subject = TransactionRows(GemAddressService())
+    private val subject = TransactionRows()
 
     private fun transaction(hash: String, state: TransactionState = TransactionState.Confirmed) =
         mockTransactionExtended(transaction = mockTransaction(id = mockTransactionId(hash = hash), state = state))

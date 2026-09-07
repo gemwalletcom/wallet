@@ -171,7 +171,7 @@ fun PreviewTransactionItem() {
                 override val value = "-0.9998888999 BTC"
                 override val equivalentValue: String? = null
                 override val title = GemTransactionTitle.Transfer
-                override val subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks", null)
+                override val subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks")
                 override val valueSign = GemAmountSign.OUTGOING
                 override val type = TransactionType.Transfer
                 override val direction = TransactionDirection.Outgoing

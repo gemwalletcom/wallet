@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressService
 import enum Gemstone.Resource
 import Components
 import Formatters
@@ -102,8 +101,8 @@ public struct TransactionViewModel: Sendable {
 
     public var titleExtraTextValue: TextValue? {
         let title: String? = switch row.subtitle {
-        case let .toAddress(address, name): participantTitle(prefix: Localized.Transfer.to, address: address, name: name)
-        case let .fromAddress(address, name): participantTitle(prefix: Localized.Transfer.from, address: address, name: name)
+        case let .toAddress(participant): participantTitle(prefix: Localized.Transfer.to, participant: participant)
+        case let .fromAddress(participant): participantTitle(prefix: Localized.Transfer.from, participant: participant)
         case let .toResource(resource): resourceTitle(prefix: Localized.Transfer.to, resource: resource)
         case let .fromResource(resource): resourceTitle(prefix: Localized.Transfer.from, resource: resource)
         case let .price(value):
@@ -131,10 +130,9 @@ public struct TransactionViewModel: Sendable {
         transaction.transaction.assetId
     }
 
-    private func participantTitle(prefix: String, address: String, name: String?) -> String? {
-        guard address.isNotEmpty else { return nil }
-        let value = name ?? GemAddressService.shared.format(address: address, chain: assetId.chain)
-        return String(format: "%@ %@", prefix, value)
+    private func participantTitle(prefix: String, participant: String) -> String? {
+        guard participant.isNotEmpty else { return nil }
+        return String(format: "%@ %@", prefix, participant)
     }
 
     private func resourceTitle(prefix: String, resource: Gemstone.Resource) -> String {

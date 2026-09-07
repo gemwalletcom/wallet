@@ -7,7 +7,6 @@ import com.gemwallet.android.application.transactions.cases.TransactionsRequestF
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.transaction.format
-import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
@@ -29,7 +28,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.transactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
@@ -42,7 +40,6 @@ private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Short)
 class GetTransactionsImpl(
     private val getCurrentWalletId: GetCurrentWalletId,
     private val transactionStore: GemstoneTransactionStore,
-    private val addressService: GemAddressService,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
 
@@ -60,18 +57,18 @@ class GetTransactionsImpl(
         .flowOn(Dispatchers.IO)
 
     private fun Flow<List<TransactionExtended>>.aggregates(): Flow<List<TransactionDataAggregate>> = flow {
-        val rows = TransactionRows(addressService)
+        val rows = TransactionRows()
         collect { emit(rows.aggregates(it)) }
     }
 }
 
-internal class TransactionRows(private val addressService: GemAddressService) {
+internal class TransactionRows {
 
     private var previous: Map<TransactionExtended, TransactionDataAggregate> = emptyMap()
 
     fun aggregates(items: List<TransactionExtended>): List<TransactionDataAggregate> {
         val reused = previous
-        val rows = items.map { reused[it] ?: TransactionDataAggregateImpl(it, addressService) }
+        val rows = items.map { reused[it] ?: TransactionDataAggregateImpl(it) }
         previous = items.zip(rows).toMap()
         return rows
     }
@@ -80,7 +77,6 @@ internal class TransactionRows(private val addressService: GemAddressService) {
 @Stable
 class TransactionDataAggregateImpl(
     data: TransactionExtended,
-    addressService: GemAddressService,
 ) : TransactionDataAggregate {
 
     private val row = transactionRow(data.toGem())
@@ -93,9 +89,7 @@ class TransactionDataAggregateImpl(
 
     override val subtitle: GemTransactionRowSubtitle = row.subtitle
 
-    override val address: String = subtitle.address()
-        ?.let { AddressFormatter(addressService, it, chain = data.transaction.assetId.chain).value() }
-        .orEmpty()
+    override val address: String = subtitle.address().orEmpty()
 
     private val coreValue: GemTransactionRowValue = row.value
 
@@ -119,8 +113,8 @@ class TransactionDataAggregateImpl(
 }
 
 private fun GemTransactionRowSubtitle.address(): String? = when (this) {
-    is GemTransactionRowSubtitle.ToAddress -> address
-    is GemTransactionRowSubtitle.FromAddress -> address
+    is GemTransactionRowSubtitle.ToAddress -> participant
+    is GemTransactionRowSubtitle.FromAddress -> participant
     is GemTransactionRowSubtitle.ToResource,
     is GemTransactionRowSubtitle.FromResource,
     is GemTransactionRowSubtitle.Price,
