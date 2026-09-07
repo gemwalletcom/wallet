@@ -83,4 +83,12 @@ These payloads decode successfully but open the recipient screen for review or c
 |---|---|
 | **XRP without destination tag**<br><img src="data/payments/xrp-amount-only.png" width="180" alt="XRP amount-only QR code"><br>`ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?amount=10`<br>Amount `10` is preserved; add a destination tag only if required. | **XRP without amount**<br><img src="data/payments/xrp-tag-only.png" width="180" alt="XRP destination-tag-only QR code"><br>`ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?dt=12345`<br>Tag `12345` is preserved; enter the amount. |
 
+### Scanner rendering
+
+The scanner must read a code however it is drawn, from the camera and from a picked image alike.
+
+| | |
+|---|---|
+| **Light on dark**<br><img src="data/payments/bitcoin-address-only-inverted.png" width="180" alt="Inverted Bitcoin address QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4`<br>WalletConnect and dark-mode screenshots draw the code this way; open the recipient screen. | |
+
 Token tests require the exact token to be enabled in the wallet.
