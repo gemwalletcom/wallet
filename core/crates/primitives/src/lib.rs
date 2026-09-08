@@ -84,7 +84,7 @@ pub mod asset_id;
 pub use self::asset_id::{AssetId, AssetIdVecExt, CHAIN_SEPARATOR, TOKEN_ID_SEPARATOR};
 pub use crate::asset::AssetHashSetExt;
 pub mod asset_score;
-pub use self::asset_score::AssetScore;
+pub use self::asset_score::{AssetRank, AssetScore};
 pub mod asset_type;
 pub use self::asset_type::{AssetSubtype, AssetType};
 pub mod asset_price;

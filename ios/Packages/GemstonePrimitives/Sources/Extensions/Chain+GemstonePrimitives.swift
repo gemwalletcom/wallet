@@ -7,10 +7,7 @@ import Gemstone
 import Primitives
 
 private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
-    guard let chainAsset = try? Primitives.ChainAsset(GemAssetConfigService.shared.chainAsset(chain: chain.rawValue)) else {
-        preconditionFailure("Invalid chain asset for \(chain)")
-    }
-    result[chain] = chainAsset
+    result[chain] = GemAssetConfigService.shared.chainAsset(chain: chain.rawValue).map()
 }
 
 public extension Primitives.Chain {

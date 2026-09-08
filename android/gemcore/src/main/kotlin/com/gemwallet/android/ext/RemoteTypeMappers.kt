@@ -917,6 +917,20 @@ fun com.wallet.core.primitives.Asset.toGem(): uniffi.gemstone.Asset = uniffi.gem
     assetType = type.toGem(),
 )
 
+fun uniffi.gemstone.AssetBasic.toPrimitives(): com.wallet.core.primitives.AssetBasic = com.wallet.core.primitives.AssetBasic(
+    asset = asset.toPrimitives(),
+    properties = properties.toPrimitives(),
+    score = score.toPrimitives(),
+    price = price?.let { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.AssetBasic.toGem(): uniffi.gemstone.AssetBasic = uniffi.gemstone.AssetBasic(
+    asset = asset.toGem(),
+    properties = properties.toGem(),
+    score = score.toGem(),
+    price = price?.let { it.toGem() },
+)
+
 fun uniffi.gemstone.AssetFiatValue.toPrimitives(): com.wallet.core.primitives.AssetFiatValue = com.wallet.core.primitives.AssetFiatValue(
     amount = amount,
     price = price,
@@ -937,6 +951,18 @@ fun uniffi.gemstone.AssetLink.toPrimitives(): com.wallet.core.primitives.AssetLi
 fun com.wallet.core.primitives.AssetLink.toGem(): uniffi.gemstone.AssetLink = uniffi.gemstone.AssetLink(
     name = name,
     url = url,
+)
+
+fun uniffi.gemstone.AssetList.toPrimitives(): com.wallet.core.primitives.AssetList = com.wallet.core.primitives.AssetList(
+    id = id,
+    name = name,
+    count = count,
+)
+
+fun com.wallet.core.primitives.AssetList.toGem(): uniffi.gemstone.AssetList = uniffi.gemstone.AssetList(
+    id = id,
+    name = name,
+    count = count,
 )
 
 fun uniffi.gemstone.AssetMarket.toPrimitives(): com.wallet.core.primitives.AssetMarket = com.wallet.core.primitives.AssetMarket(
@@ -1013,6 +1039,40 @@ fun com.wallet.core.primitives.AssetPrice.toGem(): uniffi.gemstone.AssetPrice = 
     updatedAt = updatedAt,
 )
 
+fun uniffi.gemstone.AssetProperties.toPrimitives(): com.wallet.core.primitives.AssetProperties = com.wallet.core.primitives.AssetProperties(
+    isEnabled = isEnabled,
+    isBuyable = isBuyable,
+    isSellable = isSellable,
+    isSwapable = isSwapable,
+    isStakeable = isStakeable,
+    stakingApr = stakingApr,
+    isEarnable = isEarnable,
+    earnApr = earnApr,
+    hasImage = hasImage,
+)
+
+fun com.wallet.core.primitives.AssetProperties.toGem(): uniffi.gemstone.AssetProperties = uniffi.gemstone.AssetProperties(
+    isEnabled = isEnabled,
+    isBuyable = isBuyable,
+    isSellable = isSellable,
+    isSwapable = isSwapable,
+    isStakeable = isStakeable,
+    stakingApr = stakingApr,
+    isEarnable = isEarnable,
+    earnApr = earnApr,
+    hasImage = hasImage,
+    hasPrice = false,
+)
+
+fun uniffi.gemstone.AssetScore.toPrimitives(): com.wallet.core.primitives.AssetScore = com.wallet.core.primitives.AssetScore(
+    rank = rank,
+)
+
+fun com.wallet.core.primitives.AssetScore.toGem(): uniffi.gemstone.AssetScore = uniffi.gemstone.AssetScore(
+    rank = rank,
+    rankType = uniffi.gemstone.AssetRank.UNKNOWN,
+)
+
 fun uniffi.gemstone.BalanceMetadata.toPrimitives(): com.wallet.core.primitives.BalanceMetadata = com.wallet.core.primitives.BalanceMetadata(
     votes = votes,
     energyAvailable = energyAvailable,
@@ -1047,6 +1107,16 @@ fun uniffi.gemstone.ChainAddress.toPrimitives(): com.wallet.core.primitives.Chai
 fun com.wallet.core.primitives.ChainAddress.toGem(): uniffi.gemstone.ChainAddress = uniffi.gemstone.ChainAddress(
     chain = chain.toGem(),
     address = address,
+)
+
+fun uniffi.gemstone.ChainAsset.toPrimitives(): com.wallet.core.primitives.ChainAsset = com.wallet.core.primitives.ChainAsset(
+    asset = asset.toPrimitives(),
+    networkName = networkName,
+)
+
+fun com.wallet.core.primitives.ChainAsset.toGem(): uniffi.gemstone.ChainAsset = uniffi.gemstone.ChainAsset(
+    asset = asset.toGem(),
+    networkName = networkName,
 )
 
 fun uniffi.gemstone.ChartCandleStick.toPrimitives(): com.wallet.core.primitives.ChartCandleStick = com.wallet.core.primitives.ChartCandleStick(

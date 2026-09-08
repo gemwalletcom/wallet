@@ -26,7 +26,7 @@ public final class GemstoneSearchStore: GemSearchStore, @unchecked Sendable {
     }
 
     public func setLists(key: String, lists: [Gemstone.AssetList]) async throws {
-        let lists = try lists.map { try Primitives.AssetList($0) }
+        let lists = lists.map { $0.map() }
         try assetListStore.upsert(lists)
         try store.add(type: .list, query: key, ids: lists.map(\.id))
     }

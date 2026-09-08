@@ -943,7 +943,7 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
     }
 
     public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
-        assets.map { $0.json() }
+        assets.map { $0.map() }
     }
 }
 

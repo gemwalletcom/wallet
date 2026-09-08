@@ -277,7 +277,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await service.searchAssets(query: query).map { try AssetBasic($0) }
+            let assets = try await service.searchAssets(query: query).map { $0.map() }
             state = .data(assets)
         } catch {
             handle(error: error)

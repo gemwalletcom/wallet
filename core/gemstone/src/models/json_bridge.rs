@@ -1,9 +1,9 @@
 use primitives::Charts;
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AssetBasic, AssetFull, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
+use primitives::{AssetFull, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    AssetList, ChainAsset, Payment, PaymentAmount, PaymentLink, PaymentRequest, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
+    Payment, PaymentAmount, PaymentLink, PaymentRequest, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
     TronVote, UTXO,
 };
 use primitives::{
@@ -32,12 +32,9 @@ macro_rules! json_bridge {
 }
 
 json_bridge!(
-    AssetBasic,
     AssetFull,
-    AssetList,
     AuthNonce,
     AuthPayload,
-    ChainAsset,
     Charts,
     ConfigResponse,
     ConfigVersions,

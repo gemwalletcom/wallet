@@ -30,7 +30,7 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         guard let store else { return [] }
         let existing = try await store.getAssetIds(assetIds: assetIds).asSet()
         let missing = assetsResult.filter { assetIds.contains($0.asset.id.identifier) && !existing.contains($0.asset.id.identifier) }
-        try await store.saveAssets(assets: missing.map { $0.json() })
+        try await store.saveAssets(assets: missing.map { $0.map() })
         return missing.map(\.asset.id.identifier)
     }
 

@@ -35,6 +35,12 @@ remote:
   - DeviceLocale
   - Asset
   - AssetLink
+  - AssetRank
+  - AssetScore
+  - AssetProperties
+  - AssetBasic
+  - AssetList
+  - ChainAsset
   - AssetMarket
   - AssetMetaData
   - AssetPrice
@@ -169,6 +175,7 @@ scalars:
   - f64
 defaults:
   PriceProvider: Coingecko
+  AssetRank: Unknown
 
 conversions:
   UInt64:

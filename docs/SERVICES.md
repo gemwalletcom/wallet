@@ -459,7 +459,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   the USD asset price when there is one and off the quote otherwise, and a quote that buys nothing
   has no rate instead of formatting `NaN`, which is what iOS rendered. `FiatTransaction` and its
   wrappers stay on the bridge: they only travel Core to app, and the generator has no way to emit the
-  app-to-core direction for a record whose skipped fields have no default. The generator is one table-driven
+  app-to-core direction for a record whose skipped fields have no default. The asset search results
+went across next — `AssetBasic`, `AssetProperties`, `AssetScore`, `AssetRank`, `AssetList` and
+`ChainAsset` — so a search that runs on every keystroke stops parsing a JSON string per result on
+both apps, and the chain asset table each app builds once at startup is a mapper call rather than a
+parse per chain. These keep their twins: Android persists them as `DbSearch`, `DbAssetList` and
+`DbAsset` rows. `AssetRank` is the second entry in `defaults` — it is `#[typeshare(skip)]` on
+`AssetScore`, so the app-to-core direction needs a variant to fall back to. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper
