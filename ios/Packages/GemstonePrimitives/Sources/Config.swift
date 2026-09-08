@@ -14,7 +14,6 @@ import class Gemstone.PriceAlertFormatter
 import enum Gemstone.PublicUrl
 import enum Gemstone.RewardsUrl
 import enum Gemstone.SocialUrl
-import struct Gemstone.StakeChainConfig
 import struct Gemstone.SwapConfig
 import typealias Gemstone.WalletConnectConfig
 import Primitives

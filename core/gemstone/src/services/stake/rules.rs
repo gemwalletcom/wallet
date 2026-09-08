@@ -2,8 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 use crate::services::collections::{stale, unique};
 
-use std::str::FromStr;
-
 use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
 use primitives::{
@@ -19,7 +17,7 @@ use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::transfer::rules as transfer_rules;
 
 use crate::config::chain::account_activation_fee_url;
-use crate::config::stake::get_stake_config;
+use crate::config::stake::{StakeChainConfig, get_stake_config};
 use crate::config::validators::get_validators;
 
 pub fn delegation_destination(wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
@@ -39,7 +37,7 @@ pub fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> V
     let state = delegation.base.state;
     match delegation.validator.provider_type {
         StakeProviderType::Stake => {
-            let Some(config) = StakeChain::from_str(delegation.base.asset_id.chain.as_ref()).ok().map(get_stake_config) else {
+            let Some(config) = stake_config(delegation.base.asset_id.chain) else {
                 return vec![];
             };
             match state {
@@ -60,7 +58,7 @@ pub fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> V
 }
 
 pub fn can_claim_rewards(wallet_type: WalletType, delegation: &Delegation) -> bool {
-    let Some(config) = StakeChain::from_str(delegation.base.asset_id.chain.as_ref()).ok().map(get_stake_config) else {
+    let Some(config) = stake_config(delegation.base.asset_id.chain) else {
         return false;
     };
     wallet_type != WalletType::View && config.can_claim_rewards && shows_rewards(&delegation.base)
@@ -85,25 +83,39 @@ pub fn shows_rewards(delegation: &DelegationBase) -> bool {
 }
 
 pub fn requires_frozen_balance(chain: Chain, frozen_value: &BigUint) -> bool {
-    let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
-        return false;
-    };
-    config.uses_freeze && *frozen_value == BigUint::ZERO
+    uses_freeze(chain) && *frozen_value == BigUint::ZERO
 }
 
 pub fn can_claim_stake_rewards(chain: Chain, rewards_value: &BigUint) -> bool {
-    let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
-        return false;
-    };
-    config.can_claim_rewards && *rewards_value > BigUint::ZERO
+    stake_config(chain).is_some_and(|config| config.can_claim_rewards) && *rewards_value > BigUint::ZERO
 }
 
 pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: usize) -> bool {
-    let claims_all = StakeChain::from_str(chain.as_ref())
-        .ok()
-        .map(get_stake_config)
-        .is_some_and(|config| config.can_claim_all_rewards);
-    claims_all || delegations_with_rewards == 1
+    stake_config(chain).is_some_and(|config| config.can_claim_all_rewards) || delegations_with_rewards == 1
+}
+
+fn stake_config(chain: Chain) -> Option<StakeChainConfig> {
+    StakeChain::from_chain(chain).map(get_stake_config)
+}
+
+pub fn lock_time_seconds(chain: Chain) -> u64 {
+    stake_config(chain).map(|config| config.time_lock).unwrap_or_default()
+}
+
+pub fn min_stake_amount(chain: Chain) -> BigInt {
+    stake_config(chain).map(|config| BigInt::from(config.min_amount)).unwrap_or_default()
+}
+
+pub fn can_change_amount_on_unstake(chain: Chain) -> bool {
+    stake_config(chain).is_some_and(|config| config.change_amount_on_unstake)
+}
+
+pub fn uses_freeze(chain: Chain) -> bool {
+    stake_config(chain).is_some_and(|config| config.uses_freeze)
+}
+
+pub fn uses_whole_amounts(chain: Chain) -> bool {
+    stake_config(chain).is_some_and(|config| config.uses_whole_amounts)
 }
 
 pub fn rewards_value(delegations: &[Delegation]) -> BigUint {
@@ -111,7 +123,7 @@ pub fn rewards_value(delegations: &[Delegation]) -> BigUint {
 }
 
 pub fn stake_actions(wallet_type: WalletType, chain: Chain, has_validators: bool, balance: &GemAssetBalance, delegations: &[Delegation]) -> Vec<GemStakeActionItem> {
-    let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config).filter(|_| wallet_type != WalletType::View) else {
+    let Some(config) = stake_config(chain).filter(|_| wallet_type != WalletType::View) else {
         return vec![];
     };
     let uses_freeze = config.uses_freeze;
@@ -149,10 +161,7 @@ pub fn claim_rewards(chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewa
 #[uniffi::export]
 impl GemAssetBalance {
     pub fn staked_value(&self, chain: Chain) -> GemBigUint {
-        let principal = match StakeChain::from_str(chain.as_ref()) {
-            Ok(stake_chain) if stake_chain.get_uses_freeze() => &self.frozen + &self.locked,
-            _ => self.staked.clone(),
-        };
+        let principal = if uses_freeze(chain) { &self.frozen + &self.locked } else { self.staked.clone() };
         principal + &self.pending + &self.rewards
     }
 
@@ -193,7 +202,7 @@ impl GemAssetBalance {
 
 impl GemAssetBalance {
     pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
-        StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
+        StakeChain::from_chain(chain).is_some() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
     }
 }
 
@@ -348,6 +357,20 @@ pub fn earn_validators(providers: Vec<DelegationValidator>, apr: f64) -> Vec<Del
 mod tests {
     use super::*;
     use primitives::{AssetId, Resource};
+
+    #[test]
+    fn test_a_chain_without_staking_answers_instead_of_failing() {
+        assert_eq!(lock_time_seconds(Chain::Bitcoin), 0);
+        assert_eq!(min_stake_amount(Chain::Bitcoin), BigInt::ZERO);
+        assert!(!can_change_amount_on_unstake(Chain::Bitcoin));
+        assert!(!uses_freeze(Chain::Bitcoin));
+        assert!(!uses_whole_amounts(Chain::Bitcoin));
+
+        assert!(uses_freeze(Chain::Tron));
+        assert!(uses_whole_amounts(Chain::Tron));
+        assert!(lock_time_seconds(Chain::Sui) > 0);
+        assert!(min_stake_amount(Chain::Sui) > BigInt::ZERO);
+    }
 
     fn stake_balance(frozen: u32, locked: u32, staked: u32, pending: u32, rewards: u32) -> GemAssetBalance {
         GemAssetBalance {

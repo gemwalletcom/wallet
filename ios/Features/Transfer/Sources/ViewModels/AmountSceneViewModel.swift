@@ -138,6 +138,7 @@ public final class AmountSceneViewModel {
             numberSanitizer: NumberSanitizer(),
             secondaryText: secondaryText,
             onTapActionButton: onSelectInputButton,
+            usesWholeAmounts: service.usesWholeAmounts(chain: asset.chain.rawValue),
         )
     }
 }

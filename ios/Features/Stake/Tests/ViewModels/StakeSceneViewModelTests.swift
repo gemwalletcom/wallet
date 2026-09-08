@@ -15,12 +15,21 @@ import Testing
 struct StakeSceneViewModelTests {
     @Test
     func testLockTimeField() {
-        #expect(StakeSceneViewModel.mock(chain: .tron).lockTimeField.value.text == "14 days")
+        let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(lockTime: 1_209_600))
+
+        #expect(model.lockTimeField.value.text == "14 days")
     }
 
     @Test
     func minimumStakeAmount() {
-        #expect(StakeSceneViewModel.mock(chain: .tron).minAmountField?.value.text == "1 TRX")
+        let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(minStake: 1_000_000))
+
+        #expect(model.minAmountField?.value.text == "1 TRX")
+    }
+
+    @Test
+    func chainWithoutAMinimumHasNoField() {
+        #expect(StakeSceneViewModel.mock(chain: .tron).minAmountField == nil)
     }
 
     @Test

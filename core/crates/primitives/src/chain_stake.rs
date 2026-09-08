@@ -38,6 +38,10 @@ impl StakeChain {
         Chain::from_str(self.as_ref()).unwrap()
     }
 
+    pub fn from_chain(chain: Chain) -> Option<Self> {
+        Self::from_str(chain.as_ref()).ok()
+    }
+
     /// Get the lock time in seconds
     pub fn get_lock_time(&self) -> u64 {
         self.config().lock_time
@@ -88,6 +92,14 @@ impl StakeChain {
 #[cfg(test)]
 mod tests {
     use super::StakeChain;
+    use crate::Chain;
+
+    #[test]
+    fn test_from_chain_rejects_a_chain_without_staking() {
+        assert_eq!(StakeChain::from_chain(Chain::Ethereum), Some(StakeChain::Ethereum));
+        assert_eq!(StakeChain::from_chain(Chain::Bitcoin), None);
+        assert_eq!(StakeChain::from_chain(Chain::Xrp), None);
+    }
 
     #[test]
     fn test_ethereum_min_stake_amount() {

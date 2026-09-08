@@ -16,13 +16,10 @@ struct AmountInputConfig: CurrencyInputConfigurable {
     let numberSanitizer: NumberSanitizer
     let secondaryText: String
     let onTapActionButton: (() -> Void)?
+    let usesWholeAmounts: Bool
 
     var placeholder: String {
         .zero
-    }
-
-    private var usesWholeAmounts: Bool {
-        StakeChain(rawValue: asset.chain.rawValue)?.usesWholeAmounts ?? false
     }
 
     var keyboardType: UIKeyboardType {

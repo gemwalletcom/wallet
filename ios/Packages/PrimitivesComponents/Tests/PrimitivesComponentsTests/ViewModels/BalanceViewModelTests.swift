@@ -50,11 +50,4 @@ struct BalanceViewModelTests {
         #expect(model.balanceTextWithSymbol(.zero) == "0 ETH")
     }
 
-    @Test
-    func hasStakingResources() {
-        #expect(BalanceViewModel.mock(asset: .mockTron()).hasStakingResources == true)
-        #expect(BalanceViewModel.mock(asset: .mockTronUSDT()).hasStakingResources == true)
-        #expect(BalanceViewModel.mock(asset: .mockEthereum()).hasStakingResources == false)
-        #expect(BalanceViewModel.mock(asset: .mockBNB()).hasStakingResources == false)
-    }
 }

@@ -181,6 +181,7 @@ pub struct SimulationPayloadField {
 pub struct SimulationHeader {
     pub asset_id: AssetId,
     #[serde(
+        default,
         serialize_with = "serde_serializers::serialize_option_biguint",
         deserialize_with = "serde_serializers::deserialize_option_biguint_from_str"
     )]
@@ -320,6 +321,15 @@ mod tests {
         SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
     };
     use crate::{AssetId, Chain, testkit::signer_mock::TEST_SOLANA_SENDER};
+
+    #[test]
+    fn test_an_unlimited_header_decodes_when_the_value_key_is_absent() {
+        let header: SimulationHeader = serde_json::from_str(r#"{"assetId":"ethereum","isUnlimited":true}"#).unwrap();
+
+        assert_eq!(header.value, None);
+        assert!(header.is_unlimited);
+        assert!(header.has_valid_value());
+    }
 
     #[test]
     fn test_has_critical_warning() {

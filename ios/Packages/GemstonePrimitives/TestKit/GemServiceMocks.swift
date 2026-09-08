@@ -397,6 +397,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         throw AnyError("not stubbed")
     }
 
+    public func usesWholeAmounts(chain: Gemstone.Chain) -> Bool {
+        builder.usesWholeAmounts(chain: chain)
+    }
+
     public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 {
         min(5, maxLeverage)
     }
@@ -561,6 +565,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let explorerAddress: String?
     private let actions: [Gemstone.GemDelegationAction]
     private let validators: [Gemstone.DelegationValidator]
+    private let lockTime: UInt64
+    private let minStake: Gemstone.GemBigInt
+    private let changesAmountOnUnstake: Bool
+    private let freezes: Bool
+    private let wholeAmounts: Bool
 
     public init(
         rewardsShown: Bool = false,
@@ -569,6 +578,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         explorerAddress: String? = nil,
         actions: [Gemstone.GemDelegationAction] = [],
         validators: [Gemstone.DelegationValidator] = [],
+        lockTime: UInt64 = 0,
+        minStake: Gemstone.GemBigInt = 0,
+        changesAmountOnUnstake: Bool = false,
+        freezes: Bool = false,
+        wholeAmounts: Bool = false,
     ) {
         self.rewardsShown = rewardsShown
         self.completionDateShown = completionDateShown
@@ -576,6 +590,31 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.explorerAddress = explorerAddress
         self.actions = actions
         self.validators = validators
+        self.lockTime = lockTime
+        self.minStake = minStake
+        self.changesAmountOnUnstake = changesAmountOnUnstake
+        self.freezes = freezes
+        self.wholeAmounts = wholeAmounts
+    }
+
+    public func lockTimeSeconds(chain _: Gemstone.Chain) -> UInt64 {
+        lockTime
+    }
+
+    public func minStakeAmount(chain _: Gemstone.Chain) -> Gemstone.GemBigInt {
+        minStake
+    }
+
+    public func canChangeAmountOnUnstake(chain _: Gemstone.Chain) -> Bool {
+        changesAmountOnUnstake
+    }
+
+    public func usesFreeze(chain _: Gemstone.Chain) -> Bool {
+        freezes
+    }
+
+    public func usesWholeAmounts(chain _: Gemstone.Chain) -> Bool {
+        wholeAmounts
     }
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {

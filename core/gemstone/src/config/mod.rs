@@ -17,14 +17,12 @@ pub mod wallet_connect;
 
 use crate::config::chain::ChainConfig;
 use crate::services::nft::rules::nft_chains;
-use primitives::{Chain, StakeChain, node_config::NodeRegion};
-use std::str::FromStr;
+use primitives::{Chain, node_config::NodeRegion};
 
 use {
     fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
     scan_config::{ScanConfig, get_scan_config},
-    stake::{StakeChainConfig, get_stake_config},
     swap_config::{SwapConfig, get_swap_config},
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
 };
@@ -37,11 +35,6 @@ impl Config {
     #[uniffi::constructor]
     fn new() -> Self {
         Self {}
-    }
-
-    fn get_stake_config(&self, chain: &str) -> StakeChainConfig {
-        let chain = StakeChain::from_str(chain).unwrap();
-        get_stake_config(chain)
     }
 
     fn get_swap_config(&self) -> SwapConfig {

@@ -99,6 +99,10 @@ impl GemAmountService {
         transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
     }
 
+    pub fn uses_whole_amounts(&self, chain: Chain) -> bool {
+        stake_rules::uses_whole_amounts(chain)
+    }
+
     pub async fn earn_transfer_data(&self, asset: Asset, earn_type: GemEarnType, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
         let wallet = self.session.current_wallet().await?;
         let account = wallet.account(asset.chain()).ok_or_else(|| GemServiceError::NotFound {
