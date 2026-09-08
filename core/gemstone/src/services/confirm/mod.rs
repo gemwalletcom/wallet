@@ -5,6 +5,8 @@ mod model;
 pub(crate) mod rules;
 mod session;
 mod signer;
+#[cfg(test)]
+mod testkit;
 mod transfer;
 
 use std::sync::Arc;

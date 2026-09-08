@@ -65,6 +65,20 @@ pub(crate) enum TronContract {
         unfreeze_balance: u64,
         resource: TronResource,
     },
+    DelegateResource {
+        owner: TronAddress,
+        receiver: TronAddress,
+        balance: u64,
+        resource: TronResource,
+        lock: bool,
+        lock_period: u64,
+    },
+    UnDelegateResource {
+        owner: TronAddress,
+        receiver: TronAddress,
+        balance: u64,
+        resource: TronResource,
+    },
     WithdrawBalance {
         owner: TronAddress,
     },
@@ -89,6 +103,8 @@ impl TronContract {
             Self::VoteWitness { .. } => TronContractType::VoteWitness,
             Self::FreezeBalanceV2 { .. } => TronContractType::FreezeBalanceV2,
             Self::UnfreezeBalanceV2 { .. } => TronContractType::UnfreezeBalanceV2,
+            Self::DelegateResource { .. } => TronContractType::DelegateResource,
+            Self::UnDelegateResource { .. } => TronContractType::UnDelegateResource,
             Self::WithdrawBalance { .. } => TronContractType::WithdrawBalance,
             Self::WithdrawExpireUnfreeze { .. } => TronContractType::WithdrawExpireUnfreeze,
         }
@@ -145,6 +161,32 @@ impl TronContract {
                 owner_address: *owner,
                 resource: *resource,
                 unfreeze_balance: *unfreeze_balance,
+            }),
+            Self::DelegateResource {
+                owner,
+                receiver,
+                balance,
+                resource,
+                lock,
+                lock_period,
+            } => TronContractValueJson::DelegateResource(DelegateResourceContractValue {
+                owner_address: *owner,
+                receiver_address: *receiver,
+                balance: *balance,
+                resource: *resource,
+                lock: *lock,
+                lock_period: *lock_period,
+            }),
+            Self::UnDelegateResource {
+                owner,
+                receiver,
+                balance,
+                resource,
+            } => TronContractValueJson::UnDelegateResource(UnDelegateResourceContractValue {
+                owner_address: *owner,
+                receiver_address: *receiver,
+                balance: *balance,
+                resource: *resource,
             }),
             Self::WithdrawBalance { owner } | Self::WithdrawExpireUnfreeze { owner } => TronContractValueJson::Owner(OwnerContractValue { owner_address: *owner }),
         }
@@ -203,9 +245,27 @@ impl TronContract {
                 let value: OwnerContractValue = serde_json::from_value(value)?;
                 Ok(Self::WithdrawExpireUnfreeze { owner: value.owner_address })
             }
-            TronContractType::TransferAsset | TronContractType::DelegateResource | TronContractType::UnDelegateResource => {
-                Err(SignerError::invalid_input(format!("unsupported Tron contract type: {contract_type}")))
+            TronContractType::DelegateResource => {
+                let value: DelegateResourceContractValue = serde_json::from_value(value)?;
+                Ok(Self::DelegateResource {
+                    owner: value.owner_address,
+                    receiver: value.receiver_address,
+                    balance: value.balance,
+                    resource: value.resource,
+                    lock: value.lock,
+                    lock_period: value.lock_period,
+                })
             }
+            TronContractType::UnDelegateResource => {
+                let value: UnDelegateResourceContractValue = serde_json::from_value(value)?;
+                Ok(Self::UnDelegateResource {
+                    owner: value.owner_address,
+                    receiver: value.receiver_address,
+                    balance: value.balance,
+                    resource: value.resource,
+                })
+            }
+            TronContractType::TransferAsset => Err(SignerError::invalid_input(format!("unsupported Tron contract type: {contract_type}"))),
         }
     }
 }
@@ -231,6 +291,8 @@ enum TronContractValueJson {
     VoteWitness(VoteWitnessContractValue),
     FreezeBalanceV2(FreezeBalanceV2ContractValue),
     UnfreezeBalanceV2(UnfreezeBalanceV2ContractValue),
+    DelegateResource(DelegateResourceContractValue),
+    UnDelegateResource(UnDelegateResourceContractValue),
     Owner(OwnerContractValue),
 }
 
@@ -292,6 +354,32 @@ struct UnfreezeBalanceV2ContractValue {
     #[serde(default)]
     resource: TronResource,
     unfreeze_balance: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DelegateResourceContractValue {
+    #[serde(with = "crate::address::serializer::hex_or_base58")]
+    owner_address: TronAddress,
+    #[serde(with = "crate::address::serializer::hex_or_base58")]
+    receiver_address: TronAddress,
+    balance: u64,
+    #[serde(default)]
+    resource: TronResource,
+    #[serde(default)]
+    lock: bool,
+    #[serde(default)]
+    lock_period: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct UnDelegateResourceContractValue {
+    #[serde(with = "crate::address::serializer::hex_or_base58")]
+    owner_address: TronAddress,
+    #[serde(with = "crate::address::serializer::hex_or_base58")]
+    receiver_address: TronAddress,
+    balance: u64,
+    #[serde(default)]
+    resource: TronResource,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

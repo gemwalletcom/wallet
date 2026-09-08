@@ -8,8 +8,8 @@ use crate::models::custom_types::GemBigInt;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
 use crate::services::confirm::{
-    GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmService,
-    GemConfirmSession, GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
+    GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmService, GemConfirmSession,
+    GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
 };
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
@@ -116,12 +116,6 @@ impl GemConfirmTransferService {
     }
 }
 
-impl GemConfirmTransferService {
-    pub async fn metadata(&self, input_type: TransactionInputType) -> Result<GemConfirmMetadata, GemConfirmError> {
-        self.confirm.input_metadata(self.wallet_id()?, &input_type, input_type.fee_asset().id).await
-    }
-}
-
 fn is_broadcast(result: &GemExecuteResult) -> bool {
     match result {
         GemExecuteResult::Sent { .. } => true,
@@ -132,10 +126,6 @@ fn is_broadcast(result: &GemExecuteResult) -> bool {
 impl GemConfirmTransferService {
     async fn wallet(&self) -> Result<Wallet, GemConfirmError> {
         Ok(self.session.current_wallet().await?)
-    }
-
-    pub(super) fn wallet_id(&self) -> Result<WalletId, GemConfirmError> {
-        Ok(self.session.current_wallet_id()?)
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
@@ -156,14 +146,13 @@ impl GemConfirmTransferService {
         }
     }
 
-    pub(super) async fn state(&self, input: &GemConfirmInput, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
-        let wallet_id = self.wallet_id()?;
+    pub(super) async fn state(&self, wallet_id: WalletId, input: &GemConfirmInput, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
         let input_type = input.transfer.input_type.clone();
         let chain = input_type.transaction_asset().chain();
         Ok(GemConfirmLoad {
             sender: input.from.clone(),
             fee_asset: input_type.fee_asset(),
-            metadata: self.metadata(input_type.clone()).await?,
+            metadata: self.confirm.input_metadata(wallet_id.clone(), &input_type, input_type.fee_asset().id).await?,
             fee_assets: self.fee_assets(wallet_id, chain).await?,
             simulation: self.simulation_state(input_type, simulation).await?,
             address_name: self.names.address_name(chain, input.transfer.recipient.address.clone()).await.unwrap_or_default(),

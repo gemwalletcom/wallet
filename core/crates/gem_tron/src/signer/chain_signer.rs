@@ -833,15 +833,75 @@ mod tests {
     }
 
     #[test]
+    fn test_sign_resource_delegation_matches_tronweb() {
+        let fixtures: Vec<Value> = serde_json::from_str(include_str!("../../testdata/wallet_connect_resource_delegation.json")).unwrap();
+        for fixture in fixtures {
+            let expected = fixture["transaction"].clone();
+            let mut transaction = expected.clone();
+            transaction.as_object_mut().unwrap().remove("signature");
+            let input = generic_input(transaction, TransferDataOutputType::EncodedTransaction);
+
+            assert_eq!(signed_json(TronChainSigner.sign_data(&input, &private_key()).unwrap()), expected, "{}", fixture["name"]);
+        }
+    }
+
+    #[test]
+    fn test_sign_resource_delegation_rejects_changed_fields() {
+        let fixtures: Vec<Value> = serde_json::from_str(include_str!("../../testdata/wallet_connect_resource_delegation.json")).unwrap();
+        for fixture in fixtures {
+            let mut changes = vec![("owner_address", json!(RECIPIENT)), ("receiver_address", json!(SENDER)), ("balance", json!(3_000_000))];
+            let value = &fixture["transaction"]["raw_data"]["contract"][0]["parameter"]["value"];
+            changes.push(("resource", json!(if value["resource"] == "ENERGY" { "BANDWIDTH" } else { "ENERGY" })));
+            if fixture["transaction"]["raw_data"]["contract"][0]["type"] == "DelegateResourceContract" {
+                changes.push(("lock", json!(value["lock"] != true)));
+                changes.push(("lock_period", json!(999_999)));
+            }
+            for (field, changed) in changes {
+                let mut transaction = fixture["transaction"].clone();
+                transaction.as_object_mut().unwrap().remove("signature");
+                transaction["raw_data"]["contract"][0]["parameter"]["value"][field] = changed;
+                let input = generic_input(transaction, TransferDataOutputType::EncodedTransaction);
+
+                assert_eq!(
+                    TronChainSigner.sign_data(&input, &private_key()).unwrap_err().to_string(),
+                    "Invalid input: raw_data does not match raw_data_hex",
+                    "{}: {field}",
+                    fixture["name"]
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_sign_resource_delegation_rejects_invalid_fields() {
+        let fixtures: Vec<Value> = serde_json::from_str(include_str!("../../testdata/wallet_connect_resource_delegation.json")).unwrap();
+        for fixture in fixtures {
+            for (field, invalid) in [
+                ("owner_address", json!("invalid")),
+                ("receiver_address", Value::Null),
+                ("balance", json!(-1)),
+                ("resource", json!("INVALID")),
+            ] {
+                let mut transaction = fixture["transaction"].clone();
+                transaction.as_object_mut().unwrap().remove("signature");
+                transaction["raw_data"]["contract"][0]["parameter"]["value"][field] = invalid;
+                let input = generic_input(transaction, TransferDataOutputType::EncodedTransaction);
+
+                assert!(TronChainSigner.sign_data(&input, &private_key()).is_err(), "{}: {field}", fixture["name"]);
+            }
+        }
+    }
+
+    #[test]
     fn sign_raw_json_rejects_known_unsupported_contract() {
         let mut transaction = raw_transfer_transaction();
-        transaction["raw_data"]["contract"][0]["parameter"]["type_url"] = json!("type.googleapis.com/protocol.DelegateResourceContract");
-        transaction["raw_data"]["contract"][0]["type"] = json!("DelegateResourceContract");
+        transaction["raw_data"]["contract"][0]["parameter"]["type_url"] = json!("type.googleapis.com/protocol.TransferAssetContract");
+        transaction["raw_data"]["contract"][0]["type"] = json!("TransferAssetContract");
         let input = generic_input(transaction, TransferDataOutputType::EncodedTransaction);
 
         assert_eq!(
             TronChainSigner.sign_data(&input, &private_key()).unwrap_err().to_string(),
-            "Invalid input: unsupported Tron contract type: DelegateResourceContract"
+            "Invalid input: unsupported Tron contract type: TransferAssetContract"
         );
     }
 
