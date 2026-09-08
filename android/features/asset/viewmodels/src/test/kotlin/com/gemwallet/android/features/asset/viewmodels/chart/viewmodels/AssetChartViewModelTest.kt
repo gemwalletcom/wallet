@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetById
 import com.gemwallet.android.application.assets.cases.GetAssetLinks
 import com.gemwallet.android.application.assets.cases.GetAssetMarket
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModelFactory
+import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -32,6 +35,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetMarketRow
@@ -51,6 +55,10 @@ class AssetChartViewModelTest {
     private val getAssetById = mockk<GetAssetById>(relaxed = true)
     private val getAssetLinks = mockk<GetAssetLinks>(relaxed = true)
     private val getAssetMarket = mockk<GetAssetMarket>(relaxed = true)
+    private val walletAssetsFlow = MutableStateFlow<List<AssetInfo>>(emptyList())
+    private val getWalletAssets = mockk<GetWalletAssets>(relaxed = true) {
+        every { this@mockk.invoke() } returns walletAssetsFlow
+    }
     private val chartService = mockk<GemChartServiceInterface>(relaxed = true)
     private val getPriceAlerts = mockk<GetPriceAlerts>(relaxed = true)
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
@@ -76,23 +84,27 @@ class AssetChartViewModelTest {
     }
 
     @Test
-    fun `local asset bootstraps ui without waiting for market or links`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-        val uiModel = viewModel.marketUIModel.first { it != null }!!
+    fun `a stored asset gives the scene its rows and title before any flow emits`() = runTest(testDispatcher) {
+        walletAssetsFlow.value = listOf(mockAssetInfo(asset))
+        every { chartService.marketRows(asset.toGem(), null) } returns emptyRows.copy(
+            contract = listOf(GemAssetMarketRow.Contract(tokenId = requireNotNull(asset.id.tokenId), explorer = null)),
+        )
 
+        val viewModel = createViewModel()
+
+        val uiModel = requireNotNull(viewModel.marketUIModel.value)
         assertEquals(asset.chain, uiModel.chain)
-        assertEquals(0, uiModel.links.size)
-        assertEquals(Currency.USD, uiModel.currency)
-        assertEquals(0, uiModel.marketRows.size)
+        assertEquals(1, uiModel.contractRows.size)
+        assertEquals(asset.name, viewModel.title.value)
     }
 
     @Test
-    fun `local asset bootstraps title`() = runTest(testDispatcher) {
+    fun `an asset the wallet does not hold leaves the scene empty until it loads`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
-        val title = viewModel.title.first { it.isNotBlank() }
-
-        assertEquals(asset.name, title)
+        assertNull(viewModel.marketUIModel.value)
+        assertEquals("", viewModel.title.value)
+        assertEquals(asset.name, viewModel.title.first { it.isNotBlank() })
     }
 
     @Test
@@ -122,6 +134,7 @@ class AssetChartViewModelTest {
         getAssetById = getAssetById,
         getAssetLinks = getAssetLinks,
         getAssetMarket = getAssetMarket,
+        getWalletAssets = getWalletAssets,
         chartService = chartService,
         getPriceAlerts = getPriceAlerts,
         getCurrentCurrency = getCurrentCurrency,

@@ -64,7 +64,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         self.assetModel = assetModel
         self.walletId = walletId
         selectedPeriod = service.chartPeriod().map()
-        priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
+        priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
         self.onSetPriceAlert = onSetPriceAlert
     }
 
