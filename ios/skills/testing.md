@@ -30,7 +30,7 @@ A test target only runs if it is registered in all three places:
 ## Mocks
 
 - Prefer existing `TestKit` mocks over ad hoc mock services
-- If a mock does not exist, add it in the appropriate `TestKit`, not inline in the test file
+- Add reusable mocks in the appropriate `TestKit`; keep one-off input construction local to the test
 - Prefer `.mock()` style helpers and small deterministic fixtures
 
 ## Formatting

@@ -1,58 +1,38 @@
 ---
 name: guidance-refresh
-description: Mine this machine's own agent history and memory for this repository (Claude Code session transcripts and project memory, Codex session rollouts and memories), find corrections and lessons the shared guides are missing, measure session efficiency, and promote the lessons into the canonical AGENTS.md, skills, or docs file while deduping and trimming. Documentation-only; leaves edits uncommitted. Use when asked to refresh, audit, or trim agent guidance, after a run of sessions with corrections, or on the monthly cadence.
+description: Audit shared agent guidance against local Claude and Codex history, resolve contradictions, and promote reusable lessons while trimming stale rules. Use for guidance audits, cleanup, or the monthly review. Documentation-only; leaves edits uncommitted.
 ---
 
 # Guidance Refresh
 
-Each teammate runs this on their own machine. It reads the history and memory their agents accumulated for this repository, which never leave the machine, and turns the missing lessons into shared guidance. This file is both the policy (how guidance improves, budgets, skill format) and the procedure.
+Use when auditing or updating this repository's agent guidance. Investigation is read-only unless edits are requested. Do not change product code, generated files, configuration, dependencies, or external systems.
 
-Documentation-only. Do not change code, generated files, configuration, dependencies, or external systems. Do not commit, rebase, push, open PRs or issues, post comments, or resolve threads unless separately requested.
+## Canonical Guidance
 
-## How Guidance Improves
+Follow [Task Workflow](../../../skills/task-workflow.md#6-maintain-agent-guidance) for capturing lessons during ordinary tasks. A sweep promotes confirmed lessons into shared guidance so both agents benefit. Agent memory supplies evidence, not policy; compare it with current source, security requirements, and user instructions before promoting it. Do not copy a stale workaround merely because it was previously accepted.
 
-1. **Capture during the task.** `skills/task-workflow.md` § 6 makes every handoff answer one question: did this task produce a lesson (a user correction, a dead end that cost more than a few tool calls, a guide instruction that proved wrong, a workflow that took trial and error)? A wrong instruction is fixed in the same change. Everything else is saved to the agent's own memory so the next sweep finds it, and applied right away when the task already touches guidance or the user asks.
-2. **Sweep locally.** Each teammate runs this skill on their machine, monthly or after a run of sessions with corrections. Different people hit different problems, so the union of these sweeps is what keeps the guides complete. Only distilled rules leave the machine.
-3. **Review as policy.** The edits go up as a pull request and are reviewed like any other change. Human review is the approval gate; nothing here self-applies to `main`.
+One canonical statement per rule. Root `AGENTS.md` routes tasks and defines non-negotiables; procedures live in `skills/`, platform rules beside the platform, current contracts in `docs/`, and historical rationale in decision records. Other files link to the rule instead of paraphrasing it.
 
-Per-turn nudging is deliberately not used; the handoff question costs one sentence. Agent-specific hooks that call step 1 stay in local configuration, not in this repository.
+## Budgets and Format
 
-## Budgets
-
-- The always-loaded set (root `AGENTS.md`, `skills/task-workflow.md`, `skills/cross-platform-awareness.md`, `skills/engineering-principles.md`) stays under 3,000 words; root `AGENTS.md` under 800.
-- A skill over about 900 words is split by trigger or trimmed. A platform `AGENTS.md` is routing plus non-negotiables only.
-- One canonical statement per rule; every other mention is a link.
-
-## Skill Format
-
-- Title, then one opening sentence that says when to load the skill.
-- Rules state trigger, required action, verification boundary, and important exception. Direct sentences, no session stories, no names, quotes, or local paths.
-- Repo-specific idioms point at a real file with `Reference:`; verify the path exists. No good/bad sample code: a fragment appears only when it is shorter than the words needed (a one-line API reveal) or when a shape is hard to describe (a YAML flow, the service layout in `docs/ARCHITECTURE.md`). Command listings stay in the `development-commands.md` files.
-- The index line in the owning `AGENTS.md` says what the skill covers in one clause.
-
-## Layout of Runnable Skills
-
-- `.agents/skills/<name>/SKILL.md` is the source, in the `agentskills.io` format Codex reads: YAML frontmatter with `name` and `description` (when to use it), then the body.
-- `.claude/skills` is a committed symlink to `../.agents/skills`, so Claude Code sees every skill without a copy.
-- Personal global gitignores commonly exclude `.agents/` and `.claude/`; the repository `.gitignore` re-includes exactly `.agents/skills/` and the `.claude/skills` symlink and keeps ignoring the rest (`settings.local.json`, worktrees).
-- Add a skill the same way, and add an index line in the owning `AGENTS.md` when agents should discover it from the guides.
+- Keep root `AGENTS.md` under 800 words and the always-loaded set (root plus task workflow, cross-platform awareness, engineering principles) under 3,000.
+- Split or trim skills over about 900 words. Platform `AGENTS.md` files are routing plus non-negotiables.
+- Open each skill with its load trigger. State action, verification boundary, and important exception directly.
+- Point at verified source files for examples. Prefer links over copied code that will drift; keep snippets only where the shape is clearer than prose.
+- Keep commands in development-command guides or verification matrices. Remove transient inventories, counts, obsolete symbols, and session stories from implementation instructions.
 
 ## Procedure
 
-1. **Preflight.** From the repository root run `git status --short` and preserve every existing change. Read the root `AGENTS.md` and `skills/task-workflow.md`.
-2. **Inventory the guides.** Root `AGENTS.md`, `skills/*.md`, `core/AGENTS.md` and `core/skills/*.md`, `ios/AGENTS.md` and `ios/skills/*.md`, `android/AGENTS.md` and `android/skills/*.md`, and the `docs/*.md` they link. Record word counts against § Budgets above.
-3. **Read your agent memory first.** It is already distilled, so it is the richest source. Default locations; another agent knows its own.
-   - Claude Code: `~/.claude/projects/<slug>/memory/`, where `<slug>` is the repository path with `/` replaced by `-`. Each worktree checkout has its own slug.
-   - Codex: `~/.codex/memories/`.
-   Skip entries about other repositories, transient status, credentials, and anything the operator marks private.
-4. **Mine the session transcripts for corrections.** User turns that redirect the agent are the highest-signal lessons. Write your own extraction for the run; the sources are:
-   - Claude Code: `~/.claude/projects/<slug>/*.jsonl`, one file per session, each line a JSON event with the working directory and timestamp.
-   - Codex: `~/.codex/sessions/` (dated subfolders) and `~/.codex/archived_sessions/`, one rollout file per session; the working directory is in the session and turn metadata.
-   Filter to sessions whose working directory is this repository or one of its worktrees (`git worktree list`), and to turns after the date cutoff: the date of your previous sweep if you know it, otherwise the last 30 days. Older history has either been promoted already or was not worth promoting; widen the window only when the operator asks for a full sweep. Look for correction language such as "don't", "instead", "no need", "only", "wrong", "from now on", then read the surrounding turns to understand what the agent did and what the user wanted instead.
-5. **Measure session efficiency.** From the same sessions and date window as step 4, extract per session: the context size of each model call against the auto-compact window and how many calls exceed it, the number of compactions, subagent launches by model, and the ratio of inspection tool calls to edit calls. Write the extraction for your own agent's transcript format, as in step 4. A pattern that repeats across sessions is a lesson candidate when a guide could remove it (a missing pointer to where something lives, a verbose command that needs a quieter recipe); otherwise it is a local setting (the compaction window, the subagent model default) and stays out of the repository.
-6. **Write the candidate list.** One sentence per lesson with its trigger, the action, and a proposed home. Group repeats; a lesson that appears in two or more sessions or in both tools is a strong candidate.
-7. **Decide.** Promote a lesson that is repeated, costly to rediscover, security-sensitive, or a non-obvious architectural decision, and that the current guides do not already state. Reject transient paths, SHAs, versions, service status, tool or network or auth failures, credentials, unverified workarounds, and personal preferences that are not team policy. Record each rejection with its reason.
-8. **Edit the canonical source only.** Root `AGENTS.md` stays routing plus non-negotiables. Prefer an existing skill; create a new one only for a coherent reusable workflow. Platform rules go beside the platform, architectural rationale in `docs/DECISIONS.md`, subsystem contracts in `docs/`. Follow § Skill Format above. Never copy transcript text, names, quotes, or local paths into the guides. Preserve the `CLAUDE.md` symlinks and edit the shared `AGENTS.md` sources only.
-9. **Dedupe and trim.** For each rule touched, search the other guides for the same rule and replace copies with a link. Delete inventories that rot (lists of files with a smell, debt lists, counts) in favor of the rule alone. Check every skill still opens with a load trigger and every index line still matches its file.
-10. **Verify.** Run `git diff --check`, resolve every relative markdown link and cited path in the changed guides, and re-read every changed file for contradictions. Do not run app or Core builds for a documentation-only change.
-11. **Report and hand off.** List what was promoted with its target file, what was rejected and why, files changed, word counts before and after against the budgets, checks run, and overlap with uncommitted changes from other agents. Leave the edits uncommitted for the operator to review and open as a pull request.
+1. **Preflight.** Read root `AGENTS.md` and the task workflow. Check checkout, branch, and status; preserve existing changes. Reuse an investigation already completed in this task instead of repeating it.
+2. **Inventory.** Inspect root and platform guides, their skills, and linked contracts relevant to the requested audit. Record word counts. Identify duplicate ownership of rules, contradictions, stale references, and instructions that expand task scope.
+3. **Read local memory.** Claude uses `~/.claude/projects/<slug>/memory/`, with the checkout path's `/` replaced by `-`; each worktree may have its own slug. Codex's standard directory is `~/.codex/memories/`. An absent directory is not a blocker. Ignore unrelated repositories, credentials, transient status, and material marked private.
+4. **Inspect session evidence.** Claude transcripts are `~/.claude/projects/<slug>/*.jsonl`; Codex rollouts are under `~/.codex/sessions/` and `~/.codex/archived_sessions/`. Filter by the repository and its worktrees (`git worktree list`). Use the previous sweep cutoff, otherwise the last 30 days; widen only for an explicitly requested full sweep. Extract user corrections and read surrounding turns to distinguish a rejected design, a changed requirement, and an agent's unsupported assumption. Keep raw transcripts local.
+5. **Measure where useful.** Extract compactions, reported input/context sizes, subagent launches by model, and inspection/edit calls. Account for transcript format differences, inherited/forked turns, and task scope. Do not present raw session totals as a controlled comparison of agents. Keep model settings and tool failures out of repository policy.
+6. **Choose lessons.** Promote repeated, costly, security-sensitive, or non-obvious lessons supported by source. Group repeats and reject advice already covered. Record rejections for unverified workarounds, unsafe defaults, transient failures, or preferences not established as team policy.
+7. **Edit when authorized.** Fix the canonical rule and replace contradictory duplicates with links. Give a new abstraction a current consumer requirement; avoid blanket bans that conflict with valid security, concurrency, or wire-contract testing needs. Preserve user-defined scope and publication boundaries.
+8. **Trim and review.** Remove obsolete instructions and historical inventories; keep necessary rationale discoverable separately. Check examples against their named responsibility, not just path existence. Apply both cleanup rounds from the task workflow.
+9. **Verify and report.** Run the documentation checks in [Quality Checks](../../../skills/quality-checks.md): whitespace, local links and anchors, cited paths/commands, and contradiction review. Report changes, rejected lessons, word counts, checks, and overlap with pre-existing edits. No app/Core builds for documentation-only work; leave changes uncommitted unless authorized otherwise.
+
+## Shared Skill Layout
+
+`.agents/skills/<name>/SKILL.md` is the canonical source, with YAML `name` and `description`. `.claude/skills` is a symlink to `../.agents/skills`; root and platform `CLAUDE.md` files link to `AGENTS.md`. Preserve those links and edit the shared sources. Personal ignore rules may hide these paths, so check tracked status when adding a skill. Keep agent-specific hooks and local settings out of the repository.
