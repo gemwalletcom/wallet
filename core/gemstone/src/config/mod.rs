@@ -7,7 +7,6 @@ pub mod node;
 pub mod perpetual_config;
 pub mod public;
 pub mod rewards;
-pub mod scan_config;
 pub mod search_config;
 pub mod social;
 pub mod stake;
@@ -18,13 +17,15 @@ pub mod wallet_connect;
 use crate::config::chain::ChainConfig;
 use crate::services::nft::rules::nft_chains;
 use primitives::{Chain, node_config::NodeRegion};
+use std::time::Duration;
 
 use {
     perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
-    scan_config::{ScanConfig, get_scan_config},
     swap_config::{SwapConfig, get_swap_config},
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
 };
+
+const SCAN_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// Config
 #[derive(uniffi::Object)]
@@ -44,8 +45,8 @@ impl Config {
         get_perpetual_config()
     }
 
-    fn get_scan_config(&self) -> ScanConfig {
-        get_scan_config()
+    fn scan_timeout(&self) -> Duration {
+        SCAN_TIMEOUT
     }
 
     fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {

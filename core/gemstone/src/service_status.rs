@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use primitives::{GEM_API_HOST, Latency, node_config::NodeRegion};
 
@@ -8,8 +8,8 @@ use crate::GemstoneError;
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
 
 #[uniffi::export]
-pub fn service_status_timeout_seconds() -> u32 {
-    gem_client::DEFAULT_REQUEST_TIMEOUT.as_secs() as u32
+pub fn service_status_timeout() -> Duration {
+    gem_client::DEFAULT_REQUEST_TIMEOUT
 }
 
 #[derive(uniffi::Enum, Clone, Debug, PartialEq, Eq)]
