@@ -37,10 +37,10 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
-import uniffi.gemstone.GemAmountInputType
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemAmountInputType
 
 @Composable
 fun ColumnScope.AmountField(
