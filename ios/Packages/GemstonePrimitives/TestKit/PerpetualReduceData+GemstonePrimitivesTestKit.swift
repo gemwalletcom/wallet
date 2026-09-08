@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
+import struct Gemstone.PerpetualConfirmData
+import enum Gemstone.PerpetualDirection
+import struct Gemstone.PerpetualReduceData
 
 public extension PerpetualReduceData {
     static func mock(

@@ -4,11 +4,12 @@ import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.formatPnlWithPercentage
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualConfirmData
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.PerpetualType
+import uniffi.gemstone.PerpetualConfirmData
+import uniffi.gemstone.PerpetualType
 
 object PerpetualConfirmDetailsUIModelFactory {
 
@@ -21,23 +22,23 @@ object PerpetualConfirmDetailsUIModelFactory {
         when (type) {
             is PerpetualType.Open -> {
                 action = PerpetualConfirmDetailsUIModel.Action.Open
-                data = type.content
-                direction = data.direction
+                data = type.data
+                direction = data.direction.toPrimitives()
             }
             is PerpetualType.Close -> {
                 action = PerpetualConfirmDetailsUIModel.Action.Close
-                data = type.content
-                direction = data.direction
+                data = type.data
+                direction = data.direction.toPrimitives()
             }
             is PerpetualType.Increase -> {
                 action = PerpetualConfirmDetailsUIModel.Action.Increase
-                data = type.content
-                direction = data.direction
+                data = type.data
+                direction = data.direction.toPrimitives()
             }
             is PerpetualType.Reduce -> {
                 action = PerpetualConfirmDetailsUIModel.Action.Reduce
-                data = type.content.data
-                direction = type.content.positionDirection
+                data = type.data.data
+                direction = type.data.positionDirection.toPrimitives()
             }
             is PerpetualType.Modify -> return null
         }

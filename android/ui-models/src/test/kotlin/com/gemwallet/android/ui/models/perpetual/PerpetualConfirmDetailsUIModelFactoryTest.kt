@@ -2,11 +2,11 @@ package com.gemwallet.android.ui.models.perpetual
 
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
+import com.gemwallet.android.testkit.mockPerpetualModifyConfirmData
 import com.gemwallet.android.testkit.mockPerpetualReduceData
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModel.Action
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.PerpetualModifyConfirmData
-import com.wallet.core.primitives.PerpetualType
+import uniffi.gemstone.PerpetualType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -95,11 +95,7 @@ class PerpetualConfirmDetailsUIModelFactoryTest {
 
     @Test
     fun `modify returns null`() {
-        val modify = PerpetualModifyConfirmData(
-            baseAsset = mockPerpetualConfirmData().baseAsset,
-            assetIndex = 0,
-            modifyTypes = emptyList(),
-        )
+        val modify = mockPerpetualModifyConfirmData()
 
         assertNull(create(PerpetualType.Modify(modify)))
     }

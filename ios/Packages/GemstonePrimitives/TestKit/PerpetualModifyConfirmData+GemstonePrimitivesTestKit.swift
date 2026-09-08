@@ -1,7 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.PerpetualModifyConfirmData
+import enum Gemstone.PerpetualModifyPositionType
+import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 
 public extension PerpetualModifyConfirmData {
     static func mock(
@@ -12,7 +16,7 @@ public extension PerpetualModifyConfirmData {
         stopLossOrderId: UInt64? = nil,
     ) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData(
-            baseAsset: baseAsset,
+            baseAsset: baseAsset.map(),
             assetIndex: assetIndex,
             modifyTypes: modifyTypes,
             takeProfitOrderId: takeProfitOrderId,

@@ -1,5 +1,4 @@
 use primitives::Charts;
-use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
@@ -11,7 +10,6 @@ use primitives::{
     AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
     Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
-use primitives::{PerpetualConfirmData, PerpetualType};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -40,7 +38,6 @@ json_bridge!(
     AssetMarket,
     AuthNonce,
     AuthPayload,
-    CancelOrderData,
     ChainAsset,
     ChartValuePercentage,
     Charts,
@@ -59,13 +56,8 @@ json_bridge!(
     PaymentLink,
     PaymentRequest,
     PerpetualAccountSummary,
-    PerpetualConfirmData,
-    PerpetualModifyConfirmData,
-    PerpetualModifyPositionType,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
-    PerpetualReduceData,
-    PerpetualType,
     PortfolioData,
     RedemptionRequest,
     RedemptionResult,
@@ -79,7 +71,6 @@ json_bridge!(
     SupportMessage,
     SupportMessageInput,
     SupportTyping,
-    TPSLOrderData,
     TransactionPerpetualMetadata,
     TransactionsResponse,
     TronStakeData,

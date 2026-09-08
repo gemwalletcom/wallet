@@ -4,6 +4,7 @@ import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PerpetualType
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
@@ -57,7 +58,6 @@ import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -367,7 +367,7 @@ class ConfirmViewModel @Inject constructor(
         perpetualType: PerpetualType?,
     ): ConfirmDetailElement? = when (val type = perpetualType) {
         null -> null
-        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.content, confirmService)
+        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.data, confirmService)
         else -> PerpetualConfirmDetailsUIModelFactory.create(type)?.let(ConfirmDetailElement::PerpetualDetails)
     }
 

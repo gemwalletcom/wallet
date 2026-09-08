@@ -63,7 +63,7 @@ import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
-import com.wallet.core.primitives.PerpetualType
+import uniffi.gemstone.PerpetualType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton

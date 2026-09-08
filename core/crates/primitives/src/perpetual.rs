@@ -115,7 +115,6 @@ pub struct PerpetualMetadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualConfirmData {
     pub direction: PerpetualDirection,
@@ -143,7 +142,6 @@ pub enum AccountDataType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct CancelOrderData {
     pub asset_index: i32,
@@ -151,7 +149,6 @@ pub struct CancelOrderData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct TPSLOrderData {
     pub direction: PerpetualDirection,
@@ -163,15 +160,13 @@ pub struct TPSLOrderData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(tag = "type", content = "content")]
 pub enum PerpetualModifyPositionType {
-    Tpsl(TPSLOrderData),
-    Cancel(Vec<CancelOrderData>),
+    Tpsl { order: TPSLOrderData },
+    Cancel { orders: Vec<CancelOrderData> },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualModifyConfirmData {
     pub base_asset: Asset,
@@ -184,7 +179,6 @@ pub struct PerpetualModifyConfirmData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualReduceData {
     pub data: PerpetualConfirmData,
@@ -207,12 +201,11 @@ pub struct AutocloseOpenData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(tag = "type", content = "content")]
 pub enum PerpetualType {
-    Open(PerpetualConfirmData),
-    Close(PerpetualConfirmData),
-    Modify(PerpetualModifyConfirmData),
-    Increase(PerpetualConfirmData),
-    Reduce(PerpetualReduceData),
+    Open { data: PerpetualConfirmData },
+    Close { data: PerpetualConfirmData },
+    Modify { data: PerpetualModifyConfirmData },
+    Increase { data: PerpetualConfirmData },
+    Reduce { data: PerpetualReduceData },
 }

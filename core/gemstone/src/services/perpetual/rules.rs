@@ -57,15 +57,15 @@ pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
 
 pub fn autoclose_summary(data: &PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
     let orders = data.modify_types.iter().find_map(|modify| match modify {
-        PerpetualModifyPositionType::Tpsl(orders) => Some(orders),
-        PerpetualModifyPositionType::Cancel(_) => None,
+        PerpetualModifyPositionType::Tpsl { order } => Some(order),
+        PerpetualModifyPositionType::Cancel { .. } => None,
     });
     let canceled: HashSet<u64> = data
         .modify_types
         .iter()
         .filter_map(|modify| match modify {
-            PerpetualModifyPositionType::Cancel(orders) => Some(orders),
-            PerpetualModifyPositionType::Tpsl(_) => None,
+            PerpetualModifyPositionType::Cancel { orders } => Some(orders),
+            PerpetualModifyPositionType::Tpsl { .. } => None,
         })
         .flatten()
         .map(|order| order.order_id)
@@ -219,9 +219,9 @@ pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Perp
     };
 
     match input.action {
-        GemPerpetualOrderAction::Open => PerpetualType::Open(data),
-        GemPerpetualOrderAction::Increase => PerpetualType::Increase(data),
-        GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce(PerpetualReduceData { data, position_direction }),
+        GemPerpetualOrderAction::Open => PerpetualType::Open { data },
+        GemPerpetualOrderAction::Increase => PerpetualType::Increase { data },
+        GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce { data: PerpetualReduceData { data, position_direction } },
     }
 }
 
@@ -304,7 +304,7 @@ pub fn close_transfer(perpetual: &Perpetual, asset: &Asset, position: Option<Per
             slippage: None,
         },
     );
-    Ok(GemPerpetual::new(perpetual.provider.clone()).transfer_data(asset.clone(), PerpetualType::Close(data), GemBigInt::ZERO, false))
+    Ok(GemPerpetual::new(perpetual.provider.clone()).transfer_data(asset.clone(), PerpetualType::Close { data }, GemBigInt::ZERO, false))
 }
 
 pub fn order_transfer(
@@ -417,21 +417,23 @@ mod tests {
     }
 
     fn tpsl(take_profit: Option<&str>, stop_loss: Option<&str>) -> PerpetualModifyPositionType {
-        PerpetualModifyPositionType::Tpsl(primitives::perpetual::TPSLOrderData {
-            direction: PerpetualDirection::Long,
-            take_profit: take_profit.map(|value| value.to_string()),
-            stop_loss: stop_loss.map(|value| value.to_string()),
-            size: "1".to_string(),
-        })
+        PerpetualModifyPositionType::Tpsl {
+            order: primitives::perpetual::TPSLOrderData {
+                direction: PerpetualDirection::Long,
+                take_profit: take_profit.map(|value| value.to_string()),
+                stop_loss: stop_loss.map(|value| value.to_string()),
+                size: "1".to_string(),
+            },
+        }
     }
 
     fn cancel(order_ids: Vec<u64>) -> PerpetualModifyPositionType {
-        PerpetualModifyPositionType::Cancel(
-            order_ids
+        PerpetualModifyPositionType::Cancel {
+            orders: order_ids
                 .into_iter()
                 .map(|order_id| primitives::perpetual::CancelOrderData { asset_index: 0, order_id })
                 .collect(),
-        )
+        }
     }
 
     #[test]
@@ -574,7 +576,7 @@ mod tests {
         .unwrap();
         let transfer = order_transfer(open, BigInt::from(50_000_000), false, 8, Some(120.5), None);
         let TransactionInputType::Perpetual {
-            perpetual_type: PerpetualType::Open(data),
+            perpetual_type: PerpetualType::Open { data },
             ..
         } = &transfer.input_type
         else {
@@ -593,7 +595,7 @@ mod tests {
         assert!(matches!(
             close.input_type,
             TransactionInputType::Perpetual {
-                perpetual_type: PerpetualType::Close(_),
+                perpetual_type: PerpetualType::Close { .. },
                 ..
             }
         ));
@@ -745,13 +747,13 @@ mod tests {
             }),
         );
 
-        let PerpetualType::Open(data) = open else { panic!("expected an open order") };
+        let PerpetualType::Open { data } = open else { panic!("expected an open order") };
         assert_eq!(data.slippage, 2.0);
         assert_eq!(data.market_price, 100.0);
         assert_eq!(data.fiat_value, 200.0);
         assert_eq!(data.margin_amount, 50.0);
-        assert!(matches!(increase, PerpetualType::Increase(_)));
-        let PerpetualType::Reduce(reduce) = reduce else { panic!("expected a reduce order") };
+        assert!(matches!(increase, PerpetualType::Increase { .. }));
+        let PerpetualType::Reduce { data: reduce } = reduce else { panic!("expected a reduce order") };
         assert_eq!(reduce.position_direction, PerpetualDirection::Short);
     }
 

@@ -1,13 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.PerpetualConfirmData
+import enum Gemstone.PerpetualType
+import Primitives
 
 public extension PerpetualType {
-    var baseAsset: Asset {
+    var baseAsset: Primitives.Asset {
         switch self {
-        case let .open(data), let .close(data), let .increase(data): data.baseAsset
-        case let .modify(data): data.baseAsset
-        case let .reduce(reduceData): reduceData.data.baseAsset
+        case let .open(data), let .close(data), let .increase(data): data.baseAsset.map()
+        case let .modify(data): data.baseAsset.map()
+        case let .reduce(reduceData): reduceData.data.baseAsset.map()
         }
     }
 

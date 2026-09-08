@@ -423,8 +423,16 @@ Three gotchas if you repeat the sweep, all met on this pass:
   apps name `GasPriceType`. The same wire format is gone from `GemTransferData` (`value`,
   `minimum_value`) with the serde derives on `GemTransferData`, `GemRecipient` and
   `GemConfirmInput` that existed only for it; `decimal_string` now serializes the one unsigned
-  perpetual amount. Tuple variants still panic the generator; a typeshared data-carrying enum
-  still needs mapper emission before it can cross that way. The generator is one table-driven
+  perpetual amount. The perpetual confirm cluster crossed the same way and is the largest group to
+  do so: `PerpetualType`, `PerpetualConfirmData`, `PerpetualReduceData`, `PerpetualModifyConfirmData`,
+  `PerpetualModifyPositionType`, `TPSLOrderData` and `CancelOrderData` are declared remote and hold no
+  twin, so a confirm screen reads the order off the record instead of parsing a JSON string on every
+  access, and both apps deleted their mappers to it (Android's `PerpetualMappers`, iOS's
+  `PerpetualType(core:)` at three call sites). Their two enums carry named fields now — uniffi names a
+  tuple variant's payload `v1` in both languages, which is not a name a screen should read — so a
+  data-carrying enum that crosses this way is written `Variant { field: Type }` in primitives. A
+  typeshared data-carrying enum still needs mapper emission before it can cross with a twin; the way
+  across is to drop the twin, as these did. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper
@@ -1278,6 +1286,12 @@ Which recent activity a selection records, and which types a select screen lists
 `SelectAssetType` and `SelectedAssetType` to the action; Android's select and search actions carry
 the asset and the action), recorded through one `add_recent(action, asset)` that reads the current
 wallet from Core's session. A completed transfer is recorded by `GemConfirmTransferService` on both.
+
+iOS's `PerpetualDetailsType` mirrors Core's `PerpetualType` minus `.modify`, and the two platforms
+disagree on what a modify order means to a details screen: iOS's initialiser hits
+`fatalError("not supported")` while Android's `PerpetualConfirmDetailsUIModelFactory` returns null for
+the same variant. One of the two is a crash on a confirm path; the decision belongs on the Core enum
+once, not in an app-side mirror of it.
 
 Android hand-wrote `RecentType` with different case names from the generated
 `RecentActivityType` — `Send` against `Transfer`, `Buy` against `FiatBuy` — and those names

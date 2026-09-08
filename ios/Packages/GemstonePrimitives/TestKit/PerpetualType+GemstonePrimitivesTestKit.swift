@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
+import struct Gemstone.PerpetualConfirmData
+import struct Gemstone.PerpetualModifyConfirmData
+import struct Gemstone.PerpetualReduceData
+import enum Gemstone.PerpetualType
 
 public extension PerpetualType {
     static func mockOpen(

@@ -3,6 +3,9 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.PerpetualConfirmData
+import struct Gemstone.PerpetualReduceData
+import enum Gemstone.PerpetualType
 import Localization
 import Primitives
 import Style
@@ -34,7 +37,7 @@ public enum PerpetualDetailsType: Sendable {
 
 public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     public var id: String {
-        type.data.baseAsset.id.identifier
+        type.data.baseAsset.id
     }
 
     private let type: PerpetualDetailsType
@@ -80,7 +83,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
         case let .open(data), let .close(data), let .increase(data): data.direction
         case let .reduce(data): data.positionDirection
         }
-        return PerpetualDirectionViewModel(direction: direction)
+        return PerpetualDirectionViewModel(direction: direction.map())
     }
 
     var leverageTitle: String {

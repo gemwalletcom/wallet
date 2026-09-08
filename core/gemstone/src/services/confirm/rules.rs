@@ -757,7 +757,7 @@ mod tests {
         };
         let perpetual = TransactionInputType::Perpetual {
             asset: Asset::mock_sol(),
-            perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
         };
         let ethereum_swap = TransactionInputType::Swap {
             from_asset: Asset::mock(),

@@ -57,12 +57,11 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                 ),
             )
         case let .perpetual(_, perpetualType):
-            let perpetualType = Primitives.PerpetualType(core: perpetualType)
             return switch perpetualType {
             case .open, .close, .increase, .reduce:
                 .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
             case let .modify(data):
-                .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data.json())))
+                .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data)))
             }
         case .transfer,
              .deposit,

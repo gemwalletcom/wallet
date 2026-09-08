@@ -1,7 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.PerpetualConfirmData
+import enum Gemstone.PerpetualDirection
+import enum Gemstone.PerpetualMarginType
+import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 
 public extension PerpetualConfirmData {
     static func mock(
@@ -24,7 +29,7 @@ public extension PerpetualConfirmData {
         PerpetualConfirmData(
             direction: direction,
             marginType: marginType,
-            baseAsset: baseAsset,
+            baseAsset: baseAsset.map(),
             assetIndex: assetIndex,
             price: price,
             fiatValue: fiatValue,

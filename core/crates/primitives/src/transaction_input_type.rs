@@ -173,9 +173,9 @@ impl TransactionInputType {
             TransactionInputType::TransferNft { .. } => TransactionType::TransferNFT,
             TransactionInputType::Account { .. } => TransactionType::AssetActivation,
             TransactionInputType::Perpetual { perpetual_type, .. } => match perpetual_type {
-                PerpetualType::Open(_) | PerpetualType::Increase(_) => TransactionType::PerpetualOpenPosition,
-                PerpetualType::Close(_) | PerpetualType::Reduce(_) => TransactionType::PerpetualClosePosition,
-                PerpetualType::Modify(_) => TransactionType::PerpetualModifyPosition,
+                PerpetualType::Open { .. } | PerpetualType::Increase { .. } => TransactionType::PerpetualOpenPosition,
+                PerpetualType::Close { .. } | PerpetualType::Reduce { .. } => TransactionType::PerpetualClosePosition,
+                PerpetualType::Modify { .. } => TransactionType::PerpetualModifyPosition,
             },
             TransactionInputType::Earn { earn_type, .. } => match earn_type {
                 EarnType::Deposit(_) => TransactionType::EarnDeposit,
@@ -364,7 +364,7 @@ mod tests {
         assert_eq!(
             TransactionInputType::Perpetual {
                 asset: Asset::mock(),
-                perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))
+                perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) }
             }
             .transaction_type(),
             TransactionType::PerpetualOpenPosition
@@ -382,14 +382,14 @@ mod tests {
             }
         }
 
-        let perpetual_type = PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None));
+        let perpetual_type = PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None) };
         let perpetual_input = TransactionInputType::Perpetual {
             asset: Asset::mock(),
             perpetual_type,
         };
         match perpetual_input.get_perpetual_type().unwrap() {
-            PerpetualType::Open(data) => assert_eq!(data.asset_index, 11),
-            PerpetualType::Close(_) | PerpetualType::Modify(_) | PerpetualType::Increase(_) | PerpetualType::Reduce(_) => panic!("expected open perpetual type"),
+            PerpetualType::Open { data } => assert_eq!(data.asset_index, 11),
+            PerpetualType::Close { .. } | PerpetualType::Modify { .. } | PerpetualType::Increase { .. } | PerpetualType::Reduce { .. } => panic!("expected open perpetual type"),
         }
 
         assert_eq!(

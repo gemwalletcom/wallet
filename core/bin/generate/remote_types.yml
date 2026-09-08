@@ -55,6 +55,13 @@ remote:
   - PerpetualPositionsSummary
   - PerpetualProvider
   - PerpetualTriggerOrder
+  - PerpetualConfirmData
+  - CancelOrderData
+  - TPSLOrderData
+  - PerpetualModifyPositionType
+  - PerpetualModifyConfirmData
+  - PerpetualReduceData
+  - PerpetualType
   - Platform
   - PlatformStore
   - Wallet
