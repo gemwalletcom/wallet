@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Primitives
 import PhotosUI
+import Primitives
+import Style
 import SwiftUI
 
 public struct QRScannerScene: View {
@@ -15,46 +16,39 @@ public struct QRScannerScene: View {
 
     public init(resources: QRScannerResources, scanType: QRScanType, action: @escaping (String) -> Void) {
         self.action = action
-        _model = State(initialValue: QRScannerSceneViewModel(scannerState: .idle, imageState: .empty, resources: resources, scanType: scanType))
+        _model = State(initialValue: QRScannerSceneViewModel(resources: resources, scanType: scanType))
     }
 
     public var body: some View {
         ZStack {
             switch model.scannerState {
-            case .idle, .scanning:
+            case .scanning:
                 QRScannerDisplayView(
                     configuration: model.overlayConfig,
                     hint: model.hint,
                     isScannerReady: $model.isScannerReady,
-                    scanResult: onHandleScanResult,
+                    scanResult: onScan,
                 )
                 .ignoresSafeArea()
             case let .failure(error):
-                ContentUnavailableView(
-                    label: {
-                        if let titleImage = error.titleImage {
-                            Label(titleImage.title, systemImage: titleImage.systemImage)
-                        }
-                    },
-                    description: {
-                        Text(error.localizedDescription)
-                    },
-                    actions: {
-                        switch error {
-                        case .notSupported:
-                            let text = model.resources.selectFromPhotos
-                            photosPicker {
-                                Text(text)
-                            }
-                        case .permissionsNotGranted:
-                            Button(model.resources.openSettings, action: onSelectOpenSettings)
-                        case .decoding, .unknown:
-                            Button(model.resources.tryAgain, action: model.refreshScannerState)
-                        }
-                    },
-                )
+                let errorModel = QRScannerErrorViewModel(error: error)
+                VStack {
+                    Spacer()
+                    StateEmptyView(
+                        title: errorModel.title,
+                        description: errorModel.description,
+                        image: errorModel.image,
+                    )
+                    Spacer()
+                    VStack(spacing: .medium) {
+                        errorActionButtons(for: error)
+                    }
+                    .frame(maxWidth: .scene.button.maxWidth)
+                    .padding()
+                }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 let imageName = model.resources.gallerySystemImage
@@ -65,13 +59,34 @@ public struct QRScannerScene: View {
             }
         }
         .toolbarBackground(.visible, for: .navigationBar)
+        .toast(message: $model.isPresentingToastMessage, offsetY: -model.toastOffset)
         .onChange(
             of: model.isScannerReady,
             initial: true,
             model.onChangeScannerReadyStatus,
         )
         .onChange(of: model.selectedPhoto, onLoadPhoto)
-        .onChange(of: model.imageState, onChangeImageState)
+    }
+
+    @ViewBuilder
+    private func errorActionButtons(for error: QRScannerError) -> some View {
+        switch error {
+        case .notSupported:
+            photoLibraryButton
+                .buttonStyle(.blue())
+        case .permissionsNotGranted:
+            Button(model.resources.openSettings, action: onSelectOpenSettings)
+                .buttonStyle(.blue())
+            photoLibraryButton
+                .buttonStyle(.amount(paddingHorizontal: .button.paddingHorizontal, paddingVertical: .button.paddingVertical, cornerRadius: Sizing.space12))
+        }
+    }
+
+    private var photoLibraryButton: some View {
+        let text = model.resources.selectFromPhotos
+        return photosPicker {
+            Text(text)
+        }
     }
 
     private func photosPicker(
@@ -96,24 +111,17 @@ extension QRScannerScene {
 
     private func onLoadPhoto(_: PhotosPickerItem?, _ newValue: PhotosPickerItem?) {
         guard let newValue else { return }
+        model.selectedPhoto = nil
         Task {
-            await model.process(photoItem: newValue)
+            if let code = await model.retrieveQRCode(photoItem: newValue) {
+                onScan(code)
+            } else {
+                model.showDecodingError()
+            }
         }
     }
 
-    private func onChangeImageState(_: ImageState, _ newValue: ImageState) {
-        guard case let .success(uIImage) = newValue else { return }
-
-        do {
-            let code = try model.retrieveQRCode(image: uIImage)
-            onHandleScanResult(.success(code))
-        } catch {
-            model.refreshScannerState(error: error)
-        }
-    }
-
-    private func onHandleScanResult(_ result: Result<String, Error>) {
-        guard case let .success(code) = result else { return }
+    private func onScan(_ code: String) {
         action(code)
         dismiss()
     }

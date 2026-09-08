@@ -6,6 +6,7 @@ public enum SystemImage {
     public static let settings = "gearshape"
     public static let qrCodeViewfinder = "qrcode.viewfinder"
     public static let qrCode = "qrcode"
+    public static let camera = "camera"
     public static let paste = "doc.on.clipboard"
     public static let copy = "doc.on.doc"
     public static let arrowSwap = "arrow.up.arrow.down"
