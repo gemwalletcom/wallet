@@ -1,4 +1,7 @@
+use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
 use solana_primitives::{CompiledInstruction, LegacyMessage, MessageHeader, Pubkey, VersionedTransaction};
+
+use crate::siws::SiwsMessage;
 
 pub(crate) fn mock_transaction(programs: &[(&str, Vec<u8>)]) -> VersionedTransaction {
     let mut account_keys = vec![Pubkey::new([1; 32])];
@@ -30,4 +33,14 @@ pub(crate) fn mock_transaction_with_accounts(account_keys: Vec<Pubkey>, instruct
             instructions,
         },
     }
+}
+
+impl SiwsMessage {
+    pub(crate) fn mock_complete() -> Self {
+        Self::parse(include_str!("../testdata/siws_complete.txt")).unwrap().unwrap()
+    }
+}
+
+pub(crate) fn mock_siws_message(body: &str) -> String {
+    format!("example.com wants you to sign in with your Solana account:\n{TEST_PRIVATE_KEY_SOLANA_ADDRESS}{body}")
 }

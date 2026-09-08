@@ -1,3 +1,4 @@
+use gem_solana::siws::SiwsMessage;
 use primitives::{SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
 use std::borrow::Cow;
 use std::collections::HashSet;
@@ -39,13 +40,45 @@ impl GemEIP712Message {
     }
 }
 
-pub(crate) trait SiweMessageExt {
-    fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview;
-}
+impl MessagePayloadPreview {
+    pub(super) fn from_siwe(message: &SiweMessage, simulation_payload: Vec<SimulationPayloadField>) -> Self {
+        grouped_payload_preview(siwe_preview_fields(message), simulation_payload)
+    }
 
-impl SiweMessageExt for SiweMessage {
-    fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
-        grouped_payload_preview(siwe_preview_fields(self), simulation_payload)
+    pub(super) fn from_siws(message: &SiwsMessage, simulation_payload: Vec<SimulationPayloadField>) -> Self {
+        let mut fields = vec![
+            MessagePayloadField::custom("domain", message.domain.clone(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
+            MessagePayloadField::custom(
+                "address",
+                message.address.clone(),
+                SimulationPayloadFieldType::Address,
+                SimulationPayloadFieldDisplay::Secondary,
+            ),
+        ];
+        fields.extend(
+            [
+                ("statement", message.statement.as_ref(), SimulationPayloadFieldType::Text),
+                ("uri", message.uri.as_ref(), SimulationPayloadFieldType::Text),
+                ("version", message.version.as_ref(), SimulationPayloadFieldType::Text),
+                ("chainId", message.chain_id.as_ref(), SimulationPayloadFieldType::Text),
+                ("nonce", message.nonce.as_ref(), SimulationPayloadFieldType::Text),
+                ("issuedAt", message.issued_at.as_ref(), SimulationPayloadFieldType::Timestamp),
+                ("expirationTime", message.expiration_time.as_ref(), SimulationPayloadFieldType::Timestamp),
+                ("notBefore", message.not_before.as_ref(), SimulationPayloadFieldType::Timestamp),
+                ("requestId", message.request_id.as_ref(), SimulationPayloadFieldType::Text),
+            ]
+            .into_iter()
+            .filter_map(|(label, value, field_type)| value.map(|value| MessagePayloadField::custom(label, value.clone(), field_type, SimulationPayloadFieldDisplay::Secondary))),
+        );
+        if !message.resources.is_empty() {
+            fields.push(MessagePayloadField::custom(
+                "resources",
+                message.resources.join("\n"),
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Secondary,
+            ));
+        }
+        grouped_payload_preview(fields, simulation_payload)
     }
 }
 
@@ -354,24 +387,64 @@ impl PayloadMergeKey {
 
 #[cfg(test)]
 mod tests {
-    use super::SiweMessageExt;
+    use super::MessagePayloadPreview;
     use crate::message::eip712::{GemEIP712Message, GemEIP712Section, GemEIP712Value, GemEIP712ValueType};
     use crate::siwe::SiweMessage;
     use gem_evm::EIP712Domain;
+    use gem_solana::siws::SiwsMessage;
     use primitives::{SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType};
 
     #[test]
+    fn test_siws_preview_groups_identity_and_preserves_optional_fields() {
+        let message = SiwsMessage::parse(include_str!("../../../crates/gem_solana/testdata/siws_complete.txt")).unwrap().unwrap();
+        let preview = MessagePayloadPreview::from_siws(&message, vec![]);
+
+        assert_eq!(
+            preview.primary,
+            vec![
+                SimulationPayloadField::custom("domain", "example.com", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
+                SimulationPayloadField::custom(
+                    "address",
+                    "AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9",
+                    SimulationPayloadFieldType::Address,
+                    SimulationPayloadFieldDisplay::Primary
+                ),
+            ]
+        );
+        assert_eq!(
+            preview.secondary,
+            [
+                ("statement", "Sign in to the app.", SimulationPayloadFieldType::Text),
+                ("uri", "https://example.com/login", SimulationPayloadFieldType::Text),
+                ("version", "1", SimulationPayloadFieldType::Text),
+                ("chainId", "mainnet", SimulationPayloadFieldType::Text),
+                ("nonce", "8hK9pX32", SimulationPayloadFieldType::Text),
+                ("issuedAt", "2026-09-01T12:00:00Z", SimulationPayloadFieldType::Timestamp),
+                ("expirationTime", "2026-09-02T12:00:00Z", SimulationPayloadFieldType::Timestamp),
+                ("notBefore", "2026-09-01T11:00:00Z", SimulationPayloadFieldType::Timestamp),
+                ("requestId", "request-123", SimulationPayloadFieldType::Text),
+                ("resources", "https://example.com/terms\nhttps://example.com/privacy", SimulationPayloadFieldType::Text),
+            ]
+            .into_iter()
+            .map(|(label, value, field_type)| SimulationPayloadField::custom(label, value, field_type, SimulationPayloadFieldDisplay::Secondary))
+            .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
     fn siwe_preview_groups_domain_and_address_as_primary() {
-        let preview = SiweMessage {
-            domain: "login.xyz".into(),
-            address: "0x123".into(),
-            uri: "https://login.xyz".into(),
-            chain_id: 1,
-            nonce: "nonce".into(),
-            version: "1".into(),
-            issued_at: "2026-03-09T15:48:34.458Z".into(),
-        }
-        .payload_preview(vec![]);
+        let preview = MessagePayloadPreview::from_siwe(
+            &SiweMessage {
+                domain: "login.xyz".into(),
+                address: "0x123".into(),
+                uri: "https://login.xyz".into(),
+                chain_id: 1,
+                nonce: "nonce".into(),
+                version: "1".into(),
+                issued_at: "2026-03-09T15:48:34.458Z".into(),
+            },
+            vec![],
+        );
 
         assert_eq!(preview.primary.len(), 2);
         assert_eq!(preview.secondary.len(), 5);
@@ -458,21 +531,23 @@ mod tests {
 
     #[test]
     fn preview_promotes_secondary_fields_when_primary_is_empty() {
-        let preview = SiweMessage {
-            domain: "login.xyz".into(),
-            address: "0x123".into(),
-            uri: "https://login.xyz".into(),
-            chain_id: 1,
-            nonce: "nonce".into(),
-            version: "1".into(),
-            issued_at: "2026-03-09T15:48:34.458Z".into(),
-        }
-        .payload_preview(vec![SimulationPayloadField::custom(
-            "customField",
-            "value",
-            SimulationPayloadFieldType::Text,
-            SimulationPayloadFieldDisplay::Secondary,
-        )]);
+        let preview = MessagePayloadPreview::from_siwe(
+            &SiweMessage {
+                domain: "login.xyz".into(),
+                address: "0x123".into(),
+                uri: "https://login.xyz".into(),
+                chain_id: 1,
+                nonce: "nonce".into(),
+                version: "1".into(),
+                issued_at: "2026-03-09T15:48:34.458Z".into(),
+            },
+            vec![SimulationPayloadField::custom(
+                "customField",
+                "value",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Secondary,
+            )],
+        );
 
         assert_eq!(preview.primary.len(), 8);
         assert!(preview.primary.iter().any(|field| field.label.as_deref() == Some("customField")));

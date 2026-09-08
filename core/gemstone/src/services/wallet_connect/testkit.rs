@@ -1,9 +1,10 @@
 use std::sync::Mutex;
 
 use async_trait::async_trait;
-use primitives::{WalletConnection, WalletConnectionSession};
+use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
+use primitives::{WalletConnection, WalletConnectionSession, WalletConnectionVerificationStatus};
 
-use super::{GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnectSigner, GemWalletConnectTransactionRequest};
+use super::{GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnectSessionRequest, GemWalletConnectSigner, GemWalletConnectTransactionRequest};
 use crate::services::error::GemServiceError;
 
 #[derive(Default)]
@@ -47,5 +48,21 @@ impl GemWalletConnectSigner for TestWalletConnectSigner {
     }
     async fn sign_transaction(&self, _request: GemWalletConnectTransactionRequest) -> Result<String, GemServiceError> {
         self.result.clone()
+    }
+}
+
+impl GemWalletConnectSessionRequest {
+    pub fn mock_siws() -> Self {
+        let message = include_str!("../../../../crates/gem_solana/testdata/siws_sign_in.txt");
+        let data = bs58::encode(message).into_string();
+        Self {
+            topic: "topic".to_string(),
+            request_id: "siws".to_string(),
+            method: "solana_signMessage".to_string(),
+            params: format!(r#"{{"message":"{data}","pubkey":"{TEST_PRIVATE_KEY_SOLANA_ADDRESS}"}}"#),
+            chain_id: Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()),
+            origin: Some("https://example.com".to_string()),
+            validation: WalletConnectionVerificationStatus::Verified,
+        }
     }
 }

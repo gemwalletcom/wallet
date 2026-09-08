@@ -362,6 +362,8 @@ pub use self::secure_preferences::{InMemoryPreferences, Preferences, Preferences
 
 pub mod signer_error;
 pub use self::signer_error::SignerError;
+pub mod domain;
+
 pub mod date_ext;
 pub use self::date_ext::{DurationExt, NaiveDateTimeExt, now};
 pub mod number_incrementer;

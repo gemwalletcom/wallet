@@ -4,6 +4,7 @@ pub mod jsonrpc;
 pub mod metaplex;
 pub mod metaplex_core;
 pub mod method;
+pub mod siws;
 pub mod token_account;
 
 #[cfg(any(feature = "rpc", feature = "reqwest"))]
