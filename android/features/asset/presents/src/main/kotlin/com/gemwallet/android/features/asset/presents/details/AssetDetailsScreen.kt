@@ -10,6 +10,8 @@ import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetPriceAlertsViewModel
+import com.gemwallet.android.ui.components.RefreshOnTimer
+import uniffi.gemstone.GemRefreshKind
 
 @Composable
 fun AssetDetailsScreen(
@@ -23,6 +25,8 @@ fun AssetDetailsScreen(
     val priceAlertsCount by priceAlertsViewModel.alertsCount.collectAsStateWithLifecycle()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = priceAlertsViewModel::onPushNotificationGranted)
+
+    RefreshOnTimer(GemRefreshKind.WALLET, viewModel::refresh)
 
     if (uiModel != null) {
         AssetDetailsScene(

@@ -6,8 +6,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.minutes
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
@@ -18,7 +16,9 @@ import com.gemwallet.android.features.perpetual.viewmodels.PerpetualMarketViewMo
 import com.gemwallet.android.model.AmountParams
 import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.models.actions.AssetIdAction
+import uniffi.gemstone.GemRefreshKind
 
 @Composable
 fun PerpetualMarketNavScreen(
@@ -42,11 +42,10 @@ fun PerpetualMarketNavScreen(
     }
 
     LaunchedEffect(Unit) {
-        while (true) {
-            viewModel.fetch()
-            delay(MARKETS_REFRESH_INTERVAL)
-        }
+        viewModel.fetch()
     }
+
+    RefreshOnTimer(GemRefreshKind.MARKET, viewModel::fetch)
 
     DisposableEffect(Unit) {
         viewModel.subscribeMarketPrices()
@@ -85,4 +84,3 @@ fun PerpetualMarketNavScreen(
     )
 }
 
-private val MARKETS_REFRESH_INTERVAL = 1.minutes
