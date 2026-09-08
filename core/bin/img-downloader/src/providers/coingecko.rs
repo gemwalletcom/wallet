@@ -1,4 +1,5 @@
-use super::{config::CoingeckoProviderConfig, mapper::is_native_token, model::AssetImage};
+use super::{ImageListProvider, ImageProvider, config::CoingeckoProviderConfig, mapper::is_native_token, model::AssetImage};
+use async_trait::async_trait;
 use coingecko::{Coin, CoinGeckoClient, CoinMarket, MAX_MARKETS_PER_PAGE, get_chain_for_coingecko_platform_id, model::SearchTrending};
 use gem_client::RemoteProviderConfig;
 use std::{collections::HashMap, error::Error};
@@ -14,34 +15,6 @@ impl CoingeckoProvider {
             client: CoinGeckoClient::new(provider),
             config,
         }
-    }
-
-    pub async fn get_top_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        if self.config.top_count == 0 {
-            return Ok(vec![]);
-        }
-
-        let pages = self.config.top_count.div_ceil(MAX_MARKETS_PER_PAGE);
-        let markets = self
-            .client
-            .get_all_coin_markets(None, MAX_MARKETS_PER_PAGE, pages)
-            .await?
-            .into_iter()
-            .take(self.config.top_count)
-            .collect();
-        let coins = self.client.get_coin_list().await?;
-        Ok(Self::map_market_images(markets, Self::coins_by_id(coins)))
-    }
-
-    pub async fn get_trending_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let trending = self.client.get_search_trending().await?;
-        let coins = self.client.get_coin_list().await?;
-        Ok(Self::map_trending_images(trending, Self::coins_by_id(coins)))
-    }
-
-    pub async fn get_asset_images(&self, coin_id: &str) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let coin_info = self.client.get_coin(coin_id).await?;
-        Ok(Self::map_platform_images(coin_info.platforms, coin_info.image.large))
     }
 
     fn map_market_images(markets: Vec<CoinMarket>, mut coins_by_id: HashMap<String, Coin>) -> Vec<AssetImage> {
@@ -97,5 +70,39 @@ impl CoingeckoProvider {
                 (!is_native_token(&image)).then_some(image)
             })
             .collect()
+    }
+}
+
+#[async_trait]
+impl ImageProvider for CoingeckoProvider {
+    async fn get_asset_images(&self, coin_id: &str) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        let coin_info = self.client.get_coin(coin_id).await?;
+        Ok(Self::map_platform_images(coin_info.platforms, coin_info.image.large))
+    }
+}
+
+#[async_trait]
+impl ImageListProvider for CoingeckoProvider {
+    async fn get_top_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        if self.config.top_count == 0 {
+            return Ok(vec![]);
+        }
+
+        let pages = self.config.top_count.div_ceil(MAX_MARKETS_PER_PAGE);
+        let markets = self
+            .client
+            .get_all_coin_markets(None, MAX_MARKETS_PER_PAGE, pages)
+            .await?
+            .into_iter()
+            .take(self.config.top_count)
+            .collect();
+        let coins = self.client.get_coin_list().await?;
+        Ok(Self::map_market_images(markets, Self::coins_by_id(coins)))
+    }
+
+    async fn get_trending_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        let trending = self.client.get_search_trending().await?;
+        let coins = self.client.get_coin_list().await?;
+        Ok(Self::map_trending_images(trending, Self::coins_by_id(coins)))
     }
 }

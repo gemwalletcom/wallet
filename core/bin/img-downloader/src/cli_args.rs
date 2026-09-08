@@ -5,6 +5,7 @@ pub enum ImageSource {
     Coingecko,
     Coinmarketcap,
     Jupiter,
+    Dexscreener,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -20,15 +21,17 @@ pub struct Args {
     #[arg(long, value_enum, default_value = "coingecko")]
     pub source: ImageSource,
 
-    /// Image mode for providers that support multiple feeds
-    #[arg(long, value_enum, default_value = "top")]
+    #[arg(long, value_enum, default_value = "top", help = "Image list selection; ignored when --id is supplied")]
     pub mode: ImageMode,
 
     /// Path to save images
     #[arg(short, long)]
     pub folder: Option<String>,
 
-    /// Provider ID. CoinGecko uses coin ID, CoinMarketCap uses coin ID or symbol, Jupiter uses token mint
-    #[arg(long, default_value = "")]
+    #[arg(
+        long,
+        default_value = "",
+        help = "Provider ID: CoinGecko coin ID, CoinMarketCap ID/symbol, Jupiter mint, DexScreener chain_token-address (required)"
+    )]
     pub id: String,
 }

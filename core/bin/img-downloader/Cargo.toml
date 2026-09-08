@@ -4,6 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
+async-trait = { workspace = true }
 tokio = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
@@ -14,6 +15,7 @@ oxipng = { version = "10.1.1", default-features = false }
 
 clap = { version = "4.6.1", features = ["derive"] }
 
+dexscreener = { path = "../../crates/dexscreener" }
 chain_primitives = { path = "../../crates/chain_primitives" }
 coingecko = { path = "../../crates/coingecko" }
 coinmarketcap = { path = "../../crates/coinmarketcap" }
@@ -23,3 +25,6 @@ settings = { path = "../../crates/settings" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
 gem_tracing = { path = "../../crates/tracing" }
 serde_serializers = { path = "../../crates/serde_serializers" }
+
+[dev-dependencies]
+serde_json = { workspace = true }

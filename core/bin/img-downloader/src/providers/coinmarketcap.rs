@@ -1,4 +1,5 @@
-use super::{config::CoinMarketCapProviderConfig, mapper::is_native_token, model::AssetImage};
+use super::{ImageListProvider, ImageProvider, config::CoinMarketCapProviderConfig, mapper::is_native_token, model::AssetImage};
+use async_trait::async_trait;
 use coinmarketcap::{CoinMarketCapClient, Info, get_chain_for_coinmarketcap_platform, get_coinmarketcap_logo_url};
 use std::error::Error;
 
@@ -10,34 +11,6 @@ pub struct CoinMarketCapProvider {
 impl CoinMarketCapProvider {
     pub fn new(client: CoinMarketCapClient, config: CoinMarketCapProviderConfig) -> Self {
         Self { client, config }
-    }
-
-    pub async fn get_top_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let ids = self
-            .client
-            .get_latest_listings(self.config.top_count)
-            .await?
-            .into_iter()
-            .filter(coinmarketcap::Listing::is_token)
-            .map(|listing| listing.id)
-            .collect();
-        self.get_asset_images_by_ids(ids).await
-    }
-
-    pub async fn get_trending_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let ids = self
-            .client
-            .get_trending_latest(self.config.trending_count)
-            .await?
-            .into_iter()
-            .filter(coinmarketcap::Listing::is_token)
-            .map(|listing| listing.id)
-            .collect();
-        self.get_asset_images_by_ids(ids).await
-    }
-
-    pub async fn get_asset_images(&self, id_or_symbol: &str) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get_info_by_id_or_symbol(id_or_symbol).await?.into_iter().flat_map(Self::map_info).collect())
     }
 
     async fn get_asset_images_by_ids(&self, ids: Vec<u64>) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
@@ -69,6 +42,40 @@ impl CoinMarketCapProvider {
                 (!is_native_token(&image)).then_some(image)
             })
             .collect()
+    }
+}
+
+#[async_trait]
+impl ImageProvider for CoinMarketCapProvider {
+    async fn get_asset_images(&self, id_or_symbol: &str) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get_info_by_id_or_symbol(id_or_symbol).await?.into_iter().flat_map(Self::map_info).collect())
+    }
+}
+
+#[async_trait]
+impl ImageListProvider for CoinMarketCapProvider {
+    async fn get_top_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        let ids = self
+            .client
+            .get_latest_listings(self.config.top_count)
+            .await?
+            .into_iter()
+            .filter(coinmarketcap::Listing::is_token)
+            .map(|listing| listing.id)
+            .collect();
+        self.get_asset_images_by_ids(ids).await
+    }
+
+    async fn get_trending_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
+        let ids = self
+            .client
+            .get_trending_latest(self.config.trending_count)
+            .await?
+            .into_iter()
+            .filter(coinmarketcap::Listing::is_token)
+            .map(|listing| listing.id)
+            .collect();
+        self.get_asset_images_by_ids(ids).await
     }
 }
 

@@ -2,10 +2,14 @@ use crate::{
     cli_args::{Args, ImageMode, ImageSource},
     config::ImgDownloaderConfig,
     image::download_image,
-    providers::{CoinMarketCapProvider, CoinMarketCapProviderConfig, CoingeckoProvider, CoingeckoProviderConfig, JupiterProvider, JupiterProviderConfig, model::AssetImage},
+    providers::{
+        CoinMarketCapProvider, CoinMarketCapProviderConfig, CoingeckoProvider, CoingeckoProviderConfig, DexScreenerProvider, ImageListProvider, ImageProvider, JupiterProvider,
+        JupiterProviderConfig, model::AssetImage,
+    },
 };
 use ::coinmarketcap::CoinMarketCapClient;
 use ::jupiter::JupiterClient;
+use dexscreener::DexScreenerClient;
 use gem_client::RemoteProviderConfig;
 use gem_tracing::{error_with_fields, info_with_fields, warn_with_fields};
 use primitives::ImageType;
@@ -24,11 +28,8 @@ use std::{
 };
 
 pub struct Downloader {
-    args: Args,
     folder: String,
-    coingecko_provider: CoingeckoProvider,
-    coinmarketcap_provider: CoinMarketCapProvider,
-    jupiter_provider: JupiterProvider,
+    request: ImageRequest,
     http_client: Client,
     image_size: u32,
     supported_image_types: Vec<ImageType>,
@@ -51,6 +52,27 @@ struct PendingAssetImage {
     path: PathBuf,
 }
 
+enum ImageRequest {
+    Asset { provider: Box<dyn ImageProvider>, id: String },
+    List { provider: Box<dyn ImageListProvider>, mode: ImageMode },
+}
+
+impl ImageRequest {
+    fn with_lists(provider: impl ImageListProvider + 'static, args: &Args) -> Self {
+        if args.id.is_empty() {
+            Self::List {
+                provider: Box::new(provider),
+                mode: args.mode,
+            }
+        } else {
+            Self::Asset {
+                provider: Box::new(provider),
+                id: args.id.clone(),
+            }
+        }
+    }
+}
+
 impl Downloader {
     pub fn new(config: DownloaderConfig) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let DownloaderConfig {
@@ -62,18 +84,35 @@ impl Downloader {
         } = config;
         let folder = args.folder.clone().unwrap_or(img_config.folder);
         let http_client = Self::build_http_client(img_config.image.request.timeout)?;
+        let request = match args.source {
+            ImageSource::Coingecko => ImageRequest::with_lists(CoingeckoProvider::new(coingecko, CoingeckoProviderConfig::new(img_config.coingecko)), &args),
+            ImageSource::Coinmarketcap => ImageRequest::with_lists(
+                CoinMarketCapProvider::new(
+                    CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap),
+                    CoinMarketCapProviderConfig::new(img_config.coinmarketcap),
+                ),
+                &args,
+            ),
+            ImageSource::Jupiter => ImageRequest::with_lists(
+                JupiterProvider::new(
+                    JupiterClient::new_with_reqwest_client_and_api_key(http_client.clone(), jupiter_api_key),
+                    JupiterProviderConfig::new(img_config.jupiter),
+                ),
+                &args,
+            ),
+            ImageSource::Dexscreener => {
+                if args.id.is_empty() {
+                    return Err("DexScreener requires --id <chain>_<token-address>".into());
+                }
+                ImageRequest::Asset {
+                    provider: Box::new(DexScreenerProvider::new(DexScreenerClient::new_with_reqwest_client(http_client.clone()))),
+                    id: args.id,
+                }
+            }
+        };
         Ok(Self {
-            args,
             folder,
-            coingecko_provider: CoingeckoProvider::new(coingecko, CoingeckoProviderConfig::new(img_config.coingecko)),
-            coinmarketcap_provider: CoinMarketCapProvider::new(
-                CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap),
-                CoinMarketCapProviderConfig::new(img_config.coinmarketcap),
-            ),
-            jupiter_provider: JupiterProvider::new(
-                JupiterClient::new_with_reqwest_client_and_api_key(http_client.clone(), jupiter_api_key),
-                JupiterProviderConfig::new(img_config.jupiter),
-            ),
+            request,
             http_client,
             image_size: img_config.image.size,
             supported_image_types: img_config.image.types,
@@ -97,56 +136,13 @@ impl Downloader {
             fs::create_dir_all(folder)?;
         }
 
-        match self.args.source {
-            ImageSource::Coingecko => self.start_coingecko(folder).await,
-            ImageSource::Coinmarketcap => self.start_coinmarketcap(folder).await,
-            ImageSource::Jupiter => self.start_jupiter(folder).await,
-        }
-    }
-
-    async fn start_coingecko(&self, folder: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-        if let Some(id) = self.id() {
-            return self.download_coingecko_coin_id(id, folder).await;
-        }
-
-        let images = match self.args.mode {
-            ImageMode::Top => self.coingecko_provider.get_top_asset_images().await?,
-            ImageMode::Trending => self.coingecko_provider.get_trending_asset_images().await?,
+        let images = match &self.request {
+            ImageRequest::Asset { provider, id } => provider.get_asset_images(id).await?,
+            ImageRequest::List { provider, mode } => match mode {
+                ImageMode::Top => provider.get_top_asset_images().await?,
+                ImageMode::Trending => provider.get_trending_asset_images().await?,
+            },
         };
-        self.download_asset_images(images, folder).await
-    }
-
-    async fn start_jupiter(&self, folder: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let images = if let Some(id) = self.id() {
-            self.jupiter_provider.get_verified_asset_images_by_id(id).await?
-        } else {
-            match self.args.mode {
-                ImageMode::Top => self.jupiter_provider.get_verified_asset_images().await?,
-                ImageMode::Trending => self.jupiter_provider.get_trending_asset_images().await?,
-            }
-        };
-        self.download_asset_images(images, folder).await
-    }
-
-    async fn start_coinmarketcap(&self, folder: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let images = if let Some(id) = self.id() {
-            self.coinmarketcap_provider.get_asset_images(id).await?
-        } else {
-            match self.args.mode {
-                ImageMode::Top => self.coinmarketcap_provider.get_top_asset_images().await?,
-                ImageMode::Trending => self.coinmarketcap_provider.get_trending_asset_images().await?,
-            }
-        };
-        self.download_asset_images(images, folder).await
-    }
-
-    fn id(&self) -> Option<&str> {
-        if !self.args.id.is_empty() { Some(self.args.id.as_str()) } else { None }
-    }
-
-    async fn download_coingecko_coin_id(&self, coin_id: &str, folder: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-        info_with_fields!("collect coingecko coin", coin_id = coin_id);
-        let images = self.coingecko_provider.get_asset_images(coin_id).await?;
         self.download_asset_images(images, folder).await
     }
 

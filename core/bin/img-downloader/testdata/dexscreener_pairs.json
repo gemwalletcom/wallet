@@ -1,0 +1,63 @@
+[
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x15d36b6a28d8327abc7afabf0f106ae2c9af5c4d"
+    },
+    "info": {
+      "imageUrl": "https://example.com/wrong-chain.png"
+    }
+  },
+  {
+    "chainId": "robinhood",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000001"
+    },
+    "info": {
+      "imageUrl": "https://example.com/quote.png"
+    }
+  },
+  {
+    "chainId": "robinhood",
+    "baseToken": {
+      "address": "0x15d36b6a28d8327abc7afabf0f106ae2c9af5c4d"
+    },
+    "info": null
+  },
+  {
+    "chainId": "robinhood",
+    "baseToken": {
+      "address": "0x15d36b6a28d8327abc7afabf0f106ae2c9af5c4d"
+    },
+    "info": {
+      "imageUrl": null
+    }
+  },
+  {
+    "chainId": "robinhood",
+    "baseToken": {
+      "address": "0x15d36b6a28d8327abc7afabf0f106ae2c9af5c4d"
+    },
+    "info": {
+      "imageUrl": ""
+    }
+  },
+  {
+    "chainId": "robinhood",
+    "baseToken": {
+      "address": "0x15d36b6a28d8327abc7afabf0f106ae2c9af5c4d"
+    },
+    "info": {
+      "imageUrl": "https://example.com/pare.png"
+    }
+  },
+  {
+    "chainId": "robinhood",
+    "baseToken": {
+      "address": "0x15d36b6a28d8327abc7afabf0f106ae2c9af5c4d"
+    },
+    "info": {
+      "imageUrl": "https://example.com/duplicate.png"
+    }
+  }
+]
