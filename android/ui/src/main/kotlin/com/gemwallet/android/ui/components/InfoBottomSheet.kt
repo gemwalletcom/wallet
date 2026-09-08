@@ -188,6 +188,12 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
     )
 
+    object PendingUnconfirmedBalanceInfo : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.stake_pending,
+        description = R.string.info_transaction_pending_description,
+    )
+
     class EstimatedConfirmationInfo(chain: Chain) : InfoSheetEntity(
         icon = R.drawable.ic_network_fee,
         title = R.string.transaction_estimated_confirmation,
