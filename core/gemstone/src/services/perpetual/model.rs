@@ -1,10 +1,10 @@
 use super::rules;
-use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::failures::StepFailure;
 use crate::services::transfer::model::GemRecipient;
 use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider, PerpetualType};
+use primitives::{Asset, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -136,18 +136,11 @@ pub struct GemPerpetualTransferData {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemPerpetualPositionAction {
-    Open {
-        data: GemPerpetualTransferData,
-    },
-    Increase {
-        data: GemPerpetualTransferData,
-    },
-    Reduce {
-        data: GemPerpetualTransferData,
-        #[serde(with = "crate::models::custom_types::decimal_string")]
-        available: GemBigUint,
-    },
+    Open { data: GemPerpetualTransferData },
+    Increase { data: GemPerpetualTransferData },
+    Reduce { data: GemPerpetualTransferData, position: PerpetualPosition },
 }
 
 #[uniffi::export]

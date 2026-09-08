@@ -11,6 +11,7 @@ use crate::perpetual::GemPerpetual;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualPositionAction;
+use crate::services::perpetual::rules::margin_amount_value;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
@@ -50,7 +51,9 @@ pub fn perpetual_amount_type(action: &GemPerpetualPositionAction, leverage: u8) 
         position: match action {
             GemPerpetualPositionAction::Open { .. } => GemAmountPerpetualPosition::Open,
             GemPerpetualPositionAction::Increase { .. } => GemAmountPerpetualPosition::Increase,
-            GemPerpetualPositionAction::Reduce { available, .. } => GemAmountPerpetualPosition::Reduce { available: available.clone() },
+            GemPerpetualPositionAction::Reduce { position, .. } => GemAmountPerpetualPosition::Reduce {
+                available: margin_amount_value(position),
+            },
         },
         direction: data.direction.clone(),
         price: data.price,
@@ -171,8 +174,18 @@ fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
             | GemAmountStakeType::Rewards { .. } => BigInt::from(0),
         },
         GemAmountType::Perpetual {
-            price, leverage, size_decimals, ..
-        } => BigInt::from(PerpetualFormatter::minimum_order_usd_amount(*price, *size_decimals, *leverage)),
+            position,
+            price,
+            leverage,
+            size_decimals,
+            ..
+        } => {
+            let minimum = BigInt::from(PerpetualFormatter::minimum_order_usd_amount(*price, *size_decimals, *leverage));
+            match position {
+                GemAmountPerpetualPosition::Open | GemAmountPerpetualPosition::Increase => minimum,
+                GemAmountPerpetualPosition::Reduce { available } => minimum.min(BigInt::from(available.clone())),
+            }
+        }
     }
 }
 
@@ -406,6 +419,50 @@ mod tests {
     }
 
     #[test]
+    fn test_perpetual_reduce_minimum_allows_only_the_full_small_position() {
+        for direction in [PerpetualDirection::Long, PerpetualDirection::Short] {
+            for leverage in [1, 3] {
+                let minimum = 10_170_000 / u64::from(leverage);
+                let available = 6_000_000 / u64::from(leverage);
+                let amount_type = |position| GemAmountType::Perpetual {
+                    position,
+                    direction: direction.clone(),
+                    price: 3390.0,
+                    leverage,
+                    size_decimals: 4,
+                };
+                let balance = balance(100_000_000, 0, 0, 0);
+                let reduce = amount_type(GemAmountPerpetualPosition::Reduce { available: available.into() });
+                assert_eq!(reduce.validate(&usdc(), &balance, available.into()), Ok(()));
+                assert_eq!(reduce.validate(&usdc(), &balance, BigInt::ZERO), Err(GemAmountError::Zero));
+                assert_eq!(reduce.validate(&usdc(), &balance, (-1).into()), Err(GemAmountError::Zero));
+                assert_eq!(
+                    reduce.validate(&usdc(), &balance, (available - 1).into()),
+                    Err(GemAmountError::BelowMinimum { minimum: available.into() })
+                );
+                assert_eq!(
+                    reduce.validate(&usdc(), &balance, (available + 1).into()),
+                    Err(GemAmountError::InsufficientBalance {
+                        requirement: GemBalanceRequirement::new((available + 1).into(), available.into())
+                    })
+                );
+                for position in [
+                    GemAmountPerpetualPosition::Open,
+                    GemAmountPerpetualPosition::Increase,
+                    GemAmountPerpetualPosition::Reduce { available: 20_000_000u64.into() },
+                ] {
+                    let amount = amount_type(position);
+                    assert_eq!(amount.validate(&usdc(), &balance, minimum.into()), Ok(()));
+                    assert_eq!(
+                        amount.validate(&usdc(), &balance, (minimum - 1).into()),
+                        Err(GemAmountError::BelowMinimum { minimum: minimum.into() })
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn test_stake_withdraw_has_no_minimum() {
         let withdraw = GemAmountType::Stake {
             stake_type: GemAmountStakeType::Withdraw { delegation: delegation(700, 0) },
@@ -510,7 +567,7 @@ mod tests {
     }
 
     #[test]
-    fn test_perpetual_amount_type_reads_the_position_from_the_action() {
+    fn test_perpetual_open_amount_type_uses_the_selected_leverage() {
         let data = crate::services::perpetual::GemPerpetualTransferData {
             provider: PerpetualProvider::Hypercore,
             direction: PerpetualDirection::Short,
@@ -522,7 +579,7 @@ mod tests {
             margin_type: primitives::PerpetualMarginType::Cross,
         };
 
-        let open = perpetual_amount_type(&GemPerpetualPositionAction::Open { data: data.clone() }, 10);
+        let open = perpetual_amount_type(&GemPerpetualPositionAction::Open { data }, 10);
         assert_eq!(
             open,
             GemAmountType::Perpetual {
@@ -532,16 +589,6 @@ mod tests {
                 leverage: 10,
                 size_decimals: 6,
             }
-        );
-        let reduce = perpetual_amount_type(
-            &GemPerpetualPositionAction::Reduce {
-                data,
-                available: GemBigUint::from(1_000u32),
-            },
-            3,
-        );
-        assert!(
-            matches!(reduce, GemAmountType::Perpetual { position: GemAmountPerpetualPosition::Reduce { available }, leverage: 3, .. } if available == GemBigUint::from(1_000u32))
         );
     }
 

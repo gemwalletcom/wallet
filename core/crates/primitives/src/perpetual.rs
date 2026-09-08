@@ -114,7 +114,7 @@ pub struct PerpetualMetadata {
     pub is_pinned: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PerpetualConfirmData {
     pub direction: PerpetualDirection,
     pub margin_type: PerpetualMarginType,
