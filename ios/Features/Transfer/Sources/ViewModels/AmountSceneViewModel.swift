@@ -1,23 +1,24 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
-import GemstoneServices
 import Formatters
 import Foundation
+import struct Gemstone.GemAmountEntry
+import enum Gemstone.GemAmountError
+import struct Gemstone.GemAmountInput
+import enum Gemstone.GemAmountInputType
 import protocol Gemstone.GemAmountServiceProtocol
-import GemstoneFormatters
+import struct Gemstone.GemTransferData
+import GemstonePrimitives
+import GemstoneServices
 import InfoSheet
 import Localization
 import Perpetuals
-import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
 import Validators
-import struct Gemstone.GemAmountInput
-import struct Gemstone.GemTransferData
 
 @MainActor
 @Observable
@@ -28,7 +29,6 @@ public final class AmountSceneViewModel {
 
     private let formatter = ValueFormatter(style: .full)
     private let amountFormatter = ValueFormatter.auto
-    private let valueConverter = AssetValueConverter(formatter: .auto)
     let currencyFormatter: CurrencyFormatter
 
     public let provider: AmountDataProvider
@@ -41,10 +41,8 @@ public final class AmountSceneViewModel {
     public var transferState: StateViewType<GemTransferData> = .noData
     var amountInputModel: InputValidationViewModel
     public var isPresentingSheet: AmountSheetType?
-
-    private var amountInputType: AmountInputType = .asset {
-        didSet { amountInputModel.update(validators: inputValidators) }
-    }
+    private(set) var entry: GemAmountEntry
+    private(set) var amountInputType: GemAmountInputType = .asset
 
     public init(
         input: AmountInput,
@@ -58,11 +56,12 @@ public final class AmountSceneViewModel {
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency())
         provider = .make(from: input, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
-        amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
-        amountInputModel.update(validators: inputValidators)
+        entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty)
+        amountInputModel = InputValidationViewModel(mode: .manual)
 
         if let amount = provider.prefilledAmount {
-            amountInputModel.update(text: amount)
+            amountInputModel.text = amount
+            refreshEntry()
         }
     }
 
@@ -112,7 +111,7 @@ public final class AmountSceneViewModel {
     }
 
     var infoText: String? {
-        guard let reservedFee = input.reservedFee, amountInputModel.text == maxBalance else { return nil }
+        guard let reservedFee = entry.reservedFee else { return nil }
         return Localized.Transfer.reservedFees(formatter.string(reservedFee, asset: asset))
     }
 
@@ -155,7 +154,11 @@ extension AmountSceneViewModel {
     }
 
     public func onChangeAssetBalance(_: AssetData, _: AssetData) {
-        amountInputModel.update(validators: inputValidators)
+        refreshEntry()
+    }
+
+    func onChangeAmountText(_: String, _: String) {
+        refreshEntry()
     }
 
     public func onSelectNextButton() {
@@ -201,7 +204,7 @@ extension AmountSceneViewModel {
     }
 
     public func onChangeLeverage(_: LeverageOption, _: LeverageOption) {
-        amountInputModel.update(validators: inputValidators)
+        refreshEntry()
         if case let .perpetual(perpetual) = provider {
             perpetual.onChangeLeverage()
         }
@@ -217,42 +220,52 @@ extension AmountSceneViewModel {
     }
 
     func infoAction(for error: Error) -> (() -> Void)? {
-        guard let transferError = error as? TransferError,
-              case let .minimumAmount(asset, required) = transferError
-        else {
+        guard case let .BelowMinimum(asset, required)? = error as? GemAmountError else {
             return nil
         }
         return { [weak self] in
             guard let self else { return }
-            isPresentingSheet = .infoAction(.minimumAmount(asset, required: required, action: onSelectBuy))
+            isPresentingSheet = .infoAction(.minimumAmount(asset.map(), required: required, action: onSelectBuy))
         }
     }
 }
 
 private extension AmountSceneViewModel {
     func setMax() {
-        amountInputType = .asset
-        amountInputModel.update(text: maxBalance)
+        let max = input.maxEntry()
+        amountInputType = max.inputType
+        amountInputModel.text = formatter.string(max.value, decimals: asset.decimals.asInt)
+        refreshEntry()
+    }
+
+    func refreshEntry() {
+        let text = amountInputModel.text
+        entry = provider.entry(from: assetData, inputType: amountInputType, text: text.isEmpty ? text : formatter.plainInputNumber(text))
+        amountInputModel.update(error: entryError)
+    }
+
+    var entryError: (any Error)? {
+        switch entry.error {
+        case .none: nil
+        case .Zero: SilentValidationError()
+        case let .some(error): error
+        }
     }
 
     var input: GemAmountInput {
         provider.input(from: assetData)
     }
 
-    var maxBalance: String {
-        formatter.string(input.maxValue, decimals: asset.decimals.asInt)
-    }
-
     func cleanInput() {
         amountInputModel.text = .empty
-        amountInputModel.update(validators: inputValidators)
+        refreshEntry()
     }
 
     func load() async {
+        guard let value = entry.value else { return }
         do {
             transferState = .loading
-            let value = try amountTransferValue
-            let transfer = try await provider.makeTransferData(value: value, useMaxAmount: value == input.maxValue)
+            let transfer = try await provider.makeTransferData(value: value, useMaxAmount: entry.isMax)
             transferState = .noData
             onTransferAction?(transfer)
         } catch {
@@ -267,53 +280,15 @@ private extension AmountSceneViewModel {
         isPresentingSheet = .fiatConnect(assetAddress: assetAddress, wallet: wallet)
     }
 
-    var inputValidators: [any TextValidator] {
-        let source: AmountValidator.Source = switch amountInputType {
-        case .asset: .asset
-        case .fiat: .fiat(price: assetData.price?.mapToAssetPrice(assetId: asset.id), converter: valueConverter)
-        }
-        return [
-            .amount(
-                source: source,
-                decimals: asset.decimals.asInt,
-                validators: [
-                    AmountValueValidator(type: provider.gemAmountType, asset: asset, balance: assetData.balance),
-                ],
-            ),
-        ]
-    }
-
-    var amountTransferValue: BigInt {
-        get throws {
-            switch amountInputType {
-            case .asset: try formatter.inputNumber(from: amountInputModel.text, decimals: asset.decimals.asInt)
-            case .fiat: amountValue
-            }
-        }
-    }
-
-    var amountValue: BigInt {
-        guard let price = assetData.price else { return .zero }
-        return (try? valueConverter.convertToDisplayedAmount(
-            fiatValue: amountInputModel.text,
-            price: price.mapToAssetPrice(assetId: asset.id),
-            decimals: asset.decimals.asInt,
-        )) ?? .zero
-    }
-
-    var fiatValue: Decimal {
-        guard let price = assetData.price else { return .zero }
-        return (try? valueConverter.convertToFiat(
-            amount: amountInputModel.text,
-            price: price.mapToAssetPrice(assetId: asset.id),
-            decimals: asset.decimals.asInt,
-        )).or(.zero)
-    }
-
     var secondaryText: String {
-        switch amountInputType {
-        case .asset: currencyFormatter.string(fiatValue.doubleValue)
-        case .fiat: amountFormatter.string(amountValue, asset: asset)
+        switch entry.equivalent {
+        case let .fiat(amount)?: currencyFormatter.string(amount)
+        case let .asset(value)?: amountFormatter.string(value, asset: asset)
+        case nil:
+            switch amountInputType {
+            case .asset: currencyFormatter.string(.zero)
+            case .fiat: amountFormatter.string(.zero, asset: asset)
+            }
         }
     }
 }

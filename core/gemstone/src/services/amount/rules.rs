@@ -3,7 +3,10 @@ use std::str::FromStr;
 use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AutocloseEstimator, Chain, Delegation, EarnType, PerpetualDirection, StakeChain, StakeType, TpslType};
 
-use super::model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
+use super::model::{
+    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
+    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
 use crate::models::custom_types::GemBigInt;
@@ -15,6 +18,7 @@ use crate::services::perpetual::rules::margin_amount_value;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
+use number_formatter::{BigNumberFormatter, CryptoFiatConverter};
 use primitives::PerpetualProvider;
 use primitives::TransactionInputType;
 
@@ -36,13 +40,75 @@ impl GemAmountType {
         }
     }
 
-    pub fn validate(&self, asset: &Asset, balance: &GemAssetBalance, value: GemBigInt) -> Result<(), GemAmountError> {
-        validate(&value, &self.available_value(asset, balance), &minimum_value(self, asset))
-    }
-
     pub fn can_switch_input_type(&self) -> bool {
         matches!(self, Self::Transfer)
     }
+
+    pub fn entry(&self, asset: &Asset, input: &GemAmountInput, price: Option<f64>, input_type: GemAmountInputType, text: String) -> GemAmountEntry {
+        let decimals = asset.decimals as u32;
+        let (value, error) = match entry_value(&text, decimals, price, input_type) {
+            Ok(Some(value)) => {
+                let error = validate(asset, &value, &input.available_value, &minimum_value(self, asset)).err();
+                (Some(value), error)
+            }
+            Ok(None) => (None, None),
+            Err(error) => (None, Some(error)),
+        };
+        let is_max = value.as_ref() == Some(&input.max_value);
+        GemAmountEntry {
+            equivalent: equivalent(value.as_ref(), decimals, price, input_type),
+            is_max,
+            reserved_fee: if is_max { input.reserved_fee.clone() } else { None },
+            value,
+            error,
+        }
+    }
+}
+
+#[uniffi::export]
+impl GemAmountInput {
+    pub fn max_entry(&self) -> GemAmountMaxEntry {
+        GemAmountMaxEntry {
+            input_type: GemAmountInputType::Asset,
+            value: self.max_value.clone(),
+        }
+    }
+}
+
+fn entry_value(text: &str, decimals: u32, price: Option<f64>, input_type: GemAmountInputType) -> Result<Option<BigInt>, GemAmountError> {
+    let text = text.trim();
+    if text.is_empty() {
+        return Ok(None);
+    }
+    let amount = match input_type {
+        GemAmountInputType::Asset => text.to_string(),
+        GemAmountInputType::Fiat => {
+            let price = valid_price(price).ok_or(GemAmountError::PriceMissing)?;
+            CryptoFiatConverter::to_crypto_at_entry_precision(text, decimals, price).map_err(invalid_number)?
+        }
+    };
+    let value = BigNumberFormatter::value_from_amount_truncated(&amount, decimals).map_err(invalid_number)?;
+    BigInt::from_str(&value).map(Some).map_err(invalid_number)
+}
+
+fn invalid_number<E>(_: E) -> GemAmountError {
+    GemAmountError::InvalidNumber
+}
+
+fn equivalent(value: Option<&BigInt>, decimals: u32, price: Option<f64>, input_type: GemAmountInputType) -> Option<GemAmountEquivalent> {
+    let price = valid_price(price)?;
+    let value = value.cloned().unwrap_or_default();
+    match input_type {
+        GemAmountInputType::Asset => {
+            let amount = CryptoFiatConverter::to_fiat(&value.to_string(), decimals, price).ok()?.parse().ok()?;
+            Some(GemAmountEquivalent::Fiat { amount })
+        }
+        GemAmountInputType::Fiat => Some(GemAmountEquivalent::Asset { value }),
+    }
+}
+
+fn valid_price(price: Option<f64>) -> Option<f64> {
+    price.filter(|price| *price > 0.0)
 }
 
 pub fn perpetual_amount_type(action: &GemPerpetualPositionAction, leverage: u8) -> GemAmountType {
@@ -143,15 +209,19 @@ pub fn perpetual_autoclose(price: f64, direction: PerpetualDirection, leverage: 
     }
 }
 
-pub fn validate(value: &BigInt, available: &BigInt, minimum: &BigInt) -> Result<(), GemAmountError> {
+pub fn validate(asset: &Asset, value: &BigInt, available: &BigInt, minimum: &BigInt) -> Result<(), GemAmountError> {
     if value <= &BigInt::from(0) {
         return Err(GemAmountError::Zero);
     }
     if value < minimum {
-        return Err(GemAmountError::BelowMinimum { minimum: minimum.clone() });
+        return Err(GemAmountError::BelowMinimum {
+            asset: asset.clone(),
+            minimum: minimum.clone(),
+        });
     }
     if value > available {
         return Err(GemAmountError::InsufficientBalance {
+            asset: asset.clone(),
             requirement: GemBalanceRequirement::new(value.clone(), available.clone()),
         });
     }
@@ -418,6 +488,107 @@ mod tests {
         assert_eq!(perpetual(1, 0).available_value(&usdc(), &balance(9, 0, 0, 0)), BigInt::from(9));
     }
 
+    fn transfer_entry(asset: &Asset, available: u64, price: Option<f64>, input_type: GemAmountInputType, text: &str) -> GemAmountEntry {
+        let input = GemAmountType::Transfer.input(asset, &balance(available, 0, 0, 0));
+        GemAmountType::Transfer.entry(asset, &input, price, input_type, text.to_string())
+    }
+
+    #[test]
+    fn test_entry_reads_the_text_in_the_input_units() {
+        let usdc = usdc();
+        let typed = transfer_entry(&usdc, 100_000_000_000, Some(2.0), GemAmountInputType::Asset, "1000.123456");
+        assert_eq!(typed.value, Some(BigInt::from(1_000_123_456)));
+        assert_eq!(typed.error, None);
+        assert_eq!(typed.equivalent, Some(GemAmountEquivalent::Fiat { amount: 2000.246912 }));
+        assert!(!typed.is_max);
+        assert_eq!(transfer_entry(&usdc, 100_000_000, None, GemAmountInputType::Asset, "1.5").equivalent, None);
+
+        let fiat = transfer_entry(&usdc, 100_000_000_000, Some(1.0), GemAmountInputType::Fiat, "1000.123456");
+        assert_eq!(fiat.value, Some(BigInt::from(1_000_120_000)));
+        assert_eq!(
+            fiat.equivalent,
+            Some(GemAmountEquivalent::Asset {
+                value: BigInt::from(1_000_120_000)
+            })
+        );
+        assert_eq!(
+            transfer_entry(&usdc, 100_000_000_000, Some(1.0), GemAmountInputType::Fiat, "1000").value,
+            Some(BigInt::from(1_000_000_000))
+        );
+        assert_eq!(
+            transfer_entry(&usdc, 100_000_000, None, GemAmountInputType::Fiat, "10").error,
+            Some(GemAmountError::PriceMissing)
+        );
+        assert_eq!(
+            transfer_entry(&usdc, 100_000_000, Some(0.0), GemAmountInputType::Fiat, "10").error,
+            Some(GemAmountError::PriceMissing)
+        );
+
+        let ether = asset(Chain::Ethereum);
+        let whole = transfer_entry(&ether, 1_000_000_000_000_000_000, Some(2.0), GemAmountInputType::Asset, "1");
+        assert_eq!(whole.value, Some(BigInt::from(1_000_000_000_000_000_000u64)));
+        assert!(whole.is_max);
+        let tiny = transfer_entry(&ether, 1_000_000_000_000_000_000, Some(4000.0), GemAmountInputType::Fiat, "0.0000001");
+        assert_eq!(tiny.value, Some(BigInt::from(25_000_000u64)));
+        assert_eq!(tiny.error, None);
+    }
+
+    #[test]
+    fn test_entry_rejects_empty_zero_and_invalid_text() {
+        let usdc = usdc();
+        let entry = |input_type, text| transfer_entry(&usdc, 100_000_000, Some(1.0), input_type, text);
+
+        let empty = entry(GemAmountInputType::Asset, " ");
+        assert_eq!(empty.value, None);
+        assert_eq!(empty.error, None);
+        assert_eq!(empty.equivalent, Some(GemAmountEquivalent::Fiat { amount: 0.0 }));
+
+        assert_eq!(entry(GemAmountInputType::Asset, "abc").error, Some(GemAmountError::InvalidNumber));
+        assert_eq!(entry(GemAmountInputType::Asset, "-1").error, Some(GemAmountError::InvalidNumber));
+        assert_eq!(entry(GemAmountInputType::Fiat, "0").error, Some(GemAmountError::Zero));
+        assert_eq!(entry(GemAmountInputType::Asset, "0.0000001").error, Some(GemAmountError::Zero));
+        assert_eq!(entry(GemAmountInputType::Fiat, "0.0000001").error, Some(GemAmountError::Zero));
+        assert_eq!(
+            entry(GemAmountInputType::Asset, "200").error,
+            Some(GemAmountError::InsufficientBalance {
+                asset: usdc.clone(),
+                requirement: GemBalanceRequirement::new(BigInt::from(200_000_000), BigInt::from(100_000_000))
+            })
+        );
+
+        let bnb = asset(Chain::SmartChain);
+        let stake = stake(GemAmountStakeType::Stake);
+        let input = stake.input(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0));
+        assert_eq!(
+            stake.entry(&bnb, &input, Some(1.0), GemAmountInputType::Asset, "0.99".to_string()).error,
+            Some(GemAmountError::BelowMinimum {
+                asset: bnb.clone(),
+                minimum: BigInt::from(1_000_000_000_000_000_000u64)
+            })
+        );
+    }
+
+    #[test]
+    fn test_entry_max_carries_the_reserved_fee() {
+        let cosmos = asset(Chain::Cosmos);
+        let config = get_stake_config(StakeChain::Cosmos);
+        let available = config.reserved_for_fees * 10 + config.min_amount * 10;
+        let stake = stake(GemAmountStakeType::Stake);
+        let input = stake.input(&cosmos, &balance(available, 0, 0, 0));
+        let max = input.max_entry();
+        assert_eq!(max.input_type, GemAmountInputType::Asset);
+        assert_eq!(max.value, BigInt::from(available - config.reserved_for_fees));
+
+        let max_text = BigNumberFormatter::value(&max.value.to_string(), cosmos.decimals).unwrap();
+        let at_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, max_text);
+        assert!(at_max.is_max);
+        assert_eq!(at_max.reserved_fee, Some(BigInt::from(config.reserved_for_fees)));
+
+        let below_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, "1".to_string());
+        assert!(!below_max.is_max);
+        assert_eq!(below_max.reserved_fee, None);
+    }
+
     #[test]
     fn test_perpetual_reduce_minimum_allows_only_the_full_small_position() {
         for direction in [PerpetualDirection::Long, PerpetualDirection::Short] {
@@ -432,17 +603,24 @@ mod tests {
                     size_decimals: 4,
                 };
                 let balance = balance(100_000_000, 0, 0, 0);
+                let check = |amount: &GemAmountType, value: BigInt| {
+                    validate(&usdc(), &value, &amount.available_value(&usdc(), &balance), &minimum_value(amount, &usdc()))
+                };
                 let reduce = amount_type(GemAmountPerpetualPosition::Reduce { available: available.into() });
-                assert_eq!(reduce.validate(&usdc(), &balance, available.into()), Ok(()));
-                assert_eq!(reduce.validate(&usdc(), &balance, BigInt::ZERO), Err(GemAmountError::Zero));
-                assert_eq!(reduce.validate(&usdc(), &balance, (-1).into()), Err(GemAmountError::Zero));
+                assert_eq!(check(&reduce, available.into()), Ok(()));
+                assert_eq!(check(&reduce, BigInt::ZERO), Err(GemAmountError::Zero));
+                assert_eq!(check(&reduce, (-1).into()), Err(GemAmountError::Zero));
                 assert_eq!(
-                    reduce.validate(&usdc(), &balance, (available - 1).into()),
-                    Err(GemAmountError::BelowMinimum { minimum: available.into() })
+                    check(&reduce, (available - 1).into()),
+                    Err(GemAmountError::BelowMinimum {
+                        asset: usdc(),
+                        minimum: available.into()
+                    })
                 );
                 assert_eq!(
-                    reduce.validate(&usdc(), &balance, (available + 1).into()),
+                    check(&reduce, (available + 1).into()),
                     Err(GemAmountError::InsufficientBalance {
+                        asset: usdc(),
                         requirement: GemBalanceRequirement::new((available + 1).into(), available.into())
                     })
                 );
@@ -452,10 +630,13 @@ mod tests {
                     GemAmountPerpetualPosition::Reduce { available: 20_000_000u64.into() },
                 ] {
                     let amount = amount_type(position);
-                    assert_eq!(amount.validate(&usdc(), &balance, minimum.into()), Ok(()));
+                    assert_eq!(check(&amount, minimum.into()), Ok(()));
                     assert_eq!(
-                        amount.validate(&usdc(), &balance, (minimum - 1).into()),
-                        Err(GemAmountError::BelowMinimum { minimum: minimum.into() })
+                        check(&amount, (minimum - 1).into()),
+                        Err(GemAmountError::BelowMinimum {
+                            asset: usdc(),
+                            minimum: minimum.into()
+                        })
                     );
                 }
             }
@@ -515,41 +696,25 @@ mod tests {
 
     #[test]
     fn test_validate() {
-        assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(0)), Err(GemAmountError::Zero));
-        assert_eq!(
-            validate(&BigInt::from(1), &BigInt::from(10), &BigInt::from(2)),
-            Err(GemAmountError::BelowMinimum { minimum: BigInt::from(2) })
-        );
-        assert_eq!(
-            validate(&BigInt::from(11), &BigInt::from(10), &BigInt::from(0)),
-            Err(GemAmountError::InsufficientBalance {
-                requirement: GemBalanceRequirement::new(BigInt::from(11), BigInt::from(10))
-            })
-        );
-        assert_eq!(validate(&BigInt::from(5), &BigInt::from(10), &BigInt::from(2)), Ok(()));
-        assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
-        assert_eq!(validate(&BigInt::from(-1), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
-
-        let stake = GemAmountType::Stake {
-            stake_type: GemAmountStakeType::Stake,
-        };
         let bnb = asset(Chain::SmartChain);
+        assert_eq!(validate(&bnb, &BigInt::from(0), &BigInt::from(10), &BigInt::from(0)), Err(GemAmountError::Zero));
         assert_eq!(
-            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), BigInt::from(990_000_000_000_000_000u64)),
+            validate(&bnb, &BigInt::from(1), &BigInt::from(10), &BigInt::from(2)),
             Err(GemAmountError::BelowMinimum {
-                minimum: BigInt::from(1_000_000_000_000_000_000u64)
+                asset: bnb.clone(),
+                minimum: BigInt::from(2)
             })
         );
         assert_eq!(
-            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), BigInt::from(1_500_000_000_000_000_000u64)),
-            Ok(())
-        );
-        assert_eq!(
-            GemAmountType::Transfer.validate(&bnb, &balance(10, 0, 0, 0), BigInt::from(11)),
+            validate(&bnb, &BigInt::from(11), &BigInt::from(10), &BigInt::from(0)),
             Err(GemAmountError::InsufficientBalance {
+                asset: bnb.clone(),
                 requirement: GemBalanceRequirement::new(BigInt::from(11), BigInt::from(10))
             })
         );
+        assert_eq!(validate(&bnb, &BigInt::from(5), &BigInt::from(10), &BigInt::from(2)), Ok(()));
+        assert_eq!(validate(&bnb, &BigInt::from(0), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
+        assert_eq!(validate(&bnb, &BigInt::from(-1), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
     }
 
     #[test]

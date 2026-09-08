@@ -384,6 +384,7 @@ pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallD
 }
 
 impl GemTransferData {
+    #[allow(clippy::result_large_err)]
     pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> Result<BigInt, GemAmountError> {
         let asset = self.input_type.get_asset();
         Ok(match &self.input_type {

@@ -1,3 +1,5 @@
+#![allow(clippy::result_large_err)]
+
 pub mod model;
 pub mod rules;
 
@@ -5,7 +7,10 @@ use std::sync::Arc;
 
 use primitives::{Asset, Chain, Currency, Delegation, PerpetualDirection, StakeType};
 
-pub use model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
+pub use model::{
+    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
+    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+};
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 

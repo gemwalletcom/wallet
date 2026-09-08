@@ -30,7 +30,6 @@ let package = Package(
                 "GemstonePrimitives",
                 "Localization",
                 "Formatters",
-                .product(name: "GemstoneFormatters", package: "Formatters"),
             ],
             path: "Sources",
         ),
@@ -38,7 +37,6 @@ let package = Package(
             name: "ValidatorsTests",
             dependencies: [
                 "Validators",
-                .product(name: "GemstoneFormatters", package: "Formatters"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],

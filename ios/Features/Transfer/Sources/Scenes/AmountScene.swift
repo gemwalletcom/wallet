@@ -136,6 +136,7 @@ public struct AmountScene: View {
         .listSectionSpacing(.custom(.medium))
         .frame(maxWidth: .infinity)
         .navigationTitle(model.title)
+        .onChange(of: model.amountInputModel.text, model.onChangeAmountText)
         .onAppear {
             model.onAppear()
             if model.shouldFocusOnAppear {

@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
+import class Gemstone.GemAmountService
 import struct Gemstone.GemPaymentRecipient
-import GemstoneServicesTestKit
-import GemstonePrimitivesTestKit
-import GemstonePrimitives
 import enum Gemstone.GemStakeAmountInput
+import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
-import class Gemstone.GemAmountService
 import Testing
 @testable import Transfer
 
@@ -21,10 +22,35 @@ struct AmountSceneViewModelTests {
 
         model.onSelectMaxButton()
         #expect(model.amountInputModel.isValid)
+        #expect(model.entry.isMax)
 
         model.onSelectInputButton()
+        #expect(model.amountInputType == .fiat)
         model.onSelectMaxButton()
+        #expect(model.amountInputType == .asset)
+        #expect(model.entry.isMax)
         #expect(model.amountInputModel.isValid)
+    }
+
+    @Test
+    func fiatInputConvertsWithThePrice() {
+        let assetData = AssetData.mock(
+            asset: .mockBNB(),
+            balance: .mock(available: 5_000_000_000_000_000_000),
+            price: .mock(price: 2.5),
+        )
+        let model = AmountSceneViewModel.mock(
+            type: .transfer(recipient: GemPaymentRecipient(recipient: .mock())),
+            assetData: assetData,
+        )
+
+        model.onSelectInputButton()
+        model.amountInputModel.text = "10"
+        model.onChangeAmountText("", "10")
+
+        #expect(model.entry.value == BigInt(4_000_000_000_000_000_000))
+        #expect(model.amountInputModel.isValid)
+        #expect(!model.entry.isMax)
     }
 
     @Test
@@ -43,6 +69,7 @@ struct AmountSceneViewModelTests {
         #expect(model.amountInputModel.text == "1.99975")
 
         model.amountInputModel.text = .zero
+        model.onChangeAmountText("", .zero)
         #expect(model.infoText == nil)
     }
 
@@ -57,10 +84,12 @@ struct AmountSceneViewModelTests {
             assetData: assetData,
         )
 
-        model.amountInputModel.update(text: "0.099")
+        model.amountInputModel.text = "0.099"
+        model.onChangeAmountText("", "0.099")
         #expect(model.amountInputModel.isValid == false)
 
-        model.amountInputModel.update(text: "1.5")
+        model.amountInputModel.text = "1.5"
+        model.onChangeAmountText("", "1.5")
         #expect(model.amountInputModel.isValid == true)
     }
 
@@ -75,10 +104,12 @@ struct AmountSceneViewModelTests {
             assetData: assetData,
         )
 
-        model.amountInputModel.update(text: "0.001")
+        model.amountInputModel.text = "0.001"
+        model.onChangeAmountText("", "0.001")
         #expect(model.amountInputModel.isValid == true)
 
-        model.amountInputModel.update(text: "100")
+        model.amountInputModel.text = "100"
+        model.onChangeAmountText("", "100")
         #expect(model.amountInputModel.isValid == false)
     }
 
@@ -98,12 +129,14 @@ struct AmountSceneViewModelTests {
 
         resourceSelection.selected = .energy
         model.onChangeResource(.bandwidth, .energy)
-        model.amountInputModel.update(text: "2.0")
+        model.amountInputModel.text = "2.0"
+        model.onChangeAmountText("", "2.0")
         #expect(model.amountInputModel.isValid == true)
 
         resourceSelection.selected = .bandwidth
         model.onChangeResource(.energy, .bandwidth)
-        model.amountInputModel.update(text: "2.0")
+        model.amountInputModel.text = "2.0"
+        model.onChangeAmountText("", "2.0")
         #expect(model.amountInputModel.isValid == false)
     }
 
@@ -120,7 +153,8 @@ struct AmountSceneViewModelTests {
             assetData: assetData,
         )
 
-        model.amountInputModel.update(text: "1.5")
+        model.amountInputModel.text = "1.5"
+        model.onChangeAmountText("", "1.5")
         model.onValidatorSelected(validator2)
 
         #expect(model.amountInputModel.text == "1.5")
@@ -132,10 +166,12 @@ struct AmountSceneViewModelTests {
 
         #expect(model.actionButtonState == .disabled)
 
-        model.amountInputModel.update(text: "1.0")
+        model.amountInputModel.text = "1.0"
+        model.onChangeAmountText("", "1.0")
         #expect(model.actionButtonState == .normal)
 
-        model.amountInputModel.update(text: "")
+        model.amountInputModel.text = ""
+        model.onChangeAmountText("", "")
         #expect(model.actionButtonState == .disabled)
     }
 

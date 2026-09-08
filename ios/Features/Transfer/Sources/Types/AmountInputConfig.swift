@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import enum Gemstone.GemAmountInputType
 import GemstonePrimitives
 import Primitives
 import Style
@@ -10,7 +11,7 @@ import SwiftUI
 struct AmountInputConfig: CurrencyInputConfigurable {
     let sceneType: AmountType
     let canSwitchInputType: Bool
-    let inputType: AmountInputType
+    let inputType: GemAmountInputType
     let asset: Asset
     let currencyFormatter: CurrencyFormatter
     let numberSanitizer: NumberSanitizer

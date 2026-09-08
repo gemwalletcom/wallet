@@ -369,7 +369,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 ### 4. Rules still written once per platform
 
 - **The amount providers hand Core their inputs and take Core's types back.**
-  `GemAmountType::validate` checks a value against the type's own available value and minimum,
+  `GemAmountType::entry` reads the typed text and checks it against the type's own available value and minimum,
   and `GemAmountService { stake, preferences, session }` answers the currency, the earn data and
   the perpetual defaults on both apps: `perpetual_leverage(max_leverage)` picks the preferred
   option and `perpetual_autoclose(price, direction, leverage)` turns the preference percents into
@@ -393,6 +393,18 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `AmountPerpetualViewModel`, `AmountEarnViewModel`; Android's `providers/*`) that load the
   delegations, validators and perpetual market the type needs, hold the validator/resource/
   leverage/autoclose selection, and format titles.
+- **What a typed amount means is one Core answer.** `GemAmountType::entry(asset, input, price,
+  GemAmountInputType::{Asset | Fiat}, text) -> GemAmountEntry { value, error, equivalent, is_max,
+  reserved_fee }` parses the sanitized text under the input mode, converts fiat through the price
+  at display precision, validates the value, says whether it is the max and hands back the
+  reserved fee to show at the max; `max_entry(asset, balance)` answers the Max button with the
+  input type (always asset units) and the value. iOS's `AssetValueConverter`, `AmountValidator.Source.fiat`
+  and `AmountValueValidator` with its `TransferError.minimumAmount` mapping, and Android's
+  `AmountInputType.getAmount`, `CryptoFiatConverter.toCrypto*` and `AmountValidation.parseAmount`
+  are gone; each app keeps the text field, the input type toggle, its locale normalization and its
+  formatting. That settled the one drift: Android's Max in fiat mode kept the fiat mode and read
+  the crypto max as a fiat amount, iOS switched to asset units. `GemAmountError` carries the
+  asset, so both apps localize it without a twin.
 - **The generator is the way a duplicated type stops being duplicated.** Adding a fieldless enum or
   a record of scalars, remote types, codes and identifiers (plain, `Option` or `Vec`) to
   `core/bin/generate/remote_types.yml` replaces a hand-written mapper on
@@ -532,7 +544,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 - **Big integers are typed on both sides of the boundary.** `uniffi.toml` maps `GemBigInt` /
   `GemBigUint` to `java.math.BigInteger` and `BigInt` / `BigUInt`, so no app code parses a Core
-  amount or renders one to a string to hand it back; `GemAmountError`, `GemAmountType::validate`
+  amount or renders one to a string to hand it back; `GemAmountError`, `GemAmountType::entry`
   and `GemTransferDataExtra.gas_limit` carry big integers too. What still parses is the
   typeshare model (`Balance`, `SwapQuote`, `Delegation.base`, `TransactionSwapMetadata`) and the
   database columns both apps store as text — a typeshare-level mapping would finish it.
@@ -673,7 +685,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   (`Unavailable`, `InsufficientFeeBalance`, `IncorrectAddress`, `ZeroAmount`), two of them with
   hard-coded English; a zero amount now stays silent (`AmountError.None`, the button just does
   not proceed), which is what iOS's `SilentValidationError` does. The remaining cases are the
-  app-side parse errors and Core's minimum / insufficient-balance answers.
+  app-side `Required` and Core's invalid-number, minimum and insufficient-balance answers.
 
 - **The asset scene's swap pair comes from the same service on both apps.** iOS asked
   `GemAssetDetailsService::swap_pair`; Android's `AssetInfoUIModelFactory` held a

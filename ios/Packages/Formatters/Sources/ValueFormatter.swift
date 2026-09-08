@@ -47,10 +47,11 @@ public struct ValueFormatter: Sendable {
     }
 
     public func inputNumber(from string: String, decimals: Int) throws -> BigInt {
-        try BigNumberFormatter.standard.number(
-            from: NumberInputNormalizer.normalize(string, locale: locale),
-            decimals: decimals,
-        )
+        try BigNumberFormatter.standard.number(from: plainInputNumber(string), decimals: decimals)
+    }
+
+    public func plainInputNumber(_ string: String) -> String {
+        NumberInputNormalizer.normalize(string, locale: locale)
     }
 
     public func displayedNumber(from value: Decimal, decimals: Int) throws -> BigInt {
