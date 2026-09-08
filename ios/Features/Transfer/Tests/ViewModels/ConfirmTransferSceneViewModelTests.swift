@@ -421,6 +421,24 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func missingWalletDataErrorDetails() {
+        for (error, description) in [
+            (GemConfirmError.BalanceMissing(assetId: "tron"), "BalanceMissing(assetId: \"tron\")"),
+            (GemConfirmError.AccountMissing(chain: .tron), Localized.Errors.walletAccountMissing),
+        ] {
+            let model = ConfirmTransferSceneViewModel.mock()
+            model.state = .mock(transaction: .error(error))
+
+            let errorItem = model.itemModel(for: .error) as? ConfirmErrorViewModel
+            guard case let .error(_, displayError, _) = errorItem?.itemModel else {
+                Issue.record("Expected wallet data error item")
+                continue
+            }
+            #expect(displayError.localizedDescription == description)
+        }
+    }
+
+    @Test
     func sectionsStructure() {
         let model = ConfirmTransferSceneViewModel.mock()
         let sections = model.sections
