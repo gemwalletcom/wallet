@@ -157,6 +157,7 @@ pub enum ConfigKey {
     ScanTimerUpdateValidatorsStatic,
     ScanEnable,
     ScanTimeout,
+    ScanRequiredSuccesses,
 
     // Rewards
     RewardsTimerAbuseChecker,
@@ -350,6 +351,7 @@ impl ConfigKey {
             Self::ScanTimerUpdateValidatorsStatic => "1h",
             Self::ScanEnable => "true",
             Self::ScanTimeout => "1200ms",
+            Self::ScanRequiredSuccesses => "1",
             Self::RewardsTimerAbuseChecker => "60s",
             Self::RewardsTimerEligibilityChecker => "60s",
             Self::RewardsEligibilityActiveDuration => "7d",

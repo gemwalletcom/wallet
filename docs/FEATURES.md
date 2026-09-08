@@ -158,7 +158,11 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 
 ## Security providers
 
-Backend transaction scanning checks the transaction target rather than the sender. Provider failures make the scan incomplete instead of treating the missing result as safe. Staking transaction types (delegate, undelegate, redelegate, rewards, withdraw, freeze, and unfreeze) use local database checks only and skip external security providers.
+Backend transaction scanning checks the transaction target rather than the sender. For external scans, `isScanComplete` requires scanning to be enabled and at least `scanRequiredSuccesses` successful checks across address security, address poisoning, and website security. The count is successful checks, including multiple checks from the same provider. A zero threshold requires no successful checks, so enabled scanning is complete even if all checks fail or none apply. A positive threshold leaves the scan incomplete until enough checks succeed. All requested providers still run, and any malicious result is reported even if other checks fail.
+
+The `scanRequiredSuccesses` database config defaults to `1` and is read through `ConfigCacher` at API startup. Seed it through daemon setup before starting the updated API, and restart the API after changing it.
+
+Local malicious database matches return complete immediately. Staking transaction types (delegate, undelegate, redelegate, rewards, withdraw, freeze, and unfreeze) use local database checks only, return complete, and skip external security providers.
 
 | Provider | Address security | Address poisoning | Website security | EVM token security | Solana token security |
 | --- | :---: | :---: | :---: | :---: | :---: |
