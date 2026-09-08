@@ -5,6 +5,7 @@ import struct Gemstone.GemConfirmMetadata
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import enum Gemstone.TransactionInputType
 import struct Gemstone.GemSwapQuoteSummary
+import func Gemstone.perpetualDetails
 import func Gemstone.swapQuoteSummary
 import BigInt
 import Components
@@ -57,12 +58,11 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                 ),
             )
         case let .perpetual(_, perpetualType):
-            return switch perpetualType {
-            case .open, .close, .increase, .reduce:
-                .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
-            case let .modify(data):
-                .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data)))
+            if case let .modify(data) = perpetualType {
+                return .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data)))
             }
+            guard let details = perpetualDetails(perpetualType: perpetualType) else { return .empty }
+            return .perpetualDetails(PerpetualDetailsViewModel(details: details))
         case .transfer,
              .deposit,
              .withdrawal,

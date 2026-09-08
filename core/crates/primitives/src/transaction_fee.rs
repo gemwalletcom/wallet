@@ -10,7 +10,7 @@ pub enum FeeOption {
     TokenAccountCreation,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransactionFee {
     pub fee: BigInt,
     pub gas_price_type: GasPriceType,

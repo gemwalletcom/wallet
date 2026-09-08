@@ -432,7 +432,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   tuple variant's payload `v1` in both languages, which is not a name a screen should read — so a
   data-carrying enum that crosses this way is written `Variant { field: Type }` in primitives. A
   typeshared data-carrying enum still needs mapper emission before it can cross with a twin; the way
-  across is to drop the twin, as these did. The generator is one table-driven
+  across is to drop the twin, as these did. Dropping it took the serde derives with it, and they were
+  load-bearing for nothing: `TransactionInputType`, `TransactionPreloadInput`, `TransactionLoadInput`,
+  `TransactionLoadData`, `SignerInput`, `TransactionFee`, `TransactionLoadMetadata`, `FeeRate`,
+  `GasPriceType`, `StakeType`, `EarnType`, `TransferDataExtra` and `ContractCallData` all carried a
+  wire format nothing wrote or read once the confirm input stopped crossing as a string, so the whole
+  chain is `#[derive(Debug, Clone)]` now. A type in it that grows a `Serialize` again means something
+  started persisting a confirm input, which is not how a confirm input travels. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper
@@ -1287,11 +1293,14 @@ Which recent activity a selection records, and which types a select screen lists
 the asset and the action), recorded through one `add_recent(action, asset)` that reads the current
 wallet from Core's session. A completed transfer is recorded by `GemConfirmTransferService` on both.
 
-iOS's `PerpetualDetailsType` mirrors Core's `PerpetualType` minus `.modify`, and the two platforms
-disagree on what a modify order means to a details screen: iOS's initialiser hits
-`fatalError("not supported")` while Android's `PerpetualConfirmDetailsUIModelFactory` returns null for
-the same variant. One of the two is a crash on a confirm path; the decision belongs on the Core enum
-once, not in an app-side mirror of it.
+What a details screen shows for a perpetual order is `perpetual_details(perpetual_type) ->
+Option<GemPerpetualDetails>` — the action, the direction the screen labels (the position's on a
+reduce, the order's otherwise) and the confirm data — so neither app decides which of the five
+variants has details. Both used to: iOS's `PerpetualDetailsType` mirrored `PerpetualType` minus
+`.modify` and its initialiser hit `fatalError("not supported")` on that variant, a crash on a
+confirm path, while Android's factory returned null. Both mirrors are gone, along with Android's
+`PerpetualConfirmDetailsUIModel.Action`, and the reduce direction is a Core test rather than a rule
+each app rediscovers.
 
 Android hand-wrote `RecentType` with different case names from the generated
 `RecentActivityType` — `Send` against `Transfer`, `Buy` against `FiatBuy` — and those names

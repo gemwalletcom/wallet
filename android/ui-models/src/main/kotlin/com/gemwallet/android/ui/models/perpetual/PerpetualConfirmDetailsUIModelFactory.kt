@@ -7,45 +7,18 @@ import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualDirection
+import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.PerpetualConfirmData
-import uniffi.gemstone.PerpetualType
 
 object PerpetualConfirmDetailsUIModelFactory {
 
     private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Currency, currency = Currency.USD)
 
-    fun create(type: PerpetualType): PerpetualConfirmDetailsUIModel? {
-        val action: PerpetualConfirmDetailsUIModel.Action
-        val data: PerpetualConfirmData
-        val direction: PerpetualDirection
-        when (type) {
-            is PerpetualType.Open -> {
-                action = PerpetualConfirmDetailsUIModel.Action.Open
-                data = type.data
-                direction = data.direction.toPrimitives()
-            }
-            is PerpetualType.Close -> {
-                action = PerpetualConfirmDetailsUIModel.Action.Close
-                data = type.data
-                direction = data.direction.toPrimitives()
-            }
-            is PerpetualType.Increase -> {
-                action = PerpetualConfirmDetailsUIModel.Action.Increase
-                data = type.data
-                direction = data.direction.toPrimitives()
-            }
-            is PerpetualType.Reduce -> {
-                action = PerpetualConfirmDetailsUIModel.Action.Reduce
-                data = type.data.data
-                direction = type.data.positionDirection.toPrimitives()
-            }
-            is PerpetualType.Modify -> return null
-        }
-
+    fun create(details: GemPerpetualDetails): PerpetualConfirmDetailsUIModel {
+        val data = details.data
         return PerpetualConfirmDetailsUIModel(
-            action = action,
-            direction = direction,
+            action = details.action,
+            direction = details.direction.toPrimitives(),
             leverage = data.leverage.toInt(),
             pnl = data.pnl?.let { value ->
                 PerpetualConfirmDetailsUIModel.Pnl(

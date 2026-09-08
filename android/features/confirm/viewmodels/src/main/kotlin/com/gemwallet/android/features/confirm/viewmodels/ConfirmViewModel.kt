@@ -36,6 +36,7 @@ import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
+import uniffi.gemstone.perpetualDetails
 import uniffi.gemstone.swapQuoteSummary
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.FeeSelection
@@ -368,7 +369,9 @@ class ConfirmViewModel @Inject constructor(
     ): ConfirmDetailElement? = when (val type = perpetualType) {
         null -> null
         is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.data, confirmService)
-        else -> PerpetualConfirmDetailsUIModelFactory.create(type)?.let(ConfirmDetailElement::PerpetualDetails)
+        else -> perpetualDetails(type)
+            ?.let(PerpetualConfirmDetailsUIModelFactory::create)
+            ?.let(ConfirmDetailElement::PerpetualDetails)
     }
 
     private fun buildSwapDetailElement(

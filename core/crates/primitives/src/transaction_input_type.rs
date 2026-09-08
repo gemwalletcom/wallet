@@ -8,11 +8,10 @@ use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PerpetualType, Si
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum TransactionInputType {
     Transfer {
@@ -185,12 +184,11 @@ impl TransactionInputType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransactionLoadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     pub value: BigUint,
     pub gas_price: GasPriceType,
     pub memo: Option<String>,
@@ -228,7 +226,7 @@ impl TransactionLoadInput {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct SignerInput {
     pub input: TransactionLoadInput,
     pub fee: TransactionFee,
@@ -286,7 +284,7 @@ impl Deref for SignerInput {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransactionLoadData {
     pub fee: TransactionFee,
     pub metadata: TransactionLoadMetadata,

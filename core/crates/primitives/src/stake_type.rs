@@ -19,8 +19,7 @@ pub enum Resource {
     Energy,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", content = "content")]
+#[derive(Debug, Clone)]
 pub enum StakeType {
     Stake(DelegationValidator),
     Unstake(Delegation),

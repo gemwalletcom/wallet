@@ -2,35 +2,30 @@ package com.gemwallet.android.ui.models.perpetual
 
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
-import com.gemwallet.android.testkit.mockPerpetualModifyConfirmData
-import com.gemwallet.android.testkit.mockPerpetualReduceData
-import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModel.Action
+import com.gemwallet.android.testkit.mockPerpetualDetails
 import com.wallet.core.primitives.PerpetualDirection
-import uniffi.gemstone.PerpetualType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.PerpetualConfirmData
 
 class PerpetualConfirmDetailsUIModelFactoryTest {
 
     @Test
-    fun `open exposes direction leverage and no pnl`() {
-        val data = mockPerpetualConfirmData(
-            direction = PerpetualDirection.Long,
-            leverage = 5u,
-            slippage = 0.5,
-            marketPrice = 123.45,
-            entryPrice = null,
-            marginAmount = 100.0,
-            fiatValue = 500.0,
+    fun `amounts and slippage are formatted as usd`() {
+        val model = create(
+            mockPerpetualConfirmData(
+                leverage = 5u,
+                slippage = 0.5,
+                marketPrice = 123.45,
+                entryPrice = null,
+                marginAmount = 100.0,
+                fiatValue = 500.0,
+            )
         )
 
-        val model = create(PerpetualType.Open(data))!!
-
-        assertEquals(Action.Open, model.action)
-        assertEquals(PerpetualDirection.Long, model.direction)
         assertEquals(5, model.leverage)
         assertNull(model.pnl)
         assertNull(model.entryPriceText)
@@ -42,18 +37,9 @@ class PerpetualConfirmDetailsUIModelFactoryTest {
     }
 
     @Test
-    fun `close with pnl exposes pnl and entry price`() {
-        val data = mockPerpetualConfirmData(
-            direction = PerpetualDirection.Short,
-            leverage = 3u,
-            pnl = 25.0,
-            marginAmount = 100.0,
-            entryPrice = 99.0,
-        )
+    fun `pnl carries its share of the margin and its direction`() {
+        val model = create(mockPerpetualConfirmData(pnl = 25.0, marginAmount = 100.0, entryPrice = 99.0))
 
-        val model = create(PerpetualType.Close(data))!!
-
-        assertEquals(Action.Close, model.action)
         val pnl = model.pnl
         assertNotNull(pnl)
         assertEquals(ValueDirection.Up, pnl!!.direction)
@@ -63,65 +49,40 @@ class PerpetualConfirmDetailsUIModelFactoryTest {
     }
 
     @Test
-    fun `close without pnl drops pnl field`() {
-        val model = create(PerpetualType.Close(mockPerpetualConfirmData(pnl = null)))!!
-
-        assertEquals(Action.Close, model.action)
-        assertNull(model.pnl)
+    fun `no pnl drops the field`() {
+        assertNull(create(mockPerpetualConfirmData(pnl = null)).pnl)
     }
 
     @Test
-    fun `increase keeps data direction`() {
-        val model = create(
-            PerpetualType.Increase(mockPerpetualConfirmData(direction = PerpetualDirection.Long))
-        )!!
-
-        assertEquals(Action.Increase, model.action)
-        assertEquals(PerpetualDirection.Long, model.direction)
-    }
-
-    @Test
-    fun `reduce uses position direction not data direction`() {
-        val reduce = mockPerpetualReduceData(
-            data = mockPerpetualConfirmData(direction = PerpetualDirection.Short),
-            positionDirection = PerpetualDirection.Long,
+    fun `the model keeps the direction core resolved`() {
+        val model = PerpetualConfirmDetailsUIModelFactory.create(
+            mockPerpetualDetails(
+                direction = PerpetualDirection.Long,
+                data = mockPerpetualConfirmData(direction = PerpetualDirection.Short),
+            )
         )
 
-        val model = create(PerpetualType.Reduce(reduce))!!
-
-        assertEquals(Action.Reduce, model.action)
         assertEquals(PerpetualDirection.Long, model.direction)
     }
 
     @Test
-    fun `modify returns null`() {
-        val modify = mockPerpetualModifyConfirmData()
+    fun `autoclose formats both sides and omits a missing one`() {
+        val both = create(mockPerpetualConfirmData(takeProfit = "150.0", stopLoss = "80.0")).autoclose
+        assertNotNull(both)
+        assertEquals("$150.00", both!!.takeProfitText)
+        assertEquals("$80.00", both.stopLossText)
 
-        assertNull(create(PerpetualType.Modify(modify)))
+        val takeProfitOnly = create(mockPerpetualConfirmData(takeProfit = "150.0")).autoclose
+        assertEquals("$150.00", takeProfitOnly!!.takeProfitText)
+        assertNull(takeProfitOnly.stopLossText)
+
+        val stopLossOnly = create(mockPerpetualConfirmData(stopLoss = "80.0")).autoclose
+        assertNull(stopLossOnly!!.takeProfitText)
+        assertEquals("$80.00", stopLossOnly.stopLossText)
+
+        assertNull(create(mockPerpetualConfirmData()).autoclose)
     }
 
-    @Test
-    fun `autoclose exposes formatted take profit and stop loss`() {
-        val data = mockPerpetualConfirmData(takeProfit = "150.0", stopLoss = "80.0")
-
-        val autoclose = create(PerpetualType.Open(data))!!.autoclose
-        assertNotNull(autoclose)
-        assertEquals("$150.00", autoclose!!.takeProfitText)
-        assertEquals("$80.00", autoclose.stopLossText)
-    }
-
-    @Test
-    fun `autoclose omits missing side`() {
-        val tpOnly = create(PerpetualType.Open(mockPerpetualConfirmData(takeProfit = "150.0")))!!
-        val slOnly = create(PerpetualType.Open(mockPerpetualConfirmData(stopLoss = "80.0")))!!
-        val none = create(PerpetualType.Open(mockPerpetualConfirmData()))!!
-
-        assertEquals("$150.00", tpOnly.autoclose!!.takeProfitText)
-        assertNull(tpOnly.autoclose.stopLossText)
-        assertNull(slOnly.autoclose!!.takeProfitText)
-        assertEquals("$80.00", slOnly.autoclose.stopLossText)
-        assertNull(none.autoclose)
-    }
-
-    private fun create(type: PerpetualType) = PerpetualConfirmDetailsUIModelFactory.create(type)
+    private fun create(data: PerpetualConfirmData) =
+        PerpetualConfirmDetailsUIModelFactory.create(mockPerpetualDetails(data = data))
 }

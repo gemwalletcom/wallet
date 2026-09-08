@@ -9,8 +9,8 @@ use primitives::{
 };
 
 use super::model::{
-    GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind,
-    GemPerpetualTransferData,
+    GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualOrderAction, GemPerpetualOrderInput,
+    GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualTransferData,
 };
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
@@ -53,6 +53,21 @@ pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
             )
         })
         .collect()
+}
+
+pub fn details(perpetual_type: &PerpetualType) -> Option<GemPerpetualDetails> {
+    let (action, direction, data) = match perpetual_type {
+        PerpetualType::Open { data } => (GemPerpetualDetailsAction::Open, data.direction.clone(), data),
+        PerpetualType::Close { data } => (GemPerpetualDetailsAction::Close, data.direction.clone(), data),
+        PerpetualType::Increase { data } => (GemPerpetualDetailsAction::Increase, data.direction.clone(), data),
+        PerpetualType::Reduce { data } => (GemPerpetualDetailsAction::Reduce, data.position_direction.clone(), &data.data),
+        PerpetualType::Modify { .. } => return None,
+    };
+    Some(GemPerpetualDetails {
+        action,
+        direction,
+        data: data.clone(),
+    })
 }
 
 pub fn autoclose_summary(data: &PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
@@ -734,6 +749,26 @@ mod tests {
             take_profit: None,
             stop_loss: None,
         }
+    }
+
+    #[test]
+    fn test_details_read_the_reduce_direction_from_the_position_and_leave_a_modify_without_details() {
+        let data = PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None);
+        let reduce = details(&PerpetualType::Reduce {
+            data: PerpetualReduceData {
+                data: data.clone(),
+                position_direction: PerpetualDirection::Short,
+            },
+        })
+        .unwrap();
+        assert_eq!(reduce.action, GemPerpetualDetailsAction::Reduce);
+        assert_eq!(reduce.direction, PerpetualDirection::Short);
+
+        let open = details(&PerpetualType::Open { data: data.clone() }).unwrap();
+        assert_eq!(open.action, GemPerpetualDetailsAction::Open);
+        assert_eq!(open.direction, PerpetualDirection::Long);
+
+        assert!(details(&PerpetualType::Modify { data: modify_data(vec![], None, None) }).is_none());
     }
 
     #[test]

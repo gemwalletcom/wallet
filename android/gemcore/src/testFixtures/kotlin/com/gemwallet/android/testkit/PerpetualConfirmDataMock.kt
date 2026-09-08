@@ -6,6 +6,8 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
 import uniffi.gemstone.CancelOrderData
+import uniffi.gemstone.GemPerpetualDetails
+import uniffi.gemstone.GemPerpetualDetailsAction
 import uniffi.gemstone.GemPerpetualTransferData
 import uniffi.gemstone.PerpetualConfirmData
 import uniffi.gemstone.PerpetualModifyConfirmData
@@ -45,6 +47,16 @@ fun mockPerpetualConfirmData(
     marginAmount = marginAmount,
     takeProfit = takeProfit,
     stopLoss = stopLoss,
+)
+
+fun mockPerpetualDetails(
+    action: GemPerpetualDetailsAction = GemPerpetualDetailsAction.OPEN,
+    direction: PerpetualDirection = PerpetualDirection.Long,
+    data: PerpetualConfirmData = mockPerpetualConfirmData(),
+) = GemPerpetualDetails(
+    action = action,
+    direction = direction.toGem(),
+    data = data,
 )
 
 fun mockPerpetualReduceData(

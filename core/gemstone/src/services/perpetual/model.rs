@@ -1,9 +1,10 @@
+use super::rules;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::perpetual::GemPerpetual;
 use crate::services::failures::StepFailure;
 use crate::services::transfer::model::GemRecipient;
 use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualProvider};
+use primitives::{Asset, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualProvider, PerpetualType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -67,6 +68,26 @@ pub struct GemAutocloseSummary {
     pub stop_loss: Option<f64>,
     pub take_profit_cleared: bool,
     pub stop_loss_cleared: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualDetailsAction {
+    Open,
+    Close,
+    Increase,
+    Reduce,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPerpetualDetails {
+    pub action: GemPerpetualDetailsAction,
+    pub direction: PerpetualDirection,
+    pub data: PerpetualConfirmData,
+}
+
+#[uniffi::export]
+pub fn perpetual_details(perpetual_type: PerpetualType) -> Option<GemPerpetualDetails> {
+    rules::details(&perpetual_type)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]

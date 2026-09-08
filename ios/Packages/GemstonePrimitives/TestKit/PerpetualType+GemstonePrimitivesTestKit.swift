@@ -10,30 +10,30 @@ public extension PerpetualType {
     static func mockOpen(
         data: PerpetualConfirmData = .mock(),
     ) -> PerpetualType {
-        .open(data)
+        .open(data: data)
     }
 
     static func mockClose(
         data: PerpetualConfirmData = .mock(),
     ) -> PerpetualType {
-        .close(data)
+        .close(data: data)
     }
 
     static func mockIncrease(
         data: PerpetualConfirmData = .mock(),
     ) -> PerpetualType {
-        .increase(data)
+        .increase(data: data)
     }
 
     static func mockReduce(
         data: PerpetualReduceData = .mock(),
     ) -> PerpetualType {
-        .reduce(data)
+        .reduce(data: data)
     }
 
     static func mockModify(
         data: PerpetualModifyConfirmData = .mock(),
     ) -> PerpetualType {
-        .modify(data)
+        .modify(data: data)
     }
 }
