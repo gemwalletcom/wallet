@@ -5,6 +5,7 @@ import Localization
 import Primitives
 import PrimitivesTestKit
 @testable import Stake
+import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import StakeTestKit
