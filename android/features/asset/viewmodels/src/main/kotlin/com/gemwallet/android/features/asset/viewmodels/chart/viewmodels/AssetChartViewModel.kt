@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
-import uniffi.gemstone.GemChartServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,18 +8,20 @@ import com.gemwallet.android.application.assets.cases.GetAssetLinks
 import com.gemwallet.android.application.assets.cases.GetAssetMarket
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModelFactory
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemChartServiceInterface
 import javax.inject.Inject
-import com.gemwallet.android.ext.toPrimitives
 
 @HiltViewModel
 class AssetChartViewModel internal constructor(
@@ -30,6 +31,7 @@ class AssetChartViewModel internal constructor(
     private val chartService: GemChartServiceInterface,
     getPriceAlerts: GetPriceAlerts,
     getCurrentCurrency: GetCurrentCurrency,
+    private val marketUIModelFactory: AssetMarketUIModelFactory,
     val assetId: AssetId,
 ) : ViewModel() {
 
@@ -55,18 +57,15 @@ class AssetChartViewModel internal constructor(
         getCurrentCurrency.getCurrency(),
     ) { asset, links, market, currency ->
         asset?.let {
-            AssetMarketUIModel(
+            marketUIModelFactory.create(
                 asset = it,
-                assetTitle = it.name,
-                assetLinks = links.toModel(),
                 currency = currency,
-                marketInfo = market,
-                tokenExplorerLink = it.id.tokenId?.let { tokenId ->
-                    chartService.tokenUrl(it.id.chain.string, tokenId)?.toPrimitives()
-                },
+                rows = chartService.marketRows(it.toGem(), market?.toGem()),
+                links = links,
             )
         }
     }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @Inject
@@ -77,6 +76,7 @@ class AssetChartViewModel internal constructor(
         chartService: GemChartServiceInterface,
         getPriceAlerts: GetPriceAlerts,
         getCurrentCurrency: GetCurrentCurrency,
+        marketUIModelFactory: AssetMarketUIModelFactory,
         savedStateHandle: SavedStateHandle,
     ) : this(
         getAssetById = getAssetById,
@@ -85,6 +85,7 @@ class AssetChartViewModel internal constructor(
         chartService = chartService,
         getPriceAlerts = getPriceAlerts,
         getCurrentCurrency = getCurrentCurrency,
+        marketUIModelFactory = marketUIModelFactory,
         assetId = savedStateHandle.requireAssetId(),
     )
 }

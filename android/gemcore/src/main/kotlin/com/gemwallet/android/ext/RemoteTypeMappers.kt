@@ -939,6 +939,36 @@ fun com.wallet.core.primitives.AssetLink.toGem(): uniffi.gemstone.AssetLink = un
     url = url,
 )
 
+fun uniffi.gemstone.AssetMarket.toPrimitives(): com.wallet.core.primitives.AssetMarket = com.wallet.core.primitives.AssetMarket(
+    marketCap = marketCap,
+    marketCapFdv = marketCapFdv,
+    marketCapRank = marketCapRank,
+    totalVolume = totalVolume,
+    circulatingSupply = circulatingSupply,
+    totalSupply = totalSupply,
+    maxSupply = maxSupply,
+    allTimeHighValue = allTimeHighValue?.let { it.toPrimitives() },
+    allTimeLowValue = allTimeLowValue?.let { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.AssetMarket.toGem(): uniffi.gemstone.AssetMarket = uniffi.gemstone.AssetMarket(
+    marketCap = marketCap,
+    marketCapFdv = marketCapFdv,
+    marketCapRank = marketCapRank,
+    totalVolume = totalVolume,
+    circulatingSupply = circulatingSupply,
+    totalSupply = totalSupply,
+    maxSupply = maxSupply,
+    allTimeHigh = null,
+    allTimeHighDate = null,
+    allTimeHighChangePercentage = null,
+    allTimeLow = null,
+    allTimeLowDate = null,
+    allTimeLowChangePercentage = null,
+    allTimeHighValue = allTimeHighValue?.let { it.toGem() },
+    allTimeLowValue = allTimeLowValue?.let { it.toGem() },
+)
+
 fun uniffi.gemstone.AssetMetaData.toPrimitives(): com.wallet.core.primitives.AssetMetaData = com.wallet.core.primitives.AssetMetaData(
     isEnabled = isEnabled,
     isBalanceEnabled = isBalanceEnabled,
@@ -1057,6 +1087,18 @@ fun uniffi.gemstone.ChartDateValue.toPrimitives(): com.wallet.core.primitives.Ch
 fun com.wallet.core.primitives.ChartDateValue.toGem(): uniffi.gemstone.ChartDateValue = uniffi.gemstone.ChartDateValue(
     date = date,
     value = value,
+)
+
+fun uniffi.gemstone.ChartValuePercentage.toPrimitives(): com.wallet.core.primitives.ChartValuePercentage = com.wallet.core.primitives.ChartValuePercentage(
+    date = date,
+    value = value,
+    percentage = percentage,
+)
+
+fun com.wallet.core.primitives.ChartValuePercentage.toGem(): uniffi.gemstone.ChartValuePercentage = uniffi.gemstone.ChartValuePercentage(
+    date = date,
+    value = value,
+    percentage = percentage,
 )
 
 fun uniffi.gemstone.Contact.toPrimitives(): com.wallet.core.primitives.Contact = com.wallet.core.primitives.Contact(

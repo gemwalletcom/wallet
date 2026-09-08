@@ -6,11 +6,9 @@ import Primitives
 extension Primitives.AssetBasic: JsonCodable {}
 extension Primitives.AssetFull: JsonCodable {}
 extension Primitives.AssetList: JsonCodable {}
-extension Primitives.AssetMarket: JsonCodable {}
 extension Primitives.AuthNonce: JsonCodable {}
 extension Primitives.AuthPayload: JsonCodable {}
 extension Primitives.ChainAsset: JsonCodable {}
-extension Primitives.ChartValuePercentage: JsonCodable {}
 extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
