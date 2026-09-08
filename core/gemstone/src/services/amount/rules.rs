@@ -603,17 +603,24 @@ mod tests {
                     size_decimals: 4,
                 };
                 let balance = balance(100_000_000, 0, 0, 0);
+                let check = |amount: &GemAmountType, value: BigInt| {
+                    validate(&usdc(), &value, &amount.available_value(&usdc(), &balance), &minimum_value(amount, &usdc()))
+                };
                 let reduce = amount_type(GemAmountPerpetualPosition::Reduce { available: available.into() });
-                assert_eq!(reduce.validate(&usdc(), &balance, available.into()), Ok(()));
-                assert_eq!(reduce.validate(&usdc(), &balance, BigInt::ZERO), Err(GemAmountError::Zero));
-                assert_eq!(reduce.validate(&usdc(), &balance, (-1).into()), Err(GemAmountError::Zero));
+                assert_eq!(check(&reduce, available.into()), Ok(()));
+                assert_eq!(check(&reduce, BigInt::ZERO), Err(GemAmountError::Zero));
+                assert_eq!(check(&reduce, (-1).into()), Err(GemAmountError::Zero));
                 assert_eq!(
-                    reduce.validate(&usdc(), &balance, (available - 1).into()),
-                    Err(GemAmountError::BelowMinimum { minimum: available.into() })
+                    check(&reduce, (available - 1).into()),
+                    Err(GemAmountError::BelowMinimum {
+                        asset: usdc(),
+                        minimum: available.into()
+                    })
                 );
                 assert_eq!(
-                    reduce.validate(&usdc(), &balance, (available + 1).into()),
+                    check(&reduce, (available + 1).into()),
                     Err(GemAmountError::InsufficientBalance {
+                        asset: usdc(),
                         requirement: GemBalanceRequirement::new((available + 1).into(), available.into())
                     })
                 );
@@ -623,10 +630,13 @@ mod tests {
                     GemAmountPerpetualPosition::Reduce { available: 20_000_000u64.into() },
                 ] {
                     let amount = amount_type(position);
-                    assert_eq!(amount.validate(&usdc(), &balance, minimum.into()), Ok(()));
+                    assert_eq!(check(&amount, minimum.into()), Ok(()));
                     assert_eq!(
-                        amount.validate(&usdc(), &balance, (minimum - 1).into()),
-                        Err(GemAmountError::BelowMinimum { minimum: minimum.into() })
+                        check(&amount, (minimum - 1).into()),
+                        Err(GemAmountError::BelowMinimum {
+                            asset: usdc(),
+                            minimum: minimum.into()
+                        })
                     );
                 }
             }
