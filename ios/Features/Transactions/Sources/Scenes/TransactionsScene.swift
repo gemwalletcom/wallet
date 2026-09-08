@@ -15,6 +15,8 @@ public struct TransactionsScene: View {
         self.model = model
     }
 
+    @Environment(\.connectionStatus) private var connectionStatus
+
     public var body: some View {
         VStack {
             List {
@@ -26,7 +28,7 @@ public struct TransactionsScene: View {
             }
             .listSectionSpacing(.compact)
             .scrollContentBackground(.hidden)
-            .refreshableTimer(every: .minutes(5)) { _ in
+            .refreshableTimer(every: connectionStatus.refreshInterval(for: .wallet)) { _ in
                 await model.load()
             }
         }

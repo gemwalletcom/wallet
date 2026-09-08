@@ -16,6 +16,8 @@ struct PerpetualsScene: View {
         self.model = model
     }
 
+    @Environment(\.connectionStatus) private var connectionStatus
+
     var body: some View {
         SearchableWrapper(
             content: { list },
@@ -49,7 +51,7 @@ struct PerpetualsScene: View {
         .onDisappear {
             Task { await model.onDisappear() }
         }
-        .refreshableTimer(every: .minutes(1)) { source in
+        .refreshableTimer(every: connectionStatus.refreshInterval(for: .market)) { source in
             await model.load(source: source)
         }
         .listSectionSpacing(.compact)

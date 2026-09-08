@@ -68,7 +68,7 @@ pub use balance::{GemBalanceService, GemBalanceStore};
 pub use banner::{GemBannerAction, GemBannerService, GemBannerStore, GemNotificationPermissions};
 pub use chart::GemChartService;
 pub use config::GemConfigService;
-pub use connection::GemConnectionService;
+pub use connection::{GemConnectionService, GemRefreshKind};
 pub use contact::{GemContactService, GemContactStore};
 pub use currency::GemCurrencyService;
 pub use device::{GemDeviceInfo, GemDevicePlatform, GemDeviceRequestSigner, GemDeviceService};

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ConnectionStatusService
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -17,7 +16,7 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
     @State private var bannerHeight: CGFloat = .zero
 
     private var model: ConnectionStatusViewModel {
-        ConnectionStatusViewModel(status: connectionStatus.status)
+        ConnectionStatusViewModel(status: connectionStatus)
     }
 
     func body(content: Content) -> some View {

@@ -15,6 +15,8 @@ public struct AssetScene: View {
         self.model = model
     }
 
+    @Environment(\.connectionStatus) private var connectionStatus
+
     public var body: some View {
         List {
             Section {} header: {
@@ -192,7 +194,7 @@ public struct AssetScene: View {
                 .cleanListRow()
             }
         }
-        .refreshableTimer(every: .minutes(5)) { _ in
+        .refreshableTimer(every: connectionStatus.refreshInterval(for: .wallet)) { _ in
             await model.load()
         }
         .taskOnce(model.loadOnce)
