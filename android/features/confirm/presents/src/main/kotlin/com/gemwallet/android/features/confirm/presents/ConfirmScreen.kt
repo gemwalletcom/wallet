@@ -299,6 +299,7 @@ fun ConfirmScreen(
                     onDismissBottomSheetInfo = viewModel::dismissNetworkFeeSheet,
                     assetPrice = assetPrice,
                     acquireFlow = viewModel::acquireFlow,
+                    networkFeeBuyAmount = viewModel.networkFeeBuyAmount(),
                     onAcquireAsset = onAcquireAsset,
                 )
             }

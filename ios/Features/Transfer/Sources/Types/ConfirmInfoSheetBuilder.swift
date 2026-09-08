@@ -17,11 +17,12 @@ enum ConfirmInfoSheetBuilder {
         prices: [AssetId: Price],
         currency: String,
         acquireFlow: (Asset) -> GemAcquireAssetFlow,
+        networkFeeBuyAmount: Int,
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
     ) -> InfoSheetType? {
         switch error {
         case let .confirm(error):
-            confirmSheet(for: error, feePrice: feePrice, prices: prices, currency: currency, acquireFlow: acquireFlow, onGetAsset: onGetAsset)
+            confirmSheet(for: error, feePrice: feePrice, prices: prices, currency: currency, acquireFlow: acquireFlow, networkFeeBuyAmount: networkFeeBuyAmount, onGetAsset: onGetAsset)
         case .other:
             nil
         }
@@ -33,6 +34,7 @@ enum ConfirmInfoSheetBuilder {
         prices: [AssetId: Price],
         currency: String,
         acquireFlow: (Asset) -> GemAcquireAssetFlow,
+        networkFeeBuyAmount: Int,
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
     ) -> InfoSheetType? {
         switch error {
@@ -42,7 +44,7 @@ enum ConfirmInfoSheetBuilder {
         case let .InsufficientNetworkFee(asset, requirement):
             let asset = asset.map()
             return .insufficientNetworkFee(asset, image: image(for: asset), requirement: requirement?.map(), price: feePrice, currency: currency, button: acquireButton(asset, flow: acquireFlow(asset)) {
-                onGetAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount)
+                onGetAsset(asset, networkFeeBuyAmount)
             })
         case let .MinimumAccountBalanceTooLow(asset, requirement):
             return .accountMinimalBalance(asset.map(), required: requirement.required)

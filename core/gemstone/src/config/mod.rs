@@ -20,7 +20,6 @@ use crate::services::nft::rules::nft_chains;
 use primitives::{Chain, node_config::NodeRegion};
 
 use {
-    fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
     scan_config::{ScanConfig, get_scan_config},
     swap_config::{SwapConfig, get_swap_config},
@@ -43,10 +42,6 @@ impl Config {
 
     fn get_perpetual_config(&self) -> PerpetualConfig {
         get_perpetual_config()
-    }
-
-    fn get_fiat_config(&self) -> FiatConfig {
-        get_fiat_config()
     }
 
     fn get_scan_config(&self) -> ScanConfig {

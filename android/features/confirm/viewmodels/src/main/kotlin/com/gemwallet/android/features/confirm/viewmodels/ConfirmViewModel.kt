@@ -414,6 +414,8 @@ class ConfirmViewModel @Inject constructor(
 
     fun acquireFlow(asset: Asset): GemAcquireAssetFlow = confirmService.acquireAssetFlow(asset.chain.string)
 
+    fun networkFeeBuyAmount(): Int = confirmService.insufficientNetworkFeeBuyAmount()
+
     private fun ConfirmState.phase(content: ConfirmContent?): GemConfirmPhase = when (this) {
         ConfirmState.Prepare -> GemConfirmPhase.LOADING
         ConfirmState.Ready -> GemConfirmPhase.READY

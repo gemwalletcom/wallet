@@ -3,6 +3,7 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet, WalletId};
 
+use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
@@ -108,6 +109,10 @@ impl GemConfirmTransferService {
 
     pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
         self.asset_config.acquire_flow(chain)
+    }
+
+    pub fn insufficient_network_fee_buy_amount(&self) -> i32 {
+        get_fiat_config().insufficient_network_fee_buy_amount
     }
 }
 

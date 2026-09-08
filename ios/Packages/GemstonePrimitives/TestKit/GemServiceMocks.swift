@@ -443,8 +443,8 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         Primitives.Currency.usd.rawValue
     }
 
-    public func config() -> Gemstone.FiatConfig {
-        Gemstone.FiatConfig(defaultBuyAmount: 50, defaultSellAmount: 100, minimumAmount: 5, maximumAmount: 10000, randomMaxAmount: 1000, suggestedAmounts: [100, 250], insufficientNetworkFeeBuyAmount: 10)
+    public func suggestedAmounts() -> [Int32] {
+        [100, 250]
     }
 
     private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {

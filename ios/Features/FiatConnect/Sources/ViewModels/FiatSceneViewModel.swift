@@ -160,7 +160,7 @@ public final class FiatSceneViewModel {
     }
 
     var suggestedAmounts: [Int] {
-        service.config().suggestedAmounts.map(Int.init)
+        service.suggestedAmounts().map(Int.init)
     }
 
     var showFiatTypePicker: Bool {

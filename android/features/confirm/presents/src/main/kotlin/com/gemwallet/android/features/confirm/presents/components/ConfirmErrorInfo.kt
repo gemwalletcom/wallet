@@ -11,7 +11,6 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.confirm.presents.toPreloadLabel
 import com.gemwallet.android.ext.toPrimitives
@@ -42,6 +41,7 @@ internal fun ConfirmErrorInfo(
     onDismissBottomSheetInfo: () -> Unit,
     assetPrice: AssetPriceValue?,
     acquireFlow: (Asset) -> GemAcquireAssetFlow,
+    networkFeeBuyAmount: Int,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
 ) {
     var isShowInfoSheet by remember { mutableStateOf(false) }
@@ -68,7 +68,7 @@ internal fun ConfirmErrorInfo(
             onAcquireAsset(AcquireAssetAction.Buy(amount), asset.id)
         }
     }
-    val infoSheetEntity = error.toInfoSheetEntity(fee, assetPrice, acquireFlow, onSelectAcquireAsset)
+    val infoSheetEntity = error.toInfoSheetEntity(fee, assetPrice, acquireFlow, networkFeeBuyAmount, onSelectAcquireAsset)
 
     WarningItem(
         title = stringResource(R.string.errors_error_occurred),
@@ -103,6 +103,7 @@ private fun Throwable.toInfoSheetEntity(
     fee: FeeUIModel.FeeInfo?,
     assetPrice: AssetPriceValue?,
     acquireFlow: (Asset) -> GemAcquireAssetFlow,
+    networkFeeBuyAmount: Int,
     onAcquireAsset: (Asset, Int?) -> Unit,
 ): InfoSheetEntity? {
     return when (this) {
@@ -125,7 +126,7 @@ private fun Throwable.toInfoSheetEntity(
                 NetworkFeeRequiredInfo(
                     chain = asset.chain,
                     actionLabel = asset.acquireActionLabel(acquireFlow(asset)),
-                    action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
+                    action = { onAcquireAsset(asset, networkFeeBuyAmount) },
                 )
             } else {
                 NetworkBalanceRequiredInfo(
@@ -134,7 +135,7 @@ private fun Throwable.toInfoSheetEntity(
                     available = formatted.available,
                     shortfall = formatted.shortfall,
                     actionLabel = asset.acquireActionLabel(acquireFlow(asset)),
-                    action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
+                    action = { onAcquireAsset(asset, networkFeeBuyAmount) },
                 )
             }
         }

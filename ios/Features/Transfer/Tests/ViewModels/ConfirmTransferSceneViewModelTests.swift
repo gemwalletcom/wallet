@@ -591,7 +591,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected fiatConnect sheet")
             return
         }
-        #expect(amount == FiatConfig.insufficientNetworkFeeBuyAmount)
+        #expect(amount == Int(GemConfirmTransferServiceMock.networkFeeBuyAmount))
     }
 
     @Test
@@ -725,7 +725,7 @@ struct ConfirmTransferSceneViewModelTests {
             return
         }
         #expect(asset.id == Asset.mockTron().id)
-        #expect(buyAmount == FiatConfig.insufficientNetworkFeeBuyAmount)
+        #expect(buyAmount == Int(GemConfirmTransferServiceMock.networkFeeBuyAmount))
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {
