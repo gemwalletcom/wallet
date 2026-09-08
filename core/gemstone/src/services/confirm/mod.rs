@@ -164,7 +164,7 @@ impl GemConfirmService {
             None => self.simulation_formatter.header(simulation.clone()).and_then(|header| {
                 assets.iter().find(|asset| asset.id == header.asset_id).map(|asset| GemSimulationValue {
                     asset: asset.clone(),
-                    value: rules::approval_value_from(&header.value, header.is_unlimited),
+                    value: rules::approval_value_from(header.value.as_ref(), header.is_unlimited),
                 })
             }),
         };
