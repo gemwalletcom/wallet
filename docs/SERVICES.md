@@ -1197,11 +1197,19 @@ the view-model scope in `tearDown`, and five forced reruns on 2026-09-05 passed.
 there as a real regression, not the old flake.
 
 `AddAssetViewModelTest > addAsset adds the found token to the current wallet` (Android) failed once
-in a full `just test` run with a `CompletionHandlerException` from a cancelled `ProducerCoroutine`
-and passed three forced reruns; the view model's search producer is cancelled while its completion
-handler still runs, so the test needs the producer scope closed before the assertion, not a retry.
+in a full `just test` run with a `CompletionHandlerException` from a cancelled `ProducerCoroutine`.
+`AddAssetViewModel.searchToken` and `ReferralViewModel.sync` caught `Exception`, which swallows the
+`CancellationException` a `flatMapLatest` throws when the address changes, so the search kept
+running and emitted into a collector that was already gone; both use `runCatchingCancellable` now,
+the way the three chart view models already call `ensureActive()` in their catch. Twelve forced
+runs did not reproduce the failure before the change, so the fix is the anti-pattern, not a proven
+repro — a test that pins it has to observe the throw from the cancelled producer, and the obvious
+one passes against the old code too.
 
-`Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL` — the pre-`46889318bc` contract — and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived, so it cannot fail on data loss. It is an `androidTest`, so fixing it means running it on a device.
+`Migration_88_89Test` asserts what the migration does to the rows now: the banners it cannot rebuild
+are dropped, and the recreated table takes a row with no chain. Mutating the migration to carry the
+old rows across fails it (`expected:<0> but was:<1>`), which is the check the schema validation
+alone could not make. It runs on a device, not in CI.
 
 ### 7. Android
 

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.referral.values.ReferralError
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -83,9 +84,7 @@ class ReferralViewModel @Inject constructor(
     private fun sync(wallet: Wallet, type: SyncType) = viewModelScope.launch(Dispatchers.IO) {
         inSync.update { type }
         val rewards = try {
-            service.getRewards(wallet.id.id).decodeJson<Rewards>()
-        } catch (_: Exception) {
-            null
+            runCatchingCancellable { service.getRewards(wallet.id.id).decodeJson<Rewards>() }.getOrNull()
         } finally {
             inSync.update { SyncType.None }
         }
