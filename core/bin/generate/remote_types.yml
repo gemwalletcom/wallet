@@ -1,4 +1,10 @@
 remote:
+  - TransactionUtxoInput
+  - TransactionExtended
+  - TransactionDirection
+  - Transaction
+  - PriceProvider
+  - Price
   - Account
   - AccountDataType
   - AddressName
@@ -147,7 +153,36 @@ scalars:
   - bool
   - f32
   - f64
+defaults:
+  PriceProvider: Coingecko
+
+conversions:
+  UInt64:
+    kotlin:
+      - "{}.toLong()"
+      - "{}.toULong()"
+  BigInt:
+    kotlin:
+      - "{}.toString()"
+      - "java.math.BigInteger({})"
+    swift:
+      - "{}.description"
+      - "BigInt(stringLiteral: {})"
+  BigUint:
+    kotlin:
+      - "{}.toString()"
+      - "java.math.BigInteger({})"
+    swift:
+      - "{}.description"
+      - "BigUInt(stringLiteral: {})"
+  serde_json::Value:
+    swift:
+      - "AnyCodableValue(core: {})"
+      - "{}.json()"
+
 declared:
   BigInt: GemBigInt
+  UInt64: primitives::UInt64
+  serde_json::Value: GemJsonValue
   BigUint: GemBigUint
   DateTime<Utc>: chrono::DateTime<chrono::Utc>

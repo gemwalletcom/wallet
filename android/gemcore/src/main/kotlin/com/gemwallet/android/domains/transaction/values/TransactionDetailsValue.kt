@@ -13,6 +13,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.GemTransactionStatus
 import java.math.BigInteger
 
 sealed interface TransactionDetailsValue {
@@ -85,7 +86,7 @@ sealed interface TransactionDetailsValue {
         class Provider(name: String) : Destination(name)
     }
 
-    class Status(val data: TransactionState) : TransactionDetailsValue
+    class Status(val data: TransactionState, val status: GemTransactionStatus) : TransactionDetailsValue
 
     class EstimatedConfirmation(val seconds: UInt) : TransactionDetailsValue
 

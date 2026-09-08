@@ -19,7 +19,7 @@ private struct RefreshableTimerModifier: ViewModifier {
                 trigger += 1
                 await action(.user)
             }
-            .task(id: trigger) {
+            .task(id: TimerRun(trigger: trigger, interval: interval)) {
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .seconds(interval))
                     guard !Task.isCancelled else { break }
@@ -27,6 +27,11 @@ private struct RefreshableTimerModifier: ViewModifier {
                 }
             }
     }
+}
+
+private struct TimerRun: Equatable {
+    let trigger: Int
+    let interval: TimeInterval
 }
 
 public extension View {

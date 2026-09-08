@@ -19,6 +19,7 @@ public struct WalletScene: View {
 
     public var body: some View {
         @Bindable var preferences = model.observablePreferences
+        let sections = model.sections
 
         List {
             Section {} header: {
@@ -57,10 +58,10 @@ public struct WalletScene: View {
                 .listRowInsets(.zero)
             }
 
-            if model.showPinnedSection {
+            if !sections.pinned.isEmpty {
                 Section {
                     WalletAssetsList(
-                        assets: model.sections.pinned,
+                        assets: sections.pinned,
                         currencyCode: model.currencyCode,
                         onHideAsset: model.onHideAsset,
                         onPinAsset: model.onPinAsset,
@@ -75,7 +76,7 @@ public struct WalletScene: View {
 
             Section {
                 WalletAssetsList(
-                    assets: model.sections.assets,
+                    assets: sections.assets,
                     currencyCode: model.currencyCode,
                     onHideAsset: model.onHideAsset,
                     onPinAsset: model.onPinAsset,

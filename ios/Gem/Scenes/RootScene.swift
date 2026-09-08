@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import ConnectionStatusService
 import GemstonePrimitives
 import Localization
 import Onboarding
@@ -10,6 +11,8 @@ import Style
 import SwiftUI
 
 struct RootScene: View {
+    private let connectionStatusObserver = AppResolver.main.services.connectionStatusObserver
+
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.navigationPresenter) private var presenter
 
@@ -31,6 +34,7 @@ struct RootScene: View {
                 )
             }
         }
+        .environment(\.connectionStatus, connectionStatusObserver.status)
         .onOpenURL { url in
             Task {
                 await model.handleOpenUrl(url)

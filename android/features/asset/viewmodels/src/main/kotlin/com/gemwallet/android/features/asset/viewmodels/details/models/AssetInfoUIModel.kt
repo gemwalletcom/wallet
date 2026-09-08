@@ -15,7 +15,7 @@ import uniffi.gemstone.GemAssetDetailsState
 class AssetInfoUIModel(
     val assetInfo: AssetInfo,
     val name: String = "",
-    val iconUrl: String = "",
+    val iconUrl: Any? = null,
     val priceValue: String = "0",
     val priceDayChanges: String = "0",
     val priceChangedType: ValueDirection = ValueDirection.Up,
@@ -32,7 +32,6 @@ class AssetInfoUIModel(
     val networkDestination: NetworkDestination? = null,
     val shareUrl: String = "",
     val detailsState: GemAssetDetailsState,
-    val updated: Long = System.currentTimeMillis(),
 ) {
 
     val asset: Asset get() = assetInfo.asset

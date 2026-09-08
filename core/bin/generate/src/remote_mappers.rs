@@ -17,6 +17,10 @@ pub struct Config {
     identifiers: Vec<String>,
     scalars: Vec<String>,
     declared: BTreeMap<String, String>,
+    #[serde(default)]
+    conversions: BTreeMap<String, BTreeMap<String, Vec<String>>>,
+    #[serde(default)]
+    defaults: BTreeMap<String, String>,
 }
 
 impl Config {
@@ -35,6 +39,16 @@ impl Config {
     /// A type gemstone declares under another name, such as a big integer or a date.
     fn declared(&self, name: &str) -> Option<&str> {
         self.declared.get(name).map(String::as_str)
+    }
+
+    /// The expression that converts a declared type the app spells differently, per language and direction.
+    fn conversion(&self, name: &str, language: &str, index: usize) -> Option<&str> {
+        self.conversions.get(name)?.get(language)?.get(index).map(String::as_str)
+    }
+
+    /// The variant a skipped enum field falls back to, since the app type does not carry one.
+    fn default_variant(&self, name: &str) -> Option<&str> {
+        self.defaults.get(name).map(String::as_str)
     }
 
     /// The declared names that are gemstone custom types, which the declarations import.
@@ -548,6 +562,7 @@ fn field_names(field: &Field, index: usize) -> (String, String) {
 /// The syntax of one app language. Index 0 in every pair is the direction out of Core, index 1
 /// the direction into it.
 struct Language {
+    name: &'static str,
     header: &'static str,
     core_module: &'static str,
     app_module: &'static str,
@@ -573,7 +588,8 @@ struct Language {
 }
 
 const SWIFT: Language = Language {
-    header: "import Gemstone\nimport Primitives\n",
+    name: "swift",
+    header: "import BigInt\nimport Gemstone\nimport Primitives\n",
     core_module: "Gemstone",
     app_module: "Primitives",
     app_modules: false,
@@ -598,6 +614,7 @@ const SWIFT: Language = Language {
 };
 
 const KOTLIN: Language = Language {
+    name: "kotlin",
     header: "package com.gemwallet.android.ext\n",
     core_module: "uniffi.gemstone",
     app_module: "com.wallet.core.primitives",
@@ -638,6 +655,9 @@ impl Language {
             };
         }
         let template = match inner {
+            name if config.conversion(name, self.name, index).is_some() => {
+                return config.conversion(name, self.name, index).unwrap_or_default().replace("{}", expression);
+            }
             name if config.is_scalar(name) || config.declared(name).is_some() => return expression.to_string(),
             name if config.codes.iter().any(|code| code == name) => self.codes[index],
             name if config.identifiers.iter().any(|identifier| identifier == name) => self.identifiers[index],
@@ -654,6 +674,10 @@ impl Language {
             ("bool", _) => "false".to_string(),
             ("f64", _) => "0.0".to_string(),
             (name, _) if config.is_scalar(name) => "0".to_string(),
+            (name, _) if config.default_variant(name).is_some() => {
+                let variant = config.default_variant(name).unwrap_or_default();
+                format!("{}.{}.{}", self.core_module, name, (self.cases[0])(variant))
+            }
             (name, _) => panic!("{record}.{} is skipped by TypeShare and {name} has no default the generator can emit", field.rust),
         }
     }

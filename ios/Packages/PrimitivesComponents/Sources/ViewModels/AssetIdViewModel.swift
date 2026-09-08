@@ -1,12 +1,32 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
 import class Gemstone.GemAssetConfigService
+import struct Gemstone.GemAssetIcon
 import enum Gemstone.GemAssetIconImage
 import GemstonePrimitives
 import Primitives
 import SwiftUI
 
+
+private final class AssetIconCache: @unchecked Sendable {
+    static let shared = AssetIconCache()
+
+    private var icons: [String: GemAssetIcon] = [:]
+    private let lock = NSLock()
+
+    func icon(for identifier: String) -> GemAssetIcon {
+        lock.withLock {
+            if let cached = icons[identifier] {
+                return cached
+            }
+            let icon = GemAssetConfigService.shared.assetIcon(assetId: identifier)
+            icons[identifier] = icon
+            return icon
+        }
+    }
+}
 
 public struct AssetIdViewModel: Sendable {
     private let assetId: AssetId
@@ -25,7 +45,7 @@ public struct AssetIdViewModel: Sendable {
     }
 
     public var assetImage: AssetImage {
-        let icon = GemAssetConfigService.shared.assetIcon(assetId: assetId.identifier)
+        let icon = AssetIconCache.shared.icon(for: assetId.identifier)
         let (imageURL, placeholder): (URL?, Image?) = switch icon.image {
         case let .local(chain): (.none, ChainImage(chain: Chain(core: chain)).image)
         case let .remote(url): (URL(string: url), .none)

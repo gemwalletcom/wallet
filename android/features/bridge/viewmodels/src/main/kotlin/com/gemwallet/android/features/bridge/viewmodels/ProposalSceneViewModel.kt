@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
@@ -69,18 +70,20 @@ class ProposalSceneViewModel @Inject constructor(
             Log.d(TAG, "Ignoring duplicate proposal")
             return
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            val prepared = runCatchingCancellable {
-                prepareSessionProposal(
-                    name = proposal.name,
-                    description = proposal.description,
-                    url = proposal.url,
-                    icons = proposal.icons,
-                    requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
-                    optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
-                    origin = verifyContext.origin,
-                    validation = verifyContext.map(),
-                )
+        viewModelScope.launch {
+            val prepared = withContext(Dispatchers.IO) {
+                runCatchingCancellable {
+                    prepareSessionProposal(
+                        name = proposal.name,
+                        description = proposal.description,
+                        url = proposal.url,
+                        icons = proposal.icons,
+                        requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
+                        optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
+                        origin = verifyContext.origin,
+                        validation = verifyContext.map(),
+                    )
+                }
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
                 if (error is GemWalletConnectException.InvalidOrigin) onNotify(BridgeRequestError.MaliciousSession)

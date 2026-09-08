@@ -9,8 +9,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.showsStatusBadge
-import com.gemwallet.android.ui.components.statusColor
+import com.gemwallet.android.ui.components.color
 import com.gemwallet.android.ui.components.statusLabelRes
 import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.model.CurrencyFormatter
@@ -63,15 +62,15 @@ private fun perpetualTitle(direction: uniffi.gemstone.PerpetualDirection?, @Stri
 
 @Composable
 fun TransactionDataAggregate.getBadgeText(): String =
-    if (state.showsStatusBadge()) stringResource(id = state.statusLabelRes()) else ""
+    if (status.showsBadge) stringResource(id = state.statusLabelRes()) else ""
 
 @Composable
-fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
+fun TransactionDataAggregate.getBadgeColor(): Color = status.tone.color()
 
 @Composable
 fun TransactionDataAggregate.formatAddress(): String? = when (val subtitle = subtitle) {
-    is GemTransactionRowSubtitle.ToAddress -> prefixed(R.string.transfer_to, subtitle.name ?: address)
-    is GemTransactionRowSubtitle.FromAddress -> prefixed(R.string.transfer_from, subtitle.name ?: address)
+    is GemTransactionRowSubtitle.ToAddress -> prefixed(R.string.transfer_to, subtitle.participant)
+    is GemTransactionRowSubtitle.FromAddress -> prefixed(R.string.transfer_from, subtitle.participant)
     is GemTransactionRowSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.toPrimitives().titleRes()))
     is GemTransactionRowSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.toPrimitives().titleRes()))
     is GemTransactionRowSubtitle.Price -> "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(subtitle.value)}"

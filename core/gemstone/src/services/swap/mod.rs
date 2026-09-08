@@ -21,7 +21,7 @@ use crate::message::signer::MessageSigner;
 use crate::models::swap::GemSwapQuoteData;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::GemKeystorePassword;
-pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer};
+pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer, swap_quote_summary, swapper_quote_summary};
 use primitives::{AssetId, WalletId};
 pub use session::{GemSwapButtonState, GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
 pub use store::GemSwapStore;

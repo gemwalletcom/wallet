@@ -134,15 +134,15 @@ public extension DelegationSceneViewModel {
     func onSelectAction(_ action: DelegationActionType) {
         switch action {
         case .stake:
-            onAmountInputAction?(amountInput(.stake(.stake(validators: validators, recommended: model.delegation.validator))))
+            onAmountInputAction?(amountInput(.stake(.stake(validators: validators.map { $0.map() }, delegation: model.delegation.map()))))
         case .unstake:
             if stakeChain.canChangeAmountOnUnstake {
-                onAmountInputAction?(amountInput(.stake(.unstake(model.delegation))))
+                onAmountInputAction?(amountInput(.stake(.unstake(delegation: model.delegation.map()))))
             } else {
                 onTransferAction?(stakeTransferData(.unstake(model.delegation)))
             }
         case .redelegate:
-            onAmountInputAction?(amountInput(.stake(.redelegate(model.delegation, validators: validators, recommended: recommendedValidator))))
+            onAmountInputAction?(amountInput(.stake(.redelegate(validators: validators.map { $0.map() }, delegation: model.delegation.map()))))
         case .deposit:
             onAmountInputAction?(amountInput(.earn(.deposit(model.delegation.validator))))
         case .withdraw:
@@ -186,12 +186,5 @@ extension DelegationSceneViewModel {
 
     private var stakeChain: StakeChain {
         StakeChain(rawValue: asset.chain.rawValue)!
-    }
-
-    private var recommendedValidator: DelegationValidator? {
-        service.recommendedValidator(
-            chain: model.delegation.base.assetId.chain.rawValue,
-            validators: validators.map { $0.map() },
-        ).map { $0.map() }
     }
 }

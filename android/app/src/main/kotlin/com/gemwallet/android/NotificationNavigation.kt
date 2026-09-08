@@ -11,7 +11,6 @@ import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationField
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
@@ -74,7 +73,7 @@ class NotificationNavigation @Inject constructor(
             is GemPushNotification.Transaction -> prepareTransactionRoutes(
                 walletId = WalletId(notification.walletId),
                 assetId = notification.assetId.toAssetId() ?: return emptyList(),
-                transaction = notification.transaction.decodeJson(),
+                transaction = notification.transaction.toPrimitives(),
             )
             GemPushNotification.Rewards -> listOf(ReferralRoute())
             GemPushNotification.Support -> listOf(SupportRoute)

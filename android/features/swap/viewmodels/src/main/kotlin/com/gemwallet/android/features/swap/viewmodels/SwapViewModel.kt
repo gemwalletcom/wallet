@@ -67,13 +67,14 @@ import uniffi.gemstone.Config
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSlippageCheck
 import uniffi.gemstone.GemSwapQuoteServiceInterface
-import uniffi.gemstone.GemSwapQuoteSummary
+import uniffi.gemstone.swapperQuoteSummary
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapProvider
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.domains.gemConfig
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -185,7 +186,7 @@ class SwapViewModel @Inject constructor(
             if (quote == null) {
                 return@combine null
             }
-            val summary = GemSwapQuoteSummary.fromQuote(quote.quote)
+            val summary = swapperQuoteSummary(quote.quote)
 
             val provider = providers.firstOrNull { item ->
                 item.id == quote.quote.data.provider.id &&
@@ -211,8 +212,8 @@ class SwapViewModel @Inject constructor(
                     priceImpact = quote.pay.swapValue(quote.quote.fromValue)
                         .priceImpact(quote.receive.swapValue(quote.quote.toValue))
                         ?.toPrimitives(),
-                    minReceiveValue = summary.minReceiveValue(),
-                    etaMinutes = summary.etaMinutes(),
+                    minReceiveValue = summary.minReceiveValue,
+                    etaMinutes = summary.etaMinutes,
                 ),
             )
         }
@@ -378,7 +379,7 @@ class SwapViewModel @Inject constructor(
     private fun applyMinimumAmount(amount: BigInteger) {
         val asset = payAsset.value?.asset ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).toString())
+        payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).stripTrailingZeros().toPlainString())
     }
 
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {
@@ -387,6 +388,6 @@ class SwapViewModel @Inject constructor(
     }
 
     companion object {
-        val percentSuggestions = Config().getSwapConfig().amountPercentPresets.map { it.toInt() }
+        val percentSuggestions = gemConfig.getSwapConfig().amountPercentPresets.map { it.toInt() }
     }
 }

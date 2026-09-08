@@ -4,7 +4,7 @@ use localizer::LanguageLocalizer;
 use number_formatter::NumberFormatter;
 use primitives::currency::Currency;
 use primitives::{
-    Asset, AssetId, Device, GorushNotification, Price, PriceAlert, PriceAlertDirection, PriceAlertType, PriceAlerts, PriceData, PushNotification, PushNotificationAsset,
+    Asset, AssetId, Device, FiatRate, GorushNotification, Price, PriceAlert, PriceAlertDirection, PriceAlertType, PriceAlerts, PriceData, PushNotification, PushNotificationAsset,
     PushNotificationTypes,
 };
 use std::collections::HashSet;
@@ -29,6 +29,28 @@ pub struct PriceAlertNotification {
     pub milestone: Option<f64>,
 }
 
+impl PriceAlertNotification {
+    pub fn currency(&self) -> &Currency {
+        match self.alert_type {
+            PriceAlertType::PriceUp | PriceAlertType::PriceDown => &self.price_alert.currency,
+            PriceAlertType::PriceChangesUp
+            | PriceAlertType::PriceChangesDown
+            | PriceAlertType::PricePercentChangeUp
+            | PriceAlertType::PricePercentChangeDown
+            | PriceAlertType::AllTimeHigh
+            | PriceAlertType::PriceMilestone => &self.device.currency,
+        }
+    }
+
+    fn with_rates(self, rates: &[FiatRate]) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let rate = fiat_rate(rates, self.currency()).ok_or_else(|| format!("missing fiat rate for {}", self.currency().as_ref()))?;
+        Ok(Self {
+            price: self.price.with_rate(rate),
+            ..self
+        })
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct PriceAlertRules {
     pub notification_cooldown: StdDuration,
@@ -37,6 +59,7 @@ pub struct PriceAlertRules {
     pub milestones: Vec<f64>,
 }
 
+#[derive(Debug, PartialEq)]
 struct AlertResult {
     alert_type: PriceAlertType,
     milestone: Option<f64>,
@@ -68,6 +91,10 @@ impl PriceAlertRules {
 
         self.milestones.iter().find(|&&milestone| price_24h_ago < milestone && current_price >= milestone).copied()
     }
+}
+
+fn fiat_rate(rates: &[FiatRate], currency: &Currency) -> Option<f64> {
+    rates.iter().find(|rate| rate.symbol == *currency).map(|rate| rate.rate)
 }
 
 fn calculate_price_24h_ago(current_price: f64, change_percent: f64) -> f64 {
@@ -107,13 +134,14 @@ impl PriceAlertClient {
         let cooldown = Duration::seconds(rules.notification_cooldown.as_secs() as i64);
         let after_notified_at = now - cooldown;
         let price_alerts = self.database.price_alerts()?.get_price_alerts(after_notified_at.naive_utc(), max_age)?;
+        let rates = self.fiat_rates()?;
 
         let mut results: Vec<PriceAlertNotification> = Vec::new();
         let mut price_alert_ids: HashSet<String> = HashSet::new();
 
         for (price_alert, price_data, device) in price_alerts {
-            if let Some(alert_result) = self.get_price_alert_type(&price_alert, &price_data, &rules) {
-                let notification = self.price_alert_notification(device, &price_data, price_alert.clone(), alert_result.alert_type, alert_result.milestone)?;
+            if let Some(alert_result) = Self::get_price_alert_type(&price_alert, &price_data, &rates, &rules) {
+                let notification = self.price_alert_notification(device, &price_data, price_alert.clone(), alert_result, &rates)?;
                 price_alert_ids.insert(price_alert.id());
                 results.push(notification);
             }
@@ -125,13 +153,18 @@ impl PriceAlertClient {
         Ok(results)
     }
 
-    fn get_price_alert_type(&self, price_alert: &PriceAlert, price_data: &PriceData, rules: &PriceAlertRules) -> Option<AlertResult> {
+    fn fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
+        Ok(self.database.fiat()?.get_fiat_rates()?.into_iter().map(|row| row.as_primitive()).collect())
+    }
+
+    fn get_price_alert_type(price_alert: &PriceAlert, price_data: &PriceData, rates: &[FiatRate], rules: &PriceAlertRules) -> Option<AlertResult> {
         // User-defined price target
         if let Some(target_price) = price_alert.price {
             let direction = price_alert.price_direction.clone()?;
+            let price = price_data.price * fiat_rate(rates, &price_alert.currency)?;
             let alert_type = match direction {
-                PriceAlertDirection::Up if price_data.price >= target_price => Some(PriceAlertType::PriceUp),
-                PriceAlertDirection::Down if price_data.price <= target_price => Some(PriceAlertType::PriceDown),
+                PriceAlertDirection::Up if price >= target_price => Some(PriceAlertType::PriceUp),
+                PriceAlertDirection::Down if price <= target_price => Some(PriceAlertType::PriceDown),
                 _ => None,
             };
             return alert_type.map(AlertResult::new);
@@ -176,24 +209,18 @@ impl PriceAlertClient {
         device: Device,
         price_data: &PriceData,
         price_alert: PriceAlert,
-        alert_type: PriceAlertType,
-        milestone: Option<f64>,
+        alert_result: AlertResult,
+        rates: &[FiatRate],
     ) -> Result<PriceAlertNotification, Box<dyn Error + Send + Sync>> {
-        let asset = self.database.assets()?.get_asset(&price_alert.asset_id)?;
-        let base_rate = self.database.fiat()?.get_fiat_rate(&Currency::USD)?;
-        let rate = self.database.fiat()?.get_fiat_rate(&device.currency)?;
-
-        let price = Price::new(price_data.price, price_data.price_change_percentage_24h, price_data.last_updated_at, price_data.provider);
-        let price = price.new_with_rate(base_rate.rate, rate.rate);
-
-        Ok(PriceAlertNotification {
+        PriceAlertNotification {
             device,
-            asset,
-            price,
-            alert_type,
+            asset: self.database.assets()?.get_asset(&price_alert.asset_id)?,
+            price: Price::new(price_data.price, price_data.price_change_percentage_24h, price_data.last_updated_at, price_data.provider),
+            alert_type: alert_result.alert_type,
             price_alert,
-            milestone,
-        })
+            milestone: alert_result.milestone,
+        }
+        .with_rates(rates)
     }
 
     pub fn get_notifications_for_price_alerts(&self, notifications: Vec<PriceAlertNotification>) -> Vec<GorushNotification> {
@@ -205,10 +232,10 @@ impl PriceAlertClient {
                 continue;
             }
 
-            let current_price = match formatter.currency(alert.price.price, alert.device.currency.as_ref()) {
+            let current_price = match formatter.currency(alert.price.price, alert.currency().as_ref()) {
                 Some(p) => p,
                 None => {
-                    info_with_fields!("unknown_currency_symbol", currency = alert.device.currency.as_ref());
+                    info_with_fields!("unknown_currency_symbol", currency = alert.currency().as_ref());
                     continue;
                 }
             };
@@ -221,7 +248,7 @@ impl PriceAlertClient {
                     let Some(target_value) = Self::price_alert_target_value(&alert) else {
                         continue;
                     };
-                    let Some(target_price) = formatter.currency(target_value, alert.device.currency.as_ref()) else {
+                    let Some(target_price) = formatter.currency(target_value, alert.currency().as_ref()) else {
                         continue;
                     };
                     localizer.price_alert_target(&alert.asset.full_name(), &target_price, &current_price, &change)
@@ -257,10 +284,80 @@ impl PriceAlertClient {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
+    use chrono::{DateTime, Utc};
     use primitives::{Chain, PriceProvider};
 
     use super::*;
+
+    fn rules() -> PriceAlertRules {
+        PriceAlertRules {
+            notification_cooldown: StdDuration::from_secs(86_400),
+            price_change_threshold: 5.0,
+            rank_divisor: 5.0,
+            milestones: vec![],
+        }
+    }
+
+    fn rates() -> Vec<FiatRate> {
+        vec![
+            FiatRate { symbol: Currency::USD, rate: 1.0 },
+            FiatRate {
+                symbol: Currency::EUR,
+                rate: 0.86,
+            },
+        ]
+    }
+
+    #[test]
+    fn test_get_price_alert_type() {
+        let asset_id = AssetId::from_chain(Chain::Bitcoin);
+        let price_data = PriceData::mock_with(78_987.0, -1.4);
+        let over = PriceAlert::new_price(asset_id.clone(), Currency::EUR, 71_000.0, PriceAlertDirection::Up);
+        let under = PriceAlert::new_price(asset_id.clone(), Currency::EUR, 71_000.0, PriceAlertDirection::Down);
+        let over_usd = PriceAlert::new_price(asset_id.clone(), Currency::USD, 71_000.0, PriceAlertDirection::Up);
+        let over_unknown = PriceAlert::new_price(asset_id.clone(), Currency::JPY, 71_000.0, PriceAlertDirection::Up);
+        let auto = PriceAlert::new_auto(asset_id, Currency::EUR);
+
+        assert_eq!(PriceAlertClient::get_price_alert_type(&over, &price_data, &rates(), &rules()), None);
+        assert_eq!(
+            PriceAlertClient::get_price_alert_type(&under, &price_data, &rates(), &rules()),
+            Some(AlertResult::new(PriceAlertType::PriceDown))
+        );
+        assert_eq!(
+            PriceAlertClient::get_price_alert_type(&over_usd, &price_data, &rates(), &rules()),
+            Some(AlertResult::new(PriceAlertType::PriceUp))
+        );
+        assert_eq!(PriceAlertClient::get_price_alert_type(&over_unknown, &price_data, &rates(), &rules()), None);
+        assert_eq!(
+            PriceAlertClient::get_price_alert_type(&auto, &PriceData::mock_with(78_987.0, 6.0), &[], &rules()),
+            Some(AlertResult::new(PriceAlertType::PriceChangesUp))
+        );
+    }
+
+    #[test]
+    fn test_with_rates() {
+        let asset = Asset::from_chain(Chain::Bitcoin);
+        let price = Price::new(78_987.0, -1.4, DateTime::from_timestamp(1_788_821_182, 0).unwrap(), PriceProvider::Coingecko);
+        let target = PriceAlertNotification {
+            device: Device::mock(),
+            asset: asset.clone(),
+            price,
+            alert_type: PriceAlertType::PriceUp,
+            price_alert: PriceAlert::new_price(asset.id.clone(), Currency::EUR, 71_000.0, PriceAlertDirection::Up),
+            milestone: None,
+        };
+        let automatic = PriceAlertNotification {
+            alert_type: PriceAlertType::PriceChangesUp,
+            price_alert: PriceAlert::new_auto(asset.id, Currency::EUR),
+            ..target.clone()
+        };
+
+        assert_eq!(target.currency(), &Currency::EUR);
+        assert_eq!(target.clone().with_rates(&rates()).unwrap().price, price.with_rate(0.86));
+        assert_eq!(automatic.currency(), &Currency::USD);
+        assert_eq!(automatic.with_rates(&rates()).unwrap().price, price);
+        assert!(target.with_rates(&[]).is_err());
+    }
 
     #[test]
     fn test_price_alert_target_value() {

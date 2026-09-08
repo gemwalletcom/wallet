@@ -20,12 +20,11 @@ data class BuyFiatProviderUIModel(
     val rate: String,
 ) : CryptoFormattedUIModel {
 
-    override val cryptoFormatted: String
-        get() = "≈ $cryptoText"
+    override val cryptoFormatted: String by lazy { "≈ $cryptoText" }
 
-    val cryptoText: String
-        get() = ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(BigDecimal.valueOf(cryptoAmount), asset.symbol)
+    val cryptoText: String by lazy {
+        ValueFormatter(style = ValueFormatter.Style.Auto).string(BigDecimal.valueOf(cryptoAmount), asset.symbol)
+    }
 }
 
 fun FiatQuote.toProviderUIModel(

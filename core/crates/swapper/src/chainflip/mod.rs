@@ -1,5 +1,5 @@
 pub mod broker;
-pub mod capitalize;
+pub mod chain;
 pub mod client;
 pub mod default;
 pub mod model;

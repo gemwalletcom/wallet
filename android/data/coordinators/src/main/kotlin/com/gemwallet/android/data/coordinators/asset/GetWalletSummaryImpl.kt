@@ -7,7 +7,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
@@ -113,15 +112,12 @@ internal class WalletSummaryEquivalentValue(
     override val value: Double?,
     override val changePercentage: Double?,
 ) : EquivalentValue {
-    override val valueFormatted: String
-        get() {
-            val amount = value?.takeIf(Double::isFinite) ?: return ""
-            val formatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency).string(amount)
-            return if (amount > 0) "+$formatted" else formatted
-        }
+    override val valueFormatted: String = value?.takeIf(Double::isFinite)?.let { amount ->
+        val formatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency).string(amount)
+        if (amount > 0) "+$formatted" else formatted
+    }.orEmpty()
 
-    override val changePercentageFormatted: String
-        get() = changePercentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+    override val changePercentageFormatted: String = changePercentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
 }
 
 internal data class WalletSummaryDisplayState(
@@ -148,7 +144,7 @@ internal class WalletSummaryAggregateImpl(
             WalletType.Multicoin -> null
             WalletType.Single,
             WalletType.PrivateKey,
-            WalletType.View -> walletAccount?.chain?.getIconUrl()
+            WalletType.View -> walletAccount?.chain
         },
     )
 

@@ -83,8 +83,8 @@ pub struct GemTransactionAmount {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionRowSubtitle {
     None,
-    ToAddress { address: String, name: Option<String> },
-    FromAddress { address: String, name: Option<String> },
+    ToAddress { participant: String },
+    FromAddress { participant: String },
     ToResource { resource: Resource },
     FromResource { resource: Resource },
     Price { value: f64 },
@@ -99,8 +99,24 @@ pub enum GemTransactionRowValue {
     Pnl { value: f64 },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Object)]
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemTransactionStateTone {
+    Pending,
+    Success,
+    Error,
+    Refunded,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+pub struct GemTransactionStatus {
+    pub tone: GemTransactionStateTone,
+    pub shows_badge: bool,
+    pub shows_progress: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionRow {
+    pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub subtitle: GemTransactionRowSubtitle,
     pub value: GemTransactionRowValue,
@@ -109,31 +125,8 @@ pub struct GemTransactionRow {
 }
 
 #[uniffi::export]
-impl GemTransactionRow {
-    #[uniffi::constructor]
-    pub fn new(transaction: TransactionExtended) -> Self {
-        rules::row(&transaction)
-    }
-
-    pub fn title(&self) -> GemTransactionTitle {
-        self.title.clone()
-    }
-
-    pub fn subtitle(&self) -> GemTransactionRowSubtitle {
-        self.subtitle.clone()
-    }
-
-    pub fn value(&self) -> GemTransactionRowValue {
-        self.value.clone()
-    }
-
-    pub fn equivalent_value(&self) -> GemTransactionRowValue {
-        self.equivalent_value.clone()
-    }
-
-    pub fn nft_image_url(&self) -> Option<String> {
-        self.nft_image_url.clone()
-    }
+pub fn transaction_row(transaction: TransactionExtended) -> GemTransactionRow {
+    rules::row(&transaction)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -161,6 +154,7 @@ pub struct GemSwapRate {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionDetailRows {
+    pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub header: GemTransactionHeader,
     pub header_action: Option<GemTransactionHeaderAction>,

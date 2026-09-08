@@ -2,6 +2,7 @@
 
 package com.gemwallet.android.features.stake.presents
 
+import com.gemwallet.android.ui.components.image.iconModel
 import android.icu.util.Measure
 import android.icu.util.MeasureUnit
 import androidx.compose.foundation.layout.Spacer
@@ -20,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.lockTime
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
@@ -51,7 +51,7 @@ import uniffi.gemstone.GemStakeActionItem
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
-import uniffi.gemstone.Config
+import com.gemwallet.android.domains.gemConfig
 
 @Composable
 internal fun StakeScene(
@@ -126,13 +126,13 @@ internal fun StakeScene(
 
 private sealed interface StakeInfoRow {
     data class MinAmount(val value: Long, val chain: Chain) : StakeInfoRow
-    data class Apr(val value: Double, val iconUrl: String) : StakeInfoRow
-    data class LockTime(val days: Int, val iconUrl: String) : StakeInfoRow
+    data class Apr(val value: Double, val iconUrl: Any?) : StakeInfoRow
+    data class LockTime(val days: Int, val iconUrl: Any?) : StakeInfoRow
 }
 
 private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
-    val minAmountValue = Config().getStakeConfig(assetInfo.asset.chain.string).minAmount.toLong()
-    val iconUrl = assetInfo.id().getIconUrl()
+    val minAmountValue = gemConfig.getStakeConfig(assetInfo.asset.chain.string).minAmount.toLong()
+    val iconUrl = assetInfo.id().iconModel()
     val rows = listOfNotNull(
         StakeInfoRow.Apr(assetInfo.metadata.stakingApr ?: 0.0, iconUrl),
         assetInfo.lockTime?.let { StakeInfoRow.LockTime(it, iconUrl) },

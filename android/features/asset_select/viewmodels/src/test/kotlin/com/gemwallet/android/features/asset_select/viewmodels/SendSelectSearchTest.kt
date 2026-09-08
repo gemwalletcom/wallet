@@ -63,6 +63,6 @@ class SendSelectSearchTest {
     }
 
     private fun walletAssets() = mockk<GetWalletAssets> {
-        every { this@mockk() } returns flowOf(walletAssetResults)
+        every { this@mockk() } returns MutableStateFlow(walletAssetResults)
     }
 }

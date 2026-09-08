@@ -10,8 +10,9 @@ use primitives::{
 use super::model::{
     GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRows, GemTransactionDetails, GemTransactionHeader,
     GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
-    GemTransactionRowValue, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
+use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
 use crate::models::asset::wallet_default_assets;
 use crate::services::collections::unique;
@@ -28,6 +29,7 @@ pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
 pub fn row(extended: &TransactionExtended) -> GemTransactionRow {
     let transaction = &extended.transaction;
     GemTransactionRow {
+        status: status(transaction.state),
         title: transaction_title(transaction),
         subtitle: row_subtitle(extended),
         value: row_value(extended, transaction_value(transaction)),
@@ -54,6 +56,7 @@ pub fn detail_rows(extended: &TransactionExtended, participant: Option<GemTransa
     let transaction = &extended.transaction;
     let details = details(extended);
     GemTransactionDetailRows {
+        status: status(transaction.state),
         title: transaction_title(transaction),
         header: header(extended),
         header_action: header_action(transaction),
@@ -81,17 +84,35 @@ fn row_subtitle(extended: &TransactionExtended) -> GemTransactionRowSubtitle {
     match transaction_subtitle(&extended.transaction) {
         GemTransactionSubtitle::None => GemTransactionRowSubtitle::None,
         GemTransactionSubtitle::ToAddress { address } => GemTransactionRowSubtitle::ToAddress {
-            name: address_name(extended, &address).map(|name| name.name),
-            address,
+            participant: participant_name(extended, &address),
         },
         GemTransactionSubtitle::FromAddress { address } => GemTransactionRowSubtitle::FromAddress {
-            name: address_name(extended, &address).map(|name| name.name),
-            address,
+            participant: participant_name(extended, &address),
         },
         GemTransactionSubtitle::ToResource { resource } => GemTransactionRowSubtitle::ToResource { resource },
         GemTransactionSubtitle::FromResource { resource } => GemTransactionRowSubtitle::FromResource { resource },
         GemTransactionSubtitle::Price { value } => GemTransactionRowSubtitle::Price { value },
     }
+}
+
+pub fn status(state: TransactionState) -> GemTransactionStatus {
+    let tone = match state {
+        TransactionState::Pending | TransactionState::InTransit => GemTransactionStateTone::Pending,
+        TransactionState::Confirmed => GemTransactionStateTone::Success,
+        TransactionState::Failed | TransactionState::Reverted => GemTransactionStateTone::Error,
+        TransactionState::Refunded => GemTransactionStateTone::Refunded,
+    };
+    GemTransactionStatus {
+        tone,
+        shows_badge: state != TransactionState::Confirmed,
+        shows_progress: tone == GemTransactionStateTone::Pending,
+    }
+}
+
+fn participant_name(extended: &TransactionExtended, address: &str) -> String {
+    address_name(extended, address)
+        .map(|name| name.name)
+        .unwrap_or_else(|| format_address(address, Some(extended.transaction.asset_id.chain), GemAddressFormatStyle::Short))
 }
 
 fn row_value(extended: &TransactionExtended, value: GemTransactionValue) -> GemTransactionRowValue {
@@ -188,7 +209,7 @@ fn swap_leg(extended: &TransactionExtended, leg: SwapLeg, sign: GemAmountSign) -
         SwapLeg::To => (metadata.to_asset, metadata.to_value),
     };
     let asset = extended.assets.iter().chain([&extended.asset]).find(|asset| asset.id == asset_id)?.clone();
-    let price = extended.prices.iter().find(|price| price.asset_id == asset_id).cloned();
+    let price = extended.prices.iter().find(|price| price.asset_id == asset_id && price.has_price()).cloned();
     Some(GemTransactionAmount { asset, value, sign, price })
 }
 
@@ -209,12 +230,14 @@ fn value_sign(transaction: &Transaction) -> GemAmountSign {
 }
 
 fn asset_price(price: Option<&Price>, asset_id: &AssetId) -> Option<AssetPrice> {
-    price.map(|price| AssetPrice {
-        asset_id: asset_id.clone(),
-        price: price.price,
-        price_change_percentage_24h: price.price_change_percentage_24h,
-        updated_at: price.updated_at,
-    })
+    price
+        .map(|price| AssetPrice {
+            asset_id: asset_id.clone(),
+            price: price.price,
+            price_change_percentage_24h: price.price_change_percentage_24h,
+            updated_at: price.updated_at,
+        })
+        .filter(AssetPrice::has_price)
 }
 
 fn address_name(extended: &TransactionExtended, address: &str) -> Option<primitives::AddressName> {
@@ -819,14 +842,23 @@ mod tests {
     }
 
     #[test]
-    fn test_row_names_the_counterparty_when_the_wallet_knows_the_address() {
+    fn test_status_groups_the_states_the_screens_render_alike() {
+        assert_eq!(status(TransactionState::InTransit).tone, GemTransactionStateTone::Pending);
+        assert_eq!(status(TransactionState::Reverted).tone, GemTransactionStateTone::Error);
+        assert_eq!(status(TransactionState::Refunded).tone, GemTransactionStateTone::Refunded);
+        assert!(!status(TransactionState::Confirmed).shows_badge, "a confirmed transaction carries no badge");
+        assert!(status(TransactionState::Pending).shows_progress);
+        assert!(!status(TransactionState::Refunded).shows_progress, "a refund is settled, so nothing spins");
+    }
+
+    #[test]
+    fn test_row_shows_the_counterparty_name_when_the_wallet_knows_the_address() {
         let mut incoming = extended_with(typed(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Incoming), vec![]);
         incoming.from_address = Some(named("from", "Alice"));
         assert_eq!(
             row(&incoming).subtitle,
             GemTransactionRowSubtitle::FromAddress {
-                address: "from".to_string(),
-                name: Some("Alice".to_string())
+                participant: "Alice".to_string()
             }
         );
 
@@ -834,8 +866,7 @@ mod tests {
         assert_eq!(
             row(&outgoing).subtitle,
             GemTransactionRowSubtitle::ToAddress {
-                address: "to".to_string(),
-                name: None
+                participant: "to".to_string()
             }
         );
         match row(&outgoing).value {
@@ -1016,5 +1047,37 @@ mod tests {
         assert_eq!((details(&close).pnl, details(&close).price), (None, None));
         close.transaction.metadata = Some(serde_json::to_value(metadata(-4.5, 12.0)).unwrap());
         assert_eq!((details(&close).pnl, details(&close).price), (Some(-4.5), Some(12.0)));
+    }
+
+    #[test]
+    fn test_a_zero_stored_price_is_not_a_price() {
+        let mut transfer = TransactionExtended::mock();
+        let price = |value| Price {
+            price: value,
+            price_change_percentage_24h: 0.0,
+            updated_at: Utc::now(),
+            provider: Default::default(),
+        };
+        let amount_price = |extended: &TransactionExtended| transaction_amount(extended, GemAmountSign::None).price.map(|price| price.price);
+
+        transfer.price = Some(price(0.0));
+        assert_eq!(amount_price(&transfer), None);
+
+        transfer.price = Some(price(12.0));
+        assert_eq!(amount_price(&transfer), Some(12.0));
+    }
+
+    #[test]
+    fn test_a_zero_swap_leg_price_is_not_a_price() {
+        let mut swap = extended_with(swap(TransactionState::Confirmed, None, None).transaction, vec![Asset::mock_eth(), Asset::mock_btc()]);
+        let ethereum = AssetId::from_chain(Chain::Ethereum);
+        let leg_price =
+            |extended: &TransactionExtended| swap_leg(extended, SwapLeg::From, GemAmountSign::Outgoing).and_then(|amount| amount.price).map(|price| price.price);
+
+        swap.prices = vec![AssetPrice::new(ethereum.clone(), 0.0, 0.0, Utc::now())];
+        assert_eq!(leg_price(&swap), None);
+
+        swap.prices = vec![AssetPrice::new(ethereum, 12.0, 0.0, Utc::now())];
+        assert_eq!(leg_price(&swap), Some(12.0));
     }
 }

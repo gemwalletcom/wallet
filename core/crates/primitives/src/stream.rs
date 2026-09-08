@@ -49,8 +49,6 @@ pub enum StreamMessage {
 #[typeshare(swift = "Sendable")]
 pub struct StreamBalanceUpdate {
     pub wallet_id: WalletId,
-    #[typeshare(skip)]
-    pub asset_id: AssetId,
     pub asset_ids: Vec<AssetId>,
 }
 
@@ -83,4 +81,26 @@ pub struct StreamWalletUpdate {
 pub struct StreamNotificationUpdate {
     pub wallet_id: WalletId,
     pub notification: InAppNotification,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Chain;
+
+    #[test]
+    fn test_balance_update_requires_asset_ids_not_legacy_asset_id() {
+        for payload in [
+            r#"{"walletId":"multicoin_0x1","assetIds":["ethereum","solana"]}"#,
+            r#"{"walletId":"multicoin_0x1","assetId":"ethereum","assetIds":["ethereum","solana"]}"#,
+        ] {
+            let update: StreamBalanceUpdate = serde_json::from_str(payload).unwrap();
+
+            assert_eq!(update.wallet_id, WalletId::Multicoin("0x1".into()));
+            assert_eq!(update.asset_ids, vec![AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Solana)]);
+        }
+
+        let legacy_only = r#"{"walletId":"multicoin_0x1","assetId":"ethereum"}"#;
+        assert!(serde_json::from_str::<StreamBalanceUpdate>(legacy_only).is_err());
+    }
 }

@@ -12,8 +12,8 @@ import protocol Gemstone.GemPriceServiceProtocol
 import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
-import Localization
 import GemstoneServices
+import Localization
 import NativeProviderService
 import Primitives
 import PrimitivesComponents
@@ -61,7 +61,6 @@ struct ServicesFactory {
         let apiClient = Gemstone.GemApiClient(provider: nativeProvider)
         let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider)
         let priceService = Gemstone.GemPriceService(
-            api: apiClient,
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
         )
         let gemstoneAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
@@ -119,9 +118,7 @@ struct ServicesFactory {
             assetStore: gemstoneAssetStore,
             store: gemstoneBalanceStore,
             assets: assetsService,
-            price: priceService,
             stream: streamSubscriptionService,
-            preferences: preferencesService,
         )
         let stakeService = gatewayService.stakeService(
             staticApi: staticApiClient,
@@ -196,12 +193,13 @@ struct ServicesFactory {
             fiat: fiatService,
             notifications: gemstoneNotificationStore,
             support: gemstoneSupportStore,
-            walletStore: gemstoneWalletStore,
+            subscriptions: streamSubscriptionService,
+            preferences: preferencesService,
+            session: walletSessionService,
+            device: deviceService,
         )
         let streamObserverService = StreamObserverService(
-            subscriptionService: streamSubscriptionService,
             service: streamService,
-            preferencesService: preferencesService,
             webSocket: webSocket,
         )
         let swapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
@@ -330,7 +328,6 @@ struct ServicesFactory {
             deviceService: deviceService,
             subscriptionsObserver: storeManager.walletStore.observer(),
             streamObserverService: streamObserverService,
-            streamSubscriptionService: streamSubscriptionService,
             perpetualService: perpetualService,
             perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,

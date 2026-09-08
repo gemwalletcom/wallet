@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="88"
+    android:viewportHeight="88">
+  <path
+      android:pathData="M43.972,88C68.281,88 87.972,68.309 87.972,44C87.972,19.691 68.281,0 43.972,0C19.663,0 0,19.691 0,44C0,68.309 19.691,88 43.972,88Z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M46.475,43.061L34.471,30.899L67.919,16.867L46.475,43.061ZM58.48,55.239L20.533,71.22L46.475,43.061L58.48,55.239Z"
+      android:fillType="evenOdd">
+    <aapt:attr name="android:fillColor">
+      <gradient
+          android:startX="20.515"
+          android:startY="2746.51"
+          android:endX="67.919"
+          android:endY="2746.51"
+          android:type="linear">
+        <item android:offset="0" android:color="#FF00CCFF"/>
+        <item android:offset="1" android:color="#FF33FF99"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+</vector>

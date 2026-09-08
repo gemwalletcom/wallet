@@ -49,8 +49,7 @@ public enum InfoSheetModelFactory {
                 image: .assetImage(image),
                 button: button,
             )
-        case let .transactionState(imageURL, placeholder, state):
-            let model = TransactionStateViewModel(state: state)
+        case let .transactionState(imageURL, placeholder, model):
             return InfoSheetModel(
                 title: model.title,
                 description: model.description,

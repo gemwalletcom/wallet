@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.in_app_notifications.presents.components
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -20,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -141,7 +141,7 @@ private fun NotificationIcon(icon: CoreListItemIcon) {
             )
         }
         is CoreListItemIcon.Image -> AsyncImage(model = icon.value, size = listItemIconSize)
-        is CoreListItemIcon.Asset -> AsyncImage(model = icon.value.getIconUrl(), size = listItemIconSize)
+        is CoreListItemIcon.Asset -> AsyncImage(model = icon.value.iconModel(), size = listItemIconSize)
     }
 }
 

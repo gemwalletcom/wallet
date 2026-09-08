@@ -5,11 +5,11 @@ import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
-import uniffi.gemstone.Config
+import com.gemwallet.android.domains.gemConfig
 import java.math.BigInteger
 
 object PerpetualConfig {
-    private val config get() = Config().getPerpetualConfig()
+    private val config by lazy { gemConfig.getPerpetualConfig() }
 
     val defaultLeverage: Int get() = config.defaultLeverage.toInt()
 
@@ -29,7 +29,7 @@ object PerpetualConfig {
 
     val leverageOptions: List<Int> get() = config.leverageOptions.toUnsignedInts()
 
-    fun leverageOptions(maxLeverage: Int): List<Int> = Config().leverageOptions(maxLeverage.toUByte()).toUnsignedInts()
+    fun leverageOptions(maxLeverage: Int): List<Int> = gemConfig.leverageOptions(maxLeverage.toUByte()).toUnsignedInts()
 
     val takeProfitOptions: List<Int> get() = config.takeProfitPercentOptions.toUnsignedInts()
 

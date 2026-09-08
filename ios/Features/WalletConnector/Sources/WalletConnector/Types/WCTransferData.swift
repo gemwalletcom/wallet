@@ -18,8 +18,8 @@ public struct WCTransferData: Identifiable, Sendable {
         self.simulation = simulation
     }
 
-    public init(_ request: GemWalletConnectTransactionRequest) throws {
-        try self.init(
+    public init(_ request: GemWalletConnectTransactionRequest) {
+        self.init(
             transferData: request.transfer,
             wallet: request.wallet.map(),
             simulation: request.simulation,

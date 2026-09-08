@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -35,7 +34,6 @@ class AssetsViewModel @Inject constructor(
     private val service: GemWalletHomeServiceInterface,
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletSummary: GetWalletSummary,
-    getHideBalancesState: GetHideBalancesState,
     private val getSession: GetSession,
     private val userConfig: UserConfig,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
@@ -55,27 +53,26 @@ class AssetsViewModel @Inject constructor(
         val unpinned: List<AssetInfoDataAggregate> = emptyList(),
     )
 
+    private fun groups(items: List<AssetInfoDataAggregate>): AssetGroups {
+        val (pinned, unpinned) = items.partition { it.pinned }
+        return AssetGroups(pinned = pinned, unpinned = unpinned)
+    }
+
     val isLoadingAssets = MutableStateFlow(false)
 
     val isRefreshing = MutableStateFlow(false)
 
-    private val isHideBalances = getHideBalancesState()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    private val assetGroups = getActiveAssetsInfo.getAssetsInfo(isHideBalances)
-        .map { items ->
-            val (pinned, unpinned) = items.partition { it.pinned }
-            AssetGroups(pinned = pinned, unpinned = unpinned)
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AssetGroups())
+    private val assetGroups = getActiveAssetsInfo.assetsInfo()
+        .map(::groups)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, groups(getActiveAssetsInfo.assetsInfo().value))
 
     val pinnedAssets = assetGroups
         .map { it.pinned }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.pinned)
 
     val unpinnedAssets = assetGroups
         .map { it.unpinned }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.unpinned)
 
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

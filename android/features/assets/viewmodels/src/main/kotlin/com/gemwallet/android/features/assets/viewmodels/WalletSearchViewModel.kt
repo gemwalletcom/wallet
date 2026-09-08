@@ -7,7 +7,6 @@ import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
@@ -52,7 +51,6 @@ class WalletSearchViewModel @Inject constructor(
     service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
     getNftCollections: GetNftCollections,
-    getSearchLists: GetSearchLists,
 ) : BaseAssetSelectViewModel(
     getSession,
     recentAssetsService,
@@ -113,7 +111,7 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val lists: StateFlow<List<AssetList>> = currentQuery
-        .flatMapLatest { query -> getSearchLists.getSearchLists(query) }
+        .flatMapLatest { query -> searchService.searchLists(query) }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

@@ -8,23 +8,17 @@ import org.junit.Test
 class FiatProviderIconTest {
 
     @Test
-    fun flashnetProvider_usesFlashnetAsset() {
+    fun flashnetProvider_resolvesProviderName() {
         val provider = mockFiatProvider(
             id = FiatProviderName.Flashnet.string,
             name = "Cash App",
         )
 
-        assertEquals(
-            "file:///android_asset/fiat/flashnet.svg",
-            provider.getFiatProviderIcon(),
-        )
+        assertEquals(FiatProviderName.Flashnet, provider.providerName())
     }
 
     @Test
-    fun flashnetProviderName_usesFlashnetAsset() {
-        assertEquals(
-            "file:///android_asset/fiat/flashnet.svg",
-            FiatProviderName.Flashnet.getFiatProviderIcon(),
-        )
+    fun unknownProvider_hasNoProviderName() {
+        assertEquals(null, mockFiatProvider(id = "unknown", name = "Unknown").providerName())
     }
 }

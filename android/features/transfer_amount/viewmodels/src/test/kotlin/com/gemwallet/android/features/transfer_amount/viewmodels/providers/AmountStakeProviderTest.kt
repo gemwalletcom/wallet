@@ -3,11 +3,12 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
+import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.domains.confirm.stakeType
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -23,6 +24,7 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountStakeType
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemStakeValidatorSelection
 import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +45,7 @@ class AmountStakeProviderTest {
     private val asset = mockAssetCosmos()
     private val assetInfo = mockAssetInfo(asset = asset)
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v1")
+    private val otherValidator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
     private val delegation = mockDelegation(
         assetId = asset.id,
         balance = BigInteger("100"),
@@ -60,14 +63,15 @@ class AmountStakeProviderTest {
     private val getDelegations = mockk<GetDelegations> {
         every { this@mockk.invoke(any(), any()) } returns flowOf(listOf(delegation))
     }
-    private val getRecommendedValidator = mockk<GetRecommendedValidator> {
-        every { this@mockk.invoke(any()) } returns flowOf(null)
+    private val getValidators = mockk<GetValidators> {
+        every { this@mockk.invoke(any()) } returns flowOf(listOf(validator, otherValidator))
     }
     private val getStakeValidator = mockk<GetStakeValidator> {
         coEvery { this@mockk.invoke(asset.id, "v1") } returns validator
     }
     private val service = mockk<GemAmountServiceInterface> {
         every { stakeAmountType(any(), any()) } returns GemAmountType.Stake(GemAmountStakeType.Stake)
+        every { stakeValidatorSelection(any(), any()) } returns GemStakeValidatorSelection(options = listOf(validator.toGem()), validator = validator.toGem(), canSelect = true)
         every { stakeTransferData(any(), any(), any(), any()) } answers {
             GemTransferData(
                 inputType = TransactionInputType.Stake(firstArg(), secondArg()),
@@ -83,8 +87,8 @@ class AmountStakeProviderTest {
         getAssetInfo = getAssetInfo,
         getDelegation = getDelegation,
         getDelegations = getDelegations,
-        getRecommendedValidator = getRecommendedValidator,
         getStakeValidator = getStakeValidator,
+        getValidators = getValidators,
         service = service,
         scope = scope,
     )
@@ -101,6 +105,7 @@ class AmountStakeProviderTest {
     fun `delegate without validator throws NoValidatorSelected`() = runBlocking {
         coEvery { getStakeValidator(any(), any()) } returns null
         every { getDelegation(any(), any(), any()) } returns flowOf(null)
+        every { service.stakeValidatorSelection(any(), any()) } returns GemStakeValidatorSelection(options = emptyList(), validator = null, canSelect = true)
         val provider = makeProvider(AmountParams.Stake.Delegate(asset.id, validatorId = null))
         provider.assetInfo.filterNotNull().first()
         assertThrows(AmountError.NoValidatorSelected::class.java) {
@@ -154,6 +159,30 @@ class AmountStakeProviderTest {
     }
 
     @Test
+    fun `redelegate sends to the validator Core selected, not the delegated one`() = runBlocking {
+        every { service.stakeValidatorSelection(any(), any()) } returns GemStakeValidatorSelection(options = listOf(otherValidator.toGem()), validator = otherValidator.toGem(), canSelect = true)
+        val provider = makeProvider(AmountParams.Stake.Redelegate(asset.id, "v1", "d1"))
+        provider.validatorState.filterNotNull().first()
+
+        val confirm = provider.stakeType() as StakeType.Redelegate
+        assertEquals("v1", confirm.content.delegation.validator.id)
+        assertEquals("v2", confirm.content.toValidator.id)
+    }
+
+    @Test
+    fun `validator selection follows what Core allows`() = runBlocking {
+        every { service.stakeValidatorSelection(any(), any()) } returns GemStakeValidatorSelection(options = listOf(validator.toGem()), validator = validator.toGem(), canSelect = false)
+        val locked = makeProvider(AmountParams.Stake.Undelegate(asset.id, "v1", "d1"))
+        locked.validatorState.filterNotNull().first()
+        assertEquals(false, locked.canSelectValidator.value)
+
+        every { service.stakeValidatorSelection(any(), any()) } returns GemStakeValidatorSelection(options = listOf(validator.toGem()), validator = validator.toGem(), canSelect = true)
+        val open = makeProvider(AmountParams.Stake.Delegate(asset.id))
+        open.canSelectValidator.first { it }
+        assertEquals(true, open.canSelectValidator.value)
+    }
+
+    @Test
     fun `withdraw builds WithdrawParams`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Withdraw(asset.id, validatorId = "v1", delegationId = "d1"))
         provider.assetInfo.filterNotNull().first()
@@ -168,37 +197,6 @@ class AmountStakeProviderTest {
         provider.validatorState.filterNotNull().first()
         val confirm = provider.stakeType()
         assertTrue(confirm is StakeType.Rewards)
-    }
-
-    @Test
-    fun `canSelectValidator is false for Undelegate and Withdraw`() {
-        assertEquals(true, makeProvider(AmountParams.Stake.Delegate(asset.id)).canSelectValidator.value)
-        assertEquals(true, makeProvider(AmountParams.Stake.Redelegate(asset.id, "v", "d")).canSelectValidator.value)
-        assertEquals(false, makeProvider(AmountParams.Stake.Undelegate(asset.id, "v", "d")).canSelectValidator.value)
-        assertEquals(false, makeProvider(AmountParams.Stake.Withdraw(asset.id, "v", "d")).canSelectValidator.value)
-        assertEquals(false, makeProvider(AmountParams.Stake.Freeze(asset.id, Resource.Bandwidth)).canSelectValidator.value)
-        assertEquals(false, makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth)).canSelectValidator.value)
-    }
-
-    @Test
-    fun `rewards canSelectValidator is true only when multiple rewards delegations`() = runBlocking {
-        val secondDelegation = mockDelegation(
-            assetId = asset.id,
-            balance = BigInteger("200"),
-            rewards = BigInteger("7"),
-            validatorId = "v2",
-            delegationId = "d2",
-        )
-        every { getDelegations(any(), any()) } returns flowOf(listOf(delegation))
-        val singleProvider = makeProvider(AmountParams.Stake.Rewards(asset.id))
-        singleProvider.assetInfo.filterNotNull().first()
-        assertEquals(false, singleProvider.canSelectValidator.value)
-
-        every { getDelegations(any(), any()) } returns flowOf(listOf(delegation, secondDelegation))
-        val multiProvider = makeProvider(AmountParams.Stake.Rewards(asset.id))
-        multiProvider.assetInfo.filterNotNull().first()
-        multiProvider.canSelectValidator.first { it }
-        assertEquals(true, multiProvider.canSelectValidator.value)
     }
 
     @Test

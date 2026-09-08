@@ -270,7 +270,9 @@ mod tests {
 
     #[test]
     fn test_map_asset_availability() {
-        let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json")).unwrap().data;
+        let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json"))
+            .unwrap()
+            .data;
         let limits = map_asset_limits(None, Currency::USD, &currencies.fiat_payment_methods);
         assert_eq!(limits.is_empty(), false);
 

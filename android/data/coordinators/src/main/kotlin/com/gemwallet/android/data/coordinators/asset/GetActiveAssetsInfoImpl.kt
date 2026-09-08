@@ -2,20 +2,29 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class GetActiveAssetsInfoImpl(
-    private val getWalletAssets: GetWalletAssets,
+    getWalletAssets: GetWalletAssets,
+    userConfig: UserConfig,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
 ) : GetActiveAssetsInfo {
-    override fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> =
-        getWalletAssets()
-            .map { items -> items.toAssetInfoDataAggregates(hideBalance = hideBalance) }
-            .distinctUntilChanged()
-            .flowOn(Dispatchers.Default)
+
+    private val assetsInfo: StateFlow<List<AssetInfoDataAggregate>> =
+        combine(getWalletAssets(), userConfig.isHideBalances()) { items, hideBalance ->
+            items.toAssetInfoDataAggregates(hideBalance = hideBalance)
+        }
+        .distinctUntilChanged()
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    override fun assetsInfo(): StateFlow<List<AssetInfoDataAggregate>> = assetsInfo
 }

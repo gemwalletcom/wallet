@@ -13,6 +13,8 @@ import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransactionHeaderAction
 import uniffi.gemstone.GemTransactionParticipant
+import uniffi.gemstone.GemTransactionStateTone
+import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.Resource
 import java.math.BigInteger
@@ -30,6 +32,7 @@ fun mockGemTransactionAmount(
 )
 
 fun mockGemTransactionDetailRows(
+    status: GemTransactionStatus = mockGemTransactionStatus(),
     title: GemTransactionTitle = GemTransactionTitle.Sent,
     header: GemTransactionHeader = GemTransactionHeader.Amount(mockGemTransactionAmount(), showsFiat = true),
     headerAction: GemTransactionHeaderAction? = null,
@@ -61,4 +64,15 @@ fun mockGemTransactionDetailRows(
     price = price,
     fee = fee,
     explorer = explorer,
+    status = status,
+)
+
+fun mockGemTransactionStatus(
+    tone: GemTransactionStateTone = GemTransactionStateTone.SUCCESS,
+    showsBadge: Boolean = false,
+    showsProgress: Boolean = false,
+) = GemTransactionStatus(
+    tone = tone,
+    showsBadge = showsBadge,
+    showsProgress = showsProgress,
 )

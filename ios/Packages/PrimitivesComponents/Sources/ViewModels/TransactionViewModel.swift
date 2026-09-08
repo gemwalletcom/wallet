@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressService
 import enum Gemstone.Resource
 import Components
 import Formatters
 import Foundation
-import class Gemstone.GemTransactionRow
+import struct Gemstone.GemTransactionRow
+import func Gemstone.transactionRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -22,14 +22,14 @@ public struct TransactionViewModel: Sendable {
         transaction: TransactionExtended,
         currency: String,
     ) {
-        row = GemTransactionRow(transaction: transaction.json())
+        row = transactionRow(transaction: transaction.map())
         self.transaction = transaction
         self.currency = currency
     }
 
     public var assetImage: AssetImage {
         let asset = AssetIdViewModel(assetId: assetId).assetImage
-        if let nftImageUrl = row.nftImageUrl() {
+        if let nftImageUrl = row.nftImageUrl {
             return AssetImage(
                 type: .text(""),
                 imageURL: URL(string: nftImageUrl),
@@ -72,21 +72,18 @@ public struct TransactionViewModel: Sendable {
 
     public var titleTextValue: TextValue {
         TextValue(
-            text: row.title().title,
+            text: row.title.title,
             style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }
 
     public var titleTagType: TitleTagType {
-        TransactionStateViewModel(state: transaction.transaction.state).showsProgress ? .progressView() : .none
+        row.status.showsProgress ? .progressView() : .none
     }
 
     public var titleTagTextValue: TextValue? {
-        let model = TransactionStateViewModel(state: transaction.transaction.state)
-        let title: String? = switch transaction.transaction.state {
-        case .confirmed: .none
-        case .pending, .inTransit, .failed, .reverted, .refunded: model.title
-        }
+        let model = TransactionStateViewModel(state: transaction.transaction.state, tone: row.status.tone)
+        let title: String? = row.status.showsBadge ? model.title : .none
         return title.map {
             TextValue(
                 text: $0,
@@ -100,9 +97,9 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleExtraTextValue: TextValue? {
-        let title: String? = switch row.subtitle() {
-        case let .toAddress(address, name): participantTitle(prefix: Localized.Transfer.to, address: address, name: name)
-        case let .fromAddress(address, name): participantTitle(prefix: Localized.Transfer.from, address: address, name: name)
+        let title: String? = switch row.subtitle {
+        case let .toAddress(participant): participantTitle(prefix: Localized.Transfer.to, participant: participant)
+        case let .fromAddress(participant): participantTitle(prefix: Localized.Transfer.from, participant: participant)
         case let .toResource(resource): resourceTitle(prefix: Localized.Transfer.to, resource: resource)
         case let .fromResource(resource): resourceTitle(prefix: Localized.Transfer.from, resource: resource)
         case let .price(value):
@@ -119,21 +116,20 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var subtitleTextValue: TextValue? {
-        row.value().textValue(currency: currency, formatter: formatter)
+        row.value.textValue(currency: currency, formatter: formatter)
     }
 
     public var subtitleExtraTextValue: TextValue? {
-        row.equivalentValue().textValue(currency: currency, formatter: formatter, textStyle: .footnote)
+        row.equivalentValue.textValue(currency: currency, formatter: formatter, textStyle: .footnote)
     }
 
     private var assetId: AssetId {
         transaction.transaction.assetId
     }
 
-    private func participantTitle(prefix: String, address: String, name: String?) -> String? {
-        guard address.isNotEmpty else { return nil }
-        let value = name ?? GemAddressService.shared.format(address: address, chain: assetId.chain)
-        return String(format: "%@ %@", prefix, value)
+    private func participantTitle(prefix: String, participant: String) -> String? {
+        guard participant.isNotEmpty else { return nil }
+        return String(format: "%@ %@", prefix, participant)
     }
 
     private func resourceTitle(prefix: String, resource: Gemstone.Resource) -> String {

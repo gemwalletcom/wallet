@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import com.gemwallet.android.ui.LocalAddressService
+import com.gemwallet.android.ui.LocalConnectionStatus
 import com.gemwallet.android.ui.LocalAssetConfigService
 import com.gemwallet.android.ui.LocalChainService
 import com.gemwallet.android.ui.LocalAssetsService
@@ -84,6 +85,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
 
             CompositionLocalProvider(
                 LocalConnectionBannerState provides connectionBannerState,
+                LocalConnectionStatus provides connectionStatusObserver.status,
                 LocalAddressService provides addressService,
                 LocalDeeplinkService provides deeplinkService,
                 LocalAssetsService provides assetsService,

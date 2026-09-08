@@ -199,7 +199,7 @@ impl GemSimulationValue {
         let asset = assets.iter().find(|asset| asset.id == header.asset_id)?.clone();
         Some(Self {
             asset,
-            value: approval_value_from(&header.value, header.is_unlimited),
+            value: approval_value_from(header.value.as_ref(), header.is_unlimited),
         })
     }
 }

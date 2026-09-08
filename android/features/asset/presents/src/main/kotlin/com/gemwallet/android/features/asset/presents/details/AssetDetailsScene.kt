@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
@@ -146,6 +147,12 @@ internal fun AssetDetailsScene(
                         title = item.type.label,
                         balance = item.value,
                         listPosition = position,
+                        info = when (item.type) {
+                            AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> InfoSheetEntity.PendingUnconfirmedBalanceInfo
+                            AssetInfoUIModel.BalanceViewType.Available,
+                            AssetInfoUIModel.BalanceViewType.Stake,
+                            AssetInfoUIModel.BalanceViewType.Reserved -> null
+                        },
                         onAction = when (item.type) {
                             AssetInfoUIModel.BalanceViewType.Available,
                             AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> null

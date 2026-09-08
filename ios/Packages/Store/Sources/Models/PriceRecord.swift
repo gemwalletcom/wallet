@@ -97,6 +97,7 @@ extension PriceUpdate {
             price: price,
             priceUsd: priceUsd,
             priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: updatedAt,
         )
     }
 }
@@ -111,13 +112,12 @@ extension PriceRecord {
         )
     }
 
-    func mapToAssetPrice() -> AssetPrice? {
-        guard let price = mapToPrice() else { return nil }
-        return AssetPrice(
+    func mapToAssetPrice() -> AssetPrice {
+        AssetPrice(
             assetId: assetId,
-            price: price.price,
-            priceChangePercentage24h: price.priceChangePercentage24h,
-            updatedAt: price.updatedAt,
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: updatedAt ?? Date(timeIntervalSince1970: 0),
         )
     }
 

@@ -4,9 +4,10 @@ import com.gemwallet.android.math.NumberSanitizer
 import com.gemwallet.android.math.parseInputNumberOrNull
 import uniffi.gemstone.Config
 import java.math.BigDecimal
+import com.gemwallet.android.domains.gemConfig
 
 object SwapSlippage {
-    private val config = Config().getSwapConfig()
+    private val config by lazy { gemConfig.getSwapConfig() }
     val suggestionsBps: List<UInt> = config.slippageSuggestionsBps
     val maxPercent: Int = (config.maxSlippageBps / 100u).toInt()
     private val minPercent: BigDecimal = config.minSlippageBps.toLong().toBigDecimal().movePointLeft(2).stripTrailingZeros()

@@ -133,10 +133,6 @@ public final class StakeSceneViewModel {
         stakeActions.isNotEmpty
     }
 
-    var recommendedCurrentValidator: DelegationValidator? {
-        service.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { $0.map() }).map { $0.map() }
-    }
-
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .stake(symbol: assetModel.symbol))
     }
@@ -177,25 +173,22 @@ public final class StakeSceneViewModel {
     var claimRewardsDestination: any Hashable {
         switch claimRewards.destination {
         case let .transfer(transfer): transfer
-        case let .amount(delegations): AmountInput(type: .stake(.claimRewards(delegations: delegations.map { Delegation(core: $0) })), asset: asset)
+        case let .amount(delegations): AmountInput(type: .stake(.rewards(delegations: delegations)), asset: asset)
         }
     }
 
     var stakeDestination: any Hashable {
         destination(
-            type: .stake(.stake(
-                validators: validators,
-                recommended: recommendedCurrentValidator,
-            )),
+            type: .stake(.stake(validators: validators.map { $0.map() }, delegation: .none)),
         )
     }
 
     var freezeDestination: any Hashable {
-        destination(type: .stake(.freeze(.bandwidth)))
+        destination(type: .stake(.freeze(resource: Resource.bandwidth.map())))
     }
 
     var unfreezeDestination: any Hashable {
-        destination(type: .stake(.unfreeze(.bandwidth)))
+        destination(type: .stake(.unfreeze(resource: Resource.bandwidth.map())))
     }
 
     var showFreeze: Bool {

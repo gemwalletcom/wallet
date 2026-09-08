@@ -119,7 +119,7 @@ wallets_watch = 觀察
 # Receive
 
 receive_title = 接收%@
-receive_warning = 這是您的地址——請僅傳送 %@，並確保使用 %@ 網路。
+receive_warning = 請僅向此地址傳送 %2$@ 網路上的 %1$@。
 
 # Buy
 
@@ -134,7 +134,7 @@ transfer_network_fee = 網路手續費
 transfer_memo = 備註
 transfer_confirm = 確認
 transfer_from = 來自
-transfer_to = 傳送至
+transfer_to = 至
 transfer_max = 最大值
 transfer_network = 網路
 transfer_recipient_title = 收款人
@@ -292,8 +292,8 @@ transaction_status_confirmed = 成功
 transaction_status_pending = 等待確認
 transaction_status_failed = 失敗
 transaction_status_reverted = 已撤銷
-transaction_title_received = 已收到
-transaction_title_sent = 已發送
+transaction_title_received = 轉入
+transaction_title_sent = 轉出
 transaction_swap_again = 再次兌換
 transaction_status_completed = 已完成
 transaction_status_inprogress = 進行中
@@ -369,8 +369,8 @@ wallet_connect_permissions_approval_requests = 傳送授權請求
 
 # Swap
 
-swap_you_pay = 將支付
-swap_you_receive = 將收到
+swap_you_pay = 支付
+swap_you_receive = 預計收到
 swap_price_impact = 價格影響
 swap_slippage = 滑點
 swap_slippage_warning = 滑點過高。兌換可能以比預期更差的價格成交。
@@ -379,7 +379,7 @@ swap_slippage_auto_description = 自動設定最佳滑點以確保兌換成功�
 swap_price_impact_warning_description = 本次交易將損失 %@ 的 %@。確定要繼續嗎？
 swap_price_impact_warning_title = 價格影響
 swap_estimated_time_title = 預估時間
-swap_min_receive = 最少接收
+swap_min_receive = 最少收到
 swap_use_minimum_amount = 使用最低金額
 
 # Stake
@@ -629,14 +629,14 @@ networks_state_empty_search_title = 未找到任何網路
 
 # Onboarding
 
-onboarding_security_create_wallet_intro_title = 將取得一組助記詞——這是存取錢包的唯一方式。
-onboarding_security_create_wallet_confirm_title = 我理解並希望繼續
-onboarding_security_create_wallet_do_not_share_title = 不要與任何人分享
-onboarding_security_create_wallet_do_not_share_subtitle = 任何取得您助記詞的人都能完全控制您的錢包。
-onboarding_security_create_wallet_keep_safe_subtitle = 助記詞是存取錢包的唯一方法。
-onboarding_security_create_wallet_no_recovery_subtitle = 助記詞一旦遺失，將無法存取錢包。
-onboarding_security_create_wallet_keep_safe_title = 將其存放在安全的地方
-onboarding_security_create_wallet_no_recovery_title = 我們無法協助復原
+onboarding_security_create_wallet_intro_title = 您將取得一組助記詞，請務必妥善備份。
+onboarding_security_create_wallet_confirm_title = 我已了解，繼續
+onboarding_security_create_wallet_do_not_share_title = 切勿洩漏助記詞
+onboarding_security_create_wallet_do_not_share_subtitle = 任何人取得助記詞，都能控制錢包並轉走資產。
+onboarding_security_create_wallet_keep_safe_subtitle = 請抄寫助記詞，並保存在只有您能取用的安全位置。
+onboarding_security_create_wallet_no_recovery_subtitle = 請保管好備份，以免裝置遺失或損壞後無法復原錢包。
+onboarding_security_create_wallet_keep_safe_title = 妥善備份助記詞
+onboarding_security_create_wallet_no_recovery_title = 我們無法找回助記詞
 onboarding_accept_terms_title = 接受條款
 onboarding_accept_terms_message = 請閱讀並同意以下條款後繼續。
 onboarding_accept_terms_item1_message = 我了解錢包的安全與備份完全由我自行負責，Gem 不承擔任何責任。
@@ -708,7 +708,7 @@ rewards_get_rewards_title = 兌換積分
 rewards_activate_referral_code_description = 有朋友的邀請碼嗎？
 rewards_activate_referral_code_title = 兌換邀請碼
 rewards_create_referral_code_title = 建立使用者名稱
-rewards_create_referral_code_info = 這將是目前錢包的個人暱稱。
+rewards_create_referral_code_info = 為目前的錢包設定使用者名稱。
 rewards_username = 使用者名稱
 rewards_ways_spend_title = 積分兌換
 rewards_ways_spend_asset_title = 兌換 %@

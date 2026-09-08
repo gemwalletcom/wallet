@@ -27,7 +27,7 @@ struct ConfirmSubmissionTests {
     @Test
     func confirmReportsEveryHashAndTracksSentTransactions() async throws {
         let tracked = Primitives.Transaction.mock()
-        let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.json()])))
+        let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.map()])))
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })

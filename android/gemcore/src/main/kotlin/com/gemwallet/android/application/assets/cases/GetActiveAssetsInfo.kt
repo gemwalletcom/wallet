@@ -1,14 +1,8 @@
 package com.gemwallet.android.application.assets.cases
 
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.StateFlow
 
-@OptIn(ExperimentalCoroutinesApi::class)
 interface GetActiveAssetsInfo {
-    fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>>
-
-    fun getAssetsInfo(hideBalance: Flow<Boolean>): Flow<List<AssetInfoDataAggregate>>
-       = hideBalance.flatMapLatest { getAssetsInfo(it) }
+    fun assetsInfo(): StateFlow<List<AssetInfoDataAggregate>>
 }

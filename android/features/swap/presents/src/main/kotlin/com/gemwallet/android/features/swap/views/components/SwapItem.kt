@@ -31,6 +31,7 @@ import com.gemwallet.android.domains.asset.availableBalanceAmount
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.fields.AmountInputTransformation
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
@@ -222,6 +223,7 @@ private fun SwapItemInput(
             BasicTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 state = state,
+                inputTransformation = AmountInputTransformation,
                 textStyle = inputTextStyle,
                 lineLimits = TextFieldLineLimits.SingleLine,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),

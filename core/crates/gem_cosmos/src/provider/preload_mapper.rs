@@ -102,9 +102,14 @@ fn get_gas_limit(input_type: &TransactionInputType, _chain: CosmosChain) -> Resu
     })
 }
 
+fn scale_to_gas_price(fee: BigInt, chain: CosmosChain, gas_price_type: &GasPriceType) -> BigInt {
+    let base_gas_price = BigInt::from(get_base_fee(chain));
+    fee * gas_price_type.gas_price() / base_gas_price
+}
+
 pub fn calculate_transaction_fee(input_type: &TransactionInputType, chain: CosmosChain, gas_price_type: &GasPriceType) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
     let gas_limit = get_gas_limit(input_type, chain)?;
-    let fee = get_fee(chain, input_type);
+    let fee = scale_to_gas_price(get_fee(chain, input_type), chain, gas_price_type);
 
     Ok(TransactionFee {
         fee,
@@ -119,6 +124,20 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, chain: Cosmo
 mod tests {
     use super::*;
     use primitives::{Asset, Chain, Resource};
+
+    #[test]
+    fn test_the_chosen_gas_price_reaches_the_fee() {
+        let input_type = TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::Osmosis),
+        };
+        let base = get_base_fee(CosmosChain::Osmosis);
+
+        let normal = calculate_transaction_fee(&input_type, CosmosChain::Osmosis, &GasPriceType::regular(base)).unwrap();
+        let fast = calculate_transaction_fee(&input_type, CosmosChain::Osmosis, &GasPriceType::regular(base * 2)).unwrap();
+
+        assert_eq!(normal.fee, BigInt::from(10_000u64));
+        assert_eq!(fast.fee, BigInt::from(20_000u64));
+    }
 
     #[test]
     fn calculate_transaction_fee_rejects_freeze_without_panicking() {

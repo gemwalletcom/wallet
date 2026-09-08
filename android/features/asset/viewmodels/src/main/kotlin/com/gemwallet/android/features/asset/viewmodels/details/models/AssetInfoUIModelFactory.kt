@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
@@ -52,7 +52,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
         return AssetInfoUIModel(
             assetInfo = assetInfo,
             name = assetName(asset),
-            iconUrl = asset.id.getIconUrl(),
+            iconUrl = asset.id.iconModel(),
             priceValue = if (price == 0.0) "" else currencyFormatter.string(price),
             priceDayChanges = assetInfo.price?.price?.priceChangePercentage24h.formatAsPercentage(),
             priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.toValueDirection(),

@@ -15,7 +15,6 @@ use super::{
         AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, QuoteDetails, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, QuoteType, RefundParameters,
         TronVaultSwapResponse, VaultSwapChainExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras,
     },
-    capitalize::capitalize_first_letter,
     client::{ChainflipClient, SUPPORTED_ASSETS, map_swap_result},
     price::{apply_slippage, price_to_hex_price},
     seed::generate_random_seed,
@@ -31,10 +30,9 @@ use crate::{
     route_cache::Cache,
 };
 use primitives::{
-    Asset, AssetId, ChainType, MINUTE,
+    AssetId, ChainType, MINUTE,
     chain::Chain,
     hex::{decode_hex, encode_with_0x},
-    swap::QuoteAsset,
 };
 
 const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
@@ -88,24 +86,13 @@ fn vault_deposit_addresses() -> Vec<String> {
     vec![VAULT_ETH.to_string(), VAULT_ARB.to_string(), VAULT_SOL.to_string(), VAULT_TRON.to_string()]
 }
 
-fn map_asset_id(asset: &QuoteAsset) -> ChainflipAsset {
-    let asset_id = asset.asset_id();
-    let chain_name = capitalize_first_letter(asset_id.chain.as_ref());
-    let symbol = if asset.symbol.is_empty() && asset_id.is_native() {
-        Asset::from_chain(asset_id.chain).symbol
-    } else {
-        asset.symbol.clone()
-    };
-    ChainflipAsset { chain: chain_name, asset: symbol }
-}
-
 fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Result<(ChainflipQuoteRequest, BigUint), SwapperError> {
     match request.from_asset.chain().chain_type() {
         ChainType::Ethereum | ChainType::Solana | ChainType::Tron => {}
         _ => return Err(SwapperError::NotSupportedChain),
     }
-    let source_asset = map_asset_id(&request.from_asset);
-    let destination_asset = map_asset_id(&request.to_asset);
+    let source_asset = ChainflipAsset::from_asset_id(&request.from_asset.asset_id())?;
+    let destination_asset = ChainflipAsset::from_asset_id(&request.to_asset.asset_id())?;
     let source_broker_asset = assets.asset(&source_asset).filter(|asset| asset.supports_ingress()).ok_or(SwapperError::NoQuoteAvailable)?;
     let destination_broker_asset = assets
         .asset(&destination_asset)
@@ -286,8 +273,8 @@ where
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let from_asset = quote.request.from_asset.asset_id();
-        let source_asset = map_asset_id(&quote.request.from_asset);
-        let destination_asset = map_asset_id(&quote.request.to_asset);
+        let source_asset = ChainflipAsset::from_asset_id(&from_asset)?;
+        let destination_asset = ChainflipAsset::from_asset_id(&quote.request.to_asset.asset_id())?;
 
         let input_amount = quote.from_value.clone();
 

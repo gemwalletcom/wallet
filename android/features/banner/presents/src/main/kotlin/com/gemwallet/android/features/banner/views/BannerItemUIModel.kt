@@ -1,10 +1,10 @@
 package com.gemwallet.android.features.banner.views
 
+import com.gemwallet.android.ui.components.image.iconResource
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -73,7 +73,7 @@ private fun bannerDescription(description: GemBannerDescription): String = when 
 @Composable
 private fun bannerIcon(icon: GemBannerIcon): BannerIcon? = when (icon) {
     GemBannerIcon.MoneyBag -> BannerIcon.Emoji(Emoji.moneyBag)
-    is GemBannerIcon.Network -> BannerIcon.Url(icon.chain.requireChain().getIconUrl())
+    is GemBannerIcon.Network -> icon.chain.requireChain().iconResource()?.let(BannerIcon::Drawable)
     GemBannerIcon.Warning -> BannerIcon.Vector(AppIcons.Warning)
     GemBannerIcon.Suspicious -> BannerIcon.Drawable(R.drawable.suspicious)
     GemBannerIcon.Bitcoin -> BannerIcon.Vector(AppIcons.CurrencyBitcoin)

@@ -63,7 +63,7 @@ impl StreamObserverClient {
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
         match message {
             Message::Binary(data) => self.handle_message_payload(data, redis_connection, stream).await,
-            Message::Text(text) => self.handle_message_payload(text.into_bytes(), redis_connection, stream).await.or(Ok(())),
+            Message::Text(text) => self.handle_message_payload(text.into_bytes(), redis_connection, stream).await,
             Message::Ping(data) => Ok(stream.send(Message::Pong(data)).await?),
             Message::Close(_) => {
                 info_with_fields!("websocket client closed connection gracefully", status = "ok");

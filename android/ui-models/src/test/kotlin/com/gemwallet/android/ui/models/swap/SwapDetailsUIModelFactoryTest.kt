@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.swap
 
-import uniffi.gemstone.GemSwapQuoteSummary
+import uniffi.gemstone.swapQuoteSummary
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -184,12 +184,12 @@ class SwapDetailsUIModelFactoryTest {
             etaInSeconds = etaInSeconds,
             isProviderSelectable = isProviderSelectable,
             priceImpact = priceImpact,
-            minReceiveValue = summary(toValue, slippageBps, etaInSeconds).minReceiveValue(),
-            etaMinutes = summary(toValue, slippageBps, etaInSeconds).etaMinutes(),
+            minReceiveValue = summary(toValue, slippageBps, etaInSeconds).minReceiveValue,
+            etaMinutes = summary(toValue, slippageBps, etaInSeconds).etaMinutes,
         ),
     )
 
-    private fun summary(toValue: String, slippageBps: UInt, etaInSeconds: UInt?) = GemSwapQuoteSummary(
+    private fun summary(toValue: String, slippageBps: UInt, etaInSeconds: UInt?) = swapQuoteSummary(
         mockSwapQuote(toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
     )
 

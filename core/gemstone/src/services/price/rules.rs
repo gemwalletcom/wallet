@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::services::collections::unique;
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
@@ -29,6 +31,23 @@ pub fn fiat_prices(prices: Vec<AssetPrice>, rate: &FiatRate) -> Vec<GemPriceUpda
             price_usd: price.price,
             price_change_percentage_24h: price.price_change_percentage_24h,
             updated_at: price.updated_at,
+        })
+        .collect()
+}
+
+pub fn changed_rate(stored: Option<FiatRate>, rates: &[FiatRate], currency: &Currency) -> Option<f64> {
+    let rate = rates.iter().find(|rate| rate.symbol == *currency)?.rate;
+    (stored.map(|stored| stored.rate) != Some(rate)).then_some(rate)
+}
+
+pub fn changed_prices(stored: Vec<AssetPrice>, updates: Vec<GemPriceUpdate>) -> Vec<GemPriceUpdate> {
+    let stored: HashMap<AssetId, AssetPrice> = stored.into_iter().map(|price| (price.asset_id.clone(), price)).collect();
+    updates
+        .into_iter()
+        .filter(|update| {
+            stored
+                .get(&update.asset_id)
+                .is_none_or(|price| price.price != update.price || price.price_change_percentage_24h != update.price_change_percentage_24h)
         })
         .collect()
 }
@@ -97,6 +116,42 @@ mod observable_tests {
         assert_eq!(rate_or_base(Currency::EUR, Some(stored.clone())).map(|rate| rate.rate), Some(0.9));
         assert_eq!(rate_or_base(Currency::USD, None).map(|rate| rate.rate), Some(1.0));
         assert!(rate_or_base(Currency::EUR, None).is_none());
+    }
+
+    #[test]
+    fn test_changed_rate_only_reports_a_moved_rate_for_the_current_currency() {
+        let stored = FiatRate { symbol: Currency::EUR, rate: 0.9 };
+        let rates = |rate| vec![FiatRate { symbol: Currency::EUR, rate }, FiatRate { symbol: Currency::GBP, rate: 0.8 }];
+
+        assert_eq!(changed_rate(Some(stored.clone()), &rates(0.9), &Currency::EUR), None);
+        assert_eq!(changed_rate(Some(stored.clone()), &rates(1.1), &Currency::EUR), Some(1.1));
+        assert_eq!(changed_rate(None, &rates(0.9), &Currency::EUR), Some(0.9));
+        assert_eq!(changed_rate(Some(stored), &rates(0.9), &Currency::JPY), None);
+    }
+
+    #[test]
+    fn test_changed_prices_keeps_only_moved_values() {
+        let now = chrono::Utc::now();
+        let bitcoin = AssetId::from_chain(primitives::Chain::Bitcoin);
+        let ethereum = AssetId::from_chain(primitives::Chain::Ethereum);
+        let stored = vec![AssetPrice::new(bitcoin.clone(), 100.0, 2.0, now), AssetPrice::new(ethereum.clone(), 50.0, 1.0, now)];
+        let update = |asset_id: &AssetId, price, change| GemPriceUpdate {
+            asset_id: asset_id.clone(),
+            price,
+            price_usd: price,
+            price_change_percentage_24h: change,
+            updated_at: now + chrono::Duration::seconds(60),
+        };
+
+        let changed = changed_prices(stored.clone(), vec![update(&bitcoin, 100.0, 2.0), update(&ethereum, 50.0, 1.0)]);
+        assert!(changed.is_empty());
+
+        let changed = changed_prices(stored.clone(), vec![update(&bitcoin, 100.0, 2.5), update(&ethereum, 51.0, 1.0)]);
+        assert_eq!(changed.iter().map(|update| update.asset_id.clone()).collect::<Vec<_>>(), vec![bitcoin, ethereum]);
+
+        let solana = AssetId::from_chain(primitives::Chain::Solana);
+        let changed = changed_prices(stored, vec![update(&solana, 10.0, 0.0)]);
+        assert_eq!(changed.len(), 1);
     }
 
     #[test]

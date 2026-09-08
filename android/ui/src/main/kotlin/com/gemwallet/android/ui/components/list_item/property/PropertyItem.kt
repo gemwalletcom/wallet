@@ -225,7 +225,7 @@ fun DataBadgeChevron(isShowChevron: Boolean = true, content: (@Composable RowSco
 }
 
 @Composable
-fun DataBadgeChevron(icon: Any, isShowChevron: Boolean = true) {
+fun DataBadgeChevron(icon: Any?, isShowChevron: Boolean = true) {
     DataBadgeChevron(isShowChevron) {
         AsyncImage(icon, size = smallIconSize)
     }

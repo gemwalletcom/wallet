@@ -222,7 +222,7 @@ extension NavigationHandler {
             try await navigateToTransaction(
                 walletId: Primitives.WalletId.from(id: walletId),
                 assetId: Primitives.AssetId(id: assetId),
-                transaction: Primitives.Transaction(transaction),
+                transaction: transaction.map(),
             )
         case let .buyAsset(assetId):
             try await presentFiat(type: .buy, assetId: Primitives.AssetId(id: assetId), amount: .none)
@@ -267,14 +267,13 @@ extension NavigationHandler {
             return
         }
 
-        await selectWalletIfNeeded(walletId)
-        navigationState.openAsset(asset)
+        try openWallet(walletId, path: getPath(for: asset))
     }
 
     private func trackNotificationTransaction(walletId: WalletId, transaction: Primitives.Transaction) {
         Task {
             do {
-                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.json()])
+                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.map()])
             } catch {
                 debugLog("navigation: transaction tracking failed \(error)")
             }
@@ -286,7 +285,7 @@ extension NavigationHandler {
               let asset = try await transactionStateService.addNotificationTransaction(
                   wallet: wallet.map(),
                   assetId: assetId.identifier,
-                  transaction: transaction.json(),
+                  transaction: transaction.map(),
               ).map({ $0.map() })
         else {
             return
@@ -294,32 +293,28 @@ extension NavigationHandler {
         trackNotificationTransaction(walletId: walletId, transaction: transaction)
         let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
-        await selectWalletIfNeeded(walletId)
-        switch asset.type {
-        case .perpetual:
-            navigationState.wallet.setPath([Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)])
-        default:
-            navigationState.wallet.setPath([Scenes.Asset(asset: asset), Scenes.Transaction(transaction: transaction)])
-        }
-
-        navigationState.selectedTab = .wallet
+        try openWallet(walletId, path: getPath(for: asset, transaction: transaction))
     }
 
-    private func selectWalletIfNeeded(_ walletId: WalletId) async {
+    private func openWallet(_ walletId: WalletId, path: [any Hashable & Codable]) throws {
         guard walletSessionService.currentWalletId != walletId else {
-            return
+            return navigationState.openWallet(path: path)
         }
+        try walletSessionService.setCurrent(walletId: walletId)
+        navigationState.pendingWalletPath = path
+    }
 
-        do {
-            try walletSessionService.setCurrent(walletId: walletId)
-        } catch {
-            debugLog("set current wallet error: \(error)")
-            return
+    private func getPath(for asset: Asset) -> [any Hashable & Codable] {
+        switch asset.type {
+        case .perpetual: [Scenes.Perpetual(asset)]
+        default: [Scenes.Asset(asset: asset)]
         }
-        await withCheckedContinuation { continuation in
-            RunLoop.main.perform(inModes: [.common]) {
-                continuation.resume()
-            }
+    }
+
+    private func getPath(for asset: Asset, transaction: TransactionExtended) -> [any Hashable & Codable] {
+        switch asset.type {
+        case .perpetual: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)]
+        default: [Scenes.Asset(asset: asset), Scenes.Transaction(transaction: transaction)]
         }
     }
 
@@ -348,8 +343,7 @@ extension NavigationHandler {
     }
 
     func resetNavigation() {
-        navigationState.clearAll()
-        navigationState.selectedTab = .wallet
+        navigationState.reset()
     }
 }
 

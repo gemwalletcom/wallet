@@ -7,12 +7,11 @@ import com.gemwallet.android.application.transactions.cases.TransactionsRequestF
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.transaction.format
-import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
@@ -25,13 +24,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAmountSign
-import uniffi.gemstone.GemTransactionRow
+import uniffi.gemstone.transactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
+import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionRowValue
 import uniffi.gemstone.GemTransactionTitle
 
@@ -41,13 +41,12 @@ private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Short)
 class GetTransactionsImpl(
     private val getCurrentWalletId: GetCurrentWalletId,
     private val transactionStore: GemstoneTransactionStore,
-    private val addressService: GemAddressService,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
 
     private val transactions: StateFlow<List<TransactionDataAggregate>> =
         transactionStore.walletTransactions(getCurrentWalletId, emptyList())
-            .map { items -> items.map { TransactionDataAggregateImpl(it, addressService) } }
+            .aggregates()
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun transactions(): StateFlow<List<TransactionDataAggregate>> = transactions
@@ -55,39 +54,55 @@ class GetTransactionsImpl(
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
     ): Flow<List<TransactionDataAggregate>> = transactionStore.walletTransactions(getCurrentWalletId, filters)
-        .map { items -> items.map { TransactionDataAggregateImpl(it, addressService) } }
+        .aggregates()
         .flowOn(Dispatchers.IO)
+
+    private fun Flow<List<TransactionExtended>>.aggregates(): Flow<List<TransactionDataAggregate>> = flow {
+        val rows = TransactionRows()
+        collect { emit(rows.aggregates(it)) }
+    }
+}
+
+internal class TransactionRows {
+
+    private var previous: Map<TransactionExtended, TransactionDataAggregate> = emptyMap()
+
+    fun aggregates(items: List<TransactionExtended>): List<TransactionDataAggregate> {
+        val reused = previous
+        val rows = items.map { reused[it] ?: TransactionDataAggregateImpl(it) }
+        previous = items.zip(rows).toMap()
+        return rows
+    }
 }
 
 @Stable
 class TransactionDataAggregateImpl(
     data: TransactionExtended,
-    addressService: GemAddressService,
 ) : TransactionDataAggregate {
 
-    private val row = GemTransactionRow(data.toJson())
+    private val row = transactionRow(data.toGem())
 
     override val id: TransactionId = data.transaction.id
 
     override val asset: Asset = data.asset
 
-    override val title: GemTransactionTitle = row.title()
+    override val status: GemTransactionStatus = row.status
 
-    override val subtitle: GemTransactionRowSubtitle = row.subtitle()
+    override val title: GemTransactionTitle = row.title
 
-    override val address: String = subtitle.address()
-        ?.let { AddressFormatter(addressService, it, chain = data.transaction.assetId.chain).value() }
-        .orEmpty()
+    override val subtitle: GemTransactionRowSubtitle = row.subtitle
 
-    private val coreValue: GemTransactionRowValue = row.value()
+    override val address: String = subtitle.address().orEmpty()
+
+    private val coreValue: GemTransactionRowValue = row.value
 
     override val valueSign: GemAmountSign = (coreValue as? GemTransactionRowValue.Amount)?.amount?.sign ?: GemAmountSign.NONE
 
     override val value: String = coreValue.format().orEmpty()
 
-    override val equivalentValue: String? = row.equivalentValue().format()
+    override val equivalentValue: String? = row.equivalentValue.format()
 
-    override val nftImageUrl: String? = row.nftImageUrl()
+    override val nftImageUrl: String? = row.nftImageUrl
 
     override val type: TransactionType = data.transaction.type
 
@@ -101,8 +116,8 @@ class TransactionDataAggregateImpl(
 }
 
 private fun GemTransactionRowSubtitle.address(): String? = when (this) {
-    is GemTransactionRowSubtitle.ToAddress -> address
-    is GemTransactionRowSubtitle.FromAddress -> address
+    is GemTransactionRowSubtitle.ToAddress -> participant
+    is GemTransactionRowSubtitle.FromAddress -> participant
     is GemTransactionRowSubtitle.ToResource,
     is GemTransactionRowSubtitle.FromResource,
     is GemTransactionRowSubtitle.Price,

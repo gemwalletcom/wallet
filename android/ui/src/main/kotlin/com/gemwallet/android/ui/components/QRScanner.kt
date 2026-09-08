@@ -1,9 +1,7 @@
 package com.gemwallet.android.ui.components
 
 import android.Manifest
-import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import android.graphics.ImageFormat
 import android.net.Uri
 import android.util.Size
 import androidx.activity.compose.BackHandler
@@ -27,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,17 +71,11 @@ import com.wallet.core.primitives.QRScanType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.BinaryBitmap
-import com.google.zxing.DecodeHintType
-import com.google.zxing.LuminanceSource
-import com.google.zxing.MultiFormatReader
-import com.google.zxing.PlanarYUVLuminanceSource
-import com.google.zxing.RGBLuminanceSource
-import com.google.zxing.common.HybridBinarizer
+import com.google.zxing.NotFoundException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import java.util.concurrent.Executors
 import kotlin.math.min
 
 private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
@@ -172,26 +165,13 @@ fun QRScannerScene(
         val image = imageUri ?: return@LaunchedEffect
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image))
-                    .copy(Bitmap.Config.RGBA_F16, true)
-                val intArray = IntArray(bitmap.getWidth() * bitmap.getHeight())
-                bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight())
-
-                val source = RGBLuminanceSource(
-                    bitmap.getWidth(),
-                    bitmap.getHeight(),
-                    intArray
-                )
-                val binaryBmp = BinaryBitmap(HybridBinarizer(source))
-                val result = MultiFormatReader().apply {
-                    setHints(
-                        mapOf(DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE))
-                    )
-                }.decode(binaryBmp)
-                imageResult = result.text.orEmpty()
-                if (imageResult.isBlank()) {
-                    throw Exception()
+                val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image)) { decoder, info, _ ->
+                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                    decoder.setTargetSampleSize(QRCodeDecoder.sampleSize(info.size.width, info.size.height))
                 }
+                val pixels = IntArray(bitmap.width * bitmap.height)
+                bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+                imageResult = QRCodeDecoder.decode(pixels, bitmap.width, bitmap.height) ?: throw NotFoundException.getNotFoundInstance()
             } catch (e: Exception) {
                 imageError = e.message ?: "Unknown error"
             }
@@ -297,11 +277,16 @@ fun QRScanner(listener: (String) -> Unit) {
             it.scaleType = androidx.camera.view.PreviewView.ScaleType.FILL_CENTER
         }
     }
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
+    DisposableEffect(Unit) {
+        onDispose { analysisExecutor.shutdown() }
+    }
     LaunchedEffect(Unit) {
         try {
             val provider = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 androidx.camera.lifecycle.ProcessCameraProvider.getInstance(localContext).get()
             }
+            val mainExecutor = ContextCompat.getMainExecutor(localContext)
             val preview = androidx.camera.core.Preview.Builder()
                 .build()
                 .also {
@@ -311,6 +296,7 @@ fun QRScanner(listener: (String) -> Unit) {
                 .setBackpressureStrategy(androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .setResolutionSelector(
                     androidx.camera.core.resolutionselector.ResolutionSelector.Builder()
+                        .setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
                         .setResolutionStrategy(
                             androidx.camera.core.resolutionselector.ResolutionStrategy(
                                 QR_ANALYSIS_RESOLUTION,
@@ -322,11 +308,11 @@ fun QRScanner(listener: (String) -> Unit) {
                 .build()
                 .also { imageAnalysis ->
                     imageAnalysis.setAnalyzer(
-                        ContextCompat.getMainExecutor(localContext),
-                        QRCodeAnalyzer(callback = {
+                        analysisExecutor,
+                        QRCodeAnalyzer { text ->
                             imageAnalysis.clearAnalyzer()
-                            listener.invoke(it)
-                        })
+                            mainExecutor.execute { listener(text) }
+                        }
                     )
                 }
             val selector = androidx.camera.core.CameraSelector.Builder()
@@ -351,48 +337,15 @@ fun QRScanner(listener: (String) -> Unit) {
     }
 }
 
-@ExperimentalGetImage
 private class QRCodeAnalyzer(
     val callback: (String) -> Unit
 ) : androidx.camera.core.ImageAnalysis.Analyzer {
-    private val supportedImageFormats = listOf(
-        ImageFormat.YUV_420_888,
-        ImageFormat.YUV_422_888,
-        ImageFormat.YUV_444_888
-    )
-    private val reader = MultiFormatReader()
-    private val hints = mapOf(
-        DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
-        DecodeHintType.TRY_HARDER to true,
-    )
 
     override fun analyze(imageProxy: androidx.camera.core.ImageProxy) {
-        if (imageProxy.format !in supportedImageFormats) {
-            return
+        imageProxy.use {
+            val plane = it.planes.first()
+            QRCodeDecoder.decode(plane.buffer.toByteArray(), plane.rowStride, it.width, it.height)?.let(callback)
         }
-        val bytes = imageProxy.planes.first().buffer.toByteArray()
-        val source = PlanarYUVLuminanceSource(
-            bytes,
-            imageProxy.width,
-            imageProxy.height,
-            0,
-            0,
-            imageProxy.width,
-            imageProxy.height,
-            false
-        )
-        try {
-            val text = tryDecode(source) ?: tryDecode(source.invert())
-            text?.let(callback)
-        } finally {
-            imageProxy.close()
-        }
-    }
-
-    private fun tryDecode(source: LuminanceSource): String? = try {
-        reader.decode(BinaryBitmap(HybridBinarizer(source)), hints).text
-    } catch (_: Exception) {
-        null
     }
 }
 

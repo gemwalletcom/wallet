@@ -79,8 +79,10 @@ public struct CachedAsyncImage<Content: View>: View {
     private let content: (AsyncImagePhase) -> Content
 
     public var body: some View {
-        content(phase)
-            .task(id: urlRequest) { await load() }
+        ZStack {
+            content(phase)
+        }
+        .task(id: urlRequest) { await load() }
     }
 
     /// Loads and displays an image from the specified URL.

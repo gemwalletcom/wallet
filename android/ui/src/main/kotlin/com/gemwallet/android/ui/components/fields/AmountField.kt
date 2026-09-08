@@ -15,7 +15,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,21 +66,24 @@ fun ColumnScope.AmountField(
     ),
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    var fieldValue by remember { mutableStateOf(TextFieldValue(amount, TextRange(amount.length))) }
 
     BasicTextField(
         modifier = modifier,
-        value = TextFieldValue( // TODO: Change to textfieldstate
-            text = amount,
-            selection = TextRange(if (amount.isNotEmpty()) amount.length else 0)
-        ),
-        onValueChange = { onValueChange(it.text) },
+        value = if (fieldValue.text == amount) fieldValue else TextFieldValue(amount, TextRange(amount.length)),
+        onValueChange = {
+            if (AmountInputTransformation.isValid(it.text)) {
+                fieldValue = it
+                if (it.text != amount) onValueChange(it.text)
+            }
+        },
         visualTransformation = transformation,
         maxLines = 1,
         textStyle = textStyle.copy(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface
         ),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { onNext() }
         ),

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,7 +11,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -69,13 +69,13 @@ private fun FiatProviderListItemView(
                     badge = { SelectionCheckmark() },
                 ) {
                     AsyncImage(
-                        model = provider.provider.getFiatProviderIcon(),
+                        model = provider.provider.iconModel(),
                         size = listItemIconSize,
                     )
                 }
             } else {
                 AsyncImage(
-                    model = provider.provider.getFiatProviderIcon(),
+                    model = provider.provider.iconModel(),
                     size = listItemIconSize,
                 )
             }

@@ -28,6 +28,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -61,7 +62,7 @@ class PaymentNavigationTest {
             references = null,
             assetId = assetInfo.asset.id,
         )
-        every { getWalletAssets() } returns flowOf(listOf(assetInfo))
+        every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = "payment-memo",
@@ -102,7 +103,7 @@ class PaymentNavigationTest {
             references = null,
             assetId = assetInfo.asset.id,
         )
-        every { getWalletAssets() } returns flowOf(listOf(assetInfo))
+        every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = null,
@@ -135,7 +136,7 @@ class PaymentNavigationTest {
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
         val account = requireNotNull(assetInfo.owner)
         val requestedAsset = mockAssetSolanaUSDC()
-        every { getWalletAssets() } returns flowOf(listOf(assetInfo))
+        every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
             memo = "payment-memo",

@@ -88,6 +88,8 @@ private const val ASSET_INFO_SOURCE = """
 private const val ASSET_INFO_SELECT = "SELECT $ASSET_INFO_COLUMNS $ASSET_INFO_SOURCE"
 private const val ASSET_INFO = "($ASSET_INFO_SELECT) AS asset_info"
 
+const val ASSETS_LIMIT = 100
+
 @Dao
 interface AssetsDao {
 
@@ -219,7 +221,7 @@ interface AssetsDao {
     @Query("SELECT asset_info.* FROM $ASSET_INFO WHERE chain = :chain AND id = :assetId")
     fun getTokenInfo(walletId: String, assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC LIMIT $ASSETS_LIMIT")
     fun getAssetsInfo(walletId: String): Flow<List<DbAssetInfo>>
 
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND balanceTotalAmount > 0 ORDER BY balanceFiatTotalAmount DESC")

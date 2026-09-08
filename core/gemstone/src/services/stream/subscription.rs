@@ -9,6 +9,7 @@ use super::connection::GemStreamConnection;
 use super::rules;
 use crate::models::asset::asset_ids_enabled_by_default;
 use crate::services::balance::GemBalanceStore;
+use crate::services::collections::unique;
 use crate::services::error::GemServiceError;
 use crate::services::price::rules as price_rules;
 use crate::services::price_alert::GemPriceAlertStore;
@@ -16,6 +17,7 @@ use crate::services::price_alert::GemPriceAlertStore;
 #[derive(Default)]
 struct SubscriptionState {
     wallet_id: Option<WalletId>,
+    requested: Vec<AssetId>,
     subscribed: HashSet<AssetId>,
 }
 
@@ -38,178 +40,368 @@ impl GemStreamSubscriptionService {
             state: Mutex::new(SubscriptionState::default()),
         }
     }
+}
 
-    pub async fn setup_assets(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.state.lock().await.wallet_id = Some(wallet_id);
-        self.resubscribe().await
+impl GemStreamSubscriptionService {
+    pub(super) async fn prepare_session(&self, wallet_id: Option<WalletId>) -> Result<bool, GemServiceError> {
+        match wallet_id {
+            Some(wallet_id) => {
+                self.setup_assets(wallet_id).await?;
+                Ok(true)
+            }
+            None => {
+                *self.state.lock().await = SubscriptionState::default();
+                Ok(false)
+            }
+        }
     }
 
-    pub async fn resubscribe(&self) -> Result<(), GemServiceError> {
-        let (wallet_id, subscribed) = {
-            let state = self.state.lock().await;
-            (state.wallet_id.clone(), state.subscribed.clone())
-        };
-        let Some(wallet_id) = wallet_id else {
-            return Ok(());
-        };
-        if !self.connection.is_connected().await {
-            return Ok(());
+    async fn setup_assets(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        let mut state = self.state.lock().await;
+        if state.wallet_id.as_ref().is_some_and(|current| current != &wallet_id) {
+            state.requested.clear();
+            state.subscribed.clear();
         }
-        let alert_asset_ids = self.alerts.get_price_alerts(None).await?.into_iter().map(|alert| alert.asset_id).collect();
-        let enabled_asset_ids = self.balances.get_enabled_asset_ids(wallet_id).await?;
-        let asset_ids = price_rules::observable_asset_ids(enabled_asset_ids, alert_asset_ids, asset_ids_enabled_by_default());
-        let target: HashSet<AssetId> = asset_ids.iter().cloned().collect();
-        if subscribed == target {
-            return Ok(());
-        }
-        self.connection.send(StreamMessage::SubscribePrices(StreamMessagePrices { assets: asset_ids })).await?;
-        self.state.lock().await.subscribed = target;
-        Ok(())
+        state.wallet_id = Some(wallet_id);
+        self.subscribe(&mut state).await
     }
 
-    pub async fn add_prices(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        let new_asset_ids = rules::new_asset_ids(&self.state.lock().await.subscribed, asset_ids);
+    pub(super) async fn reconnect(&self) -> Result<(), GemServiceError> {
+        let mut state = self.state.lock().await;
+        state.subscribed.clear();
+        self.subscribe(&mut state).await
+    }
+
+    pub(crate) async fn resubscribe(&self) -> Result<(), GemServiceError> {
+        let mut state = self.state.lock().await;
+        self.subscribe(&mut state).await
+    }
+
+    pub(crate) async fn add_prices(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
+        let mut state = self.state.lock().await;
+        state.requested = unique(state.requested.iter().cloned().chain(asset_ids));
+        if state.subscribed.is_empty() {
+            return self.subscribe(&mut state).await;
+        }
+        let new_asset_ids = rules::new_asset_ids(&state.subscribed, state.requested.clone());
         if new_asset_ids.is_empty() || !self.connection.is_connected().await {
             return Ok(());
         }
         self.connection
             .send(StreamMessage::AddPrices(StreamMessagePrices { assets: new_asset_ids.clone() }))
             .await?;
-        self.state.lock().await.subscribed.extend(new_asset_ids);
+        state.subscribed.extend(new_asset_ids);
         Ok(())
     }
 
-    pub async fn reset(&self) {
+    pub(super) async fn reset(&self) {
         self.state.lock().await.subscribed.clear();
+    }
+
+    async fn subscribe(&self, state: &mut SubscriptionState) -> Result<(), GemServiceError> {
+        if state.wallet_id.is_none() && state.requested.is_empty() {
+            return Ok(());
+        }
+        if !self.connection.is_connected().await {
+            return Ok(());
+        }
+        let alert_asset_ids = self
+            .alerts
+            .get_price_alerts(None)
+            .await?
+            .into_iter()
+            .map(|alert| alert.asset_id)
+            .chain(state.requested.iter().cloned())
+            .collect();
+        let enabled_asset_ids = match &state.wallet_id {
+            Some(wallet_id) => self.balances.get_enabled_asset_ids(wallet_id.clone()).await?,
+            None => vec![],
+        };
+        let asset_ids = price_rules::observable_asset_ids(enabled_asset_ids, alert_asset_ids, asset_ids_enabled_by_default());
+        let target: HashSet<AssetId> = asset_ids.iter().cloned().collect();
+        if state.subscribed == target {
+            return Ok(());
+        }
+        self.connection.send(StreamMessage::SubscribePrices(StreamMessagePrices { assets: asset_ids })).await?;
+        state.subscribed = target;
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::services::balance::{GemAssetBalance, GemBalanceUpdate};
-    use async_trait::async_trait;
-    use primitives::currency::Currency;
-    use primitives::{Chain, PriceAlert};
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::pin::pin;
+    use std::sync::atomic::Ordering;
 
-    struct EnabledStore(Vec<AssetId>);
+    use futures::{executor::block_on, poll};
+    use primitives::{Chain, WalletId};
 
-    #[async_trait]
-    impl GemBalanceStore for EnabledStore {
-        async fn get_available_balances(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-            Ok(vec![])
-        }
-        async fn update_balances(&self, _wallet_id: WalletId, _updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn get_enabled_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-            Ok(self.0.clone())
-        }
-        async fn set_assets_enabled(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>, _enabled: bool) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn set_asset_pinned(&self, _wallet_id: WalletId, _asset_id: AssetId, _pinned: bool) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-    }
-
-    struct AlertStore(Vec<AssetId>);
-
-    #[async_trait]
-    impl GemPriceAlertStore for AlertStore {
-        async fn get_price_alerts(&self, _asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, GemServiceError> {
-            Ok(self
-                .0
-                .iter()
-                .map(|asset_id| PriceAlert {
-                    asset_id: asset_id.clone(),
-                    currency: Currency::USD,
-                    price: None,
-                    price_percent_change: None,
-                    price_direction: None,
-                    identifier: String::new(),
-                    last_notified_at: None,
-                })
-                .collect())
-        }
-        async fn update_price_alerts(&self, _alerts: Vec<PriceAlert>, _delete_ids: Vec<String>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-    }
-
-    #[derive(Default)]
-    struct Connection {
-        connected: AtomicBool,
-        sent: std::sync::Mutex<Vec<StreamMessage>>,
-    }
-
-    #[async_trait]
-    impl GemStreamConnection for Connection {
-        async fn is_connected(&self) -> bool {
-            self.connected.load(Ordering::SeqCst)
-        }
-        async fn send(&self, message: StreamMessage) -> Result<(), GemServiceError> {
-            self.sent.lock().unwrap().push(message);
-            Ok(())
-        }
-    }
-
-    fn service(connection: Arc<Connection>, enabled: Vec<AssetId>, alerts: Vec<AssetId>) -> GemStreamSubscriptionService {
-        GemStreamSubscriptionService::new(Arc::new(EnabledStore(enabled)), Arc::new(AlertStore(alerts)), connection)
-    }
-
-    fn subscribed(connection: &Connection) -> Vec<Vec<AssetId>> {
-        connection
-            .sent
-            .lock()
-            .unwrap()
-            .iter()
-            .filter_map(|message| match message {
-                StreamMessage::SubscribePrices(prices) => Some(prices.assets.clone()),
-                _ => None,
-            })
-            .collect()
-    }
+    use crate::models::asset::asset_ids_enabled_by_default;
+    use crate::services::balance::GemBalanceStore;
+    use crate::services::stream::testkit::{SubscriptionTestkit, asset_ids};
 
     #[test]
-    fn test_subscribes_once_when_connected_and_after_reset() {
-        futures::executor::block_on(async {
-            let connection = Arc::new(Connection::default());
-            let service = service(connection.clone(), vec![AssetId::from_chain(Chain::Bitcoin)], vec![AssetId::from_chain(Chain::Bitcoin)]);
-            let wallet_id = WalletId::Multicoin("0x1".into());
-
-            service.setup_assets(wallet_id.clone()).await.unwrap();
-            assert!(subscribed(&connection).is_empty());
-
-            connection.connected.store(true, Ordering::SeqCst);
-            service.resubscribe().await.unwrap();
-            service.setup_assets(wallet_id).await.unwrap();
-            assert_eq!(subscribed(&connection).len(), 1);
-            assert_eq!(subscribed(&connection)[0], vec![AssetId::from_chain(Chain::Bitcoin)]);
-
-            service
-                .add_prices(vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_chain(Chain::Ethereum)])
-                .await
-                .unwrap();
-            assert!(matches!(connection.sent.lock().unwrap().last(), Some(StreamMessage::AddPrices(prices)) if prices.assets == vec![AssetId::from_chain(Chain::Ethereum)]));
-
-            service.reset().await;
-            service.resubscribe().await.unwrap();
-            assert_eq!(subscribed(&connection).len(), 2);
+    fn test_subscribes_to_enabled_and_alerted_assets_once() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[Chain::Bitcoin, Chain::Ethereum]);
+            kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+            kit.service.setup_assets(kit.wallet_id).await.unwrap();
+            assert_eq!(kit.connection.messages(), vec![("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum]))]);
         });
     }
 
     #[test]
-    fn test_subscribes_to_alerted_assets_the_wallet_has_not_enabled() {
-        futures::executor::block_on(async {
-            let connection = Arc::new(Connection::default());
-            let service = service(connection.clone(), vec![AssetId::from_chain(Chain::Bitcoin)], vec![AssetId::from_chain(Chain::Ethereum)]);
-            connection.connected.store(true, Ordering::SeqCst);
+    fn test_each_reconnect_sends_a_fresh_subscription() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[Chain::Ethereum]);
+            kit.connection.connected.store(false, Ordering::SeqCst);
+            assert!(kit.service.prepare_session(Some(kit.wallet_id)).await.unwrap());
 
-            service.setup_assets(WalletId::Multicoin("0x1".into())).await.unwrap();
+            kit.connection.connected.store(true, Ordering::SeqCst);
+            kit.service.reconnect().await.unwrap();
+            kit.service.reconnect().await.unwrap();
 
-            assert_eq!(subscribed(&connection)[0], vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_chain(Chain::Ethereum)]);
+            assert_eq!(kit.connection.messages(), vec![("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])); 2]);
+        });
+    }
+
+    #[test]
+    fn test_missing_session_clears_wallet_and_requested_subscriptions() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            assert!(kit.service.prepare_session(Some(kit.wallet_id.clone())).await.unwrap());
+            kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
+
+            assert!(!kit.service.prepare_session(None).await.unwrap());
+            kit.service.reconnect().await.unwrap();
+            assert!(kit.service.prepare_session(Some(kit.wallet_id.clone())).await.unwrap());
+            assert!(!kit.service.prepare_session(None).await.unwrap());
+            assert!(kit.service.prepare_session(Some(kit.wallet_id)).await.unwrap());
+
+            assert_eq!(
+                kit.connection.messages(),
+                vec![
+                    ("subscribe", asset_ids(&[Chain::Bitcoin])),
+                    ("add", asset_ids(&[Chain::Solana])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin])),
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_failed_reconnect_preserves_requested_assets_for_retry() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            kit.service.setup_assets(kit.wallet_id).await.unwrap();
+            kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
+
+            kit.connection.fail_next_send.store(true, Ordering::SeqCst);
+            assert!(kit.service.reconnect().await.is_err());
+            kit.service.resubscribe().await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+
+            assert_eq!(
+                kit.connection.messages(),
+                vec![
+                    ("subscribe", asset_ids(&[Chain::Bitcoin])),
+                    ("add", asset_ids(&[Chain::Solana])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Solana])),
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_empty_wallet_subscribes_to_default_assets() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[], &[]);
+            kit.service.setup_assets(kit.wallet_id).await.unwrap();
+            assert_eq!(kit.connection.messages(), vec![("subscribe", asset_ids_enabled_by_default())]);
+        });
+    }
+
+    #[test]
+    fn test_initial_add_subscribes_before_setup_and_deduplicates_later_adds() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            kit.service.add_prices(asset_ids(&[Chain::Ethereum])).await.unwrap();
+            kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
+            kit.service.add_prices(asset_ids(&[Chain::Ethereum, Chain::Solana, Chain::Solana])).await.unwrap();
+            kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+            assert_eq!(
+                kit.connection.messages(),
+                vec![
+                    ("subscribe", asset_ids(&[Chain::Ethereum])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])),
+                    ("add", asset_ids(&[Chain::Solana])),
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_offline_additions_survive_setup_and_reconnect() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            kit.connection.connected.store(false, Ordering::SeqCst);
+            kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
+            kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
+            kit.balances.set_assets_enabled(kit.wallet_id, asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.service.add_prices(asset_ids(&[Chain::Ethereum])).await.unwrap();
+            assert_eq!(kit.connection.messages(), vec![]);
+
+            kit.service.reset().await;
+            kit.connection.connected.store(true, Ordering::SeqCst);
+            kit.service.resubscribe().await.unwrap();
+            kit.service.reset().await;
+            kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
+            assert_eq!(
+                kit.connection.messages(),
+                vec![("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum, Chain::Solana])); 2]
+            );
+        });
+    }
+
+    #[test]
+    fn test_failed_sends_retain_requested_assets_for_retry() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            kit.connection.fail_next_send.store(true, Ordering::SeqCst);
+            assert!(kit.service.add_prices(asset_ids(&[Chain::Ethereum])).await.is_err());
+            kit.service.setup_assets(kit.wallet_id).await.unwrap();
+
+            kit.connection.fail_next_send.store(true, Ordering::SeqCst);
+            assert!(kit.service.add_prices(asset_ids(&[Chain::Solana])).await.is_err());
+            kit.service.add_prices(asset_ids(&[Chain::Tron])).await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+            assert_eq!(
+                kit.connection.messages(),
+                vec![
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])),
+                    ("add", asset_ids(&[Chain::Solana, Chain::Tron])),
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_wallet_change_removes_previous_wallet_additions() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[Chain::Tron]);
+            let second_wallet = WalletId::Multicoin("0x2".into());
+            kit.balances.set_assets_enabled(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
+            kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
+            kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
+            kit.service.setup_assets(second_wallet).await.unwrap();
+            kit.service.setup_assets(kit.wallet_id).await.unwrap();
+            assert_eq!(
+                kit.connection.messages(),
+                vec![
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Tron])),
+                    ("add", asset_ids(&[Chain::Solana])),
+                    ("subscribe", asset_ids(&[Chain::Ethereum, Chain::Tron])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Tron])),
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_enabled_asset_changes_preserve_requested_assets_and_alerts() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[Chain::Tron]);
+            kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
+            kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
+
+            kit.balances.set_assets_enabled(kit.wallet_id.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+            kit.balances.set_assets_enabled(kit.wallet_id, asset_ids(&[Chain::Ethereum]), false).await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+
+            assert_eq!(
+                kit.connection.messages(),
+                vec![
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Tron])),
+                    ("add", asset_ids(&[Chain::Solana])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum, Chain::Tron, Chain::Solana])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Tron, Chain::Solana])),
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_add_waits_for_in_flight_subscription() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            let release = kit.connection.pause_next_send();
+            let mut setup = pin!(kit.service.setup_assets(kit.wallet_id));
+            assert!(poll!(setup.as_mut()).is_pending());
+            let mut add = pin!(kit.service.add_prices(asset_ids(&[Chain::Ethereum])));
+            assert!(poll!(add.as_mut()).is_pending());
+            release.send(()).unwrap();
+            setup.await.unwrap();
+            add.await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+            assert_eq!(
+                kit.connection.messages(),
+                vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("add", asset_ids(&[Chain::Ethereum]))]
+            );
+        });
+    }
+
+    #[test]
+    fn test_reset_waits_for_in_flight_add_and_preserves_reconnect_assets() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            kit.service.setup_assets(kit.wallet_id).await.unwrap();
+            let release = kit.connection.pause_next_send();
+            let mut add = pin!(kit.service.add_prices(asset_ids(&[Chain::Ethereum])));
+            assert!(poll!(add.as_mut()).is_pending());
+            let mut reset = pin!(kit.service.reset());
+            assert!(poll!(reset.as_mut()).is_pending());
+            release.send(()).unwrap();
+            add.await.unwrap();
+            reset.await;
+            kit.service.resubscribe().await.unwrap();
+            assert_eq!(
+                kit.connection.messages(),
+                vec![
+                    ("subscribe", asset_ids(&[Chain::Bitcoin])),
+                    ("add", asset_ids(&[Chain::Ethereum])),
+                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])),
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_wallet_switch_waits_for_in_flight_setup() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            let second_wallet = WalletId::Multicoin("0x2".into());
+            kit.balances.set_assets_enabled(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            let release = kit.connection.pause_next_send();
+            let mut first = pin!(kit.service.setup_assets(kit.wallet_id));
+            assert!(poll!(first.as_mut()).is_pending());
+            let mut second = pin!(kit.service.setup_assets(second_wallet));
+            assert!(poll!(second.as_mut()).is_pending());
+            release.send(()).unwrap();
+            first.await.unwrap();
+            second.await.unwrap();
+            kit.service.resubscribe().await.unwrap();
+            assert_eq!(
+                kit.connection.messages(),
+                vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("subscribe", asset_ids(&[Chain::Ethereum]))]
+            );
         });
     }
 }

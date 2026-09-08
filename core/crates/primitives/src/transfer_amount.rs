@@ -10,10 +10,27 @@ pub struct TransferAmount {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TransferAmountError {
-    InsufficientBalance { asset_id: AssetId, required: BigInt, available: BigInt },
-    InsufficientNetworkFee { asset_id: AssetId, required: BigInt, available: BigInt },
-    MinimumAccountBalanceTooLow { asset_id: AssetId, required: BigInt, available: BigInt },
-    BelowSwapMinimum { asset_id: AssetId, provider: SwapProvider, minimum: BigInt, value: BigInt },
+    InsufficientBalance {
+        asset_id: AssetId,
+        required: BigInt,
+        available: BigInt,
+    },
+    InsufficientNetworkFee {
+        asset_id: AssetId,
+        required: BigInt,
+        available: BigInt,
+    },
+    MinimumAccountBalanceTooLow {
+        asset_id: AssetId,
+        required: BigInt,
+        available: BigInt,
+    },
+    BelowSwapMinimum {
+        asset_id: AssetId,
+        provider: SwapProvider,
+        minimum: BigInt,
+        value: BigInt,
+    },
 }
 
 impl std::fmt::Display for TransferAmountError {
@@ -28,7 +45,12 @@ impl std::fmt::Display for TransferAmountError {
             Self::MinimumAccountBalanceTooLow { asset_id, required, available } => {
                 write!(f, "{} account balance below minimum: required {}, remaining {}", asset_id, required, available)
             }
-            Self::BelowSwapMinimum { asset_id, provider, minimum, value } => {
+            Self::BelowSwapMinimum {
+                asset_id,
+                provider,
+                minimum,
+                value,
+            } => {
                 write!(f, "{} amount {} is below the {} minimum {}", asset_id, value, provider.name(), minimum)
             }
         }

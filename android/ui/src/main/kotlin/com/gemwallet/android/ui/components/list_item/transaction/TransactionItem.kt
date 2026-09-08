@@ -18,9 +18,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ui.components.showsStatusProgress
 import com.gemwallet.android.ui.components.image.AssetIcon
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.BadgeCircle
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -45,6 +44,8 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemTransactionRowSubtitle
+import uniffi.gemstone.GemTransactionStateTone
+import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
 
 @Composable
@@ -102,8 +103,8 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
         else -> MaterialTheme.colorScheme.primary
     }
     IconWithBadge(
-        icon = data.nftImageUrl ?: data.asset.getIconUrl(),
-        placeholder = if (data.nftImageUrl != null) "NFT" else data.asset.type.string,
+        icon = data.nftImageUrl ?: data.asset.iconModel(),
+        placeholder = if (data.nftImageUrl != null) "NFT" else data.asset.symbol,
         size = size,
     ) {
         BadgeCircle(size = size, color = color) {
@@ -146,7 +147,7 @@ private fun TransactionStatusBadge(data: TransactionDataAggregate) {
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.labelMedium,
         )
-        if (data.state.showsStatusProgress()) {
+        if (data.status.showsProgress) {
             CircularProgressIndicator10(color = color)
             Spacer8()
         }
@@ -171,7 +172,8 @@ fun PreviewTransactionItem() {
                 override val value = "-0.9998888999 BTC"
                 override val equivalentValue: String? = null
                 override val title = GemTransactionTitle.Transfer
-                override val subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks", null)
+                override val status = GemTransactionStatus(tone = GemTransactionStateTone.PENDING, showsBadge = true, showsProgress = true)
+                override val subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks")
                 override val valueSign = GemAmountSign.OUTGOING
                 override val type = TransactionType.Transfer
                 override val direction = TransactionDirection.Outgoing
@@ -201,6 +203,7 @@ fun PreviewSwapTransactionItem() {
                 override val address = "0xBA4D...50AC4"
                 override val value = "+19 TON"
                 override val equivalentValue = "-0.09 BNB"
+                override val status = GemTransactionStatus(tone = GemTransactionStateTone.SUCCESS, showsBadge = false, showsProgress = false)
                 override val title = GemTransactionTitle.Swap
                 override val subtitle = GemTransactionRowSubtitle.None
                 override val valueSign = GemAmountSign.INCOMING

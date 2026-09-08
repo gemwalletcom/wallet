@@ -270,7 +270,7 @@ that is the platform's reactive read, not a second service.
 
 Audit of September 2026 (re-run the two sweeps below before touching a screen): every iOS screen
 view model holds one `any Gem*ServiceProtocol` — the only multi-service holders are the three
-in section 8 — and no view model on either app names a concrete Core class any more (iOS
+in section 9 — and no view model on either app names a concrete Core class any more (iOS
 `DeveloperViewModel` did; eighteen Android view models and their `pack`/`unpack`,
 `toSupportedNamespaces`, `activityDefaults` helpers took `Gem*Service` where the Hilt module only
 bound the class, so each such module now also binds the `*Interface`).
@@ -290,7 +290,7 @@ What stays on the app side, because it is a platform concern with no Core counte
 | [`AppService/AppLifecycleService`](../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | Scene phase orchestration of observers |
 | [`AppService/OnstartService`](../ios/Packages/FeatureServices/AppService/OnstartService.swift) | OS security checks, URL cache and launch orchestration |
 | [`ConnectionStatusService`](../ios/Packages/FeatureServices/ConnectionStatusService) | Connectivity |
-| [`StreamService`](../ios/Packages/FeatureServices/StreamService) | WebSocket lifecycle and Core stream adapter |
+| [`StreamService`](../ios/Packages/FeatureServices/StreamService) | Native socket observation and cancellation; `GemStreamService` owns session preparation, subscriptions, and currency selection on both apps |
 | [`WalletConnectorService`](../ios/Packages/FeatureServices/WalletConnectorService) | Reown/WalletConnect SDK integration |
 | [`SystemServices`](../ios/Packages/SystemServices) | Connectivity, image gallery, local store |
 
@@ -327,20 +327,30 @@ Each is one question. Nothing below is blocked on investigation.
 | N1 notification permission | Core owns "granted / denied / never asked", but Android's adapter holds an application `Context` and cannot tell "never asked" from "denied", so it opens Settings for a first-time user. | Core owns the three-state decision; Android needs an activity-scoped requester. |
 | S8 privacy lock | iOS has an app-lock setting with a `shouldCoverScreen` rule and an overlay window; Android has none. | Product call. The cover predicate is Core's; the overlay is platform. |
 | S9 WalletConnect one-click auth (SIWE) | Android only, and its rules — including *what the user is asked to sign* — live in `WCAuthViewModel.kt` UI code. | Product call. Whoever takes it moves the rules to Core first. |
-| Polling on top of a live socket | T5/T7: screens still poll while a socket is open, and each screen asks for its own price subscription rather than Core deciding when prices are subscribed (deleting `PriceUpdater.swift`). | Design change, not a missing call. |
+| Polling on top of a live socket | Android polls nowhere, so adopting `GemConnectionService::refresh_interval` means *adding* a timer to the activity, asset and perpetual screens — new background work, not a consolidation. | Product call on whether Android wants the safety net iOS now has. |
 | Stake payloads as typed FFI | Done 2026-09-06: `DelegationBase`, `Delegation`, `RedelegateData`, `StakeType` and `EarnType` are `#[uniffi::remote]` declarations (tuple variants included; the generator renders them), `Price` left `Delegation` because Core never read it, and the JSON bridge lost all five. The TypeShare twins are gone; each app holds a hand-written twin with `BigInt`/`BigInteger` fields (iOS `Primitives/Delegations.swift`, `Staking.swift`, `EarnType.swift`; Android `com.wallet.core.primitives` `Delegations.kt`, `Staking.kt`) and a hand-written mapper at the seam (`Delegation+GemstonePrimitives.swift`, `ext/StakeMappers.kt`) that copies the numbers, so no app code parses a balance any more. The stores keep text columns and convert at the persistence boundary, the way `Balance` already did. | The pattern for any remaining big-integer payload: remote record, hand-written twin with the number type, mapper that copies. |
 | Scan payloads stay in Core | Done 2026-09-07: `ScanTransaction`, `ScanTransactionPayload` and `ScanAddressTarget` crossed as JSON strings with a generated twin and a mock per app and had no caller on either side, because a scan result reaches the apps as a confirm error. The bridge entries, both twins and the three dead mocks are gone; `AddressType` keeps its twin because the apps persist it. | Before converting a bridge type to a record, check whether the apps read it at all; the answer is sometimes to delete it. |
 | Simulation payloads as typed FFI | Done 2026-09-07: the eleven simulation types (`SimulationResult`, `SimulationWarning`, `SimulationWarningType`, `SimulationWarningApproval`, `SimulationBalanceChange`, `SimulationPayloadField` and its three enums, `SimulationHeader`, `SimulationSeverity`) crossed as JSON strings with a TypeShare twin per app. They are now `#[uniffi::remote]` declarations, the JSON bridge lost its three entries, and both apps hold the uniffi types with no twin, no mapper and no decode: `GemWalletConnect*Request.simulation` and the confirm session take the record. The approval amounts arrive as `BigInt`/`BigInteger`, so the header and warning value parsing is gone. | The generator now strips inline field attributes on tuple variants, so a `#[serde(...)] Option<BigInt>` variant renders as `Option<GemBigInt>`. |
 | Swap payloads as typed FFI | Done 2026-09-06: `ApprovalData`, `SwapQuoteData`, `SwapQuoteDataType`, `SwapData`, `SwapQuote`, `SwapProviderData` and `ContractCallData` are `#[uniffi::remote]` declarations with `BigUint` amounts and no TypeShare twin, so the JSON bridge lost all of them and `TransactionInputType` carries the records instead of JSON strings. The apps hold the uniffi types themselves (`Gemstone.SwapQuote`, `uniffi.gemstone.SwapQuote`), the way they already held `TransactionInputType` and `GasPriceType`: no hand-written twin, no mapper, and the swap scene, confirm details and transaction header read `fromValue`/`toValue` as numbers. | A remote type gets a twin only when an app persists it (the stake payloads, `Balance`); a payload that only crosses the FFI is used as the uniffi type. |
 | Portfolio assets as a typed FFI record | Done 2026-09-07: `PortfolioAsset` crossed as a JSON string, so each store built a TypeShare twin, stringified the balance and encoded it, and Core decoded it back. It is a `#[uniffi::remote]` record now with a `BigUint` value, the JSON bridge lost it along with `PortfolioAssets` and `PortfolioAssetsRequest` (both Core-internal, read only by the portfolio client and the device API), and the generated twins are gone from both apps. The two portfolio stores hand Core the record directly, with the asset id as its identifier string and the total balance as a number. | A bridge entry that exists only because Core needs the type internally is not an app contract; check who reads it before generating a twin for it. |
+| Stake amount screen owned by Core | Done 2026-09-07: the amount screen's stake type was a hand-written iOS enum (`AmountStakeType`) and an Android `when (params)` that each decided which validator is selected by default and whether the user may change it. `GemStakeAmountInput` is that type now — iOS names it directly in `AmountType`, Android maps its navigation params onto it — and `stake_validator_selection` answers with the options, the default and `can_select` in one record. The iOS twin and its two mapping properties are gone, Android's `GetRecommendedValidator` and `GetRedelegateValidator` cases are deleted (the provider observes the validators and asks Core), and `recommended_validator`/`redelegate_validator` stopped being FFI exports. | When two apps each switch over the same action enum, the enum belongs in Core; the app is left mapping its navigation payload onto it, which carries no policy. |
 | Frozen `assetConfig` table | `Chain.asset()` builds an immutable lookup once at first access. Threading a service through ~21 Android sites so a pure function can read a constant costs every caller a parameter for nothing at runtime, and a frozen table cannot drift into an app-side variant. | Decide whether the no-service-at-a-call-site rule carves this out before spending the change. |
 
-### 2. Unused generated models to remove
+### 2. Core surface with no caller
+
+`GemSwapSession::on_transfer_abandoned` is the only transition that clears a transfer left
+`Loading`, and `start_transfer` refuses to start while one is, yet neither app calls it — the swap
+screens resume with `on_refresh_resumed`, which only lifts the pause. Either a screen should call
+it when a confirm is dismissed mid-load, or the transition goes. A sweep of the 416 exported
+methods against both apps found only that one, plus a duplicate of the free
+`wallet_default_assets` and the Core-internal `accepts_quotes`, both now off the FFI surface.
+
+### 3. Unused generated models to remove
 
 A sweep of the `#[typeshare]` types in `core/crates/primitives` against both apps' non-generated sources found 26 with no app reference. The nine standalone ones are removed (`CosmosDenom`, `QuoteAsset`, `SlippageMode`, `SwapProviderMode`, `SwapResult`, `SwapStatus`, `WCEthereumTransaction`, `WalletImport`). What is left:
 
 - **Sixteen are nested** inside a type the apps do use — `StreamEvent` hosts six, `Markets` two, plus `CoreListItem`, `WalletSubscription`, `PortfolioAssets`, `FiatProvider`/`FiatQuote`, `RewardRedemptionOption`, `StreamMessage`, `WalletConfigurationResult`. Their generated model is still required; they go only when the host does.
-- **`TransactionInputType`** is unreferenced but stays — it is the target of the transfer-model collapse in section 4.
+- **`TransactionInputType`** is unreferenced but stays — it is the target of the transfer-model collapse in section 5.
 - A later pass (September 2026) found `BalanceType` — a file that was not even in `lib.rs` — and
   `AssetRank`, which only `AssetScore::rank_type` (a skipped field) uses in Core; the first is
   deleted with its two generated files, the second is no longer shared. `AssetScoreType` went
@@ -356,7 +366,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 2. Removing the last attribute in a file leaves `use typeshare::typeshare;` unused — clippy fails on it.
 3. **The generator does not delete a file that now emits nothing.** `WalletImport.swift`, `WalletConnect.swift` and `swap/Result.kt` survived `just generate-models` with stale contents and had to be deleted by hand. Check `git status` for generated files that *did not* change and confirm they still have a source.
 
-### 3. Rules still written once per platform
+### 4. Rules still written once per platform
 
 - **The amount providers hand Core their inputs and take Core's types back.**
   `GemAmountType::validate` checks a value against the type's own available value and minimum,
@@ -389,7 +399,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   both apps at once: `Account`, `Chain`, `ChainType`, `ConnectionStatus`, `ConnectionComponent`,
   `LinkType`, `PriceAlertDirection`, `PriceAlertNotificationType`, `AssetFiatValue`,
   `TotalFiatValue` and `SwapProvider` moved that way, each deleting an app-side copy and, in four
-  cases, a rule the two platforms disagreed on. What it cannot represent yet is a data-carrying
+  cases, a rule the two platforms disagreed on. `Transaction` and `TransactionExtended` moved off
+  the JSON bridge the same way, which cost more than the row rules did: an app serialised the whole
+  transaction and Core parsed it back, 14.5µs and 30.6µs of a 32.3µs row on iOS. Two entries in
+  `remote_types.yml` carried them across — `conversions`, an expression per language and direction
+  for a declared type the app spells differently (`serde_json::Value` as a json string, `BigUint`
+  and `BigInt` against TypeShare twins that hold them as text, `UInt64` against Kotlin's `Long`),
+  and `defaults`, the variant a `#[typeshare(skip)]` field falls back to, which is what the
+  generator used to panic on (`Price.provider`, a field the pricing pipeline reads and the apps
+  never see). What it cannot represent yet is a data-carrying
   enum: `remote_mappers.rs` reads variant names only, so `GasPriceType` would generate an empty
   mapping. That blocks the last hand-written fee mappers (`GemGasPriceType` ↔ `GasPriceType`,
   `GemTransactionLoadFee` ↔ `Fee`, `GemFeeOptions` ↔ `FeeOptionMap`), where the same conversion is
@@ -420,8 +438,23 @@ Three gotchas if you repeat the sweep, all met on this pass:
   participant, memo, resource, rate, pnl, price, fee, explorer link) and
   `GemAssetBalance::detail_rows` (available, staked, earn, pending, reserved) replaced the
   per-row predicates both apps kept — Android had mapped the transaction state to swap-progress
-  step statuses a third time inside a Compose item. Left on the apps: formatting, titles, and the
-  DEBUG gate iOS keeps on the earn row.
+  step statuses a third time inside a Compose item. `GemTransactionRow` and the detail rows are
+  records, not objects with a getter per field, so a row costs one call instead of one per value
+  (`transaction_row(transaction)`, and `swap_quote_summary`/`swapper_quote_summary` for the swap
+  summary, are the constructors a record cannot have). Both carry a `GemTransactionStatus` — the
+  tone the six states collapse into plus whether a badge and a spinner belong — and the subtitle
+  carries the participant already named or shortened, so neither app groups states or formats an
+  address for a row. Left on the apps: formatting, titles, mapping a tone to a colour and icon,
+  and the DEBUG gate iOS keeps on the earn row.
+- **How often a screen refreshes is Core's answer.** `GemConnectionService::refresh_interval(kind,
+  status)` returns a `Duration` beside the reconnect, keepalive and offline-debounce cadences it
+  already owned: fifteen minutes while the connection is online, because the socket pushes prices,
+  balances, transactions, collectibles and perpetuals itself, and the screen's own cadence (a
+  minute for market data, five for wallet data) when nothing is pushing. iOS's three
+  `refreshableTimer` call sites named those numbers themselves and ran them whatever the socket was
+  doing. `ConnectionStatus` is one environment value in `PrimitivesComponents` now, published from
+  `RootScene`, so a feature scene can read it; the banner reads the same value instead of the
+  observer. What is left: Android has no timer to point at the rule.
 - **The WalletConnect request lifecycle is one Core call.**
   `GemWalletConnectService::process_request` takes the SDK's session request as it arrives
   (topic, request id, method, params, chain id, origin, verification) and returns
@@ -440,7 +473,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemConfirmSimulation`), the payload address names and the explorer links for the
   sign-message screen on both apps.
 
-### 4. Core surface
+### 5. Core surface
 
 - **Current-wallet screen services read the session.** Every Android view model that calls a
   wallet-scoped Core method starts with `session.value?.wallet ?: return@launch`, and every iOS one
@@ -1156,7 +1189,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemWalletHomeService::apply_banner_action` and `GemAssetDetailsService::{apply_banner_action, banner_content}` (iOS's home and asset scenes forward banner actions through their screen service; Android renders banners with one host-independent `BannersScene` whose view model holds `GemBannerService`, so the forwarding pair is iOS structure).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 
-### 5. Tests that cannot fail
+### 6. Tests that cannot fail
 
 `SettingsViewModelTest` (Android) used to fail intermittently with an `IllegalStateException` from
 `TestMainDispatcher`; its rewards tests were rewritten to drive a `StandardTestDispatcher` and cancel
@@ -1170,7 +1203,7 @@ handler still runs, so the test needs the producer scope closed before the asser
 
 `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL` — the pre-`46889318bc` contract — and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived, so it cannot fail on data loss. It is an `androidTest`, so fixing it means running it on a device.
 
-### 6. Android
+### 7. Android
 
 - **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`, `GemAmountService::earn_transfer_data`, `GemAmountType::Earn` and `TransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch, and not before iOS ungates it: `AssetSceneViewModel.showEarnButton` and the earn balance row are `#if DEBUG` only, so release iOS has no Earn entry either.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
@@ -1181,14 +1214,14 @@ handler still runs, so the test needs the producer scope closed before the asser
 - Consistency: `*Service` classes live inside the coordinators module. (`toChain()` is gone — every chain string the app converts comes from Core, whose `Chain` and the typeshare enum are generated from one source, so `requireChain()` is the only conversion and a mismatch fails loudly instead of dropping the row.)
 - Localization: 59 hardcoded `dp` values (worst: `SupportMessageBubble`, `ReceiveScreen`, `ImportScreen`, `WalletTypeTab`, `FiatScene`).
 
-### 7. iOS
+### 8. iOS
 
 - Image URLs come from `GemImage { Asset, Validator, NftAsset, AssetList }::url()` on both apps; `Validator` answers the chain's own logo for the system ("unstaking") validator, so neither app keeps a system-validator id (iOS `DelegationValidator.systemId`, Android `SYSTEM_VALIDATOR_ID` are gone) (iOS `AssetImageFormatter`, Android's remote-URL half of `IconUrlGeneration.kt` and both apps' `assets.gemwallet.com` constants are gone). The one exception is `GemPriceWidget`, which does not link Gemstone — a widget extension cannot afford the Rust binary — so `WidgetPriceService.tokenImageURL` spells the token logo URL itself; bundled chain/provider icons stay platform paths.
 - Naming: untyped `.map()` conversions where Android has `toPrimitives()`.
 - `TransactionScene`'s corner radius is an open iOS 26 styling question — it marks a real gap, keep the TODO until closed.
 - The two "delete in 2026" `FileMigrator` calls (`LocalKeystore`, `DB.swift`) move the keystore and database from documents to application support on launch. Deleting them strands anyone who has not opened the app since the move — losing their keystore — so this needs install-base data, not a code decision.
 
-### 8. iOS view models holding more than one Core service
+### 9. iOS view models holding more than one Core service
 
 Each iOS scene view model should hold at most one private Core service per
 [ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).

@@ -3,7 +3,7 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, Currency, Delegation, PerpetualDirection, StakeType};
+use primitives::{Asset, Chain, Currency, Delegation, PerpetualDirection, StakeType};
 
 pub use model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
 
@@ -15,7 +15,8 @@ use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::stake::GemStakeService;
+use crate::services::stake::rules as stake_rules;
+use crate::services::stake::{GemStakeAmountInput, GemStakeService, GemStakeValidatorSelection};
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -66,6 +67,10 @@ impl GemAmountService {
 
     pub fn perpetual_amount_type(&self, action: GemPerpetualPositionAction, leverage: u8) -> GemAmountType {
         rules::perpetual_amount_type(&action, leverage)
+    }
+
+    pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
+        stake_rules::validator_selection(chain, &input)
     }
 
     pub fn stake_amount_type(&self, stake_type: StakeType, delegations: Vec<Delegation>) -> GemAmountType {

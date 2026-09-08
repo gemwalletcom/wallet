@@ -9,7 +9,7 @@ import enum Gemstone.GemSwapButtonAction
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
 import protocol Gemstone.GemSwapQuoteServiceProtocol
-import class Gemstone.GemSwapQuoteSummary
+import func Gemstone.swapperQuoteSummary
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapQuote
@@ -104,8 +104,8 @@ public final class SwapSceneViewModel {
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
         guard let selectedSwapQuote, let fromAsset, let toAsset else { return nil }
-        let summary = GemSwapQuoteSummary.fromQuote(quote: selectedSwapQuote)
-        let selectedQuote = summary.quote()
+        let summary = swapperQuoteSummary(quote: selectedSwapQuote)
+        let selectedQuote = summary.quote
         let fromAssetPrice = AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price)
         let toAssetPrice = AssetPriceValue(asset: toAsset.asset, price: toAsset.price)
         return SwapDetailsViewModel(
@@ -119,8 +119,8 @@ public final class SwapSceneViewModel {
             swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
                 .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue))
                 .map { $0.map() },
-            minReceiveValue: BigInt(summary.minReceiveValue()),
-            etaMinutes: summary.etaMinutes(),
+            minReceiveValue: BigInt(summary.minReceiveValue),
+            etaMinutes: summary.etaMinutes,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },

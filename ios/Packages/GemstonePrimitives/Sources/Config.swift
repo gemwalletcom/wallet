@@ -7,6 +7,7 @@ import class Gemstone.GemAddressService
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemChainService
+import class Gemstone.GemConnectionService
 import enum Gemstone.DocsUrl
 import enum Gemstone.NodeRegion
 import class Gemstone.PriceAlertFormatter
@@ -32,6 +33,10 @@ public extension GemAssetConfigService {
 
 public extension GemChainService {
     static let shared = GemChainService()
+}
+
+public extension GemConnectionService {
+    static let shared = GemConnectionService()
 }
 
 public extension PriceAlertFormatter {

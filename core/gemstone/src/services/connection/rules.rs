@@ -1,9 +1,17 @@
+use std::time::Duration;
+
+use primitives::ConnectionStatus;
+
+use super::GemRefreshKind;
 use crate::models::GemConnectionComponent;
 
 const RECONNECT_MULTIPLIER_MILLISECONDS: f64 = 300.0;
 const RECONNECT_MAXIMUM_MILLISECONDS: f64 = 30_000.0;
 const OFFLINE_DEBOUNCE_MILLISECONDS: u64 = 500;
 const PING_INTERVAL_MILLISECONDS: u64 = 30_000;
+const MARKET_REFRESH: Duration = Duration::from_secs(60);
+const WALLET_REFRESH: Duration = Duration::from_secs(300);
+const STREAMING_REFRESH: Duration = Duration::from_secs(900);
 
 pub fn reconnect_delay_milliseconds(attempt: u32) -> u64 {
     (RECONNECT_MULTIPLIER_MILLISECONDS * f64::from(attempt).exp()).min(RECONNECT_MAXIMUM_MILLISECONDS) as u64
@@ -15,6 +23,16 @@ pub fn offline_debounce_milliseconds() -> u64 {
 
 pub fn ping_interval_milliseconds() -> u64 {
     PING_INTERVAL_MILLISECONDS
+}
+
+pub fn refresh_interval(kind: GemRefreshKind, status: ConnectionStatus) -> Duration {
+    match status {
+        ConnectionStatus::Online => STREAMING_REFRESH,
+        ConnectionStatus::NoInternet | ConnectionStatus::NoService => match kind {
+            GemRefreshKind::Market => MARKET_REFRESH,
+            GemRefreshKind::Wallet => WALLET_REFRESH,
+        },
+    }
 }
 
 pub fn resets_component_health(component: GemConnectionComponent, is_healthy: bool, was_healthy: Option<bool>) -> bool {
@@ -61,6 +79,27 @@ mod tests {
     #[test]
     fn test_offline_debounce_holds_a_drop_before_reporting_it() {
         assert_eq!(offline_debounce_milliseconds(), 500);
+    }
+
+    #[test]
+    fn test_a_delivering_socket_slows_every_screen_to_the_same_safety_net() {
+        assert_eq!(refresh_interval(GemRefreshKind::Market, ConnectionStatus::Online), Duration::from_secs(900));
+        assert_eq!(refresh_interval(GemRefreshKind::Wallet, ConnectionStatus::Online), Duration::from_secs(900));
+        assert!(
+            refresh_interval(GemRefreshKind::Market, ConnectionStatus::Online) > refresh_interval(GemRefreshKind::Market, ConnectionStatus::NoService),
+            "a screen polls harder when nothing is pushing to it"
+        );
+    }
+
+    #[test]
+    fn test_market_data_refreshes_faster_than_wallet_data_when_nothing_is_pushing() {
+        assert_eq!(refresh_interval(GemRefreshKind::Market, ConnectionStatus::NoService), Duration::from_secs(60));
+        assert_eq!(refresh_interval(GemRefreshKind::Wallet, ConnectionStatus::NoService), Duration::from_secs(300));
+        assert_eq!(
+            refresh_interval(GemRefreshKind::Wallet, ConnectionStatus::NoInternet),
+            refresh_interval(GemRefreshKind::Wallet, ConnectionStatus::NoService),
+            "a screen cannot tell a dead socket from a dead network, and polls the same either way"
+        );
     }
 
     #[test]

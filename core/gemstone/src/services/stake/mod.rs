@@ -13,7 +13,9 @@ use crate::gateway::GemGateway;
 use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
-pub use model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationDestination, GemStakeAction, GemStakeActionItem};
+pub use model::{
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationDestination, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection,
+};
 pub use store::GemStakeStore;
 
 use crate::services::balance::GemAssetBalance;
@@ -112,10 +114,6 @@ impl GemStakeService {
 
     pub fn recommended_validators(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
         rules::recommended_validators(chain, &validators)
-    }
-
-    pub fn recommended_validator(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
-        rules::recommended_validator(chain, validators)
     }
 
     pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {

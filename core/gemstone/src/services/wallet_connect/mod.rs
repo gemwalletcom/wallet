@@ -342,7 +342,7 @@ mod tests {
             api.clone(),
             Arc::new(GemGateway::new(provider.clone(), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences))),
             Arc::new(MemoryAssetStore::default()),
-            Arc::new(GemPriceService::new(api, Arc::new(MemoryPriceStore::default()))),
+            Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
             Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
             wallet_session.clone(),
         ));

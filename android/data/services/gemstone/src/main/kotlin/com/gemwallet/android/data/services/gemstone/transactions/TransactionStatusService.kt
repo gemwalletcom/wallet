@@ -6,12 +6,10 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,13 +36,13 @@ class TransactionStatusService(
     }
 
     override suspend fun createNotificationTransaction(wallet: Wallet, assetId: AssetId, transaction: Transaction): Asset? {
-        val asset = stateService.addNotificationTransaction(wallet.toGem(), assetId.toIdentifier(), transaction.toJson())
+        val asset = stateService.addNotificationTransaction(wallet.toGem(), assetId.toIdentifier(), transaction.toGem())
             ?.toPrimitives() ?: return null
-        track(wallet.id.id, listOf(transaction.toJson()))
+        track(wallet.id.id, listOf(transaction.toGem()))
         return asset
     }
 
-    override fun track(walletId: String, transactions: List<String>) {
+    override fun track(walletId: String, transactions: List<uniffi.gemstone.Transaction>) {
         scope.launch {
             runCatchingCancellable { stateService.track(walletId, transactions) }
                 .onFailure { Log.e(TAG, "tracking failed for $walletId", it) }

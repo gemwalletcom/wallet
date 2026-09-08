@@ -9,7 +9,8 @@ use primitives::swap::SwapStatus;
 use primitives::{AssetId, Chain, TransactionSwapMetadata, known_assets::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{SwapResult, SwapperChainAsset, SwapperProvider};
+use crate::chainflip::{broker::ChainflipAsset, chain::ChainflipChain};
+use crate::{SwapResult, SwapperChainAsset, SwapperError, SwapperProvider};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -82,40 +83,40 @@ pub struct SwapDetail {
     pub swapped_output_amount: String,
 }
 
-fn chainflip_chain_to_chain(chain: &str) -> Option<Chain> {
-    match chain {
-        "Ethereum" => Some(Chain::Ethereum),
-        "Bitcoin" => Some(Chain::Bitcoin),
-        "Solana" => Some(Chain::Solana),
-        "Arbitrum" => Some(Chain::Arbitrum),
-        "Tron" => Some(Chain::Tron),
-        _ => None,
-    }
-}
-
-static ASSETS: LazyLock<Vec<(Chain, &'static str, AssetId)>> = LazyLock::new(|| {
+static ASSETS: LazyLock<Vec<(&'static str, AssetId)>> = LazyLock::new(|| {
     vec![
-        (Chain::Bitcoin, "BTC", AssetId::from_chain(Chain::Bitcoin)),
-        (Chain::Ethereum, "ETH", AssetId::from_chain(Chain::Ethereum)),
-        (Chain::Ethereum, "USDC", ETHEREUM_USDC.id.clone()),
-        (Chain::Ethereum, "USDT", ETHEREUM_USDT.id.clone()),
-        (Chain::Ethereum, "WBTC", ETHEREUM_WBTC.id.clone()),
-        (Chain::Ethereum, "FLIP", ETHEREUM_FLIP.id.clone()),
-        (Chain::Solana, "SOL", AssetId::from_chain(Chain::Solana)),
-        (Chain::Solana, "USDC", SOLANA_USDC.id.clone()),
-        (Chain::Solana, "USDT", SOLANA_USDT.id.clone()),
-        (Chain::Tron, "TRX", AssetId::from_chain(Chain::Tron)),
-        (Chain::Tron, "USDT", TRON_USDT.id.clone()),
-        (Chain::Arbitrum, "ETH", AssetId::from_chain(Chain::Arbitrum)),
-        (Chain::Arbitrum, "USDC", ARBITRUM_USDC.id.clone()),
-        (Chain::Arbitrum, "USDT", ARBITRUM_USDT.id.clone()),
+        ("BTC", AssetId::from_chain(Chain::Bitcoin)),
+        ("ETH", AssetId::from_chain(Chain::Ethereum)),
+        ("USDC", ETHEREUM_USDC.id.clone()),
+        ("USDT", ETHEREUM_USDT.id.clone()),
+        ("WBTC", ETHEREUM_WBTC.id.clone()),
+        ("FLIP", ETHEREUM_FLIP.id.clone()),
+        ("SOL", AssetId::from_chain(Chain::Solana)),
+        ("USDC", SOLANA_USDC.id.clone()),
+        ("USDT", SOLANA_USDT.id.clone()),
+        ("TRX", AssetId::from_chain(Chain::Tron)),
+        ("USDT", TRON_USDT.id.clone()),
+        ("ETH", AssetId::from_chain(Chain::Arbitrum)),
+        ("USDC", ARBITRUM_USDC.id.clone()),
+        ("USDT", ARBITRUM_USDT.id.clone()),
     ]
 });
 
+impl ChainflipAsset {
+    pub(crate) fn from_asset_id(asset_id: &AssetId) -> Result<Self, SwapperError> {
+        let (symbol, _) = ASSETS.iter().find(|(_, id)| id == asset_id).ok_or(SwapperError::NotSupportedAsset)?;
+        let chain = ChainflipChain::from_chain(asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
+        Ok(Self {
+            chain: chain.as_ref().to_string(),
+            asset: symbol.to_string(),
+        })
+    }
+}
+
 pub static SUPPORTED_ASSETS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(|| {
     let mut chains: BTreeMap<Chain, Vec<AssetId>> = BTreeMap::new();
-    for (chain, _, asset_id) in ASSETS.iter() {
-        let tokens = chains.entry(*chain).or_default();
+    for (_, asset_id) in ASSETS.iter() {
+        let tokens = chains.entry(asset_id.chain).or_default();
         if asset_id.token_id.is_some() {
             tokens.push(asset_id.clone());
         }
@@ -124,7 +125,7 @@ pub static SUPPORTED_ASSETS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
 });
 
 fn chainflip_asset_to_asset_id(chain: Chain, asset: &str) -> Option<AssetId> {
-    ASSETS.iter().find(|(c, s, _)| *c == chain && *s == asset).map(|(_, _, id)| id.clone())
+    ASSETS.iter().find(|(symbol, id)| id.chain == chain && *symbol == asset).map(|(_, id)| id.clone())
 }
 
 pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
@@ -132,8 +133,8 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
     let eta_in_seconds = response.eta_in_seconds();
 
     let metadata = if status != SwapStatus::Pending {
-        let from_chain = chainflip_chain_to_chain(&response.src_chain);
-        let to_chain = chainflip_chain_to_chain(&response.dest_chain);
+        let from_chain = response.src_chain.parse::<ChainflipChain>().ok().map(ChainflipChain::to_chain);
+        let to_chain = response.dest_chain.parse::<ChainflipChain>().ok().map(ChainflipChain::to_chain);
 
         from_chain.zip(to_chain).and_then(|(fc, tc)| {
             let from_asset = chainflip_asset_to_asset_id(fc, &response.src_asset)?;

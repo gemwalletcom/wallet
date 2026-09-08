@@ -12,6 +12,8 @@ public actor WebSocketConnection: WebSocketConnectable {
     private var reconnectTask: Task<Void, Never>?
     private var keepaliveTask: Task<Void, Never>?
     private var continuation: AsyncStream<WebSocketEvent>.Continuation?
+    private var streamId: UUID?
+    private var connectionId: UUID?
     private var reconnectAttempt: Int = 0
     private var pendingMessages: [URLSessionWebSocketTask.Message] = []
 
@@ -33,20 +35,14 @@ public actor WebSocketConnection: WebSocketConnectable {
     // MARK: - Public
 
     public func connect() -> AsyncStream<WebSocketEvent> {
-        AsyncStream { [weak self] continuation in
-            guard let self else {
-                continuation.finish()
-                return
-            }
-
-            Task {
-                await self.setupStream(continuation)
-            }
-        }
+        let (stream, continuation) = AsyncStream<WebSocketEvent>.makeStream()
+        setupStream(continuation)
+        return stream
     }
 
     public func disconnect() async {
         state = .disconnected
+        streamId = nil
 
         cancelReconnect()
         cancelTask()
@@ -80,13 +76,15 @@ public actor WebSocketConnection: WebSocketConnectable {
         }
     }
 
-    private func sendPendingMessages() async {
+    private func sendPendingMessages(connectionId: UUID) async {
+        guard self.connectionId == connectionId, let task else { return }
         let messages = pendingMessages
         pendingMessages = []
 
         for message in messages {
+            guard self.connectionId == connectionId, !Task.isCancelled else { return }
             do {
-                try await task?.send(message)
+                try await task.send(message)
             } catch {
                 #if DEBUG
                     NSLog("WebSocket send error: \(error)")
@@ -101,6 +99,7 @@ public actor WebSocketConnection: WebSocketConnectable {
 
     private func cancelTask() {
         cancelKeepalive()
+        connectionId = nil
         task?.cancel(with: .goingAway, reason: nil)
         task = nil
     }
@@ -123,10 +122,10 @@ public actor WebSocketConnection: WebSocketConnectable {
     }
 
     private func sendPing() {
-        guard state == .connected, let task else { return }
+        guard state == .connected, let task, let connectionId else { return }
         task.sendPing { [weak self] error in
             guard let error else { return }
-            Task { await self?.handleError(error) }
+            Task { await self?.handleError(error, connectionId: connectionId) }
         }
     }
 
@@ -142,10 +141,12 @@ public actor WebSocketConnection: WebSocketConnectable {
 
     private func setupStream(_ continuation: AsyncStream<WebSocketEvent>.Continuation) {
         self.continuation = continuation
+        let streamId = UUID()
+        self.streamId = streamId
 
         continuation.onTermination = { [weak self] _ in
             Task {
-                await self?.handleStreamTermination()
+                await self?.handleStreamTermination(streamId: streamId)
             }
         }
 
@@ -153,8 +154,9 @@ public actor WebSocketConnection: WebSocketConnectable {
         startConnection()
     }
 
-    private func handleStreamTermination() {
-        guard state != .disconnected else { return }
+    private func handleStreamTermination(streamId: UUID) {
+        guard self.streamId == streamId, state != .disconnected else { return }
+        self.streamId = nil
 
         cancelTask()
         cancelReconnect()
@@ -171,13 +173,15 @@ public actor WebSocketConnection: WebSocketConnectable {
             scheduleReconnect(with: WebSocketError.notConnected)
             return
         }
+        let connectionId = UUID()
+        self.connectionId = connectionId
 
         let delegate = WebSocketSessionDelegate(
             didOpen: { [weak self] in
-                Task { await self?.didOpen() }
+                Task { await self?.didOpen(connectionId: connectionId) }
             },
             didClose: { [weak self] closeCode, reason in
-                Task { await self?.didClose(closeCode: closeCode, reason: reason) }
+                Task { await self?.didClose(connectionId: connectionId, closeCode: closeCode, reason: reason) }
             },
         )
 
@@ -190,11 +194,11 @@ public actor WebSocketConnection: WebSocketConnectable {
         task = session?.webSocketTask(with: request)
         task?.resume()
 
-        listen()
+        listen(connectionId: connectionId)
     }
 
-    private func didOpen() {
-        guard state == .connecting else { return }
+    private func didOpen(connectionId: UUID) {
+        guard self.connectionId == connectionId, state == .connecting else { return }
 
         state = .connected
         resetReconnectionAttempt()
@@ -202,31 +206,32 @@ public actor WebSocketConnection: WebSocketConnectable {
         continuation?.yield(.connected)
 
         Task {
-            await sendPendingMessages()
+            await sendPendingMessages(connectionId: connectionId)
         }
     }
 
-    private func didClose(closeCode _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
-        guard state != .disconnected else { return }
+    private func didClose(connectionId: UUID, closeCode _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
+        guard self.connectionId == connectionId, state != .disconnected else { return }
         scheduleReconnect(with: nil)
     }
 
-    private func listen() {
+    private func listen(connectionId: UUID) {
         task?.receive { [weak self] result in
             Task {
-                await self?.handleReceive(result)
+                await self?.handleReceive(result, connectionId: connectionId)
             }
         }
     }
 
-    private func handleReceive(_ result: Result<URLSessionWebSocketTask.Message, Error>) {
+    private func handleReceive(_ result: Result<URLSessionWebSocketTask.Message, Error>, connectionId: UUID) {
+        guard self.connectionId == connectionId else { return }
         switch result {
         case let .success(message):
             handleMessage(message)
-            listen()
+            listen(connectionId: connectionId)
 
         case let .failure(error):
-            handleError(error)
+            handleError(error, connectionId: connectionId)
         }
     }
 
@@ -243,8 +248,8 @@ public actor WebSocketConnection: WebSocketConnectable {
         }
     }
 
-    private func handleError(_ error: Error) {
-        guard state != .disconnected else { return }
+    private func handleError(_ error: Error, connectionId: UUID) {
+        guard self.connectionId == connectionId, state != .disconnected else { return }
 
         if let urlError = error as? URLError, urlError.code == .cancelled {
             return
@@ -267,12 +272,17 @@ public actor WebSocketConnection: WebSocketConnectable {
         reconnectAttempt += 1
 
         reconnectTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(delay))
+            do {
+                try await Task.sleep(for: .milliseconds(delay))
+            } catch {
+                return
+            }
             await self?.finishReconnect()
         }
     }
 
     private func finishReconnect() {
+        guard !Task.isCancelled else { return }
         reconnectTask = nil
 
         guard state == .reconnecting, task == nil else { return }

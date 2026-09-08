@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
@@ -48,6 +49,7 @@ import javax.inject.Inject
 @HiltViewModel
 class StakeViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
+    private val getWalletAssets: GetWalletAssets,
     private val getDelegations: GetDelegations,
     private val getValidators: GetValidators,
     private val syncStakeDelegations: SyncStakeDelegations,
@@ -64,7 +66,7 @@ class StakeViewModel @Inject constructor(
 
     val assetInfo = assetId
         .flatMapLatest { getAssetInfo(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getWalletAssets().value.firstOrNull { it.asset.id == initialAssetId })
 
     val stakeInfoUrl = assetInfo
         .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.string)) } }
