@@ -54807,13 +54807,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我理解并希望继续"
+            "value": "我已了解，继续"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我理解並希望繼續"
+            "value": "我已了解，繼續"
           }
         }
       }
@@ -54998,13 +54998,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任何获得助记词的人都可以完全控制您的钱包。"
+            "value": "任何人拿到助记词，都能控制钱包并转走资产。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "任何取得您助記詞的人都能完全控制您的錢包。"
+            "value": "任何人取得助記詞，都能控制錢包並轉走資產。"
           }
         }
       }
@@ -55189,13 +55189,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不要与任何人分享"
+            "value": "切勿泄露助记词"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "不要與任何人分享"
+            "value": "切勿洩漏助記詞"
           }
         }
       }
@@ -55380,13 +55380,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将获得一组助记词——这是访问钱包的唯一方法。"
+            "value": "您将获得一组助记词，请务必妥善备份。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "將取得一組助記詞——這是存取錢包的唯一方式。"
+            "value": "您將取得一組助記詞，請務必妥善備份。"
           }
         }
       }
@@ -55571,13 +55571,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "助记词是访问钱包的唯一方法。"
+            "value": "请抄写助记词，并保存在只有您能取用的安全位置。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "助記詞是存取錢包的唯一方法。"
+            "value": "請抄寫助記詞，並保存在只有您能取用的安全位置。"
           }
         }
       }
@@ -55762,13 +55762,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将其存放在安全的地方"
+            "value": "妥善备份助记词"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "將其存放在安全的地方"
+            "value": "妥善備份助記詞"
           }
         }
       }
@@ -55953,13 +55953,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "助记词一旦丢失，将无法访问钱包。"
+            "value": "请保管好备份，以免设备丢失或损坏后无法恢复钱包。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "助記詞一旦遺失，將無法存取錢包。"
+            "value": "請保管好備份，以免裝置遺失或損壞後無法復原錢包。"
           }
         }
       }
@@ -56144,13 +56144,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我们无法找回助记词。"
+            "value": "我们无法找回助记词"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我們無法協助復原"
+            "value": "我們無法找回助記詞"
           }
         }
       }
@@ -67795,13 +67795,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是您的地址——请仅发送 %@，且仅在 %@ 网络上。"
+            "value": "请仅向此地址发送 %2$@ 网络上的 %1$@。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這是您的地址——請僅傳送 %@，並確保使用 %@ 網路。"
+            "value": "請僅向此地址傳送 %2$@ 網路上的 %1$@。"
           }
         }
       }
@@ -69132,13 +69132,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这将是当前钱包的个人昵称。"
+            "value": "为当前钱包设置一个用户名。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這將是目前錢包的個人暱稱。"
+            "value": "為目前的錢包設定使用者名稱。"
           }
         }
       }
@@ -89951,13 +89951,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最少接收"
+            "value": "最少收到"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最少接收"
+            "value": "最少收到"
           }
         }
       }
@@ -91670,13 +91670,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将支付"
+            "value": "支付"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "將支付"
+            "value": "支付"
           }
         }
       }
@@ -91861,13 +91861,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将收到"
+            "value": "预计收到"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "將收到"
+            "value": "預計收到"
           }
         }
       }
@@ -94535,13 +94535,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已收到"
+            "value": "转入"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已收到"
+            "value": "轉入"
           }
         }
       }
@@ -94726,13 +94726,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已发送"
+            "value": "转出"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已發送"
+            "value": "轉出"
           }
         }
       }
@@ -96254,7 +96254,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从"
+            "value": "来自"
           }
         },
         "zh-Hant": {
@@ -100647,13 +100647,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发往"
+            "value": "至"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "傳送至"
+            "value": "至"
           }
         }
       }
