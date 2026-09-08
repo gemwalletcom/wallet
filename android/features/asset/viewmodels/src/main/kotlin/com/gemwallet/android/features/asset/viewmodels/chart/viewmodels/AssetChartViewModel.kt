@@ -65,7 +65,7 @@ class AssetChartViewModel internal constructor(
             )
         }
     }
-        .flowOn(Dispatchers.Default)
+        .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @Inject
