@@ -9,6 +9,7 @@ common_secret_phrase = Frasa Rahasia
 common_copy = Salin
 common_share = Bagikan
 common_continue = Lanjutkan
+common_sign_in_with = Masuk dengan %@
 common_provider = Penyedia
 common_loading = Memuat
 common_address = Alamat

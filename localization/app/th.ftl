@@ -9,6 +9,7 @@ common_secret_phrase = วลีลับ
 common_copy = คัดลอก
 common_share = แบ่งปัน
 common_continue = ดำเนินการต่อ
+common_sign_in_with = ลงชื่อเข้าใช้ด้วย %@
 common_provider = ผู้ให้บริการ
 common_loading = กำลังโหลด
 common_address = ที่อยู่

@@ -9,6 +9,7 @@
   <string name="common_copy">Kopieer</string>
   <string name="common_share">Deel</string>
   <string name="common_continue">Ga door</string>
+  <string name="common_sign_in_with">Inloggen met %1$s</string>
   <string name="common_provider">Aanbieder</string>
   <string name="common_loading">Laden</string>
   <string name="common_address">Adres</string>

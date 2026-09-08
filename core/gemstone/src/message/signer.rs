@@ -233,7 +233,7 @@ mod tests {
     use super::*;
     use crate::message::{
         eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
-        sign_type::SignDigestType,
+        sign_type::{MessageType, SignDigestType},
     };
     use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
@@ -434,7 +434,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         assert_eq!(decoder.preview().unwrap(), MessagePreview::Text(message.to_string()));
         assert_eq!(decoder.plain_preview(), message);
         assert_eq!(decoder.hash().unwrap(), message.as_bytes());
-        assert!(decoder.payload_preview(vec![]).unwrap().is_some());
+        assert_eq!(decoder.payload_preview(vec![]).unwrap().unwrap().message_type, MessageType::Siws);
         assert_eq!(
             decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap(),
             bs58::encode(key_pair.sign(message.as_bytes())).into_string(),
@@ -716,6 +716,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         });
 
         let payload_preview = decoder.payload_preview(vec![]).unwrap().expect("expected SIWE payload preview");
+        assert_eq!(payload_preview.message_type, MessageType::Siwe);
         assert_eq!(payload_preview.primary.len(), 2);
         assert_eq!(payload_preview.primary[0].label.as_deref(), Some("domain"));
         assert_eq!(payload_preview.primary[1].label.as_deref(), Some("address"));

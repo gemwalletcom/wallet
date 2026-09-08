@@ -9,6 +9,7 @@ common_secret_phrase = गुप्त वाक्यांश
 common_copy = प्रतिलिपि
 common_share = साझा करें
 common_continue = जारी रखें
+common_sign_in_with = %@ से साइन इन करें
 common_provider = प्रदाता
 common_loading = लोड हो रहा है
 common_address = पता

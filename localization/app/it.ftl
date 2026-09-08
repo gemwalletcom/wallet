@@ -9,6 +9,7 @@ common_secret_phrase = Frase segreta
 common_copy = Copia
 common_share = Condividi
 common_continue = Continua
+common_sign_in_with = Accedi con %@
 common_provider = Fornitore
 common_loading = Caricamento in corso
 common_address = Indirizzo

@@ -9,6 +9,7 @@
   <string name="common_copy">复制</string>
   <string name="common_share">分享</string>
   <string name="common_continue">继续</string>
+  <string name="common_sign_in_with">使用%1$s登录</string>
   <string name="common_provider">服务商</string>
   <string name="common_loading">加载中</string>
   <string name="common_address">地址</string>
@@ -104,7 +105,7 @@
   <string name="wallets_title">钱包</string>
   <string name="wallets_watch">观察</string>
   <string name="receive_title">接收%1$s</string>
-  <string name="receive_warning">请仅向此地址发送 %2$s 网络上的 %1$s。</string>
+  <string name="receive_warning">请仅向此地址发送 %2$@ 网络上的 %1$@。</string>
   <string name="buy_title">购买%1$s</string>
   <string name="buy_providers_title">服务商</string>
   <string name="buy_rate">汇率</string>

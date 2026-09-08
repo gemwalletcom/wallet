@@ -9,6 +9,7 @@
   <string name="common_copy">Kwafi</string>
   <string name="common_share">Raba</string>
   <string name="common_continue">Ci gaba</string>
+  <string name="common_sign_in_with">Shiga da %1$s</string>
   <string name="common_provider">Mai bayarwa</string>
   <string name="common_loading">Ana lodawa</string>
   <string name="common_address">Adireshi</string>

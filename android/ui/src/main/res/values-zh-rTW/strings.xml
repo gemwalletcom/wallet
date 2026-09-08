@@ -9,6 +9,7 @@
   <string name="common_copy">複製</string>
   <string name="common_share">分享</string>
   <string name="common_continue">繼續</string>
+  <string name="common_sign_in_with">使用%1$s登入</string>
   <string name="common_provider">供應商</string>
   <string name="common_loading">載入中</string>
   <string name="common_address">地址</string>
@@ -104,7 +105,7 @@
   <string name="wallets_title">錢包</string>
   <string name="wallets_watch">觀察</string>
   <string name="receive_title">接收%1$s</string>
-  <string name="receive_warning">請僅向此地址傳送 %2$s 網路上的 %1$s。</string>
+  <string name="receive_warning">請僅向此地址傳送 %2$@ 網路上的 %1$@。</string>
   <string name="buy_title">購買%1$s</string>
   <string name="buy_providers_title">服務商</string>
   <string name="buy_rate">匯率</string>

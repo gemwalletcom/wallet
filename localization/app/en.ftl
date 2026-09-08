@@ -20,6 +20,7 @@ common_copy = Copy
 common_share = Share
 # Used in shared app UI for the continue label.
 common_continue = Continue
+common_sign_in_with = Sign In with %@
 # Used in shared app UI for the provider label.
 common_provider = Provider
 # Used in shared app UI for the loading label.

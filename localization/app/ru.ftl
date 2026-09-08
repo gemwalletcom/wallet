@@ -9,6 +9,7 @@ common_secret_phrase = Секретная фраза
 common_copy = Копировать
 common_share = Поделиться
 common_continue = Продолжить
+common_sign_in_with = Войти через %@
 common_provider = Провайдер
 common_loading = Загрузка
 common_address = Адрес

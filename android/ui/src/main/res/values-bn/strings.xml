@@ -9,6 +9,7 @@
   <string name="common_copy">কপি</string>
   <string name="common_share">শেয়ার করুন</string>
   <string name="common_continue">চালিয়ে যান</string>
+  <string name="common_sign_in_with">%1$s দিয়ে সাইন ইন করুন</string>
   <string name="common_provider">প্রদানকারী</string>
   <string name="common_loading">লোড হচ্ছে</string>
   <string name="common_address">ঠিকানা</string>

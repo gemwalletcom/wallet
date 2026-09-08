@@ -9,6 +9,7 @@ common_secret_phrase = リカバリーフレーズ
 common_copy = コピー
 common_share = 共有
 common_continue = 続ける
+common_sign_in_with = %@でサインイン
 common_provider = プロバイダー
 common_loading = 読み込み中
 common_address = アドレス

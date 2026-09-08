@@ -9,6 +9,7 @@ common_secret_phrase = العبارة السرية
 common_copy = نسخ
 common_share = مشاركة
 common_continue = يكمل
+common_sign_in_with = تسجيل الدخول باستخدام %@
 common_provider = مزود
 common_loading = تحميل
 common_address = عنوان

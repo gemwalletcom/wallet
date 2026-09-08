@@ -9,6 +9,7 @@
   <string name="common_copy">प्रतिलिपि</string>
   <string name="common_share">साझा करें</string>
   <string name="common_continue">जारी रखें</string>
+  <string name="common_sign_in_with">%1$s से साइन इन करें</string>
   <string name="common_provider">प्रदाता</string>
   <string name="common_loading">लोड हो रहा है</string>
   <string name="common_address">पता</string>

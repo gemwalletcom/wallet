@@ -9,6 +9,7 @@
   <string name="common_copy">Копировать</string>
   <string name="common_share">Поделиться</string>
   <string name="common_continue">Продолжить</string>
+  <string name="common_sign_in_with">Войти через %1$s</string>
   <string name="common_provider">Провайдер</string>
   <string name="common_loading">Загрузка</string>
   <string name="common_address">Адрес</string>

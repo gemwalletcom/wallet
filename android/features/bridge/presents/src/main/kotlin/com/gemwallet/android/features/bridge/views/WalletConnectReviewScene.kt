@@ -27,6 +27,9 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ext.networkName
+import com.wallet.core.primitives.Chain
+import uniffi.gemstone.MessageType
 
 @Composable
 internal fun WalletConnectReviewScene(
@@ -40,7 +43,11 @@ internal fun WalletConnectReviewScene(
     var sheetType by remember { mutableStateOf<WalletConnectReviewSheetType?>(null) }
 
     Scene(
-        title = stringResource(id = R.string.transfer_review_request),
+        title = when (model.messageType) {
+            MessageType.SIWE -> stringResource(R.string.common_sign_in_with, Chain.Ethereum.networkName())
+            MessageType.SIWS -> stringResource(R.string.common_sign_in_with, Chain.Solana.networkName())
+            MessageType.TEXT, MessageType.EIP712 -> stringResource(R.string.transfer_review_request)
+        },
         backHandle = true,
         closeIcon = true,
         mainAction = {

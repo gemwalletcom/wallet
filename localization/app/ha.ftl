@@ -9,6 +9,7 @@ common_secret_phrase = Kalmomin Sirri
 common_copy = Kwafi
 common_share = Raba
 common_continue = Ci gaba
+common_sign_in_with = Shiga da %@
 common_provider = Mai bayarwa
 common_loading = Ana lodawa
 common_address = Adireshi

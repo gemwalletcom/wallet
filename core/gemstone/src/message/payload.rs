@@ -5,11 +5,13 @@ use std::collections::HashSet;
 
 use crate::{
     message::eip712::{GemEIP712Message, GemEIP712Value, GemEIP712ValueType},
+    message::sign_type::MessageType,
     siwe::SiweMessage,
 };
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct MessagePayloadPreview {
+    pub message_type: MessageType,
     pub primary: Vec<SimulationPayloadField>,
     pub secondary: Vec<SimulationPayloadField>,
 }
@@ -36,13 +38,13 @@ enum CanonicalPayloadLabel<'a> {
 
 impl GemEIP712Message {
     pub(super) fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
-        grouped_payload_preview(eip712_preview_fields(self), simulation_payload)
+        grouped_payload_preview(MessageType::Eip712, eip712_preview_fields(self), simulation_payload)
     }
 }
 
 impl MessagePayloadPreview {
     pub(super) fn from_siwe(message: &SiweMessage, simulation_payload: Vec<SimulationPayloadField>) -> Self {
-        grouped_payload_preview(siwe_preview_fields(message), simulation_payload)
+        grouped_payload_preview(MessageType::Siwe, siwe_preview_fields(message), simulation_payload)
     }
 
     pub(super) fn from_siws(message: &SiwsMessage, simulation_payload: Vec<SimulationPayloadField>) -> Self {
@@ -78,11 +80,11 @@ impl MessagePayloadPreview {
                 SimulationPayloadFieldDisplay::Secondary,
             ));
         }
-        grouped_payload_preview(fields, simulation_payload)
+        grouped_payload_preview(MessageType::Siws, fields, simulation_payload)
     }
 }
 
-fn grouped_payload_preview(preview_fields: Vec<MessagePayloadField>, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
+fn grouped_payload_preview(message_type: MessageType, preview_fields: Vec<MessagePayloadField>, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
     let merged_payload = merge_payload(simulation_payload.clone(), preview_fields);
     let grouped_payload = if simulation_payload.is_empty() {
         apply_preview_display_grouping(merged_payload)
@@ -94,6 +96,7 @@ fn grouped_payload_preview(preview_fields: Vec<MessagePayloadField>, simulation_
     let grouped_payload = promote_secondary_payload_when_primary_is_empty(grouped_payload);
 
     MessagePayloadPreview {
+        message_type,
         primary: grouped_payload
             .iter()
             .filter(|field| field.display == SimulationPayloadFieldDisplay::Primary)
@@ -389,6 +392,7 @@ impl PayloadMergeKey {
 mod tests {
     use super::MessagePayloadPreview;
     use crate::message::eip712::{GemEIP712Message, GemEIP712Section, GemEIP712Value, GemEIP712ValueType};
+    use crate::message::sign_type::MessageType;
     use crate::siwe::SiweMessage;
     use gem_evm::EIP712Domain;
     use gem_solana::siws::SiwsMessage;
@@ -398,6 +402,8 @@ mod tests {
     fn test_siws_preview_groups_identity_and_preserves_optional_fields() {
         let message = SiwsMessage::parse(include_str!("../../../crates/gem_solana/testdata/siws_complete.txt")).unwrap().unwrap();
         let preview = MessagePayloadPreview::from_siws(&message, vec![]);
+
+        assert_eq!(preview.message_type, MessageType::Siws);
 
         assert_eq!(
             preview.primary,
@@ -446,6 +452,7 @@ mod tests {
             vec![],
         );
 
+        assert_eq!(preview.message_type, MessageType::Siwe);
         assert_eq!(preview.primary.len(), 2);
         assert_eq!(preview.secondary.len(), 5);
     }
@@ -497,6 +504,7 @@ mod tests {
             ),
         ]);
 
+        assert_eq!(preview.message_type, MessageType::Eip712);
         assert_eq!(preview.primary.len(), 3);
         assert_eq!(preview.secondary.len(), 2);
         assert_eq!(preview.secondary[0].label.as_deref(), Some("domain"));

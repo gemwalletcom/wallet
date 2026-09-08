@@ -43,6 +43,7 @@ import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
 import javax.inject.Inject
+import uniffi.gemstone.MessageType
 
 @HiltViewModel
 class WCAuthViewModel @Inject constructor(
@@ -257,6 +258,7 @@ class WCAuthViewModel @Inject constructor(
             payloadParams = payloadParams,
             issuer = issuer,
             message = message,
+            messageType = payloadPreview.messageType,
             primaryPayloadFields = payloadPreview.primaryFields,
             secondaryPayloadFields = payloadPreview.secondaryFields,
         )
@@ -291,6 +293,7 @@ class WCAuthViewModel @Inject constructor(
         return try {
             signer.payloadPreview(emptyList())?.let { preview ->
                 AuthPayloadPreview(
+                    messageType = preview.messageType,
                     primaryFields = preview.primary.map { PayloadField(field = it, chain = chain) },
                     secondaryFields = preview.secondary.map { PayloadField(field = it, chain = chain) },
                 )
@@ -335,6 +338,7 @@ sealed interface AuthSceneState {
         override val chain: Chain get() = approval.chain
         override val primaryPayloadFields: List<PayloadField> get() = approval.primaryPayloadFields
         override val secondaryPayloadFields: List<PayloadField> get() = approval.secondaryPayloadFields
+        override val messageType: MessageType get() = approval.messageType
         override val message: String get() = approval.message
     }
 
@@ -361,6 +365,7 @@ data class AuthApproval(
     val payloadParams: WalletConnectAuthPayloadParams,
     val issuer: String,
     val message: String,
+    val messageType: MessageType,
     val primaryPayloadFields: List<PayloadField>,
     val secondaryPayloadFields: List<PayloadField>,
 ) {
@@ -375,6 +380,7 @@ private data class AuthAccount(
 }
 
 private data class AuthPayloadPreview(
+    val messageType: MessageType = MessageType.TEXT,
     val primaryFields: List<PayloadField> = emptyList(),
     val secondaryFields: List<PayloadField> = emptyList(),
 )

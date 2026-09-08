@@ -9,6 +9,7 @@
   <string name="common_copy">Sao chép</string>
   <string name="common_share">Chia sẻ</string>
   <string name="common_continue">Tiếp tục</string>
+  <string name="common_sign_in_with">Đăng nhập bằng %1$s</string>
   <string name="common_provider">Nhà cung cấp</string>
   <string name="common_loading">Đang tải</string>
   <string name="common_address">Địa chỉ</string>

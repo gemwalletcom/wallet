@@ -9,6 +9,7 @@ common_secret_phrase = Gizli İfade
 common_copy = Kopyala
 common_share = Paylaş
 common_continue = Devam et
+common_sign_in_with = %@ ile giriş yap
 common_provider = Sağlayıcı
 common_loading = Yükleniyor
 common_address = Adres

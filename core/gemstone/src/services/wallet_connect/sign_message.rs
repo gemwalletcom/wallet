@@ -3,7 +3,7 @@ use std::sync::Arc;
 use primitives::{AddressName, Asset, Chain, ChainAddress, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, WalletId};
 
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
-use crate::message::sign_type::SignMessage;
+use crate::message::sign_type::{MessageType, SignMessage};
 use crate::message::signer::MessageSigner;
 use crate::services::confirm::GemSimulationValue;
 use crate::services::error::GemServiceError;
@@ -15,6 +15,7 @@ use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSignMessagePreview {
+    pub message_type: MessageType,
     pub text: String,
     pub primary_fields: Vec<SimulationPayloadField>,
     pub secondary_fields: Vec<SimulationPayloadField>,
@@ -56,6 +57,7 @@ impl GemSignMessageService {
         let payload_fields = self.simulation_formatter.payload_fields(simulation.payload, header.is_some());
         let payload = signer.payload_preview(payload_fields).ok().flatten();
         GemSignMessagePreview {
+            message_type: payload.as_ref().map(|preview| preview.message_type).unwrap_or(MessageType::Text),
             text: signer.plain_preview(),
             primary_fields: payload.as_ref().map(|preview| preview.primary.clone()).unwrap_or_default(),
             secondary_fields: payload.map(|preview| preview.secondary).unwrap_or_default(),
