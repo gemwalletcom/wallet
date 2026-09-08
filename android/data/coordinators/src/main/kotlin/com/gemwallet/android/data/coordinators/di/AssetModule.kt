@@ -8,8 +8,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetLinks
 import com.gemwallet.android.application.assets.cases.GetAssetMarket
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
-import com.gemwallet.android.application.assets.cases.GetHideBalancesState
-import com.gemwallet.android.application.assets.cases.GetSearchLists
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.banner.cases.HasMultiSign
@@ -22,10 +20,7 @@ import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetTokenInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetChainAssetInfoImpl
-import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
-import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
-import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
@@ -59,13 +54,8 @@ import com.gemwallet.android.application.session.cases.GetCurrentWallet
 object AssetModule {
     @Provides
     @Singleton
-    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets, getHideBalancesState: GetHideBalancesState): GetActiveAssetsInfo =
-        GetActiveAssetsInfoImpl(getWalletAssets, getHideBalancesState)
-
-    @Provides
-    @Singleton
-    fun provideGetSearchLists(searchService: AssetsSearchService): GetSearchLists =
-        GetSearchListsImpl(searchService)
+    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets, userConfig: UserConfig): GetActiveAssetsInfo =
+        GetActiveAssetsInfoImpl(getWalletAssets, userConfig)
 
     @Provides
     @Singleton
@@ -164,12 +154,6 @@ object AssetModule {
     @Singleton
     fun provideGetWalletAssets(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetWalletAssets =
         WalletAssetsCoordinator(assetStore, getCurrentWalletId)
-
-    @Provides
-    @Singleton
-    fun provideGetHideBalancesState(
-        userConfig: UserConfig,
-    ): GetHideBalancesState = GetHideBalancesStateImpl(userConfig)
 
 
 }

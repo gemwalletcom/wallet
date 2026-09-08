@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import kotlinx.coroutines.CoroutineScope
@@ -15,12 +15,12 @@ import kotlinx.coroutines.flow.stateIn
 
 class GetActiveAssetsInfoImpl(
     getWalletAssets: GetWalletAssets,
-    getHideBalancesState: GetHideBalancesState,
+    userConfig: UserConfig,
     scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
 ) : GetActiveAssetsInfo {
 
     private val assetsInfo: StateFlow<List<AssetInfoDataAggregate>> =
-        combine(getWalletAssets(), getHideBalancesState()) { items, hideBalance ->
+        combine(getWalletAssets(), userConfig.isHideBalances()) { items, hideBalance ->
             items.toAssetInfoDataAggregates(hideBalance = hideBalance)
         }
         .distinctUntilChanged()
