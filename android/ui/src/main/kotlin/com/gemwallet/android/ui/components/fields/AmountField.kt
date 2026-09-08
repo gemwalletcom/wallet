@@ -37,7 +37,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.AmountInputType
+import uniffi.gemstone.GemAmountInputType
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Currency
@@ -51,15 +51,15 @@ fun ColumnScope.AmountField(
     onValueChange: (String) -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
-    inputType: AmountInputType = AmountInputType.Crypto,
+    inputType: GemAmountInputType = GemAmountInputType.ASSET,
     onInputTypeClick: (() -> Unit)? = null,
     readOnly: Boolean = false,
     error: String,
     textStyle: TextStyle = MaterialTheme.typography.displaySmall,
     transformation: AmountTransformation = CryptoAmountTransformation(
         when (inputType) {
-            AmountInputType.Crypto -> assetSymbol
-            AmountInputType.Fiat -> android.icu.util.Currency.getInstance(currency.string).symbol
+            GemAmountInputType.ASSET -> assetSymbol
+            GemAmountInputType.FIAT -> android.icu.util.Currency.getInstance(currency.string).symbol
         },
         inputType,
         MaterialTheme.colorScheme.secondary
@@ -124,13 +124,13 @@ fun ColumnScope.AmountField(
     }
 }
 
-class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, color: Color) : AmountTransformation(inputType, symbol, color) {
+class CryptoAmountTransformation(symbol: String, inputType: GemAmountInputType, color: Color) : AmountTransformation(inputType, symbol, color) {
 
     override fun transformText(text: AnnotatedString): AnnotatedString {
         val zeroValue = if (text.isEmpty()) "0" else ""
         val info = buildAnnotatedString {
             when (inputType) {
-                AmountInputType.Crypto -> {
+                GemAmountInputType.ASSET -> {
                     append(zeroValue)
                     append(" ")
                     append(symbol)
@@ -141,7 +141,7 @@ class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, col
                         end = zeroValue.length,
                     )
                 }
-                AmountInputType.Fiat -> {
+                GemAmountInputType.FIAT -> {
                     append(symbol)
                     append(" ")
                     append(zeroValue)
@@ -155,19 +155,19 @@ class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, col
             }
         }
         return when (inputType) {
-            AmountInputType.Crypto -> text + info
-            AmountInputType.Fiat -> info + text
+            GemAmountInputType.ASSET -> text + info
+            GemAmountInputType.FIAT -> info + text
         }
     }
 
     override fun convertToOriginal(text: AnnotatedString, offset: Int): Int = when (inputType) {
-        AmountInputType.Crypto -> if (offset > text.text.length) text.text.length else offset
-        AmountInputType.Fiat -> if (offset > text.text.length) 0 else text.text.length
+        GemAmountInputType.ASSET -> if (offset > text.text.length) text.text.length else offset
+        GemAmountInputType.FIAT -> if (offset > text.text.length) 0 else text.text.length
     }
 }
 
 abstract class AmountTransformation(
-    val inputType: AmountInputType,
+    val inputType: GemAmountInputType,
     val symbol: String,
     val color: Color,
 ) : VisualTransformation {
@@ -177,8 +177,8 @@ abstract class AmountTransformation(
         val offsetMapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
                 return offset + when (inputType) {
-                    AmountInputType.Crypto -> 0
-                    AmountInputType.Fiat -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
+                    GemAmountInputType.ASSET -> 0
+                    GemAmountInputType.FIAT -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
                 }
             }
 

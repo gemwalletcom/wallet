@@ -15,7 +15,6 @@ import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
@@ -41,6 +40,7 @@ import org.junit.Test
 import java.math.BigInteger
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAmountInput
+import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemAssetBalance
@@ -146,11 +146,27 @@ class AmountViewModelTest {
         viewModel.setAmount("1")
 
         viewModel.switchInputType()
-        assertEquals(AmountInputType.Fiat, viewModel.amountInputType.value)
+        assertEquals(GemAmountInputType.FIAT, viewModel.amountInputType.value)
         assertEquals("", viewModel.amount)
 
         viewModel.switchInputType()
-        assertEquals(AmountInputType.Crypto, viewModel.amountInputType.value)
+        assertEquals(GemAmountInputType.ASSET, viewModel.amountInputType.value)
+    }
+
+    @Test
+    fun `onMaxAmount in fiat mode enters the max in asset units`() = viewModelTest { viewModel ->
+        inputFlow.value = input(BigInteger("2000000"))
+        viewModel.switchInputType()
+
+        viewModel.onMaxAmount()
+        Snapshot.sendApplyNotifications()
+        runCurrent()
+
+        assertEquals(GemAmountInputType.ASSET, viewModel.amountInputType.value)
+        assertEquals("2", viewModel.amount)
+        viewModel.confirm()
+        assertEquals(BigInteger("2000000"), builtAmounts.last().atomicValue)
+        assertEquals(true, builtIsMax.last())
     }
 
     @Test

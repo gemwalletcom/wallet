@@ -3,7 +3,6 @@
 import BigInt
 import Formatters
 import Foundation
-import GemstoneFormatters
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -35,38 +34,6 @@ struct AmountValidatorTests {
         )
         #expect(throws: TransferError.invalidAmount) {
             try validator.validate("0.5")
-        }
-    }
-
-    @Test
-    func fiatAmountConvertsAndSucceeds() throws {
-        let price = AssetPrice.mock(
-            assetId: asset.id,
-            price: 2,
-            priceChangePercentage24h: .zero,
-            updatedAt: .now,
-        )
-        let validator = AmountValidator.fiatAmount(
-            formatter: formatter,
-            converter: AssetValueConverter(),
-            price: price,
-            decimals: decimals,
-            validators: [],
-        )
-        try validator.validate("10")
-    }
-
-    @Test
-    func fiatAmountThrowsWhenPriceMissing() {
-        let validator = AmountValidator.fiatAmount(
-            formatter: formatter,
-            converter: AssetValueConverter(),
-            price: nil,
-            decimals: decimals,
-            validators: [],
-        )
-        #expect(throws: TransferError.invalidAmount) {
-            try validator.validate("1.0")
         }
     }
 }

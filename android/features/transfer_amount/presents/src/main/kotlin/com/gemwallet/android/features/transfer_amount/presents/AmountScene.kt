@@ -39,7 +39,7 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.AmountInputType
+import uniffi.gemstone.GemAmountInputType
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.secondaryFaded
@@ -52,7 +52,7 @@ import com.wallet.core.primitives.Currency
 internal fun AmountScene(
     title: String,
     amount: String,
-    amountInputType: AmountInputType,
+    amountInputType: GemAmountInputType,
     asset: Asset,
     currency: Currency,
     canSwitchInputType: Boolean,
