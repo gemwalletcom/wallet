@@ -1405,6 +1405,44 @@ public extension Primitives.AssetLink {
     }
 }
 
+public extension Gemstone.AssetMarket {
+    func map() -> Primitives.AssetMarket {
+        Primitives.AssetMarket(
+            marketCap: marketCap,
+            marketCapFdv: marketCapFdv,
+            marketCapRank: marketCapRank,
+            totalVolume: totalVolume,
+            circulatingSupply: circulatingSupply,
+            totalSupply: totalSupply,
+            maxSupply: maxSupply,
+            allTimeHighValue: allTimeHighValue.map { $0.map() },
+            allTimeLowValue: allTimeLowValue.map { $0.map() },
+        )
+    }
+}
+
+public extension Primitives.AssetMarket {
+    func map() -> Gemstone.AssetMarket {
+        Gemstone.AssetMarket(
+            marketCap: marketCap,
+            marketCapFdv: marketCapFdv,
+            marketCapRank: marketCapRank,
+            totalVolume: totalVolume,
+            circulatingSupply: circulatingSupply,
+            totalSupply: totalSupply,
+            maxSupply: maxSupply,
+            allTimeHigh: nil,
+            allTimeHighDate: nil,
+            allTimeHighChangePercentage: nil,
+            allTimeLow: nil,
+            allTimeLowDate: nil,
+            allTimeLowChangePercentage: nil,
+            allTimeHighValue: allTimeHighValue.map { $0.map() },
+            allTimeLowValue: allTimeLowValue.map { $0.map() },
+        )
+    }
+}
+
 public extension Gemstone.AssetMetaData {
     func map() -> Primitives.AssetMetaData {
         Primitives.AssetMetaData(
@@ -1585,6 +1623,26 @@ public extension Primitives.ChartDateValue {
         Gemstone.ChartDateValue(
             date: date,
             value: value,
+        )
+    }
+}
+
+public extension Gemstone.ChartValuePercentage {
+    func map() -> Primitives.ChartValuePercentage {
+        Primitives.ChartValuePercentage(
+            date: date,
+            value: value,
+            percentage: percentage,
+        )
+    }
+}
+
+public extension Primitives.ChartValuePercentage {
+    func map() -> Gemstone.ChartValuePercentage {
+        Gemstone.ChartValuePercentage(
+            date: date,
+            value: value,
+            percentage: percentage,
         )
     }
 }

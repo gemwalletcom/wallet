@@ -24,6 +24,7 @@ remote:
   - ChartCandleUpdate
   - ChartDateValue
   - ChartPeriod
+  - ChartValuePercentage
   - DelegationState
   - ConnectionComponent
   - ConnectionStatus
@@ -34,6 +35,7 @@ remote:
   - DeviceLocale
   - Asset
   - AssetLink
+  - AssetMarket
   - AssetMetaData
   - AssetPrice
   - FeePriority

@@ -8,8 +8,6 @@ import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -52,8 +50,8 @@ class GemstonePriceStore(
     override suspend fun convertPrices(currency: String, rate: Double) =
         pricesDao.updateValues(currency.toCurrency(), rate)
 
-    override suspend fun saveMarket(assetId: String, market: String) {
-        assetsDao.setMarket(market.decodeJson<AssetMarket>().toRecord(AssetId(assetId)))
+    override suspend fun saveMarket(assetId: String, market: uniffi.gemstone.AssetMarket) {
+        assetsDao.setMarket(market.toPrimitives().toRecord(AssetId(assetId)))
     }
 
     fun observeUsdPrice(assetId: AssetId): Flow<Double?> = pricesDao.getUsdPrice(assetId.toIdentifier())

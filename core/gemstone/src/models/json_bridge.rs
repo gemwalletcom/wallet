@@ -1,13 +1,13 @@
 use primitives::Charts;
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
+use primitives::{AssetBasic, AssetFull, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
     AssetList, ChainAsset, Payment, PaymentAmount, PaymentLink, PaymentRequest, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
     TronVote, UTXO,
 };
 use primitives::{
-    AuthNonce, AuthPayload, ChartValuePercentage, FiatQuoteRequest, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
+    AuthNonce, AuthPayload, FiatQuoteRequest, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
     Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
 
@@ -35,11 +35,9 @@ json_bridge!(
     AssetBasic,
     AssetFull,
     AssetList,
-    AssetMarket,
     AuthNonce,
     AuthPayload,
     ChainAsset,
-    ChartValuePercentage,
     Charts,
     ConfigResponse,
     ConfigVersions,

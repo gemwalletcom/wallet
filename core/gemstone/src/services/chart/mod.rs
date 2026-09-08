@@ -1,10 +1,11 @@
+pub mod model;
 pub mod rules;
 
 use std::sync::Arc;
 
 use chrono::Utc;
 use primitives::currency::Currency;
-use primitives::{AssetId, Chain, ChartDateValue, ChartPeriod};
+use primitives::{Asset, AssetId, AssetMarket, ChartDateValue, ChartPeriod};
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::services::error::GemServiceError;
@@ -12,7 +13,8 @@ use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
-use primitives::BlockExplorerLink;
+
+pub use model::{GemAssetMarketRow, GemAssetMarketRows};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
@@ -48,8 +50,9 @@ impl GemChartService {
         }
     }
 
-    pub fn token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
-        self.explorer.get_token_url(chain, address)
+    pub fn market_rows(&self, asset: Asset, market: Option<AssetMarket>) -> GemAssetMarketRows {
+        let contract_explorer = asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(asset.id.chain, token_id));
+        rules::market_rows(&asset, market.as_ref(), contract_explorer)
     }
 
     pub fn get_currency(&self) -> Currency {

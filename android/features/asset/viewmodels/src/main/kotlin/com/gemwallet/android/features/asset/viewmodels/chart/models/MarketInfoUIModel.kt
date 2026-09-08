@@ -11,7 +11,7 @@ class MarketInfoUIModel(
     val badge: String? = null,
     val info: InfoSheetEntity? = null,
     val explorerLink: BlockExplorerLink? = null,
-) {
+) : MarketRowUIModel {
     enum class MarketInfoTypeUIModel(@param:StringRes val label: Int) {
         MarketCap(R.string.asset_market_cap),
         TradingVolume(R.string.asset_trading_volume),
@@ -27,7 +27,7 @@ sealed class AllTimeUIModel(
     val date: Long,
     val value: Double,
     val percentage: Double,
-) {
+) : MarketRowUIModel {
     class High(
         date: Long,
         value: Double,
