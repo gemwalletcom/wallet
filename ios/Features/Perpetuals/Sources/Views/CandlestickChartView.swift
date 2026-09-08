@@ -19,13 +19,7 @@ private enum ChartKey {
 struct CandlestickChartView: View {
     private let model: CandlestickChartViewModel
 
-    @State private var selectedCandle: ChartCandleStick? {
-        didSet {
-            if let selectedCandle, selectedCandle.date != oldValue?.date {
-                vibrate()
-            }
-        }
-    }
+    @State private var selectedCandle: ChartCandleStick?
 
     init(model: CandlestickChartViewModel) {
         self.model = model
@@ -205,9 +199,5 @@ struct CandlestickChartView: View {
         let relativeX = location.x - geometry[plotFrame].origin.x
         guard let date = proxy.value(atX: relativeX) as Date? else { return nil }
         return model.candle(for: date)
-    }
-
-    private func vibrate() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 }
