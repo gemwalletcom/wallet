@@ -1,6 +1,9 @@
 use gem_client::{Client, ClientError, ClientExt, ReqwestClient};
 
-use crate::{model::Pair, target::DexScreenerTarget};
+use crate::{
+    model::{Meta, MetaDetails, Pair},
+    target::DexScreenerTarget,
+};
 
 #[derive(Debug, Clone)]
 pub struct DexScreenerClient<C: Client> {
@@ -16,6 +19,14 @@ impl DexScreenerClient<ReqwestClient> {
 impl<C: Client> DexScreenerClient<C> {
     pub fn new_with_client(client: C) -> Self {
         Self { client }
+    }
+
+    pub async fn get_trending_metas(&self) -> Result<Vec<Meta>, ClientError> {
+        self.client.get(DexScreenerTarget::TrendingMetas).await
+    }
+
+    pub async fn get_meta(&self, slug: &str) -> Result<MetaDetails, ClientError> {
+        self.client.get(DexScreenerTarget::Meta { slug: slug.to_string() }).await
     }
 
     pub async fn get_token_pairs(&self, chain: &str, address: &str) -> Result<Vec<Pair>, ClientError> {

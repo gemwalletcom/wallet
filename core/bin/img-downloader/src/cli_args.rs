@@ -31,7 +31,7 @@ pub struct Args {
     #[arg(
         long,
         default_value = "",
-        help = "Provider ID: CoinGecko coin ID, CoinMarketCap ID/symbol, Jupiter mint, DexScreener chain_token-address (required)"
+        help = "Provider ID: CoinGecko coin ID, CoinMarketCap ID/symbol, Jupiter mint, DexScreener chain_token-address"
     )]
     pub id: String,
 }

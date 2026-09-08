@@ -12,6 +12,10 @@ Use when adding or changing a provider, mapper, repository, RPC client, or UniFF
 
 ## Provider and Mapper
 
+When adding or refactoring multiple providers, keep sibling implementations consistent with [fiat providers](../crates/fiat/src/providers/) and [price providers](../crates/prices/src/providers/): one directory per provider, a thin `mod.rs` for module declarations and re-exports, `provider.rs` for the shared trait implementation and orchestration, and `mapper.rs` for pure transformations. Compare all affected siblings during review so one provider does not accumulate a different layout or contract.
+
+Share traits and configuration types at the family level. Reuse existing clients and nested config structs instead of duplicating wrappers or flattened configuration. Add provider-local client, target, model, and testkit modules only when needed; remove unused fields, imports, dependencies, and exports. Do not create empty modules or unsupported trait methods merely to match another provider's file list.
+
 Each chain crate has a `provider/` directory with the `chain_traits` implementations. A provider method fetches raw RPC data and hands it to a pure function in the sibling `*_mapper.rs` file, which returns the domain type. Mappers are unit-tested with fixtures; providers are covered by gated live tests.
 
 Keep network calls, response assembly, and provider-specific orchestration in the client/provider layer. Put deterministic response-to-domain transformations and reusable pure calculations in the mapper or owning domain type.

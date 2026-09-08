@@ -59,3 +59,7 @@ pub fn chain_id(chain: Chain) -> Option<&'static str> {
         | Chain::HyperCore => None,
     }
 }
+
+pub fn chain_from_id(id: &str) -> Option<Chain> {
+    Chain::all().into_iter().find(|chain| chain_id(*chain) == Some(id))
+}

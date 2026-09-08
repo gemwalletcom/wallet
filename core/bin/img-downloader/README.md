@@ -2,7 +2,7 @@
 
 Run from `core/`. Providers: `coingecko`, `coinmarketcap`, `jupiter`, and `dexscreener`.
 
-All providers implement `ImageProvider` for ID lookups. CoinGecko, CoinMarketCap, and Jupiter also implement `ImageListProvider` for top and trending lists. The downloader selects the required capability before starting a download; DexScreener requires an ID.
+All providers implement `ImageProvider` for ID lookups and `ImageListProvider` for top and trending lists. The downloader selects the requested operation before starting a download.
 
 ## Provider contract
 
@@ -17,7 +17,7 @@ All providers implement `ImageProvider` for ID lookups. CoinGecko, CoinMarketCap
 | CoinGecko | Coin ID | Markets ordered by market cap | Search trending |
 | CoinMarketCap | Coin ID or symbol | Latest listings | Latest trending |
 | Jupiter | Token mint | Verified-token list, limited by count | Top trending for the configured interval, filtered to verified tokens |
-| DexScreener | Gem asset ID (`chain_token-address`) | Unsupported | Unsupported |
+| DexScreener | Gem asset ID (`chain_token-address`) | Tokens from trending metas ranked by 24-hour volume | Tokens from trending metas ranked by 24-hour volume |
 
 ## DexScreener
 
@@ -29,8 +29,24 @@ cargo run --package img-downloader -- --source dexscreener \
   --folder ../../assets/blockchains
 ```
 
-Uses the public [token-pairs API](https://docs.dexscreener.com/api/reference) without an API key. The ID is required; top and trending lists are not supported by this provider. Use Gem chain names, such as `smartchain` for BSC and `avalanchec` for Avalanche C-Chain.
+Uses the public [token-pairs API](https://docs.dexscreener.com/api/reference) without an API key. Use Gem chain names, such as `smartchain` for BSC and `avalanchec` for Avalanche C-Chain.
+
+List modes fetch `/metas/trending/v1`, then `/metas/meta/v1/{slug}` for each distinct meta. Both modes use that candidate set; they do not represent a global token ranking. Requests are spaced one second apart.
+
+Configuration in `config.yml`:
+
+```yaml
+dexscreener:
+  top:
+    count: 50
+  trending:
+    count: 50
+```
+
+Top and trending both rank tokens by 24-hour volume, with separate counts. There are no minimum market cap, liquidity, or volume filters. The pool with the most known liquidity supplies each token's volume and image; pools without liquidity data remain eligible. Duplicate meta entries do not multiply activity. Liquidity, then chain/address, break ranking ties. Tokens without daily volume or a usable image are excluded. The count is applied after deduplication. Explicit ID lookups do not use this ranking.
+
+Keep these controls in `config.yml`.
 
 Only a matching chain and base-token address can supply the logo. Missing logo metadata or unmatched tokens return no images, consistent with the other providers. Existing logos are preserved. Images use the shared PNG conversion, 256×256 resizing, compression, and address formatting pipeline.
 
-In the assets repository, select `dexscreener` in **Download Provider Asset** and supply one asset ID or comma-separated IDs. The wallet change must be merged before running that workflow, because it checks out the wallet default branch.
+In the assets repository, select `dexscreener` in **Download Provider Asset**. Leave ID empty and select `top` or `trending` for lists, or supply one asset ID or comma-separated IDs for explicit lookups. The wallet change must be merged before running that workflow, because it checks out the wallet default branch.

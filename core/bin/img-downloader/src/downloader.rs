@@ -1,30 +1,32 @@
-use crate::{
-    cli_args::{Args, ImageMode, ImageSource},
-    config::ImgDownloaderConfig,
-    image::download_image,
-    providers::{
-        CoinMarketCapProvider, CoinMarketCapProviderConfig, CoingeckoProvider, CoingeckoProviderConfig, DexScreenerProvider, ImageListProvider, ImageProvider, JupiterProvider,
-        JupiterProviderConfig, model::AssetImage,
-    },
-};
-use ::coinmarketcap::CoinMarketCapClient;
-use ::jupiter::JupiterClient;
-use dexscreener::DexScreenerClient;
-use gem_client::RemoteProviderConfig;
-use gem_tracing::{error_with_fields, info_with_fields, warn_with_fields};
-use primitives::ImageType;
-use reqwest::{
-    Client,
-    header::{ACCEPT, ACCEPT_LANGUAGE, HeaderMap, HeaderValue, USER_AGENT},
-};
 use std::{
     collections::HashMap,
     error::Error,
     fs,
     io::Write,
     path::{Path, PathBuf},
-    thread::sleep,
     time::Duration,
+};
+
+use chain_primitives::format_token_id;
+use coingecko::CoinGeckoClient;
+use coinmarketcap::CoinMarketCapClient;
+use dexscreener::DexScreenerClient;
+use gem_client::RemoteProviderConfig;
+use gem_tracing::{error_with_fields, info_with_fields, warn_with_fields};
+use jupiter::JupiterClient;
+use primitives::ImageType;
+use reqwest::{
+    Client,
+    header::{ACCEPT_LANGUAGE, HeaderMap, HeaderValue, USER_AGENT},
+};
+use tokio::time::sleep;
+
+use crate::{
+    cli_args::{Args, ImageMode, ImageSource},
+    config::ImgDownloaderConfig,
+    error::ImageDownloadError,
+    image::download_image,
+    providers::{CoinMarketCapProvider, CoingeckoProvider, DexScreenerProvider, ImageListProvider, ImageProvider, JupiterProvider, model::AssetImage},
 };
 
 pub struct Downloader {
@@ -85,30 +87,19 @@ impl Downloader {
         let folder = args.folder.clone().unwrap_or(img_config.folder);
         let http_client = Self::build_http_client(img_config.image.request.timeout)?;
         let request = match args.source {
-            ImageSource::Coingecko => ImageRequest::with_lists(CoingeckoProvider::new(coingecko, CoingeckoProviderConfig::new(img_config.coingecko)), &args),
+            ImageSource::Coingecko => ImageRequest::with_lists(CoingeckoProvider::new(CoinGeckoClient::new(coingecko), img_config.coingecko), &args),
             ImageSource::Coinmarketcap => ImageRequest::with_lists(
-                CoinMarketCapProvider::new(
-                    CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap),
-                    CoinMarketCapProviderConfig::new(img_config.coinmarketcap),
-                ),
+                CoinMarketCapProvider::new(CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap), img_config.coinmarketcap),
                 &args,
             ),
             ImageSource::Jupiter => ImageRequest::with_lists(
-                JupiterProvider::new(
-                    JupiterClient::new_with_reqwest_client_and_api_key(http_client.clone(), jupiter_api_key),
-                    JupiterProviderConfig::new(img_config.jupiter),
-                ),
+                JupiterProvider::new(JupiterClient::new_with_reqwest_client_and_api_key(http_client.clone(), jupiter_api_key), img_config.jupiter),
                 &args,
             ),
-            ImageSource::Dexscreener => {
-                if args.id.is_empty() {
-                    return Err("DexScreener requires --id <chain>_<token-address>".into());
-                }
-                ImageRequest::Asset {
-                    provider: Box::new(DexScreenerProvider::new(DexScreenerClient::new_with_reqwest_client(http_client.clone()))),
-                    id: args.id,
-                }
-            }
+            ImageSource::Dexscreener => ImageRequest::with_lists(
+                DexScreenerProvider::new(DexScreenerClient::new_with_reqwest_client(http_client.clone()), img_config.dexscreener),
+                &args,
+            ),
         };
         Ok(Self {
             folder,
@@ -124,7 +115,6 @@ impl Downloader {
     fn build_http_client(timeout: Duration) -> Result<Client, reqwest::Error> {
         let mut headers = HeaderMap::new();
         headers.insert(USER_AGENT, HeaderValue::from_static(USER_AGENT_VALUE));
-        headers.insert(ACCEPT, HeaderValue::from_static("image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"));
         headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("en-US,en;q=0.9"));
         gem_client::builder().default_headers(headers).timeout(timeout).build()
     }
@@ -132,9 +122,7 @@ impl Downloader {
     pub async fn start(&self) -> Result<(), Box<dyn Error + Send + Sync>> {
         info_with_fields!("image downloader start", folder = self.folder.as_str());
         let folder = Path::new(&self.folder);
-        if !folder.exists() {
-            fs::create_dir_all(folder)?;
-        }
+        fs::create_dir_all(folder)?;
 
         let images = match &self.request {
             ImageRequest::Asset { provider, id } => provider.get_asset_images(id).await?,
@@ -186,7 +174,7 @@ impl Downloader {
             let image_downloaded = match self.download_asset_image(&pending_image, &mut images_by_url).await {
                 Ok(image_downloaded) => image_downloaded,
                 Err(error) => {
-                    if is_unsupported_image_error(error.as_ref()) {
+                    if error.downcast_ref::<ImageDownloadError>().is_some() {
                         warn_with_fields!(
                             "image download skipped",
                             reason = error.as_ref(),
@@ -207,7 +195,7 @@ impl Downloader {
                 }
             };
             if image_downloaded && index + 1 < pending_count {
-                sleep(self.delay);
+                sleep(self.delay).await;
             }
         }
         Ok(())
@@ -237,14 +225,10 @@ impl Downloader {
     }
 
     fn pending_asset_image(mut image: AssetImage, folder: &Path) -> Option<PendingAssetImage> {
-        image.token_id = chain_primitives::format_token_id(image.chain, image.token_id)?;
+        image.token_id = format_token_id(image.chain, image.token_id)?;
         let path = folder.join(image.chain.to_string()).join("assets").join(&image.token_id).join("logo.png");
         Some(PendingAssetImage { image, path })
     }
-}
-
-fn is_unsupported_image_error(error: &(dyn Error + Send + Sync + 'static)) -> bool {
-    error.downcast_ref::<crate::error::ImageDownloadError>().is_some()
 }
 
 #[cfg(test)]
