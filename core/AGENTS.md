@@ -38,7 +38,7 @@ Subsystem references live in [docs/](../docs). Read the relevant one before chan
 - When working with multiple providers, follow [Provider and Mapper](skills/architecture.md#provider-and-mapper) and compare sibling implementations before editing. Use fiat providers, price providers, and chain providers as the structural references.
 - Resolve conflicting patterns with the shared [Engineering Principles](../skills/engineering-principles.md#clean-code-principles)
 - Use single-word names for Core settings keys; `_` is reserved for separating the settings hierarchy in environment variables
-- Keep `docs/FEATURES.md` (repo root) current in the same change when chain capabilities, simulations, WalletConnect coverage, transaction-indexing routes, active swap, fiat, or NFT providers, provider modes, amount/slippage behavior, deployments, or supported assets change. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
+- Keep `docs/FEATURES.md` (repo root) focused on high-level capabilities and provider coverage, including per-chain and supported-method coverage tables. Update it when supported chains, assets, features, providers, provider modes, or deployments change. Routine bug fixes, amount-validation details, formatting, and internal refactors do not need entries. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
 
 ## Task Completion
 
