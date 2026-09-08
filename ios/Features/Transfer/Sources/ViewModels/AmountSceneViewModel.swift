@@ -113,7 +113,7 @@ public final class AmountSceneViewModel {
 
     var infoText: String? {
         guard let reservedFee = input.reservedFee, amountInputModel.text == maxBalance else { return nil }
-        return Localized.Transfer.reservedFees(formatter.string(reservedFee, asset: asset))
+        return Localized.Transfer.reservedFees(amountFormatter.string(reservedFee, asset: asset))
     }
 
     var maxTitle: String {

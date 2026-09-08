@@ -29,7 +29,7 @@ object AmountValidation {
         } catch (error: GemAmountException) {
             throw when (error) {
                 is GemAmountException.Zero -> AmountError.None
-                is GemAmountException.BelowMinimum -> AmountError.MinimumValue(ValueFormatter(style = ValueFormatter.Style.Full).string(error.minimum, asset))
+                is GemAmountException.BelowMinimum -> AmountError.MinimumValue(ValueFormatter(style = ValueFormatter.Style.Auto).string(error.minimum, asset))
                 is GemAmountException.InsufficientBalance -> AmountError.InsufficientBalance(asset.symbol)
             }
         }

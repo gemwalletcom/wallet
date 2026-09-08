@@ -60,5 +60,5 @@ internal fun SwapError(state: SwapUiState, pay: AssetInfo?) {
 private fun minimumAmount(minAmount: String?, asset: Asset?): String {
     val value = minAmount?.toBigIntegerOrNull() ?: return ""
     val asset = asset ?: return ""
-    return ValueFormatter(style = ValueFormatter.Style.Full).string(value, asset)
+    return ValueFormatter(style = ValueFormatter.Style.Auto).string(value, asset)
 }

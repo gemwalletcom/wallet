@@ -142,7 +142,7 @@ private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
         when (row) {
             is StakeInfoRow.MinAmount -> PropertyItem(
                 title = stringResource(id = R.string.stake_minimum_amount, ""),
-                data = ValueFormatter(style = ValueFormatter.Style.Full)
+                data = ValueFormatter(style = ValueFormatter.Style.Auto)
                     .string(row.value.toBigInteger(), row.chain.asset()),
                 listPosition = position,
             )

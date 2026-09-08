@@ -196,5 +196,7 @@ final class ValueFormatterTests {
         #expect(formatter.string(1, decimals: 4) == "0.0001")
         #expect(formatter.string(1, decimals: 5) == "0.00001")
         #expect(formatter.string(4162, decimals: 18) == "0.000000000000004162")
+        #expect(formatter.string(9_646_202_573_492, decimals: 18) == "0.000009646")
+        #expect(formatter.string(1, decimals: 18) == "0.000000000000000001")
     }
 }
