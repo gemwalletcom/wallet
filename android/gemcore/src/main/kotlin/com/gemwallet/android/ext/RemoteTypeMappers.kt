@@ -313,6 +313,24 @@ fun com.wallet.core.primitives.FeeUnitType.toGem(): uniffi.gemstone.FeeUnitType 
     com.wallet.core.primitives.FeeUnitType.Native -> uniffi.gemstone.FeeUnitType.NATIVE
 }
 
+fun uniffi.gemstone.FiatProviderName.toPrimitives(): com.wallet.core.primitives.FiatProviderName = when (this) {
+    uniffi.gemstone.FiatProviderName.MERCURYO -> com.wallet.core.primitives.FiatProviderName.Mercuryo
+    uniffi.gemstone.FiatProviderName.TRANSAK -> com.wallet.core.primitives.FiatProviderName.Transak
+    uniffi.gemstone.FiatProviderName.MOON_PAY -> com.wallet.core.primitives.FiatProviderName.MoonPay
+    uniffi.gemstone.FiatProviderName.BANXA -> com.wallet.core.primitives.FiatProviderName.Banxa
+    uniffi.gemstone.FiatProviderName.PAYBIS -> com.wallet.core.primitives.FiatProviderName.Paybis
+    uniffi.gemstone.FiatProviderName.FLASHNET -> com.wallet.core.primitives.FiatProviderName.Flashnet
+}
+
+fun com.wallet.core.primitives.FiatProviderName.toGem(): uniffi.gemstone.FiatProviderName = when (this) {
+    com.wallet.core.primitives.FiatProviderName.Mercuryo -> uniffi.gemstone.FiatProviderName.MERCURYO
+    com.wallet.core.primitives.FiatProviderName.Transak -> uniffi.gemstone.FiatProviderName.TRANSAK
+    com.wallet.core.primitives.FiatProviderName.MoonPay -> uniffi.gemstone.FiatProviderName.MOON_PAY
+    com.wallet.core.primitives.FiatProviderName.Banxa -> uniffi.gemstone.FiatProviderName.BANXA
+    com.wallet.core.primitives.FiatProviderName.Paybis -> uniffi.gemstone.FiatProviderName.PAYBIS
+    com.wallet.core.primitives.FiatProviderName.Flashnet -> uniffi.gemstone.FiatProviderName.FLASHNET
+}
+
 fun uniffi.gemstone.FiatQuoteType.toPrimitives(): com.wallet.core.primitives.FiatQuoteType = when (this) {
     uniffi.gemstone.FiatQuoteType.BUY -> com.wallet.core.primitives.FiatQuoteType.Buy
     uniffi.gemstone.FiatQuoteType.SELL -> com.wallet.core.primitives.FiatQuoteType.Sell

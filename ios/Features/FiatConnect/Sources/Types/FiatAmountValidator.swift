@@ -3,6 +3,7 @@
 import BigInt
 import Formatters
 import Foundation
+import struct Gemstone.FiatQuote
 import protocol Gemstone.GemFiatQuoteServiceProtocol
 import GemstonePrimitives
 import Localization

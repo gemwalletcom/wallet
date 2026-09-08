@@ -427,10 +427,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
-    private let quotes: [Primitives.FiatQuote]
-    private let check: @Sendable (Primitives.FiatQuote?) -> GemFiatAmountCheck
+    private let quotes: [Gemstone.FiatQuote]
+    private let check: @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck
 
-    public init(quotes: [Primitives.FiatQuote] = [], check: @escaping @Sendable (Primitives.FiatQuote?) -> GemFiatAmountCheck = { _ in .valid }) {
+    public init(quotes: [Gemstone.FiatQuote] = [], check: @escaping @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck = { _ in .valid }) {
         self.quotes = quotes
         self.check = check
     }
@@ -460,7 +460,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     }
 
     public func amountCheck(quoteType _: Gemstone.FiatQuoteType, amount _: Double, quote: Gemstone.FiatQuote?, available _: GemBigUint) -> GemFiatAmountCheck {
-        check(quote.flatMap { try? Primitives.FiatQuote($0) })
+        check(quote)
     }
 
     public func quoteDebounceMilliseconds() -> UInt64 {
@@ -474,7 +474,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     public func syncTransactions() async throws {}
 
     public func quotes(quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
-        quotes.map { $0.json() }
+        quotes
     }
 
     public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {

@@ -109,15 +109,15 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
 ```
 
 Android, `android/data/services/gemstone/.../stores/<Name>Store.kt`, class
-`Gemstone<Name>Store`, converting with `toJson()` and `decodeJson()`:
+`Gemstone<Name>Store`, converting with the generated mapper:
 
 ```kotlin
 class GemstonePriceAlertStore(
     private val priceAlertsDao: PriceAlertsDao,
 ) : GemPriceAlertStore {
 
-    override suspend fun updatePriceAlerts(alerts: List<String>, deleteIds: List<String>) {
-        priceAlertsDao.update(alerts.map { it.decodeJson<PriceAlert>().toRecord() }, deleteIds)
+    override suspend fun updatePriceAlerts(alerts: List<uniffi.gemstone.PriceAlert>, deleteIds: List<String>) {
+        priceAlertsDao.update(alerts.map { it.toPrimitives().toRecord() }, deleteIds)
     }
 }
 ```
@@ -438,7 +438,16 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GasPriceType`, `StakeType`, `EarnType`, `TransferDataExtra` and `ContractCallData` all carried a
   wire format nothing wrote or read once the confirm input stopped crossing as a string, so the whole
   chain is `#[derive(Debug, Clone)]` now. A type in it that grows a `Serialize` again means something
-  started persisting a confirm input, which is not how a confirm input travels. The generator is one table-driven
+  started persisting a confirm input, which is not how a confirm input travels. The buy/sell quote went the same way: `FiatQuote`,
+  `FiatQuoteUrl`, `FiatProvider`, `FiatProviderName` and `PaymentType` are remote, so a quote list
+  that refreshes every thirty seconds and on every keystroke stops being parsed out of a JSON string
+  per quote per emission. `FiatProviderName` keeps its twin because Room stores it by name; the
+  transit types do not. What a provider row shows is `GemFiatQuoteRow` — the provider, the crypto
+  amount, the fiat amount to display and the rate — so neither app decides that a buy row prices off
+  the USD asset price when there is one and off the quote otherwise, and a quote that buys nothing
+  has no rate instead of formatting `NaN`, which is what iOS rendered. `FiatTransaction` and its
+  wrappers stay on the bridge: they only travel Core to app, and the generator has no way to emit the
+  app-to-core direction for a record whose skipped fields have no default. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper

@@ -11,8 +11,6 @@ import uniffi.gemstone.GemAssetIconImage
 import uniffi.gemstone.GemImage
 import java.util.concurrent.ConcurrentHashMap
 import com.wallet.core.primitives.DelegationValidator
-import com.wallet.core.primitives.FiatProvider
-import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
@@ -38,8 +36,6 @@ fun AssetId.remoteIconUrl(): String? = when (val image = icon().image) {
 
 fun DelegationValidator.getIconUrl(): String =
     validatorIcons.computeIfAbsent("${chain.string}/$id") { GemImage.Validator(chain.string, id).url() }
-
-fun FiatProvider.providerName(): FiatProviderName? = FiatProviderName.entries.firstOrNull { it.string == id.lowercase() }
 
 fun getListIconUrl(listId: String): String = GemImage.AssetList(listId).url()
 

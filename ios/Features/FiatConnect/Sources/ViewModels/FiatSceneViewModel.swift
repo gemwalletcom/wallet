@@ -4,6 +4,8 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.FiatProviderName
+import struct Gemstone.GemFiatQuoteRow
 import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
 import protocol Gemstone.GemFiatQuoteServiceProtocol
@@ -75,17 +77,17 @@ public final class FiatSceneViewModel {
         set { session = session.onTypeChanged(quoteType: newValue.map()) }
     }
 
-    var quotesState: StateViewType<[FiatQuote]> {
+    var quotesState: StateViewType<[GemFiatQuoteRow]> {
         switch session.current().phase {
         case .noInput, .invalidInput, .invalid, .noQuotes: .noData
         case .loading: .loading
-        case .ready: .data(session.fiatQuotes)
+        case .ready: .data(session.quoteRows(assetPrice: priceUsdQuery.value))
         case let .failed(error): .error(error)
         }
     }
 
-    var selectedQuote: FiatQuote? {
-        session.selectedFiatQuote
+    var selectedQuote: GemFiatQuoteRow? {
+        session.selectedQuoteRow(assetPrice: priceUsdQuery.value)
     }
 
     var title: String {
@@ -177,8 +179,7 @@ public final class FiatSceneViewModel {
             .plain(items.map {
                 FiatQuoteViewModel(
                     asset: asset,
-                    quote: $0,
-                    assetPrice: priceUsdQuery.value,
+                    row: $0,
                     isSelected: $0.provider == selectedQuote?.provider,
                     formatter: currencyFormatter,
                 )
@@ -200,8 +201,8 @@ public final class FiatSceneViewModel {
         "\(currencyFormatter.symbol)\(amount)"
     }
 
-    func providerAssetImage(_ provider: FiatProvider) -> AssetImage? {
-        .image(provider.image)
+    func providerAssetImage(_ provider: Gemstone.FiatProviderName) -> AssetImage? {
+        .image(provider.map().image)
     }
 }
 
@@ -257,7 +258,7 @@ extension FiatSceneViewModel {
 
     func onSelectQuotes(_ quotes: [FiatQuoteViewModel]) {
         guard let quoteModel = quotes.first else { return }
-        session = session.onProviderSelected(provider: quoteModel.quote.provider.id)
+        session = session.onProviderSelected(provider: quoteModel.row.provider)
         updateValidators()
         isPresentingFiatProvider = false
     }
@@ -287,7 +288,7 @@ extension FiatSceneViewModel {
 
     private var selectedQuoteViewModel: FiatQuoteViewModel? {
         guard let selectedQuote else { return nil }
-        return FiatQuoteViewModel(asset: asset, quote: selectedQuote, formatter: currencyFormatter)
+        return FiatQuoteViewModel(asset: asset, row: selectedQuote, formatter: currencyFormatter)
     }
 
     private func applyAmount(_ text: String, isImmediate: Bool) {
@@ -302,7 +303,7 @@ extension FiatSceneViewModel {
             service: service,
             type: type,
             asset: asset,
-            quote: selectedQuote,
+            quote: session.selectedQuote(),
             availableBalance: assetData.balance.available,
             currencyFormatter: currencyFormatter,
         )
@@ -316,7 +317,7 @@ extension FiatSceneViewModel {
             urlState = .loading
 
             do {
-                guard let url = try await service.quoteUrl(asset: asset, quoteId: selectedQuote.id).redirectUrl.asURL else {
+                guard let url = try await service.quoteUrl(asset: asset, quoteId: selectedQuote.quoteId).redirectUrl.asURL else {
                     urlState = .noData
                     return
                 }

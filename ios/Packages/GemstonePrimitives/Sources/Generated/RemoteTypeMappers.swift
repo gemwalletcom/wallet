@@ -451,6 +451,32 @@ public extension Primitives.FeeUnitType {
     }
 }
 
+public extension Gemstone.FiatProviderName {
+    func map() -> Primitives.FiatProviderName {
+        switch self {
+        case .mercuryo: .mercuryo
+        case .transak: .transak
+        case .moonPay: .moonPay
+        case .banxa: .banxa
+        case .paybis: .paybis
+        case .flashnet: .flashnet
+        }
+    }
+}
+
+public extension Primitives.FiatProviderName {
+    func map() -> Gemstone.FiatProviderName {
+        switch self {
+        case .mercuryo: .mercuryo
+        case .transak: .transak
+        case .moonPay: .moonPay
+        case .banxa: .banxa
+        case .paybis: .paybis
+        case .flashnet: .flashnet
+        }
+    }
+}
+
 public extension Gemstone.FiatQuoteType {
     func map() -> Primitives.FiatQuoteType {
         switch self {

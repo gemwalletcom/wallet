@@ -11,7 +11,6 @@ import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetMetaData
@@ -78,7 +77,7 @@ class FiatViewModelTest {
         every { randomAmount() } returns 500u
         every { quoteDebounceMilliseconds() } returns 250uL
         every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
-        coEvery { quotes(any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
+        coEvery { quotes(any(), any(), any()) } returns listOf(mockFiatQuote())
     }
 
     @Before
@@ -186,13 +185,13 @@ class FiatViewModelTest {
         try {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
-            assertTrue(viewModel.quotes.value.isNotEmpty())
+            assertTrue(viewModel.providers.value.isNotEmpty())
             assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
             viewModel.updateAmount("75")
             runCurrent()
 
-            assertTrue(viewModel.quotes.value.isEmpty())
+            assertTrue(viewModel.providers.value.isEmpty())
             assertEquals(GemFiatQuotePhase.Loading(75.0), viewModel.uiState.value.phase)
             assertEquals(ButtonState.Loading, viewModel.uiState.value.buttonState)
             assertNull(viewModel.selectedProvider.value)
@@ -215,13 +214,13 @@ class FiatViewModelTest {
             assertEquals(GemFiatButtonAction.RETRY_QUOTE, viewModel.uiState.value.buttonAction)
             assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
-            coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
+            coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote())
             viewModel.retry()
             runCurrent()
 
             assertEquals(GemFiatQuotePhase.Ready, viewModel.uiState.value.phase)
             assertEquals(GemFiatButtonAction.CONTINUE, viewModel.uiState.value.buttonAction)
-            assertTrue(viewModel.quotes.value.isNotEmpty())
+            assertTrue(viewModel.providers.value.isNotEmpty())
             coVerify(exactly = 2) {
                 service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
             }

@@ -226,30 +226,24 @@ Core → app mappings live in `GemstonePrimitives` as extensions. A mapping onto
 A case in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`, injected by Hilt. An observed read returns a `Flow`; the case still asks Core for the decision on each emission:
 
 ```kotlin
-override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> =
-    combine(getSession().filterNotNull(), getTransaction(id)) { session, data -> Pair(session, data) }
-        .flatMapLatest { (session, data) ->
-            val transaction = data?.transaction ?: return@flatMapLatest emptyFlow()
-            val explorer = transactionDetailsService.transactionLink(...)
-            getWalletAssets(transaction.getAssociatedAssetIds()).mapLatest { assets ->
-                TransactionDetailsAggregateImpl(
-                    data = data,
-                    associatedAssets = assets,
-                    explorer = explorer,
-                    participant = transactionDetailsService.participant(transaction.toJson()),
-                    ...
-                )
-            }
-        }
-        .flowOn(Dispatchers.IO)
+override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = combine(
+    getSession().filterNotNull(),
+    getTransaction(id),
+) { session, data -> Pair(session, data) }
+    .mapNotNull { (session, data) ->
+        data?.let { TransactionDetailsAggregateImpl(it, transactionDetailsService.detailRows(it.toGem()), session.currency) }
+    }
+    .flowOn(Dispatchers.IO)
 ```
+
+One Core call answers the whole screen, so the case has nothing to assemble.
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
 ### Never call Core from the main thread
 
 The `flowOn` above is not decoration. A synchronous Core call such as
-`transactionDetailsService.participant` can read store callbacks that block on Room, and UniFFI
+`transactionDetailsService.detailRows` can read store callbacks that block on Room, and UniFFI
 polls the Rust future on the calling thread — so without it the read lands on main, where Room
 throws before any work happens.
 
@@ -264,7 +258,7 @@ override suspend fun invoke(...): List<FiatQuote> = withContext(Dispatchers.IO) 
 
 // Flow: flowOn after the operator that calls Core
 override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = observed(id)
-    .mapLatest { data -> transactionDetailsService.participant(data.transaction.toJson()) ... }
+    .mapNotNull { data -> transactionDetailsService.detailRows(data.toGem()) ... }
     .flowOn(Dispatchers.IO)
 ```
 

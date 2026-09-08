@@ -7,7 +7,7 @@ use primitives::{
     TronVote, UTXO,
 };
 use primitives::{
-    AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
+    AuthNonce, AuthPayload, ChartValuePercentage, FiatQuoteRequest, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
     Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
 
@@ -44,10 +44,7 @@ json_bridge!(
     ConfigResponse,
     ConfigVersions,
     FiatAssets,
-    FiatQuote,
     FiatQuoteRequest,
-    FiatQuoteUrl,
-    FiatQuotes,
     FiatTransactionData,
     InAppNotification,
     Markets,

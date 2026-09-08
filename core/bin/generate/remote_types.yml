@@ -40,6 +40,11 @@ remote:
   - FeeUnitType
   - FiatRate
   - FiatQuoteType
+  - FiatProviderName
+  - FiatProvider
+  - PaymentType
+  - FiatQuote
+  - FiatQuoteUrl
   - GasPriceType
   - PerpetualAccountMode
   - PerpetualDirection

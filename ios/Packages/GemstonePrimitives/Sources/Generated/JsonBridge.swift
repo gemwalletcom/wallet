@@ -15,10 +15,7 @@ extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
-extension Primitives.FiatQuote: JsonCodable {}
 extension Primitives.FiatQuoteRequest: JsonCodable {}
-extension Primitives.FiatQuoteUrl: JsonCodable {}
-extension Primitives.FiatQuotes: JsonCodable {}
 extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
 extension Primitives.Markets: JsonCodable {}
