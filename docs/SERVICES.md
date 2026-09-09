@@ -481,7 +481,11 @@ whole series out of a string on every period or type change. `PortfolioChartType
 because the picker needs `CaseIterable` and `Identifiable`, which uniffi does not give an enum, and
 `PortfolioStatistic` carries named fields. `Charts` left the bridge entirely — no app has referenced
 it in either language, so it was generating a twin nothing read. `AssetFull`, `AssetAssociation` and `PerpetualBasic` finished
-the asset cluster the same way. What is left on the bridge is the config response and its versions.
+the asset cluster the same way. The JSON bridge is gone: `ConfigResponse` and `ConfigVersions` were
+the last entries on it and no exported signature had named them for some time, so the module, the
+generator half that emitted the two bridge files, its fixtures and both apps' bridge files went with
+them. `JsonCodable` stays on iOS for `AnyCodableValue`, which is how transaction metadata still
+crosses.
 The one shape the generator could not map was a data-carrying enum that has to keep its twin, and that is
 closed: both apps render such an enum as a sealed hierarchy, so the generator matches on the case
 and carries the payload through — reading the payload name from the enum's serde `content`, since

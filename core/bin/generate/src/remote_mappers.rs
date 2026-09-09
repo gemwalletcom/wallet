@@ -791,11 +791,10 @@ fn uniffi_type_name(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::json_bridge;
     use std::path::PathBuf;
 
     /// `testdata/` holds a `remote_types.yml`, one primitives source per generator feature under
-    /// `primitives/`, a `json_bridge.rs`, and under `expected/` the exact files the generator must
+    /// `primitives/` and, under `expected/`, the exact files the generator must
     /// write for them. Run with `UPDATE_GOLDEN=1` to rewrite the expected files after a deliberate
     /// change, and read the diff before committing it.
     fn testdata() -> PathBuf {
@@ -833,16 +832,6 @@ mod tests {
     #[test]
     fn test_kotlin_mappers_match_the_expected_file() {
         expect_generated("RemoteTypeMappers.kt", generator().kotlin());
-    }
-
-    #[test]
-    fn test_json_bridge_files_match_the_expected_files() {
-        let bridge = testdata().join("json_bridge.rs");
-        expect_generated("JsonBridge.swift", json_bridge::swift_json_bridge(&json_bridge::bridge_types(&bridge)));
-        expect_generated(
-            "TaggedJsonBridge.kt",
-            json_bridge::kotlin_tagged_bridge(&json_bridge::tagged_bridge_types(&bridge, &testdata().join("primitives"))),
-        );
     }
 
     #[test]

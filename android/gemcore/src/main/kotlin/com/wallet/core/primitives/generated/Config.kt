@@ -14,22 +14,3 @@ data class Release (
 	val upgradeRequired: Boolean
 )
 
-@Serializable
-data class ConfigVersions (
-	val fiatOnRampAssets: Int,
-	val fiatOffRampAssets: Int,
-	val swapAssets: Int
-)
-
-@Serializable
-data class SwapConfig (
-	val enabledProviders: List<String>
-)
-
-@Serializable
-data class ConfigResponse (
-	val releases: List<Release>,
-	val versions: ConfigVersions,
-	val swap: SwapConfig
-)
-
