@@ -558,6 +558,12 @@ intentional one-sided integration surfaces.
   stops deriving it from the session. The header-buttons rule (a blocked multi-signature account
   disables them) moved from iOS's `HeaderBannerEventViewModel` to
   `wallet_home::rules::header_buttons_enabled`.
+- **Equal fiat totals have a defined order on Android.** The wallet, portfolio, network and
+  by-id asset queries ordered by fiat total alone, so every zero-balance row (and any two rows
+  worth the same) came out in SQLite's scan order, which is the `asset` table's rowid order and
+  changes whenever an asset row is replaced by a sync; after a wallet switch the tail of the list
+  could visibly reshuffle. They now break ties on `assetRank DESC`, the key iOS's `AssetsRequest`
+  already used after the fiat total.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
