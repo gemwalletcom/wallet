@@ -1,4 +1,4 @@
-use crate::SignerError;
+use primitives::SignerError;
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;

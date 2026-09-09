@@ -36,7 +36,7 @@ pub fn hash_typed_data(json: &str) -> Result<[u8; 32], SignerError> {
     Ok(keccak256(&preimage))
 }
 
-pub fn validate_eip712_domain_chain_id_binding(value: &Value) -> Result<(), SignerError> {
+pub(super) fn validate_eip712_domain_chain_id_binding(value: &Value) -> Result<(), SignerError> {
     let domain_chain_id = value.get("domain").and_then(|domain| domain.get("chainId"));
     let schema_has_chain_id = value
         .get("types")

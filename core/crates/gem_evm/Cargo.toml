@@ -8,7 +8,7 @@ default = []
 rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures", "dep:gem_client", "gem_jsonrpc/client"]
 indexer = ["rpc", "dep:gem_alchemy", "dep:gem_ankr", "dep:gem_blockscout"]
 reqwest = ["rpc", "gem_jsonrpc/reqwest", "gem_client/reqwest"]
-signer = ["dep:alloy-consensus"]
+signer = ["dep:alloy-consensus", "dep:signer"]
 chain_integration_tests = ["indexer", "reqwest", "primitives/testkit", "settings/testkit"]
 testkit = ["gem_client?/testkit"]
 
@@ -21,7 +21,7 @@ gem_ankr = { path = "../gem_ankr", optional = true }
 gem_blockscout = { path = "../gem_blockscout", optional = true }
 gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
-signer = { path = "../signer" }
+signer = { path = "../signer", optional = true }
 
 hex = { workspace = true }
 futures = { workspace = true, optional = true }

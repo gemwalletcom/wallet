@@ -8114,12 +8114,9 @@ dependencies = [
  "alloy-primitives",
  "bs58",
  "ed25519-dalek 3.0.0",
- "gem_hash",
  "hex",
  "k256 0.14.0",
  "primitives",
- "serde",
- "serde_json",
  "strum",
  "zeroize",
 ]
