@@ -1,5 +1,5 @@
-use primitives::{Asset, AssetMarket, AssetProperties, AssetScore, AssetType, ChainAsset};
-use serde::{Deserialize, Serialize};
+use primitives::{Asset, AssetMarket, AssetProperties, AssetScore, AssetType, Chain, ChainAsset};
+use serde::{Deserialize, Serialize, Serializer};
 
 pub const ASSETS_INDEX_NAME: &str = "assets";
 pub const ASSETS_FILTERS: &[&str] = &[
@@ -47,6 +47,7 @@ pub const ASSETS_SORTS: &[&str] = &["score.rank"];
 #[serde(rename_all = "camelCase")]
 pub struct AssetDocument {
     pub id: String,
+    #[serde(serialize_with = "AssetDocument::serialize_asset")]
     pub asset: Asset,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub aliases: Option<Vec<String>>,
@@ -57,7 +58,25 @@ pub struct AssetDocument {
     pub tags: Option<Vec<String>>,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SearchAsset<'a> {
+    #[serde(flatten)]
+    asset: &'a Asset,
+    chain: Chain,
+    token_id: Option<&'a str>,
+}
+
 impl AssetDocument {
+    fn serialize_asset<S: Serializer>(asset: &Asset, serializer: S) -> Result<S::Ok, S::Error> {
+        SearchAsset {
+            asset,
+            chain: asset.chain(),
+            token_id: asset.token_id(),
+        }
+        .serialize(serializer)
+    }
+
     pub fn aliases(asset: &Asset) -> Option<Vec<String>> {
         if asset.asset_type != AssetType::NATIVE {
             return None;
@@ -71,7 +90,37 @@ impl AssetDocument {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain};
+    use primitives::AssetId;
+    use serde_json::Value;
+
+    #[test]
+    fn test_asset_document_serialization_preserves_search_fields() {
+        let assets = [
+            r#"{"id":"smartchain_0xbe9D156892E55e7154BcD3cB0FEA677F9D3103E1","name":"SpaceX","symbol":"SPCXB","decimals":18,"type":"BEP20","chain":"smartchain","tokenId":"0xbe9D156892E55e7154BcD3cB0FEA677F9D3103E1"}"#,
+            r#"{"id":"ethereum","name":"Ethereum","symbol":"ETH","decimals":18,"type":"NATIVE","chain":"ethereum","tokenId":null}"#,
+        ];
+
+        for expected in assets {
+            let asset: Asset = serde_json::from_str(expected).unwrap();
+            let document = AssetDocument {
+                id: asset.id.to_string(),
+                aliases: AssetDocument::aliases(&asset),
+                properties: AssetProperties::default(asset.id.clone()),
+                asset: asset.clone(),
+                score: AssetScore::default(),
+                usage_rank: 0,
+                market: None,
+                tags: Some(vec!["bstocks".to_string()]),
+            };
+
+            let value = serde_json::to_value(&document).unwrap();
+
+            assert_eq!(value["asset"], serde_json::from_str::<Value>(expected).unwrap());
+            assert_eq!(serde_json::from_value::<AssetDocument>(value).unwrap().asset, asset);
+            assert_eq!(serde_json::to_value(&asset).unwrap().get("chain"), None);
+            assert_eq!(serde_json::to_value(&asset).unwrap().get("tokenId"), None);
+        }
+    }
 
     #[test]
     fn native_asset_aliases_include_chain_id_and_network_name() {
