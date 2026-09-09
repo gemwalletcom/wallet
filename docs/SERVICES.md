@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The push notification type no longer generates twins.** `PushNotificationTypes` was
+  typeshared, but Core parses every push payload (`GemPushNotificationService::parse`) and neither
+  app read the generated enum outside one Android navigation test, which now passes the payload's
+  own strings. The attribute and both twins are gone. In the same pass, the Android asset-defaults
+  test stopped asserting Core's `is_swapable` and `is_stakeable` against Core's own default basic
+  asset, a test that could not fail; it states Solana's defaults directly.
 - **Three generated twins outlived their Core type, and one had become an iOS model.**
   `FiatQuoteRequest` crosses the FFI as a remote record, `TransactionStateRequest` and
   `TransactionSwapStateRequest` lost their `typeshare` a fortnight ago, and `TransactionWallet`

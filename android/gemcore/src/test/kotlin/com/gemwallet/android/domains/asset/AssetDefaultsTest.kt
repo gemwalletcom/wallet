@@ -1,7 +1,5 @@
 package com.gemwallet.android.domains.asset
 
-import com.gemwallet.android.ext.isStakeSupported
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -10,11 +8,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemAssetConfigService
 
 class AssetDefaultsTest {
-
-    private val assetConfig = GemAssetConfigService()
 
     @Test
     fun defaultBasic_nativeAsset_usesChainDefaults() {
@@ -23,8 +18,8 @@ class AssetDefaultsTest {
         val basic = asset.defaultBasic
 
         assertTrue(basic.properties.isEnabled)
-        assertEquals(assetConfig.isSwapable(asset.id.toIdentifier()), basic.properties.isSwapable)
-        assertEquals(Chain.Solana.isStakeSupported(), basic.properties.isStakeable)
+        assertTrue(basic.properties.isSwapable)
+        assertTrue(basic.properties.isStakeable)
         assertFalse(basic.properties.isBuyable)
         assertFalse(basic.properties.isSellable)
         assertFalse(basic.properties.hasImage)
