@@ -24,6 +24,13 @@ just build
 ```
 `just bootstrap` creates the local UniFFI Swift/header sources and iOS Rust static libraries needed by SwiftPM and Xcode. From the repo root, use `just generate-stone`, then `just run-ios`. The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build.
 
+### Multiple Simulators Match the Destination
+
+`xcodebuild` fails with "multiple devices matched the request" when several simulators share the default name. Pass the exact device, in a worktree slot the slot's own simulator:
+```bash
+SIMULATOR_NAME=wt1 just build-for-testing
+```
+
 ### Test Failures After Model Changes
 
 When Core model changes break tests, regenerate first, then distinguish stale output, a regression, and an intentionally changed contract. Update expectations only when the intended contract requires it:

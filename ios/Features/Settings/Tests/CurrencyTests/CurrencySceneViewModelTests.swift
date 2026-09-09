@@ -2,7 +2,6 @@
 
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
 import Foundation
 import GemstoneServices
 import Primitives

@@ -22,7 +22,6 @@ public import typealias Gemstone.SimulationResult
 public import typealias Gemstone.Transaction
 public import struct Gemstone.Wallet
 import Foundation
-import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit

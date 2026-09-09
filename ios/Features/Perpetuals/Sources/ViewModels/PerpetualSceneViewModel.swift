@@ -3,7 +3,6 @@
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
-import BigInt
 import Formatters
 import Foundation
 import GemstonePrimitives

@@ -2,7 +2,6 @@
 
 import Assets
 import enum Gemstone.GemPerpetualPositionAction
-import GemstoneServices
 import Components
 import InfoSheet
 import Localization
@@ -13,7 +12,6 @@ import PriceAlerts
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
-import QRScanner
 import Store
 import SwiftUI
 import Transactions

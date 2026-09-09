@@ -9,7 +9,6 @@ import enum Gemstone.GemRecipientType
 import Components
 import Foundation
 import GemstonePrimitives
-import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents

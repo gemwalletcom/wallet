@@ -7,7 +7,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import WalletConnectorService
 
 public struct ConnectionProposalViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate

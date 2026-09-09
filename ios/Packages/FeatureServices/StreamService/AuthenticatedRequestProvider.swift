@@ -3,8 +3,6 @@
 import Foundation
 import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemDeviceRequestSigner
-import GemstonePrimitives
-import GemstoneServices
 import Primitives
 import WebSocketClient
 

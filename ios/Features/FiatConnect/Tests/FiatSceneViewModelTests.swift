@@ -10,7 +10,6 @@ import enum Gemstone.GemServiceError
 import GemstoneServicesTestKit
 import BigInt
 @testable import FiatConnect
-import GemstoneServices
 import Formatters
 import Foundation
 import Localization

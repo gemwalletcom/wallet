@@ -37,6 +37,7 @@ let package = Package(
         .package(name: "Perpetuals", path: "../Perpetuals"),
 
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
+        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
@@ -53,13 +54,12 @@ let package = Package(
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Store",
                 "Validators",
-
                 "Stake",
                 "WalletConnector",
                 "InfoSheet",
                 "Swap",
                 "Perpetuals",
-
+                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),
@@ -70,6 +70,9 @@ let package = Package(
                 "Primitives",
                 "WalletConnector",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                "Gemstone",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                "PrimitivesComponents",
             ],
             path: "TestKit",
         ),
@@ -86,6 +89,14 @@ let package = Package(
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "PrimitivesComponentsTestKit", package: "PrimitivesComponents"),
+                .product(name: "BigInt", package: "BigInt"),
+                "Components",
+                "InfoSheet",
+                "Localization",
+                "Primitives",
+                "PrimitivesComponents",
+                "Store",
+                "Style",
             ],
             path: "Tests",
         ),

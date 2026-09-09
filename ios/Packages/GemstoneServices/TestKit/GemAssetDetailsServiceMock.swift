@@ -19,9 +19,7 @@ import struct Gemstone.BlockExplorerLink
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.VerificationStatus
 import enum Gemstone.WalletType
-import GemstonePrimitives
 import Primitives
-import PrimitivesTestKit
 
 public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @unchecked Sendable {
     private let assetPair: GemSwapPairSuggestion?

@@ -19,7 +19,6 @@ public import typealias Gemstone.SimulationResult
 public import typealias Gemstone.Transaction
 public import typealias Gemstone.WalletId
 import Foundation
-import GemstonePrimitives
 import Primitives
 public import struct Gemstone.SimulationResult
 

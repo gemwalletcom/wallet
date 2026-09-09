@@ -6,7 +6,6 @@ import Onboarding
 import Primitives
 import Style
 import SwiftUI
-import GemstoneServices
 
 struct WalletsNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory

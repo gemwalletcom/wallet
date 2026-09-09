@@ -8,7 +8,6 @@ import enum Gemstone.SocialUrl
 import GemstonePrimitives
 import Localization
 import Primitives
-import PrimitivesComponents
 import Store
 import Style
 import SwiftUI

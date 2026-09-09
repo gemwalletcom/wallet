@@ -3,10 +3,8 @@
 import class Gemstone.GemNftService
 import GemstoneServicesTestKit
 import Foundation
-import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
-import GemstoneServices
 import GemstonePrimitivesTestKit
 import NFT
 import WalletTab

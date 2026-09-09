@@ -10,7 +10,6 @@ import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemWalletSessionService
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitivesTestKit
-import GemstoneServices
 import GemstoneServicesTestKit
 import Store
 import StoreTestKit

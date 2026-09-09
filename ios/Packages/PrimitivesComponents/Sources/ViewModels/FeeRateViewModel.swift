@@ -2,7 +2,6 @@
 
 import BigInt
 import Components
-import Formatters
 import Foundation
 import Localization
 import Primitives

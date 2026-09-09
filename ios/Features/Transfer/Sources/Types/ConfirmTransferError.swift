@@ -2,7 +2,6 @@
 
 import Foundation
 import enum Gemstone.GemConfirmError
-import GemstoneServices
 import Primitives
 
 enum ConfirmTransferError {
