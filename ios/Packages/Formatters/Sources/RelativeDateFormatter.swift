@@ -46,7 +46,15 @@ public struct RelativeDateFormatter: Sendable {
 }
 
 private extension RelativeDateFormatter {
-    nonisolated(unsafe) static let formatters = NSCache<NSString, DateFormatter>()
+    struct FormatterKey: Hashable {
+        let locale: Locale?
+        let timeZone: TimeZone
+        let dateStyle: DateFormatter.Style
+        let timeStyle: DateFormatter.Style
+        let relative: Bool
+    }
+
+    static let formatters = FormatterCache<FormatterKey, DateFormatter>()
 
     static let iso8601StrategyWithFractionalSeconds = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
         .year()
@@ -63,18 +71,16 @@ private extension RelativeDateFormatter {
         .timeZone(separator: .omitted)
 
     func formatter(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style, relative: Bool = false) -> DateFormatter {
-        let key = "\(calendar.locale?.identifier ?? "")|\(calendar.timeZone.identifier)|\(dateStyle.rawValue)|\(timeStyle.rawValue)|\(relative)" as NSString
-        if let formatter = Self.formatters.object(forKey: key) {
+        let key = FormatterKey(locale: calendar.locale, timeZone: calendar.timeZone, dateStyle: dateStyle, timeStyle: timeStyle, relative: relative)
+        return Self.formatters.value(for: key) {
+            let formatter = DateFormatter()
+            formatter.locale = key.locale
+            formatter.timeZone = key.timeZone
+            formatter.dateStyle = key.dateStyle
+            formatter.timeStyle = key.timeStyle
+            formatter.doesRelativeDateFormatting = key.relative
             return formatter
         }
-        let formatter = DateFormatter()
-        formatter.locale = calendar.locale
-        formatter.timeZone = calendar.timeZone
-        formatter.dateStyle = dateStyle
-        formatter.timeStyle = timeStyle
-        formatter.doesRelativeDateFormatting = relative
-        Self.formatters.setObject(formatter, forKey: key)
-        return formatter
     }
 
     func date(fromTimestampValue value: String) -> Date? {

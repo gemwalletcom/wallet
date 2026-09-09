@@ -486,9 +486,9 @@ intentional one-sided integration surfaces.
   costs one equality check and the FFI runs once per input change; Android derives it in one
   `combine`. Android's selected fiat quote now uses the USD price like iOS instead of `null`.
 - **Formatters are built once, not per value.** iOS's `RelativeDateFormatter` built one or two
-  `DateFormatter`s per call (two per transaction row), `CurrencyFormatter.symbol` a
-  `NumberFormatter` per read, `IntegerFormatter` one per `string`; each now keeps a small static
-  cache keyed by locale, time zone and style, and the symbol cache stores the string itself.
+  `DateFormatter`s per call and `CurrencyFormatter.symbol` a `NumberFormatter` per read; both now
+  go through `FormatterCache`, a lock-guarded dictionary keyed by a `Hashable` value (locale, time
+  zone and styles; locale and currency code), so the process holds one formatter per distinct key.
   Android's `ValueFormatter` and `NumericFormatter` built a `DecimalFormat` (and a
   `CompactDecimalFormat`) per call; they now hold one per thread (`ThreadLocal`), which keeps the
   per-call safety `DecimalFormat` needs without the per-call cost. `CurrencyFormatter` on Android

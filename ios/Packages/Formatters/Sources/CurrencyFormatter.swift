@@ -25,17 +25,13 @@ public struct CurrencyFormatter: Sendable, Hashable {
     }
 
     public var symbol: String {
-        let key = "\(locale.identifier)|\(currencyCode)" as NSString
-        if let symbol = Self.symbols.object(forKey: key) {
-            return symbol as String
-        }
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .currency
-        formatter.currencyCode = currencyCode
-        let symbol = formatter.currencySymbol ?? currencyCode
-        Self.symbols.setObject(symbol as NSString, forKey: key)
-        return symbol
+        Self.symbolFormatters.value(for: SymbolKey(locale: locale, currencyCode: currencyCode)) {
+            let formatter = NumberFormatter()
+            formatter.locale = locale
+            formatter.numberStyle = .currency
+            formatter.currencyCode = currencyCode
+            return formatter
+        }.currencySymbol
     }
 
     public func string(_ value: Double) -> String {
@@ -49,7 +45,12 @@ public struct CurrencyFormatter: Sendable, Hashable {
 // MARK: - Private
 
 private extension CurrencyFormatter {
-    nonisolated(unsafe) static let symbols = NSCache<NSString, NSString>()
+    struct SymbolKey: Hashable {
+        let locale: Locale
+        let currencyCode: String
+    }
+
+    static let symbolFormatters = FormatterCache<SymbolKey, NumberFormatter>()
 
     var abbreviatedFormatter: AbbreviatedFormatter {
         AbbreviatedFormatter(locale: locale)

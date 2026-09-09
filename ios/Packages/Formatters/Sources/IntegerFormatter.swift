@@ -3,18 +3,11 @@
 import Foundation
 
 public struct IntegerFormatter: Sendable {
-    nonisolated(unsafe) private static let formatters = NSCache<NSString, Foundation.NumberFormatter>()
-
     private let locale: Locale
     private var integerFormatter: Foundation.NumberFormatter {
-        let key = locale.identifier as NSString
-        if let formatter = Self.formatters.object(forKey: key) {
-            return formatter
-        }
         let formatter = Foundation.NumberFormatter()
         formatter.locale = locale
         formatter.numberStyle = .decimal
-        Self.formatters.setObject(formatter, forKey: key)
         return formatter
     }
 
