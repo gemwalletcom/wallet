@@ -52,8 +52,11 @@ impl GemDeviceService {
     }
 
     pub async fn synchronize_if_needed(&self) -> Result<(), GemServiceError> {
-        let _guard = self.sync_lock.lock().await;
         let device = self.current_device().await?;
+        if !self.needs_sync(device.clone()).await? {
+            return Ok(());
+        }
+        let _guard = self.sync_lock.lock().await;
         if self.needs_sync(device.clone()).await? {
             self.sync(device).await?;
         }

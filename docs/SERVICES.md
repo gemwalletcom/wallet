@@ -458,6 +458,15 @@ intentional one-sided integration surfaces.
   rows sharing a chain icon fetch it once. `AssetImageView` and `AsyncImageView` pass their
   display size; NFT and support images decode at full size, still once and off the main thread.
   Android already had this shape in Coil.
+- **Launch legs run together, and a device that has nothing to sync does not wait.** `run()`
+  joins banners, config → assets and device sync instead of awaiting them in a row (config stays
+  ahead of the asset availability sync, which reads it). `synchronize_if_needed` decides whether a
+  sync is due before taking the sync lock, so the stream's `prepare_connection` on a registered,
+  unchanged device — every foreground — no longer queues behind the launch `synchronize()`. The
+  overlap between `setup_wallets` (every wallet, after unlock) and `setup_wallet` (the current
+  wallet, on the session change both apps fire at launch) stays as it is: both stores already
+  insert balances with `IGNORE` and flip asset flags only where they differ, so the second pass is
+  a few reads and no writes, and a ledger to skip it would be process state for nothing.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
