@@ -48,6 +48,8 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -127,8 +129,8 @@ class SwapViewModelTest {
     }
 
     @After
-    fun tearDown() {
-        createdViewModels.forEach { it.viewModelScope.cancel() }
+    fun tearDown() = runTest(testDispatcher) {
+        createdViewModels.forEach { it.viewModelScope.coroutineContext.job.cancelAndJoin() }
         createdViewModels.clear()
         Dispatchers.resetMain()
         unmockkObject(SwapDetailsUIModelFactory)
