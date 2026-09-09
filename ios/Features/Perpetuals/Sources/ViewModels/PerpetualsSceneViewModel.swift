@@ -39,7 +39,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var walletBalance: WalletBalance {
-        walletBalanceQuery.value
+        walletBalanceQuery.value.map { WalletBalance.perpetual(available: $0.available, reserved: $0.reserved) } ?? .zero
     }
 
     var isSearchPresented: Bool = false
@@ -69,7 +69,7 @@ public final class PerpetualsSceneViewModel {
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
         walletBalanceQuery = ObservableQuery(
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
-            initialValue: .zero,
+            initialValue: nil,
         )
         recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
     }

@@ -30,6 +30,10 @@ public extension GemPreferencesServiceProtocol {
     }
 
     func showPerpetuals(for wallet: Wallet) -> Bool {
-        showPerpetuals(wallet: wallet.map())
+        showPerpetuals(walletType: wallet.type.map(), chains: wallet.chains.map(\.rawValue))
+    }
+
+    func showCollections(for wallet: Wallet) -> Bool {
+        showCollections(walletType: wallet.type.map(), chains: wallet.chains.map(\.rawValue))
     }
 }

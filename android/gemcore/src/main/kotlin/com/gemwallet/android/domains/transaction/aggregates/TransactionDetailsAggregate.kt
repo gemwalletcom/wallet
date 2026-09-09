@@ -1,12 +1,13 @@
 package com.gemwallet.android.domains.transaction.aggregates
 
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
-import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemTransactionDetailRow
+import uniffi.gemstone.GemTransactionDetailSection
 import uniffi.gemstone.GemTransactionHeaderAction
 import uniffi.gemstone.GemTransactionTitle
 
@@ -21,23 +22,11 @@ interface TransactionDetailsAggregate {
 
     val currency: Currency
 
-    val amount: TransactionDetailsValue.Amount
     val headerAction: GemTransactionHeaderAction?
     val fee: TransactionDetailsValue.Fee
-    val date: TransactionDetailsValue.Date
-    val status: TransactionDetailsValue.Status
-    val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation?
-    val rate: TransactionDetailsValue.Rate?
-    val swapProgress: TransactionDetailsValue.SwapProgress?
-    val swapAgain: TransactionDetailsValue.SwapAgain?
-    val memo: TransactionDetailsValue.Memo?
-    val resourceType: TransactionDetailsValue.ResourceType?
-    val network: TransactionDetailsValue.Network
-    val destination: TransactionDetailsValue.Destination?
-    val pnl: TransactionDetailsValue.Pnl?
-    val price: TransactionDetailsValue.Price?
-
     val explorer: TransactionDetailsValue.Explorer
 
-    val valueGroups: List<ValueGroup<TransactionDetailsValue>>
+    val sections: List<GemTransactionDetailSection>
+
+    fun value(row: GemTransactionDetailRow): TransactionDetailsValue
 }

@@ -2,12 +2,11 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemWalletImportKind, GemWalletImportType};
+use super::model::{GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
 use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
 
-#[uniffi::export]
 impl GemWalletImportType {
     pub fn validated(self) -> Result<Self, GemWalletImportError> {
         match self {
@@ -109,6 +108,32 @@ pub fn secret_export(wallet: &Wallet) -> SecretExport {
     }
 }
 
+pub fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
+    match secret_export(wallet) {
+        SecretExport::Words => Some(GemWalletSecretKind::Phrase),
+        SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),
+        SecretExport::None => None,
+    }
+}
+
+pub fn row(wallet: &Wallet) -> GemWalletRow {
+    match &wallet.id {
+        WalletId::Multicoin(_) => GemWalletRow {
+            subtitle: GemWalletSubtitle::Multicoin,
+            placeholder: GemWalletPlaceholder::Multicoin,
+            shows_watch_badge: false,
+        },
+        WalletId::Single(chain, address) | WalletId::PrivateKey(chain, address) | WalletId::View(chain, address) => GemWalletRow {
+            subtitle: GemWalletSubtitle::Account {
+                chain: *chain,
+                address: address.clone(),
+            },
+            placeholder: GemWalletPlaceholder::Chain { chain: *chain },
+            shows_watch_badge: matches!(wallet.id, WalletId::View(..)),
+        },
+    }
+}
+
 pub fn view_wallet(name: String, chain: Chain, address: String) -> Wallet {
     Wallet {
         id: WalletId::View(chain, address.clone()),
@@ -162,10 +187,10 @@ pub fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
     sorted
 }
 
-pub fn show_collections(wallet: &Wallet) -> bool {
-    match wallet.wallet_type {
+pub fn show_collections(wallet_type: WalletType, chains: &[Chain]) -> bool {
+    match wallet_type {
         WalletType::Multicoin => true,
-        WalletType::Single | WalletType::PrivateKey | WalletType::View => wallet.accounts.first().is_some_and(|account| account.chain.is_nft_supported()),
+        WalletType::Single | WalletType::PrivateKey | WalletType::View => chains.first().is_some_and(|chain| chain.is_nft_supported()),
     }
 }
 
@@ -347,6 +372,39 @@ mod tests {
     }
 
     #[test]
+    fn test_secret_kind_follows_the_wallet_type() {
+        let phrase = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        let private_key = wallet(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), WalletType::PrivateKey, &[Chain::Ethereum]);
+        let view = wallet(WalletId::View(Chain::Ethereum, "0x3".to_string()), WalletType::View, &[Chain::Ethereum]);
+
+        assert_eq!(secret_kind(&phrase), Some(GemWalletSecretKind::Phrase));
+        assert_eq!(secret_kind(&private_key), Some(GemWalletSecretKind::PrivateKey));
+        assert_eq!(secret_kind(&view), None);
+    }
+
+    #[test]
+    fn test_row_comes_from_the_wallet_id() {
+        let multicoin = row(&wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]));
+        assert_eq!(multicoin.subtitle, GemWalletSubtitle::Multicoin);
+        assert_eq!(multicoin.placeholder, GemWalletPlaceholder::Multicoin);
+        assert!(!multicoin.shows_watch_badge);
+
+        let view = row(&wallet(WalletId::View(Chain::Ethereum, "0x2".to_string()), WalletType::View, &[Chain::Ethereum]));
+        assert_eq!(
+            view.subtitle,
+            GemWalletSubtitle::Account {
+                chain: Chain::Ethereum,
+                address: "0x2".to_string()
+            }
+        );
+        assert_eq!(view.placeholder, GemWalletPlaceholder::Chain { chain: Chain::Ethereum });
+        assert!(view.shows_watch_badge);
+
+        let single = row(&wallet(WalletId::Single(Chain::Bitcoin, "bc1".to_string()), WalletType::Single, &[Chain::Bitcoin]));
+        assert!(!single.shows_watch_badge);
+    }
+
+    #[test]
     fn test_wallets_missing_chains() {
         let multicoin = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
         let complete = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Multicoin, &[Chain::Ethereum, Chain::Bitcoin]);
@@ -384,18 +442,10 @@ mod tests {
 
     #[test]
     fn test_show_collections_follows_the_first_account_chain_outside_multicoin() {
-        assert!(show_collections(&wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Bitcoin])));
-        assert!(show_collections(&wallet(
-            WalletId::Single(Chain::Ethereum, "0x2".to_string()),
-            WalletType::Single,
-            &[Chain::Ethereum]
-        )));
-        assert!(!show_collections(&wallet(
-            WalletId::Single(Chain::Bitcoin, "0x3".to_string()),
-            WalletType::Single,
-            &[Chain::Bitcoin]
-        )));
-        assert!(!show_collections(&wallet(WalletId::View(Chain::Ethereum, "0x4".to_string()), WalletType::View, &[])));
+        assert!(show_collections(WalletType::Multicoin, &[Chain::Bitcoin]));
+        assert!(show_collections(WalletType::Single, &[Chain::Ethereum]));
+        assert!(!show_collections(WalletType::Single, &[Chain::Bitcoin]));
+        assert!(!show_collections(WalletType::View, &[]));
     }
 
     #[test]

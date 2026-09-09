@@ -10,6 +10,11 @@ Use for any Kotlin or Compose change.
 - Row models for a list a screen scrolls are built off the main thread (`flowOn(Dispatchers.Default)` before `stateIn`), and every string a row displays is computed in that mapper, not in composition. The main thread only collects finished rows, so a list of any size keeps scrolling while its source keeps emitting
 - Prefer the smallest change that satisfies the requirement
 
+## Gradle Dependencies
+
+- A module declares what its own sources import, nothing more. A dependency reachable through another direct dependency's `api` counts as declared (`:ui` exports the Compose stack and `:ui-models` this way); a public class that extends a type from another module exposes it with `api`. `runtime-ktx`-style artifacts arrive transitively, test dependencies belong only to modules with test sources, and `hilt-android` plus `ksp(hilt-compiler)` belong only to modules with Hilt annotations; a presents module that calls `hiltViewModel()` needs `hilt-lifecycle-viewmodel-compose` alone
+- Runtime plugins are the exception: `camera-camera2`, `coil-network-okhttp` and `coil-svg` register through service loading and are never imported
+
 ## Security and Hygiene
 
 - Never commit secrets or API keys; keep sensitive local configuration in `local.properties`
@@ -19,6 +24,7 @@ Use for any Kotlin or Compose change.
 - **Entry points**: `@AndroidEntryPoint` activities obtain view models with `by viewModels()` and set content once (`app/src/main/kotlin/com/gemwallet/android/MainActivity.kt`)
 - **State collection**: `collectAsStateWithLifecycle()` in composables. Scenes stay stateless and take prepared state plus callbacks instead of fetching dependencies (`features/perpetual/presents/src/main/kotlin/com/gemwallet/android/features/perpetual/views/position/PerpetualPositionScene.kt`)
 - **Dependency injection**: shared services and persistence come from Hilt modules installed in `SingletonComponent` (`data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/di/DatabaseModule.kt`)
+- **Hilt aggregation reads the app's compile classpath**: `:app` declares a direct `implementation` on every module that carries a `@Module`, `@HiltViewModel` or entry point, including each `:features:*:viewmodels` and `:data:coordinators`, even though no app source imports them. Presents reach viewmodels through `implementation`, which never reaches the app's compile classpath. Removing one of these "unused" dependencies breaks DI at build time
 - **ViewModel tests**: JUnit 4, direct construction, deterministic inputs, one behavior per test; fixtures from the `:gemcore` testFixtures (see [testing.md](testing.md))
 
 ## Room Schema

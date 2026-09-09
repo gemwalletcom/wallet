@@ -7,7 +7,6 @@ import class Gemstone.GemStaticApiClient
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import NativeProviderService
-import Store
 import StoreTestKit
 
 public extension GemAmountService {

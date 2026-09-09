@@ -3,7 +3,6 @@ import protocol Gemstone.GemChainServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
-import PrimitivesComponents
 import SwiftUI
 import GemstoneServices
 

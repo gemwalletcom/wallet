@@ -3,6 +3,7 @@
 import protocol Gemstone.GemStakeServiceProtocol
 import Components
 import Foundation
+import enum Gemstone.GemDelegationAction
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -103,9 +104,8 @@ public struct DelegationSceneViewModel {
         .asset(assetImage: AssetViewModel(asset: asset).assetImage)
     }
 
-    public var availableActions: [DelegationActionType] {
+    public var availableActions: [GemDelegationAction] {
         service.delegationActions(walletType: wallet.type.map(), delegation: model.delegation.map())
-            .map(DelegationActionType.init)
     }
 
     public var showManage: Bool {
@@ -116,14 +116,13 @@ public struct DelegationSceneViewModel {
         service.canClaimDelegationRewards(walletType: wallet.type.map(), delegation: model.delegation.map())
     }
 
-    public func actionTitle(_ action: DelegationActionType) -> String {
+    public func actionTitle(_ action: GemDelegationAction) -> String {
         switch action {
         case .stake: Localized.Transfer.Stake.title
         case .unstake: Localized.Transfer.Unstake.title
         case .redelegate: Localized.Transfer.Redelegate.title
         case .deposit: Localized.Wallet.deposit
         case .withdraw: Localized.Transfer.Withdraw.title
-        case .claimRewards: Localized.Transfer.ClaimRewards.title
         }
     }
 }
@@ -131,7 +130,7 @@ public struct DelegationSceneViewModel {
 // MARK: - Actions
 
 public extension DelegationSceneViewModel {
-    func onSelectAction(_ action: DelegationActionType) {
+    func onSelectAction(_ action: GemDelegationAction) {
         switch action {
         case .stake:
             onAmountInputAction?(amountInput(.stake(.stake(validators: validators.map { $0.map() }, delegation: model.delegation.map()))))
@@ -150,8 +149,6 @@ public extension DelegationSceneViewModel {
             case .stake: onTransferAction?(stakeTransferData(.withdraw(model.delegation)))
             case .earn: onAmountInputAction?(amountInput(.earn(.withdraw(model.delegation))))
             }
-        case .claimRewards:
-            onClaimRewards()
         }
     }
 
@@ -184,4 +181,8 @@ extension DelegationSceneViewModel {
         model.delegation.validator.providerType
     }
 
+}
+
+extension GemDelegationAction: @retroactive Identifiable {
+    public var id: Self { self }
 }

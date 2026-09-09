@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use primitives::ChartPeriod;
 use primitives::currency::Currency;
-use primitives::{Appearance, Chain, ConfigResponse, Device, Wallet};
+use primitives::{Appearance, Chain, ConfigResponse, Device, WalletType};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
@@ -103,12 +103,12 @@ impl GemPreferencesService {
         self.store.set(IS_PERPETUAL_ENABLED.to_string(), enabled.to_string())
     }
 
-    pub fn show_perpetuals(&self, wallet: Wallet) -> bool {
-        crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), &wallet)
+    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
+        crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), wallet_type, &chains)
     }
 
-    pub fn show_collections(&self, wallet: Wallet) -> bool {
-        crate::services::wallet::rules::show_collections(&wallet)
+    pub fn show_collections(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
+        crate::services::wallet::rules::show_collections(wallet_type, &chains)
     }
 
     pub fn is_hide_balance_enabled(&self) -> bool {
@@ -141,17 +141,6 @@ impl GemPreferencesService {
 
     pub fn set_appearance(&self, appearance: Appearance) -> Result<(), GemServiceError> {
         self.store.set(APPEARANCE.to_string(), rules::appearance_value(appearance).to_string())
-    }
-
-    pub fn get_swap_slippage_bps(&self) -> Option<u32> {
-        rules::swap_slippage_bps(self.store.get(SWAP_SLIPPAGE_BPS.to_string()))
-    }
-
-    pub fn set_swap_slippage_bps(&self, bps: Option<u32>) -> Result<(), GemServiceError> {
-        match bps.filter(|bps| *bps > 0) {
-            Some(bps) => self.store.set(SWAP_SLIPPAGE_BPS.to_string(), bps.to_string()),
-            None => self.store.remove(SWAP_SLIPPAGE_BPS.to_string()),
-        }
     }
 
     pub fn get_perpetual_leverage(&self) -> u8 {
@@ -214,6 +203,17 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn get_swap_slippage_bps(&self) -> Option<u32> {
+        rules::swap_slippage_bps(self.store.get(SWAP_SLIPPAGE_BPS.to_string()))
+    }
+
+    pub fn set_swap_slippage_bps(&self, bps: Option<u32>) -> Result<(), GemServiceError> {
+        match bps.filter(|bps| *bps > 0) {
+            Some(bps) => self.store.set(SWAP_SLIPPAGE_BPS.to_string(), bps.to_string()),
+            None => self.store.remove(SWAP_SLIPPAGE_BPS.to_string()),
+        }
+    }
+
     pub fn get_perpetual_chart_period(&self) -> ChartPeriod {
         self.store
             .get(PERPETUAL_CHART_PERIOD.to_string())

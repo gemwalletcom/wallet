@@ -1,12 +1,14 @@
 package com.gemwallet.android.features.receive.presents
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -93,7 +95,7 @@ fun ReceiveScreen(
         ReceiveScene(
             closeIcon = closeIcon,
             assetInfo = info,
-            memoWarning = viewModel.memoWarning(info.asset.id.chain),
+            memoWarning = remember(info.asset.id) { viewModel.memoWarning(info.asset.id.chain) },
             onSelectNetwork = if (networkAssetIds.size > 1) {
                 { isShowingNetworkSelector = true }
             } else {
@@ -194,19 +196,25 @@ private fun ReceiveScene(
                     contentColor = Color.White,
                 )
             ) {
-                Image(
+                Box(
                     modifier = Modifier
                         .widthIn(qrMinSize, imageSize)
-                        .heightIn(qrMinSize, imageSize)
+                        .aspectRatio(1f)
                         .padding(imagePadding)
                         .clickable(onCopyClick),
-                    painter = rememberQRCodePainter(
+                ) {
+                    rememberQRCodePainter(
                         content = assetInfo.owner?.address ?: "",
                         size = qrSize,
-                    ),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth
-                )
+                    )?.let { painter ->
+                        Image(
+                            modifier = Modifier.fillMaxSize(),
+                            painter = painter,
+                            contentDescription = null,
+                            contentScale = ContentScale.FillWidth
+                        )
+                    }
+                }
                 Text(
                     modifier = Modifier
                         .width(imageSize)
@@ -220,9 +228,10 @@ private fun ReceiveScene(
                 )
                 Spacer(modifier = Modifier.size(imagePadding))
             }
+            val warning = warningMessage(assetInfo.asset, memoWarning)
             Text(
                 modifier = Modifier.width(imageSize),
-                text = parseMarkdownToAnnotatedString(warningMessage(assetInfo.asset, memoWarning)),
+                text = remember(warning) { parseMarkdownToAnnotatedString(warning) },
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyMedium,

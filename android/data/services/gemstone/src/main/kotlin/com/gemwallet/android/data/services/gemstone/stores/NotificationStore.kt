@@ -2,7 +2,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.WalletId
@@ -15,7 +15,7 @@ class GemstoneNotificationStore(
 ) : GemNotificationStore {
 
     override suspend fun saveNotifications(notifications: List<uniffi.gemstone.InAppNotification>) =
-        notificationsDao.put(notifications.map { it.decodeJson<InAppNotification>().toRecord() })
+        notificationsDao.put(notifications.map { it.toPrimitives().toRecord() })
 
     override suspend fun hasUnreadNotifications(walletId: String): Boolean = notificationsDao.hasUnread(walletId)
 

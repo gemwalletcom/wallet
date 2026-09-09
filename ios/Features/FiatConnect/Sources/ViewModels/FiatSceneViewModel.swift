@@ -8,6 +8,7 @@ import enum Gemstone.FiatProviderName
 import struct Gemstone.GemFiatQuoteRow
 import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
+import struct Gemstone.GemFiatViewState
 import protocol Gemstone.GemFiatQuoteServiceProtocol
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
@@ -46,6 +47,7 @@ public final class FiatSceneViewModel {
 
     var session: GemFiatSession
     var urlState: StateViewType<Void> = .noData
+    @ObservationIgnored private var viewStateCache: (session: GemFiatSession, assetPrice: Double?, isUrlLoading: Bool, state: GemFiatViewState)?
     var isPresentingFiatProvider: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: FiatLoadTrigger
@@ -67,8 +69,9 @@ public final class FiatSceneViewModel {
         priceUsdQuery = ObservableQuery(PriceUsdRequest(assetId: assetAddress.asset.id), initialValue: nil)
         let session = service.newSession(type: type, amount: amount)
         self.session = session
-        loadTrigger = FiatLoadTrigger(type: type, amount: session.amount, isImmediate: true)
-        inputValidationModel.text = session.amount
+        let amount = session.viewState(assetPrice: nil, isUrlLoading: false).amount
+        loadTrigger = FiatLoadTrigger(type: type, amount: amount, isImmediate: true)
+        inputValidationModel.text = amount
         updateValidators()
     }
 
@@ -77,17 +80,28 @@ public final class FiatSceneViewModel {
         set { session = session.onTypeChanged(quoteType: newValue.map()) }
     }
 
+    var viewState: GemFiatViewState {
+        let assetPrice = priceUsdQuery.value
+        let isUrlLoading = urlState.isLoading
+        if let cache = viewStateCache, cache.session == session, cache.assetPrice == assetPrice, cache.isUrlLoading == isUrlLoading {
+            return cache.state
+        }
+        let state = session.viewState(assetPrice: assetPrice, isUrlLoading: isUrlLoading)
+        viewStateCache = (session, assetPrice, isUrlLoading, state)
+        return state
+    }
+
     var quotesState: StateViewType<[GemFiatQuoteRow]> {
-        switch session.current().phase {
+        switch viewState.phase {
         case .noInput, .invalidInput, .invalid, .noQuotes: .noData
         case .loading: .loading
-        case .ready: .data(session.quoteRows(assetPrice: priceUsdQuery.value))
+        case .ready: .data(viewState.quoteRows)
         case let .failed(error): .error(error)
         }
     }
 
     var selectedQuote: GemFiatQuoteRow? {
-        session.selectedQuoteRow(assetPrice: priceUsdQuery.value)
+        viewState.selectedQuoteRow
     }
 
     var title: String {
@@ -98,7 +112,7 @@ public final class FiatSceneViewModel {
     }
 
     var allowSelectProvider: Bool {
-        session.canSelectProvider()
+        viewState.canSelectProvider
     }
 
     var currencyInputConfig: any CurrencyInputConfigurable {
@@ -106,14 +120,14 @@ public final class FiatSceneViewModel {
     }
 
     var actionButtonTitle: String {
-        switch session.buttonAction() {
+        switch viewState.buttonAction {
         case .continue: Localized.Common.continue
         case .retryQuote: Localized.Common.tryAgain
         }
     }
 
     var actionButtonState: ButtonState {
-        switch session.buttonState(isUrlLoading: urlState.isLoading) {
+        switch viewState.buttonState {
         case .disabled: .disabled
         case .loading: .loading(showProgress: true)
         case .enabled: .normal
@@ -133,7 +147,7 @@ public final class FiatSceneViewModel {
     }
 
     var emptyTitle: String {
-        switch session.current().phase {
+        switch viewState.phase {
         case .noInput, .invalidInput:
             switch type {
             case .buy: Localized.Input.enterAmountTo(Localized.Wallet.buy)
@@ -231,13 +245,13 @@ extension FiatSceneViewModel {
             .onBalanceChanged(available: BigUInt(newValue.balance.available))
             .onSellEnabledChanged(isSellEnabled: newValue.metadata.isSellEnabled)
         if session.type != type {
-            applyAmount(session.amount, isImmediate: true)
+            applyAmount(viewState.amount, isImmediate: true)
         }
         updateValidators()
     }
 
     func onSelectContinue() {
-        switch session.buttonAction() {
+        switch viewState.buttonAction {
         case .retryQuote: Task { await load() }
         case .continue: openQuoteUrl()
         }
@@ -264,13 +278,13 @@ extension FiatSceneViewModel {
     }
 
     func onChangeType(oldType _: FiatQuoteType, newType: FiatQuoteType) {
-        inputValidationModel.text = session.amount
+        inputValidationModel.text = viewState.amount
         updateValidators()
-        loadTrigger = FiatLoadTrigger(type: newType, amount: session.amount, isImmediate: true)
+        loadTrigger = FiatLoadTrigger(type: newType, amount: viewState.amount, isImmediate: true)
     }
 
     func onChangeAmountText(_: String, text: String) {
-        guard text != session.amount else { return }
+        guard text != viewState.amount else { return }
         applyAmount(text, isImmediate: false)
     }
 }

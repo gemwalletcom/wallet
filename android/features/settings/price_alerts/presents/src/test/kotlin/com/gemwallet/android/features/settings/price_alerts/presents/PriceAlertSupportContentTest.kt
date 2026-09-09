@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.settings.price_alerts.presents
 
-import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
+import uniffi.gemstone.GemPriceAlertKind
 import com.gemwallet.android.ui.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -12,7 +12,7 @@ class PriceAlertSupportContentTest {
     @Test
     fun autoAlert_usesFormattedPriceAndPercentage() {
         val content = priceAlertSupportContent(
-            type = PriceAlertType.Auto,
+            kind = GemPriceAlertKind.AUTO,
             price = "$0.95",
             percentage = "+10.04%",
         )
@@ -26,7 +26,7 @@ class PriceAlertSupportContentTest {
     @Test
     fun overAlert_usesOverLabelAndTargetPrice() {
         val content = priceAlertSupportContent(
-            type = PriceAlertType.Over,
+            kind = GemPriceAlertKind.OVER,
             price = "$1.25",
             percentage = "+3.50%",
         )
@@ -39,7 +39,7 @@ class PriceAlertSupportContentTest {
     @Test
     fun underAlert_usesUnderLabelAndTargetPrice() {
         val content = priceAlertSupportContent(
-            type = PriceAlertType.Under,
+            kind = GemPriceAlertKind.UNDER,
             price = "$0.40",
             percentage = "-1.50%",
         )
@@ -52,7 +52,7 @@ class PriceAlertSupportContentTest {
     @Test
     fun increaseAlert_usesIncreaseLabelAndTargetPercentage() {
         val content = priceAlertSupportContent(
-            type = PriceAlertType.Increase,
+            kind = GemPriceAlertKind.INCREASE,
             price = "$2.10",
             percentage = "5.00%",
         )
@@ -65,7 +65,7 @@ class PriceAlertSupportContentTest {
     @Test
     fun decreaseAlert_usesDecreaseLabelAndTargetPercentage() {
         val content = priceAlertSupportContent(
-            type = PriceAlertType.Decrease,
+            kind = GemPriceAlertKind.DECREASE,
             price = "$2.10",
             percentage = "5.00%",
         )

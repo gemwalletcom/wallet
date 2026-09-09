@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType};
 
 use super::model::{GemAssetAction, GemWalletSearchLimits};
 use super::rules;
@@ -72,8 +72,8 @@ impl GemAssetSelectionService {
         nft_rules::search_collections(data, &query)
     }
 
-    pub fn show_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet.is_some_and(|wallet| self.preferences.show_perpetuals(wallet))
+    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
+        self.preferences.show_perpetuals(wallet_type, chains)
     }
 
     pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
@@ -82,6 +82,10 @@ impl GemAssetSelectionService {
 
     pub async fn search(&self, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
         self.search.search(self.session.current_wallet().await?, query, scope, self.get_currency()).await
+    }
+
+    pub fn search_key(&self, query: String, scope: GemSearchScope) -> String {
+        scope.search_key(query.trim())
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {

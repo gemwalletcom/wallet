@@ -3,30 +3,30 @@
 import Components
 import Foundation
 import enum Gemstone.GemSwapButtonAction
-import struct Gemstone.GemSwapSession
+import struct Gemstone.GemSwapViewState
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
 struct SwapButtonViewModel: StateButtonViewable {
-    let buttonAction: GemSwapButtonAction
-
-    private let session: GemSwapSession
+    private let state: GemSwapViewState
     private let fromAsset: AssetData?
 
     private let perform: @MainActor @Sendable () -> Void
 
     init(
-        session: GemSwapSession,
-        buttonAction: GemSwapButtonAction,
+        state: GemSwapViewState,
         fromAsset: AssetData?,
         onAction: @MainActor @Sendable @escaping () -> Void,
     ) {
-        self.session = session
-        self.buttonAction = buttonAction
+        self.state = state
         self.fromAsset = fromAsset
         perform = onAction
+    }
+
+    var buttonAction: GemSwapButtonAction {
+        state.buttonAction
     }
 
     var title: String {
@@ -43,7 +43,7 @@ struct SwapButtonViewModel: StateButtonViewable {
     }
 
     var type: ButtonType {
-        switch session.buttonState(action: buttonAction) {
+        switch state.buttonState {
         case .disabled: .primary(.disabled)
         case .loading: .primary(.loading(showProgress: true))
         case .enabled: .primary(.normal)
@@ -51,7 +51,7 @@ struct SwapButtonViewModel: StateButtonViewable {
     }
 
     var isVisible: Bool {
-        !session.isInputEmpty()
+        !state.isInputEmpty
     }
 
     func action() {

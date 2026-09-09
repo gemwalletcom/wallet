@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
+import androidx.compose.ui.text.input.KeyboardType
 import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +58,7 @@ internal fun AmountScene(
     currency: Currency,
     canSwitchInputType: Boolean,
     readOnly: Boolean,
+    usesWholeAmounts: Boolean,
     showsAssetBalance: Boolean,
     error: AmountError,
     equivalent: String,
@@ -107,6 +109,7 @@ internal fun AmountScene(
                     } else null,
                     equivalent = equivalent,
                     readOnly = readOnly,
+                    keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,
                     error = amountErrorString(error = error),
                     onValueChange = { onAction(AmountAction.SetAmount(it)) },
                     onNext = { onAction(AmountAction.Next) },

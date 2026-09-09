@@ -2,10 +2,4 @@
 
 import Foundation
 
-extension FiatTransaction: Identifiable {}
-
-extension FiatTransactionAssetData: Identifiable {
-    public var id: String {
-        transaction.id
-    }
-}
+extension FiatTransactionAssetData: Identifiable {}

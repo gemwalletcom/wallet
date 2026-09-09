@@ -112,7 +112,7 @@ public final class AmountSceneViewModel {
 
     var infoText: String? {
         guard let reservedFee = entry.reservedFee else { return nil }
-        return Localized.Transfer.reservedFees(formatter.string(reservedFee, asset: asset))
+        return Localized.Transfer.reservedFees(amountFormatter.string(reservedFee, asset: asset))
     }
 
     var maxTitle: String {
@@ -129,7 +129,6 @@ public final class AmountSceneViewModel {
 
     var inputConfig: any CurrencyInputConfigurable {
         AmountInputConfig(
-            sceneType: provider.amountType,
             canSwitchInputType: provider.gemAmountType.canSwitchInputType(),
             inputType: amountInputType,
             asset: asset,
@@ -137,7 +136,7 @@ public final class AmountSceneViewModel {
             numberSanitizer: NumberSanitizer(),
             secondaryText: secondaryText,
             onTapActionButton: onSelectInputButton,
-            usesWholeAmounts: service.usesWholeAmounts(chain: asset.chain.rawValue),
+            usesWholeAmounts: input.usesWholeAmounts,
         )
     }
 }

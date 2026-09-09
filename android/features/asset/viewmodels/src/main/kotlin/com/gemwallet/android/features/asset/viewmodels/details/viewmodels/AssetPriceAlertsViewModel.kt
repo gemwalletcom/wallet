@@ -3,7 +3,6 @@ package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetSession
@@ -31,7 +30,6 @@ class AssetPriceAlertsViewModel @Inject constructor(
     getAssetPriceAlertState: GetAssetPriceAlertState,
     getPriceAlerts: GetPriceAlerts,
     private val service: GemAssetDetailsServiceInterface,
-    private val enableDevicePush: EnableDevicePush,
 ) : ViewModel() {
 
     private val assetId = savedStateHandle.requireAssetId()
@@ -53,10 +51,6 @@ class AssetPriceAlertsViewModel @Inject constructor(
         val enabled = isEnabled.value ?: return@launch
         runCatchingCancellable { service.setPriceAlert(assetId.toIdentifier(), !enabled) }
             .onFailure { Log.e(TAG, "setting the auto price alert for ${assetId.toIdentifier()} failed", it) }
-    }
-
-    fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
-        enableDevicePush()
     }
 
     private companion object {

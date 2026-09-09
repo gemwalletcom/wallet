@@ -28,7 +28,6 @@ pub struct FiatTransaction {
     #[serde(skip_serializing)]
     pub transaction_hash: Option<String>,
     pub created_at: DateTime<Utc>,
-    #[typeshare(skip)]
     #[serde(skip_serializing)]
     pub updated_at: DateTime<Utc>,
 }
@@ -79,13 +78,21 @@ pub struct FiatTransactionData {
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatTransactionAssetData {
-    pub transaction: FiatTransaction,
+    pub id: String,
     pub asset: Asset,
+    pub transaction_type: FiatQuoteType,
+    pub provider: FiatProviderName,
+    pub status: FiatTransactionStatus,
+    pub fiat_amount: f64,
+    pub fiat_currency: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
+    pub created_at: DateTime<Utc>,
     pub details_url: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AsRefStr, EnumString)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AsRefStr, EnumString)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum FiatTransactionStatus {

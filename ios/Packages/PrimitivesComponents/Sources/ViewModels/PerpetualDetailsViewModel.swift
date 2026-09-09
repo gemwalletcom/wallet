@@ -62,10 +62,6 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
         PerpetualDirectionViewModel(direction: details.direction.map())
     }
 
-    var leverageTitle: String {
-        Localized.Perpetual.leverage
-    }
-
     var leverageText: String {
         "\(data.leverage)x"
     }

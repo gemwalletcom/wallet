@@ -19,7 +19,6 @@ import com.gemwallet.android.ui.models.RewardsInfoUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.features.earn.delegation.models.toDelegationAction
 import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
 import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -97,7 +96,7 @@ class DelegationViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val actions = combine(delegation.filterNotNull(), getSession().filterNotNull()) { delegation, session ->
-        stakeService.delegationActions(session.wallet.type.toGem(), delegation.toGem()).mapNotNull { it.toDelegationAction() }
+        stakeService.delegationActions(session.wallet.type.toGem(), delegation.toGem())
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

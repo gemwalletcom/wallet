@@ -5,7 +5,7 @@ import uniffi.gemstone.GemFiatAmountCheck
 import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatButtonState
 import uniffi.gemstone.GemFiatQuotePhase
-import uniffi.gemstone.GemFiatSession
+import uniffi.gemstone.GemFiatViewState
 
 data class FiatUiState(
     val phase: GemFiatQuotePhase = GemFiatQuotePhase.NoInput,
@@ -15,14 +15,14 @@ data class FiatUiState(
     val canSelectProvider: Boolean = false,
 )
 
-internal fun createFiatUiState(session: GemFiatSession, isUrlLoading: Boolean) = FiatUiState(
-    phase = session.current().phase,
-    amountCheck = session.amountCheck(),
-    buttonAction = session.buttonAction(),
-    buttonState = when (session.buttonState(isUrlLoading)) {
+internal fun createFiatUiState(state: GemFiatViewState) = FiatUiState(
+    phase = state.phase,
+    amountCheck = state.amountCheck,
+    buttonAction = state.buttonAction,
+    buttonState = when (state.buttonState) {
         GemFiatButtonState.DISABLED -> ButtonState.Disabled
         GemFiatButtonState.LOADING -> ButtonState.Loading
         GemFiatButtonState.ENABLED -> ButtonState.Enabled
     },
-    canSelectProvider = session.canSelectProvider(),
+    canSelectProvider = state.canSelectProvider,
 )

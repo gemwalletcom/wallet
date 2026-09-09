@@ -133,11 +133,8 @@ public struct PerpetualScene: View {
                 )
             }
 
-            if !model.transactions.isEmpty {
-                TransactionsList(
-                                        model.transactions,
-                    currency: model.currency,
-                )
+            if !model.transactionSections.isEmpty {
+                TransactionsList(sections: model.transactionSections, currency: model.currency)
                 .listRowInsets(.assetListRowInsets)
             }
         }

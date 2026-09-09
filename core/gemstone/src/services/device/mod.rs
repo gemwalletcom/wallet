@@ -51,15 +51,12 @@ impl GemDeviceService {
         }
     }
 
-    pub async fn set_push_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.preferences.set_push_notifications_declined(!enabled)?;
-        self.preferences.set_push_notifications_enabled(enabled)?;
-        self.synchronize_if_needed().await
-    }
-
     pub async fn synchronize_if_needed(&self) -> Result<(), GemServiceError> {
-        let _guard = self.sync_lock.lock().await;
         let device = self.current_device().await?;
+        if !self.needs_sync(device.clone()).await? {
+            return Ok(());
+        }
+        let _guard = self.sync_lock.lock().await;
         if self.needs_sync(device.clone()).await? {
             self.sync(device).await?;
         }
@@ -68,6 +65,12 @@ impl GemDeviceService {
 }
 
 impl GemDeviceService {
+    pub async fn set_push_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.preferences.set_push_notifications_declined(!enabled)?;
+        self.preferences.set_push_notifications_enabled(enabled)?;
+        self.synchronize_if_needed().await
+    }
+
     pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
         let _guard = self.sync_lock.lock().await;
         self.sync(self.current_device().await?).await

@@ -90,7 +90,7 @@ import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletSecretKind
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -217,12 +217,12 @@ class WalletNavigator(
     fun openCreateWallet() = push(CreateWalletRoute)
     fun openImportWallet() = push(ImportSelectTypeRoute)
     fun openImportWallet(importType: ImportType) {
-        importType.toImportRoute()?.let(::push)
+        push(importType.toImportRoute())
     }
     fun openWallet(walletId: WalletId) = push(WalletDetailsRoute(walletId))
     fun openWalletImage(walletId: WalletId, source: WalletImageSource = WalletImageSource.Wallet) = push(WalletImageRoute(walletId, source))
-    fun openWalletSecurityReminder(walletId: WalletId, type: WalletType) = push(WalletSecurityReminderRoute(walletId, type))
-    fun finishWalletSecurityReminder(walletId: WalletId, type: WalletType) = replaceTop(WalletPhraseRoute(walletId, type))
+    fun openWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = push(WalletSecurityReminderRoute(walletId, secretKind))
+    fun finishWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = replaceTop(WalletPhraseRoute(walletId, secretKind))
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
@@ -384,11 +384,9 @@ internal fun NavKey.isPendingNavigationProtectedRoute(): Boolean {
         this is WalletPhraseRoute
 }
 
-private fun ImportType.toImportRoute(): NavKey? {
-    return when (walletType) {
-        WalletType.Multicoin -> ImportMulticoinWalletRoute
-        WalletType.Single,
-        WalletType.PrivateKey,
-        WalletType.View -> chain?.let { ImportChainWalletRoute(walletType, it) }
+private fun ImportType.toImportRoute(): NavKey {
+    return when (val chain = chain) {
+        null -> ImportMulticoinWalletRoute
+        else -> ImportChainWalletRoute(kind, chain)
     }
 }

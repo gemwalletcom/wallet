@@ -7,6 +7,7 @@ public extension Images {
         public static let settings = Image(systemName: SystemImage.settings)
         public static let qrCodeViewfinder = Image(systemName: SystemImage.qrCodeViewfinder)
         public static let qrCode = Image(systemName: SystemImage.qrCode)
+        public static let camera = Image(systemName: SystemImage.camera)
         public static let paste = Image(systemName: SystemImage.paste)
         public static let copy = Image(systemName: SystemImage.copy)
         public static let arrowSwap = Image(systemName: SystemImage.arrowSwap)

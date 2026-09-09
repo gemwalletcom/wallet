@@ -4,10 +4,7 @@ use primitives::{
     Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BannerEvent, Chain, ConfigVersions, StakeChain, VerificationStatus, Wallet, WalletType,
 };
 
-use super::model::{
-    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetType,
-    GemSelectRowAction, GemWalletSearchLimits,
-};
+use super::model::{AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetNetworkDestination, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetType, GemSelectRowAction, GemWalletSearchLimits};
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemAssetBalance;
@@ -101,7 +98,7 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
         native.into_iter().chain(wallet_default_assets(chain).into_iter().map(|asset| asset.id))
     }))
     .into_iter()
-    .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
+    .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type))
 }
 
 pub fn network_destination(asset_id: &AssetId) -> Option<GemAssetNetworkDestination> {
@@ -226,22 +223,28 @@ pub fn details_state(
         .iter()
         .any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature));
     let button = |kind: GemHeaderButtonKind, shows: bool| {
-        (shows && !is_view_only).then_some(GemHeaderButton {
+        shows.then_some(GemHeaderButton {
             kind,
             is_enabled: buttons_enabled,
         })
     };
     GemAssetDetailsState {
         is_view_only,
-        header_buttons: [
-            button(GemHeaderButtonKind::Send, true),
-            button(GemHeaderButtonKind::Receive, true),
-            button(GemHeaderButtonKind::Buy, metadata.is_buy_enabled),
-            button(GemHeaderButtonKind::Swap, metadata.is_swap_enabled),
-        ]
-        .into_iter()
-        .flatten()
-        .collect(),
+        header_actions: if is_view_only {
+            GemHeaderActions::WatchOnly
+        } else {
+            GemHeaderActions::Buttons {
+                buttons: [
+                    button(GemHeaderButtonKind::Send, true),
+                    button(GemHeaderButtonKind::Receive, true),
+                    button(GemHeaderButtonKind::Buy, metadata.is_buy_enabled),
+                    button(GemHeaderButtonKind::Swap, metadata.is_swap_enabled),
+                ]
+                .into_iter()
+                .flatten()
+                .collect(),
+            }
+        },
         shows_banners: !banner_events.is_empty(),
         shows_manage: !metadata.is_balance_enabled,
         shows_resources: StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze()),
@@ -511,8 +514,15 @@ mod tests {
         details_state(wallet_type, chain, metadata, &GemAssetBalance::mock(), banner_events, true, 0)
     }
 
+    fn buttons(state: &GemAssetDetailsState) -> Vec<GemHeaderButton> {
+        match &state.header_actions {
+            GemHeaderActions::Buttons { buttons } => buttons.clone(),
+            GemHeaderActions::WatchOnly => panic!("the header offers no buttons"),
+        }
+    }
+
     fn kinds(state: &GemAssetDetailsState) -> Vec<GemHeaderButtonKind> {
-        state.header_buttons.iter().map(|button| button.kind).collect()
+        buttons(state).into_iter().map(|button| button.kind).collect()
     }
 
     #[test]
@@ -522,7 +532,7 @@ mod tests {
             kinds(&all),
             vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive, GemHeaderButtonKind::Buy, GemHeaderButtonKind::Swap]
         );
-        assert!(all.header_buttons.iter().all(|button| button.is_enabled));
+        assert!(buttons(&all).iter().all(|button| button.is_enabled));
 
         let transfer_only = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, false, false), &[]);
         assert_eq!(kinds(&transfer_only), vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive]);
@@ -532,10 +542,10 @@ mod tests {
     fn test_details_state_disables_the_buttons_behind_an_activation_or_multi_signature_banner() {
         for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
             let state = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[BannerEvent::Stake, event]);
-            assert!(state.header_buttons.iter().all(|button| !button.is_enabled), "{event:?}");
+            assert!(buttons(&state).iter().all(|button| !button.is_enabled), "{event:?}");
         }
         let stake_only = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[BannerEvent::Stake]);
-        assert!(stake_only.header_buttons.iter().all(|button| button.is_enabled));
+        assert!(buttons(&stake_only).iter().all(|button| button.is_enabled));
     }
 
     #[test]
@@ -543,7 +553,7 @@ mod tests {
         let state = state(WalletType::View, Chain::Ethereum, &metadata(true, true, true, true), &[]);
 
         assert!(state.is_view_only);
-        assert!(state.header_buttons.is_empty());
+        assert_eq!(state.header_actions, GemHeaderActions::WatchOnly);
         assert!(!state.shows_banners);
         assert!(!state.shows_earn);
         assert_eq!(state.empty_transactions_action, Some(GemAssetEmptyAction::Buy));
@@ -553,7 +563,7 @@ mod tests {
     fn test_details_state_shows_banners_for_every_wallet_type() {
         for wallet_type in [WalletType::Multicoin, WalletType::Single, WalletType::PrivateKey, WalletType::View] {
             for event in [BannerEvent::AccountBlockedMultiSignature, BannerEvent::SuspiciousAsset] {
-                let state = state(wallet_type.clone(), Chain::Tron, &metadata(true, true, true, true), &[event]);
+                let state = state(wallet_type, Chain::Tron, &metadata(true, true, true, true), &[event]);
                 assert!(state.shows_banners, "{wallet_type:?} {event:?}");
             }
             assert!(!state(wallet_type, Chain::Tron, &metadata(true, true, true, true), &[]).shows_banners);

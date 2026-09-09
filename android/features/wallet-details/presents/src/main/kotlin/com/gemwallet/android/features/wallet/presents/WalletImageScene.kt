@@ -34,7 +34,7 @@ import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.components.list_item.supportIcon
-import com.gemwallet.android.ui.components.list_item.walletItemIconModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.Spacer16
@@ -70,10 +70,10 @@ internal fun WalletImageScene(
         ) {
             WalletAvatar(
                 imageUrl = wallet.imageUrl,
-                placeholder = walletItemIconModel(wallet.type, wallet.walletChain),
+                placeholder = wallet.row.placeholder.iconModel(),
                 size = extraLargeIconSize,
                 modifier = Modifier.padding(top = paddingDefault),
-                supportIcon = wallet.type.supportIcon(),
+                supportIcon = wallet.row.supportIcon(),
                 onRemove = if (wallet.hasAvatar) {
                     { onAction(WalletImageAction.ResetToDefault) }
                 } else {

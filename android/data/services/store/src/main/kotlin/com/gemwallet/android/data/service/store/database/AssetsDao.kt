@@ -221,26 +221,26 @@ interface AssetsDao {
     @Query("SELECT asset_info.* FROM $ASSET_INFO WHERE chain = :chain AND id = :assetId")
     fun getTokenInfo(walletId: String, assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC LIMIT $ASSETS_LIMIT")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC, assetRank DESC LIMIT $ASSETS_LIMIT")
     fun getAssetsInfo(walletId: String): Flow<List<DbAssetInfo>>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND balanceTotalAmount > 0 ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND balanceTotalAmount > 0 ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     suspend fun getPortfolioAssets(walletId: String): List<DbAssetInfo>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     fun getAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible = 0 AND assetRank >= 0 AND balanceTotalAmount > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible = 0 AND assetRank >= 0 AND balanceTotalAmount > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     fun getHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE id IN (:ids) AND walletId = :walletId ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE id IN (:ids) AND walletId = :walletId ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     fun getAssetsInfoByIds(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
         WHERE id IN (:ids)
-        ORDER BY balanceFiatTotalAmount DESC
+        ORDER BY balanceFiatTotalAmount DESC, assetRank DESC
     """)
     fun getAssetsInfoByAllWallets(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>
 

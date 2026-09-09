@@ -51,7 +51,8 @@ import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
+import uniffi.gemstone.GemWalletSecretKind
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -171,7 +172,7 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(
             WalletRootRoute,
             WalletDetailsRoute(walletId),
-            WalletPhraseRoute(walletId, WalletType.Multicoin),
+            WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
         )
 
         val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Solana))))
@@ -182,7 +183,7 @@ class WalletNavigatorTest {
             listOf(
                 WalletRootRoute,
                 WalletDetailsRoute(walletId),
-                WalletPhraseRoute(walletId, WalletType.Multicoin),
+                WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
             ),
             navigator.backStack.toList(),
         )
@@ -194,16 +195,16 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(
             WalletRootRoute,
             WalletDetailsRoute(walletId),
-            WalletSecurityReminderRoute(walletId, WalletType.Multicoin),
+            WalletSecurityReminderRoute(walletId, GemWalletSecretKind.PHRASE),
         )
 
-        navigator.finishWalletSecurityReminder(walletId, WalletType.Multicoin)
+        navigator.finishWalletSecurityReminder(walletId, GemWalletSecretKind.PHRASE)
 
         assertEquals(
             listOf(
                 WalletRootRoute,
                 WalletDetailsRoute(walletId),
-                WalletPhraseRoute(walletId, WalletType.Multicoin),
+                WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
             ),
             navigator.backStack.toList(),
         )
@@ -231,8 +232,8 @@ class WalletNavigatorTest {
         val restored = listOf<NavKey>(
             WalletRootRoute,
             AssetRoute(assetId),
-            WalletSecurityReminderRoute(walletId, WalletType.Multicoin),
-            WalletPhraseRoute(walletId, WalletType.Multicoin),
+            WalletSecurityReminderRoute(walletId, GemWalletSecretKind.PHRASE),
+            WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
             RecipientInputRoute(assetId, nftAssetId = null),
             AmountRoute("amount"),
             AmountRoute("perpetual"),
@@ -247,16 +248,15 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(OnboardingRoute)
 
         navigator.openImportWallet()
-        navigator.openImportWallet(ImportType(WalletType.Multicoin))
-        navigator.openImportWallet(ImportType(WalletType.PrivateKey, Chain.Solana))
-        navigator.openImportWallet(ImportType(WalletType.Single))
+        navigator.openImportWallet(ImportType(GemWalletImportKind.PHRASE))
+        navigator.openImportWallet(ImportType(GemWalletImportKind.PRIVATE_KEY, Chain.Solana))
 
         assertEquals(
             listOf(
                 OnboardingRoute,
                 ImportSelectTypeRoute,
                 ImportMulticoinWalletRoute,
-                ImportChainWalletRoute(WalletType.PrivateKey, Chain.Solana),
+                ImportChainWalletRoute(GemWalletImportKind.PRIVATE_KEY, Chain.Solana),
             ),
             navigator.backStack.toList(),
         )

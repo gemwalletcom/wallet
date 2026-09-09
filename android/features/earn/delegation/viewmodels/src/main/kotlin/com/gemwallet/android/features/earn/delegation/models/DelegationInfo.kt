@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.wallet.core.primitives.Asset
@@ -37,7 +38,7 @@ class HeadDelegationInfo(
     override val asset: Asset
         get() = assetInfo.asset
 
-    override val cryptoFormatted: String by lazy { super<CryptoFormattedUIModel>.cryptoFormatted }
+    override val cryptoFormatted: String by lazy { ValueFormatter(style = ValueFormatter.Style.Auto).string(delegation.base.balance, asset) }
 
     override val fiatFormatted: String by lazy { super<FiatFormattedUIModel>.fiatFormatted }
 

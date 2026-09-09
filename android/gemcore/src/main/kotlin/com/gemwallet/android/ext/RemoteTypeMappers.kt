@@ -212,6 +212,40 @@ fun com.wallet.core.primitives.ConnectionStatus.toGem(): uniffi.gemstone.Connect
     com.wallet.core.primitives.ConnectionStatus.NoService -> uniffi.gemstone.ConnectionStatus.NO_SERVICE
 }
 
+fun uniffi.gemstone.CoreEmoji.toPrimitives(): com.wallet.core.primitives.CoreEmoji = when (this) {
+    uniffi.gemstone.CoreEmoji.GIFT -> com.wallet.core.primitives.CoreEmoji.Gift
+    uniffi.gemstone.CoreEmoji.GEM -> com.wallet.core.primitives.CoreEmoji.Gem
+    uniffi.gemstone.CoreEmoji.PARTY -> com.wallet.core.primitives.CoreEmoji.Party
+    uniffi.gemstone.CoreEmoji.WARNING -> com.wallet.core.primitives.CoreEmoji.Warning
+}
+
+fun com.wallet.core.primitives.CoreEmoji.toGem(): uniffi.gemstone.CoreEmoji = when (this) {
+    com.wallet.core.primitives.CoreEmoji.Gift -> uniffi.gemstone.CoreEmoji.GIFT
+    com.wallet.core.primitives.CoreEmoji.Gem -> uniffi.gemstone.CoreEmoji.GEM
+    com.wallet.core.primitives.CoreEmoji.Party -> uniffi.gemstone.CoreEmoji.PARTY
+    com.wallet.core.primitives.CoreEmoji.Warning -> uniffi.gemstone.CoreEmoji.WARNING
+}
+
+fun uniffi.gemstone.CoreListItemBadge.toPrimitives(): com.wallet.core.primitives.CoreListItemBadge = when (this) {
+    uniffi.gemstone.CoreListItemBadge.NEW -> com.wallet.core.primitives.CoreListItemBadge.New
+}
+
+fun com.wallet.core.primitives.CoreListItemBadge.toGem(): uniffi.gemstone.CoreListItemBadge = when (this) {
+    com.wallet.core.primitives.CoreListItemBadge.New -> uniffi.gemstone.CoreListItemBadge.NEW
+}
+
+fun uniffi.gemstone.CoreListItemIcon.toPrimitives(): com.wallet.core.primitives.CoreListItemIcon = when (this) {
+    is uniffi.gemstone.CoreListItemIcon.Emoji -> com.wallet.core.primitives.CoreListItemIcon.Emoji(v1.toPrimitives())
+    is uniffi.gemstone.CoreListItemIcon.Asset -> com.wallet.core.primitives.CoreListItemIcon.Asset(com.wallet.core.primitives.AssetId(v1))
+    is uniffi.gemstone.CoreListItemIcon.Image -> com.wallet.core.primitives.CoreListItemIcon.Image(v1)
+}
+
+fun com.wallet.core.primitives.CoreListItemIcon.toGem(): uniffi.gemstone.CoreListItemIcon = when (this) {
+    is com.wallet.core.primitives.CoreListItemIcon.Emoji -> uniffi.gemstone.CoreListItemIcon.Emoji(value.toGem())
+    is com.wallet.core.primitives.CoreListItemIcon.Asset -> uniffi.gemstone.CoreListItemIcon.Asset(value.toIdentifier())
+    is com.wallet.core.primitives.CoreListItemIcon.Image -> uniffi.gemstone.CoreListItemIcon.Image(value)
+}
+
 fun uniffi.gemstone.Currency.toCurrency(): com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.entries.firstOrNull { it.string == this }
     ?: throw IllegalStateException("Core returned a Currency this build does not know: $this")
 
@@ -351,6 +385,20 @@ fun uniffi.gemstone.FiatQuoteType.toPrimitives(): com.wallet.core.primitives.Fia
 fun com.wallet.core.primitives.FiatQuoteType.toGem(): uniffi.gemstone.FiatQuoteType = when (this) {
     com.wallet.core.primitives.FiatQuoteType.Buy -> uniffi.gemstone.FiatQuoteType.BUY
     com.wallet.core.primitives.FiatQuoteType.Sell -> uniffi.gemstone.FiatQuoteType.SELL
+}
+
+fun uniffi.gemstone.FiatTransactionStatus.toPrimitives(): com.wallet.core.primitives.FiatTransactionStatus = when (this) {
+    uniffi.gemstone.FiatTransactionStatus.COMPLETE -> com.wallet.core.primitives.FiatTransactionStatus.Complete
+    uniffi.gemstone.FiatTransactionStatus.PENDING -> com.wallet.core.primitives.FiatTransactionStatus.Pending
+    uniffi.gemstone.FiatTransactionStatus.FAILED -> com.wallet.core.primitives.FiatTransactionStatus.Failed
+    uniffi.gemstone.FiatTransactionStatus.UNKNOWN -> com.wallet.core.primitives.FiatTransactionStatus.Unknown
+}
+
+fun com.wallet.core.primitives.FiatTransactionStatus.toGem(): uniffi.gemstone.FiatTransactionStatus = when (this) {
+    com.wallet.core.primitives.FiatTransactionStatus.Complete -> uniffi.gemstone.FiatTransactionStatus.COMPLETE
+    com.wallet.core.primitives.FiatTransactionStatus.Pending -> uniffi.gemstone.FiatTransactionStatus.PENDING
+    com.wallet.core.primitives.FiatTransactionStatus.Failed -> uniffi.gemstone.FiatTransactionStatus.FAILED
+    com.wallet.core.primitives.FiatTransactionStatus.Unknown -> uniffi.gemstone.FiatTransactionStatus.UNKNOWN
 }
 
 fun uniffi.gemstone.LatencyType.toPrimitives(): com.wallet.core.primitives.LatencyType = when (this) {
@@ -643,6 +691,38 @@ fun uniffi.gemstone.StakeProviderType.toPrimitives(): com.wallet.core.primitives
 fun com.wallet.core.primitives.StakeProviderType.toGem(): uniffi.gemstone.StakeProviderType = when (this) {
     com.wallet.core.primitives.StakeProviderType.Stake -> uniffi.gemstone.StakeProviderType.STAKE
     com.wallet.core.primitives.StakeProviderType.Earn -> uniffi.gemstone.StakeProviderType.EARN
+}
+
+fun uniffi.gemstone.SupportMessageSender.toPrimitives(): com.wallet.core.primitives.SupportMessageSender = when (this) {
+    is uniffi.gemstone.SupportMessageSender.User -> com.wallet.core.primitives.SupportMessageSender.User
+    is uniffi.gemstone.SupportMessageSender.Agent -> com.wallet.core.primitives.SupportMessageSender.Agent(v1.toPrimitives())
+}
+
+fun com.wallet.core.primitives.SupportMessageSender.toGem(): uniffi.gemstone.SupportMessageSender = when (this) {
+    is com.wallet.core.primitives.SupportMessageSender.User -> uniffi.gemstone.SupportMessageSender.User
+    is com.wallet.core.primitives.SupportMessageSender.Agent -> uniffi.gemstone.SupportMessageSender.Agent(data.toGem())
+}
+
+fun uniffi.gemstone.SupportMessageStatus.toPrimitives(): com.wallet.core.primitives.SupportMessageStatus = when (this) {
+    uniffi.gemstone.SupportMessageStatus.SENDING -> com.wallet.core.primitives.SupportMessageStatus.Sending
+    uniffi.gemstone.SupportMessageStatus.SENT -> com.wallet.core.primitives.SupportMessageStatus.Sent
+    uniffi.gemstone.SupportMessageStatus.FAILED -> com.wallet.core.primitives.SupportMessageStatus.Failed
+}
+
+fun com.wallet.core.primitives.SupportMessageStatus.toGem(): uniffi.gemstone.SupportMessageStatus = when (this) {
+    com.wallet.core.primitives.SupportMessageStatus.Sending -> uniffi.gemstone.SupportMessageStatus.SENDING
+    com.wallet.core.primitives.SupportMessageStatus.Sent -> uniffi.gemstone.SupportMessageStatus.SENT
+    com.wallet.core.primitives.SupportMessageStatus.Failed -> uniffi.gemstone.SupportMessageStatus.FAILED
+}
+
+fun uniffi.gemstone.SupportTypingStatus.toPrimitives(): com.wallet.core.primitives.SupportTypingStatus = when (this) {
+    uniffi.gemstone.SupportTypingStatus.ON -> com.wallet.core.primitives.SupportTypingStatus.On
+    uniffi.gemstone.SupportTypingStatus.OFF -> com.wallet.core.primitives.SupportTypingStatus.Off
+}
+
+fun com.wallet.core.primitives.SupportTypingStatus.toGem(): uniffi.gemstone.SupportTypingStatus = when (this) {
+    com.wallet.core.primitives.SupportTypingStatus.On -> uniffi.gemstone.SupportTypingStatus.ON
+    com.wallet.core.primitives.SupportTypingStatus.Off -> uniffi.gemstone.SupportTypingStatus.OFF
 }
 
 fun uniffi.gemstone.SwapPriceImpactType.toPrimitives(): com.wallet.core.primitives.swap.SwapPriceImpactType = when (this) {
@@ -1145,6 +1225,20 @@ fun com.wallet.core.primitives.BalanceMetadata.toGem(): uniffi.gemstone.BalanceM
     bandwidthTotal = bandwidthTotal,
 )
 
+fun uniffi.gemstone.Banner.toPrimitives(): com.wallet.core.primitives.Banner = com.wallet.core.primitives.Banner(
+    walletId = walletId?.let { com.wallet.core.primitives.WalletId(it) },
+    asset = asset?.let { it.toPrimitives() },
+    event = event.toPrimitives(),
+    state = state.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.Banner.toGem(): uniffi.gemstone.Banner = uniffi.gemstone.Banner(
+    walletId = walletId?.let { it.toIdentifier() },
+    asset = asset?.let { it.toGem() },
+    event = event.toGem(),
+    state = state.toGem(),
+)
+
 fun uniffi.gemstone.BlockExplorerLink.toPrimitives(): com.wallet.core.primitives.BlockExplorerLink = com.wallet.core.primitives.BlockExplorerLink(
     name = name,
     link = link,
@@ -1261,6 +1355,28 @@ fun com.wallet.core.primitives.ContactAddress.toGem(): uniffi.gemstone.ContactAd
     memo = memo,
 )
 
+fun uniffi.gemstone.CoreListItem.toPrimitives(): com.wallet.core.primitives.CoreListItem = com.wallet.core.primitives.CoreListItem(
+    id = id,
+    title = title,
+    subtitle = subtitle,
+    value = value,
+    subvalue = subvalue,
+    icon = icon?.let { it.toPrimitives() },
+    badge = badge?.let { it.toPrimitives() },
+    url = url,
+)
+
+fun com.wallet.core.primitives.CoreListItem.toGem(): uniffi.gemstone.CoreListItem = uniffi.gemstone.CoreListItem(
+    id = id,
+    title = title,
+    subtitle = subtitle,
+    value = value,
+    subvalue = subvalue,
+    icon = icon?.let { it.toGem() },
+    badge = badge?.let { it.toGem() },
+    url = url,
+)
+
 fun uniffi.gemstone.DelegationValidator.toPrimitives(): com.wallet.core.primitives.DelegationValidator = com.wallet.core.primitives.DelegationValidator(
     chain = chain.toChain(),
     id = id,
@@ -1329,6 +1445,59 @@ fun uniffi.gemstone.FiatRate.toPrimitives(): com.wallet.core.primitives.FiatRate
 fun com.wallet.core.primitives.FiatRate.toGem(): uniffi.gemstone.FiatRate = uniffi.gemstone.FiatRate(
     symbol = symbol.toGem(),
     rate = rate,
+)
+
+fun uniffi.gemstone.FiatTransaction.toPrimitives(): com.wallet.core.primitives.FiatTransaction = com.wallet.core.primitives.FiatTransaction(
+    id = id,
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    transactionType = transactionType.toPrimitives(),
+    provider = provider.toPrimitives(),
+    status = status.toPrimitives(),
+    fiatAmount = fiatAmount,
+    fiatCurrency = fiatCurrency,
+    value = value.toString(),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun com.wallet.core.primitives.FiatTransaction.toGem(): uniffi.gemstone.FiatTransaction = uniffi.gemstone.FiatTransaction(
+    id = id,
+    assetId = assetId.toIdentifier(),
+    transactionType = transactionType.toGem(),
+    provider = provider.toGem(),
+    providerTransactionId = null,
+    status = status.toGem(),
+    country = null,
+    fiatAmount = fiatAmount,
+    fiatCurrency = fiatCurrency,
+    value = java.math.BigInteger(value),
+    transactionHash = null,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun uniffi.gemstone.FiatTransactionData.toPrimitives(): com.wallet.core.primitives.FiatTransactionData = com.wallet.core.primitives.FiatTransactionData(
+    transaction = transaction.toPrimitives(),
+    detailsUrl = detailsUrl,
+)
+
+fun com.wallet.core.primitives.FiatTransactionData.toGem(): uniffi.gemstone.FiatTransactionData = uniffi.gemstone.FiatTransactionData(
+    transaction = transaction.toGem(),
+    detailsUrl = detailsUrl,
+)
+
+fun uniffi.gemstone.InAppNotification.toPrimitives(): com.wallet.core.primitives.InAppNotification = com.wallet.core.primitives.InAppNotification(
+    walletId = com.wallet.core.primitives.WalletId(walletId),
+    readAt = readAt,
+    createdAt = createdAt,
+    item = item.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.InAppNotification.toGem(): uniffi.gemstone.InAppNotification = uniffi.gemstone.InAppNotification(
+    walletId = walletId.toIdentifier(),
+    readAt = readAt,
+    createdAt = createdAt,
+    item = item.toGem(),
 )
 
 fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency = com.wallet.core.primitives.Latency(
@@ -1765,6 +1934,62 @@ fun com.wallet.core.primitives.ReportNft.toGem(): uniffi.gemstone.ReportNft = un
     collectionId = collectionId,
     assetId = assetId,
     reason = reason,
+)
+
+fun uniffi.gemstone.SupportAgent.toPrimitives(): com.wallet.core.primitives.SupportAgent = com.wallet.core.primitives.SupportAgent(
+    name = name,
+)
+
+fun com.wallet.core.primitives.SupportAgent.toGem(): uniffi.gemstone.SupportAgent = uniffi.gemstone.SupportAgent(
+    name = name,
+)
+
+fun uniffi.gemstone.SupportMessage.toPrimitives(): com.wallet.core.primitives.SupportMessage = com.wallet.core.primitives.SupportMessage(
+    id = id,
+    content = content,
+    sender = sender.toPrimitives(),
+    status = status.toPrimitives(),
+    createdAt = createdAt,
+    images = images.map { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.SupportMessage.toGem(): uniffi.gemstone.SupportMessage = uniffi.gemstone.SupportMessage(
+    id = id,
+    content = content,
+    sender = sender.toGem(),
+    status = status.toGem(),
+    createdAt = createdAt,
+    images = images.map { it.toGem() },
+)
+
+fun uniffi.gemstone.SupportMessageImage.toPrimitives(): com.wallet.core.primitives.SupportMessageImage = com.wallet.core.primitives.SupportMessageImage(
+    id = id,
+    url = url,
+    thumbnailUrl = thumbnailUrl,
+    fileName = fileName,
+    fileSize = fileSize?.let { it.toLong() },
+    width = width,
+    height = height,
+)
+
+fun com.wallet.core.primitives.SupportMessageImage.toGem(): uniffi.gemstone.SupportMessageImage = uniffi.gemstone.SupportMessageImage(
+    id = id,
+    url = url,
+    thumbnailUrl = thumbnailUrl,
+    fileName = fileName,
+    fileSize = fileSize?.let { it.toULong() },
+    width = width,
+    height = height,
+)
+
+fun uniffi.gemstone.SupportTyping.toPrimitives(): com.wallet.core.primitives.SupportTyping = com.wallet.core.primitives.SupportTyping(
+    status = status.toPrimitives(),
+    agent = agent.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.SupportTyping.toGem(): uniffi.gemstone.SupportTyping = uniffi.gemstone.SupportTyping(
+    status = status.toGem(),
+    agent = agent.toGem(),
 )
 
 fun uniffi.gemstone.SwapPriceImpact.toPrimitives(): com.wallet.core.primitives.swap.SwapPriceImpact = com.wallet.core.primitives.swap.SwapPriceImpact(

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Localization
 @testable import Perpetuals
 import PerpetualsTestKit

@@ -30,7 +30,7 @@ impl GemNotificationsService {
         }
         let granted = self.permissions.request_permissions_or_open_settings().await?;
         if granted {
-            self.device.synchronize_if_needed().await?;
+            self.device.set_push_enabled(true).await?;
         }
         Ok(granted)
     }

@@ -5,7 +5,7 @@ import struct Gemstone.GemAssetBalance
 import Primitives
 
 public extension GemAssetBalance {
-    init(_ balance: Balance, assetId: AssetId) {
+    init(_ balance: Balance, assetId: AssetId, isActive: Bool) {
         self.init(
             assetId: assetId.identifier,
             available: BigUInt(balance.available),
@@ -19,6 +19,7 @@ public extension GemAssetBalance {
             withdrawable: BigUInt(balance.withdrawable),
             earn: BigUInt(balance.earn),
             metadata: balance.metadata?.map(),
+            isActive: isActive,
         )
     }
 }

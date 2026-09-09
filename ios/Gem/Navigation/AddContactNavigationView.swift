@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Contacts
 import GemstoneServices
 import PrimitivesComponents
-import Style
 import SwiftUI
 
 struct AddContactNavigationView: View {

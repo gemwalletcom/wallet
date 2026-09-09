@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::{AssetId, InAppNotification, SupportStreamEvent, TransactionId, WalletId, WebSocketPricePayload};
 
@@ -11,7 +10,6 @@ pub fn device_stream_channel(device_id: &str) -> String {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", content = "data", rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 #[allow(clippy::large_enum_variant)]
 pub enum StreamEvent {
     Prices(WebSocketPricePayload),
@@ -27,14 +25,12 @@ pub enum StreamEvent {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub struct StreamMessagePrices {
     pub assets: Vec<AssetId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data", rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub enum StreamMessage {
     GetPrices(StreamMessagePrices),
     SubscribePrices(StreamMessagePrices),
@@ -46,7 +42,6 @@ pub enum StreamMessage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub struct StreamBalanceUpdate {
     pub wallet_id: WalletId,
     pub asset_ids: Vec<AssetId>,
@@ -54,7 +49,6 @@ pub struct StreamBalanceUpdate {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub struct StreamTransactionsUpdate {
     pub wallet_id: WalletId,
     pub transactions: Vec<TransactionId>,
@@ -63,21 +57,18 @@ pub struct StreamTransactionsUpdate {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub struct StreamPriceAlertUpdate {
     pub assets: Vec<AssetId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub struct StreamWalletUpdate {
     pub wallet_id: WalletId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub struct StreamNotificationUpdate {
     pub wallet_id: WalletId,
     pub notification: InAppNotification,

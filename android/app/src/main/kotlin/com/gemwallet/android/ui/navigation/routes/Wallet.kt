@@ -15,7 +15,8 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.ui.requestAuth
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.ui.components.list_item.titleRes
+import uniffi.gemstone.GemWalletSecretKind
 import kotlinx.serialization.Serializable
 
 
@@ -29,17 +30,17 @@ data class WalletImageRoute(
 ) : NavKey
 
 @Serializable
-data class WalletSecurityReminderRoute(val walletId: WalletId, val type: WalletType) : NavKey
+data class WalletSecurityReminderRoute(val walletId: WalletId, val secretKind: GemWalletSecretKind) : NavKey
 
 @Serializable
-data class WalletPhraseRoute(val walletId: WalletId, val type: WalletType) : NavKey
+data class WalletPhraseRoute(val walletId: WalletId, val secretKind: GemWalletSecretKind) : NavKey
 
 fun EntryProviderScope<NavKey>.walletScreen(
     onBoard: () -> Unit,
     onCancel: () -> Unit,
     onSelectImage: (WalletId) -> Unit,
-    onSecurityReminder: (WalletId, WalletType) -> Unit,
-    onSecurityReminderAccepted: (WalletId, WalletType) -> Unit,
+    onSecurityReminder: (WalletId, GemWalletSecretKind) -> Unit,
+    onSecurityReminderAccepted: (WalletId, GemWalletSecretKind) -> Unit,
 ) {
     entry<WalletDetailsRoute>(
         metadata = { key -> routeArguments(RouteArgument.WalletId to key.walletId.id) },
@@ -47,8 +48,8 @@ fun EntryProviderScope<NavKey>.walletScreen(
         val context = LocalContext.current
 
         WalletNavScreen(
-            onPhraseShow = { walletId, type ->
-                context.requestAuth(AuthRequest.Default) { onSecurityReminder(walletId, type) }
+            onPhraseShow = { walletId, secretKind ->
+                context.requestAuth(AuthRequest.Default) { onSecurityReminder(walletId, secretKind) }
             },
             onSelectImage = onSelectImage,
             onBoard = onBoard,
@@ -63,13 +64,9 @@ fun EntryProviderScope<NavKey>.walletScreen(
     }
 
     entry<WalletSecurityReminderRoute> { key ->
-        val title = when (key.type) {
-            WalletType.PrivateKey -> stringResource(R.string.common_private_key)
-            else -> stringResource(R.string.common_secret_phrase)
-        }
         PhraseAlertDialog(
-            title = title,
-            onAccept = { onSecurityReminderAccepted(key.walletId, key.type) },
+            title = stringResource(key.secretKind.titleRes),
+            onAccept = { onSecurityReminderAccepted(key.walletId, key.secretKind) },
             onCancel = onCancel,
         )
     }
@@ -78,7 +75,7 @@ fun EntryProviderScope<NavKey>.walletScreen(
         metadata = { key ->
             routeArguments(
                 RouteArgument.WalletId to key.walletId.id,
-                RouteArgument.Type to key.type,
+                RouteArgument.Type to key.secretKind,
             )
         },
     ) {

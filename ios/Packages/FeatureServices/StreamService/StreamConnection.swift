@@ -2,7 +2,6 @@
 
 import Foundation
 import protocol Gemstone.GemStreamConnection
-import typealias Gemstone.StreamMessage
 import WebSocketClient
 
 public final class GemstoneStreamConnection: GemStreamConnection, Sendable {
@@ -16,7 +15,7 @@ public final class GemstoneStreamConnection: GemStreamConnection, Sendable {
         await webSocket.state == .connected
     }
 
-    public func send(message: StreamMessage) async throws {
+    public func send(message: String) async throws {
         try await webSocket.send(message)
     }
 }

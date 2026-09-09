@@ -72,14 +72,18 @@ class FiatViewModel @Inject constructor(
     val type: StateFlow<FiatQuoteType> = session.map { it.quoteType.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.quoteType.toPrimitives())
 
-    val amount: StateFlow<String> = session.map { it.current().amount }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.current().amount)
-
     private val assetData: StateFlow<AssetData?> = getBuyAssetInfo(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetPriceUsd: StateFlow<Double?> = getAssetPriceUsd(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val viewState = combine(session, isUrlLoading, assetPriceUsd) { session, isUrlLoading, priceUsd ->
+        session.viewState(priceUsd, isUrlLoading)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, false))
+
+    val amount: StateFlow<String> = viewState.map { it.amount }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.amount)
 
     val assetInfoUIModel = assetData
         .mapNotNull { it }
@@ -104,16 +108,15 @@ class FiatViewModel @Inject constructor(
         } + FiatSuggestion.RandomAmount
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val uiState: StateFlow<FiatUiState> = combine(session, isUrlLoading) { session, isUrlLoading ->
-        createFiatUiState(session, isUrlLoading)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(session.value, false))
+    val uiState: StateFlow<FiatUiState> = viewState.map { createFiatUiState(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(viewState.value))
 
-    val providers = combine(assetInfoUIModel.filterNotNull(), session, assetPriceUsd) { asset, session, priceUsd ->
-        session.quoteRows(priceUsd).map { row -> row.toProviderUIModel(asset.asset, currency) }
+    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { asset, state ->
+        state.quoteRows.map { row -> row.toProviderUIModel(asset.asset, currency) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val selectedProvider = combine(assetInfoUIModel, session) { asset, session ->
-        asset?.let { session.selectedQuoteRow(null)?.toProviderUIModel(it.asset, currency) }
+    val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state ->
+        asset?.let { state.selectedQuoteRow?.toProviderUIModel(it.asset, currency) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val ticker = tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {}
@@ -179,7 +182,7 @@ class FiatViewModel @Inject constructor(
     }
 
     suspend fun quoteUrl(): Result<String> {
-        val quoteId = requireNotNull(session.value.selectedQuoteRow(null)).quoteId
+        val quoteId = requireNotNull(viewState.value.selectedQuoteRow).quoteId
         isUrlLoading.value = true
         try {
             return runCatchingCancellable { service.quoteUrl(assetId.toIdentifier(), quoteId).redirectUrl }

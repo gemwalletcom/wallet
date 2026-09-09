@@ -70,7 +70,6 @@ import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemDeviceService
-import uniffi.gemstone.GemNodeServiceInterface
 import uniffi.gemstone.GemDeviceKeyService
 import com.gemwallet.android.domains.gemConfig
 
@@ -86,13 +85,9 @@ object GatewayModule {
     @Singleton
     @Provides
     fun provideAlienProvider(
-        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
     ): AlienProvider {
-        return NativeProvider(
-            nodeService = nodeService,
-            httpClient = okHttpClient,
-        )
+        return NativeProvider(httpClient = okHttpClient)
     }
 
     @Provides
@@ -262,12 +257,10 @@ object GatewayModule {
     @Singleton
     fun provideGemScanService(
         okHttpClient: OkHttpClient,
-        nodeService: GemNodeServiceInterface,
         deviceKeyService: GemDeviceKeyService,
     ): GemScanService = GemScanService(
         GemstoneDeviceApiClient(
             NativeProvider(
-                nodeService = nodeService,
                 httpClient = okHttpClient.newBuilder()
                     .callTimeout(gemConfig.scanTimeout())
                     .build(),
@@ -286,24 +279,20 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemServiceStatus(
-        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
     ): GemServiceStatus {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeout())
             .build()
-        val provider = NativeProvider(
-            nodeService = nodeService,
-            httpClient = httpClient,
-        )
-        return GemServiceStatus(provider)
+        return GemServiceStatus(NativeProvider(httpClient = httpClient))
     }
 
     @Provides
     @Singleton
     fun provideGemGemSimulationService(
         alienProvider: AlienProvider,
-    ): GemSimulationService = GemSimulationService(alienProvider)
+        preferences: GemstonePreferencesStore,
+    ): GemSimulationService = GemSimulationService(alienProvider, preferences)
 
     @Provides
     @Singleton

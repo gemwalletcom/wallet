@@ -7,7 +7,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import WalletConnectorService
 
 public struct ConnectionProposalViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
@@ -37,10 +36,6 @@ public struct ConnectionProposalViewModel {
 
     var walletTitle: String {
         Localized.Common.wallet
-    }
-
-    var appTitle: String {
-        Localized.WalletConnect.app
     }
 
     var connectionTitle: String {

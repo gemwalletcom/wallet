@@ -1,8 +1,12 @@
 package com.gemwallet.android.ui.components
 
 import android.Manifest
+import android.content.ContentResolver
+import android.content.Context
+import android.content.Intent
 import android.graphics.ImageDecoder
 import android.net.Uri
+import android.provider.Settings
 import android.util.Size
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,6 +15,7 @@ import androidx.annotation.StringRes
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -18,8 +23,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +41,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -45,25 +49,25 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import coil3.compose.AsyncImage
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
+import com.gemwallet.android.ui.components.empty.EmptyAction
+import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.SceneTitle
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.alpha50
-import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space24
@@ -71,9 +75,11 @@ import com.wallet.core.primitives.QRScanType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.zxing.NotFoundException
+import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 import kotlin.math.min
@@ -96,44 +102,30 @@ fun QrCodeRequest(
     titleContent: @Composable () -> Unit = { ScanQrCodeTitle() },
     onResult: (String) -> Unit,
 ) {
-    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
-    var showPermissionRequest by remember { mutableStateOf(true) }
-
+    val context = LocalContext.current
+    var isPermissionRequested by remember { mutableStateOf(false) }
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA) { isPermissionRequested = true }
+    val isPermanentlyDenied = isPermissionRequested && !cameraPermission.status.shouldShowRationale
+    LaunchedEffect(Unit) {
+        if (!cameraPermission.status.isGranted) {
+            cameraPermission.launchPermissionRequest()
+        }
+    }
     BackHandler(true) {
         onCancel()
     }
-
-    if (!cameraPermissionState.status.isGranted && showPermissionRequest) {
-        AlertDialog(
-            onDismissRequest = { showPermissionRequest = false },
-            text = {
-                Text(text = stringResource(id = R.string.camera_permission_request_camera))
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        cameraPermissionState.launchPermissionRequest()
-                    }
-                ) {
-                    Text(text = stringResource(id = R.string.common_grant_permission))
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showPermissionRequest = false }) {
-                    Text(text = stringResource(id = R.string.common_cancel))
-                }
-            }
-        )
-    } else {
-        QRScannerScene(
-            scanType = scanType,
-            isCameraGranted = cameraPermissionState.status.isGranted,
-            onGrantPermission = { showPermissionRequest = true },
-            onCancel = onCancel,
-            titleContent = titleContent,
-            onResult = onResult
-        )
-    }
+    QRScannerScene(
+        scanType = scanType,
+        isCameraGranted = cameraPermission.status.isGranted,
+        permissionAction = if (isPermanentlyDenied) {
+            EmptyAction(title = stringResource(R.string.common_open_settings), onClick = context::openAppSettings)
+        } else {
+            EmptyAction(title = stringResource(R.string.common_grant_permission), onClick = cameraPermission::launchPermissionRequest)
+        },
+        onCancel = onCancel,
+        titleContent = titleContent,
+        onResult = onResult,
+    )
 }
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
@@ -141,130 +133,92 @@ fun QrCodeRequest(
 fun QRScannerScene(
     scanType: QRScanType,
     isCameraGranted: Boolean,
-    onGrantPermission: () -> Unit,
+    permissionAction: EmptyAction,
     onCancel: () -> Unit,
     titleContent: @Composable () -> Unit = { ScanQrCodeTitle() },
     onResult: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var imageResult by remember { mutableStateOf("") }
-    var imageError by remember { mutableStateOf("") }
+    val haptic = LocalHapticFeedback.current
+    val decodingError = stringResource(id = R.string.errors_decoding_qr)
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+    val snackbar = rememberSnackbarState(
+        message = toastMessage,
+        iconRes = R.drawable.ic_error,
+        onShown = { toastMessage = null },
+    )
     val galleryLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageUri = uri
-        imageResult = ""
-        imageError = ""
-    }
-    val cancel = {
-        imageUri = null
-        imageError = ""
-        imageResult = ""
-    }
-    LaunchedEffect(imageUri) {
-        val image = imageUri ?: return@LaunchedEffect
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image)) { decoder, info, _ ->
-                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                    decoder.setTargetSampleSize(QRCodeDecoder.sampleSize(info.size.width, info.size.height))
-                }
-                val pixels = IntArray(bitmap.width * bitmap.height)
-                bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-                imageResult = QRCodeDecoder.decode(pixels, bitmap.width, bitmap.height) ?: throw NotFoundException.getNotFoundInstance()
-            } catch (e: Exception) {
-                imageError = e.message ?: "Unknown error"
+        val image = uri ?: return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            val code = withContext(Dispatchers.IO) { context.contentResolver.decodeQrCode(image) }
+            if (code == null) {
+                haptic.performHapticFeedback(HapticFeedbackType.Reject)
+                toastMessage = decodingError
+            } else {
+                onResult(code)
             }
         }
-    }
-    BackHandler(imageUri != null) {
-        cancel()
     }
     Scene(
         closeIcon = true,
         titleContent = titleContent,
         actions = {
-            if (!isCameraGranted) {
-                IconButton(onClick = onGrantPermission) {
-                    Icon(imageVector = AppIcons.Camera, contentDescription = "from_camera")
-                }
-            }
             IconButton(
                 onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier.testTag(SCAN_FROM_GALLERY_TAG),
             ) {
                 Icon(imageVector = AppIcons.Image, contentDescription = "from_image")
             }
-            if (imageUri != null) {
-                IconButton(onClick = cancel) {
-                    Icon(imageVector = AppIcons.Close, contentDescription = "close_image")
+        },
+        onClose = onCancel,
+        mainAction = if (isCameraGranted) null else {
+            {
+                Column(verticalArrangement = Arrangement.spacedBy(paddingSmall)) {
+                    MainActionButton(title = permissionAction.title, onClick = permissionAction.onClick)
+                    MainActionButton(
+                        title = stringResource(id = R.string.library_select_from_photo_library),
+                        colors = mainActionButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                        ),
+                        onClick = { galleryLauncher.launch("image/*") },
+                    )
                 }
             }
         },
-        onClose = { if (imageUri == null) onCancel() else cancel() },
+        snackbar = snackbar,
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            QRScanner(listener = onResult)
-            ScannerHint(hint = stringResource(id = scanType.hintRes()))
-            if (imageUri != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(imageUri)
-                            .diskCachePolicy(policy = CachePolicy.ENABLED)
-                            .networkCachePolicy(policy = CachePolicy.ENABLED)
-                            .build(),
-                        contentDescription = "",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                    if (imageResult.isNotEmpty()) {
-                        Column(
-                            modifier = Modifier
-                                .padding(40.dp)
-                                .align(Alignment.BottomCenter),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text(
-                                modifier = Modifier
-                                    .defaultPadding()
-                                    .background(Color.Black, MaterialTheme.shapes.medium)
-                                    .defaultPadding(),
-                                text = imageResult,
-                                color = Color.White,
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W300)
-                            )
-
-                            Button(
-                                onClick = { onResult(imageResult) }
-                            ) {
-                                Text(text = stringResource(id = R.string.common_done))
-                            }
-                        }
-                    }
-                    if (imageError.isNotEmpty()) {
-                        Text(
-                            modifier = Modifier
-                                .padding(40.dp)
-                                .align(Alignment.BottomCenter)
-                                .defaultPadding()
-                                .background(Color.Black, MaterialTheme.shapes.medium)
-                                .defaultPadding(),
-                            text = stringResource(id = R.string.errors_decoding_qr),
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W300)
-                        )
-                    }
-                }
+        if (isCameraGranted) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                QRScanner(listener = onResult)
+                ScannerHint(hint = stringResource(id = scanType.hintRes()))
             }
+        } else {
+            EmptyStateView(
+                title = stringResource(id = R.string.errors_permissions_not_granted),
+                description = stringResource(id = R.string.errors_camera_permissions_not_granted),
+                iconVector = AppIcons.Camera,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
+}
+
+private fun Context.openAppSettings() {
+    startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+}
+
+private fun ContentResolver.decodeQrCode(uri: Uri): String? = try {
+    val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(this, uri)) { decoder, info, _ ->
+        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+        decoder.setTargetSampleSize(QRCodeDecoder.sampleSize(info.size.width, info.size.height))
+    }
+    val pixels = IntArray(bitmap.width * bitmap.height)
+    bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+    QRCodeDecoder.decode(pixels, bitmap.width, bitmap.height)
+} catch (_: IOException) {
+    null
 }
 
 @ExperimentalGetImage

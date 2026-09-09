@@ -1,30 +1,38 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Localization
-import Primitives
 import PhotosUI
+import Primitives
+import Style
 import SwiftUI
 
 @Observable
 @MainActor
 final class QRScannerSceneViewModel {
-    var scannerState: QRScannerState
-    var imageState: ImageState
+    var scannerState: QRScannerState = .scanning
     var selectedPhoto: PhotosPickerItem?
+    var isPresentingToastMessage: ToastMessage?
     var isScannerReady: Bool = false
 
     let resources: QRScannerResources
     let scanType: QRScanType
 
-    init(scannerState: QRScannerState, imageState: ImageState, resources: QRScannerResources, scanType: QRScanType) {
-        self.scannerState = scannerState
-        self.imageState = imageState
+    init(resources: QRScannerResources, scanType: QRScanType) {
         self.resources = resources
         self.scanType = scanType
     }
 
     var overlayConfig: QRScannerDisplayConfiguration {
         .default
+    }
+
+    var toastOffset: CGFloat {
+        switch scannerState {
+        case .scanning: .zero
+        case .failure(.notSupported): .scene.button.height + .medium
+        case .failure(.permissionsNotGranted): .scene.button.height * 2 + .medium * 2
+        }
     }
 
     var hint: String {
@@ -39,10 +47,6 @@ final class QRScannerSceneViewModel {
         case .privateKey: Localized.Common.privateKey
         }
     }
-
-    var isScanning: Bool {
-        scannerState == .scanning
-    }
 }
 
 // MARK: - Business Logic
@@ -52,49 +56,30 @@ extension QRScannerSceneViewModel {
         refreshScannerState()
     }
 
-    func refreshScannerState() {
-        do {
-            switch scannerState {
-            case .idle:
-                try QRScannerViewWrapper.checkDeviceQRScanningSupport()
-                if isScannerReady {
-                    scannerState = .scanning
-                }
-            case .failure:
-                // Reset scanner state to allow retrying after a failure
-                try QRScannerViewWrapper.checkDeviceQRScanningSupport()
-            case .scanning:
-                break
-            }
-        } catch {
-            refreshScannerState(error: error)
+    func retrieveQRCode(photoItem: PhotosPickerItem) async -> String? {
+        guard let data = try? await photoItem.loadTransferable(type: Data.self),
+              let image = UIImage(data: data, scale: 1.0)
+        else {
+            return nil
         }
+        return QRImageDecoder.decode(image)
     }
 
-    func refreshScannerState(error: Error) {
-        if let error = error as? QRScannerError {
+    func showDecodingError() {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+        isPresentingToastMessage = ToastMessage(title: Localized.Errors.decodingQr, image: SystemImage.xmarkCircle)
+    }
+}
+
+// MARK: - Private
+
+extension QRScannerSceneViewModel {
+    private func refreshScannerState() {
+        do {
+            try QRScannerViewWrapper.checkDeviceQRScanningSupport()
+            scannerState = .scanning
+        } catch {
             scannerState = .failure(error: error)
-        } else {
-            scannerState = .failure(error: .unknown(error))
         }
-    }
-
-    func process(photoItem: PhotosPickerItem) async {
-        imageState = .empty
-        do {
-            if let data = try await photoItem.loadTransferable(type: Data.self),
-               let uiImage = UIImage(data: data, scale: 1.0)
-            {
-                imageState = .success(uiImage)
-            } else {
-                imageState = .empty
-            }
-        } catch {
-            imageState = .failure(error)
-        }
-    }
-
-    func retrieveQRCode(image: UIImage) throws -> String {
-        try QRImageDecoder.process(image)
     }
 }

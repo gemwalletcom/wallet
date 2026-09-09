@@ -7,14 +7,14 @@ import SwiftUI
 struct QRScannerDisplayView: View {
     private let configuration: QRScannerDisplayConfiguration
     private let hint: String
-    private let scanResult: QRScannerViewWrapper.ScanResult
+    private let scanResult: (String) -> Void
     @Binding private var isScannerReady: Bool
 
     init(
         configuration: QRScannerDisplayConfiguration,
         hint: String,
         isScannerReady: Binding<Bool>,
-        scanResult: @escaping QRScannerViewWrapper.ScanResult,
+        scanResult: @escaping (String) -> Void,
     ) {
         _isScannerReady = isScannerReady
         self.configuration = configuration

@@ -11,10 +11,6 @@ public extension TextValidator {
     var silent: some TextValidator {
         SilentTextValidator(validator: self)
     }
-
-    var isSilent: Bool {
-        self is SilentValidatable
-    }
 }
 
 // MARK: - Silent

@@ -8,9 +8,9 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use futures::future::join_all;
-use primitives::{AssetBalance, AssetId, Wallet, WalletId};
+use primitives::{Asset, AssetBalance, AssetId, Wallet, WalletId};
 
-pub use model::{GemAssetBalance, GemBalanceRequirement, GemBalanceRow, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+pub use model::{GemAssetBalance, GemBalanceRecord, GemBalanceRequirement, GemBalanceRow, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
@@ -101,8 +101,7 @@ impl GemBalanceService {
                 .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
                 .await
                 .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
-            let updates = rules::balance_updates(&assets, balances);
-            self.update_balances(wallet_id, updates).await?;
+            self.write_balances(wallet_id, rules::balance_updates(balances), &assets).await?;
         }
         match failures.into_iter().find_map(Result::err) {
             Some(error) => Err(error),
@@ -133,9 +132,23 @@ impl GemBalanceService {
     }
 
     pub async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
-        let asset_ids = updates.iter().map(|update| update.asset_id.clone()).collect();
-        self.assets.add_missing_balances(wallet_id.clone(), asset_ids).await?;
-        self.store.update_balances(wallet_id, updates).await
+        let assets = self
+            .asset_store
+            .get_assets(updates.iter().map(|update| update.asset_id.clone()).collect())
+            .await
+            .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
+        self.write_balances(wallet_id, updates, &assets).await
+    }
+
+    async fn write_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>, assets: &[Asset]) -> Result<(), GemServiceError> {
+        let asset_ids: Vec<AssetId> = rules::unique_asset_ids(updates.iter().map(|update| update.asset_id.clone()).collect());
+        self.assets.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
+        let stored = self.store.get_available_balances(wallet_id.clone(), asset_ids).await?;
+        let records = rules::balance_records(rules::changed_balances(stored, updates), assets);
+        if records.is_empty() {
+            return Ok(());
+        }
+        self.store.update_balances(wallet_id, records).await
     }
 
     async fn chain_balances(&self, request: &BalanceRequest) -> Result<Vec<(BalanceKind, AssetBalance)>, GemServiceError> {

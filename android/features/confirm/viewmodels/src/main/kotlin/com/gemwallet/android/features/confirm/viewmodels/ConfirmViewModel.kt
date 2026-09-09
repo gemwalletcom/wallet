@@ -201,7 +201,6 @@ class ConfirmViewModel @Inject constructor(
         val amount = Crypto(transferAmount ?: request.value)
 
         AmountUIModel(
-            transactionType = request.transactionType().toPrimitives(),
             headerKind = request.headerKind(),
             amount = amount.atomicValue,
             fromAsset = content.assetPrice(request.asset),
@@ -213,10 +212,6 @@ class ConfirmViewModel @Inject constructor(
         )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val perpetualType = request
-        .map { it?.inputType?.perpetualType }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val detailElements = combine(request, content, ::buildDetailElements)
         .distinctUntilChanged()

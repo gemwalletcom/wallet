@@ -3,7 +3,6 @@
 import Foundation
 import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemRecipient
-import GemstonePrimitives
 
 public extension GemPaymentRecipient {
     static func mock(

@@ -5,7 +5,6 @@ import struct Gemstone.RewardRedemptionOption
 import protocol Gemstone.GemRewardsServiceProtocol
 import struct Gemstone.GemRewardsState
 import GemstonePrimitives
-import GemstoneServices
 import Components
 import Foundation
 import Localization

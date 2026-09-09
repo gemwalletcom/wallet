@@ -6,11 +6,9 @@ import protocol Gemstone.GemTransactionStateServiceProtocol
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesComponents
-import Store
 import StoreTestKit
 @testable import Transfer
 import TransferTestKit
@@ -38,7 +36,7 @@ extension ConfirmTransferSceneViewModel {
                 transactionState: transactionStateService,
             ),
             session: GemConfirmSessionMock(
-                state: .mock(feeAsset: data.transactionAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
+                state: .mock(feeAsset: data.feeAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
                 load: load,
             ),
             onComplete: onComplete,

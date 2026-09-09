@@ -10,7 +10,7 @@ import PrimitivesTestKit
 public extension GatewayService {
     static func mock() -> GatewayService {
         GatewayService(
-            provider: NativeProvider(session: .offline, nodeProvider: NodeURLProviderMock()),
+            provider: NativeProvider(session: .offline),
             preferences: GemPreferencesStoreMock(),
             securePreferences: GemSecureStoreMock(),
         )

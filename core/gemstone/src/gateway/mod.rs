@@ -13,7 +13,7 @@ use crate::services::chain::rules as chain_rules;
 use crate::services::node::GemNodeCheck;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
-use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
+use crate::alien::{AlienProvider, AlienProviderWrapper, NodeEndpoints, PreferencesNodeEndpoints, coalescing_provider};
 use crate::models::*;
 use crate::transaction_state::StatusProvider;
 use chain_traits::ChainTraits;
@@ -130,8 +130,9 @@ impl GemGateway {
     #[uniffi::constructor]
     pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         let provider = coalescing_provider(provider);
+        let endpoints: Arc<dyn NodeEndpoints> = Arc::new(PreferencesNodeEndpoints::new(preferences.clone()));
         let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), preferences, secure_preferences));
-        let alien_wrapper = Arc::new(AlienProviderWrapper::new(provider));
+        let alien_wrapper = Arc::new(AlienProviderWrapper::with_endpoints(provider, endpoints));
         let yielder = Yielder::new(alien_wrapper.clone());
         let swapper = Swapper::new(alien_wrapper);
         let status_provider = StatusProvider::new(chain_factory.clone(), swapper);

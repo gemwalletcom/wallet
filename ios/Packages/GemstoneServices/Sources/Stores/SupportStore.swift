@@ -2,8 +2,8 @@
 
 import Foundation
 import protocol Gemstone.GemSupportStore
-import typealias Gemstone.SupportMessage
-import typealias Gemstone.SupportTyping
+import struct Gemstone.SupportMessage
+import struct Gemstone.SupportTyping
 import GemstonePrimitives
 import Primitives
 import Store
@@ -18,15 +18,15 @@ public final class GemstoneSupportStore: GemSupportStore, Sendable {
     }
 
     public func saveMessages(messages: [Gemstone.SupportMessage]) async throws {
-        try store.addMessages(messages.map { try Primitives.SupportMessage($0) })
+        try store.addMessages(messages.map { $0.map() })
     }
 
     public func saveMessage(id: String, message: Gemstone.SupportMessage) async throws {
-        try store.replace(id: id, with: Primitives.SupportMessage(message))
+        try store.replace(id: id, with: message.map())
     }
 
     public func updateTyping(typing: Gemstone.SupportTyping) throws {
-        self.typing.update(try Primitives.SupportTyping(typing))
+        self.typing.update(typing.map())
     }
 
     public func clearTyping() throws {

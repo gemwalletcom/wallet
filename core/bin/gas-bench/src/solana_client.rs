@@ -5,7 +5,8 @@ use gem_jsonrpc::client::JsonRpcClient;
 use gem_solana::models::jito::{FeeStats, calculate_fee_stats};
 use gem_solana::models::prioritization_fee::SolanaPrioritizationFee;
 use gem_solana::{JUPITER_PROGRAM_ID, SolanaRpc, SolanaRpcConfig, USDC_TOKEN_MINT};
-use gemstone::alien::{AlienProvider, new_alien_client, reqwest_provider::NativeProvider};
+use gem_jsonrpc::RpcProvider;
+use gemstone::alien::{new_alien_client, reqwest_provider::NativeProvider};
 use primitives::Chain;
 
 pub const ORCA_WHIRLPOOL: &str = "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc";

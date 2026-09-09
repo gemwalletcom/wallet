@@ -51,7 +51,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":gemcore"))
     implementation(project(":data:services:store"))
     api(project(":data:services:native-provider"))
 
@@ -59,7 +58,6 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore)
-    implementation(libs.androidx.security.crypto)
 
     implementation(libs.okhttp)
 
@@ -70,9 +68,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk.android)
     androidTestImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.room.ktx)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.room.runtime)
     androidTestImplementation(libs.kotlinx.coroutines.android)
 }

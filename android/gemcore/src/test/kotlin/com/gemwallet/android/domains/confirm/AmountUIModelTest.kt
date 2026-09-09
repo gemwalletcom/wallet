@@ -27,7 +27,6 @@ class AmountUIModelTest {
     }
 
     private fun model(price: Double?) = AmountUIModel(
-        transactionType = TransactionType.Transfer,
         headerKind = GemTransactionHeaderKind.Amount(showsFiat = true),
         amount = BigInteger("1000000000"),
         fromAsset = AssetPriceValue(mockAssetSolana(), price?.let { mockAssetPriceInfo(price = it) }),

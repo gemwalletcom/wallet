@@ -1,11 +1,11 @@
 use crate::config::docs::DocsUrl;
 use crate::models::custom_types::GemBigInt;
-use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletId};
+use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContext {
     pub wallet: Option<Wallet>,
-    pub asset_id: Option<AssetId>,
+    pub asset: Option<Asset>,
     pub is_stakeable: bool,
     pub has_stake_balance: bool,
     pub has_available_balance: bool,
@@ -16,12 +16,40 @@ pub struct GemBannerContext {
 
 #[uniffi::export]
 impl GemBannerContext {
-    pub fn visible_banners(&self, stored: Vec<GemBannerItem>) -> Vec<GemBannerItem> {
+    pub fn visible_banners(&self, stored: Vec<Banner>) -> Vec<Banner> {
         super::rules::visible_banners(stored, self)
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+impl GemBannerContext {
+    pub fn wallet(wallet: Wallet, is_wallet_empty: bool) -> Self {
+        Self {
+            wallet: Some(wallet),
+            asset: None,
+            is_stakeable: false,
+            has_stake_balance: false,
+            has_available_balance: false,
+            is_asset_activated: true,
+            asset_rank_score: None,
+            is_wallet_empty,
+        }
+    }
+
+    pub(super) fn asset_id(&self) -> Option<AssetId> {
+        self.asset.as_ref().map(|asset| asset.id.clone())
+    }
+
+    pub(super) fn banner(&self, item: GemBannerItem) -> Banner {
+        Banner {
+            wallet_id: self.wallet.as_ref().map(|wallet| wallet.id.clone()),
+            asset: self.asset.clone(),
+            event: item.event,
+            state: item.state,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemBannerItem {
     pub event: BannerEvent,
     pub state: BannerState,

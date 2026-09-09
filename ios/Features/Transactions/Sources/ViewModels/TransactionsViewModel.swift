@@ -18,7 +18,7 @@ public final class TransactionsViewModel {
 
     public let wallet: Wallet
 
-    public var transactions: [TransactionExtended] {
+    public var sections: [ListSection<TransactionViewModel>] {
         filterModel.query.value
     }
 

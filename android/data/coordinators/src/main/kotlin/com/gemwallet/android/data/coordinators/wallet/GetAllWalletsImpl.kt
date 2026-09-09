@@ -7,10 +7,9 @@ import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
-import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.walletRow
 import uniffi.gemstone.GemWalletService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +46,6 @@ class GetAllWalletsImpl(
                     WalletDataAggregateImpl(
                         wallet = it,
                         isCurrent = it.id == currentWalletId,
-                        walletAccount = it.accounts.firstOrNull(),
                     )
                 }
             }
@@ -60,18 +58,13 @@ class GetAllWalletsImpl(
 class WalletDataAggregateImpl(
     private val wallet: Wallet,
     override val isCurrent: Boolean,
-    private val walletAccount: Account?,
 ) : WalletDataAggregate {
 
     override val id: String = wallet.id.id
 
     override val name: String = wallet.name
 
-    override val type: WalletType = wallet.type
-
-    override val walletChain: Chain? = walletAccount?.chain
-
-    override val walletAddress: String? = walletAccount?.address
+    override val row: GemWalletRow = walletRow(wallet.toGem())
 
     override val isPinned: Boolean = wallet.isPinned
 

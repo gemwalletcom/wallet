@@ -26,6 +26,7 @@ fun DbBalance.toGemAssetBalance(): GemAssetBalance = GemAssetBalance(
         bandwidthAvailable = bandwidthAvailable.toUInt(),
         bandwidthTotal = bandwidthTotal.toUInt(),
     ),
+    isActive = isActive,
 )
 
 fun DbPrice.toAssetPrice(): AssetPrice = AssetPrice(

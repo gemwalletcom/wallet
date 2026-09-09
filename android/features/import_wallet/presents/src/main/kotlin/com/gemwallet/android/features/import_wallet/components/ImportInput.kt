@@ -43,7 +43,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
 import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
@@ -72,21 +72,22 @@ internal fun ImportInput(
                 minLines = 2,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 visualTransformation = {
-                    if (importType.walletType == WalletType.View  || importType.walletType == WalletType.PrivateKey) {
-                        return@BasicTextField TransformedText(it, OffsetMapping.Identity)
+                    when (importType.kind) {
+                        GemWalletImportKind.ADDRESS,
+                        GemWalletImportKind.PRIVATE_KEY -> TransformedText(it, OffsetMapping.Identity)
+                        GemWalletImportKind.PHRASE -> TransformedText(
+                            highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)),
+                            OffsetMapping.Identity
+                        )
                     }
-                    TransformedText(
-                        highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)),
-                        OffsetMapping.Identity
-                    )
                 },
                 decorationBox = { innerTextField ->
                     if (inputState.text.isEmpty()) {
                         Text(
-                            text = when (importType.walletType) {
-                                WalletType.View -> stringResource(R.string.wallet_import_address_field)
-                                WalletType.PrivateKey -> stringResource(R.string.common_private_key)
-                                else -> stringResource(R.string.common_secret_phrase)
+                            text = when (importType.kind) {
+                                GemWalletImportKind.ADDRESS -> stringResource(R.string.wallet_import_address_field)
+                                GemWalletImportKind.PRIVATE_KEY -> stringResource(R.string.common_private_key)
+                                GemWalletImportKind.PHRASE -> stringResource(R.string.common_secret_phrase)
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.secondary,
@@ -123,10 +124,10 @@ internal fun ImportInput(
                 text = stringResource(id = R.string.common_paste),
             ) {
                 val newValue = clipboardManager.getPlainText() ?: ""
-                val pastedText = if (importType.walletType == WalletType.View || importType.walletType == WalletType.PrivateKey) {
-                    newValue.trim()
-                } else {
-                    "$newValue "
+                val pastedText = when (importType.kind) {
+                    GemWalletImportKind.ADDRESS,
+                    GemWalletImportKind.PRIVATE_KEY -> newValue.trim()
+                    GemWalletImportKind.PHRASE -> "$newValue "
                 }
                 onValueChange(
                     TextFieldValue(

@@ -77,9 +77,8 @@ impl GemConfirmService {
 
     pub async fn metadata(&self, wallet_id: WalletId, asset_id: AssetId, fee_asset_id: AssetId, extra_asset_ids: Vec<AssetId>) -> Result<GemConfirmMetadata, GemConfirmError> {
         let asset_ids = rules::metadata_asset_ids(&asset_id, &fee_asset_id, extra_asset_ids);
-        let balances = self.balance.balances(wallet_id, asset_ids.clone()).await?;
-        let prices = self.price.prices(asset_ids).await?;
-        rules::build_metadata(asset_id, fee_asset_id, balances, prices)
+        let (balances, prices) = futures::join!(self.balance.balances(wallet_id, asset_ids.clone()), self.price.prices(asset_ids));
+        rules::build_metadata(asset_id, fee_asset_id, balances?, prices?)
     }
 
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, crate::services::error::GemServiceError> {
@@ -230,10 +229,12 @@ impl GemConfirmService {
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
-        let assets = self.assets.assets(fee_asset_ids.clone()).await?;
-        let balances = self.balance.balances(wallet_id, fee_asset_ids.clone()).await?;
-        let prices = self.price.prices(fee_asset_ids).await?;
-        Ok(rules::selectable_fee_assets(assets, balances, prices))
+        let (assets, balances, prices) = futures::join!(
+            self.assets.assets(fee_asset_ids.clone()),
+            self.balance.balances(wallet_id, fee_asset_ids.clone()),
+            self.price.prices(fee_asset_ids),
+        );
+        Ok(rules::selectable_fee_assets(assets?, balances?, prices?))
     }
     pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let confirm_data = self.load(input, options).await?;

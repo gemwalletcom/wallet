@@ -8,15 +8,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
-import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PriceInfo
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.models.ListPosition
+import uniffi.gemstone.GemPriceAlertKind
 
 internal data class PriceAlertSupportContent(
     @param:StringRes val labelRes: Int? = null,
@@ -28,27 +29,27 @@ internal data class PriceAlertSupportContent(
 }
 
 internal fun priceAlertSupportContent(
-    type: PriceAlertType,
+    kind: GemPriceAlertKind,
     price: String,
     percentage: String,
-): PriceAlertSupportContent = when (type) {
-    PriceAlertType.Auto -> PriceAlertSupportContent(
+): PriceAlertSupportContent = when (kind) {
+    GemPriceAlertKind.AUTO -> PriceAlertSupportContent(
         primaryText = price,
         secondaryText = percentage,
     )
-    PriceAlertType.Over -> PriceAlertSupportContent(
+    GemPriceAlertKind.OVER -> PriceAlertSupportContent(
         labelRes = R.string.price_alerts_direction_over,
         secondaryText = price,
     )
-    PriceAlertType.Under -> PriceAlertSupportContent(
+    GemPriceAlertKind.UNDER -> PriceAlertSupportContent(
         labelRes = R.string.price_alerts_direction_under,
         secondaryText = price,
     )
-    PriceAlertType.Increase -> PriceAlertSupportContent(
+    GemPriceAlertKind.INCREASE -> PriceAlertSupportContent(
         labelRes = R.string.price_alerts_direction_increases_by,
         secondaryText = percentage,
     )
-    PriceAlertType.Decrease -> PriceAlertSupportContent(
+    GemPriceAlertKind.DECREASE -> PriceAlertSupportContent(
         labelRes = R.string.price_alerts_direction_decreases_by,
         secondaryText = percentage,
     )
@@ -56,7 +57,7 @@ internal fun priceAlertSupportContent(
 
 internal fun priceAlertSupport(item: PriceAlertDataAggregate): (@Composable () -> Unit)? {
     val content = priceAlertSupportContent(
-        type = item.type,
+        kind = item.kind,
         price = item.price,
         percentage = item.percentage,
     )
@@ -68,7 +69,7 @@ internal fun priceAlertSupport(item: PriceAlertDataAggregate): (@Composable () -
         PriceInfo(
             price = primaryText,
             changes = content.secondaryText,
-            state = item.priceState,
+            state = item.priceDirection.toValueDirection(),
             style = MaterialTheme.typography.bodyMedium,
         )
     }

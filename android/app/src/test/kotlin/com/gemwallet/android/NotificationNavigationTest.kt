@@ -24,7 +24,6 @@ import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PushNotificationTypes
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
 import io.mockk.coEvery
@@ -266,7 +265,7 @@ class NotificationNavigationTest {
 
     @Test
     fun rewardsNotification_opensReferralWithoutPayloadData() = runBlocking {
-        val notification = pushNotificationService.parse(PushNotificationTypes.Rewards.string, null)
+        val notification = pushNotificationService.parse("rewards", null)
 
         assertEquals(GemPushNotification.Rewards, notification)
         assertEquals(listOf(ReferralRoute()), subject.prepareNavigation(notification!!))
@@ -274,7 +273,7 @@ class NotificationNavigationTest {
 
     @Test
     fun testNotification_navigatesNowhere() = runBlocking {
-        val notification = pushNotificationService.parse(PushNotificationTypes.Test.string, null)
+        val notification = pushNotificationService.parse("test", null)
 
         assertEquals(GemPushNotification.Test, notification)
         assertEquals(emptyList<Any>(), subject.prepareNavigation(notification!!))

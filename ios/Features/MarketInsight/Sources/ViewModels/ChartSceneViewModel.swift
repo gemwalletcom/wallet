@@ -82,7 +82,9 @@ public final class ChartSceneViewModel: ChartListViewable {
 
 public extension ChartSceneViewModel {
     func load() async {
-        chartState = .loading
+        if chartState.value == nil {
+            chartState = .loading
+        }
         do {
             let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.map())
             let charts = (chart.values + [chart.current].compactMap { $0 }).map { $0.map() }

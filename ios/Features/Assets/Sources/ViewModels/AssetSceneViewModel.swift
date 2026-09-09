@@ -36,7 +36,7 @@ public final class AssetSceneViewModel: Sendable {
     public var input: AssetSceneInput
     public let assetQuery: ObservableQuery<ChainAssetRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
-    public let transactionsQuery: ObservableQuery<TransactionsRequest>
+    public let transactionsQuery: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
 
     public init(
         service: any GemAssetDetailsServiceProtocol,
@@ -68,7 +68,7 @@ public final class AssetSceneViewModel: Sendable {
         bannersQuery.value
     }
 
-    public var transactions: [TransactionExtended] {
+    public var transactionSections: [ListSection<TransactionViewModel>] {
         transactionsQuery.value
     }
 
@@ -134,7 +134,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var showTransactions: Bool {
-        transactions.isNotEmpty
+        transactionSections.isNotEmpty
     }
 
     var pinText: String {
@@ -198,7 +198,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var visibleBanners: [Banner] {
-        bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
+        bannerContext.visibleBanners(stored: banners.map { $0.map() }).map { $0.map() }
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
@@ -208,7 +208,7 @@ public final class AssetSceneViewModel: Sendable {
     private var bannerContext: GemBannerContext {
         GemBannerContext(
             wallet: wallet.map(),
-            assetId: asset.id.identifier,
+            asset: asset.map(),
             isStakeable: assetData.metadata.isStakeEnabled,
             hasStakeBalance: stakedValue > .zero,
             hasAvailableBalance: assetData.balance.available > 0,
@@ -466,7 +466,7 @@ extension AssetSceneViewModel {
     }
 
     private var stakeBalance: GemAssetBalance {
-        GemAssetBalance(assetData.balance, assetId: asset.id)
+        GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive)
     }
 
     private var stakedValue: BigInt {

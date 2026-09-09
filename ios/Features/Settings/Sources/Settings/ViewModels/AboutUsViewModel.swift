@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemAppUpdateServiceProtocol
-import AppService
 import Components
 import enum Gemstone.SocialUrl
 import GemstonePrimitives

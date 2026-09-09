@@ -33,20 +33,21 @@ public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, Bindab
 
     private func startObservation() {
         guard let dbQueue else { return }
+        let request = request
 
-        cancellable = ValueObservation.tracking { [request] db in
-            try request.fetch(db)
-        }
-        .publisher(in: dbQueue, scheduling: .immediate)
-        .sink(
-            receiveCompletion: { completion in
-                if case let .failure(error) = completion {
-                    debugLog("ObservableQuery<\(Request.self)> error: \(error)")
-                }
-            },
-            receiveValue: { [weak self] newValue in
-                self?.value = newValue
-            },
-        )
+        cancellable = ValueObservation
+            .tracking { db in try request.fetch(db) }
+            .removeDuplicates()
+            .publisher(in: dbQueue, scheduling: .immediate)
+            .sink(
+                receiveCompletion: { completion in
+                    if case let .failure(error) = completion {
+                        debugLog("ObservableQuery<\(Request.self)> error: \(error)")
+                    }
+                },
+                receiveValue: { [weak self] newValue in
+                    self?.value = newValue
+                },
+            )
     }
 }

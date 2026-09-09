@@ -25,6 +25,7 @@ let package = Package(
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
+        .package(name: "Style", path: "../../Packages/Style"),
     ],
     targets: [
         .target(
@@ -40,15 +41,18 @@ let package = Package(
                 "Components",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "InfoSheet",
+                "Style",
             ],
             path: "Sources",
         ),
         .testTarget(
             name: "MarketInsightTests",
             dependencies: [
-                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "MarketInsight",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                "Gemstone",
+                "Localization",
+                "Primitives",
             ],
         ),
     ],

@@ -3,6 +3,7 @@ package com.gemwallet.android.features.confirm.viewmodels
 import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.pack
@@ -40,6 +41,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -64,12 +67,16 @@ class ConfirmViewModelRetryTest {
     private val account = mockAccount(chain = Chain.HyperCore)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmSession = mockk<GemConfirmSession>()
+    private var model: ConfirmViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() = runTest(testDispatcher) {
+        model?.viewModelScope?.coroutineContext?.job?.cancelAndJoin()
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
@@ -78,7 +85,7 @@ class ConfirmViewModelRetryTest {
             recipient = GemRecipient(address = ""),
             value = BigInteger.TEN,
         )
-        val viewModel = viewModel(transfer)
+        val viewModel = viewModel(transfer).also { model = it }
         runCurrent()
         coVerify(timeout = 5_000, exactly = 1) { confirmSession.load(any()) }
 

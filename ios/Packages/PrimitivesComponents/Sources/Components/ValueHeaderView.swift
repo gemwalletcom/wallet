@@ -184,11 +184,10 @@ public struct ValueHeaderView: View {
 
 #Preview {
     let model = WalletHeaderViewModel(
-        walletType: .multicoin,
         totalValue: TotalFiatValue(value: 1000, pnlAmount: 50, pnlPercentage: 5.26),
         currencyCode: Currency.usd.rawValue,
         showsPnl: true,
-        buttons: [],
+        actions: .buttons(buttons: []),
     )
 
     ValueHeaderView(

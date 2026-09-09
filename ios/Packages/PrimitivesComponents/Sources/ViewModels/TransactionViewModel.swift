@@ -12,19 +12,21 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct TransactionViewModel: Sendable {
+public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     public let transaction: TransactionExtended
     private let row: GemTransactionRow
-    private let currency: String
-    private let formatter: ValueFormatter = .short
 
-    public init(
-        transaction: TransactionExtended,
-        currency: String,
-    ) {
+    public init(transaction: TransactionExtended) {
         row = transactionRow(transaction: transaction.map())
         self.transaction = transaction
-        self.currency = currency
+    }
+
+    public var id: String {
+        transaction.id
+    }
+
+    public static func sections(_ transactions: [TransactionExtended]) -> [ListSection<TransactionViewModel>] {
+        DateSectionBuilder(items: transactions, dateKeyPath: \.transaction.createdAt) { TransactionViewModel(transaction: $0) }.build()
     }
 
     public var assetImage: AssetImage {
@@ -115,12 +117,12 @@ public struct TransactionViewModel: Sendable {
         }
     }
 
-    public var subtitleTextValue: TextValue? {
-        row.value.textValue(currency: currency, formatter: formatter)
+    public func subtitleTextValue(currency: String) -> TextValue? {
+        row.value.textValue(currency: currency, formatter: .short)
     }
 
-    public var subtitleExtraTextValue: TextValue? {
-        row.equivalentValue.textValue(currency: currency, formatter: formatter, textStyle: .footnote)
+    public func subtitleExtraTextValue(currency: String) -> TextValue? {
+        row.equivalentValue.textValue(currency: currency, formatter: .short, textStyle: .footnote)
     }
 
     private var assetId: AssetId {

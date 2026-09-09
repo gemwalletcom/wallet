@@ -7,7 +7,6 @@ import PrimitivesComponents
 import struct Gemstone.Rewards
 import protocol Gemstone.GemRewardsServiceProtocol
 import GemstonePrimitives
-import GemstoneServices
 
 @Observable
 @MainActor

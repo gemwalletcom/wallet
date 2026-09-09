@@ -10,7 +10,6 @@ import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
 import struct Gemstone.SwapperQuote
-import GemstoneServices
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -133,10 +132,10 @@ struct SwapSceneViewModelTests {
         let model = await model()
 
         model.session = model.session.failedTransfer(.TransactionError("nonce"))
-        #expect(model.session.transferError() != nil)
+        #expect(model.session.error() != nil)
 
         model.onFinishSwapProviderSelection(.mock())
-        #expect(model.session.transferError() == nil)
+        #expect(model.session.error() == nil)
 
         model.session = model.session.startTransfer()!
         #expect(model.swapDetailsViewModel?.allowSelectProvider == false)
@@ -158,7 +157,7 @@ struct SwapSceneViewModelTests {
         task.cancel()
         await task.value
 
-        if model.session.quoteError() != nil {
+        if model.viewState.quoteError != nil {
             Issue.record("State should not be .error when Task is cancelled")
         }
     }
@@ -181,7 +180,7 @@ struct SwapSceneViewModelTests {
 
         await task.value
 
-        #expect(model.session.isInputEmpty())
+        #expect(model.viewState.isInputEmpty)
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
     }
@@ -196,7 +195,7 @@ struct SwapSceneViewModelTests {
         model.amountInputModel.text = .empty
         model.onChangeFromValue("1", .empty)
 
-        #expect(model.session.isInputEmpty())
+        #expect(model.viewState.isInputEmpty)
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
     }
@@ -219,7 +218,7 @@ struct SwapSceneViewModelTests {
 
         await task.value
 
-        #expect(model.session.isInputEmpty())
+        #expect(model.viewState.isInputEmpty)
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
     }
@@ -237,7 +236,7 @@ struct SwapSceneViewModelTests {
         #expect(model.amountInputModel.text == "1")
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
-        #expect(model.session.transferError() == nil)
+        #expect(model.session.error() == nil)
         #expect(model.loadTrigger?.isImmediate == true)
     }
 
@@ -419,7 +418,7 @@ struct SwapSceneViewModelTests {
 
         model.amountInputModel.text = "2"
 
-        #expect(model.session.isInputEmpty())
+        #expect(model.viewState.isInputEmpty)
         #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
 
         model.amountInputModel.text = "1"

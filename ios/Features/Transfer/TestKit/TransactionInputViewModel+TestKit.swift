@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmMetadata
-import BigInt
 import Foundation
 import GemstonePrimitivesTestKit
-import GemstonePrimitives
 import struct Gemstone.GemTransactionLoadFee
 import Primitives
 import PrimitivesComponents

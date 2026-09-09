@@ -180,10 +180,7 @@ public struct AssetScene: View {
             }
 
             if model.showTransactions {
-                TransactionsList(
-                    model.transactions,
-                    currency: model.assetDataModel.currencyCode,
-                )
+                TransactionsList(sections: model.transactionSections, currency: model.assetDataModel.currencyCode)
                 .listRowInsets(.assetListRowInsets)
             } else {
                 Section {

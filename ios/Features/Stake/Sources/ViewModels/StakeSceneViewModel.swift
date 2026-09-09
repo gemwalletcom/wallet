@@ -264,7 +264,7 @@ extension StakeSceneViewModel {
             walletType: wallet.type.map(),
             chain: chain.chain.rawValue,
             hasValidators: validators.isNotEmpty,
-            balance: GemAssetBalance(assetData.balance, assetId: asset.id),
+            balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
             delegations: delegations.map { $0.map() },
         )
     }

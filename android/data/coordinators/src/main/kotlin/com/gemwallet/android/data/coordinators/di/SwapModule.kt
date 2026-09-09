@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
@@ -37,7 +38,8 @@ object SwapModule {
     @Provides
     fun provideGemSwapper(
         alienProvider: AlienProvider,
-    ): GemSwapper = GemSwapper(alienProvider)
+        preferences: GemstonePreferencesStore,
+    ): GemSwapper = GemSwapper(alienProvider, preferences)
 
     @Singleton
     @Provides

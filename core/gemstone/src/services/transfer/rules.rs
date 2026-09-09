@@ -4,12 +4,12 @@ use primitives::SwapProvider;
 use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType, RecentActivityType, StakeType,
+    AccountDataType, ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType, RecentActivityType, StakeType,
     Transaction, TransactionDirection, TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState,
     TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
 
-use super::model::{GemConfirmDestination, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
+use super::model::{GemConfirmDestination, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionLoadInput, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
@@ -20,6 +20,7 @@ pub(crate) trait TransferInput {
     fn input_asset(&self) -> Asset;
     fn transaction_asset(&self) -> Asset;
     fn header_kind(&self) -> GemTransactionHeaderKind;
+    fn title(&self) -> GemConfirmTitle;
     fn shows_memo(&self) -> bool;
     fn fee_asset(&self) -> Asset;
     fn default_fee_priority(&self) -> FeePriority;
@@ -42,12 +43,12 @@ impl GemTransferData {
         self.input_type.input_asset()
     }
 
-    pub fn transaction_asset(&self) -> Asset {
-        self.input_type.transaction_asset()
-    }
-
     pub fn header_kind(&self) -> GemTransactionHeaderKind {
         self.input_type.header_kind()
+    }
+
+    pub fn title(&self) -> GemConfirmTitle {
+        self.input_type.title()
     }
 
     pub fn shows_memo(&self) -> bool {
@@ -96,6 +97,43 @@ impl TransferInput for TransactionInputType {
             Self::TransferNft { .. } => GemTransactionHeaderKind::Nft,
             Self::Swap { .. } => GemTransactionHeaderKind::Swap,
             Self::Perpetual { .. } => GemTransactionHeaderKind::Symbol,
+        }
+    }
+
+    fn title(&self) -> GemConfirmTitle {
+        match self {
+            Self::Transfer { .. } | Self::TransferNft { .. } => GemConfirmTitle::Send,
+            Self::Deposit { .. } => GemConfirmTitle::Deposit,
+            Self::Withdrawal { .. } => GemConfirmTitle::Withdraw,
+            Self::Swap { .. } => GemConfirmTitle::Swap,
+            Self::TokenApprove { .. } => GemConfirmTitle::Approve,
+            Self::Generic { .. } => GemConfirmTitle::Request,
+            Self::Account {
+                account_type: AccountDataType::Activate,
+                ..
+            } => GemConfirmTitle::ActivateAsset,
+            Self::Stake { stake_type, .. } => match stake_type {
+                StakeType::Stake(_) => GemConfirmTitle::Stake,
+                StakeType::Unstake(_) => GemConfirmTitle::Unstake,
+                StakeType::Redelegate(_) => GemConfirmTitle::Redelegate,
+                StakeType::Rewards(_) => GemConfirmTitle::ClaimRewards,
+                StakeType::Withdraw(_) => GemConfirmTitle::Withdraw,
+                StakeType::Freeze(_) => GemConfirmTitle::Freeze,
+                StakeType::Unfreeze(_) => GemConfirmTitle::Unfreeze,
+            },
+            Self::Earn { earn_type, .. } => match earn_type {
+                EarnType::Deposit(_) => GemConfirmTitle::Deposit,
+                EarnType::Withdraw(_) => GemConfirmTitle::Withdraw,
+            },
+            Self::Perpetual { perpetual_type, .. } => match perpetual_type {
+                PerpetualType::Open { data } => GemConfirmTitle::PerpetualOpen { direction: data.direction.clone() },
+                PerpetualType::Increase { data } => GemConfirmTitle::PerpetualIncrease { direction: data.direction.clone() },
+                PerpetualType::Reduce { data } => GemConfirmTitle::PerpetualReduce {
+                    direction: data.position_direction.clone(),
+                },
+                PerpetualType::Close { .. } => GemConfirmTitle::PerpetualClose,
+                PerpetualType::Modify { .. } => GemConfirmTitle::PerpetualModify,
+            },
         }
     }
 
@@ -680,6 +718,35 @@ mod tests {
             GemTransactionHeaderKind::AssetImage
         );
         assert_eq!(perpetual_input(asset(Chain::HyperCore)).header_kind(), GemTransactionHeaderKind::Symbol);
+    }
+
+    #[test]
+    fn test_title_by_input_type() {
+        assert_eq!(TransactionInputType::Transfer { asset: asset(Chain::Ethereum) }.title(), GemConfirmTitle::Send);
+        assert_eq!(TransactionInputType::Deposit { asset: asset(Chain::HyperCore) }.title(), GemConfirmTitle::Deposit);
+        assert_eq!(TransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) }.title(), GemConfirmTitle::Withdraw);
+        assert_eq!(
+            TransactionInputType::TokenApprove {
+                asset: asset(Chain::Ethereum),
+                approval_data: primitives::swap::ApprovalData::mock(),
+            }
+            .title(),
+            GemConfirmTitle::Approve
+        );
+        assert_eq!(
+            TransactionInputType::Stake {
+                asset: asset(Chain::Cosmos),
+                stake_type: StakeType::Rewards(vec![]),
+            }
+            .title(),
+            GemConfirmTitle::ClaimRewards
+        );
+        assert_eq!(
+            perpetual_input(asset(Chain::HyperCore)).title(),
+            GemConfirmTitle::PerpetualOpen {
+                direction: PerpetualDirection::Long
+            }
+        );
     }
 
     #[test]

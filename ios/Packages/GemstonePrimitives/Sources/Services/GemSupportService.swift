@@ -19,6 +19,6 @@ public extension GemSupportServiceProtocol {
     }
 
     func retryMessage(_ message: SupportMessage) async throws {
-        try await retryMessage(message: message.json())
+        try await retryMessage(message: message.map())
     }
 }

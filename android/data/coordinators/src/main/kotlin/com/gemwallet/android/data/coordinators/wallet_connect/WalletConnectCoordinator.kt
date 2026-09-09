@@ -91,8 +91,6 @@ class WalletConnectCoordinator(
 
     override fun observeConnection(connectionId: String): Flow<WalletConnection?> = connectionStore.observeConnection(connectionId)
 
-    override suspend fun getConnectionByTopic(topic: String): WalletConnection? = connectionStore.getConnectionBySessionId(topic)
-
     override suspend fun disconnect(connectionId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         walletConnectService.deleteSession(connectionId)
         val activeSession = activeSessions()?.firstOrNull { it.topic == connectionId }

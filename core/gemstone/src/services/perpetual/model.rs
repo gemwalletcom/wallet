@@ -152,6 +152,10 @@ impl GemPerpetualPositionAction {
     pub fn recipient(&self) -> GemRecipient {
         GemPerpetual::new(self.data().provider.clone()).recipient()
     }
+
+    pub fn shows_autoclose(&self) -> bool {
+        matches!(self, Self::Open { .. })
+    }
 }
 
 impl GemPerpetualPositionAction {
@@ -184,5 +188,22 @@ mod tests {
 
         assert_eq!(recipient.name.as_deref(), Some("Hyperliquid"));
         assert!(recipient.address.is_empty());
+    }
+
+    #[test]
+    fn test_only_opening_a_position_shows_autoclose() {
+        let data = GemPerpetualTransferData {
+            provider: PerpetualProvider::Hypercore,
+            direction: PerpetualDirection::Long,
+            asset: Asset::mock(),
+            base_asset: Asset::mock(),
+            asset_index: 0,
+            price: 100.0,
+            leverage: 3,
+            margin_type: PerpetualMarginType::Cross,
+        };
+
+        assert!(GemPerpetualPositionAction::Open { data: data.clone() }.shows_autoclose());
+        assert!(!GemPerpetualPositionAction::Increase { data }.shows_autoclose());
     }
 }

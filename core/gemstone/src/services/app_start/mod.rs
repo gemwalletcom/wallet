@@ -1,5 +1,6 @@
 pub mod model;
 
+use std::future::Future;
 use std::sync::Arc;
 
 use primitives::{Chain, Wallet};
@@ -76,12 +77,12 @@ impl GemAppStartService {
     }
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {
-        let mut failures = Vec::new();
-        record(&mut failures, GemAppStartStep::SetupBanners, self.banners.setup()).await;
-        record(&mut failures, GemAppStartStep::UpdateConfig, async { self.config.update_config().await.map(|_| ()) }).await;
-        record(&mut failures, GemAppStartStep::SyncAssets, self.sync_assets()).await;
-        record(&mut failures, GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }).await;
-        failures
+        let (banners, assets, device) = futures::join!(
+            recorded(GemAppStartStep::SetupBanners, self.banners.setup()),
+            self.sync_config_and_assets(),
+            recorded(GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }),
+        );
+        [banners, assets, device].concat()
     }
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Vec<GemAppStartFailure> {
@@ -98,9 +99,24 @@ impl GemAppStartService {
 }
 
 impl GemAppStartService {
+    async fn sync_config_and_assets(&self) -> Vec<GemAppStartFailure> {
+        let mut failures = recorded(GemAppStartStep::UpdateConfig, async { self.config.update_config().await.map(|_| ()) }).await;
+        record(&mut failures, GemAppStartStep::SyncAssets, self.sync_assets()).await;
+        failures
+    }
+
     async fn sync_assets(&self) -> Result<(), GemServiceError> {
         self.assets.sync_swappable_chains().await?;
         let config = self.config.get_config().await?;
         self.assets.sync_availability(config.versions).await
     }
+}
+
+async fn recorded<F>(step: GemAppStartStep, future: F) -> Vec<GemAppStartFailure>
+where
+    F: Future<Output = Result<(), GemServiceError>>,
+{
+    let mut failures = Vec::new();
+    record(&mut failures, step, future).await;
+    failures
 }

@@ -4,7 +4,6 @@ import Components
 import Foundation
 import Localization
 import Primitives
-import PrimitivesComponents
 
 struct TransactionExplorerViewModel {
     private let transactionLink: BlockExplorerLink

@@ -7,7 +7,6 @@ import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
-import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -20,13 +19,6 @@ class AmountParamsPerpetualTest {
 
     private fun perpetual(positionAction: GemPerpetualPositionAction): AmountParams.Perpetual =
         AmountParams.Perpetual(assetId, perpetualId, positionAction)
-
-    @Test
-    fun transactionType_followsThePositionAction() {
-        assertEquals(TransactionType.PerpetualOpenPosition, perpetual(GemPerpetualPositionAction.Open(transferData)).transactionType)
-        assertEquals(TransactionType.PerpetualModifyPosition, perpetual(GemPerpetualPositionAction.Increase(transferData)).transactionType)
-        assertEquals(TransactionType.PerpetualModifyPosition, perpetual(GemPerpetualPositionAction.Reduce(transferData, mockPerpetualPosition().toGem())).transactionType)
-    }
 
     @Test
     fun direction_derivesFromPositionActionData() {

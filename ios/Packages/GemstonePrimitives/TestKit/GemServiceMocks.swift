@@ -10,17 +10,9 @@ import PrimitivesTestKit
 public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let syncError: Error?
     public private(set) var synchronizeIfNeededCalls = 0
-    public private(set) var pushEnabledValues: [Bool] = []
 
     public init(syncError: Error? = nil) {
         self.syncError = syncError
-    }
-
-    public func setPushEnabled(enabled: Bool) async throws {
-        pushEnabledValues.append(enabled)
-        if let syncError {
-            throw syncError
-        }
     }
 
     public func synchronizeIfNeeded() async throws {
@@ -121,13 +113,13 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         perpetualEnabled = enabled
     }
 
-    public func showPerpetuals(wallet _: Gemstone.Wallet) -> Bool {
+    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
         perpetualEnabled
     }
 
     public var collectionsShown = true
 
-    public func showCollections(wallet _: Gemstone.Wallet) -> Bool {
+    public func showCollections(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
         collectionsShown
     }
 
@@ -162,12 +154,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func setAppearance(appearance: Gemstone.Appearance) throws {
         self.appearance = appearance
     }
-
-    public func getSwapSlippageBps() -> UInt32? {
-        nil
-    }
-
-    public func setSwapSlippageBps(bps _: UInt32?) throws {}
 
     public func getPerpetualLeverage() -> UInt8 {
         5
@@ -250,9 +236,6 @@ public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
         throw AnyError("StubAlienProvider does not perform requests")
     }
 
-    public func getEndpoint(chain _: Gemstone.Chain) throws -> String {
-        throw AnyError("StubAlienProvider has no endpoints")
-    }
 }
 
 private func contactService() -> GemContactService {
@@ -343,13 +326,13 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
     private let prepare: @Sendable () async throws -> Bool
     private let onConnected: @Sendable () async throws -> Void
     private let onDisconnected: @Sendable () async -> Void
-    private let onEvent: @Sendable (Gemstone.StreamEvent) async throws -> Void
+    private let onEvent: @Sendable (String) async throws -> Void
 
     public init(
         prepare: @escaping @Sendable () async throws -> Bool = { true },
         onConnected: @escaping @Sendable () async throws -> Void = {},
         onDisconnected: @escaping @Sendable () async -> Void = {},
-        onEvent: @escaping @Sendable (Gemstone.StreamEvent) async throws -> Void = { _ in },
+        onEvent: @escaping @Sendable (String) async throws -> Void = { _ in },
     ) {
         self.prepare = prepare
         self.onConnected = onConnected
@@ -369,7 +352,7 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
         await onDisconnected()
     }
 
-    public func handle(event: Gemstone.StreamEvent) async throws {
+    public func handle(event: String) async throws {
         try await onEvent(event)
     }
 }
@@ -397,9 +380,6 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         throw AnyError("not stubbed")
     }
 
-    public func usesWholeAmounts(chain: Gemstone.Chain) -> Bool {
-        builder.usesWholeAmounts(chain: chain)
-    }
 
     public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 {
         min(5, maxLeverage)
@@ -613,9 +593,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         freezes
     }
 
-    public func usesWholeAmounts(chain _: Gemstone.Chain) -> Bool {
-        wholeAmounts
-    }
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
         GemTransferData(inputType: .stake(asset: asset, stakeType: stakeType), recipient: GemRecipient(address: ""), value: value, useMaxAmount: useMaxAmount)
@@ -840,24 +817,30 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.rawValue
     }
 
-    public func totalFiatValue(balances: [Gemstone.AssetFiatValue]) -> Gemstone.TotalFiatValue {
-        let value = balances.reduce(0.0) { $0 + $1.amount * $1.price }
-        return Gemstone.TotalFiatValue(value: value, pnlAmount: 0, pnlPercentage: 0)
-    }
-
-    public func showsPnl(total: Gemstone.TotalFiatValue) -> Bool {
-        total.value > 0 && total.pnlAmount != 0
-    }
-
-    public func headerButtons(wallet _: Gemstone.Wallet, isEnabled: Bool) -> [GemHeaderButton] {
-        [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }
+    public func viewState(wallet: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.PerpetualBalance?, banners: [Gemstone.Banner], isWalletEmpty: Bool) -> GemWalletHomeViewState {
+        let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + (perpetual.map { $0.available + $0.reserved } ?? 0)
+        let total = Gemstone.TotalFiatValue(value: value, pnlAmount: 0, pnlPercentage: 0)
+        let isEnabled = !banners.contains { $0.event == .accountBlockedMultiSignature }
+        let context = GemBannerContext(
+            wallet: wallet,
+            asset: nil,
+            isStakeable: false,
+            hasStakeBalance: false,
+            hasAvailableBalance: false,
+            isAssetActivated: true,
+            assetRankScore: nil,
+            isWalletEmpty: isWalletEmpty,
+        )
+        return GemWalletHomeViewState(
+            totalValue: total,
+            showsPnl: total.value > 0 && total.pnlAmount != 0,
+            headerActions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
+            showCollections: false,
+            visibleBanners: context.visibleBanners(stored: banners),
+        )
     }
 
     public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}
-
-    public func includesPerpetualCollateral() -> Bool {
-        false
-    }
 
     public func showsInitialLoading() throws -> Bool {
         showsLoading

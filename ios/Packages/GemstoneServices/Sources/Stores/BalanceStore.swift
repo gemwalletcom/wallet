@@ -3,8 +3,7 @@
 import Foundation
 import protocol Gemstone.GemBalanceStore
 import struct Gemstone.GemAssetBalance
-import struct Gemstone.GemBalanceUpdate
-import enum Gemstone.GemBalanceUpdateType
+import struct Gemstone.GemBalanceRecord
 import struct Gemstone.GemBalanceValue
 import typealias Gemstone.AssetId
 import GemstonePrimitives
@@ -19,24 +18,31 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     }
 
     public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
-        let walletId = try WalletId.from(id: walletId)
-        return try assetIds.compactMap { assetId in
-            let assetId = try Primitives.AssetId(id: assetId)
-            return try store.getBalance(walletId: walletId, assetId: assetId).map { GemAssetBalance($0, assetId: assetId) }
-        }
+        try store.getBalances(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) })
+            .map { GemAssetBalance($0.balance, assetId: $0.assetId, isActive: $0.isActive) }
     }
 
-    public func updateBalances(walletId: String, updates: [GemBalanceUpdate]) async throws {
+    public func updateBalances(walletId: String, balances: [GemBalanceRecord]) async throws {
         let walletId = try WalletId.from(id: walletId)
-        let balances = try updates.map { update in
+        let updates = try balances.map { balance in
             try UpdateBalance(
-                assetId: Primitives.AssetId(id: update.assetId),
-                type: updateType(update.updateType),
+                assetId: Primitives.AssetId(id: balance.assetId),
+                available: value(balance.available),
+                frozen: value(balance.frozen),
+                locked: value(balance.locked),
+                staked: value(balance.staked),
+                pending: value(balance.pending),
+                pendingUnconfirmed: value(balance.pendingUnconfirmed),
+                rewards: value(balance.rewards),
+                reserved: value(balance.reserved),
+                withdrawable: value(balance.withdrawable),
+                earn: value(balance.earn),
+                metadata: balance.metadata.map { $0.map() },
                 updatedAt: .now,
-                isActive: update.isActive,
+                isActive: balance.isActive,
             )
         }
-        try store.updateBalances(balances, for: walletId)
+        try store.updateBalances(updates, for: walletId)
     }
 
     public func getEnabledAssetIds(walletId: String) async throws -> [Gemstone.AssetId] {
@@ -49,28 +55,6 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
 
     public func setAssetPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
         try store.pinAsset(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), value: pinned)
-    }
-
-    private func updateType(_ type: GemBalanceUpdateType) -> UpdateBalanceType {
-        switch type {
-        case let .coin(available, frozen, reserved, pendingUnconfirmed):
-            .coin(UpdateCoinBalance(available: value(available), frozen: value(frozen), reserved: value(reserved), pendingUnconfirmed: value(pendingUnconfirmed)))
-        case let .token(available):
-            .token(UpdateTokenBalance(available: value(available)))
-        case let .stake(staked, pending, rewards, locked, frozen, metadata):
-            .stake(UpdateStakeBalance(
-                staked: value(staked),
-                pending: value(pending),
-                frozen: value(frozen),
-                locked: value(locked),
-                rewards: value(rewards),
-                metadata: metadata.map { $0.map() },
-            ))
-        case let .earn(balance):
-            .earn(UpdateEarnBalance(balance: value(balance)))
-        case let .perpetual(available, reserved, withdrawable):
-            .perpetual(UpdatePerpetualBalance(available: value(available), reserved: value(reserved), withdrawable: value(withdrawable)))
-        }
     }
 
     private func value(_ value: GemBalanceValue) -> UpdateBalanceValue {

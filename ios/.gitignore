@@ -13,6 +13,8 @@ build/
 # Swift Package Manager
 .swiftpm/
 .build/
+Packages/*/Package.resolved
+Features/*/Package.resolved
 **/.swiftpm/**/package.xcworkspace/contents.xcworkspacedata
 .swiftpm/config/registries.json
 

@@ -17,6 +17,14 @@ References: `ios/Gem/App.swift` (app composition), `ios/Gem/ViewModels/MainTabVi
 - Group action methods in a view-model extension; existing section markers do not require adding new comments
 - Shared functionality lives in `Packages/`; features do not depend on each other directly
 
+## Imports and Package Dependencies
+
+- A target's `dependencies` in `Package.swift` equal the set of modules its files import: add the dependency (and the `.package` entry) with the first `import X`, drop it with the last one. SwiftPM exposes transitive modules, so a green build does not prove the manifest is honest
+- Remove dead imports before declaring dependencies, or a dead `import` becomes a dead dependency
+- An import removal is proven only by a build. Text search cannot judge it: `GemstonePrimitives`, `Style`, `Components` and every TestKit are used through extensions and `.mock` members without naming a type
+- `Primitives`, `InfoSheet` and `Validators` never import `Gemstone`; features import it directly and scoped (`import protocol Gemstone.X`), there is no wrapper layer. Rationale in [Services](../../docs/SERVICES.md)
+- App targets link only the package products their own sources import; transitive products link on their own
+
 ## Style
 
 - `Spacing` constants from the `Style` package, never hardcoded spacing (`ios/Packages/Style/Sources/Spacing.swift`)

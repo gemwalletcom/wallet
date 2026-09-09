@@ -1,6 +1,5 @@
 import BigInt
 @testable import Primitives
-import PrimitivesTestKit
 import Testing
 
 struct ApprovalValueTests {

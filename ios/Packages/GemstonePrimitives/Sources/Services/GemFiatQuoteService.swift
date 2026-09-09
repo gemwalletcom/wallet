@@ -30,8 +30,4 @@ public extension GemFiatSession {
     var type: FiatQuoteType {
         quoteType.map()
     }
-
-    var amount: String {
-        current().amount
-    }
 }

@@ -222,7 +222,7 @@ class SwapViewModel @Inject constructor(
     val uiState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
             val available = pay?.balance?.balance?.available ?: BigInteger.ZERO
             val atomic = pay?.let { Crypto(value, it.asset.decimals).atomicValue } ?: BigInteger.ZERO
-            createSwapUiState(quoteSession, quoteSession.buttonAction(atomic, available))
+            createSwapUiState(quoteSession.viewState(atomic, available))
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
 

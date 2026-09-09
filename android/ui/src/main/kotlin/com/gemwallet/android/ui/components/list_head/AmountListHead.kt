@@ -79,6 +79,7 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonKind
 import kotlin.math.floor
@@ -222,19 +223,21 @@ private data class AssetHeadActionItem(
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun AssetHeadActions(
-    isViewOnly: Boolean,
-    buttons: List<GemHeaderButton>,
+    actions: GemHeaderActions,
     onTransfer: (() -> Unit)?,
     onReceive: (() -> Unit)?,
     onBuy: (() -> Unit)?,
     onSwap: (() -> Unit)?,
 ) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
-    if (isViewOnly) {
-        AssetWatchOnly()
-        return
+    val buttons = when (actions) {
+        GemHeaderActions.WatchOnly -> {
+            AssetWatchOnly()
+            return
+        }
+        is GemHeaderActions.Buttons -> actions.buttons
     }
-    val actions = buttons.map { button ->
+    val items = buttons.map { button ->
         when (button.kind) {
             GemHeaderButtonKind.SEND -> AssetHeadActionItem(R.string.wallet_send, AppIcons.Send, button.isEnabled, onTransfer)
             GemHeaderButtonKind.RECEIVE -> AssetHeadActionItem(R.string.wallet_receive, AppIcons.Receive, button.isEnabled, onReceive)
@@ -247,7 +250,7 @@ fun AssetHeadActions(
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        actions.forEach { action ->
+        items.forEach { action ->
             val onClick = action.onClick ?: return@forEach
             AmountHeadAction(
                 modifier = Modifier
@@ -486,8 +489,7 @@ private class ActionTextAutoSize(
 fun PreviewAssetHeadActions() {
     WalletTheme {
         AssetHeadActions(
-            isViewOnly = false,
-            buttons = listOf(GemHeaderButtonKind.SEND, GemHeaderButtonKind.RECEIVE, GemHeaderButtonKind.BUY, GemHeaderButtonKind.SWAP).map { GemHeaderButton(it, isEnabled = true) },
+            actions = GemHeaderActions.Buttons(listOf(GemHeaderButtonKind.SEND, GemHeaderButtonKind.RECEIVE, GemHeaderButtonKind.BUY, GemHeaderButtonKind.SWAP).map { GemHeaderButton(it, isEnabled = true) }),
             onTransfer = { },
             onReceive = { },
             onBuy = {},

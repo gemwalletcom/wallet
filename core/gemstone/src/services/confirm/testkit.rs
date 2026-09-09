@@ -9,7 +9,7 @@ use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::{EmptyPreferences, GemGateway};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput};
 use crate::services::assets::{GemAssetStore, GemAssetsService, config::GemAssetConfigService};
-use crate::services::balance::{GemAssetBalance, GemBalanceService, GemBalanceStore, GemBalanceUpdate};
+use crate::services::balance::{GemAssetBalance, GemBalanceService, GemBalanceRecord, GemBalanceStore};
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -90,7 +90,7 @@ impl ConfirmTestkit {
         ));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
-            Arc::new(GemSimulationService::new(provider)),
+            Arc::new(GemSimulationService::new(provider, Arc::new(EmptyPreferences))),
             Arc::new(GemScanService::new(device_api.clone())),
             transactions,
             balance,
@@ -134,7 +134,7 @@ impl GemBalanceStore for MemoryBalanceStore {
             })
             .collect())
     }
-    async fn update_balances(&self, _: WalletId, _: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
+    async fn update_balances(&self, _: WalletId, _: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
         panic!("unexpected balance write")
     }
     async fn get_enabled_asset_ids(&self, _: WalletId) -> Result<Vec<AssetId>, GemServiceError> {

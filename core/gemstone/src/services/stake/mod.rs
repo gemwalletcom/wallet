@@ -120,10 +120,6 @@ impl GemStakeService {
         rules::uses_freeze(chain)
     }
 
-    pub fn uses_whole_amounts(&self, chain: Chain) -> bool {
-        rules::uses_whole_amounts(chain)
-    }
-
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
         rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
     }
@@ -148,8 +144,17 @@ impl GemStakeService {
 
     pub async fn sync_wallet(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
         let apr = self.store.get_apr(AssetId::from_chain(chain), StakeProviderType::Stake).await?.unwrap_or_default();
-        let names = self.sync_validators(chain, &address, apr).await?;
-        self.sync_delegations(wallet_id, chain, &address, &names).await
+        let (names, validators, delegation_validators, delegations) = futures::join!(
+            self.static_api.client.get_validators(chain),
+            self.gateway.get_staking_validators(chain, Some(apr)),
+            self.gateway.get_staking_delegation_validators(chain, address.clone()),
+            self.gateway.get_staking_delegations(chain, address),
+        );
+        let names: HashMap<String, String> = names
+            .map(|validators| validators.into_iter().map(|validator| (validator.id, validator.name)).collect())
+            .unwrap_or_default();
+        self.save_validators(chain, rules::merge_validators(validators?, delegation_validators?, &names)).await?;
+        self.save_delegations(wallet_id, chain, delegations?, &names).await
     }
 
     pub async fn sync_earn_wallet(&self, wallet_id: WalletId, asset_id: AssetId, address: String) -> Result<(), GemServiceError> {
@@ -169,20 +174,7 @@ impl GemStakeService {
         })?;
         Ok((wallet.id.clone(), account.address.clone()))
     }
-    async fn sync_validators(&self, chain: Chain, address: &str, apr: f64) -> Result<HashMap<String, String>, GemServiceError> {
-        let names: HashMap<String, String> = self
-            .static_api
-            .client
-            .get_validators(chain)
-            .await
-            .map(|validators| validators.into_iter().map(|validator| (validator.id, validator.name)).collect())
-            .unwrap_or_default();
-
-        let (validators, delegation_validators) = futures::join!(
-            self.gateway.get_staking_validators(chain, Some(apr)),
-            self.gateway.get_staking_delegation_validators(chain, address.to_string()),
-        );
-        let validators = rules::merge_validators(validators?, delegation_validators?, &names);
+    async fn save_validators(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Result<(), GemServiceError> {
         if !validators.is_empty() {
             let asset_id = AssetId::from_chain(chain);
             let stale_ids = rules::stale_validator_ids(self.store.get_validators(asset_id.clone(), StakeProviderType::Stake).await?, &validators);
@@ -192,12 +184,11 @@ impl GemStakeService {
             }
             self.address_store.save_address_names(rules::validator_address_names(&validators)).await?;
         }
-        Ok(names)
+        Ok(())
     }
 
-    async fn sync_delegations(&self, wallet_id: WalletId, chain: Chain, address: &str, names: &HashMap<String, String>) -> Result<(), GemServiceError> {
+    async fn save_delegations(&self, wallet_id: WalletId, chain: Chain, delegations: Vec<DelegationBase>, names: &HashMap<String, String>) -> Result<(), GemServiceError> {
         let asset_id = AssetId::from_chain(chain);
-        let delegations = self.gateway.get_staking_delegations(chain, address.to_string()).await?;
         let mut validators: HashMap<String, DelegationValidator> = self
             .store
             .get_validators(asset_id.clone(), StakeProviderType::Stake)

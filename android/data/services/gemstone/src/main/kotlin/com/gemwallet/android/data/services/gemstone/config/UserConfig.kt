@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.config
 
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
@@ -50,9 +51,8 @@ class UserConfig(
 
     fun setRateApplicationShown() = preferencesService.setRateApplicationShown()
 
-    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.toGem())
+    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.type.toGem(), wallet.chainIds)
 
-    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.toGem())
 
     fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().toPrimitives()
 
@@ -91,7 +91,6 @@ class UserConfig(
     private val perpetualLeverageState = MutableStateFlow(preferencesService.getPerpetualLeverage().toInt())
     private val perpetualTakeProfitState = MutableStateFlow(preferencesService.getPerpetualTakeProfitPercent().toInt())
     private val perpetualStopLossState = MutableStateFlow(preferencesService.getPerpetualStopLossPercent().toInt())
-    private val swapSlippageBpsState = MutableStateFlow(preferencesService.getSwapSlippageBps())
 
     fun perpetualLeverage(): StateFlow<Int> = perpetualLeverageState
 
@@ -114,13 +113,6 @@ class UserConfig(
         perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
     }
 
-    fun swapSlippageBps(): Flow<UInt?> = swapSlippageBpsState
-
-    fun setSwapSlippageBps(bps: UInt?) {
-        preferencesService.setSwapSlippageBps(bps)
-        swapSlippageBpsState.value = preferencesService.getSwapSlippageBps()
-    }
-
     fun reload() {
         hideBalancesState.value = preferencesService.isHideBalanceEnabled()
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
@@ -130,7 +122,6 @@ class UserConfig(
         perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
         perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
         perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
-        swapSlippageBpsState.value = preferencesService.getSwapSlippageBps()
     }
 
     fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }
