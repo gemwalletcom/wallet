@@ -633,11 +633,11 @@ remaining generator work, not app work. The generator is one table-driven
   the iOS `Chain.isTokenSupported` / `isSwapSupported` (test-only) config readers.
 
 - **The receive-collection chains are Core's list.** `GemNftService::receive_accounts(query)`
-  returns the session wallet's accounts on NFT chains matching a search, and
-  `Config::get_nft_chains()` the static NFT chain set the iOS asset-select filter needs. Android
+  returns the session wallet's accounts on NFT chains matching a search, and the iOS
+  receive-collection select lists those chains' native assets through the flow's filters. Android
   `ReceiveNftChainsViewModel` held the wallet read, the `isNftSupported()` filter and a
   `GemChainService` for matching; iOS `SelectAssetFlow` filtered `Chain.allCases` itself. Both
-  `Chain.isNftSupported` readers are gone.
+  `Chain.isNftSupported` readers and `Config::get_nft_chains()` are gone.
 
 - **An asset's icon is Core's answer, image and badge together.** `GemAssetConfigService::asset_icon(asset_id)`
   returns `GemAssetIcon { image, badge }`: the image is `Local { chain }` (a bundled chain logo: a native coin,
@@ -1207,7 +1207,7 @@ remaining generator work, not app work. The generator is one table-driven
   a `RowSelection` per type; Android spread it over constructor flags (`remoteSearch`), view-model
   overrides (`showRecents`, `action`, `assetFilters`) and per-screen composable arguments
   (`showPopular`, `action`, `showFilter`). Both now read the record: iOS keeps only
-  `SelectAssetPresentation` (title, section title, list type, default DB filters) beside it, and
+  `SelectAssetPresentation` (title, section title, list type) beside it, and
   Android's `BaseAssetSelectViewModel` takes the `GemSelectAssetType`, with one subclass per type
   (`AssetSelectViewModel` split into `ManageSelectViewModel` and `ReceiveSelectViewModel`) and
   `onSelected(asset)` recording the recent and enabling the price alert as the flow says.
@@ -1216,6 +1216,27 @@ remaining generator work, not app work. The generator is one table-driven
   the swap receive side recorded recents as a swap-pay selection on Android; Android enabled the
   price alert only when the target was confirmed, iOS on selection. A screen-context override
   survives as a parameter: the scan/receive sheet hides the chain filter on the receive select.
+- **Which rows an asset-select screen lists is Core's table too.** `GemAssetSelectionService::flow(select_type)`
+  returns the `GemSelectAssetFlow` with `scope` (the session wallet's assets, or every known asset
+  for the price-alert select) and `filters` (`GemAssetFilter`, now including `ChainsOrAssetIds`: the
+  perpetual deposit and withdraw assets, the NFT chains' native assets on the receive-collection
+  select, and for `SwapReceive { pay_asset_id }` the swapper's universe for that pay asset, which the
+  service reads from `GemSwapService::supported_assets`). `GemSelectAssetType::flow()` stays exported
+  for the test kits only; it answers without the swap universe. Each app maps the list onto its own
+  query once: iOS `AssetsRequestFilter(core:)` plus an `AssetsRequest.scope` that replaced the
+  `.priceAlerts` pseudo-filter, Android `toQueryFilters()` onto the Room predicates (`AssetFilter`
+  gained `ChainsOrAssetIds`, the search and recents queries take it). Gone: iOS's per-type
+  `defaultFilters` table and `SelectAssetSwapType.receive(chains:assetIds:)` (now `payAssetId`),
+  `GemSwapQuoteService::supported_assets` and its iOS `supportedAssets(for:)`; Android's
+  `BuySelectSearch`, `SendSelectSearch`, `PriceAlertSelectSearch`, `SwapSelectSearch`, the
+  `SearchSwapAssets` case with `AssetsSearchService.swapSearch`, and the three translations of one
+  Core list (`queryFilters`, `recentFilters`, `eligible` per action). Divergences resolved: Android's
+  receive and manage selects applied no filter; Android's send select with an empty query listed
+  the home screen's visible assets (hiding a funded asset the user had hidden, and capped at the
+  home list's limit) while its typed query and iOS ran Core's `[Enabled, HasBalance]`; recents on
+  Android dropped `Enabled` and `Sellable` from the list the picker used; Android's swap receive
+  select with a chosen pay asset skipped `Swappable`, and its swap pay select restricted the list by
+  the receive asset's *from*-universe, which Core (and iOS) never did.
 - **The wallet header's buttons are Core's list on both apps.** `GemWalletHomeService::header_buttons(wallet,
   is_enabled)` returns send, receive and buy, plus swap for a multicoin wallet or a single-chain and
   private-key wallet whose chain swaps, never for a view wallet. Android's `isSwapAvailable` on the

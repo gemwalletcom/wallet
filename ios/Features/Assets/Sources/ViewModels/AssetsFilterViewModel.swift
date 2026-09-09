@@ -2,6 +2,7 @@
 
 import Components
 import Localization
+import struct Gemstone.GemSelectAssetFlow
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -10,17 +11,17 @@ import Style
 import SwiftUI
 
 public struct AssetsFilterViewModel: Sendable, Equatable {
-    private let type: SelectAssetType
+    private let flow: GemSelectAssetFlow
     var chainsFilter: ChainsFilterViewModel
     var hasBalance: Bool = false
 
-    public init(type: SelectAssetType, model: ChainsFilterViewModel) {
-        self.type = type
+    public init(flow: GemSelectAssetFlow, model: ChainsFilterViewModel) {
+        self.flow = flow
         chainsFilter = model
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.type == rhs.type && lhs.chainsFilter == rhs.chainsFilter && lhs.hasBalance == rhs.hasBalance
+        lhs.flow == rhs.flow && lhs.chainsFilter == rhs.chainsFilter && lhs.hasBalance == rhs.hasBalance
     }
 
     public var isAnyFilterSpecified: Bool {
@@ -28,9 +29,9 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
     }
 
     var filters: [AssetsRequestFilter] {
-        guard isAnyFilterSpecified else { return defaultFilters }
+        guard isAnyFilterSpecified else { return flow.requestFilters }
 
-        var result = defaultFilters
+        var result = flow.requestFilters
 
         if chainsFilter.isAnySelected {
             result.append(.chains(chainsFilter.selectedChains.map(\.rawValue)))
@@ -43,12 +44,8 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
         return result.unique()
     }
 
-    public var defaultFilters: [AssetsRequestFilter] {
-        type.presentation().defaultFilters
-    }
-
     var showHasBalanceToggle: Bool {
-        type.flow.balanceFilter
+        flow.balanceFilter
     }
 
     var title: String {

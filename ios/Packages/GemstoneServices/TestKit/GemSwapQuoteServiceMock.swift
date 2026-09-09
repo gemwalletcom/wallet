@@ -13,7 +13,6 @@ import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapSession
 import struct Gemstone.GemSwapTransfer
-import struct Gemstone.SwapperAssetList
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperSlippage
 import struct Gemstone.SwapQuoteData
@@ -25,7 +24,6 @@ import PrimitivesTestKit
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: @Sendable (BigInt) -> [SwapperQuote]
     private let quoteData: Gemstone.SwapQuoteData
-    private let assetList: SwapperAssetList
     private let quotesDelay: Duration?
     private let quotesError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
@@ -35,7 +33,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
         quoteData: Gemstone.SwapQuoteData = .mock(),
-        assetList: SwapperAssetList = .mock(),
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
@@ -44,7 +41,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     ) {
         self.quotes = quotes
         self.quoteData = quoteData
-        self.assetList = assetList
         self.quotesDelay = quotesDelay
         self.quotesError = quotesError
         self.pairSuggestion = pairSuggestion
@@ -55,7 +51,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public convenience init(
         quotes: [SwapperQuote] = [.mock()],
         quoteData: Gemstone.SwapQuoteData = .mock(),
-        assetList: SwapperAssetList = .mock(),
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
@@ -65,7 +60,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         self.init(
             quotes: { _ in quotes },
             quoteData: quoteData,
-            assetList: assetList,
             quotesDelay: quotesDelay,
             quotesError: quotesError,
             pairSuggestion: pairSuggestion,
@@ -128,10 +122,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
             value: quote.request.value,
             useMaxAmount: quote.request.options.useMaxAmount,
         )
-    }
-
-    public func supportedAssets(assetId _: AssetId) -> SwapperAssetList {
-        assetList
     }
 
     public func suggestPair(payAssetId _: AssetId?) async throws -> GemSwapPairSuggestion? {

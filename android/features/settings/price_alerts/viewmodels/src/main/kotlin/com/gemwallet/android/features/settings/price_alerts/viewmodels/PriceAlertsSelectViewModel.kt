@@ -1,20 +1,13 @@
 package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
-import uniffi.gemstone.GemAssetSelectionServiceInterface
-import uniffi.gemstone.GemSelectAssetType
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
-import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
-import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
+import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOn
+import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,23 +20,6 @@ class PriceAlertsSelectViewModel @Inject constructor(
     getSession,
     recentAssetsService,
     service,
-    PriceAlertSelectSearch(searchService),
-    GemSelectAssetType.PRICE_ALERT,
+    BaseSelectSearch(searchService),
+    GemSelectAssetType.PriceAlert,
 )
-
-@OptIn(ExperimentalCoroutinesApi::class)
-open class PriceAlertSelectSearch(
-    private val searchService: AssetsSearchService,
-) : SelectSearch {
-
-    override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
-        return filters
-            .flatMapLatest { filters ->
-                searchService.search(
-                    filters?.query ?: "",
-                    true
-                )
-            }
-            .flowOn(Dispatchers.IO)
-    }
-}

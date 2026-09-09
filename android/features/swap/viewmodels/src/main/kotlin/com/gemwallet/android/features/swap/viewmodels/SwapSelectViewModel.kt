@@ -1,49 +1,41 @@
 package com.gemwallet.android.features.swap.viewmodels
 
-import uniffi.gemstone.GemAssetSelectionServiceInterface
-import uniffi.gemstone.GemSelectAssetType
-import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.swap.cases.SearchSwapAssets
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
-import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
-import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SwapSelectViewModel @Inject constructor(
     getSession: GetSession,
+    searchService: AssetsSearchService,
     recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
-    searchSwapAssets: SearchSwapAssets,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
     getSession = getSession,
     recentAssetsService = recentAssetsService,
     service = service,
-    search = SwapSelectSearch(searchSwapAssets),
+    search = BaseSelectSearch(searchService),
     selectType = when (savedStateHandle.requireSwapItemType()) {
-        SwapItemType.Pay -> GemSelectAssetType.SWAP_PAY
-        SwapItemType.Receive -> GemSelectAssetType.SWAP_RECEIVE
+        SwapItemType.Pay -> GemSelectAssetType.SwapPay
+        SwapItemType.Receive -> GemSelectAssetType.SwapReceive(payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key))
     },
 ) {
 
@@ -54,63 +46,9 @@ class SwapSelectViewModel @Inject constructor(
         .mapLatest { it?.toAssetId() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val select = MutableStateFlow(savedStateHandle.requireSwapItemType())
-
-    val state = combine(payAssetId, receiveAssetId, select) { pay, receive, select ->
-        setPair(select, pay, receive)
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    fun setPair(type: SwapItemType, payId: AssetId?, receiveId: AssetId?) {
-        queryState.clearText()
-        (search as? SwapSelectSearch)?.apply {
-            this.swapItemType.update { type }
-            this.payId.update { payId }
-            this.receiveId.update { receiveId }
-        }
-    }
 }
 
 private fun SavedStateHandle.requireSwapItemType(): SwapItemType =
     checkNotNull(get<SwapItemType>(RouteArgument.SwapItemType.key)) {
         "Missing route argument: ${RouteArgument.SwapItemType.key}"
     }
-
-@OptIn(ExperimentalCoroutinesApi::class)
-class SwapSelectSearch(
-    private val searchSwapAssets: SearchSwapAssets,
-) : SelectSearch {
-
-    val swapItemType = MutableStateFlow<SwapItemType?>(null)
-    val payId = MutableStateFlow<AssetId?>(null)
-    val receiveId = MutableStateFlow<AssetId?>(null)
-
-    override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
-        return combine(filters, swapItemType, payId, receiveId) { filter, type, payId, receiveId ->
-            SearchInputs(
-                filter = filter,
-                type = type,
-                oppositeAssetId = getOppositeAssetId(type, payId, receiveId),
-            )
-        }
-        .flatMapLatest { inputs ->
-            searchSwapAssets(
-                wallet = inputs.filter?.session?.wallet,
-                query = inputs.filter?.query ?: "",
-                swapItemType = inputs.type ?: SwapItemType.Receive,
-                oppositeAssetId = inputs.oppositeAssetId,
-            )
-        }
-    }
-
-    private fun getOppositeAssetId(type: SwapItemType?, payId: AssetId?, receiveId: AssetId?) = when (type) {
-        SwapItemType.Pay -> receiveId
-        SwapItemType.Receive -> payId
-        null -> null
-    }
-
-    private data class SearchInputs(
-        val filter: SelectAssetFilters?,
-        val type: SwapItemType?,
-        val oppositeAssetId: AssetId?,
-    )
-}

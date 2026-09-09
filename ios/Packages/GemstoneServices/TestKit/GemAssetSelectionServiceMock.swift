@@ -10,6 +10,8 @@ import typealias Gemstone.Currency
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemNftSearchItem
+import struct Gemstone.GemSelectAssetFlow
+import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemWalletSearchLimits
 import struct Gemstone.Wallet
 import typealias Gemstone.NftData
@@ -39,6 +41,10 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     public var nftSearchItems: [GemNftSearchItem] = []
     public var filterChainsResult: [Gemstone.Chain] = []
     public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
+
+    public func flow(selectType: GemSelectAssetType) -> GemSelectAssetFlow {
+        selectType.flow()
+    }
 
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
         GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)

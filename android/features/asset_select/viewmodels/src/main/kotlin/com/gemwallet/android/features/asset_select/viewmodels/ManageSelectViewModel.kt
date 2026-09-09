@@ -20,5 +20,5 @@ class ManageSelectViewModel @Inject constructor(
     recentAssetsService,
     service,
     BaseSelectSearch(searchService),
-    GemSelectAssetType.MANAGE,
+    GemSelectAssetType.Manage,
 )

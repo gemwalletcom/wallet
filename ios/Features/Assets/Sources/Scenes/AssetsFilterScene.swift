@@ -79,15 +79,3 @@ extension AssetsFilterScene {
     }
 }
 
-#Preview {
-    NavigationStack {
-        AssetsFilterScene(
-            model: .constant(
-                AssetsFilterViewModel(
-                    type: .manage,
-                    model: ChainsFilterViewModel(chains: [.arbitrum, .avalancheC, .base]),
-                ),
-            ),
-        )
-    }
-}

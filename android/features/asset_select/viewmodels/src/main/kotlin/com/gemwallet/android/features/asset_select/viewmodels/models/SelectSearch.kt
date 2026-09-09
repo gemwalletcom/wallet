@@ -5,6 +5,4 @@ import kotlinx.coroutines.flow.Flow
 
 interface SelectSearch {
     fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>>
-
-    fun filter(items: List<AssetInfo>): List<AssetInfo> = items
 }

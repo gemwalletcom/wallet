@@ -15,7 +15,6 @@ pub mod validators;
 pub mod wallet_connect;
 
 use crate::config::chain::ChainConfig;
-use crate::services::nft::rules::nft_chains;
 use primitives::{Chain, node_config::NodeRegion};
 use std::time::Duration;
 
@@ -42,10 +41,6 @@ impl Config {
 
     fn scan_timeout(&self) -> Duration {
         SCAN_TIMEOUT
-    }
-
-    fn get_nft_chains(&self) -> Vec<Chain> {
-        nft_chains()
     }
 
     fn get_chain_config(&self, chain: Chain) -> ChainConfig {

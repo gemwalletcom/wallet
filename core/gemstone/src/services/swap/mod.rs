@@ -46,10 +46,6 @@ impl GemSwapService {
         }
     }
 
-    pub fn supported_assets(&self, asset_id: AssetId) -> AssetList {
-        self.swapper.supported_chains_for_from_asset(&asset_id)
-    }
-
     pub async fn get_quotes(
         &self,
         wallet: Wallet,
@@ -87,6 +83,10 @@ impl GemSwapService {
 impl GemSwapService {
     pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
         rules::pair_for_asset(asset_id, has_balance)
+    }
+
+    pub fn supported_assets(&self, asset_id: AssetId) -> AssetList {
+        self.swapper.supported_chains_for_from_asset(&asset_id)
     }
 }
 

@@ -2,10 +2,7 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
-import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
-import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl
-import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
@@ -47,12 +44,15 @@ object SwapModule {
         passwordStore: PasswordStore,
         assetsDao: AssetsDao,
         transactionsDao: TransactionsDao,
-    ): GemSwapServiceInterface = GemSwapService(
+    ): GemSwapService = GemSwapService(
         swapper = gemSwapper,
         keystore = gemKeystore,
         password = GemstoneKeystorePassword(passwordStore),
         store = GemstoneSwapStore(assetsDao, transactionsDao),
     )
+
+    @Provides
+    fun provideGemSwapServiceInterface(service: GemSwapService): GemSwapServiceInterface = service
 
     @Singleton
     @Provides
@@ -75,16 +75,6 @@ object SwapModule {
     fun provideRequestSwapQuotes(
         swapService: GemSwapQuoteServiceInterface,
     ): RequestSwapQuotes = RequestSwapQuotesImpl(swapService)
-
-    @Singleton
-    @Provides
-    fun provideSearchSwapAssets(
-        searchService: AssetsSearchService,
-        swapService: GemSwapServiceInterface,
-    ): SearchSwapAssets = SearchSwapAssetsImpl(
-        searchService = searchService,
-        swapService = swapService,
-    )
 
 
 }

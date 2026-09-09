@@ -3,6 +3,8 @@ package com.gemwallet.android.features.asset_select.viewmodels
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
+import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.wallet.core.primitives.Chain
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemAssetFilter
+import uniffi.gemstone.GemSelectAssetScope
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BaseSelectSearchTest {
@@ -56,5 +60,27 @@ class BaseSelectSearchTest {
 
         assertEquals(results, result)
         verify(exactly = 1) { searchService.search("eth", false, 25, emptySet()) }
+    }
+
+    @Test
+    fun `scope and filters come from the flow`() = runTest {
+        val searchService = mockk<AssetsSearchService> {
+            every { search(any(), any(), any(), any()) } returns flowOf(results)
+        }
+        val search = BaseSelectSearch(searchService)
+        val filters = MutableStateFlow(
+            SelectAssetFilters(
+                session = null,
+                query = "",
+                chainFilter = emptyList(),
+                hasBalance = false,
+                scope = GemSelectAssetScope.ALL_ASSETS,
+                filters = listOf(GemAssetFilter.Enabled, GemAssetFilter.Buyable),
+            )
+        )
+
+        search.items(filters).first()
+
+        verify(exactly = 1) { searchService.search("", true, NO_QUERY_LIMIT, setOf(AssetFilter.Buyable)) }
     }
 }

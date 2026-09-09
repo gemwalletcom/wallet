@@ -14,9 +14,6 @@ public enum AssetsRequestFilter {
     // include all assets of these chains
     case chains([String])
     case chainsOrAssets([String], [String])
-
-    /// AssetData with empty properties
-    case priceAlerts
 }
 
 extension AssetsRequestFilter: Equatable, Hashable {}

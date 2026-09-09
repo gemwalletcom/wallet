@@ -6,17 +6,20 @@ public struct AssetsRequest: DatabaseQueryable {
     public static let defaultQueryLimit = 100
 
     public var walletId: WalletId
+    public var scope: AssetsRequestScope
     public var searchBy: String
     public var filters: [AssetsRequestFilter]
     public var limit: Int?
 
     public init(
         walletId: WalletId,
+        scope: AssetsRequestScope = .wallet,
         searchBy: String = "",
         filters: [AssetsRequestFilter] = [],
         limit: Int? = AssetsRequest.defaultQueryLimit,
     ) {
         self.walletId = walletId
+        self.scope = scope
         self.searchBy = searchBy
         self.filters = filters
         self.limit = limit
@@ -31,14 +34,15 @@ public struct AssetsRequest: DatabaseQueryable {
             try filters + [.search(searchBy, hasPriorityAssets: hasPriorityAssets(db, query: searchBy))]
         }
 
-        if filters.contains(.priceAlerts) {
+        switch scope {
+        case .wallet:
+            return try loadAssetsSearch(walletId: walletId, filters: filters)
+                .fetchAll(db)
+                .map(\.assetData)
+        case .allAssets:
             return try fetchAllAssetRecordsRequest(db, filters: filters)
                 .map { $0.mapToEmptyAssetData() }
         }
-
-        return try loadAssetsSearch(walletId: walletId, filters: filters)
-            .fetchAll(db)
-            .map(\.assetData)
     }
 
     static func applyFilters(request: QueryInterfaceRequest<AssetRecord>, _ filters: [AssetsRequestFilter]) -> QueryInterfaceRequest<AssetRecord> {
@@ -56,8 +60,7 @@ public struct AssetsRequest: DatabaseQueryable {
                  .enabledBalance,
                  .disabledBalance,
                  .hasBalance,
-                 .hasAvailableBalance,
-                 .priceAlerts:
+                 .hasAvailableBalance:
                 request = Self.applyFilter(request: request, filter)
             }
         }
@@ -148,8 +151,6 @@ extension AssetsRequest {
             return request
                 .filter(chains.contains(AssetRecord.Columns.chain) || assetIds.contains(AssetRecord.Columns.id))
                 .filter(AssetRecord.Columns.isEnabled == true || AssetRecord.Columns.isEnabled == false)
-        case .priceAlerts:
-            return request
         }
     }
 
@@ -222,8 +223,7 @@ extension AssetsRequestFilter {
              .swappable,
              .stakeable,
              .chains,
-             .chainsOrAssets,
-             .priceAlerts:
+             .chainsOrAssets:
             false
         }
     }
