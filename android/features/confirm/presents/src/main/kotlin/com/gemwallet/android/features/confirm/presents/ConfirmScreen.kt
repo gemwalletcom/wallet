@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.confirm.presents
 
 import androidx.activity.compose.BackHandler
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +52,7 @@ import com.gemwallet.android.features.confirm.viewmodels.reorderRequestPropertie
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
+import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.TransactionInputType
@@ -62,7 +62,6 @@ import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
-import uniffi.gemstone.PerpetualType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -95,7 +94,6 @@ import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
 import uniffi.gemstone.SimulationResult
-import com.wallet.core.primitives.TransactionType
 import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.PerpetualProvider
 
@@ -149,9 +147,8 @@ fun ConfirmScreen(
         cancelAction()
     }
 
-    val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = confirmTitle(isExternalRequest, amountModel?.transactionType, perpetualType),
+        title = input?.let { confirmTitle(it.title()) }.orEmpty(),
         closeIcon = isExternalRequest,
         onClose = { cancelAction() },
         mainAction = {
@@ -475,34 +472,23 @@ private fun Throwable.toConfirmLabel(): String? = when (this) {
 }
 
 @Composable
-private fun confirmTitle(
-    isExternalRequest: Boolean,
-    transactionType: TransactionType?,
-    perpetualType: PerpetualType?,
-): String = when {
-    isExternalRequest -> stringResource(R.string.transfer_review_request)
-    perpetualType != null -> perpetualType.title()
-    else -> stringResource(transactionType?.titleRes() ?: R.string.transfer_title)
-}
-
-@StringRes
-private fun TransactionType.titleRes(): Int = when (this) {
-    TransactionType.EarnDeposit,
-    TransactionType.StakeDelegate -> R.string.transfer_stake_title
-    TransactionType.EarnWithdraw,
-    TransactionType.StakeWithdraw -> R.string.transfer_withdraw_title
-    TransactionType.StakeUndelegate -> R.string.transfer_unstake_title
-    TransactionType.StakeRedelegate -> R.string.transfer_redelegate_title
-    TransactionType.StakeRewards -> R.string.transfer_rewards_title
-    TransactionType.Transfer,
-    TransactionType.TransferNFT -> R.string.transfer_send_title
-    TransactionType.Swap -> R.string.wallet_swap
-    TransactionType.TokenApproval -> R.string.transfer_approve_title
-    TransactionType.AssetActivation -> R.string.transfer_activate_asset_title
-    TransactionType.SmartContractCall -> R.string.transfer_smart_contract_title
-    TransactionType.PerpetualOpenPosition -> R.string.perpetual_position
-    TransactionType.PerpetualClosePosition -> R.string.perpetual_close_position
-    TransactionType.StakeFreeze -> R.string.transfer_freeze_title
-    TransactionType.StakeUnfreeze -> R.string.transfer_unfreeze_title
-    TransactionType.PerpetualModifyPosition -> R.string.perpetual_modify
+private fun confirmTitle(title: GemConfirmTitle): String = when (title) {
+    GemConfirmTitle.Send -> stringResource(R.string.transfer_send_title)
+    GemConfirmTitle.Deposit -> stringResource(R.string.wallet_deposit)
+    GemConfirmTitle.Withdraw -> stringResource(R.string.transfer_withdraw_title)
+    GemConfirmTitle.Swap -> stringResource(R.string.wallet_swap)
+    GemConfirmTitle.Approve -> stringResource(R.string.transfer_approve_title)
+    GemConfirmTitle.Request -> stringResource(R.string.transfer_review_request)
+    GemConfirmTitle.Stake -> stringResource(R.string.transfer_stake_title)
+    GemConfirmTitle.Unstake -> stringResource(R.string.transfer_unstake_title)
+    GemConfirmTitle.Redelegate -> stringResource(R.string.transfer_redelegate_title)
+    GemConfirmTitle.ClaimRewards -> stringResource(R.string.transfer_claim_rewards_title)
+    GemConfirmTitle.Freeze -> stringResource(R.string.transfer_freeze_title)
+    GemConfirmTitle.Unfreeze -> stringResource(R.string.transfer_unfreeze_title)
+    GemConfirmTitle.ActivateAsset -> stringResource(R.string.transfer_activate_asset_title)
+    is GemConfirmTitle.PerpetualOpen -> title.direction.toPrimitives().title()
+    is GemConfirmTitle.PerpetualIncrease -> stringResource(R.string.perpetual_increase_direction, title.direction.toPrimitives().title())
+    is GemConfirmTitle.PerpetualReduce -> stringResource(R.string.perpetual_reduce_direction, title.direction.toPrimitives().title())
+    GemConfirmTitle.PerpetualClose -> stringResource(R.string.perpetual_close_position)
+    GemConfirmTitle.PerpetualModify -> stringResource(R.string.perpetual_modify_position)
 }

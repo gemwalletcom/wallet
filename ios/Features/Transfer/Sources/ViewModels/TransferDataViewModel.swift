@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmTitle
 import enum Gemstone.TransactionInputType
 import Foundation
 import Localization
@@ -41,40 +42,25 @@ struct TransferDataViewModel {
     }
 
     var title: String {
-        switch type {
-        case .transfer: Localized.Transfer.Send.title
+        switch data.title() {
+        case .send: Localized.Transfer.Send.title
         case .deposit: Localized.Wallet.deposit
-        case .withdrawal: Localized.Wallet.withdraw
-        case .transferNft: Localized.Transfer.Send.title
-        case .swap, .tokenApprove: Localized.Wallet.swap
-        case .generic: Localized.Transfer.reviewRequest
-        case let .stake(_, type):
-            switch Primitives.StakeType(core: type) {
-            case .stake: Localized.Transfer.Stake.title
-            case .unstake: Localized.Transfer.Unstake.title
-            case .redelegate: Localized.Transfer.Redelegate.title
-            case .rewards: Localized.Transfer.ClaimRewards.title
-            case .withdraw: Localized.Transfer.Withdraw.title
-            case .freeze: Localized.Transfer.Freeze.title
-            case .unfreeze: Localized.Transfer.Unfreeze.title
-            }
-        case let .account(_, type):
-            switch type {
-            case .activate: Localized.Transfer.ActivateAsset.title
-            }
-        case let .perpetual(_, type):
-            switch type {
-            case let .open(data): PerpetualDirectionViewModel(direction: data.direction.map()).title
-            case .close: Localized.Perpetual.closePosition
-            case let .increase(data): PerpetualDirectionViewModel(direction: data.direction.map()).increaseTitle
-            case let .reduce(data): PerpetualDirectionViewModel(direction: data.positionDirection.map()).reduceTitle
-            case .modify: Localized.Perpetual.modifyPosition
-            }
-        case let .earn(_, type, _):
-            switch Primitives.EarnType(core: type) {
-            case .deposit: Localized.Wallet.deposit
-            case .withdraw: Localized.Transfer.Withdraw.title
-            }
+        case .withdraw: Localized.Transfer.Withdraw.title
+        case .swap: Localized.Wallet.swap
+        case .approve: Localized.Transfer.Approve.title
+        case .request: Localized.Transfer.reviewRequest
+        case .stake: Localized.Transfer.Stake.title
+        case .unstake: Localized.Transfer.Unstake.title
+        case .redelegate: Localized.Transfer.Redelegate.title
+        case .claimRewards: Localized.Transfer.ClaimRewards.title
+        case .freeze: Localized.Transfer.Freeze.title
+        case .unfreeze: Localized.Transfer.Unfreeze.title
+        case .activateAsset: Localized.Transfer.ActivateAsset.title
+        case let .perpetualOpen(direction): PerpetualDirectionViewModel(direction: direction.map()).title
+        case let .perpetualIncrease(direction): PerpetualDirectionViewModel(direction: direction.map()).increaseTitle
+        case let .perpetualReduce(direction): PerpetualDirectionViewModel(direction: direction.map()).reduceTitle
+        case .perpetualClose: Localized.Perpetual.closePosition
+        case .perpetualModify: Localized.Perpetual.modifyPosition
         }
     }
 

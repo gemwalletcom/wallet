@@ -1,7 +1,7 @@
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use primitives::TransactionInputType;
-use primitives::{AssetId, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecentActivity {
@@ -80,6 +80,28 @@ pub(crate) struct GemPendingTransactionInput {
     pub(crate) simulation: Option<SimulationResult>,
     pub(crate) transaction_index: u32,
     pub(crate) transaction_count: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemConfirmTitle {
+    Send,
+    Deposit,
+    Withdraw,
+    Swap,
+    Approve,
+    Request,
+    Stake,
+    Unstake,
+    Redelegate,
+    ClaimRewards,
+    Freeze,
+    Unfreeze,
+    ActivateAsset,
+    PerpetualOpen { direction: PerpetualDirection },
+    PerpetualIncrease { direction: PerpetualDirection },
+    PerpetualReduce { direction: PerpetualDirection },
+    PerpetualClose,
+    PerpetualModify,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

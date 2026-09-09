@@ -64,18 +64,6 @@ public extension Primitives.RedelegateData {
 }
 
 public extension Primitives.StakeType {
-    init(core: Gemstone.StakeType) {
-        self = switch core {
-        case let .stake(validator): .stake(validator.map())
-        case let .unstake(delegation): .unstake(Primitives.Delegation(core: delegation))
-        case let .redelegate(data): .redelegate(Primitives.RedelegateData(core: data))
-        case let .rewards(validators): .rewards(validators.map { $0.map() })
-        case let .withdraw(delegation): .withdraw(Primitives.Delegation(core: delegation))
-        case let .freeze(resource): .freeze(resource.map())
-        case let .unfreeze(resource): .unfreeze(resource.map())
-        }
-    }
-
     func map() -> Gemstone.StakeType {
         switch self {
         case let .stake(validator): .stake(validator.map())
@@ -90,13 +78,6 @@ public extension Primitives.StakeType {
 }
 
 public extension Primitives.EarnType {
-    init(core: Gemstone.EarnType) {
-        self = switch core {
-        case let .deposit(validator): .deposit(validator.map())
-        case let .withdraw(delegation): .withdraw(Primitives.Delegation(core: delegation))
-        }
-    }
-
     func map() -> Gemstone.EarnType {
         switch self {
         case let .deposit(validator): .deposit(validator.map())

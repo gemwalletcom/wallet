@@ -301,6 +301,15 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The confirm screen's title is Core's answer.** `GemTransferData::title() -> GemConfirmTitle`
+  names the title per input type — send, deposit, withdraw, swap, approve, request, the seven
+  stake actions, activate asset, and the perpetual open, increase, reduce, close and modify kinds
+  with their direction. Each app had its own mapping and they disagreed: Android titled an earn
+  deposit "Stake", a perpetual-account deposit or withdrawal "Send" and a rewards claim "Rewards",
+  while iOS titled a token approval "Swap". Core says Deposit, Withdraw, Claim Rewards and
+  Approve, and each app keeps one rendering switch. Android's `AmountUIModel.transactionType`,
+  the `perpetualType` flow and the `PerpetualType.title()` composable existed only for that title
+  and are gone.
 - **Every Core export has an app caller.** A sweep of the 447 exported methods against both
   apps' production code left five with none. `GemSwapSession::on_transfer_abandoned` covered a
   dismissal that cannot happen and is deleted; `set_push_enabled`, `includes_perpetual_collateral`
@@ -335,15 +344,6 @@ intentional one-sided integration surfaces.
   are gone too: the scene walks Core's sections and asks `value(row)` for the payload, so the sealed
   `TransactionDetailsValue` is what a row renders, not a second list of what rows exist. An app keeps
   a payload type per row; it does not keep a kind.
-- **The swap error a screen shows is one Core answer.** `GemSwapSession::error()` returns the
-  failed transfer's error, else the failed quote's, the order `action()` already reads them in.
-  iOS wrote that as `transferError() ?? quoteError()` and Android as a `when` over `action`, so the
-  precedence lived in two places; `transfer_error` is Core-internal now.
-- **The notifications toggle is one Core rule on both apps.**
-  `GemNotificationsService::set_enabled` asks for permission, and only then turns push on through
-  `GemDeviceService::set_push_enabled`, which writes the preference and syncs the device. Each app
-  had half of that: Android wrote the preference without ever asking for permission, so the switch
-  read on while the OS blocked notifications and the optimistic state was never corrected when the
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
@@ -353,6 +353,15 @@ intentional one-sided integration surfaces.
   table re-runs every screen observing it — three queries on the iOS wallet tab, the list and the
   summary on Android. The stored balance carries `is_active` now, which the diff needs; the
   `updated_at` stamp stays and only lands on rows that actually changed.
+- **The swap error a screen shows is one Core answer.** `GemSwapSession::error()` returns the
+  failed transfer's error, else the failed quote's, the order `action()` already reads them in.
+  iOS wrote that as `transferError() ?? quoteError()` and Android as a `when` over `action`, so the
+  precedence lived in two places; `transfer_error` is Core-internal now.
+- **The notifications toggle is one Core rule on both apps.**
+  `GemNotificationsService::set_enabled` asks for permission, and only then turns push on through
+  `GemDeviceService::set_push_enabled`, which writes the preference and syncs the device. Each app
+  had half of that: Android wrote the preference without ever asking for permission, so the switch
+  read on while the OS blocked notifications and the optimistic state was never corrected when the
   call failed; iOS asked but the granted branch only synced, so the preference it reads back stayed
   false and the device synced with push off. Android's `DevicePushSettings` takes Core's answer now
   instead of setting the device flag itself, and the `catch (_: Throwable) {}` around it is gone.
