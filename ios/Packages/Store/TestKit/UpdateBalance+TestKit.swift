@@ -56,44 +56,6 @@ public extension UpdateBalance {
             isActive: isActive,
         )
     }
-
-    static func mockStake(
-        assetId: AssetId = .mock(),
-        staked: Double = 0,
-        pending: Double = 0,
-        frozen: Double = 0,
-        locked: Double = 0,
-        rewards: Double = 0,
-        updatedAt: Date = .now,
-        isActive: Bool = true,
-    ) -> Self {
-        UpdateBalance(
-            assetId: assetId,
-            type: .stake(UpdateStakeBalance(
-                staked: .mock(amount: staked),
-                pending: .mock(amount: pending),
-                frozen: .mock(amount: frozen),
-                locked: .mock(amount: locked),
-                rewards: .mock(amount: rewards),
-            )),
-            updatedAt: updatedAt,
-            isActive: isActive,
-        )
-    }
-
-    static func mockEarn(
-        assetId: AssetId = .mock(),
-        balance: Double = 0,
-        updatedAt: Date = .now,
-        isActive: Bool = true,
-    ) -> Self {
-        UpdateBalance(
-            assetId: assetId,
-            type: .earn(UpdateEarnBalance(balance: .mock(amount: balance))),
-            updatedAt: updatedAt,
-            isActive: isActive,
-        )
-    }
 }
 
 public extension [UpdateBalance] {

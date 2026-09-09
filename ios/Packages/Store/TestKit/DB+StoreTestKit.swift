@@ -83,28 +83,4 @@ public extension DB {
 
         return db
     }
-
-    static func mockAssetsWithEarnBalance() throws -> DB {
-        let ethereum = Asset.mockEthereum()
-        let db = DB.mockAssets(assets: [
-            .mock(asset: ethereum),
-        ])
-        let balanceStore = BalanceStore(db: db)
-        let fiatRateStore = FiatRateStore(db: db)
-        let priceStore = PriceStore(db: db)
-
-        try fiatRateStore.add([.mock()])
-        try priceStore.updatePrices([
-                .mock(assetId: ethereum.id, price: 110, priceChangePercentage24h: 10),
-            ])
-        try balanceStore.updateBalances(
-            [
-                .mockStake(assetId: ethereum.id, staked: 2),
-                .mockEarn(assetId: ethereum.id, balance: 1),
-            ],
-            for: .mock(),
-        )
-
-        return db
-    }
 }

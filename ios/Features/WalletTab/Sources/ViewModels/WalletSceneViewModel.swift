@@ -61,7 +61,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
         walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
         fiatValuesQuery = ObservableQuery(
-            AssetFiatValuesRequest(walletId: wallet.id, type: .wallet, perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            AssetFiatValuesRequest(walletId: wallet.id),
             initialValue: [],
         )
         perpetualBalanceQuery = ObservableQuery(

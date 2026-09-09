@@ -308,8 +308,11 @@ intentional one-sided integration surfaces.
   whether to append it: iOS inside a GRDB request behind an `includesPerpetualCollateral` parameter,
   Android in the summary coordinator through a `getCollateralIncludedInTotal` case that folded the
   flag into the balance flow. Both spellings are gone, the flag is no longer an export, and the
-  request returns what the store holds. The perpetual screen's own total still spells the collateral
-  at par in the request — the same rule, waiting on the perpetual details service to take the record.
+  request returns what the store holds. The perpetual screen carried a second total of its own —
+  a `.perpetual` request kind that spelled the collateral at par, a `total_fiat_value` and `shows_pnl`
+  pair on the perpetual details service, and a view-model value no view read on either app. All of it
+  is deleted, along with the `TotalValueType` primitive that only named the request kinds: iOS never
+  asked for its `earn` kind outside a test, and Core never used the enum at all.
 - **Which rows the transaction screen shows, in which sections and order, is Core's layout.**
   `transaction_detail_sections(rows) -> [GemTransactionDetailSection { rows: [GemTransactionDetailRow] }]`
   lists only the rows the transaction has — header; swap progress; swap-again; then date, status,

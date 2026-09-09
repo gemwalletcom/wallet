@@ -12,7 +12,7 @@ struct AssetFiatValuesRequestTests {
         let db = try DB.mockAssetsWithPrice(priceChangePercentage24h: 10)
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock()).fetch(db)
 
             #expect(result.contains(AssetFiatValue(amount: 3, price: 1100, priceChangePercentage24h: 10)))
             #expect(result.filter { $0.price == 0 }.map(\.amount).sorted() == [0, 1, 2, 4])
@@ -24,7 +24,7 @@ struct AssetFiatValuesRequestTests {
         let db = DB.mockAssets()
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock()).fetch(db)
 
             #expect(result.filter { $0.price == 0 }.map(\.amount).sorted() == [0, 1, 2, 3, 4])
         }
@@ -35,20 +35,9 @@ struct AssetFiatValuesRequestTests {
         let db = try DB.mockAssetsWithPerpetualCollateralBalance()
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock()).fetch(db)
 
             #expect(result == [AssetFiatValue(amount: 3, price: 100, priceChangePercentage24h: 0)])
-        }
-    }
-
-    @Test
-    func perpetualBalanceUsesCollateralOnly() throws {
-        let db = try DB.mockAssetsWithPerpetualCollateralBalance()
-
-        try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .perpetual, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
-
-            #expect(result == [AssetFiatValue(amount: 75, price: 1, priceChangePercentage24h: 0)])
         }
     }
 
@@ -61,17 +50,6 @@ struct AssetFiatValuesRequestTests {
 
             #expect(result?.available == 50)
             #expect(result?.reserved == 25)
-        }
-    }
-
-    @Test
-    func earnBalanceSumsStakedAndEarn() throws {
-        let db = try DB.mockAssetsWithEarnBalance()
-
-        try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .earn, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
-
-            #expect(result == [AssetFiatValue(amount: 3, price: 110, priceChangePercentage24h: 10)])
         }
     }
 }

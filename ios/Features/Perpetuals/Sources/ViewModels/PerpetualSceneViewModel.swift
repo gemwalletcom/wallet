@@ -29,7 +29,6 @@ public final class PerpetualSceneViewModel {
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     public let perpetualQuery: ObservableQuery<PerpetualRequest>
-    public let perpetualFiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
     public var positions: [PerpetualPositionData] {
@@ -38,10 +37,6 @@ public final class PerpetualSceneViewModel {
 
     public var perpetualData: PerpetualData {
         perpetualQuery.value
-    }
-
-    public var perpetualTotalValue: TotalFiatValue {
-        service.totalFiatValue(balances: perpetualFiatValuesQuery.value.map { $0.map() }).map()
     }
 
     public var transactions: [TransactionExtended] {
@@ -72,14 +67,6 @@ public final class PerpetualSceneViewModel {
 
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
-        perpetualFiatValuesQuery = ObservableQuery(
-            AssetFiatValuesRequest(
-                walletId: wallet.id,
-                type: .perpetual,
-                perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
-            ),
-            initialValue: [],
-        )
         transactionsQuery = ObservableQuery(
             TransactionsRequest.perpetualScene(
                 walletId: wallet.id,
