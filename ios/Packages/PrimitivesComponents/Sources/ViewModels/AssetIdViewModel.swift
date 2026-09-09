@@ -48,6 +48,7 @@ public struct AssetIdViewModel: Sendable {
         let icon = AssetIconCache.shared.icon(for: assetId.identifier)
         let (imageURL, placeholder): (URL?, Image?) = switch icon.image {
         case let .local(chain): (.none, ChainImage(chain: Chain(core: chain)).image)
+        case let .localToken(token): (.none, TokenImage(token: token).image)
         case let .remote(url): (URL(string: url), .none)
         }
         return AssetImage(

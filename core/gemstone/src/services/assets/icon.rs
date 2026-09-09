@@ -1,3 +1,4 @@
+use primitives::known_assets::{USDC_ASSETS, USDT_ASSETS};
 use primitives::{Asset, AssetId, Chain};
 
 use crate::config::chain::{badge_chain, icon_chain, is_ethereum_layer2};
@@ -9,21 +10,31 @@ pub struct GemAssetIcon {
     pub badge: Option<Chain>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemLocalTokenIcon {
+    Usdt,
+    Usdc,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetIconImage {
     Local { chain: Chain },
+    LocalToken { token: GemLocalTokenIcon },
     Remote { url: String },
 }
 
 pub fn asset_icon(asset_id: &AssetId) -> GemAssetIcon {
     let icon_asset_id = icon_asset_id(asset_id);
-    let image = match icon_asset_id.is_native() {
-        true => GemAssetIconImage::Local {
+    let image = if let Some(token) = local_token_icon(asset_id) {
+        GemAssetIconImage::LocalToken { token }
+    } else if icon_asset_id.is_native() {
+        GemAssetIconImage::Local {
             chain: icon_chain(icon_asset_id.chain),
-        },
-        false => GemAssetIconImage::Remote {
+        }
+    } else {
+        GemAssetIconImage::Remote {
             url: GemImage::Asset { asset_id: icon_asset_id }.url(),
-        },
+        }
     };
     let badge = match asset_id.is_native() {
         true => badge_chain(asset_id.chain),
@@ -44,6 +55,16 @@ fn icon_asset_id(asset_id: &AssetId) -> AssetId {
         return AssetId::from_chain(Chain::Ethereum);
     }
     asset_id.clone()
+}
+
+fn local_token_icon(asset_id: &AssetId) -> Option<GemLocalTokenIcon> {
+    if USDT_ASSETS.iter().any(|asset| asset.id == *asset_id) {
+        return Some(GemLocalTokenIcon::Usdt);
+    }
+    if USDC_ASSETS.iter().any(|asset| asset.id == *asset_id) {
+        return Some(GemLocalTokenIcon::Usdc);
+    }
+    None
 }
 
 fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
@@ -109,9 +130,43 @@ mod tests {
     }
 
     #[test]
+    fn test_known_usdt_and_usdc_draw_the_bundled_token_logo_badged_with_their_chain() {
+        use primitives::known_assets::{ETHEREUM_USDT, HYPERCORE_PERPETUAL_USDC, SOLANA_USDC, SUI_SBUSDT, TEMPO_BRIDGED_USDC, TRON_USDT};
+        let token = |token| GemAssetIconImage::LocalToken { token };
+        assert_eq!(
+            asset_icon(&ETHEREUM_USDT.id),
+            GemAssetIcon {
+                image: token(GemLocalTokenIcon::Usdt),
+                badge: Some(Chain::Ethereum)
+            }
+        );
+        assert_eq!(
+            asset_icon(&TRON_USDT.id),
+            GemAssetIcon {
+                image: token(GemLocalTokenIcon::Usdt),
+                badge: Some(Chain::Tron)
+            }
+        );
+        assert_eq!(
+            asset_icon(&SOLANA_USDC.id),
+            GemAssetIcon {
+                image: token(GemLocalTokenIcon::Usdc),
+                badge: Some(Chain::Solana)
+            }
+        );
+        assert_eq!(asset_icon(&HYPERCORE_PERPETUAL_USDC.id).image, token(GemLocalTokenIcon::Usdc));
+        assert_eq!(asset_icon(&TEMPO_BRIDGED_USDC.id).image, remote(&TEMPO_BRIDGED_USDC.id));
+        assert_eq!(asset_icon(&SUI_SBUSDT.id).image, remote(&SUI_SBUSDT.id));
+        assert_eq!(
+            asset_icon(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001")).image,
+            remote(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001"))
+        );
+    }
+
+    #[test]
     fn test_tokens_draw_their_remote_image_badged_with_their_own_chain() {
         let base_usdc = AssetId::from(Chain::Base, Some("0x833589fcd6edb6e08f4c7c32d4f71b54bda02913".to_string()));
-        let ethereum_usdc = Asset::mock_ethereum_usdc().id;
+        let ethereum_wbtc = AssetId::from_token(Chain::Ethereum, "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599");
         let sei_token = AssetId::from(Chain::SeiEvm, Some("0x3894085ef7ff0f0aedf52e2a2704928d1ec074f1".to_string()));
 
         assert_eq!(
@@ -122,9 +177,9 @@ mod tests {
             }
         );
         assert_eq!(
-            asset_icon(&ethereum_usdc),
+            asset_icon(&ethereum_wbtc),
             GemAssetIcon {
-                image: remote(&ethereum_usdc),
+                image: remote(&ethereum_wbtc),
                 badge: Some(Chain::Ethereum)
             }
         );

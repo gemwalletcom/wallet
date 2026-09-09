@@ -13,6 +13,11 @@ public enum Images {
         public static let agent = Image(.supportAgent)
     }
 
+    public enum Tokens {
+        public static let usdt = Image(.usdt)
+        public static let usdc = Image(.usdc)
+    }
+
     public enum Chains {
         public static let aptos = Image(.aptos)
         public static let arbitrum = Image(.arbitrum)

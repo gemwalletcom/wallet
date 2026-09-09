@@ -982,8 +982,13 @@ either side; it needs the wire text and one owner of the format. The generator i
 - **An asset's icon is Core's answer, image and badge together.** `GemAssetConfigService::asset_icon(asset_id)`
   returns `GemAssetIcon { image, badge }`: the image is `Local { chain }` (a bundled chain logo: a native coin,
   an Ethereum layer 2's ETH drawn as Ethereum, a HyperCore perpetual drawn as the chain whose native symbol it
-  names) or `Remote { url }` (the token image); the badge is the layer 2 for a native coin and the asset's own
-  chain for a token. `ChainConfig.icon_chain` is the chain's own logo (SeiEvm draws Sei's), typed `Chain`.
+  names), `LocalToken { token }` (a bundled token logo: the known USDT and USDC contracts listed in
+  `known_assets::USDT_ASSETS` and `USDC_ASSETS`, matched by asset id and never by symbol, so a look-alike
+  token keeps its remote image; bridged and variant coins such as USDC.e, sbUSDT and USDT0 are not on the
+  lists) or `Remote { url }` (the token image); the badge is the layer 2 for a native coin and the asset's own
+  chain for a token. The two token logos ship in the iOS catalog (`Images.Tokens`) and as Android drawables
+  (`token_usdt`, `token_usdc`), so the most common tokens render like native coins: from the bundle, on the
+  first frame, with no request or cache. `ChainConfig.icon_chain` is the chain's own logo (SeiEvm draws Sei's), typed `Chain`.
   Before this, iOS `AssetIdViewModel` and Android `IconUrlGeneration` each re-derived native-versus-token,
   and Android badged a Base token with Ethereum (issue #1148) while its network rows drew Ethereum for Base;
   each app is now one resource lookup (`ChainImage.image`, `chainIconUrl`) over Core's chain.
