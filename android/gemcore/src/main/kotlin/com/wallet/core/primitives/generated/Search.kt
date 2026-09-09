@@ -15,14 +15,6 @@ data class AssetList (
 )
 
 @Serializable
-data class SearchResponse (
-	val assets: List<AssetBasic>,
-	val perpetuals: List<PerpetualSearchData>,
-	val nfts: List<NFTCollection>,
-	val lists: List<AssetList>
-)
-
-@Serializable
 enum class SearchItemType(val string: String) {
 	@SerialName("asset")
 	Asset("asset"),

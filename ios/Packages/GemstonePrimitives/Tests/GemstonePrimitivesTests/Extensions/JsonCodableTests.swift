@@ -9,9 +9,13 @@ import Testing
 struct JsonCodableTests {
     @Test
     func roundTripsTaggedEnum() throws {
-        let stakeData = Primitives.TronStakeData.unfreeze([TronUnfreeze(resource: .bandwidth, amount: 1)])
+        let event = Primitives.StreamEvent.nft(StreamWalletUpdate(walletId: .mock()))
 
-        #expect(try Primitives.TronStakeData(stakeData.json()) == stakeData)
+        guard case let .nft(update) = try Primitives.StreamEvent(event.json()) else {
+            Issue.record("the tag did not survive the round trip")
+            return
+        }
+        #expect(update.walletId == WalletId.mock())
     }
 
     @Test

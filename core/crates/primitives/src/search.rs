@@ -12,7 +12,6 @@ pub struct AssetList {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Codable, Sendable")]
 pub struct SearchResponse {
     pub assets: Vec<AssetBasic>,
     pub perpetuals: Vec<PerpetualSearchData>,

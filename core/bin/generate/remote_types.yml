@@ -180,6 +180,13 @@ remote:
   - SwapQuote
   - SwapData
   - ContractCallData
+  - TronVote
+  - TronUnfreeze
+  - TronStakeData
+  - PerpetualSearchData
+  - SearchResponse
+  - TransactionsResponse
+  - FiatQuoteRequest
 codes:
   - Chain
   - Currency

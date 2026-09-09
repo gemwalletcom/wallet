@@ -45,13 +45,3 @@ public struct Transaction: Codable, Equatable, Hashable, Sendable {
 		self.createdAt = createdAt
 	}
 }
-
-public struct TransactionsResponse: Codable, Equatable, Sendable {
-	public let transactions: [Transaction]
-	public let addressNames: [AddressName]
-
-	public init(transactions: [Transaction], addressNames: [AddressName]) {
-		self.transactions = transactions
-		self.addressNames = addressNames
-	}
-}

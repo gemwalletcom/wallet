@@ -1689,6 +1689,16 @@ fun com.wallet.core.primitives.PerpetualPositionsSummary.toGem(): uniffi.gemston
     balance = balance.toGem(),
 )
 
+fun uniffi.gemstone.PerpetualSearchData.toPrimitives(): com.wallet.core.primitives.PerpetualSearchData = com.wallet.core.primitives.PerpetualSearchData(
+    perpetual = perpetual.toPrimitives(),
+    asset = asset.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.PerpetualSearchData.toGem(): uniffi.gemstone.PerpetualSearchData = uniffi.gemstone.PerpetualSearchData(
+    perpetual = perpetual.toGem(),
+    asset = asset.toGem(),
+)
+
 fun uniffi.gemstone.PerpetualTriggerOrder.toPrimitives(): com.wallet.core.primitives.PerpetualTriggerOrder = com.wallet.core.primitives.PerpetualTriggerOrder(
     price = price,
     order_type = orderType.toPrimitives(),
@@ -1876,6 +1886,16 @@ fun uniffi.gemstone.TransactionUtxoInput.toPrimitives(): com.wallet.core.primiti
 fun com.wallet.core.primitives.TransactionUtxoInput.toGem(): uniffi.gemstone.TransactionUtxoInput = uniffi.gemstone.TransactionUtxoInput(
     address = address,
     value = java.math.BigInteger(value),
+)
+
+fun uniffi.gemstone.TronVote.toPrimitives(): com.wallet.core.primitives.TronVote = com.wallet.core.primitives.TronVote(
+    validator = validator,
+    count = count.toLong(),
+)
+
+fun com.wallet.core.primitives.TronVote.toGem(): uniffi.gemstone.TronVote = uniffi.gemstone.TronVote(
+    validator = validator,
+    count = count.toULong(),
 )
 
 fun uniffi.gemstone.Utxo.toPrimitives(): com.wallet.core.primitives.UTXO = com.wallet.core.primitives.UTXO(

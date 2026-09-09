@@ -6,10 +6,7 @@ package com.gemwallet.android.serializer
 import kotlinx.serialization.encodeToString
 import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamMessage
-import com.wallet.core.primitives.TronStakeData
 
 fun StreamEvent.toJson(): String = jsonEncoder.encodeToString<StreamEvent>(this)
 
 fun StreamMessage.toJson(): String = jsonEncoder.encodeToString<StreamMessage>(this)
-
-fun TronStakeData.toJson(): String = jsonEncoder.encodeToString<TronStakeData>(this)

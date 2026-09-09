@@ -29,9 +29,3 @@ data class Transaction (
 	val createdAt: SerializedDate
 )
 
-@Serializable
-data class TransactionsResponse (
-	val transactions: List<Transaction>,
-	val addressNames: List<AddressName>
-)
-

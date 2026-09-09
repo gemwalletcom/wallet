@@ -16,7 +16,7 @@ public struct Release: Codable, Equatable, Sendable {
 	}
 }
 
-public struct ConfigVersions: Codable, Equatable, Sendable {
+public struct ConfigVersions: Codable, Sendable {
 	public let fiatOnRampAssets: Int32
 	public let fiatOffRampAssets: Int32
 	public let swapAssets: Int32
@@ -36,7 +36,7 @@ public struct SwapConfig: Codable, Equatable, Sendable {
 	}
 }
 
-public struct ConfigResponse: Codable, Equatable, Sendable {
+public struct ConfigResponse: Codable, Sendable {
 	public let releases: [Release]
 	public let versions: ConfigVersions
 	public let swap: SwapConfig

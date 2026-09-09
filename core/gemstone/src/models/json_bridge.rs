@@ -1,10 +1,4 @@
-use primitives::{ConfigResponse, ConfigVersions, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
-use primitives::{
-    TronStakeData, TronUnfreeze,
-};
-use primitives::{
-    FiatQuoteRequest, FiatTransactionData, InAppNotification, SupportMessage, SupportMessageInput, TransactionsResponse,
-};
+use primitives::{ConfigResponse, ConfigVersions, FiatTransactionData, InAppNotification, StreamEvent, StreamMessage, SupportMessage, SupportMessageInput, SupportTyping};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -29,16 +23,11 @@ macro_rules! json_bridge {
 json_bridge!(
     ConfigResponse,
     ConfigVersions,
-    FiatQuoteRequest,
     FiatTransactionData,
     InAppNotification,
-    SearchResponse,
     StreamEvent,
     StreamMessage,
     SupportMessage,
     SupportMessageInput,
     SupportTyping,
-    TransactionsResponse,
-    TronStakeData,
-    TronUnfreeze,
 );

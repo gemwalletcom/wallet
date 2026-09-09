@@ -153,12 +153,12 @@ pub(crate) fn sign_stake(input: &SignerInput, private_key: &[u8]) -> Result<Vec<
     sign_contract_payloads(input, private_key, |owner| {
         let contracts = match stake_type {
             StakeType::Stake(_) | StakeType::Redelegate(_) => match stake_data {
-                TronStakeData::Votes(votes) => vec![TronContract::vote_witness(owner, votes)?],
-                TronStakeData::Unfreeze(_) => return SignerError::invalid_input_err("Expected Tron vote stake data"),
+                TronStakeData::Votes { votes } => vec![TronContract::vote_witness(owner, votes)?],
+                TronStakeData::Unfreeze { unfreezes: _ } => return SignerError::invalid_input_err("Expected Tron vote stake data"),
             },
             StakeType::Unstake(_) => match stake_data {
-                TronStakeData::Votes(votes) => vec![TronContract::vote_witness(owner, votes)?],
-                TronStakeData::Unfreeze(unfreezes) => unfreezes
+                TronStakeData::Votes { votes } => vec![TronContract::vote_witness(owner, votes)?],
+                TronStakeData::Unfreeze { unfreezes } => unfreezes
                     .iter()
                     .map(|unfreeze| TronContract::UnfreezeBalanceV2 {
                         owner,

@@ -315,7 +315,7 @@ impl<C: Client> TronClient<C> {
                 let vote_amount = BigNumberFormatter::value_as_u64(&input.value.to_string(), asset.decimals as u32)?;
                 map_stake_data(&account, stake_type, raw_amount, vote_amount)
             }
-            _ => Ok(TronStakeData::Votes(vec![])),
+            _ => Ok(TronStakeData::Votes { votes: vec![] }),
         }
     }
 }

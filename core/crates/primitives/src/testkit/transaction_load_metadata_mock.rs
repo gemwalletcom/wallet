@@ -25,7 +25,7 @@ impl TransactionLoadMetadata {
             transaction_tree_root: "".to_string(),
             parent_hash: "".to_string(),
             witness_address: "".to_string(),
-            stake_data: TronStakeData::Votes(vec![]),
+            stake_data: TronStakeData::Votes { votes: vec![] },
         }
     }
 

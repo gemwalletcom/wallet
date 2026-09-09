@@ -16,20 +16,6 @@ public struct AssetList: Codable, Equatable, Hashable, Identifiable, Sendable {
 	}
 }
 
-public struct SearchResponse: Codable, Sendable {
-	public let assets: [AssetBasic]
-	public let perpetuals: [PerpetualSearchData]
-	public let nfts: [NFTCollection]
-	public let lists: [AssetList]
-
-	public init(assets: [AssetBasic], perpetuals: [PerpetualSearchData], nfts: [NFTCollection], lists: [AssetList]) {
-		self.assets = assets
-		self.perpetuals = perpetuals
-		self.nfts = nfts
-		self.lists = lists
-	}
-}
-
 public enum SearchItemType: String, Codable, Sendable {
 	case asset
 	case perpetual

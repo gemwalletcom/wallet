@@ -2547,6 +2547,24 @@ public extension Primitives.PerpetualPositionsSummary {
     }
 }
 
+public extension Gemstone.PerpetualSearchData {
+    func map() -> Primitives.PerpetualSearchData {
+        Primitives.PerpetualSearchData(
+            perpetual: perpetual.map(),
+            asset: asset.map(),
+        )
+    }
+}
+
+public extension Primitives.PerpetualSearchData {
+    func map() -> Gemstone.PerpetualSearchData {
+        Gemstone.PerpetualSearchData(
+            perpetual: perpetual.map(),
+            asset: asset.map(),
+        )
+    }
+}
+
 public extension Gemstone.PerpetualTriggerOrder {
     func map() -> Primitives.PerpetualTriggerOrder {
         Primitives.PerpetualTriggerOrder(
@@ -2820,6 +2838,24 @@ public extension Primitives.TransactionUtxoInput {
         Gemstone.TransactionUtxoInput(
             address: address,
             value: BigUInt(stringLiteral: value),
+        )
+    }
+}
+
+public extension Gemstone.TronVote {
+    func map() -> Primitives.TronVote {
+        Primitives.TronVote(
+            validator: validator,
+            count: count,
+        )
+    }
+}
+
+public extension Primitives.TronVote {
+    func map() -> Gemstone.TronVote {
+        Gemstone.TronVote(
+            validator: validator,
+            count: count,
         )
     }
 }

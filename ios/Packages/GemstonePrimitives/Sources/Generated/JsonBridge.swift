@@ -5,15 +5,10 @@ import Primitives
 
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
-extension Primitives.FiatQuoteRequest: JsonCodable {}
 extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
-extension Primitives.SearchResponse: JsonCodable {}
 extension Primitives.StreamEvent: JsonCodable {}
 extension Primitives.StreamMessage: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SupportTyping: JsonCodable {}
-extension Primitives.TransactionsResponse: JsonCodable {}
-extension Primitives.TronStakeData: JsonCodable {}
-extension Primitives.TronUnfreeze: JsonCodable {}

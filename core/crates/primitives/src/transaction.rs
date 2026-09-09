@@ -10,7 +10,6 @@ use std::{collections::HashSet, vec};
 use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionsResponse {
     pub transactions: Vec<Transaction>,
