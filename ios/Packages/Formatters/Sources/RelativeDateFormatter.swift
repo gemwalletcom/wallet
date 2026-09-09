@@ -46,6 +46,8 @@ public struct RelativeDateFormatter: Sendable {
 }
 
 private extension RelativeDateFormatter {
+    nonisolated(unsafe) static let formatters = NSCache<NSString, DateFormatter>()
+
     static let iso8601StrategyWithFractionalSeconds = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
         .year()
         .month()
@@ -61,12 +63,17 @@ private extension RelativeDateFormatter {
         .timeZone(separator: .omitted)
 
     func formatter(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style, relative: Bool = false) -> DateFormatter {
+        let key = "\(calendar.locale?.identifier ?? "")|\(calendar.timeZone.identifier)|\(dateStyle.rawValue)|\(timeStyle.rawValue)|\(relative)" as NSString
+        if let formatter = Self.formatters.object(forKey: key) {
+            return formatter
+        }
         let formatter = DateFormatter()
         formatter.locale = calendar.locale
         formatter.timeZone = calendar.timeZone
         formatter.dateStyle = dateStyle
         formatter.timeStyle = timeStyle
         formatter.doesRelativeDateFormatting = relative
+        Self.formatters.setObject(formatter, forKey: key)
         return formatter
     }
 

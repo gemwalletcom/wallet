@@ -485,6 +485,14 @@ intentional one-sided integration surfaces.
   (session, URL state, USD price for fiat; session, amount, pay balance for swap), so a body pass
   costs one equality check and the FFI runs once per input change; Android derives it in one
   `combine`. Android's selected fiat quote now uses the USD price like iOS instead of `null`.
+- **Formatters are built once, not per value.** iOS's `RelativeDateFormatter` built one or two
+  `DateFormatter`s per call (two per transaction row), `CurrencyFormatter.symbol` a
+  `NumberFormatter` per read, `IntegerFormatter` one per `string`; each now keeps a small static
+  cache keyed by locale, time zone and style, and the symbol cache stores the string itself.
+  Android's `ValueFormatter` and `NumericFormatter` built a `DecimalFormat` (and a
+  `CompactDecimalFormat`) per call; they now hold one per thread (`ThreadLocal`), which keeps the
+  per-call safety `DecimalFormat` needs without the per-call cost. `CurrencyFormatter` on Android
+  and the `FormatStyle`-based iOS paths were already cached and are untouched.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
