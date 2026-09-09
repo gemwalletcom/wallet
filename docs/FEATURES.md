@@ -269,7 +269,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Mayan](../core/crates/swapper/src/mayan/provider.rs) | Cross-chain | 14/55 | Ethereum, Solana, Sui, BNB Smart Chain, Base, Polygon, Avalanche C-Chain, Arbitrum, Optimism, Linea, Unichain, Monad, Hyperliquid, HyperCore | ➖ | <sub>[code](../core/crates/swapper/src/mayan/asset.rs) · [quote API](https://docs.mayan.finance/integration/quote-api) · [live configuration](https://sia.mayan.finance/v10/init)</sub> |
 | [Squid](../core/crates/swapper/src/squid/provider.rs) | Cross-chain | 6/55 | Cosmos, Osmosis, Celestia, Injective, Sei, Noble | Missing: Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid, Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[code](../core/crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/chains-and-tokens/get-supported-tokens-and-chains)</sub> |
 | [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | 6/55 | THORChain, Bitcoin, Ethereum, Arbitrum, Zcash, Cardano | ➖ | <sub>[code](../core/crates/swapper/src/thorchain/chain.rs) · [live chains API](https://mayanode.mayachain.info/mayachain/inbound_addresses)</sub> |
-| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Cross-chain | 5/55 | Bitcoin (destination only), Ethereum, Solana, Tron, Arbitrum | Missing: Polkadot | <sub>[asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [route support](../core/crates/swapper/src/chainflip/provider.rs) · [Broker quotes and assets](https://docs.chainflip.io/brokers/javascript-sdk/functions) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
+| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | 5/55 | Bitcoin (destination only), Ethereum, Solana, Tron, Arbitrum | Missing: Polkadot | <sub>[asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [route support](../core/crates/swapper/src/chainflip/provider.rs) · [Broker quotes and assets](https://docs.chainflip.io/brokers/javascript-sdk/functions) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | 10/55 | Algorand, Stellar, Cardano, TON, Cosmos, Osmosis, Aptos, Sui, XRP, Tron | Native assets only | <sub>[code](../core/crates/swapper/src/swaps_xyz/provider.rs) · [API introduction](https://docs.swaps.xyz/)</sub> |
 | [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | 2/55 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
 
@@ -295,7 +295,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Mayan](../core/crates/swapper/src/mayan/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ |
 | [Squid](../core/crates/swapper/src/squid/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ |
 | [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | Fixed from EVM; flexible otherwise | Exact | ✅ | ✅ |
-| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ |
+| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | Fixed | Exact | ✅ | ✅ |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ (quoted address) |
 | [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | Flexible | Exact | ➖ (assumed complete) | ➖ |
 
@@ -303,7 +303,7 @@ These tables compare implemented coverage with provider-advertised support acros
 
 On-chain swaps use normal transaction tracking; cross-chain providers may also track route completion.
 
-`Omnichain` providers may be eligible for selected same-chain routes as well as cross-chain routes. `Bridge` and `Cross-chain` providers require different source and destination chains.
+`Omnichain` providers may be eligible for selected same-chain routes as well as cross-chain routes. Chainflip allows same-chain swaps on Tron (USDT ↔ TRX), subject to broker liquidity. `Bridge` and `Cross-chain` providers require different source and destination chains.
 
 <sub>Reviewed 2026-09-02. Source: [active swap providers](../core/crates/swapper/src/swapper.rs). Cetus Aggregator and Orca are inactive.</sub>
 

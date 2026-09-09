@@ -272,6 +272,7 @@ mod tests {
             SwapperProvider::Jupiter,
             SwapperProvider::Thorchain,
             SwapperProvider::NearIntents,
+            SwapperProvider::Chainflip,
         ];
         let filter = |from_chain, to_chain| {
             providers
@@ -282,7 +283,10 @@ mod tests {
         };
 
         // Cross-chain providers are eligible across different chains.
-        assert_eq!(filter(Chain::Ethereum, Chain::Optimism), vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents]);
+        assert_eq!(
+            filter(Chain::Ethereum, Chain::Optimism),
+            vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents, SwapperProvider::Chainflip]
+        );
 
         assert_eq!(
             filter(Chain::Tron, Chain::Tron),
@@ -291,7 +295,8 @@ mod tests {
                 SwapperProvider::PancakeswapV3,
                 SwapperProvider::Jupiter,
                 SwapperProvider::Thorchain,
-                SwapperProvider::NearIntents
+                SwapperProvider::NearIntents,
+                SwapperProvider::Chainflip
             ]
         );
 

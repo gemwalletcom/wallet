@@ -390,7 +390,11 @@ mod tests {
     #[cfg(feature = "swap_integration_tests")]
     use crate::{NativeProvider, Options};
     #[cfg(feature = "swap_integration_tests")]
-    use primitives::swap::{SwapQuoteDataType, SwapStatus};
+    use primitives::{
+        asset_constants::TRON_USDT_TOKEN_ID,
+        known_assets::TRON_USDT,
+        swap::{SwapQuoteDataType, SwapStatus},
+    };
 
     fn assets_response() -> AssetsResponse {
         serde_json::from_str(include_str!("./broker/test/assets.json")).unwrap()
@@ -869,6 +873,33 @@ mod tests {
         assert!(quote_data.data.starts_with("a9059cbb"));
         assert!(quote_data.memo.as_deref().is_some_and(|memo| memo.starts_with("0x")));
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[cfg(feature = "swap_integration_tests")]
+    async fn test_get_quote_data_tron_usdt_to_trx() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let swap_provider = ChainflipProvider::new(Arc::new(NativeProvider::default()));
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::mock_with_asset_id(TRON_USDT.id.clone(), "USDT", 6),
+            to_asset: SwapperQuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Tron), "TRX", 6),
+            wallet_address: VAULT_TRON.to_string(),
+            destination_address: VAULT_TRON.to_string(),
+            value: BigUint::from(25_000_000u64),
+            options: Options::default(),
+        };
+
+        let quote = swap_provider.get_quote(&request).await?;
+        assert_eq!(quote.from_value, request.value);
+        assert!(quote.to_value > BigUint::ZERO);
+
+        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
+        assert_eq!(quote_data.to, TRON_USDT_TOKEN_ID);
+        assert_eq!(quote_data.value, BigUint::ZERO);
+        assert_eq!(quote_data.approval, None);
+        assert!(quote_data.data.starts_with("a9059cbb"));
+        assert!(quote_data.memo.as_deref().is_some_and(|memo| memo.starts_with("0x")));
         Ok(())
     }
 }
