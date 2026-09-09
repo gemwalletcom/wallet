@@ -18,8 +18,8 @@ use crate::{
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
         quote_result::{QuotePosition, get_best_quote},
-        requires_native_wrapping,
         swap_route::{RouteData, build_swap_route, get_intermediaries},
+        uses_native_currency,
     },
 };
 use gem_evm::{
@@ -72,7 +72,7 @@ impl UniswapV4 {
     }
 
     fn parse_asset_address(asset_id: &AssetId, evm_chain: EVMChain) -> Result<Address, SwapperError> {
-        if requires_native_wrapping(asset_id) {
+        if uses_native_currency(asset_id) {
             Ok(Address::ZERO)
         } else {
             eth_address::parse_or_native_address(asset_id, evm_chain)
@@ -247,7 +247,7 @@ impl Swapper for UniswapV4 {
 
     async fn get_permit2_for_quote(&self, quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {
         let from_asset = quote.request.from_asset.asset_id();
-        if requires_native_wrapping(&from_asset) {
+        if uses_native_currency(&from_asset) {
             return Ok(None);
         }
         let (_, token_in, _, amount_in) = Self::parse_request(&quote.request)?;
@@ -279,9 +279,9 @@ impl Swapper for UniswapV4 {
 
         let client = self.client_for(from_asset.chain)?;
         let permit = data.permit2_data().map(|data| data.into());
-        let wrap_input_eth = requires_native_wrapping(&request.from_asset.asset_id());
+        let input_is_native = uses_native_currency(&request.from_asset.asset_id());
 
-        let approval: Option<ApprovalData> = if wrap_input_eth {
+        let approval: Option<ApprovalData> = if input_is_native {
             None
         } else {
             check_approval_erc20_with_client(
@@ -318,7 +318,7 @@ impl Swapper for UniswapV4 {
         )?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
-        let value = if wrap_input_eth { request.value.clone() } else { BigUint::ZERO };
+        let value = if input_is_native { request.value.clone() } else { BigUint::ZERO };
 
         Ok(SwapperQuoteData::new_contract(
             deployment.universal_router.into(),
