@@ -171,8 +171,9 @@ public final class ReceiveViewModel: Sendable {
 extension ReceiveViewModel {
     func onTaskOnce() {
         Task {
-            await enableAsset()
-            await prefetchAssociations()
+            async let enabled: Void = enableAsset()
+            async let prefetched: Void = prefetchAssociations()
+            _ = await (enabled, prefetched)
         }
     }
 
