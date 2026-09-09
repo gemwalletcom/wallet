@@ -42,10 +42,6 @@ impl GemTransferData {
         self.input_type.input_asset()
     }
 
-    pub fn transaction_asset(&self) -> Asset {
-        self.input_type.transaction_asset()
-    }
-
     pub fn header_kind(&self) -> GemTransactionHeaderKind {
         self.input_type.header_kind()
     }

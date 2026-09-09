@@ -202,13 +202,6 @@ impl GemSwapSession {
         }
     }
 
-    pub fn on_transfer_abandoned(&self, transfer: GemSwapTransferPhase) -> GemSwapSession {
-        if !matches!(transfer, GemSwapTransferPhase::Loading { .. }) || self.transfer_phase != transfer {
-            return self.clone();
-        }
-        self.on_quote_invalidated()
-    }
-
     pub fn quote(&self) -> Option<SwapperQuote> {
         self.quotes.as_ref()?;
         self.selected_quote.clone()
@@ -441,17 +434,13 @@ mod tests {
         assert!(failed.quote().is_some());
         assert_eq!(failed.on_transfer_failed(transfer.clone(), SwapperError::NoQuoteAvailable), failed);
 
-        let handed_off = started.on_transfer_handed_off(transfer.clone());
+        let handed_off = started.on_transfer_handed_off(transfer);
         assert_eq!(handed_off.transfer_phase, GemSwapTransferPhase::Idle);
         assert!(handed_off.refresh_paused_until_restart);
         assert!(!handed_off.refreshes_quotes(true));
         assert!(handed_off.on_refresh_resumed().refreshes_quotes(true));
         assert!(!handed_off.on_refresh_resumed().refreshes_quotes(false));
         assert_eq!(handed_off.on_fetch_started(request(100)), handed_off);
-
-        let abandoned = started.on_transfer_abandoned(transfer);
-        assert_eq!(abandoned.transfer_phase, GemSwapTransferPhase::Idle);
-        assert!(!abandoned.refresh_paused_until_restart);
 
         assert_eq!(ready().on_transfer_handed_off(GemSwapTransferPhase::Idle), ready());
     }

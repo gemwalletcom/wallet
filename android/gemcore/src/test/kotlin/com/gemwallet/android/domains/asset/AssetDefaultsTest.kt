@@ -22,7 +22,6 @@ class AssetDefaultsTest {
 
         val basic = asset.defaultBasic
 
-        assertEquals(assetConfig.defaultRank(Chain.Solana.string), basic.score.rank)
         assertTrue(basic.properties.isEnabled)
         assertEquals(assetConfig.isSwapable(asset.id.toIdentifier()), basic.properties.isSwapable)
         assertEquals(Chain.Solana.isStakeSupported(), basic.properties.isStakeable)
@@ -37,7 +36,6 @@ class AssetDefaultsTest {
 
         val basic = asset.defaultBasic
 
-        assertEquals(assetConfig.defaultRank(asset.id.toIdentifier()), basic.score.rank)
         assertFalse(basic.properties.isStakeable)
         assertFalse(basic.properties.hasImage)
     }

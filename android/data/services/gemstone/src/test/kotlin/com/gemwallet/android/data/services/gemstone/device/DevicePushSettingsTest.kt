@@ -60,7 +60,6 @@ class DevicePushSettingsTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { notificationsService.setEnabled(true) }
-        coVerify(exactly = 0) { deviceService.setPushEnabled(any()) }
     }
 
     private fun TestScope.settings(configStore: ConfigStore) = DevicePushSettings(

@@ -301,6 +301,11 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Every Core export has an app caller.** A sweep of the 447 exported methods against both
+  apps' production code left five with none. `GemSwapSession::on_transfer_abandoned` covered a
+  dismissal that cannot happen and is deleted; `set_push_enabled`, `includes_perpetual_collateral`
+  and `transaction_asset` are Core-internal and no longer cross the boundary; `default_rank` was
+  only asserted against itself in an Android test. See "Core surface with no caller" below.
 - **What the wallet total counts is Core's rule.** `GemWalletHomeService::total_fiat_value(balances,
   perpetual)` takes the wallet's asset values and the perpetual balance record and adds the
   collateral — available plus reserved, at par, with no day change — only when the wallet's account
@@ -412,13 +417,16 @@ the four scripts before assuming a layer is dead weight — the file-level hits 
 
 ### 2. Core surface with no caller
 
-`GemSwapSession::on_transfer_abandoned` is the only transition that clears a transfer left
-`Loading`, and `start_transfer` refuses to start while one is, yet neither app calls it — the swap
-screens resume with `on_refresh_resumed`, which only lifts the pause. Either a screen should call
-it when a confirm is dismissed mid-load, or the transition goes. A sweep of the 538 exported
-methods against both apps found only that one: `CryptoFiatConverter::to_crypto` was dead and is
-deleted, and `generate_device_key_pair` is Core-internal, so it is no longer an export — a function
-that hands out a private key has no reason to be reachable from an app.
+Empty as of 2026-09-09. `GemSwapSession::on_transfer_abandoned` was the last export with no app
+caller and no scenario: both swap screens load the transfer data before any confirm screen exists,
+so nothing can be dismissed mid-load, and the phase is always closed by `on_transfer_handed_off`
+or `on_transfer_failed`. It is deleted. The same sweep (447 exported methods against both apps'
+production code) found four methods only Core itself calls — `GemDeviceService::set_push_enabled`,
+`GemWalletPreferencesService::includes_perpetual_collateral`, `GemTransferData::transaction_asset`
+and `GemAssetConfigService::default_rank` — which are un-exported or deleted; their only app
+readers were test mocks and Core-against-Core assertions. Earlier passes removed
+`CryptoFiatConverter::to_crypto` and un-exported `generate_device_key_pair`, a function that hands
+out a private key and has no reason to be reachable from an app.
 
 ### 3. Unused generated models to remove
 

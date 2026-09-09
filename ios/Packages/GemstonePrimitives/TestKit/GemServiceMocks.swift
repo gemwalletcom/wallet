@@ -10,17 +10,9 @@ import PrimitivesTestKit
 public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let syncError: Error?
     public private(set) var synchronizeIfNeededCalls = 0
-    public private(set) var pushEnabledValues: [Bool] = []
 
     public init(syncError: Error? = nil) {
         self.syncError = syncError
-    }
-
-    public func setPushEnabled(enabled: Bool) async throws {
-        pushEnabledValues.append(enabled)
-        if let syncError {
-            throw syncError
-        }
     }
 
     public func synchronizeIfNeeded() async throws {
