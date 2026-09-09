@@ -2,6 +2,8 @@
 
 This document summarizes supported chain capabilities and provider coverage. Runtime availability also depends on server-provided asset flags. Address history describes backend coverage; direct RPC clients may offer less history.
 
+For new chain proposals, see [New Blockchain Requirements](BLOCKCHAIN_REQUIREMENTS.md). All additions require team review and approval.
+
 Availability legend used across comparison tables:
 
 - ✅ = supported
