@@ -15,10 +15,6 @@ public struct QRScanResources: QRScannerResources {
         Localized.Common.openSettings
     }
 
-    public var tryAgain: String {
-        Localized.Common.tryAgain
-    }
-
     public var dismissText: String {
         Localized.Common.cancel
     }

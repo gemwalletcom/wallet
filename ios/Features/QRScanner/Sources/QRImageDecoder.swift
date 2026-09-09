@@ -3,13 +3,11 @@
 import SwiftUI
 
 enum QRImageDecoder {
-    static func process(_ image: UIImage) throws -> String {
-        guard let ciImage = CIImage(image: image),
-              let qrCode = detectQRCode(in: ciImage)
-        else {
-            throw QRScannerError.decoding
+    static func decode(_ image: UIImage) -> String? {
+        guard let ciImage = CIImage(image: image) else {
+            return nil
         }
-        return qrCode
+        return detectQRCode(in: ciImage)
     }
 
     private static func detectQRCode(in image: CIImage) -> String? {
