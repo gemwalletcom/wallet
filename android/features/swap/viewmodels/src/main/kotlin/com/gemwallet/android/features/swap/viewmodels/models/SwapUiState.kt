@@ -3,7 +3,7 @@ package com.gemwallet.android.features.swap.viewmodels.models
 import com.gemwallet.android.ui.models.ButtonState
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapButtonState
-import uniffi.gemstone.GemSwapSession
+import uniffi.gemstone.GemSwapViewState
 import uniffi.gemstone.GemSwapSessionAction
 import uniffi.gemstone.SwapperException
 
@@ -49,16 +49,16 @@ data class SwapUiState(
         get() = SwapItemInteraction.receive(isQuoteInteractionEnabled)
 }
 
-internal fun createSwapUiState(session: GemSwapSession, buttonAction: GemSwapButtonAction) = SwapUiState(
-    action = session.action(),
-    buttonAction = buttonAction,
-    buttonState = when (session.buttonState(buttonAction)) {
+internal fun createSwapUiState(state: GemSwapViewState) = SwapUiState(
+    action = state.action,
+    buttonAction = state.buttonAction,
+    buttonState = when (state.buttonState) {
         GemSwapButtonState.DISABLED -> ButtonState.Disabled
         GemSwapButtonState.LOADING -> ButtonState.Loading
         GemSwapButtonState.ENABLED -> ButtonState.Enabled
     },
-    error = session.error(),
-    isQuoteLoading = session.isQuoteLoading(),
-    isTransferLoading = session.isTransferLoading(),
-    isInputEmpty = session.isInputEmpty(),
+    error = state.error,
+    isQuoteLoading = state.isQuoteLoading,
+    isTransferLoading = state.isTransferLoading,
+    isInputEmpty = state.isInputEmpty,
 )

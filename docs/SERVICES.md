@@ -474,6 +474,17 @@ intentional one-sided integration surfaces.
   take `(WalletType, Vec<Chain>)`; Core's own callers pass `wallet.chains()`, and each app's
   wrapper (`showPerpetuals(for:)`, `UserConfig.showPerpetuals`) still accepts its `Wallet` and
   sends only the type and chain ids. `WalletType` is `Copy` now, as a fieldless enum should be.
+- **The fiat and swap sessions answer one `view_state` call.** `GemFiatSession` and
+  `GemSwapSession` are records with exported methods, and every accessor lowers the whole record —
+  both fiat operations with all their quotes, or every swap quote — across the FFI. iOS read eight
+  to fifteen of them per body pass and Android seven per keystroke. Each session now exposes
+  `view_state(...)` returning one record (`GemFiatViewState`, `GemSwapViewState`) with the phase,
+  amount, rows, selected row, button action and state; the per-render accessors are private, and
+  only the transitions plus `selected_quote`, `quote`, `is_transfer_loading` and `refreshes_quotes`
+  stay exported for the flows. iOS keeps `viewState` as a computed property memoised on its inputs
+  (session, URL state, USD price for fiat; session, amount, pay balance for swap), so a body pass
+  costs one equality check and the FFI runs once per input change; Android derives it in one
+  `combine`. Android's selected fiat quote now uses the USD price like iOS instead of `null`.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one

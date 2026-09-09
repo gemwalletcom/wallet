@@ -53,6 +53,19 @@ pub struct GemFiatOperation {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFiatViewState {
+    pub quote_type: FiatQuoteType,
+    pub amount: String,
+    pub phase: GemFiatQuotePhase,
+    pub quote_rows: Vec<GemFiatQuoteRow>,
+    pub selected_quote_row: Option<GemFiatQuoteRow>,
+    pub can_select_provider: bool,
+    pub amount_check: GemFiatAmountCheck,
+    pub button_action: GemFiatButtonAction,
+    pub button_state: GemFiatButtonState,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatSession {
     pub quote_type: FiatQuoteType,
     pub buy: GemFiatOperation,
@@ -93,7 +106,22 @@ impl GemFiatSession {
 
 #[uniffi::export]
 impl GemFiatSession {
-    pub fn current(&self) -> GemFiatOperation {
+    pub fn view_state(&self, asset_price: Option<f64>, is_url_loading: bool) -> GemFiatViewState {
+        let operation = self.current();
+        GemFiatViewState {
+            quote_type: operation.quote_type,
+            amount: operation.amount.clone(),
+            phase: operation.phase.clone(),
+            quote_rows: self.quote_rows(asset_price),
+            selected_quote_row: self.selected_quote_row(asset_price),
+            can_select_provider: self.can_select_provider(),
+            amount_check: self.amount_check(),
+            button_action: self.button_action(),
+            button_state: self.button_state(is_url_loading),
+        }
+    }
+
+    fn current(&self) -> GemFiatOperation {
         self.operation(self.quote_type).clone()
     }
 
@@ -136,11 +164,11 @@ impl GemFiatSession {
         self.with_operation(self.current().on_provider_selected(provider))
     }
 
-    pub fn quote_rows(&self, asset_price: Option<f64>) -> Vec<GemFiatQuoteRow> {
+    fn quote_rows(&self, asset_price: Option<f64>) -> Vec<GemFiatQuoteRow> {
         self.current().quotes.iter().map(|quote| rules::quote_row(quote, asset_price)).collect()
     }
 
-    pub fn selected_quote_row(&self, asset_price: Option<f64>) -> Option<GemFiatQuoteRow> {
+    fn selected_quote_row(&self, asset_price: Option<f64>) -> Option<GemFiatQuoteRow> {
         self.selected_quote().map(|quote| rules::quote_row(&quote, asset_price))
     }
 
@@ -148,15 +176,11 @@ impl GemFiatSession {
         self.current().selected_quote()
     }
 
-    pub fn can_select_provider(&self) -> bool {
+    fn can_select_provider(&self) -> bool {
         self.current().quotes.len() > 1
     }
 
-    pub fn is_loading(&self) -> bool {
-        matches!(self.current().phase, GemFiatQuotePhase::Loading { .. })
-    }
-
-    pub fn amount_check(&self) -> GemFiatAmountCheck {
+    fn amount_check(&self) -> GemFiatAmountCheck {
         let operation = self.current();
         match operation.parsed_amount() {
             Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available),
@@ -164,14 +188,14 @@ impl GemFiatSession {
         }
     }
 
-    pub fn button_action(&self) -> GemFiatButtonAction {
+    fn button_action(&self) -> GemFiatButtonAction {
         match self.current().phase {
             GemFiatQuotePhase::Failed { .. } => GemFiatButtonAction::RetryQuote,
             _ => GemFiatButtonAction::Continue,
         }
     }
 
-    pub fn button_state(&self, is_url_loading: bool) -> GemFiatButtonState {
+    fn button_state(&self, is_url_loading: bool) -> GemFiatButtonState {
         if is_url_loading {
             return GemFiatButtonState::Loading;
         }
@@ -478,5 +502,26 @@ mod tests {
             })
         );
         assert_eq!(GemFiatSession::new(FiatQuoteType::Buy, None).on_sell_enabled_changed(false).quote_type, FiatQuoteType::Buy);
+    }
+
+    #[test]
+    fn test_view_state_carries_the_rows_selection_and_button_at_once() {
+        let session = GemFiatSession::new(FiatQuoteType::Buy, Some(100))
+            .on_fetch_started(GemFiatQuoteRequest {
+                quote_type: FiatQuoteType::Buy,
+                amount: 100.0,
+            })
+            .on_quote_results(results(FiatQuoteType::Buy, 100.0, vec![quote(FiatProviderName::Banxa, 2.0), quote(FiatProviderName::MoonPay, 1.0)]));
+
+        let state = session.view_state(Some(50.0), false);
+        assert_eq!(state.quote_type, FiatQuoteType::Buy);
+        assert_eq!(state.amount, "100");
+        assert_eq!(state.phase, GemFiatQuotePhase::Ready);
+        assert_eq!(state.quote_rows.len(), 2);
+        assert_eq!(state.selected_quote_row.map(|row| row.provider), session.selected_quote().map(|quote| quote.provider.id));
+        assert!(state.can_select_provider);
+        assert_eq!(state.button_action, GemFiatButtonAction::Continue);
+        assert_eq!(state.button_state, GemFiatButtonState::Enabled);
+        assert_eq!(session.view_state(None, true).button_state, GemFiatButtonState::Loading);
     }
 }

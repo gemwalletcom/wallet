@@ -74,9 +74,9 @@ mod tests {
             reserved: 20.0,
             withdrawable: 25.0,
         };
-        assert_eq!(wallet_balances(vec![eth.clone()], None), vec![eth.clone()]);
+        assert_eq!(wallet_balances(vec![eth], None), vec![eth]);
         assert_eq!(
-            wallet_balances(vec![eth.clone()], Some(collateral)),
+            wallet_balances(vec![eth], Some(collateral)),
             vec![
                 eth,
                 AssetFiatValue {
