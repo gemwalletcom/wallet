@@ -64,7 +64,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         self.assetModel = assetModel
         self.walletId = walletId
         selectedPeriod = service.chartPeriod().map()
-        priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
+        priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
         self.onSetPriceAlert = onSetPriceAlert
     }
 
@@ -72,10 +72,8 @@ public final class ChartSceneViewModel: ChartListViewable {
         guard let priceData else { return nil }
         return AssetDetailsInfoViewModel(
             priceData: priceData,
+            rows: service.marketRows(asset: priceData.asset.map(), market: priceData.market?.map()),
             currency: currencyCode,
-            contractExplorerLink: (try? priceData.asset.getTokenId()).flatMap {
-                service.tokenUrl(chain: priceData.asset.chain.rawValue, address: $0).map { $0.map() }
-            },
         )
     }
 }

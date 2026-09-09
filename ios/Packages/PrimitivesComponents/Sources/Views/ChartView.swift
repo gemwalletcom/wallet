@@ -186,9 +186,6 @@ extension ChartView {
             return
         }
 
-        if element.date != selectedElement?.date {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        }
         selectedElement = element
     }
 

@@ -232,21 +232,21 @@ impl TransferInput for TransactionInputType {
                 Some(nft_asset.name.clone()),
             ))?),
             Self::Perpetual { perpetual_type, .. } => match perpetual_type {
-                PerpetualType::Open(data) | PerpetualType::Close(data) | PerpetualType::Increase(data) => Some(serde_json::to_value(TransactionPerpetualMetadata {
+                PerpetualType::Open { data } | PerpetualType::Close { data } | PerpetualType::Increase { data } => Some(serde_json::to_value(TransactionPerpetualMetadata {
                     pnl: 0.0,
                     price: 0.0,
                     direction: data.direction.clone(),
                     is_liquidation: None,
                     provider: None,
                 })?),
-                PerpetualType::Reduce(data) => Some(serde_json::to_value(TransactionPerpetualMetadata {
+                PerpetualType::Reduce { data } => Some(serde_json::to_value(TransactionPerpetualMetadata {
                     pnl: 0.0,
                     price: 0.0,
                     direction: data.position_direction.clone(),
                     is_liquidation: None,
                     provider: None,
                 })?),
-                PerpetualType::Modify(_) => None,
+                PerpetualType::Modify { .. } => None,
             },
             Self::Stake { stake_type, .. } => match stake_type {
                 StakeType::Freeze(data) | StakeType::Unfreeze(data) => Some(serde_json::to_value(TransactionResourceTypeMetadata::new(*data))?),
@@ -384,6 +384,7 @@ pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallD
 }
 
 impl GemTransferData {
+    #[allow(clippy::result_large_err)]
     pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> Result<BigInt, GemAmountError> {
         let asset = self.input_type.get_asset();
         Ok(match &self.input_type {
@@ -595,7 +596,7 @@ mod tests {
     fn perpetual_input(asset: Asset) -> TransactionInputType {
         TransactionInputType::Perpetual {
             asset,
-            perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
         }
     }
 

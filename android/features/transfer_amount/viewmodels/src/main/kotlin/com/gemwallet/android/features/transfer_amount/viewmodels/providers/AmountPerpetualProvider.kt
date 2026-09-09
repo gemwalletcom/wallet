@@ -4,7 +4,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.domains.perpetual.LeverageState
-import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.data
 import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
@@ -33,8 +32,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAmountType
-import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.PerpetualProvider
+import com.gemwallet.android.math.toUnsignedInts
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProvider(
@@ -82,7 +83,7 @@ class AmountPerpetualProvider(
         combine(perpetual.filterNotNull(), userSelectedLeverage) { current, override ->
             LeverageState(
                 current = override ?: service.perpetualLeverage(current.maxLeverage.toUByte()).toInt(),
-                options = PerpetualConfig.leverageOptions(current.maxLeverage),
+                options = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.leverageOptions(current.maxLeverage.toUByte()) }.toUnsignedInts(),
                 direction = params.direction,
             )
         }.stateIn(scope, SharingStarted.Eagerly, null)

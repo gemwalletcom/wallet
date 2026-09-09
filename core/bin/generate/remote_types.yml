@@ -24,6 +24,7 @@ remote:
   - ChartCandleUpdate
   - ChartDateValue
   - ChartPeriod
+  - ChartValuePercentage
   - DelegationState
   - ConnectionComponent
   - ConnectionStatus
@@ -34,12 +35,24 @@ remote:
   - DeviceLocale
   - Asset
   - AssetLink
+  - AssetRank
+  - AssetScore
+  - AssetProperties
+  - AssetBasic
+  - AssetList
+  - ChainAsset
+  - AssetMarket
   - AssetMetaData
   - AssetPrice
   - FeePriority
   - FeeUnitType
   - FiatRate
   - FiatQuoteType
+  - FiatProviderName
+  - FiatProvider
+  - PaymentType
+  - FiatQuote
+  - FiatQuoteUrl
   - GasPriceType
   - PerpetualAccountMode
   - PerpetualDirection
@@ -55,6 +68,13 @@ remote:
   - PerpetualPositionsSummary
   - PerpetualProvider
   - PerpetualTriggerOrder
+  - PerpetualConfirmData
+  - CancelOrderData
+  - TPSLOrderData
+  - PerpetualModifyPositionType
+  - PerpetualModifyConfirmData
+  - PerpetualReduceData
+  - PerpetualType
   - Platform
   - PlatformStore
   - Wallet
@@ -155,6 +175,7 @@ scalars:
   - f64
 defaults:
   PriceProvider: Coingecko
+  AssetRank: Unknown
 
 conversions:
   UInt64:

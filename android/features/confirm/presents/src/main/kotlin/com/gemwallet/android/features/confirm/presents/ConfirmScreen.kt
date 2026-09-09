@@ -29,7 +29,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.title
-import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.ext.networkName
@@ -63,7 +62,7 @@ import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
-import com.wallet.core.primitives.PerpetualType
+import uniffi.gemstone.PerpetualType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -97,6 +96,8 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
 import uniffi.gemstone.SimulationResult
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.PerpetualProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,7 +206,7 @@ fun ConfirmScreen(
                         amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
                         icon = if (input?.inputType is TransactionInputType.Withdrawal) {
-                            PerpetualConfig.depositAsset
+                            GemPerpetual(PerpetualProvider.HYPERCORE).use { it.depositAsset() }.toPrimitives()
                         } else {
                             amountModel?.asset
                         },
@@ -291,6 +292,7 @@ fun ConfirmScreen(
                     onDismissBottomSheetInfo = viewModel::dismissNetworkFeeSheet,
                     assetPrice = assetPrice,
                     acquireFlow = viewModel::acquireFlow,
+                    networkFeeBuyAmount = viewModel.networkFeeBuyAmount(),
                     onAcquireAsset = onAcquireAsset,
                 )
             }

@@ -175,7 +175,4 @@ public struct AssetDataViewModel: Sendable {
         assetData.assetAddress
     }
 
-    public var showResources: Bool {
-        balanceViewModel.hasStakingResources
-    }
 }

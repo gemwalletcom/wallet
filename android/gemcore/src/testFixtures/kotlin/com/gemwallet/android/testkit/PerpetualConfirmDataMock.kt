@@ -1,18 +1,19 @@
 package com.gemwallet.android.testkit
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.CancelOrderData
-import com.wallet.core.primitives.PerpetualConfirmData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
-import com.wallet.core.primitives.PerpetualModifyConfirmData
-import com.wallet.core.primitives.PerpetualModifyPositionType
 import com.wallet.core.primitives.PerpetualProvider
+import uniffi.gemstone.CancelOrderData
+import uniffi.gemstone.GemPerpetualDetails
+import uniffi.gemstone.GemPerpetualDetailsAction
 import uniffi.gemstone.GemPerpetualTransferData
-import com.wallet.core.primitives.PerpetualReduceData
-import com.wallet.core.primitives.TPSLOrderData
+import uniffi.gemstone.PerpetualConfirmData
+import uniffi.gemstone.PerpetualModifyConfirmData
+import uniffi.gemstone.PerpetualModifyPositionType
+import uniffi.gemstone.PerpetualReduceData
+import uniffi.gemstone.TpslOrderData
 
 fun mockPerpetualConfirmData(
     direction: PerpetualDirection = PerpetualDirection.Long,
@@ -31,9 +32,9 @@ fun mockPerpetualConfirmData(
     takeProfit: String? = null,
     stopLoss: String? = null,
 ) = PerpetualConfirmData(
-    direction = direction,
-    marginType = marginType,
-    baseAsset = baseAsset,
+    direction = direction.toGem(),
+    marginType = marginType.toGem(),
+    baseAsset = baseAsset.toGem(),
     assetIndex = assetIndex,
     price = price,
     fiatValue = fiatValue,
@@ -48,22 +49,32 @@ fun mockPerpetualConfirmData(
     stopLoss = stopLoss,
 )
 
+fun mockPerpetualDetails(
+    action: GemPerpetualDetailsAction = GemPerpetualDetailsAction.OPEN,
+    direction: PerpetualDirection = PerpetualDirection.Long,
+    data: PerpetualConfirmData = mockPerpetualConfirmData(),
+) = GemPerpetualDetails(
+    action = action,
+    direction = direction.toGem(),
+    data = data,
+)
+
 fun mockPerpetualReduceData(
     data: PerpetualConfirmData = mockPerpetualConfirmData(),
     positionDirection: PerpetualDirection = PerpetualDirection.Long,
 ) = PerpetualReduceData(
     data = data,
-    positionDirection = positionDirection,
+    positionDirection = positionDirection.toGem(),
 )
 
 fun mockPerpetualModifyConfirmData(
     modifyTypes: List<PerpetualModifyPositionType> = emptyList(),
     baseAsset: Asset = mockAssetHyperCoreUSDC(),
     assetIndex: Int = 0,
-    takeProfitOrderId: Long? = null,
-    stopLossOrderId: Long? = null,
+    takeProfitOrderId: ULong? = null,
+    stopLossOrderId: ULong? = null,
 ) = PerpetualModifyConfirmData(
-    baseAsset = baseAsset,
+    baseAsset = baseAsset.toGem(),
     assetIndex = assetIndex,
     modifyTypes = modifyTypes,
     takeProfitOrderId = takeProfitOrderId,
@@ -76,15 +87,15 @@ fun mockTpslOrder(
     stopLoss: String? = null,
     size: String = "1.0",
 ) = PerpetualModifyPositionType.Tpsl(
-    TPSLOrderData(
-        direction = direction,
+    TpslOrderData(
+        direction = direction.toGem(),
         takeProfit = takeProfit,
         stopLoss = stopLoss,
         size = size,
     ),
 )
 
-fun mockCancel(orderIds: List<Long>, assetIndex: Int = 0) = PerpetualModifyPositionType.Cancel(
+fun mockCancel(orderIds: List<ULong>, assetIndex: Int = 0) = PerpetualModifyPositionType.Cancel(
     orderIds.map { CancelOrderData(assetIndex = assetIndex, orderId = it) },
 )
 

@@ -1,9 +1,9 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{FiatQuote, FiatQuoteType};
+use primitives::{FiatProviderName, FiatQuote, FiatQuoteType};
 use rand::RngExt;
 
-use super::model::GemFiatAmountCheck;
+use super::model::{GemFiatAmountCheck, GemFiatQuoteRow};
 use crate::config::fiat_config::FiatConfig;
 use crate::services::balance::GemBalanceRequirement;
 
@@ -55,12 +55,28 @@ pub fn parse_amount(text: &str) -> FiatAmountInput {
     }
 }
 
-pub fn selected_quote(quotes: &[FiatQuote], preferred: Option<&str>) -> Option<FiatQuote> {
+pub fn selected_quote(quotes: &[FiatQuote], preferred: Option<FiatProviderName>) -> Option<FiatQuote> {
     quotes
         .iter()
-        .find(|quote| preferred.is_some_and(|provider| quote.provider.id.id() == provider))
+        .find(|quote| preferred.is_some_and(|provider| quote.provider.id == provider))
         .or_else(|| quotes.first())
         .cloned()
+}
+
+pub fn quote_row(quote: &FiatQuote, asset_price: Option<f64>) -> GemFiatQuoteRow {
+    let fiat_amount = match (quote.quote_type, asset_price) {
+        (FiatQuoteType::Buy, Some(price)) if price > 0.0 => price * quote.crypto_amount,
+        _ => quote.fiat_amount,
+    };
+    GemFiatQuoteRow {
+        quote_id: quote.id.clone(),
+        provider: quote.provider.id,
+        provider_name: quote.provider.name.clone(),
+        provider_image_url: quote.provider.image_url.clone(),
+        crypto_amount: quote.crypto_amount,
+        fiat_amount,
+        rate: (quote.crypto_amount > 0.0).then(|| quote.fiat_amount / quote.crypto_amount),
+    }
 }
 
 pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
@@ -100,6 +116,33 @@ mod tests {
             10,
             vec![],
         )
+    }
+
+    #[test]
+    fn test_row_prices_a_buy_off_the_asset_price_and_a_sell_off_the_quote() {
+        let mut buy = quote(1);
+        buy.quote_type = FiatQuoteType::Buy;
+        buy.crypto_amount = 2.0;
+        buy.fiat_amount = 100.0;
+
+        assert_eq!(quote_row(&buy, Some(30.0)).fiat_amount, 60.0);
+        assert_eq!(quote_row(&buy, Some(0.0)).fiat_amount, 100.0);
+        assert_eq!(quote_row(&buy, None).fiat_amount, 100.0);
+
+        let mut sell = buy.clone();
+        sell.quote_type = FiatQuoteType::Sell;
+        assert_eq!(quote_row(&sell, Some(30.0)).fiat_amount, 100.0);
+    }
+
+    #[test]
+    fn test_row_has_no_rate_when_the_quote_buys_nothing() {
+        let mut quote = quote(1);
+        quote.crypto_amount = 4.0;
+        quote.fiat_amount = 100.0;
+        assert_eq!(quote_row(&quote, None).rate, Some(25.0));
+
+        quote.crypto_amount = 0.0;
+        assert_eq!(quote_row(&quote, None).rate, None);
     }
 
     #[test]
@@ -151,9 +194,9 @@ mod tests {
     fn test_selected_quote_prefers_the_chosen_provider_and_falls_back_to_the_first() {
         let quotes = vec![quote(1), quote(2)];
         assert_eq!(selected_quote(&quotes, None).map(|quote| quote.value), Some(BigUint::from(1u32)));
-        assert_eq!(selected_quote(&quotes, Some("transak")).map(|quote| quote.value), Some(BigUint::from(1u32)));
-        assert_eq!(selected_quote(&quotes, Some("banxa")).map(|quote| quote.value), Some(BigUint::from(1u32)));
-        assert_eq!(selected_quote(&[], Some("transak")), None);
+        assert_eq!(selected_quote(&quotes, Some(FiatProviderName::Transak)).map(|quote| quote.value), Some(BigUint::from(1u32)));
+        assert_eq!(selected_quote(&quotes, Some(FiatProviderName::Banxa)).map(|quote| quote.value), Some(BigUint::from(1u32)));
+        assert_eq!(selected_quote(&[], Some(FiatProviderName::Transak)), None);
     }
 
     #[test]

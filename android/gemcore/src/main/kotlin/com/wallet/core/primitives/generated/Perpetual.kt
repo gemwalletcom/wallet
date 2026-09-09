@@ -29,12 +29,6 @@ data class AutocloseOpenData (
 )
 
 @Serializable
-data class CancelOrderData (
-	val assetIndex: Int,
-	val orderId: Long
-)
-
-@Serializable
 data class Perpetual (
 	val id: PerpetualId,
 	val name: String,
@@ -65,25 +59,6 @@ data class PerpetualBasic (
 )
 
 @Serializable
-data class PerpetualConfirmData (
-	val direction: PerpetualDirection,
-	val marginType: PerpetualMarginType,
-	val baseAsset: Asset,
-	val assetIndex: Int,
-	val price: String,
-	val fiatValue: Double,
-	val size: String,
-	val slippage: Double,
-	val leverage: UByte,
-	val pnl: Double? = null,
-	val entryPrice: Double? = null,
-	val marketPrice: Double,
-	val marginAmount: Double,
-	val takeProfit: String? = null,
-	val stopLoss: String? = null
-)
-
-@Serializable
 data class PerpetualMetadata (
 	val isPinned: Boolean
 )
@@ -106,25 +81,6 @@ data class PerpetualMarketData (
 )
 
 @Serializable
-sealed class PerpetualModifyPositionType {
-	@Serializable
-	@SerialName("Tpsl")
-	data class Tpsl(val content: TPSLOrderData): PerpetualModifyPositionType()
-	@Serializable
-	@SerialName("Cancel")
-	data class Cancel(val content: List<CancelOrderData>): PerpetualModifyPositionType()
-}
-
-@Serializable
-data class PerpetualModifyConfirmData (
-	val baseAsset: Asset,
-	val assetIndex: Int,
-	val modifyTypes: List<PerpetualModifyPositionType>,
-	val takeProfitOrderId: Long? = null,
-	val stopLossOrderId: Long? = null
-)
-
-@Serializable
 data class PerpetualPositionData (
 	val perpetual: Perpetual,
 	val asset: Asset,
@@ -138,23 +94,9 @@ data class PerpetualPositionsSummary (
 )
 
 @Serializable
-data class PerpetualReduceData (
-	val data: PerpetualConfirmData,
-	val positionDirection: PerpetualDirection
-)
-
-@Serializable
 data class PerpetualSearchData (
 	val perpetual: Perpetual,
 	val asset: Asset
-)
-
-@Serializable
-data class TPSLOrderData (
-	val direction: PerpetualDirection,
-	val takeProfit: String? = null,
-	val stopLoss: String? = null,
-	val size: String
 )
 
 @Serializable
@@ -169,24 +111,5 @@ enum class PerpetualAccountMode(val string: String) {
 	Standard("standard"),
 	@SerialName("unified")
 	Unified("unified"),
-}
-
-@Serializable
-sealed class PerpetualType {
-	@Serializable
-	@SerialName("Open")
-	data class Open(val content: PerpetualConfirmData): PerpetualType()
-	@Serializable
-	@SerialName("Close")
-	data class Close(val content: PerpetualConfirmData): PerpetualType()
-	@Serializable
-	@SerialName("Modify")
-	data class Modify(val content: PerpetualModifyConfirmData): PerpetualType()
-	@Serializable
-	@SerialName("Increase")
-	data class Increase(val content: PerpetualConfirmData): PerpetualType()
-	@Serializable
-	@SerialName("Reduce")
-	data class Reduce(val content: PerpetualReduceData): PerpetualType()
 }
 

@@ -1,6 +1,8 @@
 package com.gemwallet.android.serializer
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
+import com.gemwallet.android.testkit.mockPerpetualPosition
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.junit.Assert.assertEquals
@@ -9,7 +11,6 @@ import org.junit.Test
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemRecipient
-import java.math.BigInteger
 
 class GemRecordSerializerTest {
 
@@ -22,7 +23,7 @@ class GemRecordSerializerTest {
 
     @Test
     fun anEnumWithDataRoundTripsThroughARoutePayload() {
-        val action: GemPerpetualPositionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(), BigInteger.TEN)
+        val action: GemPerpetualPositionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(), mockPerpetualPosition().toGem())
 
         assertEquals(action, unpackRoutePayload<GemPerpetualPositionAction>(requireNotNull(action.packRoutePayload())))
     }

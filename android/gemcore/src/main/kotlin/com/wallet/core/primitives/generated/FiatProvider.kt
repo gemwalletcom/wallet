@@ -8,14 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class FiatProvider (
-	val id: String,
-	val name: String,
-	val imageUrl: String? = null,
-	val paymentMethods: List<PaymentType>
-)
-
-@Serializable
 enum class FiatProviderName(val string: String) {
 	@SerialName("mercuryo")
 	Mercuryo("mercuryo"),

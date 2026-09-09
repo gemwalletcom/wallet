@@ -421,6 +421,24 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func missingWalletDataErrorDetails() {
+        for (error, description) in [
+            (GemConfirmError.BalanceMissing(assetId: "tron"), "BalanceMissing(assetId: \"tron\")"),
+            (GemConfirmError.AccountMissing(chain: Primitives.Chain.tron.rawValue), Localized.Errors.walletAccountMissing),
+        ] {
+            let model = ConfirmTransferSceneViewModel.mock()
+            model.state = .mock(transaction: .error(error))
+
+            let errorItem = model.itemModel(for: .error) as? ConfirmErrorViewModel
+            guard case let .error(_, displayError, _) = errorItem?.itemModel else {
+                Issue.record("Expected wallet data error item")
+                continue
+            }
+            #expect(displayError.localizedDescription == description)
+        }
+    }
+
+    @Test
     func sectionsStructure() {
         let model = ConfirmTransferSceneViewModel.mock()
         let sections = model.sections
@@ -591,7 +609,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected fiatConnect sheet")
             return
         }
-        #expect(amount == FiatConfig.insufficientNetworkFeeBuyAmount)
+        #expect(amount == Int(GemConfirmTransferServiceMock.networkFeeBuyAmount))
     }
 
     @Test
@@ -725,7 +743,7 @@ struct ConfirmTransferSceneViewModelTests {
             return
         }
         #expect(asset.id == Asset.mockTron().id)
-        #expect(buyAmount == FiatConfig.insufficientNetworkFeeBuyAmount)
+        #expect(buyAmount == Int(GemConfirmTransferServiceMock.networkFeeBuyAmount))
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {

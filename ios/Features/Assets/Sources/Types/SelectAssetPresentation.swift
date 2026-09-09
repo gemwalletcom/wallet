@@ -8,6 +8,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Store
+import class Gemstone.GemPerpetual
 
 public struct SelectAssetPresentation: Sendable {
     public let title: String
@@ -110,7 +111,7 @@ public extension SelectAssetType {
             SelectAssetPresentation(
                 title: Localized.Wallet.deposit,
                 listType: .view,
-                defaultFilters: [.chainsOrAssets([], [PerpetualConfig.depositAssetId])],
+                defaultFilters: [.chainsOrAssets([], [GemPerpetual(provider: .hypercore).depositAsset().id])],
             )
         case .withdraw:
             SelectAssetPresentation(

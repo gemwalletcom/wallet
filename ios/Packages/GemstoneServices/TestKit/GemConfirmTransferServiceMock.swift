@@ -81,4 +81,10 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     public func acquireAssetFlow(chain: Chain) -> GemAcquireAssetFlow {
         assetConfig.acquireFlow(chain: chain)
     }
+
+    public func insufficientNetworkFeeBuyAmount() -> Int32 {
+        Self.networkFeeBuyAmount
+    }
+
+    public static let networkFeeBuyAmount: Int32 = 10
 }

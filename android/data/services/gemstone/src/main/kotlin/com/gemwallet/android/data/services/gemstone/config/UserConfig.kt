@@ -16,6 +16,7 @@ import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSecureStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
@@ -92,21 +93,21 @@ class UserConfig(
     private val perpetualStopLossState = MutableStateFlow(preferencesService.getPerpetualStopLossPercent().toInt())
     private val swapSlippageBpsState = MutableStateFlow(preferencesService.getSwapSlippageBps())
 
-    fun perpetualLeverage(): Flow<Int> = perpetualLeverageState
+    fun perpetualLeverage(): StateFlow<Int> = perpetualLeverageState
 
     fun setPerpetualLeverage(value: Int) {
         preferencesService.setPerpetualLeverage(value.toUByte())
         perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
     }
 
-    fun perpetualTakeProfit(): Flow<Int> = perpetualTakeProfitState
+    fun perpetualTakeProfit(): StateFlow<Int> = perpetualTakeProfitState
 
     fun setPerpetualTakeProfit(value: Int) {
         preferencesService.setPerpetualTakeProfitPercent(value.toUByte())
         perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
     }
 
-    fun perpetualStopLoss(): Flow<Int> = perpetualStopLossState
+    fun perpetualStopLoss(): StateFlow<Int> = perpetualStopLossState
 
     fun setPerpetualStopLoss(value: Int) {
         preferencesService.setPerpetualStopLossPercent(value.toUByte())

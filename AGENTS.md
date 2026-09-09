@@ -2,13 +2,17 @@
 
 Guidance for Coding Agents (Claude Code, Codex, etc.) collaborating in this monorepo. This file is the routing layer plus the non-negotiable rules. Everything else lives in a skill, a platform guide, or a design doc; load only what the task needs.
 
+## Using the Guidance
+
+The user's task defines scope and authorization. Shared rules apply to both agents; platform guides specialize them, not silently contradict them. Current subsystem contracts govern design; nearby code provides examples, not permission to copy a known violation. Agent memory and external skills are advisory and must be checked against these sources. When guidance disagrees, resolve it from the current contract and source, fix the stale rule, and ask only if a product or security decision remains unresolved.
+
 ## Skills
 
 `task-workflow.md`, `cross-platform-awareness.md`, and `engineering-principles.md` apply to every task. The rest are load-on-demand; the one-line description tells you when.
 
 - [Task Workflow](skills/task-workflow.md) — Scope, investigation, cross-stack order (Core → bindings → iOS/Android), verification, cleanup rounds, handoff, and guide maintenance
 - [Cross-Platform Awareness](skills/cross-platform-awareness.md) — Rules for changes that can affect both apps
-- [Engineering Principles](skills/engineering-principles.md) — Clean-code, generic-solution, and test-intent rules shared across the repo
+- [Engineering Principles](skills/engineering-principles.md) — Ownership, reuse, minimal abstractions, and test intent
 - [Project Overview](skills/project-overview.md) — Repo layout, layer architecture, and ownership boundaries
 - [Development Commands](skills/development-commands.md) — Root build, generate, localization, and platform entrypoint commands
 - [Quality Checks](skills/quality-checks.md) — Iteration and closing check matrices per change type
@@ -28,13 +32,13 @@ Read the relevant platform guide(s) before editing code in that area:
 - [Android](android/AGENTS.md) — Kotlin, Compose, Hilt, Gradle workflow
 - [Core](core/AGENTS.md) — Rust crates, UniFFI/TypeShare, clippy, defensive programming
 
-If a task spans multiple platforms, read every affected guide. Do not treat every `core/` edit as a cross-platform build change. Regenerate and verify the apps only when Core changes UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. For internal Core implementation changes that preserve those contracts, run the relevant Core verification without building iOS or Android.
+If a task spans platforms, read every affected guide. Generation and parity requirements live in [Cross-Platform Awareness](skills/cross-platform-awareness.md); verification commands live in [Quality Checks](skills/quality-checks.md).
 
 ## Design Docs
 
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
-- [Architecture](docs/ARCHITECTURE.md) — the reference every new feature follows: Core-owned services, pure rules, stores, app mapping, and the request-enum shape every HTTP and JSON-RPC client converges on
+- [Architecture](docs/ARCHITECTURE.md) — Current ownership contracts and a task-based index of implementation examples
 - [Decision Records](docs/DECISIONS.md) — repo-wide architectural choices and their rationale
 - [Services](docs/SERVICES.md) — how a Gemstone service is built and the remaining migration work
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
@@ -55,13 +59,9 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 
 ## Task Completion
 
-Fix causes, not symptoms. Ask why the failure was possible before changing anything, and fix the layer that made it possible; if that fix is out of scope, name the cause and flag it (see [Engineering Principles](skills/engineering-principles.md)).
-
-Non-negotiable, whatever the task size:
-
-1. Build the affected platform(s) and run the relevant tests. Documentation-only changes use the lightweight checks in [skills/quality-checks.md](skills/quality-checks.md) instead.
-2. Run two cleanup rounds on your own diff before handoff. Round one, once the code works and before the verification batch: dedupe, simplify, remove dead code and stale fixtures, and match the surrounding codebase conventions. Round two, on the final diff after verification: read it as a reviewer would and remove anything round one left. Rerun the affected targeted checks if a round changed source. Details in [skills/task-workflow.md](skills/task-workflow.md).
+1. Fix the cause at its owner, within the task's scope; see [Engineering Principles](skills/engineering-principles.md).
+2. Run both cleanup rounds in [Task Workflow](skills/task-workflow.md), before and after verification. Rerun affected checks if cleanup changes source.
 3. Review security impact for changes touching secrets, signing, auth, transactions, or wallet recovery.
-4. If `core/` changed mobile interfaces, generated models, platform build inputs, or app-side integration, regenerate and verify the affected app(s); otherwise keep verification scoped to Core.
+4. Run the applicable [Quality Checks](skills/quality-checks.md), including generation and app verification when shared contracts change. Documentation-only work uses its lightweight checks.
 
-Do not close a task on reasoning, `git diff`, or file inspection alone. Run real verification for the changed area and report the exact commands, their results, and anything skipped or blocked. For wallet-critical flows (signing, secure storage, migrations, key import/export, transaction construction), "completed" is wrong if anything was skipped silently: surface skipped records, swallowed errors, and untested branches explicitly. A silent success on these paths is the most expensive failure mode in this repo.
+For code changes, reasoning and file inspection do not replace execution. Report exact verification commands, results, and anything skipped or blocked. For wallet-critical flows, explicitly surface skipped records, swallowed errors, and untested branches.

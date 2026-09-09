@@ -2,8 +2,10 @@
 
 import BigInt
 import enum Gemstone.GemFiatAmountCheck
-import struct Gemstone.GemFiatSession
+import struct Gemstone.FiatQuote
+import struct Gemstone.FiatQuoteUrl
 import protocol Gemstone.GemFiatQuoteServiceProtocol
+import struct Gemstone.GemFiatSession
 import Primitives
 
 public extension GemFiatQuoteServiceProtocol {
@@ -16,11 +18,11 @@ public extension GemFiatQuoteServiceProtocol {
     }
 
     func amountCheck(type: FiatQuoteType, amount: Double, quote: FiatQuote?, available: BigInt) -> GemFiatAmountCheck {
-        amountCheck(quoteType: type.map(), amount: amount, quote: quote?.json(), available: BigUInt(available))
+        amountCheck(quoteType: type.map(), amount: amount, quote: quote, available: BigUInt(available))
     }
 
     func quoteUrl(asset: Asset, quoteId: String) async throws -> FiatQuoteUrl {
-        try FiatQuoteUrl(await quoteUrl(assetId: asset.id.identifier, quoteId: quoteId))
+        try await quoteUrl(assetId: asset.id.identifier, quoteId: quoteId)
     }
 }
 
@@ -31,13 +33,5 @@ public extension GemFiatSession {
 
     var amount: String {
         current().amount
-    }
-
-    var selectedFiatQuote: FiatQuote? {
-        selectedQuote().flatMap { try? FiatQuote($0) }
-    }
-
-    var fiatQuotes: [FiatQuote] {
-        current().quotes.compactMap { try? FiatQuote($0) }
     }
 }

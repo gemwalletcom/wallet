@@ -81,6 +81,7 @@ struct ConfirmInfoSheetBuilderTests {
             prices: [:],
             currency: Currency.usd.rawValue,
             acquireFlow: { _ in .fiat },
+            networkFeeBuyAmount: 10,
             onGetAsset: { _, _ in },
         )
     }

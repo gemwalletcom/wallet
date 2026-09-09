@@ -4,27 +4,20 @@ use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatProvider {
-    #[typeshare(serialized_as = "String")]
     pub id: FiatProviderName,
     pub name: String,
     pub image_url: Option<String>,
     #[serde(skip)]
-    #[typeshare(skip)]
     pub priority: Option<i32>,
     #[serde(skip)]
-    #[typeshare(skip)]
     pub threshold_bps: Option<i32>,
     #[serde(skip)]
-    #[typeshare(skip)]
     pub enabled: bool,
     #[serde(skip)]
-    #[typeshare(skip)]
     pub buy_enabled: bool,
     #[serde(skip)]
-    #[typeshare(skip)]
     pub sell_enabled: bool,
     pub payment_methods: Vec<PaymentType>,
 }

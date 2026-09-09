@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitivesTestKit
+import struct Gemstone.FiatQuote
 import struct Gemstone.GemBalanceRequirement
 import struct Gemstone.GemFiatQuoteRequest
 import struct Gemstone.GemFiatQuotesResult
@@ -41,7 +42,7 @@ final class FiatSceneViewModelTests {
         model.session = model.session.onQuoteResults(
             results: GemFiatQuotesResult(
                 request: GemFiatQuoteRequest(quoteType: type.map(), amount: amount),
-                quotes: quotes.map { $0.json() },
+                quotes: quotes,
                 error: error,
             ),
         )
@@ -175,7 +176,7 @@ final class FiatSceneViewModelTests {
     @Test
     func selectingProviderRevalidatesSellBalance() {
         let affordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 1, type: .sell)
-        let unaffordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 3, type: .sell, providerId: "transak")
+        let unaffordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 3, type: .sell, providerId: .transak)
         let service = GemFiatQuoteServiceMock(check: { quote in
             quote?.cryptoAmount == 3 ? .insufficientBalance(requirement: GemBalanceRequirement(required: 300_000_000, available: 200_000_000, shortfall: 100_000_000)) : .valid
         })
@@ -187,13 +188,13 @@ final class FiatSceneViewModelTests {
         )
         FiatSceneViewModelTests.load(model, quotes: [affordable, unaffordable], amount: 100, type: .sell)
 
-        #expect(model.selectedQuote == affordable)
+        #expect(model.selectedQuote?.quoteId == affordable.id)
         #expect(model.allowSelectProvider)
         #expect(model.actionButtonState == .normal)
 
-        model.onSelectQuotes([FiatQuoteViewModel(asset: model.asset, quote: unaffordable, formatter: CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue))])
+        model.onSelectQuotes([FiatQuoteViewModel(asset: model.asset, row: .mock(provider: .transak), formatter: CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue))])
 
-        #expect(model.selectedQuote == unaffordable)
+        #expect(model.selectedQuote?.quoteId == unaffordable.id)
         #expect(model.inputValidationModel.isInvalid)
         #expect(model.actionButtonState == .disabled)
         #expect(!model.isPresentingFiatProvider)
@@ -314,7 +315,6 @@ final class FiatSceneViewModelTests {
 
         let row = model.fiatProviderViewModel.state.value?.items.first
 
-        #expect(row?.assetPrice == 100_000)
         #expect(row?.subtitleExtra == "$48.80")
     }
 }

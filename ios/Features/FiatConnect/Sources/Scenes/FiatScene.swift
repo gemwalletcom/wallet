@@ -90,7 +90,7 @@ extension FiatScene {
                 if let quote = model.selectedQuote {
                     let view = ListItemImageView(
                         title: model.providerTitle,
-                        subtitle: quote.provider.name,
+                        subtitle: quote.providerName,
                         assetImage: model.providerAssetImage(quote.provider),
                     )
                     if model.allowSelectProvider {

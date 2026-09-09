@@ -1,7 +1,6 @@
 mod address;
 mod decode;
 mod ed25519;
-mod eip712;
 mod error;
 mod secp256k1;
 
@@ -22,7 +21,6 @@ pub use crate::secp256k1::{
 };
 
 pub use decode::{decode_private_key, encode_private_key, supports_private_key_import};
-pub use eip712::{hash_typed_data as hash_eip712, validate_eip712_domain_chain_id_binding};
 pub use primitives::SignerError;
 
 pub const CARDANO_EXTENDED_PRIVATE_KEY_LENGTH: usize = 192;
@@ -56,12 +54,6 @@ impl Signer {
 
     pub fn recover_ethereum_address(digest: &[u8; 32], signature: &[u8]) -> Result<String, SignerError> {
         secp256k1::recover_ethereum_address(digest, signature)
-    }
-
-    pub fn sign_eip712(typed_data_json: &str, private_key: &[u8]) -> Result<String, SignerError> {
-        let digest = eip712::hash_typed_data(typed_data_json)?;
-        let signature = Self::sign_ethereum_digest(&digest, private_key)?;
-        Ok(hex::encode(signature))
     }
 }
 

@@ -109,15 +109,15 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
 ```
 
 Android, `android/data/services/gemstone/.../stores/<Name>Store.kt`, class
-`Gemstone<Name>Store`, converting with `toJson()` and `decodeJson()`:
+`Gemstone<Name>Store`, converting with the generated mapper:
 
 ```kotlin
 class GemstonePriceAlertStore(
     private val priceAlertsDao: PriceAlertsDao,
 ) : GemPriceAlertStore {
 
-    override suspend fun updatePriceAlerts(alerts: List<String>, deleteIds: List<String>) {
-        priceAlertsDao.update(alerts.map { it.decodeJson<PriceAlert>().toRecord() }, deleteIds)
+    override suspend fun updatePriceAlerts(alerts: List<uniffi.gemstone.PriceAlert>, deleteIds: List<String>) {
+        priceAlertsDao.update(alerts.map { it.toPrimitives().toRecord() }, deleteIds)
     }
 }
 ```
@@ -369,7 +369,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 ### 4. Rules still written once per platform
 
 - **The amount providers hand Core their inputs and take Core's types back.**
-  `GemAmountType::validate` checks a value against the type's own available value and minimum,
+  `GemAmountType::entry` reads the typed text and checks it against the type's own available value and minimum,
   and `GemAmountService { stake, preferences, session }` answers the currency, the earn data and
   the perpetual defaults on both apps: `perpetual_leverage(max_leverage)` picks the preferred
   option and `perpetual_autoclose(price, direction, leverage)` turns the preference percents into
@@ -393,6 +393,18 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `AmountPerpetualViewModel`, `AmountEarnViewModel`; Android's `providers/*`) that load the
   delegations, validators and perpetual market the type needs, hold the validator/resource/
   leverage/autoclose selection, and format titles.
+- **What a typed amount means is one Core answer.** `GemAmountType::entry(asset, input, price,
+  GemAmountInputType::{Asset | Fiat}, text) -> GemAmountEntry { value, error, equivalent, is_max,
+  reserved_fee }` parses the sanitized text under the input mode, converts fiat through the price
+  at display precision, validates the value, says whether it is the max and hands back the
+  reserved fee to show at the max; `max_entry(asset, balance)` answers the Max button with the
+  input type (always asset units) and the value. iOS's `AssetValueConverter`, `AmountValidator.Source.fiat`
+  and `AmountValueValidator` with its `TransferError.minimumAmount` mapping, and Android's
+  `AmountInputType.getAmount`, `CryptoFiatConverter.toCrypto*` and `AmountValidation.parseAmount`
+  are gone; each app keeps the text field, the input type toggle, its locale normalization and its
+  formatting. That settled the one drift: Android's Max in fiat mode kept the fiat mode and read
+  the crypto max as a fiat amount, iOS switched to asset units. `GemAmountError` carries the
+  asset, so both apps localize it without a twin.
 - **The generator is the way a duplicated type stops being duplicated.** Adding a fieldless enum or
   a record of scalars, remote types, codes and identifiers (plain, `Option` or `Vec`) to
   `core/bin/generate/remote_types.yml` replaces a hand-written mapper on
@@ -423,8 +435,37 @@ Three gotchas if you repeat the sweep, all met on this pass:
   apps name `GasPriceType`. The same wire format is gone from `GemTransferData` (`value`,
   `minimum_value`) with the serde derives on `GemTransferData`, `GemRecipient` and
   `GemConfirmInput` that existed only for it; `decimal_string` now serializes the one unsigned
-  perpetual amount. Tuple variants still panic the generator; a typeshared data-carrying enum
-  still needs mapper emission before it can cross that way. The generator is one table-driven
+  perpetual amount. The perpetual confirm cluster crossed the same way and is the largest group to
+  do so: `PerpetualType`, `PerpetualConfirmData`, `PerpetualReduceData`, `PerpetualModifyConfirmData`,
+  `PerpetualModifyPositionType`, `TPSLOrderData` and `CancelOrderData` are declared remote and hold no
+  twin, so a confirm screen reads the order off the record instead of parsing a JSON string on every
+  access, and both apps deleted their mappers to it (Android's `PerpetualMappers`, iOS's
+  `PerpetualType(core:)` at three call sites). Their two enums carry named fields now — uniffi names a
+  tuple variant's payload `v1` in both languages, which is not a name a screen should read — so a
+  data-carrying enum that crosses this way is written `Variant { field: Type }` in primitives. A
+  typeshared data-carrying enum still needs mapper emission before it can cross with a twin; the way
+  across is to drop the twin, as these did. Dropping it took the serde derives with it, and they were
+  load-bearing for nothing: `TransactionInputType`, `TransactionPreloadInput`, `TransactionLoadInput`,
+  `TransactionLoadData`, `SignerInput`, `TransactionFee`, `TransactionLoadMetadata`, `FeeRate`,
+  `GasPriceType`, `StakeType`, `EarnType`, `TransferDataExtra` and `ContractCallData` all carried a
+  wire format nothing wrote or read once the confirm input stopped crossing as a string, so the whole
+  chain is `#[derive(Debug, Clone)]` now. A type in it that grows a `Serialize` again means something
+  started persisting a confirm input, which is not how a confirm input travels. The buy/sell quote went the same way: `FiatQuote`,
+  `FiatQuoteUrl`, `FiatProvider`, `FiatProviderName` and `PaymentType` are remote, so a quote list
+  that refreshes every thirty seconds and on every keystroke stops being parsed out of a JSON string
+  per quote per emission. `FiatProviderName` keeps its twin because Room stores it by name; the
+  transit types do not. What a provider row shows is `GemFiatQuoteRow` — the provider, the crypto
+  amount, the fiat amount to display and the rate — so neither app decides that a buy row prices off
+  the USD asset price when there is one and off the quote otherwise, and a quote that buys nothing
+  has no rate instead of formatting `NaN`, which is what iOS rendered. `FiatTransaction` and its
+  wrappers stay on the bridge: they only travel Core to app, and the generator has no way to emit the
+  app-to-core direction for a record whose skipped fields have no default. The asset search results
+went across next — `AssetBasic`, `AssetProperties`, `AssetScore`, `AssetRank`, `AssetList` and
+`ChainAsset` — so a search that runs on every keystroke stops parsing a JSON string per result on
+both apps, and the chain asset table each app builds once at startup is a mapper call rather than a
+parse per chain. These keep their twins: Android persists them as `DbSearch`, `DbAssetList` and
+`DbAsset` rows. `AssetRank` is the second entry in `defaults` — it is `#[typeshare(skip)]` on
+`AssetScore`, so the app-to-core direction needs a variant to fall back to. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper
@@ -509,7 +550,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 - **Big integers are typed on both sides of the boundary.** `uniffi.toml` maps `GemBigInt` /
   `GemBigUint` to `java.math.BigInteger` and `BigInt` / `BigUInt`, so no app code parses a Core
-  amount or renders one to a string to hand it back; `GemAmountError`, `GemAmountType::validate`
+  amount or renders one to a string to hand it back; `GemAmountError`, `GemAmountType::entry`
   and `GemTransferDataExtra.gas_limit` carry big integers too. What still parses is the
   typeshare model (`Balance`, `SwapQuote`, `Delegation.base`, `TransactionSwapMetadata`) and the
   database columns both apps store as text — a typeshare-level mapping would finish it.
@@ -650,7 +691,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   (`Unavailable`, `InsufficientFeeBalance`, `IncorrectAddress`, `ZeroAmount`), two of them with
   hard-coded English; a zero amount now stays silent (`AmountError.None`, the button just does
   not proceed), which is what iOS's `SilentValidationError` does. The remaining cases are the
-  app-side parse errors and Core's minimum / insufficient-balance answers.
+  app-side `Required` and Core's invalid-number, minimum and insufficient-balance answers.
 
 - **The asset scene's swap pair comes from the same service on both apps.** iOS asked
   `GemAssetDetailsService::swap_pair`; Android's `AssetInfoUIModelFactory` held a
@@ -1197,11 +1238,19 @@ the view-model scope in `tearDown`, and five forced reruns on 2026-09-05 passed.
 there as a real regression, not the old flake.
 
 `AddAssetViewModelTest > addAsset adds the found token to the current wallet` (Android) failed once
-in a full `just test` run with a `CompletionHandlerException` from a cancelled `ProducerCoroutine`
-and passed three forced reruns; the view model's search producer is cancelled while its completion
-handler still runs, so the test needs the producer scope closed before the assertion, not a retry.
+in a full `just test` run with a `CompletionHandlerException` from a cancelled `ProducerCoroutine`.
+`AddAssetViewModel.searchToken` and `ReferralViewModel.sync` caught `Exception`, which swallows the
+`CancellationException` a `flatMapLatest` throws when the address changes, so the search kept
+running and emitted into a collector that was already gone; both use `runCatchingCancellable` now,
+the way the three chart view models already call `ensureActive()` in their catch. Twelve forced
+runs did not reproduce the failure before the change, so the fix is the anti-pattern, not a proven
+repro — a test that pins it has to observe the throw from the cancelled producer, and the obvious
+one passes against the old code too.
 
-`Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL` — the pre-`46889318bc` contract — and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived, so it cannot fail on data loss. It is an `androidTest`, so fixing it means running it on a device.
+`Migration_88_89Test` asserts what the migration does to the rows now: the banners it cannot rebuild
+are dropped, and the recreated table takes a row with no chain. Mutating the migration to carry the
+old rows across fails it (`expected:<0> but was:<1>`), which is the check the schema validation
+alone could not make. It runs on a device, not in CI.
 
 ### 7. Android
 
@@ -1270,6 +1319,15 @@ Which recent activity a selection records, and which types a select screen lists
 `SelectAssetType` and `SelectedAssetType` to the action; Android's select and search actions carry
 the asset and the action), recorded through one `add_recent(action, asset)` that reads the current
 wallet from Core's session. A completed transfer is recorded by `GemConfirmTransferService` on both.
+
+What a details screen shows for a perpetual order is `perpetual_details(perpetual_type) ->
+Option<GemPerpetualDetails>` — the action, the direction the screen labels (the position's on a
+reduce, the order's otherwise) and the confirm data — so neither app decides which of the five
+variants has details. Both used to: iOS's `PerpetualDetailsType` mirrored `PerpetualType` minus
+`.modify` and its initialiser hit `fatalError("not supported")` on that variant, a crash on a
+confirm path, while Android's factory returned null. Both mirrors are gone, along with Android's
+`PerpetualConfirmDetailsUIModel.Action`, and the reduce direction is a Core test rather than a rule
+each app rediscovers.
 
 Android hand-wrote `RecentType` with different case names from the generated
 `RecentActivityType` — `Send` against `Transfer`, `Buy` against `FiatBuy` — and those names

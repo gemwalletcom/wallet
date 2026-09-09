@@ -4,8 +4,7 @@ import com.gemwallet.android.data.service.store.database.AssetListDao
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.DbSearch
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.AssetList
+import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemSearchStore
 
 class GemstoneSearchStore(
@@ -18,8 +17,8 @@ class GemstoneSearchStore(
     override suspend fun setPerpetuals(key: String, perpetualIds: List<String>) =
         searchDao.putPerpetuals(key, perpetualIds.mapIndexed { index, id -> DbSearch(query = key, perpetualId = id, priority = index) })
 
-    override suspend fun setLists(key: String, lists: List<String>) {
-        val items = lists.map { it.decodeJson<AssetList>() }
+    override suspend fun setLists(key: String, lists: List<uniffi.gemstone.AssetList>) {
+        val items = lists.map { it.toPrimitives() }
         assetListDao.upsert(items.toRecord())
         searchDao.putLists(key, items.mapIndexed { index, list -> DbSearch(query = key, listId = list.id, priority = index) })
     }

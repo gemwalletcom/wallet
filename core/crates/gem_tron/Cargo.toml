@@ -33,6 +33,7 @@ signer = [
     "dep:gem_encoding",
     "dep:gem_hash",
     "dep:num-bigint",
+    "dep:num-traits",
     "dep:serde_serializers",
     "dep:signer",
 ]

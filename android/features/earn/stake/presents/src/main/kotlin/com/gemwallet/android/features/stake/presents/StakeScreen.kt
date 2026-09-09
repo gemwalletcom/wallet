@@ -25,6 +25,8 @@ fun StakeScreen(
     val actions by viewModel.actions.collectAsStateWithLifecycle()
     val rewardsText by viewModel.rewardsText.collectAsStateWithLifecycle()
     val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
+    val lockTimeDays by viewModel.lockTimeDays.collectAsStateWithLifecycle()
+    val minStakeAmount by viewModel.minStakeAmount.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
     if (stakeAssetInfo == null) {
@@ -40,6 +42,8 @@ fun StakeScreen(
             actions = actions,
             rewardsText = rewardsText,
             stakeInfoUrl = stakeInfoUrl,
+            lockTimeDays = lockTimeDays,
+            minStakeAmount = minStakeAmount,
             amountAction = amountAction,
             onAction = { action ->
                 when (action) {

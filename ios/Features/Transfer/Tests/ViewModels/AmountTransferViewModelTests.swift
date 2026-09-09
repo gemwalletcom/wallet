@@ -8,6 +8,7 @@ import PrimitivesTestKit
 import GemstoneServicesTestKit
 import class Gemstone.GemAmountService
 import Testing
+import class Gemstone.GemPerpetual
 @testable import Transfer
 
 struct AmountTransferViewModelTests {
@@ -26,8 +27,8 @@ struct AmountTransferViewModelTests {
         #expect(AmountTransferViewModel(asset: usdc, action: .deposit, service: GemAmountService.mock()).displayAsset.id == usdc.id)
 
         let withdraw = AmountTransferViewModel(asset: usdc, action: .withdraw, service: GemAmountService.mock()).displayAsset
-        #expect(withdraw.id.identifier == PerpetualConfig.depositAssetId)
-        #expect(withdraw.type == .token)
+        #expect(withdraw.id.identifier == GemPerpetual(provider: .hypercore).depositAsset().id)
+        #expect(withdraw.type == .erc20)
     }
 
     @Test

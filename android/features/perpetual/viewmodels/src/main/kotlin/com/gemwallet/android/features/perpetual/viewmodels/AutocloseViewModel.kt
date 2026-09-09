@@ -35,7 +35,6 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 import javax.inject.Inject
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)

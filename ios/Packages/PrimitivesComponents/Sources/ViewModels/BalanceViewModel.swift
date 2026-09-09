@@ -66,14 +66,6 @@ public struct BalanceViewModel: Sendable {
         formatter.string(value, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
-    public var hasStakingResources: Bool {
-        usesFreeze
-    }
-
-    private var usesFreeze: Bool {
-        StakeChain(rawValue: asset.chain.rawValue)?.usesFreeze ?? false
-    }
-
     public var balanceTextColor: Color {
         guard !total.isZero else {
             return Colors.gray

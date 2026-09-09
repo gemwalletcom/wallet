@@ -8,11 +8,10 @@ use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PerpetualType, Si
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum TransactionInputType {
     Transfer {
@@ -173,9 +172,9 @@ impl TransactionInputType {
             TransactionInputType::TransferNft { .. } => TransactionType::TransferNFT,
             TransactionInputType::Account { .. } => TransactionType::AssetActivation,
             TransactionInputType::Perpetual { perpetual_type, .. } => match perpetual_type {
-                PerpetualType::Open(_) | PerpetualType::Increase(_) => TransactionType::PerpetualOpenPosition,
-                PerpetualType::Close(_) | PerpetualType::Reduce(_) => TransactionType::PerpetualClosePosition,
-                PerpetualType::Modify(_) => TransactionType::PerpetualModifyPosition,
+                PerpetualType::Open { .. } | PerpetualType::Increase { .. } => TransactionType::PerpetualOpenPosition,
+                PerpetualType::Close { .. } | PerpetualType::Reduce { .. } => TransactionType::PerpetualClosePosition,
+                PerpetualType::Modify { .. } => TransactionType::PerpetualModifyPosition,
             },
             TransactionInputType::Earn { earn_type, .. } => match earn_type {
                 EarnType::Deposit(_) => TransactionType::EarnDeposit,
@@ -185,12 +184,11 @@ impl TransactionInputType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransactionLoadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     pub value: BigUint,
     pub gas_price: GasPriceType,
     pub memo: Option<String>,
@@ -228,7 +226,7 @@ impl TransactionLoadInput {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct SignerInput {
     pub input: TransactionLoadInput,
     pub fee: TransactionFee,
@@ -286,7 +284,7 @@ impl Deref for SignerInput {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransactionLoadData {
     pub fee: TransactionFee,
     pub metadata: TransactionLoadMetadata,
@@ -364,7 +362,7 @@ mod tests {
         assert_eq!(
             TransactionInputType::Perpetual {
                 asset: Asset::mock(),
-                perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))
+                perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) }
             }
             .transaction_type(),
             TransactionType::PerpetualOpenPosition
@@ -382,14 +380,14 @@ mod tests {
             }
         }
 
-        let perpetual_type = PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None));
+        let perpetual_type = PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None) };
         let perpetual_input = TransactionInputType::Perpetual {
             asset: Asset::mock(),
             perpetual_type,
         };
         match perpetual_input.get_perpetual_type().unwrap() {
-            PerpetualType::Open(data) => assert_eq!(data.asset_index, 11),
-            PerpetualType::Close(_) | PerpetualType::Modify(_) | PerpetualType::Increase(_) | PerpetualType::Reduce(_) => panic!("expected open perpetual type"),
+            PerpetualType::Open { data } => assert_eq!(data.asset_index, 11),
+            PerpetualType::Close { .. } | PerpetualType::Modify { .. } | PerpetualType::Increase { .. } | PerpetualType::Reduce { .. } => panic!("expected open perpetual type"),
         }
 
         assert_eq!(

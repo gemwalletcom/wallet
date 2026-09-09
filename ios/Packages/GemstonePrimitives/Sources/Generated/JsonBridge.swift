@@ -3,23 +3,14 @@
 
 import Primitives
 
-extension Primitives.AssetBasic: JsonCodable {}
 extension Primitives.AssetFull: JsonCodable {}
-extension Primitives.AssetList: JsonCodable {}
-extension Primitives.AssetMarket: JsonCodable {}
 extension Primitives.AuthNonce: JsonCodable {}
 extension Primitives.AuthPayload: JsonCodable {}
-extension Primitives.CancelOrderData: JsonCodable {}
-extension Primitives.ChainAsset: JsonCodable {}
-extension Primitives.ChartValuePercentage: JsonCodable {}
 extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
-extension Primitives.FiatQuote: JsonCodable {}
 extension Primitives.FiatQuoteRequest: JsonCodable {}
-extension Primitives.FiatQuoteUrl: JsonCodable {}
-extension Primitives.FiatQuotes: JsonCodable {}
 extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
 extension Primitives.Markets: JsonCodable {}
@@ -28,13 +19,8 @@ extension Primitives.PaymentAmount: JsonCodable {}
 extension Primitives.PaymentLink: JsonCodable {}
 extension Primitives.PaymentRequest: JsonCodable {}
 extension Primitives.PerpetualAccountSummary: JsonCodable {}
-extension Primitives.PerpetualConfirmData: JsonCodable {}
-extension Primitives.PerpetualModifyConfirmData: JsonCodable {}
-extension Primitives.PerpetualModifyPositionType: JsonCodable {}
 extension Primitives.PerpetualPortfolio: JsonCodable {}
 extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}
-extension Primitives.PerpetualReduceData: JsonCodable {}
-extension Primitives.PerpetualType: JsonCodable {}
 extension Primitives.PortfolioData: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
@@ -48,7 +34,6 @@ extension Primitives.StakeValidator: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SupportTyping: JsonCodable {}
-extension Primitives.TPSLOrderData: JsonCodable {}
 extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
 extension Primitives.TransactionsResponse: JsonCodable {}
 extension Primitives.TronStakeData: JsonCodable {}

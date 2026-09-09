@@ -1,10 +1,10 @@
 package com.gemwallet.android.ui.components.image
 
 import androidx.annotation.DrawableRes
-import com.gemwallet.android.domains.asset.providerName
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatProviderName
+import uniffi.gemstone.FiatProvider
 import uniffi.gemstone.SwapProvider
 
 @DrawableRes
@@ -46,6 +46,6 @@ fun FiatProviderName.iconResource(): Int = when (this) {
 
 fun SwapProvider.iconModel(): Any = iconResource()
 
-fun FiatProvider.iconModel(): Any? = providerName()?.iconResource()
+fun FiatProvider.iconModel(): Any = id.toPrimitives().iconModel()
 
 fun FiatProviderName.iconModel(): Any = iconResource()

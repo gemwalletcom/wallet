@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
@@ -20,6 +19,9 @@ import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountServiceInterface
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.PerpetualProvider
+import com.gemwallet.android.ext.toPrimitives
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountTransferProvider(
@@ -50,7 +52,7 @@ class AmountTransferProvider(
 
     val displayAsset: Asset? by lazy {
         when (params) {
-            is AmountParams.Withdraw -> PerpetualConfig.depositAsset
+            is AmountParams.Withdraw -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.depositAsset() }.toPrimitives()
             else -> null
         }
     }

@@ -10,6 +10,7 @@ import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Localization
 import Primitives
+import class Gemstone.GemPerpetual
 
 enum TransferAction {
     case send(GemPaymentRecipient)
@@ -30,7 +31,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
 
     var displayAsset: Asset {
         switch action {
-        case .withdraw: PerpetualConfig.depositAsset
+        case .withdraw: GemPerpetual(provider: .hypercore).depositAsset().map()
         case .send, .deposit: asset
         }
     }

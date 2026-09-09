@@ -2,14 +2,14 @@
 
 import Components
 import Formatters
+import struct Gemstone.GemFiatQuoteRow
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct FiatQuoteViewModel {
-    let quote: FiatQuote
-    let assetPrice: Double?
+    let row: GemFiatQuoteRow
     let isSelected: Bool
 
     private let asset: Asset
@@ -17,42 +17,32 @@ struct FiatQuoteViewModel {
 
     init(
         asset: Asset,
-        quote: FiatQuote,
-        assetPrice: Double? = nil,
+        row: GemFiatQuoteRow,
         isSelected: Bool = false,
         formatter: CurrencyFormatter,
     ) {
         self.asset = asset
-        self.quote = quote
-        self.assetPrice = assetPrice
+        self.row = row
         self.isSelected = isSelected
         self.formatter = formatter
     }
 
     var title: String {
-        quote.provider.name
+        row.providerName
     }
 
     var amountText: String {
-        NumericFormatter().string(quote.cryptoAmount, symbol: asset.symbol)
+        NumericFormatter().string(row.cryptoAmount, symbol: asset.symbol)
     }
 
     var rateText: String {
-        let amount = quote.fiatAmount / quote.cryptoAmount
-        return formatter.string(amount)
-    }
-
-    private var priceText: String {
-        guard let assetPrice, assetPrice > 0 else {
-            return formatter.string(quote.fiatAmount)
-        }
-        return formatter.string(assetPrice * quote.cryptoAmount)
+        row.rate.map { formatter.string($0) } ?? ""
     }
 }
 
 extension FiatQuoteViewModel: Identifiable {
     var id: String {
-        "\(asset.id.identifier)\(quote.provider.id)\(quote.cryptoAmount)"
+        "\(asset.id.identifier)\(row.provider.map().rawValue)\(row.cryptoAmount)"
     }
 }
 
@@ -65,7 +55,7 @@ extension FiatQuoteViewModel: SimpleListItemViewable {
 
     var assetImage: AssetImage {
         AssetImage(
-            placeholder: quote.provider.image,
+            placeholder: row.provider.map().image,
             chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
         )
     }
@@ -75,10 +65,7 @@ extension FiatQuoteViewModel: SimpleListItemViewable {
     }
 
     var subtitleExtra: String? {
-        switch quote.type {
-        case .buy: priceText
-        case .sell: formatter.string(quote.fiatAmount)
-        }
+        formatter.string(row.fiatAmount)
     }
 
     var subtitleStyle: TextStyle {

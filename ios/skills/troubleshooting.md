@@ -26,7 +26,7 @@ just build
 
 ### Test Failures After Model Changes
 
-When Core model changes break tests, regenerate first, then fix test expectations:
+When Core model changes break tests, regenerate first, then distinguish stale output, a regression, and an intentionally changed contract. Update expectations only when the intended contract requires it:
 ```bash
 just generate
 just test

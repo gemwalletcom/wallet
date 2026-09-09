@@ -21,7 +21,7 @@ struct AmountPerpetualViewModelTests {
     @Test
     func increaseReduceTitle() {
         let increase = AmountPerpetualViewModel(asset: .mock(), action: .increase(data: .mock(direction: .long)), service: GemAmountServiceMock(builder: GemAmountService.mock()))
-        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), available: 1000), service: GemAmountServiceMock(builder: GemAmountService.mock()))
+        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).map()), service: GemAmountServiceMock(builder: GemAmountService.mock()))
 
         #expect(increase.title.contains("Long"))
         #expect(reduce.title.contains("Long"))
@@ -41,7 +41,7 @@ struct AmountPerpetualViewModelTests {
     func isAutocloseEnabled() {
         let open = AmountPerpetualViewModel(asset: .mock(), action: .open(data: .mock()), service: GemAmountServiceMock(builder: GemAmountService.mock()))
         let increase = AmountPerpetualViewModel(asset: .mock(), action: .increase(data: .mock()), service: GemAmountServiceMock(builder: GemAmountService.mock()))
-        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), available: 1000), service: GemAmountServiceMock(builder: GemAmountService.mock()))
+        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).map()), service: GemAmountServiceMock(builder: GemAmountService.mock()))
 
         #expect(open.isAutocloseEnabled == true)
         #expect(increase.isAutocloseEnabled == false)
@@ -53,7 +53,7 @@ struct AmountPerpetualViewModelTests {
         let assetData = AssetData.mock(balance: .mock(available: 5000))
 
         let open = AmountPerpetualViewModel(asset: .mock(), action: .open(data: .mock()), service: GemAmountServiceMock(builder: GemAmountService.mock()))
-        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), available: 1000), service: GemAmountServiceMock(builder: GemAmountService.mock()))
+        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).map()), service: GemAmountServiceMock(builder: GemAmountService.mock()))
 
         #expect(open.input(from: assetData).availableValue == 5000)
         #expect(reduce.input(from: assetData).availableValue == 1000)
@@ -91,7 +91,7 @@ struct AmountPerpetualViewModelTests {
     func makeTransferData() {
         let open = AmountPerpetualViewModel(asset: .mock(), action: .open(data: .mock()), service: GemAmountServiceMock(builder: GemAmountService.mock())).makeTransferData(value: 100, useMaxAmount: false)
         let increase = AmountPerpetualViewModel(asset: .mock(), action: .increase(data: .mock()), service: GemAmountServiceMock(builder: GemAmountService.mock())).makeTransferData(value: 200, useMaxAmount: false)
-        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), available: 1000), service: GemAmountServiceMock(builder: GemAmountService.mock())).makeTransferData(value: 300, useMaxAmount: false)
+        let reduce = AmountPerpetualViewModel(asset: .mock(), action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).map()), service: GemAmountServiceMock(builder: GemAmountService.mock())).makeTransferData(value: 300, useMaxAmount: false)
 
         #expect(open.transactionType().map() == .perpetualOpenPosition)
         #expect(increase.transactionType().map() == .perpetualOpenPosition)

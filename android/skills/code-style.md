@@ -4,7 +4,7 @@ Use for any Kotlin or Compose change.
 ## Core Rules
 
 - Kotlin conventions and existing project patterns; Jetpack Compose for UI; Hilt for dependency injection; repository-based data access
-- Do not add unnecessary comments; clean imports after every modification
+- Follow the shared [comment policy](../../skills/engineering-principles.md#clean-code-principles); clean imports after modifications
 - In suspend or flow code, a `catch (e: Throwable)` must rethrow `CancellationException` before mapping to an error state; otherwise a cancelled collection surfaces as a failure (see `InAppUpdateServiceImpl.kt`)
 - No blocking store, Room, or gemstone call on the main thread. A synchronous getter reached from a view model constructor, a Hilt provider, or composition throws and kills the process; expose it as a suspend function or flow and collect it. `allowMainThreadQueries()` belongs to migration tests only
 - Row models for a list a screen scrolls are built off the main thread (`flowOn(Dispatchers.Default)` before `stateIn`), and every string a row displays is computed in that mapper, not in composition. The main thread only collects finished rows, so a list of any size keeps scrolling while its source keeps emitting

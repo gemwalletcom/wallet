@@ -3,6 +3,7 @@ use std::borrow::Cow;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use bs58;
+use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
 use gem_solana::signer::SolanaChainSigner;
 use gem_sui::signer as sui_signer;
@@ -10,7 +11,7 @@ use gem_ton::address::base64_to_hex_address;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex::encode_with_0x;
 use primitives::unix_seconds;
-use signer::{SIGNATURE_LENGTH, Signer, ensure_ethereum_signature_recovery_id_offset, hash_eip712};
+use signer::{SIGNATURE_LENGTH, Signer, ensure_ethereum_signature_recovery_id_offset};
 use sui_types::PersonalMessage;
 
 use super::{
@@ -109,7 +110,7 @@ impl MessageSigner {
             SignDigestType::Eip191 | SignDigestType::Siwe => Ok(eip191_hash_message(&self.message.data).to_vec()),
             SignDigestType::Eip712 => {
                 let json = self.data_as_utf8()?;
-                let digest = hash_eip712(&json)?;
+                let digest = hash_typed_data(&json)?;
                 Ok(digest.to_vec())
             }
             SignDigestType::Base58 => bs58::decode(&self.message.data).into_vec().map_err(|e| GemstoneError::from(e.to_string())),
@@ -424,7 +425,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
     #[test]
     fn test_eip712_hash() {
         let json_str = include_str!("./test/eip712_seaport.json");
-        let hash = hash_eip712(json_str).unwrap();
+        let hash = hash_typed_data(json_str).unwrap();
 
         assert_eq!(hex::encode(hash), "0b8aa9f3712df0034bc29fe5b24dd88cfdba02c7f499856ab24632e2969709a8",);
 

@@ -37,8 +37,8 @@ use cacher::{AccessTokenCacherClient, CacherClient};
 use config::ConfigClient;
 use devices::DevicesClient;
 use devices::{
-    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionsClient, WalletConfigurationClient,
-    WalletsClient, scan_providers,
+    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionScanConfig, TransactionsClient,
+    WalletConfigurationClient, WalletsClient, scan_providers,
 };
 use gem_auth::AuthClient;
 use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClient};
@@ -227,8 +227,11 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
     let scan_client = ScanClient::new(
         database.clone(),
-        scan_providers(&settings_clone, cacher_client.clone(), config_cacher.get_duration(ConfigKey::ScanTimeout)?)?,
-        config_cacher.get_bool(ConfigKey::ScanEnable)?,
+        TransactionScanConfig {
+            providers: scan_providers(&settings_clone, cacher_client.clone(), config_cacher.get_duration(ConfigKey::ScanTimeout)?)?,
+            enable: config_cacher.get_bool(ConfigKey::ScanEnable)?,
+            required_successes: config_cacher.get_usize(ConfigKey::ScanRequiredSuccesses)?,
+        },
     );
     let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
     let assets_client = AssetsClient::new(database.clone(), price_config);

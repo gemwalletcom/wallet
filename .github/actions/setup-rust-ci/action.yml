@@ -26,6 +26,7 @@ runs:
       uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       with:
         shared-key: ${{ inputs.shared-key }}
+        workspaces: "core -> target"
 
     - name: Run sccache-cache
       if: ${{ inputs.sccache == 'true' }}
