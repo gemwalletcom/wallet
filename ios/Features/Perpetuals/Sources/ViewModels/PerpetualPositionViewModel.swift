@@ -111,10 +111,6 @@ public struct PerpetualPositionViewModel {
         )
     }
 
-    public var fundingPaymentsColor: Color {
-        fundingPaymentsModel.color
-    }
-
     public var sizeField: ListItemField {
         ListItemField(title: Localized.Perpetual.size, value: currencyFormatter.string(data.position.sizeValue))
     }

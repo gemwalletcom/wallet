@@ -12,7 +12,6 @@ public enum SystemImage {
     public static let arrowSwap = "arrow.up.arrow.down"
     public static let arrowUp = "arrow.up"
     public static let paperplane = "paperplane"
-    public static let compose = "square.and.pencil"
     public static let bubbleLeftAndBubbleRight = "bubble.left.and.bubble.right"
     public static let chevronDown = "chevron.down"
     public static let chevronRight = "chevron.right"

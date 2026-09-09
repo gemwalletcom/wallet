@@ -6,7 +6,6 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 
 interface PerpetualPositionDataAggregate {
-    val positionId: String
     val perpetualId: PerpetualId
     val asset: Asset
     val name: String

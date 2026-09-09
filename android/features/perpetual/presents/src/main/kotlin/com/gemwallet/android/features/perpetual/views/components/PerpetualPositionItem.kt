@@ -74,7 +74,6 @@ private fun PerpetualPositionLongItemPreview() {
     )
 
     val sampleData = object : PerpetualPositionDataAggregate {
-        override val positionId: String = "pos_btc_001"
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
         override val name: String = "BTC"
@@ -102,7 +101,6 @@ private fun PerpetualPositionShortItemPreview() {
     )
 
     val sampleData = object : PerpetualPositionDataAggregate {
-        override val positionId: String = "pos_btc_001"
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
         override val name: String = "BTC"

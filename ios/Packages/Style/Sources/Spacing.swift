@@ -41,10 +41,6 @@ public extension Spacing {
     /// 32
     static let extraLarge: CGFloat = space32
 
-    var edgeInsets: EdgeInsets {
-        EdgeInsets(top: self, leading: self, bottom: self, trailing: self)
-    }
-
     enum scene {
         /// 16
         public static let top: CGFloat = space16
@@ -56,8 +52,6 @@ public extension Spacing {
         public enum button {
             /// 340
             public static let maxWidth: CGFloat = 340
-            /// 44
-            public static let accessoryHeight: CGFloat = 44
             /// 50
             public static let height: CGFloat = 50
         }

@@ -2,8 +2,6 @@
 
 import Foundation
 
-public typealias ValueValidatable = Comparable & ExpressibleByIntegerLiteral & Sendable
-
 public protocol ValueValidator<Formatted>: Identifiable, Sendable {
     associatedtype Formatted
     func validate(_ value: Formatted) throws
@@ -13,10 +11,6 @@ public extension ValueValidator {
     /// `validator.silent` → a silent version that always throws `SilentValidationError`
     var silent: some ValueValidator<Formatted> {
         SilentValueValidator(validator: self)
-    }
-
-    var isSilent: Bool {
-        self is SilentValidatable
     }
 }
 

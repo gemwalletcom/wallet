@@ -38,10 +38,6 @@ public struct ConnectionProposalViewModel {
         Localized.Common.wallet
     }
 
-    var appTitle: String {
-        Localized.WalletConnect.app
-    }
-
     var connectionTitle: String {
         Localized.WalletConnect.Connection.title
     }

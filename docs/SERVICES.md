@@ -301,6 +301,16 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Members nothing reads are gone on both apps.** A declare-then-grep sweep over every
+  non-private symbol in the iOS packages and features and the Android modules, counting readers in
+  production and test code alike, found nineteen iOS members and six Android ones with no reader
+  but their own declaration: view-model titles, images and URLs no view bound (`helpCenter*`,
+  `pinned*`, `leverageTitle`, `nativeCurrency`, `networkFeeAmount` and the like), a formatter, a
+  style constant, a system image, two validator flags, a record-to-basic mapper, the
+  `ReferralError` cases nothing raises, `getConnectionByTopic`, the perpetual aggregate's
+  `positionId`, and the swap-slippage config that no screen set or read. Store adapters, Room
+  converters and framework overrides are excluded on purpose: Core or the platform calls them,
+  so a grep over app code cannot see their reader.
 - **The confirm screen's title is Core's answer.** `GemTransferData::title() -> GemConfirmTitle`
   names the title per input type — send, deposit, withdraw, swap, approve, request, the seven
   stake actions, activate asset, and the perpetual open, increase, reduce, close and modify kinds

@@ -56,8 +56,4 @@ final class CoinPriceRowViewModel {
     var percentageColor: Color {
         PriceChangeColor.color(for: coin.priceChangePercentage24h)
     }
-
-    var percentageChange: Double {
-        coin.priceChangePercentage24h
-    }
 }
