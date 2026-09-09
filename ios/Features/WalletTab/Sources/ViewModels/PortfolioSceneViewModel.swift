@@ -7,6 +7,9 @@ import protocol Gemstone.GemPortfolioServiceProtocol
 import GemstonePrimitives
 import Localization
 import GemstoneServices
+import struct Gemstone.PortfolioData
+import struct Gemstone.PortfolioMarginUsage
+import enum Gemstone.PortfolioStatistic
 import Primitives
 import PrimitivesComponents
 import Style
@@ -70,7 +73,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     }
 
     public var periods: [ChartPeriod] {
-        selectedState.value?.availablePeriods ?? [.day, .week, .month, .year, .all]
+        selectedState.value?.availablePeriods.map { $0.map() } ?? [.day, .week, .month, .year, .all]
     }
 
     var statistics: [PortfolioStatistic] {
@@ -92,9 +95,10 @@ extension PortfolioSceneViewModel {
     public func load() async {
         selectedState = .loading
         do {
-            let data = try await PortfolioData(service.portfolioData(wallet: wallet.map(), portfolioType: state.selectedType.map(), period: selectedPeriod.map()))
-            if data.availablePeriods.isNotEmpty, !data.availablePeriods.contains(selectedPeriod) {
-                selectedPeriod = data.availablePeriods.first ?? selectedPeriod
+            let data = try await service.portfolioData(wallet: wallet.map(), portfolioType: state.selectedType.map(), period: selectedPeriod.map())
+            let periods = data.availablePeriods.map { $0.map() }
+            if periods.isNotEmpty, !periods.contains(selectedPeriod) {
+                selectedPeriod = periods.first ?? selectedPeriod
             }
             selectedState = .data(data)
         } catch {
@@ -124,9 +128,9 @@ extension PortfolioSceneViewModel {
     func statisticModel(_ statistic: PortfolioStatistic) -> ListItemModel {
         switch statistic {
         case let .allTimeHigh(chartValue):
-            allTimeModel(title: Localized.Asset.allTimeHigh, chartValue: chartValue)
+            allTimeModel(title: Localized.Asset.allTimeHigh, chartValue: chartValue.map())
         case let .allTimeLow(chartValue):
-            allTimeModel(title: Localized.Asset.allTimeLow, chartValue: chartValue)
+            allTimeModel(title: Localized.Asset.allTimeLow, chartValue: chartValue.map())
         case let .unrealizedPnl(value):
             pnlModel(title: Localized.Perpetual.unrealizedPnl, value: value)
         case let .accountLeverage(value):
@@ -148,11 +152,11 @@ extension PortfolioSceneViewModel {
 
 extension PortfolioSceneViewModel {
     private func chartViewModel(from data: PortfolioData) -> ChartValuesViewModel? {
-        let charts = data.charts.first(where: { $0.chartType == state.selectedChartType })?.values
+        let charts = data.charts.first(where: { $0.chartType.map() == state.selectedChartType })?.values
             ?? data.charts.first?.values
             ?? []
         return .priceChange(
-            charts: charts,
+            charts: charts.map { $0.map() },
             period: selectedPeriod,
             formatter: chartFormatter,
             showHeaderValue: state.selectedType == .wallet || state.selectedChartType == .value,

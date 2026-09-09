@@ -24,7 +24,6 @@ pub enum PortfolioChartType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioChartData {
     pub chart_type: PortfolioChartType,
@@ -114,7 +113,6 @@ pub struct PortfolioAssets {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioMarginUsage {
     pub account_value: f64,
@@ -122,20 +120,18 @@ pub struct PortfolioMarginUsage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]
 pub enum PortfolioStatistic {
-    AllTimeHigh(ChartValuePercentage),
-    AllTimeLow(ChartValuePercentage),
-    UnrealizedPnl(f64),
-    AccountLeverage(f64),
-    MarginUsage(PortfolioMarginUsage),
-    AllTimePnl(f64),
-    Volume(f64),
+    AllTimeHigh { value: ChartValuePercentage },
+    AllTimeLow { value: ChartValuePercentage },
+    UnrealizedPnl { value: f64 },
+    AccountLeverage { value: f64 },
+    MarginUsage { value: PortfolioMarginUsage },
+    AllTimePnl { value: f64 },
+    Volume { value: f64 },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioData {
     pub charts: Vec<PortfolioChartData>,

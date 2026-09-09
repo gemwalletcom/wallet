@@ -47,7 +47,6 @@ extension WalletConnectorInteractor: GemWalletConnectSigner {
     }
 
     public func signTransaction(request: GemWalletConnectTransactionRequest) async throws -> String {
-        let data = WCTransferData(request)
         return try await present { try await presentSheet(payload: WCTransferData(request), sheetType: { .transferData($0) }) }
     }
 

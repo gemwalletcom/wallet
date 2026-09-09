@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.PortfolioData
 import Primitives
 
 struct PortfolioState {

@@ -28,8 +28,8 @@ fn wallet_periods() -> Vec<ChartPeriod> {
 
 pub fn wallet_portfolio_data(values: GemPortfolioValues) -> PortfolioData {
     let statistics = [
-        values.all_time_high.map(PortfolioStatistic::AllTimeHigh),
-        values.all_time_low.map(PortfolioStatistic::AllTimeLow),
+        values.all_time_high.map(|value| PortfolioStatistic::AllTimeHigh { value }),
+        values.all_time_low.map(|value| PortfolioStatistic::AllTimeLow { value }),
     ]
     .into_iter()
     .flatten()
@@ -62,18 +62,18 @@ pub fn perpetual_portfolio_data(portfolio: PerpetualPortfolio, period: ChartPeri
 
     let mut statistics = Vec::new();
     if let Some(summary) = &portfolio.account_summary {
-        statistics.push(PortfolioStatistic::UnrealizedPnl(summary.unrealized_pnl));
-        statistics.push(PortfolioStatistic::AccountLeverage(summary.account_leverage));
-        statistics.push(PortfolioStatistic::MarginUsage(PortfolioMarginUsage {
+        statistics.push(PortfolioStatistic::UnrealizedPnl { value: summary.unrealized_pnl });
+        statistics.push(PortfolioStatistic::AccountLeverage { value: summary.account_leverage });
+        statistics.push(PortfolioStatistic::MarginUsage { value: PortfolioMarginUsage {
             account_value: summary.account_value,
             usage: summary.margin_usage,
-        }));
+        } });
     }
     if let Some(all_time) = &portfolio.all_time {
         if let Some(last) = all_time.pnl_history.last() {
-            statistics.push(PortfolioStatistic::AllTimePnl(last.value));
+            statistics.push(PortfolioStatistic::AllTimePnl { value: last.value });
         }
-        statistics.push(PortfolioStatistic::Volume(all_time.volume));
+        statistics.push(PortfolioStatistic::Volume { value: all_time.volume });
     }
 
     PortfolioData {
@@ -154,11 +154,11 @@ mod tests {
         assert_eq!(
             data.statistics,
             vec![
-                PortfolioStatistic::UnrealizedPnl(7.0),
-                PortfolioStatistic::AccountLeverage(2.0),
-                PortfolioStatistic::MarginUsage(PortfolioMarginUsage { account_value: 100.0, usage: 0.5 }),
-                PortfolioStatistic::AllTimePnl(50.0),
-                PortfolioStatistic::Volume(5000.0),
+                PortfolioStatistic::UnrealizedPnl { value: 7.0 },
+                PortfolioStatistic::AccountLeverage { value: 2.0 },
+                PortfolioStatistic::MarginUsage { value: PortfolioMarginUsage { account_value: 100.0, usage: 0.5 } },
+                PortfolioStatistic::AllTimePnl { value: 50.0 },
+                PortfolioStatistic::Volume { value: 5000.0 },
             ]
         );
         assert_eq!(data.available_periods, vec![ChartPeriod::Day, ChartPeriod::Year, ChartPeriod::All]);

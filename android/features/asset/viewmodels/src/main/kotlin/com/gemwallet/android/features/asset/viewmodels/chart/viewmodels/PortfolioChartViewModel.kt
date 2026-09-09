@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.walletChartPeriods
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
@@ -17,13 +16,14 @@ import com.gemwallet.android.features.asset.viewmodels.chart.models.hasVariation
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.models.flatMap
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PortfolioChartType
-import com.wallet.core.primitives.PortfolioData
 import com.wallet.core.primitives.PortfolioType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import uniffi.gemstone.GemPortfolioServiceInterface
+import uniffi.gemstone.PortfolioChartType
+import uniffi.gemstone.PortfolioData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -51,7 +51,7 @@ class PortfolioChartViewModel internal constructor(
     private val _selectedType = MutableStateFlow(initialType)
     val selectedType = _selectedType.asStateFlow()
 
-    private val _selectedChartType = MutableStateFlow(PortfolioChartType.Pnl)
+    private val _selectedChartType = MutableStateFlow(PortfolioChartType.PNL)
     val selectedChartType = _selectedChartType.asStateFlow()
 
     private val selectedPeriod = MutableStateFlow(ChartPeriod.All)
@@ -72,13 +72,13 @@ class PortfolioChartViewModel internal constructor(
         .transformLatest { (state, wallet) ->
             emit(state)
             val data = try {
-                service.portfolioData(wallet.toGem(), state.type.toGem(), state.period.toGem()).decodeJson<PortfolioData>()
+                service.portfolioData(wallet.toGem(), state.type.toGem(), state.period.toGem())
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 null
             }
             refreshController.stopRefreshing()
-            val periods = data?.availablePeriods.orEmpty()
+            val periods = data?.availablePeriods.orEmpty().map { it.toPrimitives() }
             when {
                 data == null -> emit(state.copy(data = StateViewType.Error))
                 periods.isNotEmpty() && !periods.contains(state.period) ->
@@ -104,7 +104,7 @@ class PortfolioChartViewModel internal constructor(
                             values = values,
                             period = state.period,
                             currency = state.displayCurrency(),
-                            showHeaderValue = state.type == PortfolioType.Wallet || chartType == PortfolioChartType.Value,
+                            showHeaderValue = state.type == PortfolioType.Wallet || chartType == PortfolioChartType.VALUE,
                         ),
                     )
                 } else {
@@ -123,7 +123,7 @@ class PortfolioChartViewModel internal constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), Currency.USD)
 
     val availablePeriods = portfolio
-        .map { it.data.dataOrNull?.availablePeriods?.takeIf { periods -> periods.isNotEmpty() } ?: walletChartPeriods }
+        .map { it.data.dataOrNull?.availablePeriods?.map { period -> period.toPrimitives() }?.takeIf { periods -> periods.isNotEmpty() } ?: walletChartPeriods }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), walletChartPeriods)
 
     fun setType(type: PortfolioType) {

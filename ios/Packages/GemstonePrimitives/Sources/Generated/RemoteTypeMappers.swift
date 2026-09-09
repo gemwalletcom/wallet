@@ -797,6 +797,24 @@ public extension Primitives.PlatformStore {
     }
 }
 
+public extension Gemstone.PortfolioChartType {
+    func map() -> Primitives.PortfolioChartType {
+        switch self {
+        case .value: .value
+        case .pnl: .pnl
+        }
+    }
+}
+
+public extension Primitives.PortfolioChartType {
+    func map() -> Gemstone.PortfolioChartType {
+        switch self {
+        case .value: .value
+        case .pnl: .pnl
+        }
+    }
+}
+
 public extension Gemstone.PortfolioType {
     func map() -> Primitives.PortfolioType {
         switch self {

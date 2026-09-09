@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
 import com.gemwallet.android.ui.models.StateViewType
-import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PortfolioChartType
-import com.wallet.core.primitives.PortfolioData
 import com.wallet.core.primitives.PortfolioType
+import uniffi.gemstone.ChartDateValue
+import uniffi.gemstone.PortfolioChartType
+import uniffi.gemstone.PortfolioData
 
 internal data class PortfolioState(
     val type: PortfolioType,

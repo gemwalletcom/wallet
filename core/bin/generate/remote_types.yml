@@ -127,6 +127,11 @@ remote:
   - NodeState
   - Latency
   - PortfolioType
+  - PortfolioChartType
+  - PortfolioMarginUsage
+  - PortfolioChartData
+  - PortfolioStatistic
+  - PortfolioData
   - PriceAlert
   - PriceAlertDirection
   - PriceAlertNotificationType

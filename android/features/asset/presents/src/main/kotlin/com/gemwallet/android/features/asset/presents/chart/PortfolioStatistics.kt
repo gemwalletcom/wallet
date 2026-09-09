@@ -13,8 +13,8 @@ import com.gemwallet.android.ui.components.list_item.property.PnlPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PortfolioMarginUsage
-import com.wallet.core.primitives.PortfolioStatistic
+import uniffi.gemstone.PortfolioMarginUsage
+import uniffi.gemstone.PortfolioStatistic
 
 internal fun LazyListScope.portfolioStatistics(currency: Currency, statistics: List<PortfolioStatistic>) {
     if (statistics.isEmpty()) return
@@ -31,23 +31,23 @@ private fun LazyListScope.perpetualStatistics(currency: Currency, statistics: Li
     itemsPositioned(statistics) { position, statistic ->
         when (statistic) {
             is PortfolioStatistic.UnrealizedPnl ->
-                PnlPropertyItem(R.string.perpetual_unrealized_pnl, statistic.content, priceChangeFormatter, position)
+                PnlPropertyItem(R.string.perpetual_unrealized_pnl, statistic.value, priceChangeFormatter, position)
             is PortfolioStatistic.AllTimePnl ->
-                PnlPropertyItem(R.string.perpetual_all_time_pnl, statistic.content, priceChangeFormatter, position)
+                PnlPropertyItem(R.string.perpetual_all_time_pnl, statistic.value, priceChangeFormatter, position)
             is PortfolioStatistic.AccountLeverage ->
-                PropertyItem(R.string.perpetual_account_leverage, statistic.content.formatLeverage(), listPosition = position)
+                PropertyItem(R.string.perpetual_account_leverage, statistic.value.formatLeverage(), listPosition = position)
             is PortfolioStatistic.MarginUsage ->
-                PropertyItem(R.string.perpetual_margin_usage, statistic.content.marginText(currencyFormatter), listPosition = position)
+                PropertyItem(R.string.perpetual_margin_usage, statistic.value.marginText(currencyFormatter), listPosition = position)
             is PortfolioStatistic.Volume ->
-                PropertyItem(R.string.perpetual_volume, currencyFormatter.string(statistic.content), listPosition = position)
+                PropertyItem(R.string.perpetual_volume, currencyFormatter.string(statistic.value), listPosition = position)
             is PortfolioStatistic.AllTimeHigh, is PortfolioStatistic.AllTimeLow -> Unit
         }
     }
 }
 
 private fun PortfolioStatistic.asAllTimeUIModel(): AllTimeUIModel? = when (this) {
-    is PortfolioStatistic.AllTimeHigh -> AllTimeUIModel.High(content.date, content.value.toDouble(), content.percentage.toDouble())
-    is PortfolioStatistic.AllTimeLow -> AllTimeUIModel.Low(content.date, content.value.toDouble(), content.percentage.toDouble())
+    is PortfolioStatistic.AllTimeHigh -> AllTimeUIModel.High(value.date, value.value.toDouble(), value.percentage.toDouble())
+    is PortfolioStatistic.AllTimeLow -> AllTimeUIModel.Low(value.date, value.value.toDouble(), value.percentage.toDouble())
     else -> null
 }
 

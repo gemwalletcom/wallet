@@ -6,7 +6,6 @@ import Primitives
 extension Primitives.AssetFull: JsonCodable {}
 extension Primitives.AuthNonce: JsonCodable {}
 extension Primitives.AuthPayload: JsonCodable {}
-extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
@@ -17,7 +16,6 @@ extension Primitives.Markets: JsonCodable {}
 extension Primitives.PerpetualAccountSummary: JsonCodable {}
 extension Primitives.PerpetualPortfolio: JsonCodable {}
 extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}
-extension Primitives.PortfolioData: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
 extension Primitives.ReferralCode: JsonCodable {}

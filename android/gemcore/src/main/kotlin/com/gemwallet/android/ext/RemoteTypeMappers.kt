@@ -539,6 +539,16 @@ fun com.wallet.core.primitives.PlatformStore.toGem(): uniffi.gemstone.PlatformSt
     com.wallet.core.primitives.PlatformStore.Local -> uniffi.gemstone.PlatformStore.LOCAL
 }
 
+fun uniffi.gemstone.PortfolioChartType.toPrimitives(): com.wallet.core.primitives.PortfolioChartType = when (this) {
+    uniffi.gemstone.PortfolioChartType.VALUE -> com.wallet.core.primitives.PortfolioChartType.Value
+    uniffi.gemstone.PortfolioChartType.PNL -> com.wallet.core.primitives.PortfolioChartType.Pnl
+}
+
+fun com.wallet.core.primitives.PortfolioChartType.toGem(): uniffi.gemstone.PortfolioChartType = when (this) {
+    com.wallet.core.primitives.PortfolioChartType.Value -> uniffi.gemstone.PortfolioChartType.VALUE
+    com.wallet.core.primitives.PortfolioChartType.Pnl -> uniffi.gemstone.PortfolioChartType.PNL
+}
+
 fun uniffi.gemstone.PortfolioType.toPrimitives(): com.wallet.core.primitives.PortfolioType = when (this) {
     uniffi.gemstone.PortfolioType.WALLET -> com.wallet.core.primitives.PortfolioType.Wallet
     uniffi.gemstone.PortfolioType.PERPETUALS -> com.wallet.core.primitives.PortfolioType.Perpetuals

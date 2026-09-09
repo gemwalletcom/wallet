@@ -1,4 +1,3 @@
-use primitives::Charts;
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AssetFull, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
@@ -7,7 +6,7 @@ use primitives::{
     TronVote, UTXO,
 };
 use primitives::{
-    AuthNonce, AuthPayload, FiatQuoteRequest, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
+    AuthNonce, AuthPayload, FiatQuoteRequest, FiatTransactionData, InAppNotification, ReferralCode,
     Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
 
@@ -35,7 +34,6 @@ json_bridge!(
     AssetFull,
     AuthNonce,
     AuthPayload,
-    Charts,
     ConfigResponse,
     ConfigVersions,
     FiatAssets,
@@ -46,7 +44,6 @@ json_bridge!(
     PerpetualAccountSummary,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
-    PortfolioData,
     RedemptionRequest,
     RedemptionResult,
     ReferralCode,

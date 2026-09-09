@@ -550,11 +550,11 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
     }
 
     public func portfolioData(wallet _: Gemstone.Wallet, portfolioType _: Gemstone.PortfolioType, period _: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioData {
-        try Primitives.PortfolioData(
-            charts: [PortfolioChartData(chartType: .value, values: [])],
-            statistics: [allTimeHigh.map { .allTimeHigh($0) }, allTimeLow.map { .allTimeLow($0) }].compactMap(\.self),
+        Gemstone.PortfolioData(
+            charts: [Gemstone.PortfolioChartData(chartType: .value, values: [])],
+            statistics: [allTimeHigh.map { .allTimeHigh(value: $0.map()) }, allTimeLow.map { .allTimeLow(value: $0.map()) }].compactMap(\.self),
             availablePeriods: [.day, .week, .month, .year, .all],
-        ).json()
+        )
     }
 }
 

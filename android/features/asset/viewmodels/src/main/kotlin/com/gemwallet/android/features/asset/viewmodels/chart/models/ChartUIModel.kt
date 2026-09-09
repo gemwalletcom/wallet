@@ -9,8 +9,8 @@ import com.gemwallet.android.ui.components.chart.ChartPoint
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.chart.ChartValueType
-import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartPeriod
+import uniffi.gemstone.ChartDateValue
 import com.wallet.core.primitives.Currency
 
 internal const val MinChartPoints = 2

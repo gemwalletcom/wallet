@@ -471,7 +471,12 @@ from a scanned URL, so those twins are gone and `Payment` and `PaymentAmount` ca
 Two app wrappers went with them: iOS's `Payment.decode(_:paymentService:)` and its `load(link:)`
 only existed to serialise, and `PaymentDecodeTests` only exercised Core's decoder through the FFI,
 which Core already covers with twenty tests of its own. An app test that only reaches a Core service
-belongs in Core. The generator is one table-driven
+belongs in Core. The portfolio chart followed: `PortfolioData`, `PortfolioChartData`,
+`PortfolioStatistic` and `PortfolioMarginUsage` cross as records, so the chart no longer parses its
+whole series out of a string on every period or type change. `PortfolioChartType` keeps its twin
+because the picker needs `CaseIterable` and `Identifiable`, which uniffi does not give an enum, and
+`PortfolioStatistic` carries named fields. `Charts` left the bridge entirely — no app has referenced
+it in either language, so it was generating a twin nothing read. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper
