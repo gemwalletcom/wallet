@@ -1225,6 +1225,20 @@ fun com.wallet.core.primitives.BalanceMetadata.toGem(): uniffi.gemstone.BalanceM
     bandwidthTotal = bandwidthTotal,
 )
 
+fun uniffi.gemstone.Banner.toPrimitives(): com.wallet.core.primitives.Banner = com.wallet.core.primitives.Banner(
+    walletId = walletId?.let { com.wallet.core.primitives.WalletId(it) },
+    asset = asset?.let { it.toPrimitives() },
+    event = event.toPrimitives(),
+    state = state.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.Banner.toGem(): uniffi.gemstone.Banner = uniffi.gemstone.Banner(
+    walletId = walletId?.let { it.toIdentifier() },
+    asset = asset?.let { it.toGem() },
+    event = event.toGem(),
+    state = state.toGem(),
+)
+
 fun uniffi.gemstone.BlockExplorerLink.toPrimitives(): com.wallet.core.primitives.BlockExplorerLink = com.wallet.core.primitives.BlockExplorerLink(
     name = name,
     link = link,

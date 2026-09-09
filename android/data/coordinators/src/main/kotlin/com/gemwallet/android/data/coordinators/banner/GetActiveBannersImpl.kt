@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemBannerContext
-import uniffi.gemstone.GemBannerItem
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,7 +38,6 @@ class GetActiveBannersImpl(
     override fun invoke(asset: Asset?, isGlobal: Boolean): Flow<List<Banner>> = getSession()
         .flatMapLatest { session ->
             val wallet = session?.wallet
-            val sceneWallet = wallet.takeUnless { isGlobal }
             val stored = when {
                 asset != null -> bannerStore.observeAssetBanners(wallet?.id?.id, asset.id)
                 wallet != null -> bannerStore.observeWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Onboarding))
@@ -52,21 +50,16 @@ class GetActiveBannersImpl(
                 flowOf(false)
             }
             combine(stored, assetInfo, isWalletEmpty) { records, assetInfo, isWalletEmpty ->
-                val banners = records.map { it.toDTO() }
-                bannerContext(wallet, assetInfo, isWalletEmpty).visibleBanners(
-                    stored = banners.map { GemBannerItem(event = it.event.toGem(), state = it.state.toGem(), assetId = it.asset?.id?.toIdentifier()) },
-                ).map { item ->
-                    val event = item.event.toPrimitives()
-                    banners.firstOrNull { it.event == event && it.asset?.id?.toIdentifier() == item.assetId }
-                        ?: Banner(walletId = sceneWallet?.id, asset = assetInfo?.asset, state = item.state.toPrimitives(), event = event)
-                }
+                bannerContext(wallet, assetInfo, isWalletEmpty)
+                    .visibleBanners(stored = records.map { it.toDTO().toGem() })
+                    .map { it.toPrimitives() }
             }
         }
         .flowOn(Dispatchers.IO)
 
     private fun bannerContext(wallet: Wallet?, assetInfo: AssetInfo?, isWalletEmpty: Boolean) = GemBannerContext(
         wallet = wallet?.toGem(),
-        assetId = assetInfo?.asset?.id?.toIdentifier(),
+        asset = assetInfo?.asset?.toGem(),
         isStakeable = assetInfo?.metadata?.isStakeEnabled == true,
         hasStakeBalance = hasStakeBalance(assetInfo),
         hasAvailableBalance = (assetInfo?.balance?.balance?.available ?: BigInteger.ZERO) > BigInteger.ZERO,

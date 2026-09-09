@@ -18,6 +18,7 @@ remote:
   - AssetFiatValue
   - AssetType
   - BannerEvent
+  - Banner
   - BalanceMetadata
   - BannerState
   - ChainAddress

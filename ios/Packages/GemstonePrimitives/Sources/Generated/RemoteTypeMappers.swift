@@ -1843,6 +1843,28 @@ public extension Primitives.BalanceMetadata {
     }
 }
 
+public extension Gemstone.Banner {
+    func map() -> Primitives.Banner {
+        Primitives.Banner(
+            walletId: walletId.map { Primitives.WalletId(core: $0) },
+            asset: asset.map { $0.map() },
+            event: event.map(),
+            state: state.map(),
+        )
+    }
+}
+
+public extension Primitives.Banner {
+    func map() -> Gemstone.Banner {
+        Gemstone.Banner(
+            walletId: walletId.map { $0.identifier },
+            asset: asset.map { $0.map() },
+            event: event.map(),
+            state: state.map(),
+        )
+    }
+}
+
 public extension Gemstone.BlockExplorerLink {
     func map() -> Primitives.BlockExplorerLink {
         Primitives.BlockExplorerLink(

@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Which banners a screen shows is one Core answer, in Core's records.**
+  `GemBannerContext::visible_banners(stored) -> [Banner]` takes and returns the banner the apps
+  persist, so neither app converts a banner to a `GemBannerItem`, matches the visible items back
+  against the stored ones by event and asset id, and constructs the ones Core added. That mapping
+  was written twice and disagreed: the fabricated welcome banner carried the wallet id on iOS and
+  none on Android, which is the key its dismissal is stored under. The context carries the asset
+  instead of its id, which is what it needed to build one. `GemBannerItem` is Core-internal now,
+  and the two iOS tests over the mapping went with it — Core covers both cases.
 - **The device key never leaves Core.** `GemDeviceKeyService::device_stream_request()` signs the
   socket request and hands back the URL and the `Authorization` header, so neither app reads the
   device private key to build a signer with it — which is what both did, iOS on every reconnect and
@@ -581,8 +589,7 @@ either side; it needs the wire text and one owner of the format. The generator i
   which find the Hyperliquid account on the session wallet (the app-side `hyperliquidAccount`
   rule and the observer's `update(wallet)` are gone from both apps; `sync_positions(wallet_id,
   chain, address)` and `account_mode` are Core-internal, used by the socket connection). The
-  batch is done; what remains on Android is the welcome-banner key, reading the session for a
-  wallet id Core could hand out. `GemBalanceService`,
+  batch is done. `GemBalanceService`,
   `GemSwapService` and the socket-driven `GemPerpetualService::{connection, sync_positions,
   apply_socket_message}` stay explicit underneath: the app-start and observer flows call them
   for the wallet whose socket they hold. Keep an explicit
