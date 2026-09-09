@@ -31,18 +31,13 @@ public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, Bindab
         startObservation()
     }
 
-    private func observation() -> ValueObservation<ValueReducers.Fetch<Request.Value>> {
-        let request = request
-        if let regions = (request as? any RegionTrackingQueryable)?.trackedRegions {
-            return ValueObservation.tracking(regions: regions) { db in try request.fetch(db) }
-        }
-        return ValueObservation.tracking { db in try request.fetch(db) }
-    }
-
     private func startObservation() {
         guard let dbQueue else { return }
+        let request = request
 
-        cancellable = observation()
+        cancellable = ValueObservation
+            .tracking { db in try request.fetch(db) }
+            .removeDuplicates()
             .publisher(in: dbQueue, scheduling: .immediate)
             .sink(
                 receiveCompletion: { completion in

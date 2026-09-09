@@ -7,7 +7,3 @@ public protocol DatabaseQueryable: Equatable, Sendable {
     associatedtype Value: Equatable & Sendable
     func fetch(_ db: Database) throws -> Value
 }
-
-public protocol RegionTrackingQueryable: DatabaseQueryable {
-    var trackedRegions: [any DatabaseRegionConvertible] { get }
-}

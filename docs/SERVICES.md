@@ -376,6 +376,17 @@ intentional one-sided integration surfaces.
   history query and rebuilt every row through `transaction_row`. Android's `getExtendedTransactions`
   no longer lists `DbPrice` in `observedEntities`; iOS's `TransactionsRequest` declares the tables
   it follows (`RegionTrackingQueryable`, which `ObservableQuery` hands to
+- **The activity list follows prices and currency, but only emits changes.** Both list queries
+  join `prices` for the fiat column and are observed on that table again: `set_currency` rewrites
+  every price row (`convert_prices`), and a list that stopped watching prices kept the old
+  currency's numbers until the next transaction write. What went away is the repeat, not the
+  watch. iOS's `ObservableQuery` runs every `ValueObservation` through `removeDuplicates()`
+  (`DatabaseQueryable.Value` is `Equatable`), and Android's `GemstoneTransactionStore` puts
+  `distinctUntilChanged()` on its three flows ahead of the DTO mapping. A price tick for an asset
+  outside the list re-runs the query on the database thread and stops there; nothing reaches a
+  view model unless a row actually changed.
+- **A balance is written only when it changed, and the store writes the whole row.**
+  `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   `ValueObservation.tracking(regions:)`), and neither includes prices. The fiat column refreshes
   with the next transaction, asset or address write; the single-transaction details query still
   follows prices, since it is one row.
