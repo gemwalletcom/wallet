@@ -9,6 +9,7 @@ common_secret_phrase = Hemmelig sætning
 common_copy = Kopiér
 common_share = Del
 common_continue = Fortsæt
+common_sign_in_with = Log ind med %@
 common_provider = Udbyder
 common_loading = Indlæser
 common_address = Adresse

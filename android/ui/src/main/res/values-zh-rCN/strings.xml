@@ -9,6 +9,7 @@
   <string name="common_copy">复制</string>
   <string name="common_share">分享</string>
   <string name="common_continue">继续</string>
+  <string name="common_sign_in_with">使用%1$s登录</string>
   <string name="common_provider">服务商</string>
   <string name="common_loading">加载中</string>
   <string name="common_address">地址</string>

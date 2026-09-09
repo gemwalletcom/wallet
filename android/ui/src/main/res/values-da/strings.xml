@@ -9,6 +9,7 @@
   <string name="common_copy">Kopiér</string>
   <string name="common_share">Del</string>
   <string name="common_continue">Fortsæt</string>
+  <string name="common_sign_in_with">Log ind med %1$s</string>
   <string name="common_provider">Udbyder</string>
   <string name="common_loading">Indlæser</string>
   <string name="common_address">Adresse</string>

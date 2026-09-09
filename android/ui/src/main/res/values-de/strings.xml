@@ -9,6 +9,7 @@
   <string name="common_copy">Kopieren</string>
   <string name="common_share">Teilen</string>
   <string name="common_continue">Weiter</string>
+  <string name="common_sign_in_with">Mit %1$s anmelden</string>
   <string name="common_provider">Anbieter</string>
   <string name="common_loading">Wird geladen</string>
   <string name="common_address">Adresse</string>

@@ -331,6 +331,10 @@ public enum Localized {
     public static func show(_ p1: Any) -> String {
       return Localized.tr("Localizable", "common.show", String(describing: p1), fallback: "Show %@")
     }
+    /// Sign In with %@
+    public static func signInWith(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.sign_in_with", String(describing: p1), fallback: "Sign In with %@")
+    }
     /// Skip
     public static let skip = Localized.tr("Localizable", "common.skip", fallback: "Skip")
     /// Suspicious address

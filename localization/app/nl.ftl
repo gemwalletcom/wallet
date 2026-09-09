@@ -9,6 +9,7 @@ common_secret_phrase = Geheime zin
 common_copy = Kopieer
 common_share = Deel
 common_continue = Ga door
+common_sign_in_with = Inloggen met %@
 common_provider = Aanbieder
 common_loading = Laden
 common_address = Adres

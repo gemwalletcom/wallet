@@ -9,6 +9,7 @@
   <string name="common_copy">복사</string>
   <string name="common_share">공유</string>
   <string name="common_continue">계속</string>
+  <string name="common_sign_in_with">%1$s 계정으로 로그인</string>
   <string name="common_provider">공급자</string>
   <string name="common_loading">로딩 중</string>
   <string name="common_address">주소</string>

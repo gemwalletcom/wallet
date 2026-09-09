@@ -9,6 +9,7 @@
   <string name="common_copy">Copiere</string>
   <string name="common_share">Distribuie</string>
   <string name="common_continue">Continuă</string>
+  <string name="common_sign_in_with">Autentificare cu %1$s</string>
   <string name="common_provider">Furnizor</string>
   <string name="common_loading">Încărcare</string>
   <string name="common_address">Adresa</string>

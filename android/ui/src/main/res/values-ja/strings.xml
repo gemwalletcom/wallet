@@ -9,6 +9,7 @@
   <string name="common_copy">コピー</string>
   <string name="common_share">共有</string>
   <string name="common_continue">続ける</string>
+  <string name="common_sign_in_with">%1$sでサインイン</string>
   <string name="common_provider">プロバイダー</string>
   <string name="common_loading">読み込み中</string>
   <string name="common_address">アドレス</string>

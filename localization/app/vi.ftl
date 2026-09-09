@@ -9,6 +9,7 @@ common_secret_phrase = Cụm từ bí mật
 common_copy = Sao chép
 common_share = Chia sẻ
 common_continue = Tiếp tục
+common_sign_in_with = Đăng nhập bằng %@
 common_provider = Nhà cung cấp
 common_loading = Đang tải
 common_address = Địa chỉ

@@ -9,6 +9,7 @@ common_secret_phrase = Kifungu cha Siri
 common_copy = Nakili
 common_share = Shiriki
 common_continue = Endelea
+common_sign_in_with = Ingia kwa %@
 common_provider = Mtoa huduma
 common_loading = Inapakia
 common_address = Anwani

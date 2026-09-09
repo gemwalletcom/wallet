@@ -9,6 +9,7 @@
   <string name="common_copy">คัดลอก</string>
   <string name="common_share">แบ่งปัน</string>
   <string name="common_continue">ดำเนินการต่อ</string>
+  <string name="common_sign_in_with">ลงชื่อเข้าใช้ด้วย %1$s</string>
   <string name="common_provider">ผู้ให้บริการ</string>
   <string name="common_loading">กำลังโหลด</string>
   <string name="common_address">ที่อยู่</string>

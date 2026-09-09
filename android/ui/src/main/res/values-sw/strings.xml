@@ -9,6 +9,7 @@
   <string name="common_copy">Nakili</string>
   <string name="common_share">Shiriki</string>
   <string name="common_continue">Endelea</string>
+  <string name="common_sign_in_with">Ingia kwa %1$s</string>
   <string name="common_provider">Mtoa huduma</string>
   <string name="common_loading">Inapakia</string>
   <string name="common_address">Anwani</string>

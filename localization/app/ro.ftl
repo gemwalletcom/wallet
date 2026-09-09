@@ -9,6 +9,7 @@ common_secret_phrase = Frază secretă
 common_copy = Copiere
 common_share = Distribuie
 common_continue = Continuă
+common_sign_in_with = Autentificare cu %@
 common_provider = Furnizor
 common_loading = Încărcare
 common_address = Adresa

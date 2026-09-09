@@ -9,6 +9,7 @@
   <string name="common_copy">نسخ</string>
   <string name="common_share">مشاركة</string>
   <string name="common_continue">يكمل</string>
+  <string name="common_sign_in_with">تسجيل الدخول باستخدام %1$s</string>
   <string name="common_provider">مزود</string>
   <string name="common_loading">تحميل</string>
   <string name="common_address">عنوان</string>

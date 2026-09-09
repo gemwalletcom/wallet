@@ -9,6 +9,7 @@ common_secret_phrase = Lihim na Parirala
 common_copy = Kopyahin
 common_share = Ibahagi
 common_continue = Magpatuloy
+common_sign_in_with = Mag-sign in gamit ang %@
 common_provider = Provider
 common_loading = Naglo-load
 common_address = Address

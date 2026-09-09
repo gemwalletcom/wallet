@@ -2,6 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::actions::WalletConnectTransactionType;
 use crate::sign_type::SignDigestType;
+use crate::siws;
 use gem_evm::domain::host_only;
 use gem_evm::siwe::SiweMessage;
 use primitives::Chain;
@@ -32,7 +33,8 @@ pub fn validate_sign_message(input: &SignMessageValidation) -> Result<(), String
             Ok(())
         }
         SignDigestType::Eip191 | SignDigestType::Siwe => validate_siwe(input),
-        SignDigestType::Base58 | SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(()),
+        SignDigestType::Base58 => siws::validate(input),
+        SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(()),
     }
 }
 

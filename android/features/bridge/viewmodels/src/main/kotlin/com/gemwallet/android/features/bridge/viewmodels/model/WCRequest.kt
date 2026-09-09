@@ -20,6 +20,7 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.TransferDataOutputAction
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.SignMessage as GemSignMessage
+import uniffi.gemstone.MessageType
 
 sealed class WCRequest(
     internal val pending: WalletConnectPendingRequest,
@@ -47,6 +48,8 @@ sealed class WCRequest(
         val signMessage: GemSignMessage get() = request.message
 
         private val preview: GemSignMessagePreview by lazy { service.preview(request.message, simulation, request.assets) }
+
+        override val messageType: MessageType get() = preview.messageType
 
         override val message: String
             get() = preview.text

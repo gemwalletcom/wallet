@@ -371,6 +371,8 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
+        #expect(viewModel.title == "Sign In with Ethereum")
+        #expect(viewModel.isButtonDisabled)
         #expect(viewModel.payloadModel.hasFields)
         #expect(viewModel.payloadModel.primaryFields.count == 2)
     }

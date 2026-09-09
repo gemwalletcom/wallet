@@ -9,6 +9,7 @@
   <string name="common_copy">Kopírovat</string>
   <string name="common_share">Sdílet</string>
   <string name="common_continue">Pokračovat</string>
+  <string name="common_sign_in_with">Přihlásit se pomocí %1$s</string>
   <string name="common_provider">Poskytovatel</string>
   <string name="common_loading">Načítání</string>
   <string name="common_address">Adresa</string>

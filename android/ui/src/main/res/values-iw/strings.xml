@@ -9,6 +9,7 @@
   <string name="common_copy">העתק</string>
   <string name="common_share">שתף</string>
   <string name="common_continue">המשך</string>
+  <string name="common_sign_in_with">כניסה באמצעות %1$s</string>
   <string name="common_provider">ספק</string>
   <string name="common_loading">טוען</string>
   <string name="common_address">כתובת</string>

@@ -9,6 +9,7 @@
   <string name="common_copy">Kopyala</string>
   <string name="common_share">Paylaş</string>
   <string name="common_continue">Devam et</string>
+  <string name="common_sign_in_with">%1$s ile giriş yap</string>
   <string name="common_provider">Sağlayıcı</string>
   <string name="common_loading">Yükleniyor</string>
   <string name="common_address">Adres</string>

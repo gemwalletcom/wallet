@@ -9,6 +9,7 @@ common_secret_phrase = 助记词
 common_copy = 复制
 common_share = 分享
 common_continue = 继续
+common_sign_in_with = 使用%@登录
 common_provider = 服务商
 common_loading = 加载中
 common_address = 地址

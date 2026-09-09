@@ -9,6 +9,7 @@ common_secret_phrase = Tajná fráze
 common_copy = Kopírovat
 common_share = Sdílet
 common_continue = Pokračovat
+common_sign_in_with = Přihlásit se pomocí %@
 common_provider = Poskytovatel
 common_loading = Načítání
 common_address = Adresa

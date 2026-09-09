@@ -9,6 +9,7 @@ common_secret_phrase = 비밀 문구
 common_copy = 복사
 common_share = 공유
 common_continue = 계속
+common_sign_in_with = %@ 계정으로 로그인
 common_provider = 공급자
 common_loading = 로딩 중
 common_address = 주소

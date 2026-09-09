@@ -9,6 +9,7 @@
   <string name="common_copy">Kopyahin</string>
   <string name="common_share">Ibahagi</string>
   <string name="common_continue">Magpatuloy</string>
+  <string name="common_sign_in_with">Mag-sign in gamit ang %1$s</string>
   <string name="common_provider">Provider</string>
   <string name="common_loading">Naglo-load</string>
   <string name="common_address">Address</string>

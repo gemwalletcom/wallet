@@ -9,6 +9,7 @@ common_secret_phrase = ביטוי סודי
 common_copy = העתק
 common_share = שתף
 common_continue = המשך
+common_sign_in_with = כניסה באמצעות %@
 common_provider = ספק
 common_loading = טוען
 common_address = כתובת

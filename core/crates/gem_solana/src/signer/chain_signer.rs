@@ -1,8 +1,12 @@
-use super::{instructions, swap, transaction};
-use crate::{VersionedTransactionExt, decode_transaction, transaction::is_transaction_bytes};
+use std::str;
+
+use chrono::Utc;
 use gem_encoding::encode_base64;
-use primitives::{ApplicationMetadataSource, ChainSigner, SignerError, SignerInput, TransferDataOutputType};
-use solana_primitives::{Pubkey, sign_message as sign_solana_message};
+use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerError, SignerInput, TransferDataOutputType};
+use solana_primitives::{Pubkey, get_public_key, sign_message as sign_solana_message};
+
+use super::{instructions, swap, transaction};
+use crate::{VersionedTransactionExt, decode_transaction, siws::SiwsMessage, transaction::is_transaction_bytes};
 
 #[derive(Default)]
 pub struct SolanaChainSigner;
@@ -42,6 +46,15 @@ impl ChainSigner for SolanaChainSigner {
     fn sign_message(&self, message: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
         if is_transaction_bytes(message) {
             return Err(SignerError::invalid_input(SIGN_MESSAGE_PAYLOAD_REJECTION));
+        }
+        if let Ok(raw) = str::from_utf8(message)
+            && let Some(siws) = SiwsMessage::parse(raw).map_err(SignerError::invalid_input)?
+        {
+            siws.validate(Chain::Solana, Utc::now()).map_err(SignerError::invalid_input)?;
+            let public_key = get_public_key(private_key).map_err(SignerError::from_display)?;
+            if siws.address != bs58::encode(public_key).into_string() {
+                return SignerError::invalid_input_err("SIWS account mismatch");
+            }
         }
         let signature = sign_solana_message(private_key, message).map_err(|e| SignerError::signing_error(format!("sign: {e}")))?;
         Ok(bs58::encode(signature.as_bytes()).into_string())
@@ -174,6 +187,32 @@ mod tests {
         let result = SolanaChainSigner.sign_message(b"hello", &TEST_PRIVATE_KEY).unwrap();
 
         assert_eq!(bs58::decode(result).into_vec().unwrap().len(), 64);
+    }
+
+    #[test]
+    fn test_sign_message_siws() {
+        let message = include_str!("../../testdata/siws_sign_in.txt");
+        let signature = SolanaChainSigner.sign_message(message.as_bytes(), &TEST_PRIVATE_KEY).unwrap();
+        assert_eq!(
+            signature,
+            bs58::encode(sign_solana_message(&TEST_PRIVATE_KEY, message.as_bytes()).unwrap().as_bytes()).into_string()
+        );
+        assert_eq!(
+            SolanaChainSigner.sign_message(message.as_bytes(), &[2; 32]).unwrap_err().to_string(),
+            "Invalid input: SIWS account mismatch"
+        );
+        let expired_message = include_str!("../../testdata/siws_complete.txt");
+        assert_eq!(
+            SolanaChainSigner.sign_message(expired_message.as_bytes(), &TEST_PRIVATE_KEY).unwrap_err().to_string(),
+            "Invalid input: SIWS message expired or invalid expiration"
+        );
+        assert_eq!(
+            bs58::decode(SolanaChainSigner.sign_message(&[255, 254, 253], &TEST_PRIVATE_KEY).unwrap())
+                .into_vec()
+                .unwrap()
+                .len(),
+            64
+        );
     }
 
     #[test]

@@ -9,6 +9,7 @@ common_secret_phrase = عبارت مخفی
 common_copy = کپی کردن
 common_share = اشتراک گذاری
 common_continue = ادامه
+common_sign_in_with = ورود با %@
 common_provider = ارائه دهنده
 common_loading = در حال بارگذاری
 common_address = آدرس

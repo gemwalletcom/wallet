@@ -9,6 +9,7 @@
   <string name="common_copy">Salin</string>
   <string name="common_share">Bagikan</string>
   <string name="common_continue">Lanjutkan</string>
+  <string name="common_sign_in_with">Masuk dengan %1$s</string>
   <string name="common_provider">Penyedia</string>
   <string name="common_loading">Memuat</string>
   <string name="common_address">Alamat</string>
