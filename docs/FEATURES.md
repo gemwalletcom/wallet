@@ -2,6 +2,8 @@
 
 This document summarizes supported chain capabilities and provider coverage. Runtime availability also depends on server-provided asset flags. Address history describes backend coverage; direct RPC clients may offer less history.
 
+For new chain proposals, see [New Blockchain Requirements](BLOCKCHAIN_REQUIREMENTS.md). All additions require team review and approval.
+
 Availability legend used across comparison tables:
 
 - ✅ = supported
@@ -235,6 +237,8 @@ The table lists backend address-history providers by chain. Chains marked unsupp
 <sub>Reviewed 2026-09-02. External method references: [Blockscout PRO chains](https://docs.blockscout.com/devs/pro-api) · [Blockscout transactions](https://docs.blockscout.com/api-reference/get-address-transactions) · [Blockscout token transfers](https://docs.blockscout.com/api-reference/get-address-token-transfers) · [Blockscout token balances](https://docs.blockscout.com/api-reference/get-all-tokens-balances-for-the-address) · [Ankr Advanced API](https://www.ankr.com/docs/advanced-api/overview/) · [Alchemy Transfers API](https://www.alchemy.com/docs/reference/transfers-api-quickstart) · [Alchemy Solana history method](https://www.alchemy.com/docs/chains/solana/solana-api-endpoints/get-transactions-for-address) · [Sui GraphQL](https://docs.sui.io/develop/accessing-data/graphql/graphql-rpc) · [TronGrid account transactions](https://developers.tron.network/reference/get-transaction-info-by-account-address) · [TronGrid TRC-20 transactions](https://developers.tron.network/reference/get-trc20-transaction-info-by-account-address) · [Algorand Indexer](https://dev.algorand.co/reference/rest-api/indexer/).</sub>
 
 ## Swap providers
+
+For new provider proposals, see [New Swapper Requirements](SWAPPER_REQUIREMENTS.md). All additions require team review and approval.
 
 These tables compare implemented coverage with provider-advertised support across Gem’s supported chains. Coverage requires at least one supported asset on a chain; individual tokens and routes may be unavailable.
 
