@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.referral.views.components
 
+import com.gemwallet.android.ext.toPrimitives
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -29,8 +30,8 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
-import com.wallet.core.primitives.RewardRedemptionOption
-import com.wallet.core.primitives.Rewards
+import uniffi.gemstone.RewardRedemptionOption
+import uniffi.gemstone.Rewards
 
 internal fun LazyListScope.referralInfo(
     rewards: Rewards,
@@ -92,7 +93,7 @@ private fun RewardRedemptionOptionItem(
         title = {
             PropertyTitleText(
                 text = stringResource(R.string.rewards_ways_spend_asset_title, option.valueText),
-                trailing = { AssetIcon(asset) },
+                trailing = { AssetIcon(asset.toPrimitives()) },
             )
         },
         data = {
@@ -140,7 +141,7 @@ private fun RewardRedemptionOption.confirmationMessage(): String {
 
 private val RewardRedemptionOption.valueText: String
     get() = asset?.let {
-        ValueFormatter(style = ValueFormatter.Style.Short).string(value.toBigInteger(), it)
+        ValueFormatter(style = ValueFormatter.Style.Short).string(value, it.toPrimitives())
     } ?: ""
 
 private val RewardRedemptionOption.pointsText: String

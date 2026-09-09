@@ -106,6 +106,15 @@ remote:
   - WalletConnectionState
   - WalletConnectionVerificationStatus
   - VerificationStatus
+  - RewardStatus
+  - RewardRedemptionType
+  - RewardRedemptionOption
+  - ReferralQuota
+  - ReferralAllowance
+  - Rewards
+  - RewardRedemption
+  - RedemptionStatus
+  - RedemptionResult
   - RecentActivityType
   - Release
   - Resource
@@ -227,6 +236,7 @@ conversions:
       - "{}.json()"
 
 declared:
+  NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt
   UInt64: primitives::UInt64
   serde_json::Value: GemJsonValue

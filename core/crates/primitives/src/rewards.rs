@@ -19,7 +19,6 @@ impl RewardLevel {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Hashable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RewardRedemptionType {
@@ -34,7 +33,6 @@ impl RewardRedemptionType {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 #[derive(Default)]
@@ -114,24 +112,20 @@ pub struct ReferralAllowance {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Rewards {
     pub code: Option<String>,
-    #[typeshare(skip)]
     #[serde(default = "invite_reward_points")]
     pub invite_reward_points: i32,
     pub referral_count: i32,
     pub points: i32,
     pub used_referral_code: Option<String>,
     pub status: RewardStatus,
-    #[typeshare(skip)]
     #[serde(skip)]
     pub created_at: chrono::NaiveDateTime,
     pub verify_after: Option<DateTime<Utc>>,
     pub redemption_options: Vec<RewardRedemptionOption>,
     pub disable_reason: Option<String>,
-    #[typeshare(skip)]
     #[serde(default)]
     pub referral_allowance: ReferralAllowance,
 }
@@ -159,7 +153,6 @@ impl Default for Rewards {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ReferralCode {
     pub code: String,
@@ -176,7 +169,6 @@ pub struct RewardEvent {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RewardRedemption {
     pub id: i32,
@@ -187,7 +179,6 @@ pub struct RewardRedemption {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, EnumIter, AsRefStr, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, CaseIterable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RedemptionStatus {
@@ -198,7 +189,6 @@ pub enum RedemptionStatus {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RewardRedemptionOption {
     pub id: String,
@@ -211,14 +201,12 @@ pub struct RewardRedemptionOption {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RedemptionRequest {
     pub id: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RedemptionResult {
     pub redemption: RewardRedemption,

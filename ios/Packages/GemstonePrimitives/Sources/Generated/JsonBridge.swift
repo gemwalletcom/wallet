@@ -8,10 +8,6 @@ extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.FiatQuoteRequest: JsonCodable {}
 extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
-extension Primitives.RedemptionRequest: JsonCodable {}
-extension Primitives.RedemptionResult: JsonCodable {}
-extension Primitives.ReferralCode: JsonCodable {}
-extension Primitives.Rewards: JsonCodable {}
 extension Primitives.SearchResponse: JsonCodable {}
 extension Primitives.StreamEvent: JsonCodable {}
 extension Primitives.StreamMessage: JsonCodable {}

@@ -1,11 +1,9 @@
-use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{ConfigResponse, ConfigVersions, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
     TronStakeData, TronUnfreeze,
 };
 use primitives::{
-    FiatQuoteRequest, FiatTransactionData, InAppNotification, ReferralCode,
-    Rewards, SupportMessage, SupportMessageInput, TransactionsResponse,
+    FiatQuoteRequest, FiatTransactionData, InAppNotification, SupportMessage, SupportMessageInput, TransactionsResponse,
 };
 
 macro_rules! json_bridge {
@@ -34,10 +32,6 @@ json_bridge!(
     FiatQuoteRequest,
     FiatTransactionData,
     InAppNotification,
-    RedemptionRequest,
-    RedemptionResult,
-    ReferralCode,
-    Rewards,
     SearchResponse,
     StreamEvent,
     StreamMessage,
