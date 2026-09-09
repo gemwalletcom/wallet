@@ -51,24 +51,24 @@ mod tests {
         assert_eq!(
             UrlAction::from_url("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.1"),
             Some(UrlAction::Payment {
-                payment: Payment::Request(PaymentRequest {
+                payment: Payment::Request { request: PaymentRequest {
                     address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
-                    amount: Some(PaymentAmount::ExactValue("0.1".to_string())),
+                    amount: Some(PaymentAmount::ExactValue { value: "0.1".to_string() }),
                     memo: None,
                     label: None,
                     references: None,
                     asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
-                }),
+                } },
             })
         );
         assert_eq!(UrlAction::from_url("https://example.com/tokens/bitcoin"), None);
         assert_eq!(
             UrlAction::from_url("not a url"),
             Some(UrlAction::Payment {
-                payment: Payment::Request(PaymentRequest {
+                payment: Payment::Request { request: PaymentRequest {
                     address: "not a url".to_string(),
                     ..PaymentRequest::mock()
-                }),
+                } },
             })
         );
     }

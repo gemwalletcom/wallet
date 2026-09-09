@@ -14,10 +14,6 @@ extension Primitives.FiatQuoteRequest: JsonCodable {}
 extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
 extension Primitives.Markets: JsonCodable {}
-extension Primitives.Payment: JsonCodable {}
-extension Primitives.PaymentAmount: JsonCodable {}
-extension Primitives.PaymentLink: JsonCodable {}
-extension Primitives.PaymentRequest: JsonCodable {}
 extension Primitives.PerpetualAccountSummary: JsonCodable {}
 extension Primitives.PerpetualPortfolio: JsonCodable {}
 extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}

@@ -26,12 +26,12 @@ mod tests {
 
     #[test]
     fn test_decode() {
-        let payment = Payment::Request(PaymentRequest {
+        let payment = Payment::Request { request: PaymentRequest {
             address: ADDRESS.to_string(),
-            amount: Some(PaymentAmount::ExactValue("0.001".to_string())),
+            amount: Some(PaymentAmount::ExactValue { value: "0.001".to_string() }),
             asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
             ..PaymentRequest::mock()
-        });
+        } };
 
         assert_eq!(decode(&format!("{ADDRESS}?amount=0.001")).unwrap(), payment);
         assert_eq!(decode(&format!("?bc={ADDRESS}&amount=0.001")).unwrap(), payment);

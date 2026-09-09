@@ -18,11 +18,6 @@ import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
-import com.wallet.core.primitives.Payment
-import com.wallet.core.primitives.PaymentAmount
-import com.wallet.core.primitives.PaymentLink
-import com.wallet.core.primitives.PaymentLinkSolanaPayInner
-import com.wallet.core.primitives.PaymentRequest
 import com.wallet.core.primitives.TransactionType
 import io.mockk.coEvery
 import io.mockk.every
@@ -40,6 +35,10 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.Payment
+import uniffi.gemstone.PaymentAmount
+import uniffi.gemstone.PaymentLink
+import uniffi.gemstone.PaymentRequest
 import java.math.BigInteger
 import com.gemwallet.android.domains.confirm.unpackTransferData
 
@@ -57,10 +56,11 @@ class PaymentNavigationTest {
         val account = requireNotNull(assetInfo.owner)
         val request = PaymentRequest(
             address = account.address,
-            amount = PaymentAmount.AtomicValue("19000000"),
+            amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
             memo = "payment-memo",
+            label = null,
             references = null,
-            assetId = assetInfo.asset.id,
+            assetId = assetInfo.asset.id.toIdentifier(),
         )
         every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
@@ -71,7 +71,7 @@ class PaymentNavigationTest {
         val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
-            Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
+            Payment.Link(PaymentLink.SolanaPay("https://example.com/pay"))
         )
 
         val route = routes.single() as ConfirmRoute
@@ -98,10 +98,11 @@ class PaymentNavigationTest {
         val recipient = SOLANA_ADDRESS
         val request = PaymentRequest(
             address = recipient,
-            amount = PaymentAmount.AtomicValue("19000000"),
+            amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
             memo = null,
             references = null,
-            assetId = assetInfo.asset.id,
+            label = null,
+            assetId = assetInfo.asset.id.toIdentifier(),
         )
         every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
@@ -112,7 +113,7 @@ class PaymentNavigationTest {
         val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
-            Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
+            Payment.Link(PaymentLink.SolanaPay("https://example.com/pay"))
         )
 
         val route = routes.single() as ConfirmRoute
@@ -142,16 +143,17 @@ class PaymentNavigationTest {
             memo = "payment-memo",
             request = PaymentRequest(
                 address = account.address,
-                amount = PaymentAmount.AtomicValue("19000000"),
+                amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
                 memo = "payment-memo",
                 references = null,
-                assetId = requestedAsset.id,
+                label = null,
+                assetId = requestedAsset.id.toIdentifier(),
             ),
         )
         val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(requestedAsset))
 
         val routes = navigation.routes(
-            Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
+            Payment.Link(PaymentLink.SolanaPay("https://example.com/pay"))
         )
 
         val route = routes.single() as ConfirmRoute
@@ -180,7 +182,7 @@ class PaymentNavigationTest {
         transaction = "encoded-transaction",
         transactionType = TransactionType.Transfer.toGem(),
         memo = memo,
-        request = request?.toJson(),
+        request = request,
     )
 
     private companion object {

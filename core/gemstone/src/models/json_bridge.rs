@@ -3,7 +3,7 @@ use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, Perpetu
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AssetFull, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    Payment, PaymentAmount, PaymentLink, PaymentRequest, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
+    SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
     TronVote, UTXO,
 };
 use primitives::{
@@ -43,10 +43,6 @@ json_bridge!(
     FiatTransactionData,
     InAppNotification,
     Markets,
-    Payment,
-    PaymentAmount,
-    PaymentLink,
-    PaymentRequest,
     PerpetualAccountSummary,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,

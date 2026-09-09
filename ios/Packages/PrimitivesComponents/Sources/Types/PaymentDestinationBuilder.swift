@@ -14,11 +14,11 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func transfer(
-        payment: Primitives.PaymentRequest,
+        payment: Gemstone.PaymentRequest,
         asset: Primitives.Asset,
         paymentService: GemPaymentService,
     ) throws -> TransferDestination {
-        switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
+        switch paymentService.transferDestination(request: payment, asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return .confirm(paymentService.transferData(transfer: transfer, asset: asset.map()))
         case let .recipient(_, payment):
@@ -29,11 +29,11 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func build(
-        payment: Primitives.PaymentRequest,
+        payment: Gemstone.PaymentRequest,
         assets: [AssetData],
         paymentService: GemPaymentService,
     ) throws -> PaymentDestination {
-        switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
+        switch paymentService.destination(request: payment, assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)

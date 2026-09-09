@@ -41,6 +41,10 @@ remote:
   - AssetBasic
   - AssetList
   - ChainAsset
+  - PaymentAmount
+  - PaymentRequest
+  - PaymentLink
+  - Payment
   - AssetMarket
   - AssetMetaData
   - AssetPrice

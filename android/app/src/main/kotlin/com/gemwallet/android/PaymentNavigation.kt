@@ -9,14 +9,14 @@ import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
-import com.wallet.core.primitives.Payment
-import com.wallet.core.primitives.PaymentLink
-import com.wallet.core.primitives.PaymentRequest
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.Payment
+import uniffi.gemstone.PaymentLink
+import uniffi.gemstone.PaymentRequest
 
 class PaymentNavigation @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
@@ -25,8 +25,8 @@ class PaymentNavigation @Inject constructor(
 ) {
 
     suspend fun routes(payment: Payment): List<NavKey> = when (payment) {
-        is Payment.Request -> requestRoutes(payment.content)
-        is Payment.Link -> linkRoutes(payment.content)
+        is Payment.Request -> requestRoutes(payment.request)
+        is Payment.Link -> linkRoutes(payment.link)
     }
 
     private suspend fun requestRoutes(request: PaymentRequest): List<NavKey> =
@@ -43,7 +43,7 @@ class PaymentNavigation @Inject constructor(
         val assets = getWalletAssets().first()
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
         val payment = paymentService.load(
-            link.toJson(),
+            link,
             accounts.map { ChainAddress(chain = it.chain, address = it.address).toGem() },
         )
         val asset = assetsService.ensureTokenAsset(paymentService.transactionAssetId(payment))

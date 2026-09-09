@@ -4,19 +4,10 @@
 package com.gemwallet.android.serializer
 
 import kotlinx.serialization.encodeToString
-import com.wallet.core.primitives.Payment
-import com.wallet.core.primitives.PaymentAmount
-import com.wallet.core.primitives.PaymentLink
 import com.wallet.core.primitives.SolanaNftStandard
 import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamMessage
 import com.wallet.core.primitives.TronStakeData
-
-fun Payment.toJson(): String = jsonEncoder.encodeToString<Payment>(this)
-
-fun PaymentAmount.toJson(): String = jsonEncoder.encodeToString<PaymentAmount>(this)
-
-fun PaymentLink.toJson(): String = jsonEncoder.encodeToString<PaymentLink>(this)
 
 fun SolanaNftStandard.toJson(): String = jsonEncoder.encodeToString<SolanaNftStandard>(this)
 

@@ -4,7 +4,6 @@ import android.content.Intent
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
-import com.wallet.core.primitives.Payment
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

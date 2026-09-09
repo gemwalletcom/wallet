@@ -465,7 +465,13 @@ went across next — `AssetBasic`, `AssetProperties`, `AssetScore`, `AssetRank`,
 both apps, and the chain asset table each app builds once at startup is a mapper call rather than a
 parse per chain. These keep their twins: Android persists them as `DbSearch`, `DbAssetList` and
 `DbAsset` rows. `AssetRank` is the second entry in `defaults` — it is `#[typeshare(skip)]` on
-`AssetScore`, so the app-to-core direction needs a variant to fall back to. The generator is one table-driven
+`AssetScore`, so the app-to-core direction needs a variant to fall back to. The payment decode result
+followed — `Payment`, `PaymentRequest`, `PaymentLink` and `PaymentAmount` — which is pure transit
+from a scanned URL, so those twins are gone and `Payment` and `PaymentAmount` carry named fields.
+Two app wrappers went with them: iOS's `Payment.decode(_:paymentService:)` and its `load(link:)`
+only existed to serialise, and `PaymentDecodeTests` only exercised Core's decoder through the FFI,
+which Core already covers with twenty tests of its own. An app test that only reaches a Core service
+belongs in Core. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper

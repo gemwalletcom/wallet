@@ -113,8 +113,8 @@ impl GemManageContactService {
 
     pub fn scanned_address(&self, input: String) -> GemContactScannedAddress {
         let request = match self.payments.decode_url(input.clone()) {
-            Ok(GemPayment::Request(request)) => Some(request),
-            Ok(GemPayment::Link(_)) | Err(_) => None,
+            Ok(GemPayment::Request { request }) => Some(request),
+            Ok(GemPayment::Link { link: _ }) | Err(_) => None,
         };
         rules::scanned_address(&input, request.as_ref())
     }

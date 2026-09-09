@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
+import enum Gemstone.PaymentAmount
+import struct Gemstone.PaymentRequest
 import Primitives
 
 public extension PaymentRequest {
@@ -9,8 +12,15 @@ public extension PaymentRequest {
         memo: String? = nil,
         label: String? = nil,
         references: [String]? = nil,
-        assetId: AssetId? = nil,
+        assetId: Primitives.AssetId? = nil,
     ) -> PaymentRequest {
-        PaymentRequest(address: address, amount: amount, memo: memo, label: label, references: references, assetId: assetId)
+        PaymentRequest(
+            address: address,
+            amount: amount,
+            memo: memo,
+            label: label,
+            references: references,
+            assetId: assetId?.identifier,
+        )
     }
 }
