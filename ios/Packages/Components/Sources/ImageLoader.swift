@@ -46,41 +46,49 @@ final class ImageLoader: @unchecked Sendable {
     }
 
     private func load(_ request: ImageRequest) async throws -> UIImage {
-        let data = try await data(for: URLRequest(url: request.url))
+        let urlRequest = URLRequest(url: request.url)
+        let cache = session.configuration.urlCache
+        if let cached = cache?.cachedResponse(for: urlRequest), let image = Self.decode(cached.data, request: request) {
+            return store(image, for: request)
+        }
+        let (data, response) = try await session.data(for: urlRequest)
         guard let image = Self.decode(data, request: request) else {
             throw ImageLoadingError.undecodable
         }
+        if cache?.cachedResponse(for: urlRequest) == nil {
+            cache?.storeCachedResponse(CachedURLResponse(response: response, data: data), for: urlRequest)
+        }
+        return store(image, for: request)
+    }
+
+    private func store(_ image: UIImage, for request: ImageRequest) -> UIImage {
         images.setObject(image, forKey: request.cacheKey, cost: image.cgImage.map { $0.bytesPerRow * $0.height } ?? 0)
         return image
     }
 
-    private func data(for request: URLRequest) async throws -> Data {
-        let cache = session.configuration.urlCache
-        if let cached = cache?.cachedResponse(for: request) {
-            return cached.data
-        }
-        let (data, response) = try await session.data(for: request)
-        if cache?.cachedResponse(for: request) == nil {
-            cache?.storeCachedResponse(CachedURLResponse(response: response, data: data), for: request)
-        }
-        return data
-    }
-
     static func decode(_ data: Data, request: ImageRequest) -> UIImage? {
-        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let maxPixelSize = request.maxPixelSize.map({ Int($0.rounded(.up)) }) ?? sourcePixelSize(source)
+        else {
             return nil
         }
-        let image: CGImage? = if let maxPixelSize = request.maxPixelSize {
-            CGImageSourceCreateThumbnailAtIndex(source, 0, [
-                kCGImageSourceCreateThumbnailFromImageAlways: true,
-                kCGImageSourceCreateThumbnailWithTransform: true,
-                kCGImageSourceShouldCacheImmediately: true,
-                kCGImageSourceThumbnailMaxPixelSize: Int(maxPixelSize.rounded(.up)),
-            ] as CFDictionary)
-        } else {
-            CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary)
-        }
+        let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+        ] as CFDictionary)
         return image.map { UIImage(cgImage: $0, scale: request.scale, orientation: .up) }
+    }
+
+    private static func sourcePixelSize(_ source: CGImageSource) -> Int? {
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = properties[kCGImagePropertyPixelWidth] as? Int,
+              let height = properties[kCGImagePropertyPixelHeight] as? Int
+        else {
+            return nil
+        }
+        return max(width, height)
     }
 }
 

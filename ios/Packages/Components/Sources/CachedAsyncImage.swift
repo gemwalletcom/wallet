@@ -45,6 +45,7 @@ public struct CachedAsyncImage<Content: View>: View {
             phase = .success(Image(uiImage: image))
             return
         }
+        phase = .empty
         do {
             phase = try .success(Image(uiImage: await ImageLoader.shared.image(for: request)))
         } catch {

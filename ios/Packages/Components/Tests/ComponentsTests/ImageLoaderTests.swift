@@ -24,6 +24,19 @@ struct ImageLoaderTests {
     }
 
     @Test
+    func decodeAppliesTheStoredOrientation() {
+        let sideways = UIImage(cgImage: UIImage(data: png(side: 200, height: 100))!.cgImage!, scale: 1, orientation: .right).jpegData(compressionQuality: 1)!
+
+        let full = ImageLoader.decode(sideways, request: ImageRequest(url: url, maxPixelSize: nil, scale: 1))
+        let small = ImageLoader.decode(sideways, request: ImageRequest(url: url, maxPixelSize: 50, scale: 1))
+
+        #expect(full?.cgImage?.width == 100)
+        #expect(full?.cgImage?.height == 200)
+        #expect(small?.cgImage?.width == 25)
+        #expect(small?.cgImage?.height == 50)
+    }
+
+    @Test
     func decodeRejectsNonImageData() {
         #expect(ImageLoader.decode(Data("not an image".utf8), request: ImageRequest(url: url, maxPixelSize: nil, scale: 1)) == nil)
     }
@@ -39,12 +52,13 @@ struct ImageLoaderTests {
         #expect(small.cacheKey == ImageRequest(url: url, maxPixelSize: 44, scale: 2).cacheKey)
     }
 
-    private func png(side: Int) -> Data {
+    private func png(side: Int, height: Int? = nil) -> Data {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
-        return UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).pngData { context in
+        let size = CGSize(width: side, height: height ?? side)
+        return UIGraphicsImageRenderer(size: size, format: format).pngData { context in
             UIColor.red.setFill()
-            context.fill(CGRect(x: 0, y: 0, width: side, height: side))
+            context.fill(CGRect(origin: .zero, size: size))
         }
     }
 }
