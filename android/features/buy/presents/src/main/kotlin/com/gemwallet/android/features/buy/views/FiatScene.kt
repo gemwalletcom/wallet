@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +67,7 @@ fun BuyScene(
     fiatAmount: String,
     suggestedAmounts: List<FiatSuggestion>,
     cancelAction: CancelAction,
+    snackbar: SnackbarHostState,
     titleContent: @Composable () -> Unit,
     onLotSelect: (FiatSuggestion) -> Unit,
     onAmount: (String) -> Unit,
@@ -83,6 +85,7 @@ fun BuyScene(
     Scene(
         titleContent = titleContent,
         onClose = { cancelAction() },
+        snackbar = snackbar,
         actions = {
             IconButton(onClick = onFiatTransactions) {
                 Icon(

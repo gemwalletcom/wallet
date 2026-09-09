@@ -46,6 +46,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatOperation
 import uniffi.gemstone.GemFiatQuotePhase
@@ -259,6 +260,40 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertTrue(viewModel.showFiatTypePicker.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `quote url failure is reported and releases the button`() = runTest(testDispatcher) {
+        coEvery { service.quoteUrl(any(), any()) } throws GemServiceException.Api("offline")
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            val result = viewModel.quoteUrl()
+            runCurrent()
+
+            assertTrue(result.isFailure)
+            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `quote url success returns the provider redirect`() = runTest(testDispatcher) {
+        coEvery { service.quoteUrl(any(), any()) } returns FiatQuoteUrl(redirectUrl = "https://provider.test/checkout", providerTransactionId = null)
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            assertEquals("https://provider.test/checkout", viewModel.quoteUrl().getOrThrow())
         } finally {
             viewModel.viewModelScope.cancel()
         }

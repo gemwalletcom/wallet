@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +28,8 @@ import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.iconSize
@@ -32,6 +37,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatQuoteType
+import kotlinx.coroutines.launch
 import uniffi.gemstone.GemFiatAmountCheck
 import uniffi.gemstone.GemFiatQuotePhase
 
@@ -52,12 +58,23 @@ fun FiatNavScreen(
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val currentAssetInfo = asset
-    val currentAsset = currentAssetInfo?.asset ?: return
+    val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
+    val errorOccurred = stringResource(R.string.errors_error_occurred)
+    val title = stringResource(
+        when (type) {
+            FiatQuoteType.Buy -> R.string.buy_title
+            FiatQuoteType.Sell -> R.string.sell_title
+        },
+        "",
+    )
+    val currentAssetInfo = asset ?: return LoadingScene(title = title, onCancel = { cancelAction() })
+    val currentAsset = currentAssetInfo.asset
 
     BuyScene(
         asset = currentAsset,
         assetInfo = currentAssetInfo,
+        snackbar = snackbar,
         uiState = uiState,
         type = type,
         providers = providers,
@@ -79,8 +96,10 @@ fun FiatNavScreen(
         onRetry = viewModel::retry,
         onFiatTransactions = onFiatTransactions,
         onBuy = {
-            viewModel.getUrl { url ->
-                url?.let { uriHandler.open(context, it) }
+            scope.launch {
+                viewModel.quoteUrl()
+                    .onSuccess { uriHandler.open(context, it) }
+                    .onFailure { snackbar.showSnackbar(errorOccurred, R.drawable.ic_error) }
             }
         }
     )

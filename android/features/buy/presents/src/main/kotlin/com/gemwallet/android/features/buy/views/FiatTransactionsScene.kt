@@ -33,7 +33,11 @@ fun FiatTransactionsScene(
             onRefresh = onRefresh,
         ) {
             if (transactions.isEmpty()) {
-                EmptyContentView(type = EmptyContentType.Activity(), modifier = Modifier.fillMaxSize())
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item {
+                        EmptyContentView(type = EmptyContentType.Activity(), modifier = Modifier.fillParentMaxSize())
+                    }
+                }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     fiatTransactionsList(
