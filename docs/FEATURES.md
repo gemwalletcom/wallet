@@ -238,8 +238,6 @@ The table lists backend address-history providers by chain. Chains marked unsupp
 
 ## Swap providers
 
-For new provider proposals, see [New Swapper Requirements](SWAPPER_REQUIREMENTS.md). All additions require team review and approval.
-
 These tables compare implemented coverage with provider-advertised support across Gem’s supported chains. Coverage requires at least one supported asset on a chain; individual tokens and routes may be unavailable.
 
 ### On-chain providers
