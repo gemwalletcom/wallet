@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.transactionsListLimit
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -40,6 +41,7 @@ public final class TransactionsFilterViewModel {
             walletId: wallet.id,
             type: type,
             filters: defaultFilters + [.types(transactionTypes.map(\.rawValue))],
+            limit: Int(transactionsListLimit()),
         )
         query = ObservableQuery(request, initialValue: [])
     }

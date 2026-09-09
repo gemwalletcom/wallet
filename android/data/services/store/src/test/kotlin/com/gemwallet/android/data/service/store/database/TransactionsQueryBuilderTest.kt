@@ -21,8 +21,8 @@ class TransactionsQueryBuilderTest {
         val query = buildExtendedTransactionsSql(walletId, filters = emptyList())
         assertTrue(query.sql.trimStart().startsWith("SELECT"))
         assertTrue(query.sql.contains("FROM transactions as tx"))
-        assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC"))
-        assertEquals(List(baseArgCount) { walletId.id }, query.args)
+        assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC LIMIT ?"))
+        assertEquals(listOf<Any>(walletId.id, 250), query.args)
     }
 
     @Test

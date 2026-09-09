@@ -5,6 +5,7 @@ import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
 import Formatters
 import Foundation
+import func Gemstone.transactionsListLimit
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -71,6 +72,7 @@ public final class PerpetualSceneViewModel {
             TransactionsRequest.perpetualScene(
                 walletId: wallet.id,
                 assetId: asset.id,
+                limit: Int(transactionsListLimit()),
             ),
             initialValue: [],
         )

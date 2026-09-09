@@ -125,6 +125,11 @@ pub struct GemTransactionRow {
 }
 
 #[uniffi::export]
+pub fn transactions_list_limit() -> u32 {
+    250
+}
+
+#[uniffi::export]
 pub fn transaction_row(transaction: TransactionExtended) -> GemTransactionRow {
     rules::row(&transaction)
 }

@@ -364,6 +364,11 @@ intentional one-sided integration surfaces.
   follows prices, since it is one row.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
+- **The activity list is bounded, and Core says where.** `transactions_list_limit()` is 250; both
+  list queries apply it (`buildExtendedTransactionsSql` on Android, `TransactionsRequest.limit` on
+  iOS, which the scene inputs pass because `Store` cannot import Gemstone). The count query and the
+  pending-transaction tracking read stay unbounded — one is a number, the other is what still has
+  to be watched.
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
   statement instead of five per-source updates (Android's `updateCoinBalance` … `updateStakeBalance`
   and iOS's `UpdateBalanceType` switch are gone). Prices already worked that way; balances wrote

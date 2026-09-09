@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.transactionsListLimit
 import Primitives
 import Store
 
@@ -24,6 +25,7 @@ public struct AssetSceneInput: Sendable {
         transactionsRequest = TransactionsRequest.assetScene(
             walletId: wallet.id,
             assetId: asset.id,
+            limit: Int(transactionsListLimit()),
         )
 
         bannersRequest = BannersRequest(
