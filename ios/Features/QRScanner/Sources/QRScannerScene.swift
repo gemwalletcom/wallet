@@ -73,20 +73,27 @@ public struct QRScannerScene: View {
         switch error {
         case .notSupported:
             photoLibraryButton
-                .buttonStyle(.blue())
+                .buttonStyle(.blue(paddingVertical: .zero))
         case .permissionsNotGranted:
-            Button(model.resources.openSettings, action: onSelectOpenSettings)
-                .buttonStyle(.blue())
+            Button(action: onSelectOpenSettings) {
+                actionLabel(model.resources.openSettings)
+            }
+            .buttonStyle(.blue(paddingVertical: .zero))
             photoLibraryButton
-                .buttonStyle(.amount(paddingHorizontal: .button.paddingHorizontal, paddingVertical: .button.paddingVertical, cornerRadius: Sizing.space12))
+                .buttonStyle(.amount(paddingHorizontal: .button.paddingHorizontal, paddingVertical: .zero, cornerRadius: Sizing.space12))
         }
     }
 
     private var photoLibraryButton: some View {
         let text = model.resources.selectFromPhotos
         return photosPicker {
-            Text(text)
+            actionLabel(text)
         }
+    }
+
+    private func actionLabel(_ title: String) -> some View {
+        Text(title)
+            .frame(height: .scene.button.height)
     }
 
     private func photosPicker(
