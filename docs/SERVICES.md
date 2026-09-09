@@ -311,6 +311,13 @@ intentional one-sided integration surfaces.
   with both showed one, and the two orders differed. iOS's hidden rows were `.empty` item models in
   fixed sections; Android's were `listOfNotNull` — both gone. The Android aggregate carries
   `participant` and `provider` as separate values instead of a `destination` that preferred one.
+  The row kind is Core's on both apps: iOS's `TransactionItem` and `TransactionSectionType` — a
+  sixteen-case copy of `GemTransactionDetailRow` with a mapping initialiser and a six-case section
+  id — are deleted, and the scene lists `GemTransactionDetailRow` with the section identified by its
+  first row. Android's `ValueGroup` and the fourteen per-row properties on the aggregate interface
+  are gone too: the scene walks Core's sections and asks `value(row)` for the payload, so the sealed
+  `TransactionDetailsValue` is what a row renders, not a second list of what rows exist. An app keeps
+  a payload type per row; it does not keep a kind.
 - **The swap error a screen shows is one Core answer.** `GemSwapSession::error()` returns the
   failed transfer's error, else the failed quote's, the order `action()` already reads them in.
   iOS wrote that as `transferError() ?? quoteError()` and Android as a `when` over `action`, so the

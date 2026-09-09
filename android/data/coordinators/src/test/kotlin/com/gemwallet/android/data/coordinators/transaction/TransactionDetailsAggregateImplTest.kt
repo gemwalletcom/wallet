@@ -268,12 +268,12 @@ class TransactionDetailsAggregateImplTest {
     }
 
     @Test
-    fun testValueGroups_placeTheCoreRowsInTheCoreSections() {
+    fun testValue_answersEveryRowCoreLists() {
         val aggregate = createAggregate(currency = Currency.EUR)
         Assert.assertEquals(Currency.EUR, aggregate.currency)
         Assert.assertEquals(
-            listOf(listOf(aggregate.amount), listOf(aggregate.date, aggregate.status, aggregate.network), listOf(aggregate.fee), listOf(aggregate.explorer)),
-            aggregate.valueGroups.map { it.items },
+            listOf(aggregate.amount, aggregate.date, aggregate.status, aggregate.network, aggregate.fee, aggregate.explorer),
+            aggregate.sections.flatMap { section -> section.rows.map(aggregate::value) },
         )
 
         Assert.assertEquals(720u, createAggregate(rows = mockGemTransactionDetailRows(estimatedConfirmationSeconds = 720u)).estimatedConfirmation?.seconds)

@@ -53,9 +53,9 @@ internal fun TransactionDetailsScene(
         onClose = { onAction(TransactionDetailsAction.Close) },
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            data.valueGroups.forEach { group ->
-                itemsPositioned(group.items) { position, item ->
-                    when (item) {
+            data.sections.forEach { section ->
+                itemsPositioned(section.rows) { position, row ->
+                    when (val item = data.value(row)) {
                         is TransactionDetailsValue.Amount.NFT -> NftHead(
                             metadata = item.metadata,
                             onClick = data.headerAction?.let { action -> { onAction(action.navigation()) } },

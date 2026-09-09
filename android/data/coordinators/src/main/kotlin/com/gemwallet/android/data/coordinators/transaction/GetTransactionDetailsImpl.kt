@@ -9,7 +9,6 @@ import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.format
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
-import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.getRelativeDate
@@ -37,6 +36,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import uniffi.gemstone.GemTransactionAmount
 import uniffi.gemstone.GemTransactionDetailRow
+import uniffi.gemstone.GemTransactionDetailSection
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionDetailsService
 import uniffi.gemstone.GemTransactionHeader
@@ -81,7 +81,7 @@ class TransactionDetailsAggregateImpl(
     override val direction: TransactionDirection = data.transaction.direction
     override val state: TransactionState = data.transaction.state
 
-    override val amount: TransactionDetailsValue.Amount = when (val header = rows.header) {
+    val amount: TransactionDetailsValue.Amount = when (val header = rows.header) {
         is GemTransactionHeader.Amount -> header.amount.plain(showsFiat = header.showsFiat)
         is GemTransactionHeader.Swap -> TransactionDetailsValue.Amount.Swap(
             fromAsset = header.from.priceValue(),
@@ -104,32 +104,32 @@ class TransactionDetailsAggregateImpl(
         TransactionDetailsValue.Fee(asset, valueFormatter.string(fee.value, asset), fee.fiat(asset).orEmpty())
     }
 
-    override val date: TransactionDetailsValue.Date = TransactionDetailsValue.Date(getRelativeDate(data.transaction.createdAt))
+    val date: TransactionDetailsValue.Date = TransactionDetailsValue.Date(getRelativeDate(data.transaction.createdAt))
 
-    override val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state, rows.status)
+    val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state, rows.status)
 
-    override val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = rows.estimatedConfirmationSeconds
+    val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = rows.estimatedConfirmationSeconds
         ?.let { TransactionDetailsValue.EstimatedConfirmation(it) }
 
-    override val memo: TransactionDetailsValue.Memo? = rows.memo?.let { TransactionDetailsValue.Memo(it) }
+    val memo: TransactionDetailsValue.Memo? = rows.memo?.let { TransactionDetailsValue.Memo(it) }
 
-    override val resourceType: TransactionDetailsValue.ResourceType? = rows.resource
+    val resourceType: TransactionDetailsValue.ResourceType? = rows.resource
         ?.let { TransactionDetailsValue.ResourceType(it.toPrimitives()) }
 
-    override val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
+    val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
 
-    override val pnl: TransactionDetailsValue.Pnl? = rows.pnl
+    val pnl: TransactionDetailsValue.Pnl? = rows.pnl
         ?.let { TransactionDetailsValue.Pnl(value = "${if (it >= 0) "+" else ""}${usdFormatter.string(it)}", direction = it.toValueDirection()) }
 
-    override val price: TransactionDetailsValue.Price? = rows.price?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
+    val price: TransactionDetailsValue.Price? = rows.price?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
 
-    override val participant: TransactionDetailsValue.Destination? = rows.participant?.destination()
+    val participant: TransactionDetailsValue.Destination? = rows.participant?.destination()
 
-    override val provider: TransactionDetailsValue.Destination.Provider? = rows.providerName?.let { TransactionDetailsValue.Destination.Provider(it) }
+    val provider: TransactionDetailsValue.Destination.Provider? = rows.providerName?.let { TransactionDetailsValue.Destination.Provider(it) }
 
     override val explorer: TransactionDetailsValue.Explorer = TransactionDetailsValue.Explorer(rows.explorer.link, rows.explorer.name)
 
-    override val swapProgress: TransactionDetailsValue.SwapProgress? = rows.swapProgress?.let { progress ->
+    val swapProgress: TransactionDetailsValue.SwapProgress? = rows.swapProgress?.let { progress ->
         TransactionDetailsValue.SwapProgress(
             fromAsset = progress.fromAsset.toPrimitives(),
             fromValue = progress.fromValue,
@@ -140,7 +140,7 @@ class TransactionDetailsAggregateImpl(
         )
     }
 
-    override val rate: TransactionDetailsValue.Rate? = rows.rate?.let { rate ->
+    val rate: TransactionDetailsValue.Rate? = rows.rate?.let { rate ->
         buildAssetRatePair(
             fromAsset = rate.from.asset.toPrimitives(),
             toAsset = rate.to.asset.toPrimitives(),
@@ -149,14 +149,12 @@ class TransactionDetailsAggregateImpl(
         )?.let { TransactionDetailsValue.Rate(it) }
     }
 
-    override val swapAgain: TransactionDetailsValue.SwapAgain? = rows.swapAgain
+    val swapAgain: TransactionDetailsValue.SwapAgain? = rows.swapAgain
         ?.let { TransactionDetailsValue.SwapAgain(fromAssetId = AssetId(it.fromAssetId), toAssetId = AssetId(it.toAssetId)) }
 
-    override val valueGroups: List<ValueGroup<TransactionDetailsValue>> = transactionDetailSections(rows).map { section ->
-        ValueGroup(section.rows.map { row -> value(row) })
-    }
+    override val sections: List<GemTransactionDetailSection> = transactionDetailSections(rows)
 
-    private fun value(row: GemTransactionDetailRow): TransactionDetailsValue = when (row) {
+    override fun value(row: GemTransactionDetailRow): TransactionDetailsValue = when (row) {
         GemTransactionDetailRow.HEADER -> amount
         GemTransactionDetailRow.SWAP_PROGRESS -> requireNotNull(swapProgress)
         GemTransactionDetailRow.SWAP_AGAIN -> requireNotNull(swapAgain)

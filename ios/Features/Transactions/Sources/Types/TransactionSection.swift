@@ -2,76 +2,21 @@
 
 import Components
 import enum Gemstone.GemTransactionDetailRow
+import struct Gemstone.GemTransactionDetailSection
 import Foundation
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 
-public enum TransactionSectionType: String, Identifiable, Equatable {
-    case header
-    case swapProgress
-    case swapAction
-    case details
-    case fee
-    case explorer
-
-    public var id: String {
-        rawValue
-    }
-
-    init(first item: TransactionItem) {
-        self = switch item {
-        case .header: .header
-        case .swapProgress: .swapProgress
-        case .swapButton: .swapAction
-        case .fee: .fee
-        case .explorerLink: .explorer
-        case .date, .status, .estimatedConfirmation, .participant, .memo, .resource, .rate, .network, .pnl, .price, .provider: .details
-        }
-    }
-}
-
-public enum TransactionItem: Identifiable, Equatable, Sendable {
-    case header
-    case swapProgress
-    case swapButton
-    case date
-    case status
-    case estimatedConfirmation
-    case participant
-    case memo
-    case resource
-    case rate
-    case network
-    case pnl
-    case price
-    case provider
-    case fee
-    case explorerLink
-
+extension GemTransactionDetailRow: @retroactive Identifiable {
     public var id: Self {
         self
     }
+}
 
-    init(_ row: GemTransactionDetailRow) {
-        self = switch row {
-        case .header: .header
-        case .swapProgress: .swapProgress
-        case .swapAgain: .swapButton
-        case .date: .date
-        case .status: .status
-        case .estimatedConfirmation: .estimatedConfirmation
-        case .participant: .participant
-        case .memo: .memo
-        case .resource: .resource
-        case .rate: .rate
-        case .network: .network
-        case .provider: .provider
-        case .pnl: .pnl
-        case .price: .price
-        case .fee: .fee
-        case .explorer: .explorerLink
-        }
+public extension ListSection where T == GemTransactionDetailRow {
+    init(_ section: GemTransactionDetailSection) {
+        self.init(id: "\(section.rows[0])", title: nil, image: nil, values: section.rows)
     }
 }
 
@@ -88,10 +33,4 @@ public enum TransactionItemModel {
     case explorer(url: URL, text: String)
     case swapAgain(text: String)
     case empty
-}
-
-public extension ListSection where T == TransactionItem {
-    init(type: TransactionSectionType, _ items: [TransactionItem]) {
-        self.init(type: type, values: items)
-    }
 }

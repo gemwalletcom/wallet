@@ -60,18 +60,15 @@ public final class TransactionSceneViewModel {
 // MARK: - ListSectionProvideable
 
 extension TransactionSceneViewModel: ListSectionProvideable {
-    public var sections: [ListSection<TransactionItem>] {
-        transactionDetailSections(rows: rows).map { section in
-            let items = section.rows.map(TransactionItem.init)
-            return ListSection(type: TransactionSectionType(first: items[0]), items)
-        }
+    public var sections: [ListSection<GemTransactionDetailRow>] {
+        transactionDetailSections(rows: rows).map(ListSection.init)
     }
 
-    public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
-        switch item {
+    public func itemModel(for row: GemTransactionDetailRow) -> any ItemModelProvidable<TransactionItemModel> {
+        switch row {
         case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency())
         case .swapProgress: TransactionSwapProgressViewModel(progress: rows.swapProgress)
-        case .swapButton: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
+        case .swapAgain: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
         case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
         case .status: TransactionStatusViewModel(status: rows.status, state: transactionExtended.transaction.state, onInfoAction: onSelectStatusInfo)
         case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: rows.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
@@ -89,7 +86,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .price: TransactionPriceViewModel(price: rows.price)
         case .provider: TransactionProviderViewModel(name: rows.providerName)
         case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency(), formatter: .auto), onInfoAction: onSelectFee)
-        case .explorerLink: explorerViewModel
+        case .explorer: explorerViewModel
         }
     }
 }
