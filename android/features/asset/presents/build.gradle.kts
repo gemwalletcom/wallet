@@ -55,18 +55,7 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:asset:viewmodels"))
-    implementation(project(":features:activities:presents"))
     implementation(project(":features:banner:presents"))
 
-    implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
-    ksp(libs.hilt.compiler)
-
-    debugImplementation(libs.androidx.ui.tooling)
-    implementation(libs.androidx.ui.tooling.preview)
-
-    testImplementation(testFixtures(project(":gemcore")))
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

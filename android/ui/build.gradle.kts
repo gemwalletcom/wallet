@@ -58,11 +58,9 @@ dependencies {
     api(libs.androidx.material3.adaptive.android)
     api(libs.compose.ui)
     api(libs.compose.material3)
-    api(libs.compose.material3.window.size)
     api(libs.kotlinx.collections.immutable)
     api(libs.compose.activity)
     api(libs.browser)
-    api(libs.constraint.layout)
 
     // QRCode scanner: only for none private data: recipient, memo, amount, etc
     implementation(libs.camera.camera2)
@@ -80,6 +78,7 @@ dependencies {
     api(libs.compose.permissions)
 
     implementation(libs.ktx.core)
+    implementation(libs.lifecycle.runtime)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
@@ -87,7 +86,5 @@ dependencies {
 
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.ui.test.junit4)
 }

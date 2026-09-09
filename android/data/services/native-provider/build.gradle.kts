@@ -37,7 +37,6 @@ android {
         }
     }
 
-
     packaging {
         resources {
             excludes += "META-INF/*"
@@ -56,13 +55,8 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.ktx.core)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.tink)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)
-    testImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }
