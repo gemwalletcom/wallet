@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{QuoteRequest, Route, SwapperError, eth_address, fees::default_referral_fees, uniswap::requires_native_wrapping};
+use crate::{QuoteRequest, Route, SwapperError, eth_address, fees::default_referral_fees, uniswap::uses_native_currency};
 use alloy_primitives::{Address, U256};
 use gem_evm::uniswap::{
     actions::V4Action::{SETTLE, SWAP_EXACT_IN, SWAP_EXACT_IN_V2_1, TAKE},
@@ -26,7 +26,7 @@ pub fn build_commands(
     let fee_options = default_referral_fees().evm;
     let recipient = eth_address::parse_str(&request.wallet_address)?;
 
-    let input_is_native = requires_native_wrapping(&request.from_asset.asset_id());
+    let input_is_native = uses_native_currency(&request.from_asset.asset_id());
     let pay_fees = fee_options.bps > 0;
 
     let mut commands: Vec<UniversalRouterCommand> = vec![];

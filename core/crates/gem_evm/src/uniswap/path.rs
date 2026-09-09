@@ -120,6 +120,7 @@ pub fn get_base_pair(chain: &EVMChain, native_asset_token: Option<&str>) -> Opti
         EVMChain::OpBNB | EVMChain::Plasma => "",
         EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b", // USDC.e (Stargate)
         EVMChain::Tempo => TEMPO_BRIDGED_USDC_TOKEN_ID,
+        EVMChain::Arc => ARC_USDC_TOKEN_ID,
         _ => panic!("USDC is not configured for this chain"),
     };
 
@@ -146,8 +147,8 @@ pub fn get_base_pair(chain: &EVMChain, native_asset_token: Option<&str>) -> Opti
         EVMChain::Monad => MONAD_USDT_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID, // USDT0
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
-        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",                // USDT0
-        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo => "", // None
+        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",                                // USDT0
+        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc => "", // None
         _ => panic!("USDT is not configured for this chain"),
     };
 

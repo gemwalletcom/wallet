@@ -141,6 +141,13 @@ pub fn get_uniswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploym
             permit2,
             "0x8876789976dEcBfCbBbe364623C63652db8C0904",
         )),
+        // See: https://github.com/Uniswap/contracts/blob/main/deployments/5042.md
+        Chain::Arc => Some(V3Deployment::v2_1(
+            "0xf0db7b58379503491d857dB50AC9ece64c653918",
+            "0x7DfD4F31be6814D2906BDE155c3e1B146EAc1468",
+            permit2,
+            "0x4fcA4a51Ab4F23A7447b3284fBd7D73289A89Fb1",
+        )),
         _ => None,
     }
 }
@@ -337,6 +344,7 @@ mod tests {
         let optimism = get_uniswap_router_deployment_by_chain(&Chain::Optimism).unwrap();
         let zksync = get_uniswap_router_deployment_by_chain(&Chain::ZkSync).unwrap();
         let stable = get_uniswap_router_deployment_by_chain(&Chain::Stable).unwrap();
+        let arc = get_uniswap_router_deployment_by_chain(&Chain::Arc).unwrap();
 
         assert_eq!(ethereum.universal_router, "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA");
         assert_eq!(ethereum.factory, "0x1F98431c8aD98523631AE4a59f267346ea31F984");
@@ -345,11 +353,13 @@ mod tests {
         assert_eq!(optimism.universal_router, "0x8B844f885672f333Bc0042cB669255f93a4C1E6b");
         assert_eq!(zksync.universal_router, "0x28731BCC616B5f51dD52CF2e4dF0E78dD1136C06");
         assert_eq!(stable.universal_router, "0x5Be52b52f3d1dbC324d2959637471a4208626144");
+        assert_eq!(arc.universal_router, "0x4fcA4a51Ab4F23A7447b3284fBd7D73289A89Fb1");
         assert_eq!(ethereum.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(base.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(optimism.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(zksync.universal_router_abi, UniversalRouterAbi::V2);
         assert_eq!(stable.universal_router_abi, UniversalRouterAbi::V2);
+        assert_eq!(arc.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(zksync.factory, "0x8FdA5a7a8dCA67BBcDd10F02Fa0649A937215422");
         assert_eq!(stable.factory, "0x88F0a512eF09175D456bc9547f914f48C013E4aA");
     }

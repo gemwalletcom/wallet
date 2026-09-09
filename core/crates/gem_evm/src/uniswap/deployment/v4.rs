@@ -131,6 +131,13 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91",
         )),
+        // See: https://github.com/Uniswap/contracts/blob/main/deployments/5042.md
+        Chain::Arc => Some(V4Deployment::v2_1(
+            "0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94",
+            "0xF3334192D15450CdD385c8B70e03f9A6bD9E673b",
+            permit2,
+            "0x4fcA4a51Ab4F23A7447b3284fBd7D73289A89Fb1",
+        )),
         _ => None,
     }
 }
@@ -208,13 +215,16 @@ mod tests {
         let ethereum = get_uniswap_deployment_by_chain(&Chain::Ethereum).unwrap();
         let base = get_uniswap_deployment_by_chain(&Chain::Base).unwrap();
         let optimism = get_uniswap_deployment_by_chain(&Chain::Optimism).unwrap();
+        let arc = get_uniswap_deployment_by_chain(&Chain::Arc).unwrap();
 
         assert_eq!(ethereum.universal_router, "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA");
         assert_eq!(base.universal_router, "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7");
         assert_eq!(optimism.universal_router, "0x8B844f885672f333Bc0042cB669255f93a4C1E6b");
+        assert_eq!(arc.universal_router, "0x4fcA4a51Ab4F23A7447b3284fBd7D73289A89Fb1");
         assert_eq!(ethereum.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(base.universal_router_abi, UniversalRouterAbi::V2_1);
         assert_eq!(optimism.universal_router_abi, UniversalRouterAbi::V2_1);
+        assert_eq!(arc.universal_router_abi, UniversalRouterAbi::V2_1);
     }
 
     #[test]

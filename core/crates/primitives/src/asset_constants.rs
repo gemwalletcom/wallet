@@ -263,6 +263,8 @@ pub static ZKSYNC_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::f
 pub const UNICHAIN_WETH_TOKEN_ID: &str = "0x4200000000000000000000000000000000000006";
 pub static UNICHAIN_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Unichain, UNICHAIN_WETH_TOKEN_ID));
 
+pub const ARC_USDC_TOKEN_ID: &str = "0x3600000000000000000000000000000000000000"; // the ERC-20 face of native USDC
+
 pub const ROBINHOOD_WETH_TOKEN_ID: &str = "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73";
 pub static ROBINHOOD_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Robinhood, ROBINHOOD_WETH_TOKEN_ID));
 
