@@ -68,6 +68,7 @@ public enum Images {
         public static let robinhood = Image(.robinhood)
         public static let stable = Image(.stable)
         public static let tempo = Image(.tempo)
+        public static let arc = Image(.arc)
     }
 
     public enum SwapProviders {

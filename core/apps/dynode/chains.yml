@@ -87,3 +87,8 @@ chains:
   - chain: tempo
     urls:
       - url: https://rpc.tempo.xyz
+
+  # Arc
+  - chain: arc
+    urls:
+      - url: https://rpc.arc.io

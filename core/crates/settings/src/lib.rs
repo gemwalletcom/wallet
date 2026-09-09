@@ -300,6 +300,7 @@ pub struct Chains {
     pub robinhood: Chain,
     pub stable: Chain,
     pub tempo: Chain,
+    pub arc: Chain,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -1367,6 +1367,30 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             }),
             stake: None,
         },
+        ChainConfig {
+            chain: Chain::Arc,
+            network_id: "5042",
+            denom: None,
+            slip44: 60,
+            chain_type: ChainType::Ethereum,
+            default_asset_type: Some(AssetType::ERC20),
+            account_activation_fee: None,
+            token_activation_fee: None,
+            minimum_account_balance: None,
+            block_time: 500,
+            rank: 30,
+            is_swap_supported: false,
+            is_nft_supported: false,
+            is_defi_supported: false,
+            is_utxo: false,
+            evm: Some(EvmChainConfig {
+                min_priority_fee: 1_000_000,
+                chain_stack: ChainStack::Native,
+                is_ethereum_layer2: false,
+                weth_contract: None,
+            }),
+            stake: None,
+        },
     ]
 });
 

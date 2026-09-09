@@ -36,6 +36,7 @@ impl EtherScan {
             EVMChain::Robinhood => BlockScout::new_robinhood(),
             EVMChain::Stable => Explorer::boxed(Metadata::with_token("Stablescan", "https://stablescan.xyz")),
             EVMChain::Tempo => TempoExplorer::boxed(),
+            EVMChain::Arc => BlockScout::new_arc(),
             _ => todo!(),
         }
     }

@@ -1,19 +1,19 @@
 use primitives::{AssetId, Chain, asset_constants::TEMPO_PATHUSD_ASSET_ID};
 
-const TEMPO_PATHUSD_FEED_ID: &str = "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a";
+const USDC_FEED_ID: &str = "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a";
 
 pub fn asset_ids_for_feed_id(feed_id: &str) -> Vec<AssetId> {
     Chain::all()
         .into_iter()
         .filter(|&chain| price_feed_id_for_chain(chain) == Some(feed_id))
         .map(|c| c.as_asset_id())
-        .chain(if feed_id == TEMPO_PATHUSD_FEED_ID { Some(TEMPO_PATHUSD_ASSET_ID.clone()) } else { None })
+        .chain(if feed_id == USDC_FEED_ID { Some(TEMPO_PATHUSD_ASSET_ID.clone()) } else { None })
         .collect()
 }
 
 pub(crate) fn price_feed_id_for_asset_id(asset_id: &AssetId) -> Option<&'static str> {
     if asset_id == &*TEMPO_PATHUSD_ASSET_ID {
-        Some(TEMPO_PATHUSD_FEED_ID)
+        Some(USDC_FEED_ID)
     } else if asset_id.is_native() {
         price_feed_id_for_chain(asset_id.chain)
     } else {
@@ -75,6 +75,7 @@ pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Monad => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
         Chain::XLayer => "d6f83dfeaff95d596ddec26af2ee32f391c206a183b161b7980821860eeef2f5",
         Chain::Stable => "2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
+        Chain::Arc => USDC_FEED_ID,
         Chain::Mayachain | Chain::Tempo => return None,
     };
     Some(feed_id)

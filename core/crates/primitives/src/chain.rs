@@ -67,6 +67,7 @@ pub enum Chain {
     Robinhood,
     Stable,
     Tempo,
+    Arc,
 }
 
 impl fmt::Debug for Chain {
