@@ -1,12 +1,13 @@
 package com.gemwallet.android.features.setup_wallet.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetWallet
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.walletRow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -41,8 +42,7 @@ class SetupWalletViewModel @AssistedInject constructor(
                         it.copy(
                             walletName = wallet.name,
                             walletSource = wallet.source,
-                            walletType = wallet.type,
-                            walletChain = wallet.accounts.firstOrNull()?.chain,
+                            row = walletRow(wallet.toGem()),
                             imageUrl = wallet.imageUrl,
                         )
                     }
@@ -72,7 +72,6 @@ class SetupWalletViewModel @AssistedInject constructor(
 data class SetupWalletViewModelState(
     val walletName: String = "",
     val walletSource: WalletSource = WalletSource.Create,
-    val walletType: WalletType? = null,
-    val walletChain: Chain? = null,
+    val row: GemWalletRow? = null,
     val imageUrl: String? = null,
 )

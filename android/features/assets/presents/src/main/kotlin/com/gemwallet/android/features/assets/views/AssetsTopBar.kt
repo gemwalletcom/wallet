@@ -21,10 +21,10 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.walletImageModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
-import com.wallet.core.primitives.WalletType
 
 private const val ScanActionTag = "assetsScanAction"
 private const val ManageActionTag = "assetsManageAction"
@@ -38,8 +38,7 @@ internal fun AssetsTopBar(
     onScan: () -> Unit,
 ) {
     val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletIcon?.imageUrl)
-        ?: walletSummary?.walletIcon?.placeholder
-        ?: R.drawable.multicoin_wallet.takeIf { walletSummary?.walletType == WalletType.Multicoin }
+        ?: walletSummary?.walletIcon?.placeholder?.iconModel()
 
     CenterAlignedTopAppBar(
         title = {

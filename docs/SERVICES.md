@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **What a wallet row shows is Core's answer on both apps.** `wallet_row(wallet) -> GemWalletRow
+  { subtitle: Multicoin | Account { chain, address }, placeholder: Multicoin | Chain { chain },
+  shows_watch_badge }` reads the wallet id, which already names the priority chain and address.
+  iOS's `WalletViewModel` switched on the wallet type three times and reached for the first
+  account; Android did the same in `WalletItem`, the wallet-list and wallet-details aggregates,
+  the home header's `WalletIcon`, the setup screen and the confirm screen's source row, each
+  carrying a `walletChain` and `walletAddress` of its own. They all take the row now; the
+  `walletItemIconModel(type, chain)` and `WalletType.supportIcon()` helpers are gone.
 - **Android's import screen carries Core's import kind, not a wallet type.** `ImportType` held a
   `WalletType` and mapped it to `GemWalletImportKind` and back (`toWalletType(chain)`), so every
   branch in the screen, the input field, the tabs and the routes asked "is this a view or a

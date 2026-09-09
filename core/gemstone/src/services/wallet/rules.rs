@@ -2,7 +2,7 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemWalletImportKind, GemWalletImportType};
+use super::model::{GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSubtitle};
 use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -106,6 +106,24 @@ pub fn secret_export(wallet: &Wallet) -> SecretExport {
         WalletType::Multicoin | WalletType::Single => SecretExport::Words,
         WalletType::PrivateKey => wallet.accounts.first().map(|account| SecretExport::PrivateKey(account.chain)).unwrap_or(SecretExport::None),
         WalletType::View => SecretExport::None,
+    }
+}
+
+pub fn row(wallet: &Wallet) -> GemWalletRow {
+    match &wallet.id {
+        WalletId::Multicoin(_) => GemWalletRow {
+            subtitle: GemWalletSubtitle::Multicoin,
+            placeholder: GemWalletPlaceholder::Multicoin,
+            shows_watch_badge: false,
+        },
+        WalletId::Single(chain, address) | WalletId::PrivateKey(chain, address) | WalletId::View(chain, address) => GemWalletRow {
+            subtitle: GemWalletSubtitle::Account {
+                chain: *chain,
+                address: address.clone(),
+            },
+            placeholder: GemWalletPlaceholder::Chain { chain: *chain },
+            shows_watch_badge: matches!(wallet.id, WalletId::View(..)),
+        },
     }
 }
 
@@ -344,6 +362,28 @@ mod tests {
             wallet_type,
             ..Wallet::mock_with_accounts(Account::mock_chains(chains, "address"))
         }
+    }
+
+    #[test]
+    fn test_row_comes_from_the_wallet_id() {
+        let multicoin = row(&wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]));
+        assert_eq!(multicoin.subtitle, GemWalletSubtitle::Multicoin);
+        assert_eq!(multicoin.placeholder, GemWalletPlaceholder::Multicoin);
+        assert!(!multicoin.shows_watch_badge);
+
+        let view = row(&wallet(WalletId::View(Chain::Ethereum, "0x2".to_string()), WalletType::View, &[Chain::Ethereum]));
+        assert_eq!(
+            view.subtitle,
+            GemWalletSubtitle::Account {
+                chain: Chain::Ethereum,
+                address: "0x2".to_string()
+            }
+        );
+        assert_eq!(view.placeholder, GemWalletPlaceholder::Chain { chain: Chain::Ethereum });
+        assert!(view.shows_watch_badge);
+
+        let single = row(&wallet(WalletId::Single(Chain::Bitcoin, "bc1".to_string()), WalletType::Single, &[Chain::Bitcoin]));
+        assert!(!single.shows_watch_badge);
     }
 
     #[test]

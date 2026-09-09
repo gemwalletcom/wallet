@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
@@ -8,6 +9,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 class GetWalletSummaryImplTest {
@@ -66,8 +68,9 @@ class GetWalletSummaryImplTest {
     fun walletSummaryAggregate_forBaseWallet_usesBaseChainIcon() {
         val summary = WalletSummaryAggregateImpl(
             wallet = mockWallet(
+                id = "single_base_0x1",
                 type = WalletType.Single,
-                accounts = listOf(mockAccount(chain = Chain.Base)),
+                accounts = listOf(mockAccount(chain = Chain.Base, address = "0x1")),
             ),
             displayState = WalletSummaryDisplayState(
                 totalValue = "\$0.00",
@@ -77,6 +80,6 @@ class GetWalletSummaryImplTest {
             headerButtons = emptyList(),
         )
 
-        assertEquals(Chain.Base, summary.walletIcon.placeholder)
+        assertEquals(GemWalletPlaceholder.Chain(Chain.Base.toGem()), summary.walletIcon.placeholder)
     }
 }

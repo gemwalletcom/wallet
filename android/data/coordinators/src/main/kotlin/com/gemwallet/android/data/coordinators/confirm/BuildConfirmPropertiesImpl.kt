@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import com.gemwallet.android.ext.toGem
+import uniffi.gemstone.walletRow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.domains.asset.chain
@@ -27,7 +29,7 @@ class BuildConfirmPropertiesImpl(
         val chain = transfer.asset.id.chain
         return withContext(Dispatchers.IO) {
             mutableListOf<ConfirmProperty?>().apply {
-                add(ConfirmProperty.Source(wallet.name, wallet.type, chain, wallet.imageUrl))
+                add(ConfirmProperty.Source(wallet.name, walletRow(wallet.toGem()), wallet.imageUrl))
                 (transfer.inputType as? TransactionInputType.Generic)?.let { add(ConfirmProperty.Destination.Generic(it.metadata.name)) }
                 add(
                     when (val destination = ConfirmProperty.Destination.map(transfer.destination(), chain, addressName)) {

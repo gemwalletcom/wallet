@@ -1,5 +1,7 @@
 use primitives::{Chain, Wallet};
 
+use super::rules;
+
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemWalletImportType {
     MulticoinPhrase { words: Vec<String>, chains: Vec<Chain> },
@@ -52,4 +54,28 @@ pub enum GemWalletDeletion {
 pub enum GemWalletSecret {
     Words { words: Vec<String> },
     PrivateKey { key: String },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemWalletSubtitle {
+    Multicoin,
+    Account { chain: Chain, address: String },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemWalletPlaceholder {
+    Multicoin,
+    Chain { chain: Chain },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletRow {
+    pub subtitle: GemWalletSubtitle,
+    pub placeholder: GemWalletPlaceholder,
+    pub shows_watch_badge: bool,
+}
+
+#[uniffi::export]
+pub fn wallet_row(wallet: Wallet) -> GemWalletRow {
+    rules::row(&wallet)
 }

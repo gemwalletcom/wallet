@@ -26,7 +26,7 @@ import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDelet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.image.WalletAvatar
-import com.gemwallet.android.ui.components.list_item.walletItemIconModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
@@ -114,7 +114,7 @@ private fun WalletAvatarHeader(
 ) {
     WalletAvatar(
         imageUrl = wallet.imageUrl,
-        placeholder = walletItemIconModel(wallet.type, wallet.walletChain),
+        placeholder = wallet.row.placeholder.iconModel(),
         size = extraLargeIconSize,
         modifier = Modifier.padding(vertical = paddingDefault),
         supportIcon = R.drawable.ic_edit_badge,

@@ -8,6 +8,7 @@ import Store
 import Style
 import SwiftUI
 import enum Gemstone.GemWalletSecret
+import func Gemstone.walletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 
@@ -53,19 +54,9 @@ public final class WalletDetailViewModel {
     }
 
     var address: WalletDetailAddress? {
-        switch wallet.type {
-        case .multicoin:
-            return .none
-        case .single, .view, .privateKey:
-            guard let account = wallet.accounts.first else { return .none }
-            return WalletDetailAddress.account(
-                SimpleAccount(
-                    name: .none,
-                    chain: account.chain,
-                    address: account.address,
-                    assetImage: .none,
-                ),
-            )
+        switch walletRow(wallet: wallet.map()).subtitle {
+        case .multicoin: .none
+        case let .account(chain, address): .account(SimpleAccount(name: .none, chain: Primitives.Chain(core: chain), address: address, assetImage: .none))
         }
     }
 

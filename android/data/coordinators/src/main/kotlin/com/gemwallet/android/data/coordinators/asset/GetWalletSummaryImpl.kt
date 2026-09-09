@@ -31,6 +31,7 @@ import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
+import uniffi.gemstone.walletRow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
@@ -128,20 +129,13 @@ internal class WalletSummaryAggregateImpl(
     override val isBalanceHidden: Boolean,
     override val headerButtons: List<GemHeaderButton>,
 ) : WalletSummaryAggregate {
-    private val walletAccount = wallet.accounts.firstOrNull()
-
     override val walletType: WalletType = wallet.type
 
     override val walletName: String = wallet.name
 
     override val walletIcon: WalletIcon = WalletIcon(
         imageUrl = wallet.imageUrl,
-        placeholder = when (wallet.type) {
-            WalletType.Multicoin -> null
-            WalletType.Single,
-            WalletType.PrivateKey,
-            WalletType.View -> walletAccount?.chain
-        },
+        placeholder = walletRow(wallet.toGem()).placeholder,
     )
 
     override val walletTotalValue: String = displayState.totalValue

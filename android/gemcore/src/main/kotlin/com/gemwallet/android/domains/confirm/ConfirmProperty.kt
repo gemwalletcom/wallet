@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import uniffi.gemstone.GemWalletRow
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AddressName
@@ -7,11 +8,10 @@ import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemConfirmDestination
 
 sealed interface ConfirmProperty {
-    class Source(val data: String, val walletType: WalletType, val walletChain: Chain?, val walletImageUrl: String?) : ConfirmProperty
+    class Source(val data: String, val walletRow: GemWalletRow, val walletImageUrl: String?) : ConfirmProperty
     class Network(val data: Asset) : ConfirmProperty
     class Memo(memo: String) : ConfirmProperty {
         val data: String = memo.ifEmpty { "-" }

@@ -77,7 +77,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.transaction.getTitle
-import com.gemwallet.android.ui.components.list_item.walletItemIconModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
@@ -224,7 +224,7 @@ fun ConfirmScreen(
                         title = { PropertyTitleText(R.string.common_wallet) },
                         data = {
                             val walletIcon = walletImageModel(context, item.walletImageUrl)
-                                ?: walletItemIconModel(item.walletType, item.walletChain)
+                                ?: item.walletRow.placeholder.iconModel()
                             PropertyDataText(
                                 text = item.data,
                                 badge = walletIcon?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },

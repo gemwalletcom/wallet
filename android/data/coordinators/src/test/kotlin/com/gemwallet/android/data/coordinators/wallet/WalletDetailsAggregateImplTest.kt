@@ -14,7 +14,7 @@ class WalletDetailsAggregateImplTest {
     @Test
     fun accounts_preservesChainAndAddress() {
         val wallet = Wallet(
-            id = WalletId("wallet-id"),
+            id = WalletId("single_ethereum_0x403BC00000000000000000000000000000051bDa"),
             name = "Wallet",
             index = 0,
             type = WalletType.Single,
