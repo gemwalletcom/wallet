@@ -379,11 +379,11 @@ intentional one-sided integration surfaces.
   are gone too: the scene walks Core's sections and asks `value(row)` for the payload, so the sealed
   `TransactionDetailsValue` is what a row renders, not a second list of what rows exist. An app keeps
   a payload type per row; it does not keep a kind.
-- **The activity list does not follow prices live.** Both list queries join `prices` for the fiat
-  column, and both were observed on that table, so every socket price tick re-ran the twelve-join
-  history query and rebuilt every row through `transaction_row`. Android's `getExtendedTransactions`
-  no longer lists `DbPrice` in `observedEntities`; iOS's `TransactionsRequest` declares the tables
-  it follows (`RegionTrackingQueryable`, which `ObservableQuery` hands to
+- **The activity list is bounded, and Core says where.** `transactions_list_limit()` is 250; both
+  list queries apply it (`buildExtendedTransactionsSql` on Android, `TransactionsRequest.limit` on
+  iOS, which the scene inputs pass because `Store` cannot import Gemstone). The count query and the
+  pending-transaction tracking read stay unbounded — one is a number, the other is what still has
+  to be watched.
 - **The activity list follows prices and currency, but only emits changes.** Both list queries
   join `prices` for the fiat column and are observed on that table again: `set_currency` rewrites
   every price row (`convert_prices`), and a list that stopped watching prices kept the old
@@ -395,16 +395,6 @@ intentional one-sided integration surfaces.
   view model unless a row actually changed.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
-  `ValueObservation.tracking(regions:)`), and neither includes prices. The fiat column refreshes
-  with the next transaction, asset or address write; the single-transaction details query still
-  follows prices, since it is one row.
-- **A balance is written only when it changed, and the store writes the whole row.**
-  `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
-- **The activity list is bounded, and Core says where.** `transactions_list_limit()` is 250; both
-  list queries apply it (`buildExtendedTransactionsSql` on Android, `TransactionsRequest.limit` on
-  iOS, which the scene inputs pass because `Store` cannot import Gemstone). The count query and the
-  pending-transaction tracking read stay unbounded — one is a number, the other is what still has
-  to be watched.
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
   statement instead of five per-source updates (Android's `updateCoinBalance` … `updateStakeBalance`
   and iOS's `UpdateBalanceType` switch are gone). Prices already worked that way; balances wrote
