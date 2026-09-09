@@ -17,6 +17,13 @@ const OKX_MAX_SLIPPAGE_BPS_EVM: u32 = HUNDRED_PERCENT_IN_BPS;
 const OKX_MAX_SLIPPAGE_BPS_SOLANA: u32 = HUNDRED_PERCENT_IN_BPS - 1;
 const MAX_SLIPPAGE_PERCENT_BPS: u32 = 100;
 
+fn fee_bps(chain: Chain) -> u32 {
+    match chain {
+        Chain::Tron => 150,
+        _ => DEFAULT_AGGREGATOR_FEE_BPS,
+    }
+}
+
 fn limit_slippage_bps(slippage_bps: u32, chain: Chain) -> u32 {
     let max = if chain == Chain::Solana {
         OKX_MAX_SLIPPAGE_BPS_SOLANA
@@ -57,7 +64,7 @@ pub(super) fn build_quote_params(request: &QuoteRequest) -> Result<QuoteParams, 
         to_token_address: asset_to_token_address(&request.to_asset)?,
         slippage_percent: slippage_percent(request.options.slippage.bps),
         dex_ids: dex_ids(chain).map(str::to_string),
-        fee_percent: bps_to_percent_string(DEFAULT_AGGREGATOR_FEE_BPS)?,
+        fee_percent: bps_to_percent_string(fee_bps(chain))?,
     })
 }
 
@@ -79,7 +86,7 @@ pub(super) fn build_swap_params(request: &QuoteRequest, route: &QuoteData) -> Re
         auto_slippage: Some(is_auto),
         max_auto_slippage_percent: is_auto.then(|| max_auto_slippage_percent(slippage_bps)).flatten(),
         dex_ids: dex_ids(chain).map(str::to_string),
-        fee_percent: bps_to_percent_string(DEFAULT_AGGREGATOR_FEE_BPS)?,
+        fee_percent: bps_to_percent_string(fee_bps(chain))?,
         from_token_referrer_wallet_address: referrers.from_token,
         to_token_referrer_wallet_address: referrers.to_token,
     })
@@ -204,7 +211,7 @@ mod tests {
         let tron_route = mock_quote_data(TRON_BLACK_HOLE_ADDRESS, TRON_USDT_TOKEN_ID);
         let tron_params = build_swap_params(&tron_request, &tron_route).unwrap();
         assert_eq!(tron_params.chain_index, "195");
-        assert_eq!(tron_params.fee_percent, "0.7");
+        assert_eq!(tron_params.fee_percent, "1.5");
         assert_eq!(tron_params.dex_ids.as_deref(), Some("64,98,596"));
         assert!(tron_params.from_token_referrer_wallet_address.is_some());
         assert!(tron_params.to_token_referrer_wallet_address.is_none());

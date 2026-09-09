@@ -258,7 +258,15 @@ mod tests {
         assert_eq!(quote_data.gas_limit.as_deref(), Some("300000"));
 
         // Tron: 0x is stripped, approval targets the fixed approve contract, energy kept unbuffered.
-        let client = mock_client(include_str!("testdata/quote_tron_usdt_to_trx.json"), include_str!("testdata/swap_tron_usdt_to_trx.json"));
+        let client = MockClient::new().with_post(|path, body| {
+            let params: serde_json::Value = serde_json::from_slice(body).unwrap();
+            assert_eq!(params["feePercent"], "1.5");
+            match path {
+                PROXY_QUOTE_PATH => Ok(include_str!("testdata/quote_tron_usdt_to_trx.json").as_bytes().to_vec()),
+                PROXY_SWAP_PATH => Ok(include_str!("testdata/swap_tron_usdt_to_trx.json").as_bytes().to_vec()),
+                _ => panic!("unexpected path: {path}"),
+            }
+        });
         let provider = OkxProvider::mock(client, TRON_ZERO_ALLOWANCE);
         let mut request = mock_quote(
             SwapperQuoteAsset::from(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)),
