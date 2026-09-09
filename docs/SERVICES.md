@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **What a price alert row says is one Core answer.** `PriceAlertFormatter::row(alert, current
+  price, 24h change) -> GemPriceAlertRow { kind, direction }` names the row — auto, over, under,
+  increase or decrease — and the direction it colours by, so each app only localizes the five kinds.
+  Both had written the decision themselves and disagreed on the alert that has a target price but no
+  direction: Android compared the target against the current price, iOS fell back to the day's
+  change colour. Android's `PriceAlertType` enum is gone, and the thirteen app tests over the
+  decision went to Core as one.
 - **Which banners a screen shows is one Core answer, in Core's records.**
   `GemBannerContext::visible_banners(stored) -> [Banner]` takes and returns the banner the apps
   persist, so neither app converts a banner to a `GemBannerItem`, matches the visible items back

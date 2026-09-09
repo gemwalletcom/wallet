@@ -3,6 +3,8 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemPriceAlertRow
+import class Gemstone.PriceAlertFormatter
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -13,6 +15,7 @@ import SwiftUI
 struct PriceAlertItemViewModel: ListAssetItemViewable {
     let data: PriceAlertData
     private let priceModel: PriceViewModel
+    private let row: GemPriceAlertRow
 
     init(data: PriceAlertData, currency: String) {
         self.data = data
@@ -21,6 +24,11 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
         case .price, .pricePercentChange: data.priceAlert.currency.rawValue
         }
         priceModel = PriceViewModel(price: data.price, currencyCode: currencyCode)
+        row = PriceAlertFormatter.shared.row(
+            alert: data.priceAlert.map(),
+            currentPrice: data.price?.price,
+            priceChangePercentage24h: data.price?.priceChangePercentage24h,
+        )
     }
 
     var name: String {
@@ -65,39 +73,25 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
     }
 
     private var prefixText: String {
-        switch data.priceAlert.type {
+        switch row.kind {
         case .auto: priceModel.priceAmountText
-        case .price: priceDirectionPrefix
-        case .pricePercentChange: percentDirectionPrefix
+        case .over: Localized.PriceAlerts.Direction.over
+        case .under: Localized.PriceAlerts.Direction.under
+        case .increase: Localized.PriceAlerts.Direction.increasesBy
+        case .decrease: Localized.PriceAlerts.Direction.decreasesBy
         }
     }
 
     private var suffixText: String {
-        switch data.priceAlert.type {
+        switch row.kind {
         case .auto: priceModel.priceChangeText
-        case .price: priceModel.fiatAmountText(amount: data.priceAlert.price ?? .zero)
-        case .pricePercentChange: PercentFormatter.unsigned.string(data.priceAlert.pricePercentChange ?? .zero)
-        }
-    }
-
-    private var priceDirectionPrefix: String {
-        switch data.priceAlert.priceDirection {
-        case .up: Localized.PriceAlerts.Direction.over
-        case .down: Localized.PriceAlerts.Direction.under
-        case .none: .empty
-        }
-    }
-
-    private var percentDirectionPrefix: String {
-        switch data.priceAlert.priceDirection {
-        case .up: Localized.PriceAlerts.Direction.increasesBy
-        case .down: Localized.PriceAlerts.Direction.decreasesBy
-        case .none: .empty
+        case .over, .under: priceModel.fiatAmountText(amount: data.priceAlert.price ?? .zero)
+        case .increase, .decrease: PercentFormatter.unsigned.string(data.priceAlert.pricePercentChange ?? .zero)
         }
     }
 
     private var directionColor: Color {
-        switch data.priceAlert.priceDirection {
+        switch row.direction {
         case .up: Colors.green
         case .down: Colors.red
         case .none: priceModel.priceChangeTextColor
