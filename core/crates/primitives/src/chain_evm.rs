@@ -44,6 +44,7 @@ pub enum EVMChain {
     Robinhood,
     Stable,
     Tempo,
+    Arc,
 }
 
 impl EVMChain {
@@ -120,5 +121,7 @@ mod tests {
         assert_eq!(Chain::from_chain_id(1329), Some(Chain::SeiEvm));
         assert_eq!(EVMChain::Robinhood.chain_id(), 4663);
         assert_eq!(Chain::from_chain_id(4663), Some(Chain::Robinhood));
+        assert_eq!(EVMChain::Arc.chain_id(), 5042);
+        assert_eq!(Chain::from_chain_id(5042), Some(Chain::Arc));
     }
 }

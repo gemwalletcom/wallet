@@ -56,7 +56,8 @@ pub fn chain_id(chain: Chain) -> Option<&'static str> {
         | Chain::Algorand
         | Chain::Polkadot
         | Chain::Cardano
-        | Chain::HyperCore => None,
+        | Chain::HyperCore
+        | Chain::Arc => None,
     }
 }
 

@@ -296,6 +296,8 @@ chains:
     url: https://rpc.stable.xyz
   tempo:
     url: https://rpc.tempo.xyz
+  arc:
+    url: https://rpc.arc.io
 
 pusher:
   url: "http://localhost:8088"
