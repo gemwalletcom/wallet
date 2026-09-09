@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The notifications toggle is one Core rule on both apps.**
+  `GemNotificationsService::set_enabled` asks for permission, and only then turns push on through
+  `GemDeviceService::set_push_enabled`, which writes the preference and syncs the device. Each app
+  had half of that: Android wrote the preference without ever asking for permission, so the switch
+  read on while the OS blocked notifications and the optimistic state was never corrected when the
+  call failed; iOS asked but the granted branch only synced, so the preference it reads back stayed
+  false and the device synced with push off. Android's `DevicePushSettings` takes Core's answer now
+  instead of setting the device flag itself, and the `catch (_: Throwable) {}` around it is gone.
 - **What a price alert row says is one Core answer.** `PriceAlertFormatter::row(alert, current
   price, 24h change) -> GemPriceAlertRow { kind, direction }` names the row — auto, over, under,
   increase or decrease — and the direction it colours by, so each app only localizes the five kinds.
@@ -1302,6 +1310,13 @@ runs did not reproduce the failure before the change, so the fix is the anti-pat
 repro — a test that pins it has to observe the throw from the cancelled producer, and the obvious
 one passes against the old code too.
 
+`ConfirmViewModelRetryTest > retryAfterPreloadFailureRunsThePreloaderAgain` (Android) failed once
+in a full `just test` run on 2026-09-09 with the same `CompletionHandlerException` from a cancelled
+coroutine, and passed on rerun. `ConfirmViewModel` already catches `CancellationException` ahead of
+`Throwable` on both of its catch sites, so the anti-pattern above is not the cause here — the test
+collects `viewModel.state` with `first { }` inside `runTest`, and the collector outlives the scope.
+Treat a repeat as a test-scope fix, not a view-model one.
+
 `Migration_88_89Test` asserts what the migration does to the rows now: the banners it cannot rebuild
 are dropped, and the recreated table takes a row with no chain. Mutating the migration to carry the
 old rows across fails it (`expected:<0> but was:<1>`), which is the check the schema validation
@@ -1383,11 +1398,6 @@ variants has details. Both used to: iOS's `PerpetualDetailsType` mirrored `Perpe
 confirm path, while Android's factory returned null. Both mirrors are gone, along with Android's
 `PerpetualConfirmDetailsUIModel.Action`, and the reduce direction is a Core test rather than a rule
 each app rediscovers.
-
-Android hand-wrote `RecentType` with different case names from the generated
-`RecentActivityType` — `Send` against `Transfer`, `Buy` against `FiatBuy` — and those names
-are persisted through `@SerialName`, so the platforms store different strings for the same
-concept. Changing them needs a Room migration.
 
 ### Things that look like work and are not
 
