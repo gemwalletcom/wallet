@@ -77,12 +77,12 @@ impl GemPerpetualService {
     }
 
     pub async fn refresh(&self, trigger: GemMarketsRefreshTrigger) -> Vec<GemPerpetualRefreshFailure> {
-        let mut failures = Vec::new();
-        record(&mut failures, GemPerpetualRefreshStep::Positions, self.sync_current_positions()).await;
-        record(&mut failures, GemPerpetualRefreshStep::Markets, async {
+        let (positions, markets) = futures::join!(self.sync_current_positions(), async {
             self.sync_markets_if_needed(Chain::HyperCore, trigger).await.map(|_| ())
-        })
-        .await;
+        });
+        let mut failures = Vec::new();
+        record(&mut failures, GemPerpetualRefreshStep::Positions, async { positions }).await;
+        record(&mut failures, GemPerpetualRefreshStep::Markets, async { markets }).await;
         failures
     }
 
@@ -189,8 +189,8 @@ impl GemPerpetualService {
 
 impl GemPerpetualService {
     pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
-        let mode = self.account_mode(wallet_id.clone(), chain, address.clone()).await?;
-        let summary = self.gateway.get_positions(chain, address).await?;
+        let (mode, summary) = futures::join!(self.account_mode(wallet_id.clone(), chain, address.clone()), self.gateway.get_positions(chain, address));
+        let (mode, summary) = (mode?, summary?);
         let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
         let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
         self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
