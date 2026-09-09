@@ -401,6 +401,12 @@ intentional one-sided integration surfaces.
   `distinctUntilChanged()` on its three flows ahead of the DTO mapping. A price tick for an asset
   outside the list re-runs the query on the database thread and stops there; nothing reaches a
   view model unless a row actually changed.
+- **Fiat rates are written only when they moved.** `update_rates` saved the whole rate list on
+  every socket tick (about thirty `REPLACE`s on Android, thirty upserts on iOS) and looked only at
+  the session currency to decide whether to reconvert. It now diffs the payload against
+  `get_rates()` — a read added to `GemPriceStore`, answered from each app's rates table — saves the
+  rates that changed, and reconverts prices when the session currency is among them. Steady state
+  is zero rows per tick; prices and balances already worked this way.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one

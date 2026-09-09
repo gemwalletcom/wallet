@@ -28,6 +28,9 @@ class GemstonePriceStore(
     override suspend fun getRate(currency: String): uniffi.gemstone.FiatRate? =
         pricesDao.getRates(currency.toCurrency()).firstOrNull()?.toDTO()?.toGem()
 
+    override suspend fun getRates(): List<uniffi.gemstone.FiatRate> =
+        pricesDao.getRates().toDTO().map { it.toGem() }
+
     override suspend fun saveRates(rates: List<uniffi.gemstone.FiatRate>) =
         pricesDao.setRates(rates.map { it.toPrimitives().toRecord() })
 

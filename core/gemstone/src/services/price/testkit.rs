@@ -9,6 +9,7 @@ use crate::services::error::GemServiceError;
 #[derive(Default)]
 pub struct MemoryPriceStore {
     pub rates: Mutex<Vec<FiatRate>>,
+    pub rate_writes: Mutex<Vec<Vec<FiatRate>>>,
     pub prices: Mutex<Vec<AssetPrice>>,
     pub saved: Mutex<Vec<(Currency, Vec<GemPriceUpdate>)>>,
     pub converted: Mutex<Vec<(Currency, f64)>>,
@@ -24,10 +25,16 @@ impl GemPriceStore for MemoryPriceStore {
             .collect())
     }
     async fn get_rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
-        Ok(self.rates.lock().unwrap().iter().rev().find(|rate| rate.symbol == currency).cloned())
+        Ok(self.rates.lock().unwrap().iter().find(|rate| rate.symbol == currency).cloned())
+    }
+    async fn get_rates(&self) -> Result<Vec<FiatRate>, GemServiceError> {
+        Ok(self.rates.lock().unwrap().clone())
     }
     async fn save_rates(&self, rates: Vec<FiatRate>) -> Result<(), GemServiceError> {
-        self.rates.lock().unwrap().extend(rates);
+        let mut stored = self.rates.lock().unwrap();
+        stored.retain(|stored| rates.iter().all(|rate| rate.symbol != stored.symbol));
+        stored.extend(rates.clone());
+        self.rate_writes.lock().unwrap().push(rates);
         Ok(())
     }
     async fn save_prices(&self, currency: Currency, prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError> {

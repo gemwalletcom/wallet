@@ -17,6 +17,12 @@ public struct PriceStore: Sendable {
         }
     }
 
+    public func getRates() throws -> [FiatRateRecord] {
+        try db.read { db in
+            try FiatRateRecord.fetchAll(db)
+        }
+    }
+
     public func updatePrices(_ updates: [PriceUpdate]) throws {
         try db.write { db in
             for update in updates {

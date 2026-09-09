@@ -10,6 +10,7 @@ use super::model::GemPriceUpdate;
 pub trait GemPriceStore: Send + Sync {
     async fn get_prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemServiceError>;
     async fn get_rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError>;
+    async fn get_rates(&self) -> Result<Vec<FiatRate>, GemServiceError>;
     async fn save_rates(&self, rates: Vec<FiatRate>) -> Result<(), GemServiceError>;
     async fn save_prices(&self, currency: Currency, prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError>;
     async fn convert_prices(&self, currency: Currency, rate: f64) -> Result<(), GemServiceError>;

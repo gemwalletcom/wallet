@@ -38,4 +38,7 @@ interface PricesDao {
 
     @Query("SELECT * FROM currency_rates WHERE currency=:currency")
     fun getRates(currency: Currency): Flow<DbFiatRate?>
+
+    @Query("SELECT * FROM currency_rates")
+    suspend fun getRates(): List<DbFiatRate>
 }

@@ -35,9 +35,9 @@ pub fn fiat_prices(prices: Vec<AssetPrice>, rate: &FiatRate) -> Vec<GemPriceUpda
         .collect()
 }
 
-pub fn changed_rate(stored: Option<FiatRate>, rates: &[FiatRate], currency: &Currency) -> Option<f64> {
-    let rate = rates.iter().find(|rate| rate.symbol == *currency)?.rate;
-    (stored.map(|stored| stored.rate) != Some(rate)).then_some(rate)
+pub fn changed_rates(stored: Vec<FiatRate>, rates: Vec<FiatRate>) -> Vec<FiatRate> {
+    let stored: HashMap<Currency, f64> = stored.into_iter().map(|rate| (rate.symbol, rate.rate)).collect();
+    rates.into_iter().filter(|rate| stored.get(&rate.symbol) != Some(&rate.rate)).collect()
 }
 
 pub fn changed_prices(stored: Vec<AssetPrice>, updates: Vec<GemPriceUpdate>) -> Vec<GemPriceUpdate> {
@@ -119,14 +119,15 @@ mod observable_tests {
     }
 
     #[test]
-    fn test_changed_rate_only_reports_a_moved_rate_for_the_current_currency() {
-        let stored = FiatRate { symbol: Currency::EUR, rate: 0.9 };
-        let rates = |rate| vec![FiatRate { symbol: Currency::EUR, rate }, FiatRate { symbol: Currency::GBP, rate: 0.8 }];
+    fn test_changed_rates_keeps_only_moved_or_new_rates() {
+        let rate = |symbol, rate| FiatRate { symbol, rate };
+        let stored = vec![rate(Currency::EUR, 0.9), rate(Currency::GBP, 0.8)];
 
-        assert_eq!(changed_rate(Some(stored.clone()), &rates(0.9), &Currency::EUR), None);
-        assert_eq!(changed_rate(Some(stored.clone()), &rates(1.1), &Currency::EUR), Some(1.1));
-        assert_eq!(changed_rate(None, &rates(0.9), &Currency::EUR), Some(0.9));
-        assert_eq!(changed_rate(Some(stored), &rates(0.9), &Currency::JPY), None);
+        assert_eq!(changed_rates(stored.clone(), stored.clone()), vec![]);
+        assert_eq!(
+            changed_rates(stored, vec![rate(Currency::EUR, 0.9), rate(Currency::GBP, 0.7), rate(Currency::JPY, 150.0)]),
+            vec![rate(Currency::GBP, 0.7), rate(Currency::JPY, 150.0)]
+        );
     }
 
     #[test]
