@@ -19,7 +19,6 @@ pub enum WalletConnectionState {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[typeshare(swift = "CaseIterable, Sendable")]
 pub enum WalletConnectionMethods {
     #[serde(rename = "eth_chainId")]
     EthChainId,

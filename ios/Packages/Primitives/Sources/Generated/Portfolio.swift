@@ -58,18 +58,6 @@ public struct PerpetualPortfolio: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct PortfolioAllocation: Codable, Equatable, Hashable, Sendable {
-	public let assetId: AssetId
-	public let percentage: Float
-	public let value: Float
-
-	public init(assetId: AssetId, percentage: Float, value: Float) {
-		self.assetId = assetId
-		self.percentage = percentage
-		self.value = value
-	}
-}
-
 public enum PortfolioChartType: String, Codable, CaseIterable, Equatable, Hashable, Identifiable, Sendable {
 	case value
 	case pnl

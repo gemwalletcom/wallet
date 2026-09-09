@@ -341,30 +341,26 @@ Each is one question. Nothing below is blocked on investigation.
 `GemSwapSession::on_transfer_abandoned` is the only transition that clears a transfer left
 `Loading`, and `start_transfer` refuses to start while one is, yet neither app calls it — the swap
 screens resume with `on_refresh_resumed`, which only lifts the pause. Either a screen should call
-it when a confirm is dismissed mid-load, or the transition goes. A sweep of the 416 exported
-methods against both apps found only that one, plus a duplicate of the free
-`wallet_default_assets` and the Core-internal `accepts_quotes`, both now off the FFI surface.
+it when a confirm is dismissed mid-load, or the transition goes. A sweep of the 538 exported
+methods against both apps found only that one: `CryptoFiatConverter::to_crypto` was dead and is
+deleted, and `generate_device_key_pair` is Core-internal, so it is no longer an export — a function
+that hands out a private key has no reason to be reachable from an app.
 
 ### 3. Unused generated models to remove
 
-A sweep of the `#[typeshare]` types in `core/crates/primitives` against both apps' non-generated sources found 26 with no app reference. The nine standalone ones are removed (`CosmosDenom`, `QuoteAsset`, `SlippageMode`, `SwapProviderMode`, `SwapResult`, `SwapStatus`, `WCEthereumTransaction`, `WalletImport`). What is left:
+Empty. The sweep — every `#[typeshare]` type in `core/crates/primitives` against both apps'
+non-generated sources — reports no unreferenced twin. The last ten went once the JSON bridge did,
+because "nested inside a bridged type the apps decode" had been the reason the previous passes kept
+them: `AddressChains`, `WalletSubscription`, `WalletSubscriptionChains`, `WalletConfiguration`,
+`WalletConfigurationResult`, `WalletConnectionMethods`, `StakeValidator`, `PortfolioAllocation`,
+`TransactionResourceTypeMetadata` and `TransactionWalletConnectMetadata` are Rust-only types now.
 
-- **Sixteen are nested** inside a type the apps do use — `StreamEvent` hosts six, `Markets` two, plus `CoreListItem`, `WalletSubscription`, `PortfolioAssets`, `FiatProvider`/`FiatQuote`, `RewardRedemptionOption`, `StreamMessage`, `WalletConfigurationResult`. Their generated model is still required; they go only when the host does.
-- **`TransactionInputType`** is unreferenced but stays — it is the target of the transfer-model collapse in section 5.
-- A later pass (September 2026) found `BalanceType` — a file that was not even in `lib.rs` — and
-  `AssetRank`, which only `AssetScore::rank_type` (a skipped field) uses in Core; the first is
-  deleted with its two generated files, the second is no longer shared. `AssetScoreType` went
-  with the verification-status move. A third pass un-shared `WalletConnectionEvents` (Core's
-  `rules::` enumerates it; neither app named it). The other unreferenced names the sweep still
-  prints — `AddressChains`, `TransactionWalletConnectMetadata`, the `Stream*`/`Support*` event
-  payloads, `RewardLevel`/`RewardRedemptionType`, `WebSocketPricePayload` — are nested in a
-  `json_bridge!` type (`WalletSubscription`, `Transaction` metadata, `StreamEvent`, `Rewards`)
-  the apps decode, so they stay.
-
-Three gotchas if you repeat the sweep, all met on this pass:
-1. A `#[typeshare(skip)]` on a *field* stops compiling once the struct attribute is removed, so it has to go with it.
+Three gotchas if you repeat the sweep:
+1. A `#[typeshare(skip)]` or `#[typeshare(serialized_as = ...)]` on a *field* stops compiling once
+   the type's attribute is removed, so it has to go with it.
 2. Removing the last attribute in a file leaves `use typeshare::typeshare;` unused — clippy fails on it.
-3. **The generator does not delete a file that now emits nothing.** `WalletImport.swift`, `WalletConnect.swift` and `swap/Result.kt` survived `just generate-models` with stale contents and had to be deleted by hand. Check `git status` for generated files that *did not* change and confirm they still have a source.
+3. **The generator does not delete a file that now emits nothing.** Check `git status` for generated
+   files that *did not* change and confirm they still have a source.
 
 ### 4. Rules still written once per platform
 

@@ -75,7 +75,6 @@ pub struct PortfolioAssetsRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioAllocation {
     pub asset_id: AssetId,
