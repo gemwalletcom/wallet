@@ -109,10 +109,6 @@ public final class SettingsViewModel {
         AssetImage.image(Images.Settings.support)
     }
 
-    var supportURL: URL {
-        AppUrl.page(.support)
-    }
-
     var developerModeTitle: String {
         Localized.Settings.developer
     }

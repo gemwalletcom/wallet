@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Three more iOS members nothing read.** A rerun of the declare-then-grep sweep after this
+  session's batches found `Locale.canonical`, left behind by the deleted `displayedNumber`
+  formatter, and two view-model strings no view bound, `ReceiveViewModel.shareTitle` and
+  `SettingsViewModel.supportURL`. All three are gone; Android had no new hit.
 - **What a header offers is one Core enum on both screens and both apps.** `GemHeaderActions {
   WatchOnly, Buttons { buttons } }` replaces the pair the apps had to reconcile: the wallet home
   asked Core for `header_buttons` and then hid them behind a watch-only note whenever the wallet

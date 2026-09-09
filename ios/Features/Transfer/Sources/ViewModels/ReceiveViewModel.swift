@@ -72,10 +72,6 @@ public final class ReceiveViewModel: Sendable {
         GemAddressService.shared.format(address: address, chain: assetModel.asset.chain)
     }
 
-    var shareTitle: String {
-        Localized.Common.share
-    }
-
     var copyTitle: String {
         Localized.Common.copy
     }
