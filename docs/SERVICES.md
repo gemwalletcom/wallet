@@ -450,6 +450,14 @@ intentional one-sided integration surfaces.
   `GetTransactions.transactions()` are gone; the view model starts at `null` and the scene draws
   nothing until the first emission rather than flashing the empty state. iOS never had the
   equivalent — `ObservableQuery` fetches synchronously on bind.
+- **iOS decodes an icon once, off the main thread, at the size it is shown.** `CachedAsyncImage`
+  was the vendored view that built a `URLSession` and decoded the cached PNG synchronously in every
+  `init`, which SwiftUI runs on every parent body pass. It is now a thin view over `ImageLoader`:
+  one shared session, an `NSCache` of decoded images keyed by URL and pixel size, ImageIO
+  thumbnails at the requested size off the main actor, and in-flight de-duplication so thirty
+  rows sharing a chain icon fetch it once. `AssetImageView` and `AsyncImageView` pass their
+  display size; NFT and support images decode at full size, still once and off the main thread.
+  Android already had this shape in Coil.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
