@@ -36,33 +36,10 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
-import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.ui.components.list_item.titleRes
 import uniffi.gemstone.DocsUrl
 import uniffi.gemstone.GemWalletSecret
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-
-internal data class WalletSecretDataContent(
-    val titleRes: Int,
-    val warningTitleRes: Int,
-    val warningDescriptionRes: Int,
-)
-
-internal fun walletSecretDataContent(walletType: WalletType): WalletSecretDataContent {
-    return when (walletType) {
-        WalletType.PrivateKey -> WalletSecretDataContent(
-            titleRes = R.string.common_private_key,
-            warningTitleRes = R.string.secret_phrase_do_not_share_title,
-            warningDescriptionRes = R.string.secret_phrase_do_not_share_description,
-        )
-        WalletType.Multicoin,
-        WalletType.Single,
-        WalletType.View -> WalletSecretDataContent(
-            titleRes = R.string.common_secret_phrase,
-            warningTitleRes = R.string.secret_phrase_do_not_share_title,
-            warningDescriptionRes = R.string.secret_phrase_do_not_share_description,
-        )
-    }
-}
 
 @Composable
 fun WalletSecretDataNavScreen(
@@ -73,7 +50,7 @@ fun WalletSecretDataNavScreen(
     DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
 
     val result by viewModel.secret.collectAsStateWithLifecycle()
-    val content = walletSecretDataContent(viewModel.walletType)
+    val title = stringResource(viewModel.secretKind.titleRes)
 
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
@@ -81,15 +58,15 @@ fun WalletSecretDataNavScreen(
     val secret = result?.getOrNull()
     if (secret == null) {
         if (result == null) {
-            LoadingScene(title = stringResource(id = content.titleRes), onCancel)
+            LoadingScene(title = title, onCancel)
         } else {
-            WalletSecretDataErrorScene(title = stringResource(id = content.titleRes), onCancel = onCancel)
+            WalletSecretDataErrorScene(title = title, onCancel = onCancel)
         }
         return
     }
 
     Scene(
-        title = stringResource(id = content.titleRes),
+        title = title,
         padding = sceneContentPaddingValues(),
         actions = {
             DocsInfoButton(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
@@ -118,14 +95,14 @@ fun WalletSecretDataNavScreen(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = content.warningTitleRes),
+                    text = stringResource(id = R.string.secret_phrase_do_not_share_title),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = content.warningDescriptionRes),
+                    text = stringResource(id = R.string.secret_phrase_do_not_share_description),
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                 )

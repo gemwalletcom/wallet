@@ -8,7 +8,9 @@ import Store
 import Style
 import SwiftUI
 import enum Gemstone.GemWalletSecret
+import enum Gemstone.GemWalletSecretKind
 import func Gemstone.walletRow
+import func Gemstone.walletSecretKind
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 
@@ -51,6 +53,10 @@ public final class WalletDetailViewModel {
 
     var title: String {
         Localized.Common.wallet
+    }
+
+    var secretKind: GemWalletSecretKind? {
+        walletSecretKind(wallet: wallet.map())
     }
 
     var address: WalletDetailAddress? {

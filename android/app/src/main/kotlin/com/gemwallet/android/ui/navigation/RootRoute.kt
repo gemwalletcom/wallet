@@ -90,7 +90,7 @@ import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletSecretKind
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -221,8 +221,8 @@ class WalletNavigator(
     }
     fun openWallet(walletId: WalletId) = push(WalletDetailsRoute(walletId))
     fun openWalletImage(walletId: WalletId, source: WalletImageSource = WalletImageSource.Wallet) = push(WalletImageRoute(walletId, source))
-    fun openWalletSecurityReminder(walletId: WalletId, type: WalletType) = push(WalletSecurityReminderRoute(walletId, type))
-    fun finishWalletSecurityReminder(walletId: WalletId, type: WalletType) = replaceTop(WalletPhraseRoute(walletId, type))
+    fun openWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = push(WalletSecurityReminderRoute(walletId, secretKind))
+    fun finishWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = replaceTop(WalletPhraseRoute(walletId, secretKind))
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))

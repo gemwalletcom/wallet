@@ -2,7 +2,7 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSubtitle};
+use super::model::{GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
 use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -106,6 +106,14 @@ pub fn secret_export(wallet: &Wallet) -> SecretExport {
         WalletType::Multicoin | WalletType::Single => SecretExport::Words,
         WalletType::PrivateKey => wallet.accounts.first().map(|account| SecretExport::PrivateKey(account.chain)).unwrap_or(SecretExport::None),
         WalletType::View => SecretExport::None,
+    }
+}
+
+pub fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
+    match secret_export(wallet) {
+        SecretExport::Words => Some(GemWalletSecretKind::Phrase),
+        SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),
+        SecretExport::None => None,
     }
 }
 
@@ -362,6 +370,17 @@ mod tests {
             wallet_type,
             ..Wallet::mock_with_accounts(Account::mock_chains(chains, "address"))
         }
+    }
+
+    #[test]
+    fn test_secret_kind_follows_the_wallet_type() {
+        let phrase = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        let private_key = wallet(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), WalletType::PrivateKey, &[Chain::Ethereum]);
+        let view = wallet(WalletId::View(Chain::Ethereum, "0x3".to_string()), WalletType::View, &[Chain::Ethereum]);
+
+        assert_eq!(secret_kind(&phrase), Some(GemWalletSecretKind::Phrase));
+        assert_eq!(secret_kind(&private_key), Some(GemWalletSecretKind::PrivateKey));
+        assert_eq!(secret_kind(&view), None);
     }
 
     #[test]

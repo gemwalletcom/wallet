@@ -76,8 +76,8 @@ internal fun WalletScene(
             )
             ShowSecretDataProperty(
                 walletId = wallet.id,
-                walletType = wallet.type,
-                onClick = { walletId, walletType -> onAction(WalletAction.ShowPhrase(walletId, walletType)) },
+                secretKind = wallet.secretKind,
+                onClick = { walletId, secretKind -> onAction(WalletAction.ShowPhrase(walletId, secretKind)) },
             )
             WalletAddress(wallet.accounts)
 

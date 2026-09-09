@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Which secret a wallet holds is Core's answer on both apps.** `wallet_secret_kind(wallet) ->
+  Option<GemWalletSecretKind { Phrase, PrivateKey }>` is the exported face of the `secret_export`
+  rule the keystore already used. iOS's detail scene switched on the wallet type to pick the
+  phrase or private-key section, and Android did so four times: the "show" row and its label, the
+  security reminder's title, and the secret screen's copy, carrying a `WalletType` through two
+  routes and a saved-state argument to do it. Both take the kind now; a view wallet has none and
+  shows nothing. Android's `WalletSecretDataContent` table, whose two rows differed only in the
+  title, is gone with its test.
 - **What a wallet row shows is Core's answer on both apps.** `wallet_row(wallet) -> GemWalletRow
   { subtitle: Multicoin | Account { chain, address }, placeholder: Multicoin | Chain { chain },
   shows_watch_badge }` reads the wallet id, which already names the priority chain and address.

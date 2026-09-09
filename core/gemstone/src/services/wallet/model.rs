@@ -79,3 +79,14 @@ pub struct GemWalletRow {
 pub fn wallet_row(wallet: Wallet) -> GemWalletRow {
     rules::row(&wallet)
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemWalletSecretKind {
+    Phrase,
+    PrivateKey,
+}
+
+#[uniffi::export]
+pub fn wallet_secret_kind(wallet: Wallet) -> Option<GemWalletSecretKind> {
+    rules::secret_kind(&wallet)
+}
