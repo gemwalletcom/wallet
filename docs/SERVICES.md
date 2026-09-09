@@ -301,6 +301,15 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **What the wallet total counts is Core's rule.** `GemWalletHomeService::total_fiat_value(balances,
+  perpetual)` takes the wallet's asset values and the perpetual balance record and adds the
+  collateral — available plus reserved, at par, with no day change — only when the wallet's account
+  mode includes it. Each app had built that synthetic asset itself and read the mode flag to decide
+  whether to append it: iOS inside a GRDB request behind an `includesPerpetualCollateral` parameter,
+  Android in the summary coordinator through a `getCollateralIncludedInTotal` case that folded the
+  flag into the balance flow. Both spellings are gone, the flag is no longer an export, and the
+  request returns what the store holds. The perpetual screen's own total still spells the collateral
+  at par in the request — the same rule, waiting on the perpetual details service to take the record.
 - **Which rows the transaction screen shows, in which sections and order, is Core's layout.**
   `transaction_detail_sections(rows) -> [GemTransactionDetailSection { rows: [GemTransactionDetailRow] }]`
   lists only the rows the transaction has — header; swap progress; swap-again; then date, status,

@@ -840,8 +840,8 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.rawValue
     }
 
-    public func totalFiatValue(balances: [Gemstone.AssetFiatValue]) -> Gemstone.TotalFiatValue {
-        let value = balances.reduce(0.0) { $0 + $1.amount * $1.price }
+    public func totalFiatValue(balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.PerpetualBalance?) -> Gemstone.TotalFiatValue {
+        let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + (perpetual.map { $0.available + $0.reserved } ?? 0)
         return Gemstone.TotalFiatValue(value: value, pnlAmount: 0, pnlPercentage: 0)
     }
 
@@ -854,10 +854,6 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     }
 
     public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}
-
-    public func includesPerpetualCollateral() -> Bool {
-        false
-    }
 
     public func showsInitialLoading() throws -> Bool {
         showsLoading

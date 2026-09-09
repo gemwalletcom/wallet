@@ -8,7 +8,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
-import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.coordinators.perpetuals.PerpetualBalanceCoordinator
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionImpl
@@ -17,7 +16,6 @@ import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualsImpl
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
-import uniffi.gemstone.GemWalletPreferencesService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -82,14 +80,10 @@ object PerpetualModule {
     fun provideGetPerpetualBalance(
         perpetualStore: GemstonePerpetualStore,
         getSession: GetSession,
-        observePerpetualWallet: ObservePerpetualWallet,
-        walletPreferencesService: GemWalletPreferencesService,
     ): GetPerpetualBalance {
         return PerpetualBalanceCoordinator(
             perpetualStore = perpetualStore,
             getSession = getSession,
-            observePerpetualWallet = observePerpetualWallet,
-            walletPreferencesService = walletPreferencesService,
         )
     }
 

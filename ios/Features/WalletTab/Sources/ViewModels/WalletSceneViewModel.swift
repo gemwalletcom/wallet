@@ -33,6 +33,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     // db queries
     public let walletQuery: ObservableQuery<WalletRequest>
     public let fiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
+    public let perpetualBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
     public let assetsQuery: ObservableQuery<AssetsRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
 
@@ -60,13 +61,12 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
         walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
         fiatValuesQuery = ObservableQuery(
-            AssetFiatValuesRequest(
-                walletId: wallet.id,
-                type: .wallet,
-                perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
-                includesPerpetualCollateral: service.includesPerpetualCollateral(),
-            ),
+            AssetFiatValuesRequest(walletId: wallet.id, type: .wallet, perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: [],
+        )
+        perpetualBalanceQuery = ObservableQuery(
+            PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            initialValue: nil,
         )
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
@@ -75,7 +75,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     public var totalFiatValue: TotalFiatValue {
-        service.totalFiatValue(balances: fiatValuesQuery.value.map { $0.map() }).map()
+        service.totalFiatValue(balances: fiatValuesQuery.value.map { $0.map() }, perpetual: perpetualBalanceQuery.value?.map()).map()
     }
 
     public var assets: [AssetData] {

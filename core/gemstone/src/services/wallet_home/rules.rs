@@ -1,9 +1,20 @@
-use primitives::{Wallet, WalletType};
+use primitives::{AssetFiatValue, PerpetualBalance, Wallet, WalletType};
 
 use crate::services::assets::model::{GemHeaderButton, GemHeaderButtonKind};
 
 pub fn shows_initial_loading(initial_load_completed: bool, assets_timestamp: u64) -> bool {
     !initial_load_completed && assets_timestamp == 0
+}
+
+pub fn wallet_balances(balances: Vec<AssetFiatValue>, perpetual: Option<PerpetualBalance>) -> Vec<AssetFiatValue> {
+    balances
+        .into_iter()
+        .chain(perpetual.map(|balance| AssetFiatValue {
+            amount: balance.available + balance.reserved,
+            price: 1.0,
+            price_change_percentage_24h: 0.0,
+        }))
+        .collect()
 }
 
 pub fn header_buttons(wallet: &Wallet, is_enabled: bool) -> Vec<GemHeaderButton> {
@@ -46,6 +57,33 @@ mod tests {
 
     fn kinds(wallet: &Wallet) -> Vec<GemHeaderButtonKind> {
         header_buttons(wallet, true).into_iter().map(|button| button.kind).collect()
+    }
+
+    #[test]
+    fn test_wallet_balances_count_perpetual_collateral_at_par_without_a_day_change() {
+        let eth = AssetFiatValue {
+            amount: 2.0,
+            price: 10.0,
+            price_change_percentage_24h: 5.0,
+        };
+        let collateral = PerpetualBalance {
+            available: 30.0,
+            reserved: 20.0,
+            withdrawable: 25.0,
+        };
+        assert_eq!(wallet_balances(vec![eth.clone()], None), vec![eth.clone()]);
+        assert_eq!(
+            wallet_balances(vec![eth.clone()], Some(collateral)),
+            vec![
+                eth,
+                AssetFiatValue {
+                    amount: 50.0,
+                    price: 1.0,
+                    price_change_percentage_24h: 0.0
+                }
+            ],
+            "collateral is what is available plus what positions hold, not what can be withdrawn"
+        );
     }
 
     #[test]

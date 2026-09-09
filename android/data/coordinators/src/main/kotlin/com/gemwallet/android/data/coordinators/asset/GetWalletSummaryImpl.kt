@@ -48,7 +48,7 @@ class GetWalletSummaryImpl(
 
         combine(
             getWalletAssets(),
-            getPerpetualBalance.getCollateralIncludedInTotal(),
+            getPerpetualBalance.getBalance(),
             hasMultiSign.hasMultiSign(wallet),
             userConfig.isHideBalances(),
         ) { assets, perpetualBalance, hasMultiSign, hideBalances ->
@@ -58,13 +58,9 @@ class GetWalletSummaryImpl(
                     price = asset.price?.price?.price ?: 0.0,
                     priceChangePercentage24h = asset.price?.price?.priceChangePercentage24h ?: 0.0,
                 )
-            } + listOfNotNull(
-                perpetualBalance?.let {
-                    GemAssetFiatValue(amount = it.available + it.reserved, price = 1.0, priceChangePercentage24h = 0.0)
-                }
-            )
+            }
 
-            val total = walletHomeService.totalFiatValue(balances)
+            val total = walletHomeService.totalFiatValue(balances, perpetualBalance?.toGem())
 
             WalletSummaryAggregateImpl(
                 wallet = wallet,

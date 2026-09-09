@@ -2,7 +2,7 @@ mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, AssetFiatValue, AssetId, BannerEvent, Currency, TotalFiatValue, Wallet};
+use primitives::{Asset, AssetFiatValue, AssetId, BannerEvent, Currency, PerpetualBalance, TotalFiatValue, Wallet};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
 use crate::services::assets::model::GemHeaderButton;
@@ -49,8 +49,8 @@ impl GemWalletHomeService {
         self.preferences.get_currency()
     }
 
-    pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
-        balance_rules::total_fiat_value(&balances)
+    pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>, perpetual: Option<PerpetualBalance>) -> TotalFiatValue {
+        balance_rules::total_fiat_value(&rules::wallet_balances(balances, perpetual.filter(|_| self.includes_perpetual_collateral())))
     }
 
     pub fn shows_pnl(&self, total: TotalFiatValue) -> bool {
@@ -63,14 +63,6 @@ impl GemWalletHomeService {
 
     pub async fn update_balances(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         self.balances.update(self.session.current_wallet_id()?, asset_ids).await
-    }
-
-    pub fn includes_perpetual_collateral(&self) -> bool {
-        self.session
-            .get_current_wallet_id()
-            .ok()
-            .flatten()
-            .is_some_and(|wallet_id| self.wallet_preferences.includes_perpetual_collateral(wallet_id))
     }
 
     pub fn shows_initial_loading(&self) -> Result<bool, GemServiceError> {
@@ -100,5 +92,15 @@ impl GemWalletHomeService {
 
     pub async fn apply_banner_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
         self.banners.apply_action(key, action).await
+    }
+}
+
+impl GemWalletHomeService {
+    fn includes_perpetual_collateral(&self) -> bool {
+        self.session
+            .get_current_wallet_id()
+            .ok()
+            .flatten()
+            .is_some_and(|wallet_id| self.wallet_preferences.includes_perpetual_collateral(wallet_id))
     }
 }

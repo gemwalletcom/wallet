@@ -7,13 +7,11 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
     public var walletId: WalletId
     public var type: TotalValueType
     public var perpetualAssetId: AssetId
-    public var includesPerpetualCollateral: Bool
 
-    public init(walletId: WalletId, type: TotalValueType, perpetualAssetId: AssetId, includesPerpetualCollateral: Bool = true) {
+    public init(walletId: WalletId, type: TotalValueType, perpetualAssetId: AssetId) {
         self.walletId = walletId
         self.type = type
         self.perpetualAssetId = perpetualAssetId
-        self.includesPerpetualCollateral = includesPerpetualCollateral
     }
 
     public func fetch(_ db: Database) throws -> [AssetFiatValue] {
@@ -21,10 +19,9 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
         case .perpetual:
             return try [perpetualFiatValue(db)]
         case .wallet:
-            let assets = try assetRecords(db).map {
+            return try assetRecords(db).map {
                 AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
             }
-            return includesPerpetualCollateral ? try assets + [perpetualFiatValue(db)] : assets
         case .earn:
             return try assetRecords(db).map {
                 AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)
@@ -46,7 +43,7 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
 
     private func perpetualFiatValue(_ db: Database) throws -> AssetFiatValue {
         let balance = try PerpetualWalletBalanceRequest(walletId: walletId, assetId: perpetualAssetId).fetch(db)
-        return AssetFiatValue(amount: balance.total, price: 1, priceChangePercentage24h: 0)
+        return AssetFiatValue(amount: balance.map { $0.available + $0.reserved } ?? 0, price: 1, priceChangePercentage24h: 0)
     }
 }
 
