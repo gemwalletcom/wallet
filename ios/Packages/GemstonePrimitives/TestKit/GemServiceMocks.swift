@@ -817,17 +817,27 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.rawValue
     }
 
-    public func totalFiatValue(balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.PerpetualBalance?) -> Gemstone.TotalFiatValue {
+    public func viewState(wallet: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.PerpetualBalance?, banners: [Gemstone.Banner], isWalletEmpty: Bool) -> GemWalletHomeViewState {
         let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + (perpetual.map { $0.available + $0.reserved } ?? 0)
-        return Gemstone.TotalFiatValue(value: value, pnlAmount: 0, pnlPercentage: 0)
-    }
-
-    public func showsPnl(total: Gemstone.TotalFiatValue) -> Bool {
-        total.value > 0 && total.pnlAmount != 0
-    }
-
-    public func headerActions(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain], isEnabled: Bool) -> GemHeaderActions {
-        .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) })
+        let total = Gemstone.TotalFiatValue(value: value, pnlAmount: 0, pnlPercentage: 0)
+        let isEnabled = !banners.contains { $0.event == .accountBlockedMultiSignature }
+        let context = GemBannerContext(
+            wallet: wallet,
+            asset: nil,
+            isStakeable: false,
+            hasStakeBalance: false,
+            hasAvailableBalance: false,
+            isAssetActivated: true,
+            assetRankScore: nil,
+            isWalletEmpty: isWalletEmpty,
+        )
+        return GemWalletHomeViewState(
+            totalValue: total,
+            showsPnl: total.value > 0 && total.pnlAmount != 0,
+            headerActions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
+            showCollections: false,
+            visibleBanners: context.visibleBanners(stored: banners),
+        )
     }
 
     public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}

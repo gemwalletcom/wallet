@@ -79,6 +79,7 @@ class GetWalletSummaryImplTest {
             ),
             isBalanceHidden = false,
             headerActions = GemHeaderActions.Buttons(emptyList()),
+            showCollections = false,
         )
 
         assertEquals(GemWalletPlaceholder.Chain(Chain.Base.toGem()), summary.walletIcon.placeholder)

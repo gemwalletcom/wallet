@@ -1,4 +1,4 @@
-use primitives::{AssetFiatValue, Chain, PerpetualBalance, WalletType};
+use primitives::{AssetFiatValue, Banner, BannerEvent, Chain, PerpetualBalance, WalletType};
 
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonKind};
 
@@ -15,6 +15,10 @@ pub fn wallet_balances(balances: Vec<AssetFiatValue>, perpetual: Option<Perpetua
             price_change_percentage_24h: 0.0,
         }))
         .collect()
+}
+
+pub fn header_buttons_enabled(banners: &[Banner]) -> bool {
+    !banners.iter().any(|banner| banner.event == BannerEvent::AccountBlockedMultiSignature)
 }
 
 pub fn header_actions(wallet_type: WalletType, chains: &[Chain], is_enabled: bool) -> GemHeaderActions {
@@ -95,6 +99,20 @@ mod tests {
         assert!(!shows_initial_loading(true, 0));
         assert!(!shows_initial_loading(false, 1));
         assert!(!shows_initial_loading(true, 1));
+    }
+
+    #[test]
+    fn test_a_blocked_multi_signature_account_disables_the_header_buttons() {
+        use primitives::BannerState;
+        let banner = |event| Banner {
+            wallet_id: None,
+            asset: None,
+            event,
+            state: BannerState::Active,
+        };
+        assert!(header_buttons_enabled(&[]));
+        assert!(header_buttons_enabled(&[banner(BannerEvent::Onboarding)]));
+        assert!(!header_buttons_enabled(&[banner(BannerEvent::Onboarding), banner(BannerEvent::AccountBlockedMultiSignature)]));
     }
 
     #[test]

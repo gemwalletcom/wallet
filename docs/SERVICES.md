@@ -339,7 +339,7 @@ intentional one-sided integration surfaces.
   asked Core for `header_buttons` and then hid them behind a watch-only note whenever the wallet
   type was `view`, on iOS in `WalletHeaderViewModel` and on Android in `AssetsHead`; the asset
   screen's `GemAssetDetailsState` carried `is_view_only` next to an empty `header_buttons` for the
-  same case. `GemWalletHomeService::header_actions(wallet, is_enabled)` and the asset state's
+  same case. `GemWalletHomeService::view_state` and the asset state's
   `header_actions` now say it once, and the summary aggregate no longer carries a wallet type.
 - **Which secret a wallet holds is Core's answer on both apps.** `wallet_secret_kind(wallet) ->
   Option<GemWalletSecretKind { Phrase, PrivateKey }>` is the exported face of the `secret_export`
@@ -398,8 +398,7 @@ intentional one-sided integration surfaces.
   dismissal that cannot happen and is deleted; `set_push_enabled`, `includes_perpetual_collateral`
   and `transaction_asset` are Core-internal and no longer cross the boundary; `default_rank` was
   only asserted against itself in an Android test. See "Core surface with no caller" below.
-- **What the wallet total counts is Core's rule.** `GemWalletHomeService::total_fiat_value(balances,
-  perpetual)` takes the wallet's asset values and the perpetual balance record and adds the
+- **What the wallet total counts is Core's rule.** `GemWalletHomeService::view_state` takes the wallet's asset values and the perpetual balance record and adds the
   collateral — available plus reserved, at par, with no day change — only when the wallet's account
   mode includes it. Each app had built that synthetic asset itself and read the mode flag to decide
   whether to append it: iOS inside a GRDB request behind an `includesPerpetualCollateral` parameter,
@@ -542,6 +541,23 @@ intentional one-sided integration surfaces.
   `GemNodeService` uses, and `AlienProviderWrapper` carries a `NodeEndpoints` only where a
   client needs one. Nothing is cached, so a node picked in settings applies to the next
   request; iOS's `NodeURLProvidable` and its mock are gone with the last caller.
+- **The wallet home is one Core call per pass on both apps.** `WalletScene.body` asked Core
+  for `showPerpetuals`, the currency (three times), the total (twice, each with its own session
+  and wallet-preference reads), `showsPnl`, `headerActions` and the visible banners on every
+  pass, copying the wallet across the boundary three times, and SwiftUI re-runs that body on
+  every price tick. `GemWalletHomeService::view_state(wallet, balances, perpetual, banners,
+  is_wallet_empty)` answers the database-derived part at once and is the only home derivation
+  Core exports; the per-field `total_fiat_value`, `shows_pnl` and `header_actions` are gone. The
+  view model assembles `WalletHomeState` from that one call plus the two preferences the scene
+  has to observe (`currency`, `showPerpetuals` on `ObservablePreferences`), and the body reads it
+  once at the top. There is no cache in front of it on purpose: one crossing per pass is the
+  balance, a memo keyed on every input was more code than the crossing it saved. Android's
+  `GetWalletSummaryImpl` builds the same call inside its `combine`, reading the wallet banners
+  where it used to observe a multi-signature flag (`HasMultiSign`, `observeMultiSign` and the
+  `getMultisign` query are gone), and the summary carries `showCollections` so `AssetsViewModel`
+  stops deriving it from the session. The header-buttons rule (a blocked multi-signature account
+  disables them) moved from iOS's `HeaderBannerEventViewModel` to
+  `wallet_home::rules::header_buttons_enabled`.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one

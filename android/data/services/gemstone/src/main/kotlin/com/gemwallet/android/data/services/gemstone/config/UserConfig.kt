@@ -53,7 +53,6 @@ class UserConfig(
 
     fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.type.toGem(), wallet.chainIds)
 
-    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.type.toGem(), wallet.chainIds)
 
     fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().toPrimitives()
 

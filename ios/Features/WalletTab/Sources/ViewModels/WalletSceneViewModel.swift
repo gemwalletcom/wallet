@@ -4,7 +4,6 @@ import Components
 import Formatters
 import Foundation
 import struct Gemstone.GemBannerContent
-import struct Gemstone.GemBannerContext
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -74,16 +73,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         self.isPresentingWallets = isPresentingWallets
     }
 
-    public var totalFiatValue: TotalFiatValue {
-        service.totalFiatValue(balances: fiatValuesQuery.value.map { $0.map() }, perpetual: perpetualBalanceQuery.value?.map()).map()
-    }
-
     public var assets: [AssetData] {
         assetsQuery.value
-    }
-
-    public var banners: [Banner] {
-        bannersQuery.value
     }
 
     var manageTokenTitle: String {
@@ -114,21 +105,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Images.Actions.manage
     }
 
-    var showPerpetuals: Bool {
-        observablePreferences.showPerpetuals(for: wallet)
-    }
-
-    var showCollections: Bool {
-        observablePreferences.showCollections(for: wallet)
-    }
-
-    var currencyCode: String {
-        observablePreferences.currency.rawValue
-    }
-
-    var sections: AssetsSections {
-        AssetsSections.from(assets)
-    }
 
     public var walletBarModel: WalletBarViewViewModel {
         let walletModel = WalletViewModel(wallet: wallet)
@@ -138,38 +114,32 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
     }
 
-    var walletHeaderModel: WalletHeaderViewModel {
-        WalletHeaderViewModel(
-            totalValue: totalFiatValue,
-            currencyCode: currencyCode,
-            showsPnl: service.showsPnl(total: totalFiatValue.map()),
-            actions: service.headerActions(
-                walletType: wallet.type.map(),
-                chains: wallet.chains.map(\.rawValue),
-                isEnabled: HeaderBannerEventViewModel(events: banners.map(\.event)).isButtonsEnabled,
-            ),
+    var homeState: WalletHomeState {
+        let currencyCode = observablePreferences.currency.rawValue
+        let viewState = service.viewState(
+            wallet: wallet,
+            balances: fiatValuesQuery.value,
+            perpetual: perpetualBalanceQuery.value,
+            banners: bannersQuery.value,
+            isWalletEmpty: assets.allSatisfy(\.balance.total.isZero),
         )
-    }
-
-    var visibleBanners: [Banner] {
-        bannerContext.visibleBanners(stored: banners.map { $0.map() }).map { $0.map() }
+        return WalletHomeState(
+            sections: AssetsSections.from(assets),
+            header: WalletHeaderViewModel(
+                totalValue: viewState.totalValue.map(),
+                currencyCode: currencyCode,
+                showsPnl: viewState.showsPnl,
+                actions: viewState.headerActions,
+            ),
+            currencyCode: currencyCode,
+            showPerpetuals: observablePreferences.showPerpetuals(for: wallet),
+            showCollections: viewState.showCollections,
+            visibleBanners: viewState.visibleBanners.map { $0.map() },
+        )
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
         service.content(for: banner)
-    }
-
-    private var bannerContext: GemBannerContext {
-        GemBannerContext(
-            wallet: wallet.map(),
-            asset: .none,
-            isStakeable: false,
-            hasStakeBalance: false,
-            hasAvailableBalance: false,
-            isAssetActivated: true,
-            assetRankScore: .none,
-            isWalletEmpty: assets.allSatisfy(\.balance.total.isZero),
-        )
     }
 }
 

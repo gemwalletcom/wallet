@@ -8,7 +8,6 @@ import androidx.room.Transaction
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.data.service.store.database.entities.DbBannerWithAsset
 import com.wallet.core.primitives.BannerEvent
-import com.wallet.core.primitives.BannerState
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -38,13 +37,6 @@ interface BannersDao {
     """)
     fun observeWalletBanners(walletId: String, events: List<BannerEvent>): Flow<List<DbBannerWithAsset>>
 
-    @Query("""
-        SELECT state FROM
-            banners
-        WHERE
-            wallet_id=:walletId AND event = "AccountBlockedMultiSignature"
-    """)
-    fun getMultisign(walletId: String): Flow<List<BannerState>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveBanner(banner: DbBanner)

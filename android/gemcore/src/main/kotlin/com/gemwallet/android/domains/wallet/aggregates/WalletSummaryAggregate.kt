@@ -10,4 +10,5 @@ interface WalletSummaryAggregate {
     val changedValue: EquivalentValue?
     val isBalanceHidden: Boolean
     val headerActions: GemHeaderActions
+    val showCollections: Boolean
 }

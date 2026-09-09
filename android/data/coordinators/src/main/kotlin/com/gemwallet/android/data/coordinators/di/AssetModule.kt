@@ -9,7 +9,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
@@ -21,6 +20,7 @@ import com.gemwallet.android.data.coordinators.asset.GetChainAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemWalletHomeService
@@ -88,14 +88,14 @@ object AssetModule {
         getSession: GetSession,
         getWalletAssets: GetWalletAssets,
         getPerpetualBalance: GetPerpetualBalance,
-        hasMultiSign: HasMultiSign,
+        bannerStore: GemstoneBannerStore,
         userConfig: UserConfig,
         walletHomeService: GemWalletHomeServiceInterface,
     ): GetWalletSummary = GetWalletSummaryImpl(
         getSession = getSession,
         getWalletAssets = getWalletAssets,
         getPerpetualBalance = getPerpetualBalance,
-        hasMultiSign = hasMultiSign,
+        bannerStore = bannerStore,
         userConfig = userConfig,
         walletHomeService = walletHomeService,
     )
