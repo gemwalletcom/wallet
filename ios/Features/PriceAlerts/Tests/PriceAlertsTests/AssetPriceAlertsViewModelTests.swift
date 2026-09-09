@@ -4,7 +4,6 @@ import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstonePrimitivesTestKit
 import Foundation
 @testable import PriceAlerts
-import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit

@@ -19,6 +19,8 @@ let package = Package(
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Localization", path: "../../Packages/Localization"),
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
+        .package(name: "Primitives", path: "../../Packages/Primitives"),
     ],
     targets: [
         .target(
@@ -28,12 +30,19 @@ let package = Package(
                 "Components",
                 "Localization",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
+                "Gemstone",
+                "Primitives",
             ],
             path: "Sources",
         ),
         .testTarget(
             name: "LockManagerTests",
-            dependencies: ["LockManager"],
+            dependencies: [
+                "LockManager",
+                "Gemstone",
+                "GemstoneServices",
+                "Primitives",
+            ],
         ),
     ],
 )

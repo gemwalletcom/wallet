@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Components
 import Localization
 import NFT

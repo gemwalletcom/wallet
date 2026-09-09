@@ -3,7 +3,6 @@
 import Components
 import Localization
 import Primitives
-import PrimitivesComponents
 import SwiftUI
 
 public struct SettingsScene: View {

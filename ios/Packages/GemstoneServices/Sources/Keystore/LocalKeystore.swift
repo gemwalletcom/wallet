@@ -1,6 +1,5 @@
 public import Gemstone
 import Foundation
-import GemstonePrimitives
 import Primitives
 
 public final class LocalKeystore: Keystore, @unchecked Sendable {

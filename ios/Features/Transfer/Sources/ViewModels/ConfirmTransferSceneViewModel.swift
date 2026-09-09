@@ -26,7 +26,6 @@ import PrimitivesComponents
 import Store
 import Swap
 import SwiftUI
-import Validators
 import WalletConnector
 import struct Gemstone.SimulationPayloadField
 import struct Gemstone.SimulationResult

@@ -19,8 +19,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import StreamService
-import SwiftHTTPClient
-import Transfer
 import WalletConnector
 import WalletConnectorService
 import WebSocketClient

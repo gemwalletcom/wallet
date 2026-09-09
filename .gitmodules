@@ -4,9 +4,6 @@
 [submodule "ios/Submodules/GRDB"]
 	path = ios/Submodules/GRDB
 	url = https://github.com/gemwalletcom/GRDB.swift.git
-[submodule "ios/Submodules/GRDBQuery"]
-	path = ios/Submodules/GRDBQuery
-	url = https://github.com/gemwalletcom/GRDBQuery.git
 [submodule "ios/Submodules/reown-swift"]
 	path = ios/Submodules/reown-swift
 	url = https://github.com/gemwalletcom/reown-swift.git

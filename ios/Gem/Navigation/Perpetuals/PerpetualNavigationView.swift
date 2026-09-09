@@ -1,9 +1,6 @@
 import Components
 import enum Gemstone.GemPerpetualPositionAction
 import Perpetuals
-import GemstoneServices
-import GemstonePrimitives
-import Primitives
 import Store
 import Style
 import SwiftUI

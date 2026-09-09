@@ -5,7 +5,6 @@ import Components
 import Foundation
 import GemstoneServices
 import Localization
-import Store
 
 @Observable
 @MainActor

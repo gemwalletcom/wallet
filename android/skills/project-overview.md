@@ -42,12 +42,11 @@ Product flavors are distribution channels: `google` (default), `universal`, `hua
 - Jetpack Compose
 - Hilt
 - Room
-- Retrofit
+- OkHttp
 - WalletConnect / Reown
 - Rust core via JNI
 - Gemstone
 - Coil
-- Ktor
 
 ## Architecture Patterns
 

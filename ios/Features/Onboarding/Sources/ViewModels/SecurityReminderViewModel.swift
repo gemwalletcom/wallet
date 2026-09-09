@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import Localization
-import Style
 
 protocol SecurityReminderViewModel {
     var title: String { get }

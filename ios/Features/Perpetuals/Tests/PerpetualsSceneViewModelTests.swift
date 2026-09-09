@@ -5,7 +5,6 @@ import class Gemstone.GemRecentActivityService
 import Components
 import GemstonePrimitivesTestKit
 import protocol Gemstone.GemPerpetualServiceProtocol
-import Store
 import StoreTestKit
 import GemstoneServices
 import GemstoneServicesTestKit

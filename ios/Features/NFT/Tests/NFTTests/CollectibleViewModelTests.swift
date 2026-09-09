@@ -2,9 +2,7 @@ import Formatters
 import Foundation
 import class Gemstone.GemCollectibleService
 import class Gemstone.GemExplorerService
-import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import GemstoneServices
 import GemstoneServicesTestKit
 @testable import NFT
 import Primitives

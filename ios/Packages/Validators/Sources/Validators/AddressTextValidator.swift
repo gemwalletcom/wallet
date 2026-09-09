@@ -2,7 +2,6 @@
 
 import Foundation
 import protocol Gemstone.GemNameServiceProtocol
-import GemstonePrimitives
 import Primitives
 
 public struct AddressTextValidator: TextValidator {

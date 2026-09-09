@@ -10,7 +10,6 @@ import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
 import struct Gemstone.SwapperQuote
-import GemstoneServices
 import Primitives
 import PrimitivesTestKit
 @testable import Store
