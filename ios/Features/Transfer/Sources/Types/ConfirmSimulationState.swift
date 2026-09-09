@@ -57,9 +57,7 @@ struct ConfirmSimulationState {
             warnings: state.warnings,
             hasCriticalWarning: details?.hasCriticalWarning ?? false,
             payload: payload,
-            headerData: details?.header.flatMap {
-                return AssetValueHeaderData(asset: $0.asset.map(), value: $0.value.map())
-            },
+            headerData: details?.header?.map(),
             balanceChanges: details?.balanceChanges.map { SimulationAssetChange(asset: $0.asset.map(), value: $0.value) } ?? [],
         )
     }

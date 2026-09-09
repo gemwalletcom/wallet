@@ -54,6 +54,7 @@ common_get_started = Bắt đầu
 common_earn = Kiếm tiền
 common_method = Phương thức
 common_token = Token
+common_expiration = Hết hạn
 common_suspicious_address = Địa chỉ đáng ngờ
 common_refresh = Làm mới
 common_no_thanks = Không, cám ơn

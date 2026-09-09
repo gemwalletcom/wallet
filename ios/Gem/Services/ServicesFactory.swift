@@ -223,6 +223,7 @@ struct ServicesFactory {
             interactor: walletConnectorInteractor,
             transactionSimulationService: transactionSimulationService,
             walletSessionService: walletSessionService,
+            assetsService: assetsService,
             chainService: chainService,
         )
 
@@ -455,6 +456,7 @@ extension ServicesFactory {
         interactor: WalletConnectorInteractor,
         transactionSimulationService: GemSimulationService,
         walletSessionService: GemWalletSessionService,
+        assetsService: GemAssetsService,
         chainService: Gemstone.GemChainService,
     ) -> WalletConnectorService {
         WalletConnectorService(
@@ -465,6 +467,7 @@ extension ServicesFactory {
                 store: GemstoneConnectionStore(store: connectionsStore),
                 signer: interactor,
                 session: walletSessionService,
+                assets: assetsService,
             ),
             chainService: chainService,
         )

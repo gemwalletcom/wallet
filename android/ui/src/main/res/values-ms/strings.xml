@@ -54,6 +54,7 @@
   <string name="common_earn">Dapatkan</string>
   <string name="common_method">Kaedah</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Tamat tempoh</string>
   <string name="common_suspicious_address">Alamat yang mencurigakan</string>
   <string name="common_refresh">Segarkan semula</string>
   <string name="common_no_thanks">Tidak terima kasih</string>

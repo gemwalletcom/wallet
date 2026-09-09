@@ -54,6 +54,7 @@ common_get_started = शुरू हो जाओ
 common_earn = कमाओ
 common_method = तरीका
 common_token = टोकन
+common_expiration = समाप्ति
 common_suspicious_address = संदिग्ध पता
 common_refresh = ताज़ा करना
 common_no_thanks = नहीं धन्यवाद

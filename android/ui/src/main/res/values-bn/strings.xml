@@ -54,6 +54,7 @@
   <string name="common_earn">আয় করুন</string>
   <string name="common_method">পদ্ধতি</string>
   <string name="common_token">টোকেন</string>
+  <string name="common_expiration">মেয়াদ শেষ</string>
   <string name="common_suspicious_address">সন্দেহজনক ঠিকানা</string>
   <string name="common_refresh">রিফ্রেশ</string>
   <string name="common_no_thanks">না ধন্যবাদ</string>

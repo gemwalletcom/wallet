@@ -54,6 +54,7 @@
   <string name="common_earn">Gagner</string>
   <string name="common_method">Méthode</string>
   <string name="common_token">Jeton</string>
+  <string name="common_expiration">Expiration</string>
   <string name="common_suspicious_address">Adresse suspecte</string>
   <string name="common_refresh">Rafraîchir</string>
   <string name="common_no_thanks">Non merci</string>

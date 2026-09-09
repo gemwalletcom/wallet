@@ -2,10 +2,11 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.model.AssetValueHeader
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.toAssetValueHeader
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
-import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.ext.toPrimitives
@@ -19,9 +20,7 @@ data class Simulation(
     val hasCriticalWarning: Boolean = false,
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
-    val headerAsset: Asset? = null,
-    val headerValue: BigInteger? = null,
-    val headerIsUnlimited: Boolean = false,
+    val header: AssetValueHeader? = null,
     val balanceChanges: List<SimulationAssetChange> = emptyList(),
 )
 
@@ -35,7 +34,6 @@ fun GemConfirmSimulationState.toSimulation(
 ): Simulation {
     val simulationWarnings = warnings
     val details = simulation ?: return Simulation(warnings = simulationWarnings)
-    val header = details.header
     val chain = this.chain.requireChain()
 
     return Simulation(
@@ -45,9 +43,7 @@ fun GemConfirmSimulationState.toSimulation(
             .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
         secondaryPayloadFields = details.secondaryFields
             .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
-        headerAsset = header?.asset?.toPrimitives(),
-        headerValue = (header?.value as? GemApprovalValue.Exact)?.value,
-        headerIsUnlimited = header?.value is GemApprovalValue.Unlimited,
+        header = details.header?.toAssetValueHeader(),
         balanceChanges = details.balanceChanges.map { SimulationAssetChange(asset = it.asset.toPrimitives(), value = it.value) },
     )
 }

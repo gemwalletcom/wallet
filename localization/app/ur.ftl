@@ -54,6 +54,7 @@ common_get_started = شروع کریں
 common_earn = کمائیں
 common_method = طریقہ
 common_token = ٹوکن
+common_expiration = میعاد ختم
 common_suspicious_address = مشکوک پتہ
 common_refresh = ریفریش کریں۔
 common_no_thanks = نہیں شکریہ

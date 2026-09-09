@@ -47,6 +47,8 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
             return Localized.Transfer.to
         case .value:
             return Localized.Perpetual.value
+        case .expiration:
+            return Localized.Common.expiration
         case .custom:
             return field.label ?? ""
         }

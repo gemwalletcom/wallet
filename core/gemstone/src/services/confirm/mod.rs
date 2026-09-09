@@ -163,12 +163,7 @@ impl GemConfirmService {
                 .iter()
                 .find(|asset| asset.id == asset_id)
                 .map(|asset| GemSimulationValue { asset: asset.clone(), value }),
-            None => self.simulation_formatter.header(simulation.clone()).and_then(|header| {
-                assets.iter().find(|asset| asset.id == header.asset_id).map(|asset| GemSimulationValue {
-                    asset: asset.clone(),
-                    value: rules::approval_value_from(header.value.as_ref(), header.is_unlimited),
-                })
-            }),
+            None => simulation.as_ref().and_then(|simulation| GemSimulationValue::from_simulation(simulation, &assets)),
         };
         let balance_changes = self
             .simulation_formatter

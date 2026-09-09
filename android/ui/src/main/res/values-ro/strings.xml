@@ -54,6 +54,7 @@
   <string name="common_earn">Câștigă</string>
   <string name="common_method">Metodă</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Expirare</string>
   <string name="common_suspicious_address">Adresă suspectă</string>
   <string name="common_refresh">Reîmprospăta</string>
   <string name="common_no_thanks">Nu, mulțumesc</string>

@@ -54,6 +54,7 @@ common_get_started = Anza
 common_earn = Pata
 common_method = Mbinu
 common_token = Tokeni
+common_expiration = Muda wa kuisha
 common_suspicious_address = Anwani ya kutiliwa shaka
 common_refresh = Onyesha upya
 common_no_thanks = Hapana, asante

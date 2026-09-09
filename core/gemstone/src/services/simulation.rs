@@ -13,7 +13,7 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
-use primitives::{AssetId, Chain, EVMChain, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
+use primitives::{AssetId, Chain, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
 
 use crate::models::custom_types::GemBigInt;
 use crate::{
@@ -198,10 +198,6 @@ impl GemSimulationFormatter {
     pub fn new() -> Self {
         Self {}
     }
-
-    pub fn header(&self, simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
-        simulation.and_then(|simulation| simulation.valid_header().cloned())
-    }
 }
 
 impl GemSimulationFormatter {
@@ -209,7 +205,10 @@ impl GemSimulationFormatter {
         if !shows_header {
             return payload;
         }
-        payload.into_iter().filter(|field| field.kind != SimulationPayloadFieldKind::Value).collect()
+        payload
+            .into_iter()
+            .filter(|field| field.kind != SimulationPayloadFieldKind::Value && field.kind != SimulationPayloadFieldKind::Token)
+            .collect()
     }
 
     pub fn shows_header(&self, simulation: Option<SimulationResult>, is_approval: bool) -> bool {
@@ -351,14 +350,18 @@ mod tests {
     }
 
     #[test]
-    fn test_the_value_field_gives_way_to_the_header() {
-        let payload = vec![field(SimulationPayloadFieldKind::Value), field(SimulationPayloadFieldKind::Contract)];
+    fn test_the_value_and_token_fields_give_way_to_the_header() {
+        let payload = vec![
+            field(SimulationPayloadFieldKind::Value),
+            field(SimulationPayloadFieldKind::Token),
+            field(SimulationPayloadFieldKind::Spender),
+        ];
         let formatter = GemSimulationFormatter::new();
 
-        assert_eq!(formatter.payload_fields(payload.clone(), false).len(), 2);
+        assert_eq!(formatter.payload_fields(payload.clone(), false).len(), 3);
         assert_eq!(
             formatter.payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(),
-            vec![SimulationPayloadFieldKind::Contract]
+            vec![SimulationPayloadFieldKind::Spender]
         );
     }
 

@@ -54,6 +54,7 @@ common_get_started = Kom i gang
 common_earn = Tjen
 common_method = Metode
 common_token = Token
+common_expiration = Udløb
 common_suspicious_address = Mistænkelig adresse
 common_refresh = Opdater
 common_no_thanks = Nej tak

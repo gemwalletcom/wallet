@@ -54,6 +54,7 @@ common_get_started = شروع کنید
 common_earn = کسب درآمد
 common_method = روش
 common_token = توکن
+common_expiration = انقضا
 common_suspicious_address = آدرس مشکوک
 common_refresh = تازه کردن
 common_no_thanks = خیر. سپاس.

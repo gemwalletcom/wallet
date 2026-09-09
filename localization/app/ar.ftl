@@ -54,6 +54,7 @@ common_get_started = ابدأ الآن
 common_earn = يكسب
 common_method = طريقة
 common_token = رمز مميز
+common_expiration = انتهاء الصلاحية
 common_suspicious_address = عنوان مشبوه
 common_refresh = ينعش
 common_no_thanks = ًلا شكرا

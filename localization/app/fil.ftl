@@ -54,6 +54,7 @@ common_get_started = Magsimula
 common_earn = Kumita
 common_method = Paraan
 common_token = Token
+common_expiration = Pag-expire
 common_suspicious_address = Kahina-hinalang address
 common_refresh = I-refresh
 common_no_thanks = Hindi salamat

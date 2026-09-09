@@ -54,6 +54,7 @@ common_get_started = 始める
 common_earn = 稼ぐ
 common_method = 方法
 common_token = トークン
+common_expiration = 有効期限
 common_suspicious_address = 不審なアドレス
 common_refresh = 更新
 common_no_thanks = 結構です

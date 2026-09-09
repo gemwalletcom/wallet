@@ -54,6 +54,7 @@
   <string name="common_earn">รับผลตอบแทน</string>
   <string name="common_method">วิธี</string>
   <string name="common_token">โทเค็น</string>
+  <string name="common_expiration">วันหมดอายุ</string>
   <string name="common_suspicious_address">ที่อยู่น่าสงสัย</string>
   <string name="common_refresh">รีเฟรช</string>
   <string name="common_no_thanks">ไม่ล่ะ ขอบคุณ</string>

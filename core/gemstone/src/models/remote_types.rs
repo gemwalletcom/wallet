@@ -475,6 +475,7 @@ pub enum SimulationPayloadFieldKind {
     Token,
     Spender,
     Value,
+    Expiration,
     Custom,
 }
 

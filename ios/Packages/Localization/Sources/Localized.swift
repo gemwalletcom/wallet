@@ -257,6 +257,8 @@ public enum Localized {
     public static let earn = Localized.tr("Localizable", "common.earn", fallback: "Earn")
     /// Emoji
     public static let emoji = Localized.tr("Localizable", "common.emoji", fallback: "Emoji")
+    /// Expiration
+    public static let expiration = Localized.tr("Localizable", "common.expiration", fallback: "Expiration")
     /// Get Started
     public static let getStarted = Localized.tr("Localizable", "common.get_started", fallback: "Get Started")
     /// Hidden

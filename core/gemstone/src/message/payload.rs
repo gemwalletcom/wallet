@@ -262,6 +262,9 @@ fn canonical_payload_kind(label: &str) -> Option<SimulationPayloadFieldKind> {
     if identifier_eq(label, "value") || identifier_eq(label, "amount") {
         return Some(SimulationPayloadFieldKind::Value);
     }
+    if identifier_eq(label, "expiration") || identifier_eq(label, "expiry") {
+        return Some(SimulationPayloadFieldKind::Expiration);
+    }
     None
 }
 
@@ -341,7 +344,10 @@ impl PayloadMergeKey {
             | Self::Kind(SimulationPayloadFieldKind::Method)
             | Self::Kind(SimulationPayloadFieldKind::Token)
             | Self::Kind(SimulationPayloadFieldKind::Spender) => true,
-            Self::Kind(SimulationPayloadFieldKind::Value) | Self::Kind(SimulationPayloadFieldKind::Custom) | Self::Label(_) => false,
+            Self::Kind(SimulationPayloadFieldKind::Value)
+            | Self::Kind(SimulationPayloadFieldKind::Expiration)
+            | Self::Kind(SimulationPayloadFieldKind::Custom)
+            | Self::Label(_) => false,
         }
     }
 }

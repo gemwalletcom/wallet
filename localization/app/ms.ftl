@@ -54,6 +54,7 @@ common_get_started = Mulakan
 common_earn = Dapatkan
 common_method = Kaedah
 common_token = Token
+common_expiration = Tamat tempoh
 common_suspicious_address = Alamat yang mencurigakan
 common_refresh = Segarkan semula
 common_no_thanks = Tidak terima kasih

@@ -54,6 +54,7 @@
   <string name="common_earn">적립</string>
   <string name="common_method">방법</string>
   <string name="common_token">토큰</string>
+  <string name="common_expiration">만료</string>
   <string name="common_suspicious_address">의심스러운 주소</string>
   <string name="common_refresh">새로고침</string>
   <string name="common_no_thanks">사양할게요</string>

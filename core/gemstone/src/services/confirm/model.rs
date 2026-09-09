@@ -1,4 +1,5 @@
 use super::error::GemConfirmError;
+use super::rules::approval_value_from;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
@@ -180,16 +181,27 @@ pub struct GemConfirmPreload {
     pub amount: GemTransferAmountResult,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemApprovalValue {
     Exact { value: GemBigUint },
     Unlimited,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSimulationValue {
     pub asset: Asset,
     pub value: GemApprovalValue,
+}
+
+impl GemSimulationValue {
+    pub(crate) fn from_simulation(simulation: &SimulationResult, assets: &[Asset]) -> Option<Self> {
+        let header = simulation.valid_header()?;
+        let asset = assets.iter().find(|asset| asset.id == header.asset_id)?.clone();
+        Some(Self {
+            asset,
+            value: approval_value_from(header.value.as_ref(), header.is_unlimited),
+        })
+    }
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

@@ -54,6 +54,7 @@
   <string name="common_earn">Kiếm tiền</string>
   <string name="common_method">Phương thức</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Hết hạn</string>
   <string name="common_suspicious_address">Địa chỉ đáng ngờ</string>
   <string name="common_refresh">Làm mới</string>
   <string name="common_no_thanks">Không, cám ơn</string>

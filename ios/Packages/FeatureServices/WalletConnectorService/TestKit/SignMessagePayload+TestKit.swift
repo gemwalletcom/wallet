@@ -13,8 +13,9 @@ public extension SignMessagePayload {
         chain: Chain = .ethereum,
         session: WalletConnectionSession = .mock(),
         wallet: Wallet = .mock(),
-        message: SignMessage = SignMessage(chain: "ethereum", signType: .eip191, data: Data("test".utf8)),
+        message: SignMessage = .mock(),
         simulation: SimulationResult = .mock(),
+        assets: [Asset] = [],
     ) -> SignMessagePayload {
         SignMessagePayload(
             chain: chain,
@@ -22,6 +23,7 @@ public extension SignMessagePayload {
             wallet: wallet,
             message: message,
             simulation: simulation,
+            assets: assets,
         )
     }
 }

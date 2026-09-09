@@ -54,6 +54,7 @@ common_get_started = התחל
 common_earn = להרוויח
 common_method = אמצעי
 common_token = אֲסִימוֹן
+common_expiration = תפוגה
 common_suspicious_address = כתובת חשודה
 common_refresh = לְרַעֲנֵן
 common_no_thanks = לא תודה

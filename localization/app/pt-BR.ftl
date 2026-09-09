@@ -54,6 +54,7 @@ common_get_started = Comece agora
 common_earn = Ganhe
 common_method = Método
 common_token = Token
+common_expiration = Expiração
 common_suspicious_address = Endereço suspeito
 common_refresh = Atualizar
 common_no_thanks = Não, obrigado

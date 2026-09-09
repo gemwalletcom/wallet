@@ -87,7 +87,7 @@ private fun AuthRequestContent(
     WalletConnectReviewScene(
         model = state,
         buttonState = buttonState,
-        walletRow = {
+        walletRow = { position ->
             PropertyItem(
                 modifier = if (canSelectWallet && state !is AuthSceneState.Approving) {
                     Modifier.clickable { isShowSelectWallets = true }
@@ -105,7 +105,7 @@ private fun AuthRequestContent(
                         },
                     )
                 },
-                listPosition = ListPosition.First,
+                listPosition = position,
             )
         },
         onApprove = onApprove,

@@ -54,6 +54,7 @@ common_get_started = Başlayın
 common_earn = Kazan
 common_method = Yöntem
 common_token = Jeton
+common_expiration = Son kullanma
 common_suspicious_address = Şüpheli adres
 common_refresh = Yenile
 common_no_thanks = Hayır, teşekkürler

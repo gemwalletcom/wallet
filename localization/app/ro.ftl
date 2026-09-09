@@ -54,6 +54,7 @@ common_get_started = Începeți
 common_earn = Câștigă
 common_method = Metodă
 common_token = Token
+common_expiration = Expirare
 common_suspicious_address = Adresă suspectă
 common_refresh = Reîmprospăta
 common_no_thanks = Nu, mulțumesc

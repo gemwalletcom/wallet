@@ -5,6 +5,8 @@ import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.shortName
+import com.gemwallet.android.model.AssetValueHeader
+import com.gemwallet.android.model.toAssetValueHeader
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemSignMessagePreview
@@ -44,7 +46,7 @@ sealed class WCRequest(
     ) : WCRequest(request), WalletConnectReviewModel {
         val signMessage: GemSignMessage get() = request.message
 
-        private val preview: GemSignMessagePreview by lazy { service.preview(request.message, simulation) }
+        private val preview: GemSignMessagePreview by lazy { service.preview(request.message, simulation, request.assets) }
 
         override val message: String
             get() = preview.text
@@ -54,6 +56,9 @@ sealed class WCRequest(
 
         override val hasCriticalWarning: Boolean
             get() = preview.hasCriticalWarning
+
+        override val header: AssetValueHeader?
+            get() = preview.header?.toAssetValueHeader()
 
         override val primaryPayloadFields: List<PayloadField> by lazy { preview.primaryFields.fields() }
 

@@ -54,6 +54,7 @@ common_get_started = Aan de slag
 common_earn = Verdien
 common_method = Methode
 common_token = Token
+common_expiration = Vervaldatum
 common_suspicious_address = Verdacht adres
 common_refresh = Vernieuwen
 common_no_thanks = Nee bedankt
