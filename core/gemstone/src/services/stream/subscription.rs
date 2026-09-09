@@ -90,11 +90,14 @@ impl GemStreamSubscriptionService {
         if new_asset_ids.is_empty() || !self.connection.is_connected().await {
             return Ok(());
         }
-        self.connection
-            .send(StreamMessage::AddPrices(StreamMessagePrices { assets: new_asset_ids.clone() }))
-            .await?;
+        self.send(StreamMessage::AddPrices(StreamMessagePrices { assets: new_asset_ids.clone() })).await?;
         state.subscribed.extend(new_asset_ids);
         Ok(())
+    }
+
+    async fn send(&self, message: StreamMessage) -> Result<(), GemServiceError> {
+        let message = serde_json::to_string(&message).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        self.connection.send(message).await
     }
 
     pub(super) async fn reset(&self) {
@@ -125,7 +128,7 @@ impl GemStreamSubscriptionService {
         if state.subscribed == target {
             return Ok(());
         }
-        self.connection.send(StreamMessage::SubscribePrices(StreamMessagePrices { assets: asset_ids })).await?;
+        self.send(StreamMessage::SubscribePrices(StreamMessagePrices { assets: asset_ids })).await?;
         state.subscribed = target;
         Ok(())
     }

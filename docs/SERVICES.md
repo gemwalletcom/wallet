@@ -481,8 +481,7 @@ whole series out of a string on every period or type change. `PortfolioChartType
 because the picker needs `CaseIterable` and `Identifiable`, which uniffi does not give an enum, and
 `PortfolioStatistic` carries named fields. `Charts` left the bridge entirely — no app has referenced
 it in either language, so it was generating a twin nothing read. `AssetFull`, `AssetAssociation` and `PerpetualBasic` finished
-the asset cluster the same way. What is left on the bridge is four types: `ConfigResponse`,
-`ConfigVersions`, `StreamEvent` and `StreamMessage`.
+the asset cluster the same way. What is left on the bridge is the config response and its versions.
 The one shape the generator could not map was a data-carrying enum that has to keep its twin, and that is
 closed: both apps render such an enum as a sealed hierarchy, so the generator matches on the case
 and carries the payload through — reading the payload name from the enum's serde `content`, since
@@ -497,7 +496,13 @@ sends, and neither app has ever read it. The in-app notification went across on 
 `InAppNotification`, `CoreListItem` and the three list-item enums are records now, so the
 notification stream stops serialising a notification per event. Their twins stay — Android stores
 the list item through a converter and iOS as JSON text — and `CoreListItemIcon` is the data-carrying
-enum the new emission was written for. The generator is one table-driven
+enum the new emission was written for. The stream envelopes went a different way: the app is a pipe
+there — it hands Core the socket text and puts Core's text on the socket — so `StreamEvent` and
+`StreamMessage` are `String` in the two signatures and Core parses and serialises them itself. That
+deleted every twin behind them (the six stream payloads, the price payload and the support stream
+event), the Kotlin tagged-bridge file the generator only wrote for them, and the two app tests that
+were exercising the twin's own coding. A type the apps never look inside does not need a model on
+either side; it needs the wire text and one owner of the format. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper

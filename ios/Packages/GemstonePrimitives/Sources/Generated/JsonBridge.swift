@@ -5,5 +5,3 @@ import Primitives
 
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
-extension Primitives.StreamEvent: JsonCodable {}
-extension Primitives.StreamMessage: JsonCodable {}

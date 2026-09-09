@@ -97,14 +97,22 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
             &format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/JsonBridge.swift"),
             json_bridge::swift_json_bridge(&json_bridge::bridge_types(Path::new(json_bridge::JSON_BRIDGE_PATH))),
         ),
-        GeneratorType::Kotlin => write_generated(
-            &format!("{platform_directory_path}/../../gemwallet/android/serializer/TaggedJsonBridge.kt"),
-            json_bridge::kotlin_tagged_bridge(&json_bridge::tagged_bridge_types(
-                Path::new(json_bridge::JSON_BRIDGE_PATH),
-                Path::new(remote_mappers::PRIMITIVES_SOURCE),
-            )),
-        ),
+        GeneratorType::Kotlin => {
+            let path = format!("{platform_directory_path}/../../gemwallet/android/serializer/TaggedJsonBridge.kt");
+            match json_bridge::tagged_bridge_types(Path::new(json_bridge::JSON_BRIDGE_PATH), Path::new(remote_mappers::PRIMITIVES_SOURCE)).as_slice() {
+                [] => remove_generated(&path),
+                types => write_generated(&path, json_bridge::kotlin_tagged_bridge(types)),
+            }
+        }
         GeneratorType::TypeScript => {}
+    }
+}
+
+fn remove_generated(path: &str) {
+    if let Err(error) = fs::remove_file(path)
+        && error.kind() != std::io::ErrorKind::NotFound
+    {
+        panic!("failed to remove generated file: {error}");
     }
 }
 

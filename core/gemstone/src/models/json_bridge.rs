@@ -1,4 +1,4 @@
-use primitives::{ConfigResponse, ConfigVersions, StreamEvent, StreamMessage};
+use primitives::{ConfigResponse, ConfigVersions};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -23,6 +23,4 @@ macro_rules! json_bridge {
 json_bridge!(
     ConfigResponse,
     ConfigVersions,
-    StreamEvent,
-    StreamMessage,
 );

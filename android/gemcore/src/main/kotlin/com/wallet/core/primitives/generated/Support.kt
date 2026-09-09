@@ -67,13 +67,3 @@ data class SupportTyping (
 	val agent: SupportAgent
 )
 
-@Serializable
-sealed class SupportStreamEvent {
-	@Serializable
-	@SerialName("message")
-	data class Message(val data: SupportMessage): SupportStreamEvent()
-	@Serializable
-	@SerialName("typing")
-	data class Typing(val data: SupportTyping): SupportStreamEvent()
-}
-
