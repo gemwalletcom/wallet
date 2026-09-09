@@ -5,7 +5,7 @@ use primitives::{
     TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, UTXO,
 };
 use primitives::{
-    AuthNonce, AuthPayload, FiatQuoteRequest, FiatTransactionData, InAppNotification, ReferralCode,
+    FiatQuoteRequest, FiatTransactionData, InAppNotification, ReferralCode,
     Rewards, SupportMessage, SupportMessageInput, TransactionsResponse,
 };
 
@@ -30,8 +30,6 @@ macro_rules! json_bridge {
 }
 
 json_bridge!(
-    AuthNonce,
-    AuthPayload,
     ConfigResponse,
     ConfigVersions,
     FiatAssets,

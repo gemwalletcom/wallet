@@ -5,6 +5,8 @@ remote:
   - Transaction
   - PriceProvider
   - Price
+  - AuthNonce
+  - AuthPayload
   - Account
   - AccountDataType
   - AddressName
