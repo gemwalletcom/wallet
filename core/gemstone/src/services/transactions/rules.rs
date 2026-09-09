@@ -8,7 +8,7 @@ use primitives::{
 };
 
 use super::model::{
-    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRows, GemTransactionDetails, GemTransactionHeader,
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails, GemTransactionHeader,
     GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
     GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
@@ -78,6 +78,35 @@ pub fn detail_rows(extended: &TransactionExtended, participant: Option<GemTransa
         },
         explorer,
     }
+}
+
+pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDetailSection> {
+    use GemTransactionDetailRow::*;
+    let details = [
+        Some(Date),
+        Some(Status),
+        rows.estimated_confirmation_seconds.is_some().then_some(EstimatedConfirmation),
+        rows.participant.is_some().then_some(Participant),
+        rows.memo.is_some().then_some(Memo),
+        rows.resource.is_some().then_some(Resource),
+        rows.rate.is_some().then_some(Rate),
+        Some(Network),
+        rows.provider_name.is_some().then_some(Provider),
+        rows.pnl.is_some().then_some(Pnl),
+        rows.price.is_some().then_some(Price),
+    ];
+    [
+        vec![Header],
+        rows.swap_progress.is_some().then_some(SwapProgress).into_iter().collect(),
+        rows.swap_again.is_some().then_some(SwapAgain).into_iter().collect(),
+        details.into_iter().flatten().collect(),
+        vec![Fee],
+        vec![Explorer],
+    ]
+    .into_iter()
+    .filter(|rows| !rows.is_empty())
+    .map(|rows| GemTransactionDetailSection { rows })
+    .collect()
 }
 
 fn row_subtitle(extended: &TransactionExtended) -> GemTransactionRowSubtitle {
@@ -958,6 +987,59 @@ mod tests {
         assert!(matches!(approval_rows.header, GemTransactionHeader::AssetImage { .. }));
         let contract = approval_rows.participant.unwrap();
         assert_eq!((contract.role, contract.can_add_contact), (GemTransactionParticipantRole::Contract, false));
+    }
+
+    #[test]
+    fn test_detail_sections_list_only_the_rows_the_transaction_has_in_one_order() {
+        use GemTransactionDetailRow::*;
+        let link = |address: &str| BlockExplorerLink {
+            name: "Explorer".to_string(),
+            link: format!("https://explorer/{address}"),
+        };
+        let explorer = BlockExplorerLink {
+            name: "Explorer".to_string(),
+            link: "https://explorer/tx".to_string(),
+        };
+        let rows_of = |sections: Vec<GemTransactionDetailSection>| sections.into_iter().map(|section| section.rows).collect::<Vec<_>>();
+
+        let mut transfer = extended_with(typed(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Outgoing), vec![]);
+        transfer.transaction.memo = Some("gm".to_string());
+        assert_eq!(
+            rows_of(detail_sections(&detail_rows(&transfer, participant(&transfer, link), explorer.clone()))),
+            vec![vec![Header], vec![Date, Status, Participant, Memo, Network], vec![Fee], vec![Explorer]],
+            "a transfer has no swap sections and shows its memo beside the recipient"
+        );
+
+        let pending = extended_with(swap(TransactionState::Pending, Some("near_intents"), Some(720)).transaction, vec![Asset::mock_eth(), Asset::mock_btc()]);
+        assert_eq!(
+            rows_of(detail_sections(&detail_rows(&pending, participant(&pending, link), explorer.clone()))),
+            vec![vec![Header], vec![SwapProgress], vec![Date, Status, Rate, Network, Provider], vec![Fee], vec![Explorer]],
+            "a swap in flight shows its progress instead of a confirmation estimate, and its provider instead of a participant"
+        );
+
+        let confirmed = extended_with(swap(TransactionState::Confirmed, Some("near_intents"), None).transaction, vec![Asset::mock_eth(), Asset::mock_btc()]);
+        assert_eq!(
+            rows_of(detail_sections(&detail_rows(&confirmed, participant(&confirmed, link), explorer.clone())))[1],
+            vec![SwapAgain],
+            "a confirmed swap offers to swap again"
+        );
+
+        let mut open = extended_with(typed(TransactionType::PerpetualOpenPosition, TransactionState::Confirmed, TransactionDirection::Outgoing), vec![]);
+        open.transaction.metadata = Some(
+            serde_json::to_value(TransactionPerpetualMetadata {
+                pnl: -3.5,
+                price: 61.0,
+                direction: PerpetualDirection::Short,
+                is_liquidation: None,
+                provider: None,
+            })
+            .unwrap(),
+        );
+        assert_eq!(
+            rows_of(detail_sections(&detail_rows(&open, participant(&open, link), explorer)))[1],
+            vec![Date, Status, Network, Pnl, Price],
+            "a perpetual has no participant and shows its pnl and price after the network"
+        );
     }
 
     #[test]

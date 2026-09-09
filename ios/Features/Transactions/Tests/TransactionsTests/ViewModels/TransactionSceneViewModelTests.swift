@@ -264,35 +264,14 @@ struct TransactionSceneViewModelTests {
     }
 
     @Test
-    func sectionsStructure() {
-        let model = TransactionSceneViewModel.mock()
-        let sections = model.sections
+    func sectionsComeFromCoreWithOnlyTheRowsTheTransactionHas() {
+        let transfer = TransactionSceneViewModel.mock(assetId: .mock(.cosmos), memo: "gm").sections
+        #expect(transfer.map(\.id) == ["header", "details", "fee", "explorer"])
+        #expect(transfer[1].values == [.date, .status, .participant, .memo, .network])
 
-        #expect(sections.count == 6)
-        #expect(sections[0].id == "header")
-        #expect(sections[1].id == "swapProgress")
-        #expect(sections[2].id == "swapAction")
-        #expect(sections[3].id == "details")
-        #expect(sections[4].id == "fee")
-        #expect(sections[5].id == "explorer")
-
-        #expect(sections[0].values == [TransactionItem.header])
-        #expect(sections[1].values == [TransactionItem.swapProgress])
-        #expect(sections[2].values == [TransactionItem.swapButton])
-        #expect(sections[3].values == [
-            TransactionItem.date,
-            TransactionItem.status,
-            TransactionItem.estimatedConfirmation,
-            TransactionItem.participant,
-            TransactionItem.memo,
-            TransactionItem.rate,
-            TransactionItem.network,
-            TransactionItem.pnl,
-            TransactionItem.price,
-            TransactionItem.provider,
-        ])
-        #expect(sections[4].values == [TransactionItem.fee])
-        #expect(sections[5].values == [TransactionItem.explorerLink])
+        let swap = TransactionSceneViewModel.swapProgressMock(state: .inTransit, fromAsset: .mockEthereum(), toAsset: .mockNear()).sections
+        #expect(swap.map(\.id) == ["header", "swapProgress", "details", "fee", "explorer"])
+        #expect(swap[2].values == [.date, .status, .rate, .network, .provider])
     }
 
     @Test

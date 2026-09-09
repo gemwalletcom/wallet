@@ -197,22 +197,20 @@ class TransactionDetailsAggregateImplTest {
 
         Assert.assertEquals("Test memo", aggregate.memo?.data)
         Assert.assertEquals(Resource.Energy, aggregate.resourceType?.data)
-        Assert.assertTrue(aggregate.valueGroups[1].items.any { it is TransactionDetailsValue.ResourceType && it.data == Resource.Energy })
 
         val empty = createAggregate()
         Assert.assertNull(empty.memo)
         Assert.assertNull(empty.resourceType)
-        Assert.assertTrue(empty.valueGroups[1].items.none { it is TransactionDetailsValue.ResourceType })
     }
 
     @Test
-    fun testDestination_showsTheCoreParticipantWithItsName() {
+    fun testParticipant_showsTheCoreParticipantWithItsName() {
         val name = AddressName(Chain.Bitcoin, "sender-address", "Alice", AddressType.Contact, VerificationStatus.Verified)
         val sender = createAggregate(
             rows = mockGemTransactionDetailRows(
                 participant = GemTransactionParticipant(GemTransactionParticipantRole.SENDER, "sender-address", name.toGem(), link, canAddContact = false),
             ),
-        ).destination
+        ).participant
         Assert.assertTrue(sender is TransactionDetailsValue.Destination.Sender)
         Assert.assertEquals("sender-address", sender?.data)
         Assert.assertEquals(Chain.Bitcoin, sender?.chain)
@@ -224,21 +222,19 @@ class TransactionDetailsAggregateImplTest {
             rows = mockGemTransactionDetailRows(
                 participant = GemTransactionParticipant(GemTransactionParticipantRole.VALIDATOR, "validator-address", null, link, canAddContact = false),
             ),
-        ).destination
+        ).participant
         Assert.assertTrue(validator is TransactionDetailsValue.Destination.Validator)
         Assert.assertNull(validator?.name)
 
-        Assert.assertNull(createAggregate().destination)
+        Assert.assertNull(createAggregate().participant)
     }
 
     @Test
-    fun testDestination_prefersTheProviderName() {
+    fun testProvider_namesTheCoreProvider() {
         val aggregate = createAggregate(createExtended(type = TransactionType.Swap), rows = mockGemTransactionDetailRows(providerName = "unswap"))
 
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Provider)
-        Assert.assertEquals("unswap", destination?.data)
-        Assert.assertTrue(aggregate.valueGroups[1].items.last() is TransactionDetailsValue.Destination.Provider)
+        Assert.assertEquals("unswap", aggregate.provider?.data)
+        Assert.assertNull(createAggregate().provider)
     }
 
     @Test
@@ -262,23 +258,23 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(GemSwapProgressStep.PENDING, swapProgress?.transfer)
         Assert.assertEquals(GemSwapProgressStep.WAITING, swapProgress?.swap)
         Assert.assertEquals(720u, swapProgress?.etaInSeconds)
-        Assert.assertEquals(5, progress.valueGroups.size)
-        Assert.assertTrue(progress.valueGroups[1].items.single() is TransactionDetailsValue.SwapProgress)
 
         val again = createAggregate(
             rows = mockGemTransactionDetailRows(swapAgain = GemSwapAgain(fromAssetId = ethAsset.id.toIdentifier(), toAssetId = btcAsset.id.toIdentifier())),
         )
         Assert.assertEquals(ethAsset.id, again.swapAgain?.fromAssetId)
         Assert.assertEquals(btcAsset.id, again.swapAgain?.toAssetId)
-        Assert.assertTrue(again.valueGroups[1].items.single() is TransactionDetailsValue.SwapAgain)
         Assert.assertNull(createAggregate().swapAgain)
     }
 
     @Test
-    fun testValueGroups_andEstimatedConfirmation() {
+    fun testValueGroups_placeTheCoreRowsInTheCoreSections() {
         val aggregate = createAggregate(currency = Currency.EUR)
         Assert.assertEquals(Currency.EUR, aggregate.currency)
-        Assert.assertEquals(4, aggregate.valueGroups.size)
+        Assert.assertEquals(
+            listOf(listOf(aggregate.amount), listOf(aggregate.date, aggregate.status, aggregate.network), listOf(aggregate.fee), listOf(aggregate.explorer)),
+            aggregate.valueGroups.map { it.items },
+        )
 
         Assert.assertEquals(720u, createAggregate(rows = mockGemTransactionDetailRows(estimatedConfirmationSeconds = 720u)).estimatedConfirmation?.seconds)
         Assert.assertNull(aggregate.estimatedConfirmation)

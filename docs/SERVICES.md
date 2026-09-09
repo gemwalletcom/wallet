@@ -301,6 +301,16 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Which rows the transaction screen shows, in which sections and order, is Core's layout.**
+  `transaction_detail_sections(rows) -> [GemTransactionDetailSection { rows: [GemTransactionDetailRow] }]`
+  lists only the rows the transaction has — header; swap progress; swap-again; then date, status,
+  confirmation estimate, participant, memo, resource, rate, network, provider, pnl, price; fee;
+  explorer — so each app maps a row kind to its own view and stops deciding what exists and where.
+  Both had written the layout, and they disagreed: Android's section list never included the memo
+  row it had a renderer for, iOS folded the stake resource into the participant slot so a transaction
+  with both showed one, and the two orders differed. iOS's hidden rows were `.empty` item models in
+  fixed sections; Android's were `listOfNotNull` — both gone. The Android aggregate carries
+  `participant` and `provider` as separate values instead of a `destination` that preferred one.
 - **The swap error a screen shows is one Core answer.** `GemSwapSession::error()` returns the
   failed transfer's error, else the failed quote's, the order `action()` already reads them in.
   iOS wrote that as `transferError() ?? quoteError()` and Android as a `when` over `action`, so the

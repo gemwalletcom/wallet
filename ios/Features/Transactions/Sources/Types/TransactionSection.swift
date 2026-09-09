@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemTransactionDetailRow
 import Foundation
 import Primitives
 import PrimitivesComponents
@@ -17,6 +18,17 @@ public enum TransactionSectionType: String, Identifiable, Equatable {
     public var id: String {
         rawValue
     }
+
+    init(first item: TransactionItem) {
+        self = switch item {
+        case .header: .header
+        case .swapProgress: .swapProgress
+        case .swapButton: .swapAction
+        case .fee: .fee
+        case .explorerLink: .explorer
+        case .date, .status, .estimatedConfirmation, .participant, .memo, .resource, .rate, .network, .pnl, .price, .provider: .details
+        }
+    }
 }
 
 public enum TransactionItem: Identifiable, Equatable, Sendable {
@@ -28,6 +40,7 @@ public enum TransactionItem: Identifiable, Equatable, Sendable {
     case estimatedConfirmation
     case participant
     case memo
+    case resource
     case rate
     case network
     case pnl
@@ -38,6 +51,27 @@ public enum TransactionItem: Identifiable, Equatable, Sendable {
 
     public var id: Self {
         self
+    }
+
+    init(_ row: GemTransactionDetailRow) {
+        self = switch row {
+        case .header: .header
+        case .swapProgress: .swapProgress
+        case .swapAgain: .swapButton
+        case .date: .date
+        case .status: .status
+        case .estimatedConfirmation: .estimatedConfirmation
+        case .participant: .participant
+        case .memo: .memo
+        case .resource: .resource
+        case .rate: .rate
+        case .network: .network
+        case .provider: .provider
+        case .pnl: .pnl
+        case .price: .price
+        case .fee: .fee
+        case .explorer: .explorerLink
+        }
     }
 }
 

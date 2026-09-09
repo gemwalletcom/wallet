@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import uniffi.gemstone.GemTransactionAmount
+import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionDetailsService
 import uniffi.gemstone.GemTransactionHeader
@@ -43,6 +44,7 @@ import uniffi.gemstone.GemTransactionHeaderAction
 import uniffi.gemstone.GemTransactionParticipant
 import uniffi.gemstone.GemTransactionParticipantRole
 import uniffi.gemstone.GemTransactionTitle
+import uniffi.gemstone.transactionDetailSections
 
 class GetTransactionDetailsImpl(
     private val getSession: GetSession,
@@ -121,8 +123,9 @@ class TransactionDetailsAggregateImpl(
 
     override val price: TransactionDetailsValue.Price? = rows.price?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
 
-    override val destination: TransactionDetailsValue.Destination? = rows.providerName?.let { TransactionDetailsValue.Destination.Provider(it) }
-        ?: rows.participant?.destination()
+    override val participant: TransactionDetailsValue.Destination? = rows.participant?.destination()
+
+    override val provider: TransactionDetailsValue.Destination.Provider? = rows.providerName?.let { TransactionDetailsValue.Destination.Provider(it) }
 
     override val explorer: TransactionDetailsValue.Explorer = TransactionDetailsValue.Explorer(rows.explorer.link, rows.explorer.name)
 
@@ -149,30 +152,27 @@ class TransactionDetailsAggregateImpl(
     override val swapAgain: TransactionDetailsValue.SwapAgain? = rows.swapAgain
         ?.let { TransactionDetailsValue.SwapAgain(fromAssetId = AssetId(it.fromAssetId), toAssetId = AssetId(it.toAssetId)) }
 
-    override val valueGroups: List<ValueGroup<TransactionDetailsValue>> = buildList {
-        add(ValueGroup(listOf(amount)))
-        swapProgress?.let { add(ValueGroup(listOf(it))) }
-        swapAgain?.let { add(ValueGroup(listOf(it))) }
-        val providerDestination = destination as? TransactionDetailsValue.Destination.Provider
-        val addressDestination = if (providerDestination == null) destination else null
-        add(
-            ValueGroup(
-                listOfNotNull(
-                    date,
-                    status,
-                    estimatedConfirmation,
-                    rate,
-                    addressDestination,
-                    resourceType,
-                    network,
-                    providerDestination,
-                    pnl,
-                    price,
-                )
-            )
-        )
-        add(ValueGroup(listOf(fee)))
-        add(ValueGroup(listOf(explorer)))
+    override val valueGroups: List<ValueGroup<TransactionDetailsValue>> = transactionDetailSections(rows).map { section ->
+        ValueGroup(section.rows.map { row -> value(row) })
+    }
+
+    private fun value(row: GemTransactionDetailRow): TransactionDetailsValue = when (row) {
+        GemTransactionDetailRow.HEADER -> amount
+        GemTransactionDetailRow.SWAP_PROGRESS -> requireNotNull(swapProgress)
+        GemTransactionDetailRow.SWAP_AGAIN -> requireNotNull(swapAgain)
+        GemTransactionDetailRow.DATE -> date
+        GemTransactionDetailRow.STATUS -> status
+        GemTransactionDetailRow.ESTIMATED_CONFIRMATION -> requireNotNull(estimatedConfirmation)
+        GemTransactionDetailRow.PARTICIPANT -> requireNotNull(participant)
+        GemTransactionDetailRow.MEMO -> requireNotNull(memo)
+        GemTransactionDetailRow.RESOURCE -> requireNotNull(resourceType)
+        GemTransactionDetailRow.RATE -> requireNotNull(rate)
+        GemTransactionDetailRow.NETWORK -> network
+        GemTransactionDetailRow.PROVIDER -> requireNotNull(provider)
+        GemTransactionDetailRow.PNL -> requireNotNull(pnl)
+        GemTransactionDetailRow.PRICE -> requireNotNull(price)
+        GemTransactionDetailRow.FEE -> fee
+        GemTransactionDetailRow.EXPLORER -> explorer
     }
 
     private fun GemTransactionAmount.plain(showsFiat: Boolean): TransactionDetailsValue.Amount.Plain {

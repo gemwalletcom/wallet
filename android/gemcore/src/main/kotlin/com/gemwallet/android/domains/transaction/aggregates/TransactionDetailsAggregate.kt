@@ -33,7 +33,8 @@ interface TransactionDetailsAggregate {
     val memo: TransactionDetailsValue.Memo?
     val resourceType: TransactionDetailsValue.ResourceType?
     val network: TransactionDetailsValue.Network
-    val destination: TransactionDetailsValue.Destination?
+    val participant: TransactionDetailsValue.Destination?
+    val provider: TransactionDetailsValue.Destination.Provider?
     val pnl: TransactionDetailsValue.Pnl?
     val price: TransactionDetailsValue.Price?
 

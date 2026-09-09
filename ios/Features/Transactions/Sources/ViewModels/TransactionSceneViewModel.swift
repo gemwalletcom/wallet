@@ -3,7 +3,9 @@
 import BigInt
 import Components
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
+import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
+import func Gemstone.transactionDetailSections
 import GemstonePrimitives
 import Formatters
 import Foundation
@@ -59,14 +61,10 @@ public final class TransactionSceneViewModel {
 
 extension TransactionSceneViewModel: ListSectionProvideable {
     public var sections: [ListSection<TransactionItem>] {
-        [
-            ListSection(type: .header, [.header]),
-            ListSection(type: .swapProgress, [.swapProgress]),
-            ListSection(type: .swapAction, [.swapButton]),
-            ListSection(type: .details, [.date, .status, .estimatedConfirmation, .participant, .memo, .rate, .network, .pnl, .price, .provider]),
-            ListSection(type: .fee, [.fee]),
-            ListSection(type: .explorer, [.explorerLink]),
-        ]
+        transactionDetailSections(rows: rows).map { section in
+            let items = section.rows.map(TransactionItem.init)
+            return ListSection(type: TransactionSectionType(first: items[0]), items)
+        }
     }
 
     public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
@@ -79,12 +77,12 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: rows.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
         case .participant: TransactionParticipantViewModel(
                 participant: rows.participant,
-                resource: rows.resource,
                 chain: transactionExtended.transaction.assetId.chain,
                 memo: transactionExtended.transaction.memo,
                 onAddContact: onAddContact,
             )
         case .memo: TransactionMemoViewModel(transaction: transactionExtended.transaction)
+        case .resource: TransactionResourceViewModel(resource: rows.resource)
         case .rate: TransactionRateViewModel(rate: rows.rate, direction: rateDirection)
         case .network: TransactionNetworkViewModel(chain: transactionExtended.asset.chain)
         case .pnl: TransactionPnlViewModel(pnl: rows.pnl)
