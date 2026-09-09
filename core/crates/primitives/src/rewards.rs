@@ -2,12 +2,10 @@ use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
-use typeshare::typeshare;
 
 use crate::Asset;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, AsRefStr, PartialEq)]
-//#[typeshare(swift = "Equatable, Hashable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RewardLevel {}
