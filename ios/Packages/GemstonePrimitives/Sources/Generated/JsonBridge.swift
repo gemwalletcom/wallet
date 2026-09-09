@@ -5,14 +5,9 @@ import Primitives
 
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
-extension Primitives.FiatAssets: JsonCodable {}
 extension Primitives.FiatQuoteRequest: JsonCodable {}
 extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
-extension Primitives.Markets: JsonCodable {}
-extension Primitives.PerpetualAccountSummary: JsonCodable {}
-extension Primitives.PerpetualPortfolio: JsonCodable {}
-extension Primitives.PerpetualPortfolioTimeframeData: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
 extension Primitives.ReferralCode: JsonCodable {}
@@ -23,8 +18,6 @@ extension Primitives.StreamMessage: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SupportTyping: JsonCodable {}
-extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
 extension Primitives.TransactionsResponse: JsonCodable {}
 extension Primitives.TronStakeData: JsonCodable {}
 extension Primitives.TronUnfreeze: JsonCodable {}
-extension Primitives.UTXO: JsonCodable {}

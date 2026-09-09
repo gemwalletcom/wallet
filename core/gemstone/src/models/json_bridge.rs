@@ -1,8 +1,7 @@
-use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
+use primitives::{ConfigResponse, ConfigVersions, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, UTXO,
+    TronStakeData, TronUnfreeze,
 };
 use primitives::{
     FiatQuoteRequest, FiatTransactionData, InAppNotification, ReferralCode,
@@ -32,14 +31,9 @@ macro_rules! json_bridge {
 json_bridge!(
     ConfigResponse,
     ConfigVersions,
-    FiatAssets,
     FiatQuoteRequest,
     FiatTransactionData,
     InAppNotification,
-    Markets,
-    PerpetualAccountSummary,
-    PerpetualPortfolio,
-    PerpetualPortfolioTimeframeData,
     RedemptionRequest,
     RedemptionResult,
     ReferralCode,
@@ -50,9 +44,7 @@ json_bridge!(
     SupportMessage,
     SupportMessageInput,
     SupportTyping,
-    TransactionPerpetualMetadata,
     TransactionsResponse,
     TronStakeData,
     TronUnfreeze,
-    UTXO,
 );

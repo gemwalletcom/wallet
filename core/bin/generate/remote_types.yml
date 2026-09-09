@@ -67,6 +67,15 @@ remote:
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
+  - PerpetualAccountSummary
+  - PerpetualPortfolioTimeframeData
+  - PerpetualPortfolio
+  - TransactionPerpetualMetadata
+  - UTXO
+  - MarketsAssets
+  - MarketDominance
+  - Markets
+  - FiatAssets
   - PortfolioAsset
   - Perpetual
   - PerpetualBalance

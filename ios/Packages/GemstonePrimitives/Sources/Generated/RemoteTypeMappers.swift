@@ -1961,6 +1961,24 @@ public extension Primitives.Device {
     }
 }
 
+public extension Gemstone.FiatAssets {
+    func map() -> Primitives.FiatAssets {
+        Primitives.FiatAssets(
+            version: version,
+            assetIds: assetIds,
+        )
+    }
+}
+
+public extension Primitives.FiatAssets {
+    func map() -> Gemstone.FiatAssets {
+        Gemstone.FiatAssets(
+            version: version,
+            assetIds: assetIds,
+        )
+    }
+}
+
 public extension Gemstone.FiatRate {
     func map() -> Primitives.FiatRate {
         Primitives.FiatRate(
@@ -1993,6 +2011,68 @@ public extension Primitives.Latency {
         Gemstone.Latency(
             latencyType: latencyType.map(),
             value: value,
+        )
+    }
+}
+
+public extension Gemstone.MarketDominance {
+    func map() -> Primitives.MarketDominance {
+        Primitives.MarketDominance(
+            assetId: assetId,
+            dominance: dominance,
+        )
+    }
+}
+
+public extension Primitives.MarketDominance {
+    func map() -> Gemstone.MarketDominance {
+        Gemstone.MarketDominance(
+            assetId: assetId,
+            dominance: dominance,
+        )
+    }
+}
+
+public extension Gemstone.Markets {
+    func map() -> Primitives.Markets {
+        Primitives.Markets(
+            marketCap: marketCap,
+            marketCapChangePercentage24h: marketCapChangePercentage24h,
+            assets: assets.map(),
+            dominance: dominance.map { $0.map() },
+            totalVolume24h: totalVolume24h,
+        )
+    }
+}
+
+public extension Primitives.Markets {
+    func map() -> Gemstone.Markets {
+        Gemstone.Markets(
+            marketCap: marketCap,
+            marketCapChangePercentage24h: marketCapChangePercentage24h,
+            assets: assets.map(),
+            dominance: dominance.map { $0.map() },
+            totalVolume24h: totalVolume24h,
+        )
+    }
+}
+
+public extension Gemstone.MarketsAssets {
+    func map() -> Primitives.MarketsAssets {
+        Primitives.MarketsAssets(
+            trending: trending.map { Primitives.AssetId(core: $0) },
+            gainers: gainers.map { Primitives.AssetId(core: $0) },
+            losers: losers.map { Primitives.AssetId(core: $0) },
+        )
+    }
+}
+
+public extension Primitives.MarketsAssets {
+    func map() -> Gemstone.MarketsAssets {
+        Gemstone.MarketsAssets(
+            trending: trending.map { $0.identifier },
+            gainers: gainers.map { $0.identifier },
+            losers: losers.map { $0.identifier },
         )
     }
 }
@@ -2237,6 +2317,28 @@ public extension Primitives.Perpetual {
     }
 }
 
+public extension Gemstone.PerpetualAccountSummary {
+    func map() -> Primitives.PerpetualAccountSummary {
+        Primitives.PerpetualAccountSummary(
+            accountValue: accountValue,
+            accountLeverage: accountLeverage,
+            marginUsage: marginUsage,
+            unrealizedPnl: unrealizedPnl,
+        )
+    }
+}
+
+public extension Primitives.PerpetualAccountSummary {
+    func map() -> Gemstone.PerpetualAccountSummary {
+        Gemstone.PerpetualAccountSummary(
+            accountValue: accountValue,
+            accountLeverage: accountLeverage,
+            marginUsage: marginUsage,
+            unrealizedPnl: unrealizedPnl,
+        )
+    }
+}
+
 public extension Gemstone.PerpetualBalance {
     func map() -> Primitives.PerpetualBalance {
         Primitives.PerpetualBalance(
@@ -2335,6 +2437,50 @@ public extension Primitives.PerpetualMetadata {
     func map() -> Gemstone.PerpetualMetadata {
         Gemstone.PerpetualMetadata(
             isPinned: isPinned,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualPortfolio {
+    func map() -> Primitives.PerpetualPortfolio {
+        Primitives.PerpetualPortfolio(
+            day: day.map { $0.map() },
+            week: week.map { $0.map() },
+            month: month.map { $0.map() },
+            allTime: allTime.map { $0.map() },
+            accountSummary: accountSummary.map { $0.map() },
+        )
+    }
+}
+
+public extension Primitives.PerpetualPortfolio {
+    func map() -> Gemstone.PerpetualPortfolio {
+        Gemstone.PerpetualPortfolio(
+            day: day.map { $0.map() },
+            week: week.map { $0.map() },
+            month: month.map { $0.map() },
+            allTime: allTime.map { $0.map() },
+            accountSummary: accountSummary.map { $0.map() },
+        )
+    }
+}
+
+public extension Gemstone.PerpetualPortfolioTimeframeData {
+    func map() -> Primitives.PerpetualPortfolioTimeframeData {
+        Primitives.PerpetualPortfolioTimeframeData(
+            accountValueHistory: accountValueHistory.map { $0.map() },
+            pnlHistory: pnlHistory.map { $0.map() },
+            volume: volume,
+        )
+    }
+}
+
+public extension Primitives.PerpetualPortfolioTimeframeData {
+    func map() -> Gemstone.PerpetualPortfolioTimeframeData {
+        Gemstone.PerpetualPortfolioTimeframeData(
+            accountValueHistory: accountValueHistory.map { $0.map() },
+            pnlHistory: pnlHistory.map { $0.map() },
+            volume: volume,
         )
     }
 }
@@ -2636,6 +2782,30 @@ public extension Primitives.TransactionExtended {
     }
 }
 
+public extension Gemstone.TransactionPerpetualMetadata {
+    func map() -> Primitives.TransactionPerpetualMetadata {
+        Primitives.TransactionPerpetualMetadata(
+            pnl: pnl,
+            price: price,
+            direction: direction.map(),
+            isLiquidation: isLiquidation,
+            provider: provider.map { $0.map() },
+        )
+    }
+}
+
+public extension Primitives.TransactionPerpetualMetadata {
+    func map() -> Gemstone.TransactionPerpetualMetadata {
+        Gemstone.TransactionPerpetualMetadata(
+            pnl: pnl,
+            price: price,
+            direction: direction.map(),
+            isLiquidation: isLiquidation,
+            provider: provider.map { $0.map() },
+        )
+    }
+}
+
 public extension Gemstone.TransactionUtxoInput {
     func map() -> Primitives.TransactionUtxoInput {
         Primitives.TransactionUtxoInput(
@@ -2650,6 +2820,28 @@ public extension Primitives.TransactionUtxoInput {
         Gemstone.TransactionUtxoInput(
             address: address,
             value: BigUInt(stringLiteral: value),
+        )
+    }
+}
+
+public extension Gemstone.Utxo {
+    func map() -> Primitives.UTXO {
+        Primitives.UTXO(
+            transaction_id: transactionId,
+            vout: vout,
+            value: value.description,
+            address: address,
+        )
+    }
+}
+
+public extension Primitives.UTXO {
+    func map() -> Gemstone.Utxo {
+        Gemstone.Utxo(
+            transactionId: transaction_id,
+            vout: vout,
+            value: BigUInt(stringLiteral: value),
+            address: address,
         )
     }
 }
