@@ -503,6 +503,23 @@ intentional one-sided integration surfaces.
   asset (`getBalance` on iOS, `getByAsset` on Android); each now runs a single `IN (...)` query,
   so a swap confirm's two or three lookups per load are one. (`fee_assets` already returned early
   for chains without fee assets; the review had that wrong.)
+- **Stake and perpetual syncs fetch their legs together.** The stake sync awaited the static
+  validator names, then joined the two gateway validator calls, then fetched delegations; the four
+  requests are one `join!` now, followed by the store work (`save_validators`, `save_delegations`),
+  which is the only part that had an order. Perpetual `refresh` runs positions and markets
+  together, and `sync_positions` reads the account mode alongside the positions instead of before
+  them.
+- **Charts keep their series while they refetch.** The perpetual chart and the price chart set
+  `.loading` before every fetch, tearing the chart down on foreground, on the refresh timer and on
+  a period change; they now show the spinner only when there is nothing to show yet.
+- **Receive draws its QR without blocking the frame.** Android encoded the QR bitmap inside
+  composition on the main thread and re-read the memo warning and re-parsed its markdown (nine
+  regexes) on every recomposition; the encode runs on `Dispatchers.Default` behind `produceState`
+  in a box that already has the QR's size, the warning and the parse are remembered, and the
+  markdown regexes are built once. iOS enables the asset and prefetches the other network assets
+  concurrently instead of one after the other. `TransactionDataAggregate` is `@Stable`, so Compose
+  can skip an activity row whose data did not change (the implementation already was; the
+  interface the row takes was not).
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
