@@ -3,7 +3,6 @@
 import Foundation
 
 enum QRScannerState: Equatable {
-    case idle
     case scanning
     case failure(error: QRScannerError)
 }

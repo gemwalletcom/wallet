@@ -14,7 +14,6 @@ import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import GemstonePrimitivesTestKit
 import GemstoneServices
-import NativeProviderService
 import Primitives
 import Store
 import StoreTestKit

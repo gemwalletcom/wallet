@@ -15,7 +15,6 @@ class PerpetualPositionDataAggregateImpl(
 ) : PerpetualPositionDataAggregate {
     private val marginFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
 
-    override val positionId: String = data.position.id
     override val perpetualId: PerpetualId
         get() = data.perpetual.id
     override val asset: Asset = data.asset

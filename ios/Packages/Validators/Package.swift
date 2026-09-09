@@ -20,6 +20,7 @@ let package = Package(
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Localization", path: "../Localization"),
         .package(name: "Formatters", path: "../Formatters"),
+        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
@@ -27,9 +28,9 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Gemstone",
-                "GemstonePrimitives",
                 "Localization",
                 "Formatters",
+                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),
@@ -39,6 +40,10 @@ let package = Package(
                 "Validators",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "BigInt", package: "BigInt"),
+                "Formatters",
+                "Gemstone",
+                "Primitives",
             ],
         ),
     ],

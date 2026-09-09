@@ -72,10 +72,6 @@ public final class ReceiveViewModel: Sendable {
         GemAddressService.shared.format(address: address, chain: assetModel.asset.chain)
     }
 
-    var shareTitle: String {
-        Localized.Common.share
-    }
-
     var copyTitle: String {
         Localized.Common.copy
     }
@@ -175,8 +171,9 @@ public final class ReceiveViewModel: Sendable {
 extension ReceiveViewModel {
     func onTaskOnce() {
         Task {
-            await enableAsset()
-            await prefetchAssociations()
+            async let enabled: Void = enableAsset()
+            async let prefetched: Void = prefetchAssociations()
+            _ = await (enabled, prefetched)
         }
     }
 

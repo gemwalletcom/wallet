@@ -6,7 +6,6 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
-import com.wallet.core.primitives.WalletType
 
 @Composable
 internal fun AssetsHead(
@@ -32,8 +31,7 @@ internal fun AssetsHead(
         onSubtitleClick = onPortfolio,
         actions = {
             AssetHeadActions(
-                isViewOnly = walletSummary.walletType == WalletType.View,
-                buttons = walletSummary.headerButtons,
+                actions = walletSummary.headerActions,
                 onTransfer = onSendClick,
                 onReceive = onReceiveClick,
                 onBuy = onBuyClick,

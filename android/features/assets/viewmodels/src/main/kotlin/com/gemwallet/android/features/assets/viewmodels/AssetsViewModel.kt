@@ -43,11 +43,6 @@ class AssetsViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val collectionsAvailable = getSession()
-        .map { it?.wallet?.let(userConfig::showCollections) ?: false }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
     private data class AssetGroups(
         val pinned: List<AssetInfoDataAggregate> = emptyList(),
         val unpinned: List<AssetInfoDataAggregate> = emptyList(),
@@ -76,6 +71,11 @@ class AssetsViewModel @Inject constructor(
 
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val collectionsAvailable = walletSummary
+        .map { it?.showCollections ?: false }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

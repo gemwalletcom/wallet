@@ -7,7 +7,6 @@ import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Recents
-import Store
 import StoreTestKit
 import WalletTab
 

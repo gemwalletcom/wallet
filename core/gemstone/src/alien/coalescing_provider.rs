@@ -2,7 +2,6 @@ use super::{AlienError, AlienProvider, AlienResponse, AlienTarget};
 
 use async_trait::async_trait;
 use futures::channel::oneshot;
-use primitives::Chain;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex, MutexGuard},
@@ -104,9 +103,6 @@ impl AlienProvider for CoalescingAlienProvider {
         result
     }
 
-    fn get_endpoint(&self, chain: Chain) -> Result<String, AlienError> {
-        self.provider.get_endpoint(chain)
-    }
 }
 
 #[cfg(test)]
@@ -142,10 +138,6 @@ mod tests {
             thread::sleep(Duration::from_millis(100));
             Ok(Arc::new(AlienResponse::new(Some(200), b"{}".to_vec())))
         }
-
-        fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
-            Ok("https://example.com".to_string())
-        }
     }
 
     #[async_trait]
@@ -157,10 +149,6 @@ mod tests {
             } else {
                 Ok(Arc::new(AlienResponse::new(Some(200), b"{}".to_vec())))
             }
-        }
-
-        fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
-            Ok("https://example.com".to_string())
         }
     }
 

@@ -18,23 +18,26 @@ use primitives::{AssetId, Chain, EVMChain, SimulationInput, SimulationPayloadFie
 use crate::models::custom_types::GemBigInt;
 use crate::{
     GemstoneError,
-    alien::{AlienClient, AlienProvider, AlienProviderWrapper, coalescing_provider, new_alien_client},
+    alien::{AlienClient, AlienProvider, AlienProviderWrapper, NodeEndpoints, PreferencesNodeEndpoints, coalescing_provider, new_alien_client},
     message::sign_type::SignDigestType,
     network::JsonRpcClient,
+    services::preferences::GemPreferencesStore,
     wallet_connect::{WalletConnectTransactionType, simulation},
 };
 
 #[derive(uniffi::Object)]
 pub struct GemSimulationService {
     provider: Arc<dyn AlienProvider>,
+    endpoints: Arc<dyn NodeEndpoints>,
 }
 
 #[uniffi::export]
 impl GemSimulationService {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>) -> Self {
         Self {
             provider: coalescing_provider(provider),
+            endpoints: Arc::new(PreferencesNodeEndpoints::new(preferences)),
         }
     }
 }
@@ -154,13 +157,13 @@ impl GemSimulationService {
 
     fn ethereum_provider(&self, chain: Chain) -> Result<EthereumProvider<AlienClient>, GemstoneError> {
         let chain = EVMChain::from_chain(chain).ok_or_else(|| format!("{chain} is not an EVM chain"))?;
-        let url = self.provider.get_endpoint(chain.to_chain())?;
+        let url = self.endpoints.node_url(chain.to_chain())?;
         let client = new_alien_client(url, self.provider.clone());
         Ok(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
     }
 
     fn chain_simulation(&self, chain: Chain) -> Result<Box<dyn ChainSimulation>, GemstoneError> {
-        let url = self.provider.get_endpoint(chain)?;
+        let url = self.endpoints.node_url(chain)?;
         let new_client = || new_alien_client(url.clone(), self.provider.clone());
         match chain {
             Chain::Solana => Ok(Box::new(SolanaProvider::new_rpc_only(SolanaClient::new(JsonRpcClient::new(new_client()))))),
@@ -292,10 +295,6 @@ mod tests {
         async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
             unreachable!()
         }
-
-        fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
-            Ok("https://example.invalid".to_string())
-        }
     }
 
     fn mock_wc_transaction() -> WcEthereumTransactionData {
@@ -368,7 +367,7 @@ mod tests {
     #[test]
     fn test_wallet_connect_send_transaction_ignores_simulation_error() {
         futures::executor::block_on(async {
-            let service = GemSimulationService::new(Arc::new(TestProvider));
+            let service = GemSimulationService::new(Arc::new(TestProvider), Arc::new(crate::gateway::EmptyPreferences));
 
             let result = service
                 .simulate_send_transaction(

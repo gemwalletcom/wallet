@@ -12,6 +12,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
@@ -22,9 +24,11 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletSubtitle
+import uniffi.gemstone.walletRow
 
 @Composable
 fun WalletItem(
@@ -38,10 +42,8 @@ fun WalletItem(
         modifier = modifier,
         id = wallet.id.id,
         name = wallet.name,
-        walletAddress = wallet.accounts.firstOrNull()?.address ?: "",
-        walletChain = wallet.accounts.firstOrNull()?.chain,
+        row = walletRow(wallet.toGem()),
         isCurrent = isCurrent,
-        type = wallet.type,
         imageUrl = wallet.imageUrl,
         listPosition = listPosition,
         onEdit = onEdit
@@ -52,10 +54,8 @@ fun WalletItem(
 fun WalletItem(
     id: String,
     name: String,
-    walletAddress: String?,
-    walletChain: Chain?,
+    row: GemWalletRow,
     isCurrent: Boolean,
-    type: WalletType,
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
     imageUrl: String? = null,
@@ -69,19 +69,22 @@ fun WalletItem(
         trailingContentEndPadding = paddingSmall,
         leading = @Composable {
             IconWithBadge(
-                icon = walletImageModel(context, imageUrl) ?: walletItemIconModel(type = type, walletChain = walletChain),
-                supportIcon = type.supportIcon(),
+                icon = walletImageModel(context, imageUrl) ?: row.placeholder.iconModel(),
+                supportIcon = row.supportIcon(),
             )
         },
         title = {
             ListItemTitleText(text = name)
         },
         subtitle = {
-            val subtitle = when (type) {
-                WalletType.Multicoin -> stringResource(R.string.wallet_multicoin)
-                else -> walletAddress?.let {
-                    AddressFormatter(LocalAddressService.current, it, chain = walletChain, style = AddressFormatter.Style.Extra(1)).value()
-                } ?: ""
+            val subtitle = when (val subtitle = row.subtitle) {
+                GemWalletSubtitle.Multicoin -> stringResource(R.string.wallet_multicoin)
+                is GemWalletSubtitle.Account -> AddressFormatter(
+                    LocalAddressService.current,
+                    subtitle.address,
+                    chain = subtitle.chain.toChain(),
+                    style = AddressFormatter.Style.Extra(1),
+                ).value()
             }
             ListItemSupportText(subtitle)
         },
@@ -116,11 +119,15 @@ private fun WalletEditButton(
     }
 }
 
-fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (type) {
-    WalletType.Multicoin -> R.drawable.multicoin_wallet
-    WalletType.Single,
-    WalletType.PrivateKey,
-    WalletType.View -> walletChain?.iconModel()
+fun GemWalletPlaceholder.iconModel(): Any? = when (this) {
+    GemWalletPlaceholder.Multicoin -> R.drawable.multicoin_wallet
+    is GemWalletPlaceholder.Chain -> chain.toChain().iconModel()
+}
+
+fun GemWalletRow.supportIcon(): String? = if (showsWatchBadge) {
+    "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
+} else {
+    null
 }
 
 @Preview
@@ -130,9 +137,7 @@ fun PreviewWalletItem() {
         WalletItem(
             id = "1",
             name = "Foo wallet name",
-            walletChain = Chain.Ethereum,
-            walletAddress = "0xsdlkfjskdfjlskfjslkdfjlskjf",
-            type = WalletType.Multicoin,
+            row = GemWalletRow(GemWalletSubtitle.Multicoin, GemWalletPlaceholder.Multicoin, showsWatchBadge = false),
             listPosition = ListPosition.Single,
             isCurrent = true,
             onEdit = {},

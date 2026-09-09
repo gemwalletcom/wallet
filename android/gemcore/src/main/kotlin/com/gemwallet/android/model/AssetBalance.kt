@@ -92,4 +92,5 @@ fun AssetBalance.toGem() = GemAssetBalance(
     withdrawable = balance.withdrawable,
     earn = balance.earn,
     metadata = metadata?.toGem(),
+    isActive = isActive,
 )

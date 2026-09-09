@@ -119,10 +119,6 @@ public final class ManageContactViewModel {
         Localized.Common.description
     }
 
-    var contactSectionTitle: String {
-        Localized.Contacts.contact
-    }
-
     var addressesSectionTitle: String {
         Localized.Contacts.addresses
     }

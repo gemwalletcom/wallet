@@ -30,6 +30,7 @@ let package = Package(
             name: "PrimitivesTestKit",
             dependencies: [
                 "Primitives",
+                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "TestKit",
         ),
@@ -38,6 +39,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "PrimitivesTestKit",
+                .product(name: "BigInt", package: "BigInt"),
             ],
         ),
     ],

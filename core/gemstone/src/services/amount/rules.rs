@@ -13,6 +13,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
+use crate::services::stake::rules as stake_rules;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules::margin_amount_value;
 use crate::services::transfer::rules as transfer_rules;
@@ -37,6 +38,7 @@ impl GemAmountType {
             reserved_fee,
             can_change_value: can_change_value(self, asset),
             shows_asset_balance: shows_asset_balance(self, asset),
+            uses_whole_amounts: uses_whole_amounts(self, asset),
         }
     }
 
@@ -73,6 +75,16 @@ impl GemAmountInput {
             value: self.max_value.clone(),
         }
     }
+}
+
+fn uses_whole_amounts(amount_type: &GemAmountType, asset: &Asset) -> bool {
+    let stakes_or_unstakes = matches!(
+        amount_type,
+        GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake | GemAmountStakeType::Unstake { .. }
+        }
+    );
+    stakes_or_unstakes && stake_rules::uses_whole_amounts(asset.chain())
 }
 
 fn entry_value(text: &str, decimals: u32, price: Option<f64>, input_type: GemAmountInputType) -> Result<Option<BigInt>, GemAmountError> {
@@ -431,6 +443,17 @@ mod tests {
             stake(GemAmountStakeType::Unfreeze { resource: Resource::Bandwidth }).available_value(&tron, &balance(1, 2, 3, 0)),
             BigInt::from(2)
         );
+    }
+
+    #[test]
+    fn test_only_a_stake_or_unstake_on_a_whole_unit_chain_uses_whole_amounts() {
+        let tron = asset(Chain::Tron);
+        let funded = balance(10_000_000, 0, 0, 0);
+        assert!(stake(GemAmountStakeType::Stake).input(&tron, &funded).uses_whole_amounts);
+        assert!(stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) }).input(&tron, &funded).uses_whole_amounts);
+        assert!(!stake(GemAmountStakeType::Rewards { delegations: vec![] }).input(&tron, &funded).uses_whole_amounts);
+        assert!(!GemAmountType::Transfer.input(&tron, &funded).uses_whole_amounts);
+        assert!(!stake(GemAmountStakeType::Stake).input(&asset(Chain::Cosmos), &funded).uses_whole_amounts);
     }
 
     #[test]

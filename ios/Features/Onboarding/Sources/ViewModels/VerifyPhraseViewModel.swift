@@ -8,7 +8,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import GemstoneServices
 
 @Observable
 @MainActor

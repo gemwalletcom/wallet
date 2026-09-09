@@ -72,14 +72,3 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
         )
     }
 }
-
-// MARK: - Models extensions
-
-extension AssetsRequestFilter {
-    var associatedChains: [String] {
-        if case let .chains(chains) = self {
-            return chains
-        }
-        return []
-    }
-}

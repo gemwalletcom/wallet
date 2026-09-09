@@ -1,12 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Perpetuals
-import GemstonePrimitives
 import Primitives
-import Store
 import SwiftUI
-import Transfer
 import struct Gemstone.GemTransferData
 
 struct AutocloseNavigationStack: View {

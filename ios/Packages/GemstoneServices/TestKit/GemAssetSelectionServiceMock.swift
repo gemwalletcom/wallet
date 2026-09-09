@@ -14,6 +14,7 @@ import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemWalletSearchLimits
 import struct Gemstone.Wallet
+import enum Gemstone.WalletType
 import typealias Gemstone.NftData
 import enum Gemstone.GemSearchScope
 import Primitives
@@ -54,7 +55,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         Primitives.Currency.usd.rawValue
     }
 
-    public func showPerpetuals(wallet _: Gemstone.Wallet?) -> Bool {
+    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
         perpetualsShown
     }
 

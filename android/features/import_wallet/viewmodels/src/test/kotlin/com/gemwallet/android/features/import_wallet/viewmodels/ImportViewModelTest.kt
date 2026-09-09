@@ -10,7 +10,7 @@ import com.gemwallet.android.ui.models.name.NameRecordState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -75,7 +75,7 @@ class ImportViewModelTest {
         val addressInput = NameRequests(record)
         val viewModel = viewModel(addressInput.service())
 
-        viewModel.importSelect(ImportType(WalletType.PrivateKey, chain)).join()
+        viewModel.importSelect(ImportType(GemWalletImportKind.PRIVATE_KEY, chain)).join()
         advanceUntilIdle()
         viewModel.onInput("vitalik.eth")
         advanceUntilIdle()
@@ -90,7 +90,7 @@ class ImportViewModelTest {
         val addressInput = NameRequests(record)
         val viewModel = viewModel(addressInput.service())
 
-        viewModel.importSelect(ImportType(WalletType.View, chain)).join()
+        viewModel.importSelect(ImportType(GemWalletImportKind.ADDRESS, chain)).join()
         advanceUntilIdle()
         viewModel.onInput("vitalik.eth")
         advanceUntilIdle()

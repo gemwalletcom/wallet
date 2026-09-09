@@ -3,7 +3,6 @@
 import Foundation
 import class Gemstone.MessageSigner
 import struct Gemstone.SignMessage
-import GemstonePrimitives
 import Primitives
 import Testing
 

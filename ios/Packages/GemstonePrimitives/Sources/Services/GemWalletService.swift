@@ -21,8 +21,7 @@ public extension GemWalletServiceProtocol {
     }
 
     func importWallet(name: String, type: GemWalletImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
-        let walletImport = try type.validated()
-        return switch try await importWallet(name: name, import: walletImport, source: source.map()) {
+        return switch try await importWallet(name: name, import: type, source: source.map()) {
         case let .new(wallet): .new(wallet.map())
         case let .existing(wallet): .existing(wallet.map())
         }

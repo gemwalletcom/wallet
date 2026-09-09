@@ -48,17 +48,9 @@ android {
 }
 
 dependencies {
-    api(project(":ui-models"))
-    implementation(project(":ui"))
-
-    implementation(libs.ktx.core)
-    implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.lifecycle.viewmodel.savedstate)
-
+    implementation(project(":gemcore"))
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.lifecycle.viewmodel)
 }

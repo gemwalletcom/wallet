@@ -9,23 +9,24 @@ import StoreTestKit
 import Testing
 
 struct TransactionStoreTests {
-    @Test func transactionWalletIncludesAccounts() throws {
+    @Test func transactionsByStateAreKeyedByWallet() throws {
         let asset = AssetBasic.mock(asset: .mock(id: Chain.robinhood.assetId))
         let db = DB.mockAssets(assets: [asset])
         let walletStore = WalletStore(db: db)
         let walletId = WalletId.single(chain: .robinhood, address: "0xsender")
-        let account = Account.mock(chain: .robinhood, address: "0xsender")
-        try walletStore.addWallet(.mock(id: walletId, type: .single, accounts: [account]))
+        try walletStore.addWallet(.mock(id: walletId, type: .single, accounts: [.mock(chain: .robinhood, address: "0xsender")]))
 
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .robinhood, hash: "hash")
         try store.addTransactions(walletId: walletId, transactions: [
-            .mock(transactionId: transactionId, assetId: Chain.robinhood.assetId),
+            .mock(transactionId: transactionId, state: .pending, assetId: Chain.robinhood.assetId),
         ])
 
-        let transactionWallet = try #require(try store.getTransactionWallet(walletId: walletId, transactionId: transactionId))
+        let transactions = try store.getTransactions(states: [.pending])
 
-        #expect(transactionWallet.wallet.accounts == [account])
+        #expect(transactions.keys.contains(walletId))
+        #expect(transactions[walletId]?.map(\.id) == [transactionId])
+        #expect(try store.getTransactions(states: [.confirmed]).isEmpty)
     }
 
     @Test func assetAssociationsReplaced() throws {

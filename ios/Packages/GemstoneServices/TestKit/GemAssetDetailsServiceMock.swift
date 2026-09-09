@@ -19,9 +19,7 @@ import struct Gemstone.BlockExplorerLink
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.VerificationStatus
 import enum Gemstone.WalletType
-import GemstonePrimitives
 import Primitives
-import PrimitivesTestKit
 
 public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @unchecked Sendable {
     private let assetPair: GemSwapPairSuggestion?
@@ -61,7 +59,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     public func state(walletType: WalletType, chain _: Chain, metadata: AssetMetaData, balance _: GemAssetBalance, bannerEvents _: [BannerEvent], hasPrice _: Bool, priceAlertsCount _: UInt32) -> GemAssetDetailsState {
         GemAssetDetailsState(
             isViewOnly: walletType == .view,
-            headerButtons: [],
+            headerActions: walletType == .view ? .watchOnly : .buttons(buttons: []),
             showsBanners: walletType != .view,
             showsManage: !metadata.isBalanceEnabled,
             showsResources: false,

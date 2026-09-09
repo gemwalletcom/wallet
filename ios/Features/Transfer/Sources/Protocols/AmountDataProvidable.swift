@@ -26,7 +26,7 @@ extension AmountDataProvidable {
     }
 
     func input(from assetData: AssetData) -> GemAmountInput {
-        gemAmountType.input(asset: asset.map(), balance: GemAssetBalance(assetData.balance, assetId: asset.id))
+        gemAmountType.input(asset: asset.map(), balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive))
     }
 
     func entry(from assetData: AssetData, inputType: GemAmountInputType, text: String) -> GemAmountEntry {

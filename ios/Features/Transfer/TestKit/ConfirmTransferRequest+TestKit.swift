@@ -2,7 +2,6 @@
 
 import Foundation
 import GemstonePrimitivesTestKit
-import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Transfer

@@ -21,12 +21,12 @@ final class TransactionViewModelTests {
     func autoValueFormatter() {
         let fromAsset = Asset.mockEthereum()
         let toAsset = Asset.mockEthereumUSDT()
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue?.text == "+1 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue?.text == "+0.01 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue?.text == "+0.001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue?.text == "+0.0001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue?.text == "+<0.0001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue?.text == "+<0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue(currency: "USD")?.text == "+1 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue(currency: "USD")?.text == "+0.01 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue(currency: "USD")?.text == "+0.001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue(currency: "USD")?.text == "+0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue(currency: "USD")?.text == "+<0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue(currency: "USD")?.text == "+<0.0001 USDT")
     }
 
     @Test
@@ -98,7 +98,7 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock()),
         )
-        #expect(model.subtitleTextValue?.text == "$1.00")
+        #expect(model.subtitleTextValue(currency: "USD")?.text == "$1.00")
     }
 
     @Test
@@ -108,14 +108,14 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 125.50)),
         )
-        #expect(profitModel.subtitleTextValue?.text == "+$125.50")
+        #expect(profitModel.subtitleTextValue(currency: "USD")?.text == "+$125.50")
 
         let lossModel = TransactionViewModel.mock(
             type: .perpetualClosePosition,
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: -75.25)),
         )
-        #expect(lossModel.subtitleTextValue?.text == "-$75.25")
+        #expect(lossModel.subtitleTextValue(currency: "USD")?.text == "-$75.25")
     }
 
     @Test
@@ -125,7 +125,7 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 0)),
         )
-        #expect(model.subtitleTextValue == nil)
+        #expect(model.subtitleTextValue(currency: "USD") == nil)
     }
 
     @Test
@@ -185,7 +185,6 @@ final class TransactionViewModelTests {
                     to: "0x123",
                 ),
             ),
-            currency: "USD",
         )
 
         #expect(model.titleExtraTextValue == nil)
@@ -209,7 +208,7 @@ final class TransactionViewModelTests {
     }
 
     func testTransactionTitle(expectedTitle: String, transaction: Transaction) {
-        #expect(TransactionViewModel(transaction: .mock(transaction: transaction), currency: "USD").titleTextValue.text == expectedTitle)
+        #expect(TransactionViewModel(transaction: .mock(transaction: transaction)).titleTextValue.text == expectedTitle)
     }
 }
 
@@ -246,9 +245,6 @@ extension TransactionViewModel {
             toAddress: toAddress,
         )
 
-        return TransactionViewModel(
-            transaction: extended,
-            currency: "USD",
-        )
+        return TransactionViewModel(transaction: extended)
     }
 }

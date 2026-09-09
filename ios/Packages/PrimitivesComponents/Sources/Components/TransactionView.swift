@@ -7,9 +7,11 @@ import SwiftUI
 
 public struct TransactionView: View {
     private let model: TransactionViewModel
+    private let currency: String
 
-    public init(model: TransactionViewModel) {
+    public init(model: TransactionViewModel, currency: String) {
         self.model = model
+        self.currency = currency
     }
 
     public var body: some View {
@@ -18,8 +20,8 @@ public struct TransactionView: View {
             titleExtra: model.titleExtraTextValue,
             titleTag: model.titleTagTextValue,
             titleTagType: model.titleTagType,
-            subtitle: model.subtitleTextValue,
-            subtitleExtra: model.subtitleExtraTextValue,
+            subtitle: model.subtitleTextValue(currency: currency),
+            subtitleExtra: model.subtitleExtraTextValue(currency: currency),
             imageStyle: .asset(assetImage: model.assetImage),
         )
     }
@@ -63,10 +65,5 @@ public struct TransactionView: View {
         confirmationEtaSeconds: nil,
     )
 
-    let transactionVMMock = TransactionViewModel(
-        transaction: pendingTransactionExtendedMock,
-        currency: Currency.usd.rawValue,
-    )
-
-    TransactionView(model: transactionVMMock)
+    TransactionView(model: TransactionViewModel(transaction: pendingTransactionExtendedMock), currency: Currency.usd.rawValue)
 }

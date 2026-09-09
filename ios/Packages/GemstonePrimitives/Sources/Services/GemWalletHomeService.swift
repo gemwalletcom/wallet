@@ -3,9 +3,20 @@
 import Foundation
 import struct Gemstone.GemBannerContent
 import protocol Gemstone.GemWalletHomeServiceProtocol
+import struct Gemstone.GemWalletHomeViewState
 import Primitives
 
 public extension GemWalletHomeServiceProtocol {
+    func viewState(wallet: Wallet, balances: [AssetFiatValue], perpetual: PerpetualBalance?, banners: [Banner], isWalletEmpty: Bool) -> GemWalletHomeViewState {
+        viewState(
+            wallet: wallet.map(),
+            balances: balances.map { $0.map() },
+            perpetual: perpetual?.map(),
+            banners: banners.map { $0.map() },
+            isWalletEmpty: isWalletEmpty,
+        )
+    }
+
     func updateBalances(assetIds: [AssetId]) async throws {
         try await updateBalances(assetIds: assetIds.ids)
     }

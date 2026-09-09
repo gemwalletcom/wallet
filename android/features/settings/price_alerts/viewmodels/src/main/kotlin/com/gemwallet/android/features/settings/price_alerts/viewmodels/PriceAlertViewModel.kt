@@ -4,7 +4,6 @@ import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
@@ -38,7 +37,6 @@ class PriceAlertViewModel @Inject constructor(
     getPriceAlerts: GetPriceAlerts,
     private val getAssetPriceAlertState: GetAssetPriceAlertState,
     private val getAssetTokenInfo: GetAssetTokenInfo,
-    private val enableDevicePush: EnableDevicePush,
     private val service: GemPriceAlertServiceInterface,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -95,10 +93,6 @@ class PriceAlertViewModel @Inject constructor(
         runCatchingCancellable { service.setEnabled(enable) }
             .onFailure { Log.e(TAG, "setting price alerts enabled failed", it) }
         alertsEnabled.update { service.isEnabled() }
-    }
-
-    fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
-        enableDevicePush()
     }
 
     fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {

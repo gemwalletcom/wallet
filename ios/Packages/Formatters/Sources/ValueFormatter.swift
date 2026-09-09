@@ -54,11 +54,6 @@ public struct ValueFormatter: Sendable {
         NumberInputNormalizer.normalize(string, locale: locale)
     }
 
-    public func displayedNumber(from value: Decimal, decimals: Int) throws -> BigInt {
-        let canonical = value.formatted(formatStyle(for: value).locale(.canonical).grouping(.never))
-        return try BigNumberFormatter(locale: .canonical).number(from: canonical, decimals: decimals)
-    }
-
     public func double(from number: BigInt, decimals: Int) throws -> Double {
         guard let result = BigNumberFormatter.standard.double(from: number, decimals: decimals) else {
             throw AnyError("unknown \(number) number")

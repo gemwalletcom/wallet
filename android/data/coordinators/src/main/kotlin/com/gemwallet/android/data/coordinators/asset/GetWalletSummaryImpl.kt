@@ -2,10 +2,11 @@ package com.gemwallet.android.data.coordinators.asset
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -13,9 +14,9 @@ import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.model.CurrencyFormatter
+import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,16 +29,17 @@ import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
 import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemHeaderButton
+import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
+import uniffi.gemstone.walletRow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
     private val getSession: GetSession,
     private val getWalletAssets: GetWalletAssets,
     private val getPerpetualBalance: GetPerpetualBalance,
-    private val hasMultiSign: HasMultiSign,
+    private val bannerStore: GemstoneBannerStore,
     private val userConfig: UserConfig,
     private val walletHomeService: GemWalletHomeServiceInterface,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -48,33 +50,34 @@ class GetWalletSummaryImpl(
 
         combine(
             getWalletAssets(),
-            getPerpetualBalance.getCollateralIncludedInTotal(),
-            hasMultiSign.hasMultiSign(wallet),
+            getPerpetualBalance.getBalance(),
+            bannerStore.observeWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Onboarding)),
             userConfig.isHideBalances(),
-        ) { assets, perpetualBalance, hasMultiSign, hideBalances ->
-            val balances = assets.map { asset ->
-                GemAssetFiatValue(
-                    amount = asset.balance.totalAmount,
-                    price = asset.price?.price?.price ?: 0.0,
-                    priceChangePercentage24h = asset.price?.price?.priceChangePercentage24h ?: 0.0,
-                )
-            } + listOfNotNull(
-                perpetualBalance?.let {
-                    GemAssetFiatValue(amount = it.available + it.reserved, price = 1.0, priceChangePercentage24h = 0.0)
-                }
+        ) { assets, perpetualBalance, banners, hideBalances ->
+            val state = walletHomeService.viewState(
+                wallet = wallet.toGem(),
+                balances = assets.map { asset ->
+                    GemAssetFiatValue(
+                        amount = asset.balance.totalAmount,
+                        price = asset.price?.price?.price ?: 0.0,
+                        priceChangePercentage24h = asset.price?.price?.priceChangePercentage24h ?: 0.0,
+                    )
+                },
+                perpetual = perpetualBalance?.toGem(),
+                banners = banners.map { it.toDTO().toGem() },
+                isWalletEmpty = assets.all { it.balance.totalAmount == 0.0 },
             )
-
-            val total = walletHomeService.totalFiatValue(balances)
 
             WalletSummaryAggregateImpl(
                 wallet = wallet,
                 displayState = buildWalletSummaryDisplayState(
                     currency = session.currency,
-                    total = total,
-                    showsPnl = walletHomeService.showsPnl(total),
+                    total = state.totalValue,
+                    showsPnl = state.showsPnl,
                 ),
                 isBalanceHidden = hideBalances,
-                headerButtons = walletHomeService.headerButtons(wallet.toGem(), isEnabled = !hasMultiSign),
+                headerActions = state.headerActions,
+                showCollections = state.showCollections,
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -130,22 +133,14 @@ internal class WalletSummaryAggregateImpl(
     wallet: Wallet,
     displayState: WalletSummaryDisplayState,
     override val isBalanceHidden: Boolean,
-    override val headerButtons: List<GemHeaderButton>,
+    override val headerActions: GemHeaderActions,
+    override val showCollections: Boolean,
 ) : WalletSummaryAggregate {
-    private val walletAccount = wallet.accounts.firstOrNull()
-
-    override val walletType: WalletType = wallet.type
-
     override val walletName: String = wallet.name
 
     override val walletIcon: WalletIcon = WalletIcon(
         imageUrl = wallet.imageUrl,
-        placeholder = when (wallet.type) {
-            WalletType.Multicoin -> null
-            WalletType.Single,
-            WalletType.PrivateKey,
-            WalletType.View -> walletAccount?.chain
-        },
+        placeholder = walletRow(wallet.toGem()).placeholder,
     )
 
     override val walletTotalValue: String = displayState.totalValue

@@ -3,7 +3,6 @@
 import Foundation
 import protocol Gemstone.GemStreamServiceProtocol
 import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
 import StreamService
 import WebSocketClient
 import WebSocketClientTestKit

@@ -42,12 +42,13 @@ impl GemConfirmSession {
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
         let input = self.service.confirm_input(self.wallet.clone(), self.transfer.clone())?;
-        let fee = self.service.preload(self.wallet.id.clone(), input, options).await?;
+        let (screen, fee) = futures::join!(self.state(), self.service.preload(self.wallet.id.clone(), input, options));
+        let fee = fee?;
         let simulation = match preload_simulation(self.simulation.as_ref(), &fee.preload) {
             Some(simulation) => Some(self.service.simulation_state(self.transfer.input_type.clone(), Some(simulation)).await?),
             None => None,
         };
-        let screen = self.state().await?.with_fee(fee, simulation);
+        let screen = screen?.with_fee(fee, simulation);
         *self.screen.lock().await = Some(screen.clone());
         Ok(screen)
     }

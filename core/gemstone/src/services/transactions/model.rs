@@ -125,6 +125,11 @@ pub struct GemTransactionRow {
 }
 
 #[uniffi::export]
+pub fn transactions_list_limit() -> u32 {
+    primitives::TRANSACTIONS_LIMIT as u32
+}
+
+#[uniffi::export]
 pub fn transaction_row(transaction: TransactionExtended) -> GemTransactionRow {
     rules::row(&transaction)
 }
@@ -150,6 +155,36 @@ pub enum GemTransactionHeaderAction {
 pub struct GemSwapRate {
     pub from: GemTransactionAmount,
     pub to: GemTransactionAmount,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemTransactionDetailRow {
+    Header,
+    SwapProgress,
+    SwapAgain,
+    Date,
+    Status,
+    EstimatedConfirmation,
+    Participant,
+    Memo,
+    Resource,
+    Rate,
+    Network,
+    Provider,
+    Pnl,
+    Price,
+    Fee,
+    Explorer,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemTransactionDetailSection {
+    pub rows: Vec<GemTransactionDetailRow>,
+}
+
+#[uniffi::export]
+pub fn transaction_detail_sections(rows: GemTransactionDetailRows) -> Vec<GemTransactionDetailSection> {
+    rules::detail_sections(&rows)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

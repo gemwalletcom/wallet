@@ -1115,6 +1115,7 @@ mod tests {
             withdrawable: GemBigUint::ZERO,
             earn: GemBigUint::ZERO,
             metadata: None,
+            is_active: true,
         }
     }
 

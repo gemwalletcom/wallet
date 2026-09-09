@@ -8,6 +8,7 @@ import class Gemstone.Config
 import enum Gemstone.GemSwapButtonAction
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
+import struct Gemstone.GemSwapViewState
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import func Gemstone.swapperQuoteSummary
 import enum Gemstone.SwapperError
@@ -28,6 +29,7 @@ public final class SwapSceneViewModel {
     public let wallet: Wallet
 
     public var session: GemSwapSession
+    @ObservationIgnored private var viewStateCache: (session: GemSwapSession, value: BigInt, availableBalance: BigInt, state: GemSwapViewState)?
     public var isPresentingInfoSheet: SwapSheetType?
 
     public let fromAssetQuery: ObservableQuery<AssetRequestOptional>
@@ -45,8 +47,19 @@ public final class SwapSceneViewModel {
     var isPresentingPriceImpactConfirmation: String?
     var pairSelectorModel: SwapPairSelectorViewModel
 
+    var viewState: GemSwapViewState {
+        let value = currentInput?.value ?? .zero
+        let availableBalance = fromAsset?.balance.available ?? .zero
+        if let cache = viewStateCache, cache.session == session, cache.value == value, cache.availableBalance == availableBalance {
+            return cache.state
+        }
+        let state = session.viewState(value: value, availableBalance: availableBalance)
+        viewStateCache = (session, value, availableBalance, state)
+        return state
+    }
+
     var selectedSwapQuote: SwapperQuote? {
-        session.quote()
+        viewState.quote
     }
 
     var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
@@ -157,27 +170,26 @@ public final class SwapSceneViewModel {
 
     var buttonViewModel: SwapButtonViewModel {
         SwapButtonViewModel(
-            session: session,
-            buttonAction: buttonAction,
+            state: viewState,
             fromAsset: fromAsset,
             onAction: onSelectActionButton,
         )
     }
 
     var shouldShowAdditionalInfo: Bool {
-        !session.isQuoteLoading()
+        !viewState.isQuoteLoading
     }
 
     var isQuoteLoading: Bool {
-        session.isQuoteLoading()
+        viewState.isQuoteLoading
     }
 
     var isTransferDataLoading: Bool {
-        session.isTransferLoading()
+        viewState.isTransferLoading
     }
 
     var error: (any Error)? {
-        session.transferError() ?? session.quoteError()
+        viewState.error
     }
 
     var isQuoteInteractionEnabled: Bool {
@@ -193,7 +205,7 @@ public final class SwapSceneViewModel {
     }
 
     var errorInfoAction: VoidAction {
-        guard let error = session.quoteError(), case .NoQuoteAvailable = error else {
+        guard let error = viewState.quoteError, case .NoQuoteAvailable = error else {
             return nil
         }
         return VoidAction { [weak self] in
@@ -352,15 +364,11 @@ extension SwapSceneViewModel {
 // MARK: - Private
 
 extension SwapSceneViewModel {
-    private var buttonAction: GemSwapButtonAction {
-        session.buttonAction(value: currentInput?.value ?? .zero, availableBalance: fromAsset?.balance.available ?? .zero)
-    }
-
     private var quotesState: StateViewType<[SwapperQuote]> {
-        if session.isQuoteLoading() {
+        if viewState.isQuoteLoading {
             return .loading
         }
-        if let error = session.quoteError() {
+        if let error = viewState.quoteError {
             return .error(error)
         }
         if let quotes = session.quotes?.quotes {
@@ -483,7 +491,7 @@ extension SwapSceneViewModel {
     }
 
     private func onSelectActionButton() {
-        switch buttonAction {
+        switch viewState.buttonAction {
         case .retryQuote: setLoadTrigger(isImmediate: true)
         case .retryTransfer: swap()
         case .insufficientBalance: break

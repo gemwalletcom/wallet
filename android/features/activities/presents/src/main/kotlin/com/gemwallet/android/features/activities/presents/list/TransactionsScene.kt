@@ -34,7 +34,7 @@ import com.wallet.core.primitives.Chain
 @Composable
 internal fun TransactionsScene(
     isRefreshing: Boolean,
-    transactions: List<TransactionDataAggregate>,
+    transactions: List<TransactionDataAggregate>?,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
     typeFilter: List<TransactionTypeFilter>,
@@ -65,8 +65,9 @@ internal fun TransactionsScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(TransactionsListAction.Refresh) },
         ) {
-            if (transactions.isEmpty()) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+            when {
+                transactions == null -> Unit
+                transactions.isEmpty() -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
                             type = transactionsEmptyContentType(
@@ -79,8 +80,7 @@ internal fun TransactionsScene(
                         )
                     }
                 }
-            } else {
-                LazyColumn(
+                else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                 ) {

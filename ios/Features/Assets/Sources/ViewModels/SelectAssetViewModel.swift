@@ -108,14 +108,6 @@ public final class SelectAssetViewModel {
         Localized.Assets.popular
     }
 
-    var pinnedImage: Image {
-        Images.System.pin
-    }
-
-    var pinnedTitle: String {
-        Localized.Common.pinned
-    }
-
     var assetsTitle: String {
         presentation.assetsSectionTitle
     }

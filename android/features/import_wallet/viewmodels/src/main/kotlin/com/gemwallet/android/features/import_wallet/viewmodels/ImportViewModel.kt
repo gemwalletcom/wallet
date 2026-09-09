@@ -15,10 +15,9 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.WalletSource
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.model.toWalletType
 import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.ui.models.name.NameRecordController
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,11 +48,11 @@ class ImportViewModel @Inject constructor(
     private val nameRecordController = NameRecordController(nameService, viewModelScope)
     val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
 
-    fun chainType(walletType: WalletType) {
+    fun importKind(kind: GemWalletImportKind) {
         nameRecordController.reset()
         state.update {
             it.copy(
-                importType = it.importType.copy(walletType = walletType),
+                importType = it.importType.copy(kind = kind),
                 dataError = null
             )
         }
@@ -61,9 +60,10 @@ class ImportViewModel @Inject constructor(
 
     fun onInput(value: String) {
         val importType = state.value.importType
-        when (importType.walletType) {
-            WalletType.View -> nameRecordController.getNameRecord(value, importType.chain)
-            else -> nameRecordController.reset()
+        when (importType.kind) {
+            GemWalletImportKind.ADDRESS -> nameRecordController.getNameRecord(value, importType.chain)
+            GemWalletImportKind.PHRASE,
+            GemWalletImportKind.PRIVATE_KEY -> nameRecordController.reset()
         }
     }
 
@@ -71,8 +71,8 @@ class ImportViewModel @Inject constructor(
         val defaultName = withContext(Dispatchers.IO) {
             service.defaultWalletName(importType.chain?.string)
         }
-        val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
-        val tabs = service.importKinds(importType.chain?.string).map { it.toWalletType(importType.chain) }
+        val chainName = importType.chain?.networkName().orEmpty()
+        val tabs = service.importKinds(importType.chain?.string)
         state.update {
             it.copy(
                 importType = importType,
@@ -127,10 +127,10 @@ class ImportViewModel @Inject constructor(
 data class ImportViewModelState(
     val loading: Boolean = false,
     val error: String = "",
-    val importType: ImportType = ImportType(WalletType.Multicoin),
+    val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val defaultWalletName: String = "",
     val chainName: String = "",
-    val tabs: List<WalletType> = emptyList(),
+    val tabs: List<GemWalletImportKind> = emptyList(),
     val data: String = "",
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
@@ -152,10 +152,10 @@ data class ImportViewModelState(
 data class ImportUIState(
     val loading: Boolean = false,
     val error: String = "",
-    val importType: ImportType = ImportType(WalletType.Multicoin),
+    val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val defaultWalletName: String = "",
     val chainName: String = "",
-    val tabs: List<WalletType> = emptyList(),
+    val tabs: List<GemWalletImportKind> = emptyList(),
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )

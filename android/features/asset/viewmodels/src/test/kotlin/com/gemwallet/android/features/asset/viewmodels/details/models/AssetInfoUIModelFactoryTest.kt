@@ -11,6 +11,7 @@ import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetDetailsState
+import uniffi.gemstone.GemHeaderActions
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -102,7 +103,7 @@ class AssetInfoUIModelFactoryTest {
             shareUrl = "",
             detailsState = GemAssetDetailsState(
                 isViewOnly = false,
-                headerButtons = emptyList(),
+                headerActions = GemHeaderActions.Buttons(emptyList()),
                 showsBanners = true,
                 showsManage = false,
                 showsResources = false,

@@ -7,7 +7,6 @@ import PriceAlerts
 import Primitives
 import Style
 import SwiftUI
-import GemstoneServices
 
 struct PriceAlertsNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory

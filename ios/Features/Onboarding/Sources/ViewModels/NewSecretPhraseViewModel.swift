@@ -4,7 +4,6 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 import SwiftUI
 
 struct NewSecretPhraseViewModel: SecretPhraseViewableModel {

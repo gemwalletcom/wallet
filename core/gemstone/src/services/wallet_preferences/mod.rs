@@ -40,14 +40,14 @@ impl GemWalletPreferencesService {
     pub fn new(store: Arc<dyn GemWalletPreferencesStore>) -> Self {
         Self { store }
     }
+}
 
+impl GemWalletPreferencesService {
     pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
         let mode = self.get_perpetual_account_mode(wallet_id).unwrap_or(PerpetualAccountMode::Standard);
         crate::services::perpetual::rules::includes_perpetual_collateral(mode)
     }
-}
 
-impl GemWalletPreferencesService {
     pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> Result<PerpetualAccountMode, GemServiceError> {
         Ok(match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
             Some("unified") => PerpetualAccountMode::Unified,

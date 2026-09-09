@@ -43,7 +43,7 @@ mod tests {
     use crate::alien::{AlienError, AlienProvider, AlienResponse, AlienTarget};
     use crate::services::preferences::testkit::MemoryPreferencesStore;
     use async_trait::async_trait;
-    use primitives::{Chain, ConfigVersions, SwapConfig};
+    use primitives::{ConfigVersions, SwapConfig};
     use std::future::Future;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::task::{Context, Poll};
@@ -78,10 +78,6 @@ mod tests {
                 swap: SwapConfig { enabled_providers: vec![] },
             };
             Ok(Arc::new(AlienResponse::new(Some(200), serde_json::to_vec(&config).unwrap())))
-        }
-
-        fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
-            Ok("https://example.com".to_string())
         }
     }
 

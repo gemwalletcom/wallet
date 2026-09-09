@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import InfoSheet
-import Perpetuals
 import Primitives
 import PrimitivesComponents
 

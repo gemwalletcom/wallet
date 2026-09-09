@@ -24,7 +24,7 @@ fun AssetDetailsScreen(
     val priceAlertEnabled by priceAlertsViewModel.isEnabled.collectAsStateWithLifecycle()
     val priceAlertsCount by priceAlertsViewModel.alertsCount.collectAsStateWithLifecycle()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
-    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = priceAlertsViewModel::onPushNotificationGranted)
+    val requestNotificationPermission = rememberNotificationPermissionGate()
 
     RefreshOnTimer(GemRefreshKind.WALLET, viewModel::refresh)
 

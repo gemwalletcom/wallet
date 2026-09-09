@@ -3,7 +3,8 @@ package com.gemwallet.android.features.receive.presents.components
 import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalDensity
@@ -13,20 +14,23 @@ import androidx.core.graphics.createBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun rememberQRCodePainter(
     content: String,
     size: Dp = 150.dp,
     padding: Dp = 0.dp,
-): BitmapPainter {
+): BitmapPainter? {
     val density = LocalDensity.current
     val sizePx = with(density) { size.roundToPx() }
     val paddingPx = with(density) { padding.roundToPx() }
 
-    return remember(content, sizePx, paddingPx) {
-        BitmapPainter(generateQr(content, sizePx, paddingPx).asImageBitmap())
+    val painter by produceState<BitmapPainter?>(initialValue = null, content, sizePx, paddingPx) {
+        value = withContext(Dispatchers.Default) { BitmapPainter(generateQr(content, sizePx, paddingPx).asImageBitmap()) }
     }
+    return painter
 }
 
 private fun generateQr(content: String, sizePx: Int, paddingPx: Int): Bitmap {

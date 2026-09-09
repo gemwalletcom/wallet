@@ -92,6 +92,7 @@ public extension GemAssetBalance {
             withdrawable: 0,
             earn: 0,
             metadata: nil,
+            isActive: true,
         )
     }
 }

@@ -19,7 +19,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.WalletAvatar
-import com.gemwallet.android.ui.components.list_item.walletItemIconModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.extraLargeIconSize
@@ -66,7 +66,7 @@ fun SetupWalletScreen(
             Spacer(modifier = Modifier.size(paddingDefault))
             WalletAvatar(
                 imageUrl = uiState.imageUrl,
-                placeholder = uiState.walletType?.let { walletItemIconModel(it, uiState.walletChain) },
+                placeholder = uiState.row?.placeholder?.iconModel(),
                 size = extraLargeIconSize,
                 supportIcon = R.drawable.ic_edit_badge,
                 onClick = onSelectImage,

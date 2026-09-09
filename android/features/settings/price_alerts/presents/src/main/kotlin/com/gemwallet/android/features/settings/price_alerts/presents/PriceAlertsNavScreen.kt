@@ -37,7 +37,7 @@ fun PriceAlertsNavScreen(
     )
 
     var selectingAsset by remember { mutableStateOf(false) }
-    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = viewModel::onPushNotificationGranted)
+    val requestNotificationPermission = rememberNotificationPermissionGate()
 
     val data by viewModel.data.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()

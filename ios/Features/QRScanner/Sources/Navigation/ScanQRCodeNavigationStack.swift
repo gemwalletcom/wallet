@@ -2,7 +2,6 @@
 
 import Localization
 import Primitives
-import Style
 import SwiftUI
 
 public struct ScanQRCodeNavigationStack: View {
@@ -30,36 +29,6 @@ public struct ScanQRCodeNavigationStack: View {
                         }
                     }
                 }
-        }
-    }
-}
-
-// MARK: - LocalizedQRCodeError
-
-extension QRScannerError: LocalizedQRCodeError {
-    public var titleImage: ErrorTitleImage? {
-        switch self {
-        case .notSupported:
-            ErrorTitleImage(title: Localized.Errors.notSupported, systemImage: SystemImage.clear)
-        case .permissionsNotGranted:
-            ErrorTitleImage(title: Localized.Errors.permissionsNotGranted, systemImage: SystemImage.lock)
-        case .decoding:
-            ErrorTitleImage(title: Localized.Errors.decoding, systemImage: SystemImage.errorOccurred)
-        case .unknown:
-            ErrorTitleImage(title: Localized.Errors.unknown, systemImage: SystemImage.errorOccurred)
-        }
-    }
-
-    public var errorDescription: String? {
-        switch self {
-        case .notSupported:
-            Localized.Errors.notSupportedQr
-        case .permissionsNotGranted:
-            Localized.Errors.cameraPermissionsNotGranted
-        case .decoding:
-            Localized.Errors.decodingQr
-        case .unknown:
-            Localized.Errors.unknown
         }
     }
 }

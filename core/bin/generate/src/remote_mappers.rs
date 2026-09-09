@@ -587,10 +587,7 @@ struct Language {
     app_modules: bool,
     functions: [&'static str; 2],
     cases: [fn(&str) -> String; 2],
-    /// Case names of an enum that carries data: both apps render it as a sealed hierarchy, which
-    /// the plain enum spelling does not match.
     sealed_cases: [fn(&str) -> String; 2],
-    /// How the payload of a data variant reads on each side.
     payloads: [&'static str; 2],
     code_mapper: &'static str,
     open: &'static str,

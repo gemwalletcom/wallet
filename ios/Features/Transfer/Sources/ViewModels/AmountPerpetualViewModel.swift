@@ -39,10 +39,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         (takeProfit, stopLoss) = Self.makeDefaultAutoclose(action: action, leverage: leverageSelection?.selected.value ?? action.transferData().leverage, service: service)
     }
 
-    var leverageTitle: String {
-        Localized.Perpetual.leverage
-    }
-
     var autocloseTitle: String {
         Localized.Perpetual.autoClose
     }
@@ -56,10 +52,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var isAutocloseEnabled: Bool {
-        switch action {
-        case .open: true
-        case .increase, .reduce: false
-        }
+        action.showsAutoclose()
     }
 
     private var direction: PerpetualDirection {

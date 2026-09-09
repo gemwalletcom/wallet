@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
@@ -24,6 +25,7 @@ let package = Package(
             dependencies: [
                 "Gemstone",
                 "Primitives",
+                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),
@@ -34,6 +36,7 @@ let package = Package(
                 "GemstonePrimitives",
                 "Primitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "TestKit",
         ),
@@ -43,6 +46,8 @@ let package = Package(
                 "GemstonePrimitives",
                 "GemstonePrimitivesTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                "Gemstone",
+                "Primitives",
             ],
         ),
     ],

@@ -6,11 +6,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.wallet.viewmodels.WalletViewModel
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletSecretKind
 
 @Composable
 fun WalletNavScreen(
-    onPhraseShow: (WalletId, WalletType) -> Unit,
+    onPhraseShow: (WalletId, GemWalletSecretKind) -> Unit,
     onSelectImage: (WalletId) -> Unit,
     onBoard: () -> Unit,
     onCancel: () -> Unit,
@@ -24,7 +24,7 @@ fun WalletNavScreen(
             when (action) {
                 is WalletAction.SetName -> viewModel.setWalletName(action.name)
                 WalletAction.SelectImage -> wallet?.id?.let(onSelectImage)
-                is WalletAction.ShowPhrase -> onPhraseShow(action.walletId, action.walletType)
+                is WalletAction.ShowPhrase -> onPhraseShow(action.walletId, action.secretKind)
                 WalletAction.Delete -> viewModel.delete(onBoard, onCancel)
                 WalletAction.Cancel -> onCancel()
             }

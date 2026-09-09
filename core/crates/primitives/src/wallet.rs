@@ -31,6 +31,10 @@ pub struct Wallet {
 }
 
 impl Wallet {
+    pub fn chains(&self) -> Vec<Chain> {
+        self.accounts.iter().map(|account| account.chain).collect()
+    }
+
     pub fn account(&self, chain: Chain) -> Option<&Account> {
         self.accounts.iter().find(|account| account.chain == chain)
     }

@@ -79,10 +79,6 @@ public struct TransactionInputViewModel: Sendable {
         infoModel.feeDisplay?.fiat?.text
     }
 
-    var networkFeeAmount: BigInt? {
-        fee?.fee
-    }
-
     var headerType: TransactionHeaderType {
         TransactionHeaderTypeBuilder.build(
             infoModel: infoModel,

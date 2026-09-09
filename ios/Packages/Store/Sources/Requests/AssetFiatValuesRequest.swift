@@ -5,34 +5,12 @@ import Primitives
 
 public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
     public var walletId: WalletId
-    public var type: TotalValueType
-    public var perpetualAssetId: AssetId
-    public var includesPerpetualCollateral: Bool
 
-    public init(walletId: WalletId, type: TotalValueType, perpetualAssetId: AssetId, includesPerpetualCollateral: Bool = true) {
+    public init(walletId: WalletId) {
         self.walletId = walletId
-        self.type = type
-        self.perpetualAssetId = perpetualAssetId
-        self.includesPerpetualCollateral = includesPerpetualCollateral
     }
 
     public func fetch(_ db: Database) throws -> [AssetFiatValue] {
-        switch type {
-        case .perpetual:
-            return try [perpetualFiatValue(db)]
-        case .wallet:
-            let assets = try assetRecords(db).map {
-                AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
-            }
-            return includesPerpetualCollateral ? try assets + [perpetualFiatValue(db)] : assets
-        case .earn:
-            return try assetRecords(db).map {
-                AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)
-            }
-        }
-    }
-
-    private func assetRecords(_ db: Database) throws -> [AssetRecordInfoMinimal] {
         try AssetRecord
             .including(optional: AssetRecord.price)
             .including(optional: AssetRecord.balance)
@@ -42,20 +20,12 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
                 .filter(BalanceRecord.Columns.isEnabled == true))
             .asRequest(of: AssetRecordInfoMinimal.self)
             .fetchAll(db)
-    }
-
-    private func perpetualFiatValue(_ db: Database) throws -> AssetFiatValue {
-        let balance = try PerpetualWalletBalanceRequest(walletId: walletId, assetId: perpetualAssetId).fetch(db)
-        return AssetFiatValue(amount: balance.total, price: 1, priceChangePercentage24h: 0)
-    }
-}
-
-extension AssetFiatValue {
-    init(record: AssetRecordInfoMinimal, amount: Double) {
-        self.init(
-            amount: amount,
-            price: record.price?.price ?? 0,
-            priceChangePercentage24h: record.price?.priceChangePercentage24h ?? 0,
-        )
+            .map {
+                AssetFiatValue(
+                    amount: $0.balance.totalAmount,
+                    price: $0.price?.price ?? 0,
+                    priceChangePercentage24h: $0.price?.priceChangePercentage24h ?? 0,
+                )
+            }
     }
 }

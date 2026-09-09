@@ -43,8 +43,8 @@ public struct WalletDetailScene: View {
                         Spacer()
                     }
                 }
-                switch model.wallet.type {
-                case .multicoin, .single:
+                switch model.secretKind {
+                case .phrase:
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(title: Localized.Common.show(Localized.Common.secretPhrase)),
@@ -62,7 +62,7 @@ public struct WalletDetailScene: View {
                     } header: {
                         Text(Localized.Common.privateKey)
                     }
-                case .view:
+                case nil:
                     EmptyView()
                 }
                 Section {

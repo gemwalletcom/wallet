@@ -23,6 +23,7 @@ fun mockGemAssetBalance(
     withdrawable = BigInteger.ZERO,
     earn = BigInteger.ZERO,
     metadata = null,
+    isActive = true,
 )
 
 fun mockGemConfirmMetadata(

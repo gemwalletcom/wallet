@@ -31,7 +31,7 @@ fun PriceAlertTargetNavScreen(
     val priceState by viewModel.priceState.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
-    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = viewModel::onPushNotificationGranted)
+    val requestNotificationPermission = rememberNotificationPermissionGate()
 
     PriceAlertTargetScene(
         value = viewModel.value,

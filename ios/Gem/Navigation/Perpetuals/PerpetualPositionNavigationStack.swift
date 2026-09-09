@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import enum Gemstone.GemPerpetualPositionAction
 import GemstonePrimitives
 import Primitives

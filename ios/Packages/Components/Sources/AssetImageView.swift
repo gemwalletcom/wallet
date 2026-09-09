@@ -27,6 +27,7 @@ public struct AssetImageView: View {
     public var body: some View {
         CachedAsyncImage(
             url: assetImage.imageURL,
+            size: size,
             scale: scale,
             content: {
                 $0.resizable().animation(.default)

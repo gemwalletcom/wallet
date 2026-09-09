@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniffi.gemstone.GemWalletImportException
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
-import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
+import com.gemwallet.android.features.import_wallet.components.ImportKindTab
 import com.gemwallet.android.features.import_wallet.components.importTypeTabIndex
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.AppUrl
@@ -65,7 +65,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ui.models.name.NameRecordState
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import uniffi.gemstone.DocsUrl
@@ -76,11 +76,9 @@ internal sealed interface ImportSceneTitle {
 }
 
 internal fun importSceneTitle(importType: ImportType, chainName: String): ImportSceneTitle {
-    return when (importType.walletType) {
-        WalletType.Multicoin -> ImportSceneTitle.Resource(R.string.wallet_multicoin)
-        WalletType.Single,
-        WalletType.PrivateKey,
-        WalletType.View -> ImportSceneTitle.Text(chainName)
+    return when (importType.chain) {
+        null -> ImportSceneTitle.Resource(R.string.wallet_multicoin)
+        else -> ImportSceneTitle.Text(chainName)
     }
 }
 
@@ -118,7 +116,7 @@ fun ImportScreen(
             viewModel.import(generatedName, value, onImported)
         },
         onInput = viewModel::onInput,
-        onTypeChange = viewModel::chainType,
+        onTypeChange = viewModel::importKind,
         invalidWords = viewModel::invalidPhraseWords,
         phraseSuggestions = viewModel::phraseSuggestions,
         onCancel = onCancel,
@@ -165,7 +163,7 @@ fun ImportScreen(
 private fun ImportScene(
     inputState: MutableState<TextFieldValue>,
     importType: ImportType,
-    tabs: List<WalletType>,
+    tabs: List<GemWalletImportKind>,
     defaultWalletName: String,
     chainName: String,
     nameResolveState: NameRecordState,
@@ -173,7 +171,7 @@ private fun ImportScene(
     buttonState: ButtonState,
     onImport: (generatedName: String, value: String) -> Unit,
     onInput: (String) -> Unit,
-    onTypeChange: (WalletType) -> Unit,
+    onTypeChange: (GemWalletImportKind) -> Unit,
     invalidWords: (String) -> Set<String>,
     phraseSuggestions: (String) -> List<String>,
     onCancel: () -> Unit
@@ -247,7 +245,7 @@ private fun DataInput(
     onInput: (String) -> Unit,
     onChange: () -> Unit,
 ) {
-    val suggestions = remember(importType.walletType) { mutableStateListOf<String>() }
+    val suggestions = remember(importType.kind) { mutableStateListOf<String>() }
 
     ImportInput(
         invalidWords = invalidWords,
@@ -302,21 +300,21 @@ private fun DataInput(
 @Composable
 private fun TypeSelection(
     importType: ImportType,
-    tabs: List<WalletType>,
-    onTypeChange: (WalletType) -> Unit,
+    tabs: List<GemWalletImportKind>,
+    onTypeChange: (GemWalletImportKind) -> Unit,
 ) {
     if (tabs.size < 2) {
         return
     }
     PrimaryTabRow(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
-        selectedTabIndex = importTypeTabIndex(importType.walletType, tabs),
+        selectedTabIndex = importTypeTabIndex(importType.kind, tabs),
         indicator = { Box {} },
         containerColor = Color.Transparent,
         divider = {}
     ) {
-        tabs.forEach { walletType ->
-            WalletTypeTab(walletType, importType.walletType, onTypeChange)
+        tabs.forEach { kind ->
+            ImportKindTab(kind, importType.kind, onTypeChange)
         }
     }
     Spacer16()
@@ -366,8 +364,8 @@ fun PreviewImportAddress() {
         Box(modifier = Modifier.fillMaxSize()) {
             ImportScene(
                 inputState = remember { mutableStateOf(TextFieldValue()) },
-                importType = ImportType(chain = Chain.Bitcoin, walletType = WalletType.View),
-                tabs = listOf(WalletType.Single, WalletType.View),
+                importType = ImportType(GemWalletImportKind.ADDRESS, Chain.Bitcoin),
+                tabs = listOf(GemWalletImportKind.PHRASE, GemWalletImportKind.ADDRESS),
                 defaultWalletName = "Wallet #1",
                 chainName = "Ethereum",
                 nameResolveState = NameRecordState.None,

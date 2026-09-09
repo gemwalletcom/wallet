@@ -78,7 +78,6 @@ class PriceAlertViewModelTest {
         },
         getAssetPriceAlertState = mockk<GetAssetPriceAlertState> { every { isAssetPriceAlertEnabled(any()) } returns flowOf(false) },
         getAssetTokenInfo = mockk(relaxed = true),
-        enableDevicePush = mockk(relaxed = true),
         service = service,
         savedStateHandle = SavedStateHandle(assetId?.let { mapOf(RouteArgument.AssetId.key to it.toIdentifier()) } ?: emptyMap()),
     )

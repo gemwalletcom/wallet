@@ -250,7 +250,6 @@ fun PreviewPerpetualMarketScene() {
             },
             positions = listOf(
                 object : PerpetualPositionDataAggregate {
-                    override val positionId: String = "pos_btc_001"
                     override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
                     override val asset: Asset = Asset(
                         id = AssetId(Chain.Bitcoin),
@@ -267,7 +266,6 @@ fun PreviewPerpetualMarketScene() {
                     override val pnlState: ValueDirection = ValueDirection.Up
                 },
                 object : PerpetualPositionDataAggregate {
-                    override val positionId: String = "pos_eth_002"
                     override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
                     override val asset: Asset = Asset(
                         id = AssetId(Chain.Ethereum),

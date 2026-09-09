@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 @testable import Contacts
 import GemstoneServices
 import GemstoneServicesTestKit

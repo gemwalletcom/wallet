@@ -7,7 +7,6 @@ public import GemstonePrimitives
 import Foundation
 import GemstoneServices
 import Primitives
-import PrimitivesTestKit
 
 public struct KeystoreMock: Keystore {
     public init() {}

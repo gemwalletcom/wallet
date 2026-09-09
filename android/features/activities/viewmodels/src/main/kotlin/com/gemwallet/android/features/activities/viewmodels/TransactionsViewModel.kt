@@ -77,7 +77,7 @@ class TransactionsViewModel @Inject constructor(
     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = getTransactions.transactions().value,
+        initialValue = null,
     )
 
     init {

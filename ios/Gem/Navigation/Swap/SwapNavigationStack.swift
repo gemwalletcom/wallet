@@ -4,7 +4,6 @@ import struct Gemstone.GemTransferData
 import Primitives
 import Swap
 import SwiftUI
-import Transfer
 
 struct SwapNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory

@@ -22,6 +22,19 @@ impl GemBannerContext {
 }
 
 impl GemBannerContext {
+    pub fn wallet(wallet: Wallet, is_wallet_empty: bool) -> Self {
+        Self {
+            wallet: Some(wallet),
+            asset: None,
+            is_stakeable: false,
+            has_stake_balance: false,
+            has_available_balance: false,
+            is_asset_activated: true,
+            asset_rank_score: None,
+            is_wallet_empty,
+        }
+    }
+
     pub(super) fn asset_id(&self) -> Option<AssetId> {
         self.asset.as_ref().map(|asset| asset.id.clone())
     }

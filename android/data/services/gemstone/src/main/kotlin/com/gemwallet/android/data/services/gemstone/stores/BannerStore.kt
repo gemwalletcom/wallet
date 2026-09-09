@@ -36,8 +36,6 @@ class GemstoneBannerStore(
 
     fun observeWalletBanners(walletId: String, events: List<BannerEvent>): Flow<List<DbBannerWithAsset>> = bannersDao.observeWalletBanners(walletId, events)
 
-    fun observeMultiSign(walletId: String): Flow<Boolean> = bannersDao.getMultisign(walletId).map { it.isNotEmpty() }
-
     private fun GemBannerKey.toRecord(state: uniffi.gemstone.BannerState) = DbBanner(
         id = identifier(),
         walletId = walletId,

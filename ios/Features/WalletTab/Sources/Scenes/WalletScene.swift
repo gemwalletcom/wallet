@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import InfoSheet
 import Localization
 import NFT
 import Primitives
@@ -19,12 +18,13 @@ public struct WalletScene: View {
 
     public var body: some View {
         @Bindable var preferences = model.observablePreferences
-        let sections = model.sections
+        let state = model.homeState
+        let sections = state.sections
 
         List {
             Section {} header: {
                 ValueHeaderView(
-                    model: model.walletHeaderModel,
+                    model: state.header,
                     isPrivacyEnabled: $preferences.isHideBalanceEnabled,
                     titleActionType: .privacyToggle,
                     onHeaderAction: model.onHeaderAction,
@@ -35,7 +35,7 @@ public struct WalletScene: View {
             }
             .cleanListRow()
 
-            if model.showPerpetuals {
+            if state.showPerpetuals {
                 Section {
                     PerpetualsPreviewView(
                         wallet: model.wallet,
@@ -47,7 +47,7 @@ public struct WalletScene: View {
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if let banner = model.visibleBanners.first {
+            if let banner = state.visibleBanners.first {
                 Section {
                     BannerView(
                         banner: banner,
@@ -62,7 +62,7 @@ public struct WalletScene: View {
                 Section {
                     WalletAssetsList(
                         assets: sections.pinned,
-                        currencyCode: model.currencyCode,
+                        currencyCode: state.currencyCode,
                         onHideAsset: model.onHideAsset,
                         onPinAsset: model.onPinAsset,
                         onCopyAddress: model.onCopyAddress,
@@ -77,7 +77,7 @@ public struct WalletScene: View {
             Section {
                 WalletAssetsList(
                     assets: sections.assets,
-                    currencyCode: model.currencyCode,
+                    currencyCode: state.currencyCode,
                     onHideAsset: model.onHideAsset,
                     onPinAsset: model.onPinAsset,
                     onCopyAddress: model.onCopyAddress,
@@ -90,13 +90,13 @@ public struct WalletScene: View {
                         .textCase(nil)
                 }
             } footer: {
-                if !model.showCollections {
+                if !state.showCollections {
                     manageTokensButton
                 }
             }
             .listRowInsets(.assetListRowInsets)
 
-            if model.showCollections {
+            if state.showCollections {
                 Section {
                     CollectionsPreviewView(content: model.collectionsContent)
                 } header: {

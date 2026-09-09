@@ -7,6 +7,4 @@ interface GetWalletConnections {
     fun observeConnections(): Flow<List<WalletConnection>>
 
     fun observeConnection(connectionId: String): Flow<WalletConnection?>
-
-    suspend fun getConnectionByTopic(topic: String): WalletConnection?
 }

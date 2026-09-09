@@ -45,8 +45,8 @@ struct WalletSceneViewModelTests {
         let funded = try onboardingModel(db: DB.mockAssets())
         let empty = try onboardingModel(db: DB.mockAssets(assets: [.mock()]))
 
-        #expect(funded.visibleBanners.map(\.event) == [])
-        #expect(empty.visibleBanners.map(\.event) == [.onboarding])
+        #expect(funded.homeState.visibleBanners.map(\.event) == [])
+        #expect(empty.homeState.visibleBanners.map(\.event) == [.onboarding])
     }
 
     private func onboardingModel(db: DB) throws -> WalletSceneViewModel {

@@ -2,7 +2,6 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import WalletConnector
-import WalletConnectorService
 import WalletConnectorServiceTestKit
 
 struct WalletConnectorPresenterTests {

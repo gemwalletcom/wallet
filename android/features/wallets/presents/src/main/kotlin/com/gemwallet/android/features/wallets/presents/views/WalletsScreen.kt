@@ -18,9 +18,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.features.wallets.viewmodels.WalletsViewModel
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletSubtitle
 
 @Composable
 fun WalletsScreen(
@@ -97,31 +98,25 @@ fun PreviewWalletScreen() {
                     object : WalletDataAggregate {
                         override val id: String = "1"
                         override val name: String = "Foo wallet #1"
-                        override val type: WalletType = WalletType.View
                         override val isCurrent: Boolean = true
                         override val isPinned: Boolean = false
-                        override val walletChain: Chain = Chain.Ethereum
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val row: GemWalletRow = GemWalletRow(GemWalletSubtitle.Multicoin, GemWalletPlaceholder.Multicoin, showsWatchBadge = false)
                         override val imageUrl: String? = null
                     },
                     object : WalletDataAggregate {
                         override val id: String = "1"
                         override val name: String = "Foo wallet #3"
-                        override val type: WalletType = WalletType.Multicoin
                         override val isCurrent: Boolean = false
                         override val isPinned: Boolean = false
-                        override val walletChain: Chain = Chain.Ethereum
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val row: GemWalletRow = GemWalletRow(GemWalletSubtitle.Multicoin, GemWalletPlaceholder.Multicoin, showsWatchBadge = false)
                         override val imageUrl: String? = null
                     },
                     object : WalletDataAggregate {
                         override val id: String = "1"
                         override val name: String = "Foo wallet #2"
-                        override val type: WalletType = WalletType.PrivateKey
                         override val isCurrent: Boolean = false
                         override val isPinned: Boolean = false
-                        override val walletChain: Chain = Chain.Bitcoin
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val row: GemWalletRow = GemWalletRow(GemWalletSubtitle.Multicoin, GemWalletPlaceholder.Multicoin, showsWatchBadge = false)
                         override val imageUrl: String? = null
                     },
                 ),
@@ -130,11 +125,9 @@ fun PreviewWalletScreen() {
                     object : WalletDataAggregate {
                         override val id: String = "1"
                         override val name: String = "Foo wallet #4"
-                        override val type: WalletType = WalletType.Multicoin
                         override val isCurrent: Boolean = true
                         override val isPinned: Boolean = true
-                        override val walletChain: Chain = Chain.Bitcoin
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val row: GemWalletRow = GemWalletRow(GemWalletSubtitle.Multicoin, GemWalletPlaceholder.Multicoin, showsWatchBadge = false)
                         override val imageUrl: String? = null
                     },
                 ),

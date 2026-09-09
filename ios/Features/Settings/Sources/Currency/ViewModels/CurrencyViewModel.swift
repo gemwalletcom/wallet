@@ -11,10 +11,6 @@ struct CurrencyViewModel {
         Emoji.Flags.flagsByIdentifier[id]
     }
 
-    var nativeCurrency: Locale.Currency? {
-        Locale.Currency(id)
-    }
-
     var title: String {
         let localizedName = Locale.current.localizedString(forCurrencyCode: id) ?? .empty
 

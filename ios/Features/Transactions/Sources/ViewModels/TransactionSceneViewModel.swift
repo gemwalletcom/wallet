@@ -3,7 +3,9 @@
 import BigInt
 import Components
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
+import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
+import func Gemstone.transactionDetailSections
 import GemstonePrimitives
 import Formatters
 import Foundation
@@ -58,40 +60,33 @@ public final class TransactionSceneViewModel {
 // MARK: - ListSectionProvideable
 
 extension TransactionSceneViewModel: ListSectionProvideable {
-    public var sections: [ListSection<TransactionItem>] {
-        [
-            ListSection(type: .header, [.header]),
-            ListSection(type: .swapProgress, [.swapProgress]),
-            ListSection(type: .swapAction, [.swapButton]),
-            ListSection(type: .details, [.date, .status, .estimatedConfirmation, .participant, .memo, .rate, .network, .pnl, .price, .provider]),
-            ListSection(type: .fee, [.fee]),
-            ListSection(type: .explorer, [.explorerLink]),
-        ]
+    public var sections: [ListSection<GemTransactionDetailRow>] {
+        transactionDetailSections(rows: rows).map(ListSection.init)
     }
 
-    public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
-        switch item {
+    public func itemModel(for row: GemTransactionDetailRow) -> any ItemModelProvidable<TransactionItemModel> {
+        switch row {
         case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency())
         case .swapProgress: TransactionSwapProgressViewModel(progress: rows.swapProgress)
-        case .swapButton: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
+        case .swapAgain: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
         case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
         case .status: TransactionStatusViewModel(status: rows.status, state: transactionExtended.transaction.state, onInfoAction: onSelectStatusInfo)
         case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: rows.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
         case .participant: TransactionParticipantViewModel(
                 participant: rows.participant,
-                resource: rows.resource,
                 chain: transactionExtended.transaction.assetId.chain,
                 memo: transactionExtended.transaction.memo,
                 onAddContact: onAddContact,
             )
         case .memo: TransactionMemoViewModel(transaction: transactionExtended.transaction)
+        case .resource: TransactionResourceViewModel(resource: rows.resource)
         case .rate: TransactionRateViewModel(rate: rows.rate, direction: rateDirection)
         case .network: TransactionNetworkViewModel(chain: transactionExtended.asset.chain)
         case .pnl: TransactionPnlViewModel(pnl: rows.pnl)
         case .price: TransactionPriceViewModel(price: rows.price)
         case .provider: TransactionProviderViewModel(name: rows.providerName)
         case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency(), formatter: .auto), onInfoAction: onSelectFee)
-        case .explorerLink: explorerViewModel
+        case .explorer: explorerViewModel
         }
     }
 }
@@ -136,7 +131,7 @@ extension TransactionSceneViewModel {
     }
 
     private func onSelectStatusInfo() {
-        let assetImage = TransactionViewModel(transaction: transactionExtended, currency: service.getCurrency()).assetImage
+        let assetImage = TransactionViewModel(transaction: transactionExtended).assetImage
         isPresentingTransactionSheet = .info(.transactionState(
             imageURL: assetImage.imageURL,
             placeholder: assetImage.placeholder,

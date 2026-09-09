@@ -10,7 +10,6 @@ import enum Gemstone.GemServiceError
 import GemstoneServicesTestKit
 import BigInt
 @testable import FiatConnect
-import GemstoneServices
 import Formatters
 import Foundation
 import Localization
@@ -268,7 +267,7 @@ final class FiatSceneViewModelTests {
 
         #expect(model.loadTrigger.amount == "123")
         #expect(model.loadTrigger.isImmediate == false)
-        #expect(model.session.amount == "123")
+        #expect(model.viewState.amount == "123")
     }
 
     @Test
@@ -287,7 +286,7 @@ final class FiatSceneViewModelTests {
 
         model.onSelect(amount: 250)
 
-        #expect(model.session.amount == "250")
+        #expect(model.viewState.amount == "250")
         #expect(model.inputValidationModel.text == "250")
         #expect(model.quotesState.isLoading == true)
         #expect(model.loadTrigger.amount == "250")

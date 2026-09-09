@@ -8,7 +8,6 @@ import enum Gemstone.SocialUrl
 import GemstonePrimitives
 import Localization
 import Primitives
-import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
@@ -102,28 +101,12 @@ public final class SettingsViewModel {
         AssetImage.image(Images.Settings.aboutUs)
     }
 
-    var helpCenterTitle: String {
-        Localized.Settings.helpCenter
-    }
-
-    var helpCenterImage: AssetImage {
-        AssetImage.image(Images.Settings.helpCenter)
-    }
-
-    var helpCenterURL: URL {
-        AppUrl.docs(.start)
-    }
-
     var supportTitle: String {
         Localized.Settings.support
     }
 
     var supportImage: AssetImage {
         AssetImage.image(Images.Settings.support)
-    }
-
-    var supportURL: URL {
-        AppUrl.page(.support)
     }
 
     var developerModeTitle: String {
