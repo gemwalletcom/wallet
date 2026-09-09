@@ -301,7 +301,11 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
-- **Hosts live in Core.** `GemApiClient`, `GemDeviceApiClient` and `GemStaticApiClient` construct on the production hosts, `GemDeviceRequestSigner::device_stream_request` returns the socket URL with its `Authorization` header, and `WalletConnectConfig` carries the project id and the app metadata Reown needs, so neither app keeps an assets or stream URL constant (Android's `Constants` object is gone; iOS keeps the app-group identifier and `apiURL`, which only the widget's `GemAPI` reads, for the reason below).
+- **The device key never leaves Core.** `GemDeviceKeyService::device_stream_request()` signs the
+  socket request and hands back the URL and the `Authorization` header, so neither app reads the
+  device private key to build a signer with it — which is what both did, iOS on every reconnect and
+  Android once behind a `lazy`. `key_pair` and `GemDeviceRequestSigner` are Core-internal now.
+- **Hosts live in Core.** `GemApiClient`, `GemDeviceApiClient` and `GemStaticApiClient` construct on the production hosts, the device key service returns the socket URL with its `Authorization` header, and `WalletConnectConfig` carries the project id and the app metadata Reown needs, so neither app keeps an assets or stream URL constant (Android's `Constants` object is gone; iOS keeps the app-group identifier and `apiURL`, which only the widget's `GemAPI` reads, for the reason below).
 - **iOS `Packages/GemAPI`** — one endpoint, one caller: `GemPriceWidget` reads asset prices with it. It stays. Routing the widget through Core would link the Rust library into an app extension that runs under a tight memory budget and makes a single GET, so the trade is wrong; nothing else in the app or the feature packages depends on the package. Android's equivalent is already down to the alien provider itself: `data/services/native-provider` is `NativeProvider` plus its cache, named after the trait it implements the way iOS's `NativeProviderService` package is.
 - **A foreign provider sends every request Core describes.** Android's `NativeProvider` handed OkHttp a
   null body for a body-less POST, and OkHttp rejects a POST without a body before the call is made, so

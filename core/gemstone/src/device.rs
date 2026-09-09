@@ -4,7 +4,7 @@ use zeroize::Zeroizing;
 
 use crate::GemstoneError;
 
-#[derive(Clone, uniffi::Record)]
+#[derive(Clone)]
 pub struct GemDeviceKeyPair {
     pub private_key: Vec<u8>,
     pub public_key: Vec<u8>,

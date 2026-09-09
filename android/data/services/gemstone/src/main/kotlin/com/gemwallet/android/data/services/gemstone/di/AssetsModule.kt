@@ -8,7 +8,6 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.math.fromHex
-import uniffi.gemstone.GemDeviceRequestSigner
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStore
 import uniffi.gemstone.GemApiClient
@@ -135,14 +134,11 @@ object AssetsModule {
         okHttpClient: OkHttpClient,
         connectionService: GemConnectionService,
     ): WebSocketConnectable {
-        val deviceRequestSigner by lazy {
-            GemDeviceRequestSigner(deviceKeyService.keyPair().privateKey)
-        }
         return WebSocketConnection(
             client = okHttpClient,
             requestProvider = {
                 withContext(Dispatchers.IO) {
-                    val stream = deviceRequestSigner.deviceStreamRequest()
+                    val stream = deviceKeyService.deviceStreamRequest()
                     WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
                 }
             },

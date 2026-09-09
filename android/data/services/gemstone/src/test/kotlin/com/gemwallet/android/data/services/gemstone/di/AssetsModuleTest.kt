@@ -19,6 +19,6 @@ class AssetsModuleTest {
             connectionService = mockk<GemConnectionService>(relaxed = true),
         )
 
-        verify(exactly = 0) { deviceKeyService.keyPair() }
+        verify(exactly = 0) { deviceKeyService.deviceStreamRequest() }
     }
 }
