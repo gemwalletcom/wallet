@@ -5,6 +5,7 @@ use gem_client::ClientError;
 
 use crate::device::{GemDeviceKeyPair, device_public_key, generate_device_key_pair};
 use crate::services::error::GemServiceError;
+use crate::services::device::signer::{GemDeviceRequestSigner, GemDeviceStreamRequest};
 use crate::services::preferences::GemSecureStore;
 
 const DEVICE_PRIVATE_KEY: &str = "device_private_key";
@@ -27,6 +28,12 @@ impl GemDeviceKeyService {
         Ok(hex::encode(self.key_pair()?.public_key))
     }
 
+    pub fn device_stream_request(&self) -> Result<GemDeviceStreamRequest, GemServiceError> {
+        GemDeviceRequestSigner::new(self.key_pair()?.private_key)?.device_stream_request()
+    }
+}
+
+impl GemDeviceKeyService {
     pub fn key_pair(&self) -> Result<GemDeviceKeyPair, GemServiceError> {
         let mut cached = match self.cached.lock() {
             Ok(cached) => cached,

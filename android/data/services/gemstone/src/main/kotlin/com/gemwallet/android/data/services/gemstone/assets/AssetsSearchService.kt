@@ -79,13 +79,12 @@ class AssetsSearchService @Inject constructor(
         return assetListDao.searchWithPriority(key).map { lists -> lists.map { it.toDTO() } }
     }
 
-    fun searchListAssets(listId: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
-        val query = listPriorityQuery(listId)
+    fun searchAssetsByKey(searchKey: String, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> {
         return getCurrentWalletId().flatMapLatest { wallet ->
             val walletId = wallet.id
-            searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
+            searchDao.hasAssetPriorities(searchKey).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 if (hasPriority) {
-                    assetsDao.searchWithPriority(walletId, query, limit).toAssetInfoModel()
+                    assetsDao.searchWithPriority(walletId, searchKey, limit).toAssetInfoModel()
                 } else {
                     flowOf(emptyList<AssetInfo>())
                 }
@@ -94,5 +93,3 @@ class AssetsSearchService @Inject constructor(
     }
 
 }
-
-fun listPriorityQuery(listId: String) = "tag:$listId"

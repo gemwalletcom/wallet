@@ -10,7 +10,6 @@ import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.FiatTransactionAssetData
 import com.wallet.core.primitives.FiatTransactionData
-import com.wallet.core.primitives.FiatTransaction
 import com.wallet.core.primitives.FiatTransactionStatus
 
 @Entity(
@@ -61,18 +60,15 @@ fun List<FiatTransactionData>.toRecord(walletId: String) = map { it.toRecord(wal
 fun DbFiatTransactionWithAsset.toDTO(): FiatTransactionAssetData? {
     val asset = asset.toDTO() ?: return null
     return FiatTransactionAssetData(
-        transaction = FiatTransaction(
-            id = transaction.id,
-            assetId = asset.id,
-            transactionType = transaction.transactionType,
-            provider = transaction.provider,
-            status = transaction.status,
-            fiatAmount = transaction.fiatAmount,
-            fiatCurrency = transaction.fiatCurrency,
-            value = transaction.value,
-            createdAt = transaction.createdAt,
-        ),
+        id = transaction.id,
         asset = asset,
+        transactionType = transaction.transactionType,
+        provider = transaction.provider,
+        status = transaction.status,
+        fiatAmount = transaction.fiatAmount,
+        fiatCurrency = transaction.fiatCurrency,
+        value = transaction.value,
+        createdAt = transaction.createdAt,
         detailsUrl = transaction.detailsUrl,
     )
 }

@@ -156,6 +156,9 @@ class TransactionDetailsAggregateImplTest {
         val otherAsset = createAggregate(rows = mockGemTransactionDetailRows(fee = mockGemTransactionAmount(asset = ethAsset, value = BigInteger("1000000000000000")))).fee
         Assert.assertEquals(ethAsset, otherAsset.asset)
         Assert.assertEquals("0.001 ETH", otherAsset.value)
+
+        val dust = createAggregate(rows = mockGemTransactionDetailRows(fee = mockGemTransactionAmount(asset = ethAsset, value = BigInteger("9646202573492")))).fee
+        Assert.assertEquals("0.000009646 ETH", dust.value)
     }
 
     @Test

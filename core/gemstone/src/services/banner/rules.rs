@@ -1,5 +1,5 @@
 use crate::models::custom_types::GemBigInt;
-use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, VerificationStatus, Wallet, WalletSource, WalletType};
+use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, ChainAsset, VerificationStatus, Wallet, WalletSource, WalletType};
 
 use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle};
 use crate::config::chain::account_activation_fee_url;
@@ -56,7 +56,7 @@ pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
 }
 
 fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
-    let has_asset = context.asset_id.is_some();
+    let has_asset = context.asset.is_some();
     let can_sign = context.wallet.as_ref().is_some_and(|wallet| wallet.wallet_type != WalletType::View);
     match event {
         BannerEvent::AccountBlockedMultiSignature => true,
@@ -148,10 +148,11 @@ fn network_name(chain: Chain) -> String {
     ChainAsset::from_chain(chain).network_name
 }
 
-pub(super) fn visible_banners(stored: Vec<GemBannerItem>, context: &GemBannerContext) -> Vec<GemBannerItem> {
+pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -> Vec<Banner> {
+    let asset_id = context.asset_id();
     let mut banners: Vec<GemBannerItem> = Vec::new();
-    for item in stored.into_iter().chain(extra_banners(context.asset_id.clone())) {
-        if context.asset_id.as_ref().is_some_and(|asset_id| !item.applies_to_asset(asset_id)) {
+    for item in stored.iter().map(banner_item).chain(extra_banners(asset_id.clone())) {
+        if asset_id.as_ref().is_some_and(|asset_id| !item.applies_to_asset(asset_id)) {
             continue;
         }
         if banners.iter().any(|existing| existing.event == item.event) {
@@ -163,6 +164,20 @@ pub(super) fn visible_banners(stored: Vec<GemBannerItem>, context: &GemBannerCon
     }
     banners.sort_by_key(|item| (state_priority(item.state), event_priority(item.event)));
     banners
+        .into_iter()
+        .map(|item| match stored.iter().find(|banner| banner.event == item.event && banner.asset.as_ref().map(|asset| &asset.id) == item.asset_id.as_ref()) {
+            Some(banner) => banner.clone(),
+            None => context.banner(item),
+        })
+        .collect()
+}
+
+fn banner_item(banner: &Banner) -> GemBannerItem {
+    GemBannerItem {
+        event: banner.event,
+        state: banner.state,
+        asset_id: banner.asset.as_ref().map(|asset| asset.id.clone()),
+    }
 }
 
 fn extra_banners(asset_id: Option<AssetId>) -> Vec<GemBannerItem> {
@@ -252,7 +267,7 @@ mod tests {
     fn context(has_asset: bool) -> GemBannerContext {
         GemBannerContext {
             wallet: Some(Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::HyperCore], "address"))),
-            asset_id: has_asset.then(|| AssetId::from_chain(Chain::Ethereum)),
+            asset: has_asset.then(|| Asset::from_chain(Chain::Ethereum)),
             is_stakeable: true,
             has_stake_balance: false,
             has_available_balance: false,
@@ -262,15 +277,16 @@ mod tests {
         }
     }
 
-    fn item(event: BannerEvent, state: BannerState) -> GemBannerItem {
-        GemBannerItem {
+    fn item(event: BannerEvent, state: BannerState) -> Banner {
+        Banner {
+            wallet_id: None,
+            asset: Some(Asset::from_chain(Chain::Ethereum)),
             event,
             state,
-            asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
         }
     }
 
-    fn events(banners: &[GemBannerItem]) -> Vec<BannerEvent> {
+    fn events(banners: &[Banner]) -> Vec<BannerEvent> {
         banners.iter().map(|banner| banner.event).collect()
     }
 
@@ -342,20 +358,20 @@ mod tests {
 
     #[test]
     fn test_multi_signature_warning_for_every_wallet_type_and_scene() {
-        let tron = AssetId::from_chain(Chain::Tron);
-        let token = TRON_USDT.id.clone();
-        let warning = GemBannerItem {
-            asset_id: Some(tron.clone()),
+        let tron = Asset::from_chain(Chain::Tron);
+        let token = TRON_USDT.clone();
+        let warning = Banner {
+            asset: Some(tron.clone()),
             ..item(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
         };
         for wallet_type in [WalletType::Multicoin, WalletType::Single, WalletType::PrivateKey, WalletType::View] {
-            for asset_id in [None, Some(tron.clone()), Some(token.clone())] {
+            for asset in [None, Some(tron.clone()), Some(token.clone())] {
                 let context = GemBannerContext {
                     wallet: Some(Wallet {
                         wallet_type: wallet_type.clone(),
                         ..Wallet::mock()
                     }),
-                    asset_id,
+                    asset,
                     ..context(true)
                 };
                 assert_eq!(visible_banners(vec![warning.clone()], &context), vec![warning.clone()], "{wallet_type:?}");
@@ -365,19 +381,19 @@ mod tests {
 
     #[test]
     fn test_asset_scope_is_filtered_before_deduplication() {
-        let token = Asset::mock_ethereum_usdc().id;
+        let token = Asset::mock_ethereum_usdc();
         let context = GemBannerContext {
-            asset_id: Some(token.clone()),
+            asset: Some(token.clone()),
             ..context(true)
         };
         let warning = item(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive);
-        let token_stake = GemBannerItem {
-            asset_id: Some(token),
+        let token_stake = Banner {
+            asset: Some(token),
             ..item(BannerEvent::Stake, BannerState::Active)
         };
         let stored = vec![
-            GemBannerItem {
-                asset_id: Some(AssetId::from_chain(Chain::Tron)),
+            Banner {
+                asset: Some(Asset::from_chain(Chain::Tron)),
                 ..warning.clone()
             },
             item(BannerEvent::Stake, BannerState::Active),
@@ -394,8 +410,8 @@ mod tests {
     #[test]
     fn test_asset_scope_excludes_warnings_without_an_asset_or_with_cancelled_state() {
         let stored = vec![
-            GemBannerItem {
-                asset_id: None,
+            Banner {
+                asset: None,
                 ..item(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
             },
             item(BannerEvent::AccountBlockedMultiSignature, BannerState::Cancelled),

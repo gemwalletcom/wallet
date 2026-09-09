@@ -15,35 +15,3 @@ public struct Release: Codable, Equatable, Sendable {
 		self.upgradeRequired = upgradeRequired
 	}
 }
-
-public struct ConfigVersions: Codable, Sendable {
-	public let fiatOnRampAssets: Int32
-	public let fiatOffRampAssets: Int32
-	public let swapAssets: Int32
-
-	public init(fiatOnRampAssets: Int32, fiatOffRampAssets: Int32, swapAssets: Int32) {
-		self.fiatOnRampAssets = fiatOnRampAssets
-		self.fiatOffRampAssets = fiatOffRampAssets
-		self.swapAssets = swapAssets
-	}
-}
-
-public struct SwapConfig: Codable, Equatable, Sendable {
-	public let enabledProviders: [String]
-
-	public init(enabledProviders: [String]) {
-		self.enabledProviders = enabledProviders
-	}
-}
-
-public struct ConfigResponse: Codable, Sendable {
-	public let releases: [Release]
-	public let versions: ConfigVersions
-	public let swap: SwapConfig
-
-	public init(releases: [Release], versions: ConfigVersions, swap: SwapConfig) {
-		self.releases = releases
-		self.versions = versions
-		self.swap = swap
-	}
-}

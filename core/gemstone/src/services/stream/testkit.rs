@@ -101,7 +101,7 @@ pub struct MemoryStreamConnection {
     pub connected: AtomicBool,
     pub fail_next_send: AtomicBool,
     pause: Mutex<Option<oneshot::Receiver<()>>>,
-    sent: Mutex<Vec<StreamMessage>>,
+    sent: Mutex<Vec<String>>,
 }
 
 impl MemoryStreamConnection {
@@ -116,13 +116,14 @@ impl MemoryStreamConnection {
             .lock()
             .unwrap()
             .iter()
+            .filter_map(|message| serde_json::from_str::<StreamMessage>(message).ok())
             .map(|message| match message {
-                StreamMessage::SubscribePrices(prices) => ("subscribe", prices.assets.clone()),
-                StreamMessage::AddPrices(prices) => ("add", prices.assets.clone()),
-                StreamMessage::GetPrices(prices) => ("get", prices.assets.clone()),
-                StreamMessage::UnsubscribePrices(prices) => ("unsubscribe", prices.assets.clone()),
-                StreamMessage::SubscribeRealtimePrices(prices) => ("subscribeRealtime", prices.assets.clone()),
-                StreamMessage::UnsubscribeRealtimePrices(prices) => ("unsubscribeRealtime", prices.assets.clone()),
+                StreamMessage::SubscribePrices(prices) => ("subscribe", prices.assets),
+                StreamMessage::AddPrices(prices) => ("add", prices.assets),
+                StreamMessage::GetPrices(prices) => ("get", prices.assets),
+                StreamMessage::UnsubscribePrices(prices) => ("unsubscribe", prices.assets),
+                StreamMessage::SubscribeRealtimePrices(prices) => ("subscribeRealtime", prices.assets),
+                StreamMessage::UnsubscribeRealtimePrices(prices) => ("unsubscribeRealtime", prices.assets),
             })
             .collect()
     }
@@ -134,7 +135,7 @@ impl GemStreamConnection for MemoryStreamConnection {
         self.connected.load(Ordering::SeqCst)
     }
 
-    async fn send(&self, message: StreamMessage) -> Result<(), GemServiceError> {
+    async fn send(&self, message: String) -> Result<(), GemServiceError> {
         let pause = self.pause.lock().unwrap().take();
         if let Some(pause) = pause {
             pause.await.unwrap();

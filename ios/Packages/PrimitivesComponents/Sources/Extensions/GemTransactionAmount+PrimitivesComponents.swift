@@ -66,7 +66,7 @@ public extension GemTransactionHeader {
     func headerType(currency: String) -> TransactionHeaderType {
         switch self {
         case let .amount(amount, showsFiat):
-            .amount(amount.display(currency: currency, formatter: .full).fiatVisibility(showsFiat))
+            .amount(amount.display(currency: currency, formatter: .auto).fiatVisibility(showsFiat))
         case let .swap(from, to):
             .swap(from: from.swapAmountField(currency: currency), to: to.swapAmountField(currency: currency))
         case let .nft(_, name, imageUrl):

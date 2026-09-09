@@ -318,6 +318,64 @@ public extension Primitives.ConnectionStatus {
     }
 }
 
+public extension Gemstone.CoreEmoji {
+    func map() -> Primitives.CoreEmoji {
+        switch self {
+        case .gift: .gift
+        case .gem: .gem
+        case .party: .party
+        case .warning: .warning
+        }
+    }
+}
+
+public extension Primitives.CoreEmoji {
+    func map() -> Gemstone.CoreEmoji {
+        switch self {
+        case .gift: .gift
+        case .gem: .gem
+        case .party: .party
+        case .warning: .warning
+        }
+    }
+}
+
+public extension Gemstone.CoreListItemBadge {
+    func map() -> Primitives.CoreListItemBadge {
+        switch self {
+        case .new: .new
+        }
+    }
+}
+
+public extension Primitives.CoreListItemBadge {
+    func map() -> Gemstone.CoreListItemBadge {
+        switch self {
+        case .new: .new
+        }
+    }
+}
+
+public extension Gemstone.CoreListItemIcon {
+    func map() -> Primitives.CoreListItemIcon {
+        switch self {
+        case .emoji(let value): .emoji(value.map())
+        case .asset(let value): .asset(Primitives.AssetId(core: value))
+        case .image(let value): .image(value)
+        }
+    }
+}
+
+public extension Primitives.CoreListItemIcon {
+    func map() -> Gemstone.CoreListItemIcon {
+        switch self {
+        case .emoji(let value): .emoji(value.map())
+        case .asset(let value): .asset(value.identifier)
+        case .image(let value): .image(value)
+        }
+    }
+}
+
 public extension Primitives.Currency {
     init(core: Gemstone.Currency) {
         guard let value = Primitives.Currency(rawValue: core) else {
@@ -511,6 +569,28 @@ public extension Primitives.FiatQuoteType {
         switch self {
         case .buy: .buy
         case .sell: .sell
+        }
+    }
+}
+
+public extension Gemstone.FiatTransactionStatus {
+    func map() -> Primitives.FiatTransactionStatus {
+        switch self {
+        case .complete: .complete
+        case .pending: .pending
+        case .failed: .failed
+        case .unknown: .unknown
+        }
+    }
+}
+
+public extension Primitives.FiatTransactionStatus {
+    func map() -> Gemstone.FiatTransactionStatus {
+        switch self {
+        case .complete: .complete
+        case .pending: .pending
+        case .failed: .failed
+        case .unknown: .unknown
         }
     }
 }
@@ -971,6 +1051,62 @@ public extension Primitives.StakeProviderType {
         switch self {
         case .stake: .stake
         case .earn: .earn
+        }
+    }
+}
+
+public extension Gemstone.SupportMessageSender {
+    func map() -> Primitives.SupportMessageSender {
+        switch self {
+        case .user: .user
+        case .agent(let value): .agent(value.map())
+        }
+    }
+}
+
+public extension Primitives.SupportMessageSender {
+    func map() -> Gemstone.SupportMessageSender {
+        switch self {
+        case .user: .user
+        case .agent(let value): .agent(value.map())
+        }
+    }
+}
+
+public extension Gemstone.SupportMessageStatus {
+    func map() -> Primitives.SupportMessageStatus {
+        switch self {
+        case .sending: .sending
+        case .sent: .sent
+        case .failed: .failed
+        }
+    }
+}
+
+public extension Primitives.SupportMessageStatus {
+    func map() -> Gemstone.SupportMessageStatus {
+        switch self {
+        case .sending: .sending
+        case .sent: .sent
+        case .failed: .failed
+        }
+    }
+}
+
+public extension Gemstone.SupportTypingStatus {
+    func map() -> Primitives.SupportTypingStatus {
+        switch self {
+        case .on: .on
+        case .off: .off
+        }
+    }
+}
+
+public extension Primitives.SupportTypingStatus {
+    func map() -> Gemstone.SupportTypingStatus {
+        switch self {
+        case .on: .on
+        case .off: .off
         }
     }
 }
@@ -1707,6 +1843,28 @@ public extension Primitives.BalanceMetadata {
     }
 }
 
+public extension Gemstone.Banner {
+    func map() -> Primitives.Banner {
+        Primitives.Banner(
+            walletId: walletId.map { Primitives.WalletId(core: $0) },
+            asset: asset.map { $0.map() },
+            event: event.map(),
+            state: state.map(),
+        )
+    }
+}
+
+public extension Primitives.Banner {
+    func map() -> Gemstone.Banner {
+        Gemstone.Banner(
+            walletId: walletId.map { $0.identifier },
+            asset: asset.map { $0.map() },
+            event: event.map(),
+            state: state.map(),
+        )
+    }
+}
+
 public extension Gemstone.BlockExplorerLink {
     func map() -> Primitives.BlockExplorerLink {
         Primitives.BlockExplorerLink(
@@ -1895,6 +2053,36 @@ public extension Primitives.ContactAddress {
     }
 }
 
+public extension Gemstone.CoreListItem {
+    func map() -> Primitives.CoreListItem {
+        Primitives.CoreListItem(
+            id: id,
+            title: title,
+            subtitle: subtitle,
+            value: value,
+            subvalue: subvalue,
+            icon: icon.map { $0.map() },
+            badge: badge.map { $0.map() },
+            url: url,
+        )
+    }
+}
+
+public extension Primitives.CoreListItem {
+    func map() -> Gemstone.CoreListItem {
+        Gemstone.CoreListItem(
+            id: id,
+            title: title,
+            subtitle: subtitle,
+            value: value,
+            subvalue: subvalue,
+            icon: icon.map { $0.map() },
+            badge: badge.map { $0.map() },
+            url: url,
+        )
+    }
+}
+
 public extension Gemstone.DelegationValidator {
     func map() -> Primitives.DelegationValidator {
         Primitives.DelegationValidator(
@@ -1993,6 +2181,83 @@ public extension Primitives.FiatRate {
         Gemstone.FiatRate(
             symbol: symbol.rawValue,
             rate: rate,
+        )
+    }
+}
+
+public extension Gemstone.FiatTransaction {
+    func map() -> Primitives.FiatTransaction {
+        Primitives.FiatTransaction(
+            id: id,
+            assetId: Primitives.AssetId(core: assetId),
+            transactionType: transactionType.map(),
+            provider: provider.map(),
+            status: status.map(),
+            fiatAmount: fiatAmount,
+            fiatCurrency: fiatCurrency,
+            value: value.description,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension Primitives.FiatTransaction {
+    func map() -> Gemstone.FiatTransaction {
+        Gemstone.FiatTransaction(
+            id: id,
+            assetId: assetId.identifier,
+            transactionType: transactionType.map(),
+            provider: provider.map(),
+            providerTransactionId: nil,
+            status: status.map(),
+            country: nil,
+            fiatAmount: fiatAmount,
+            fiatCurrency: fiatCurrency,
+            value: BigUInt(stringLiteral: value),
+            transactionHash: nil,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension Gemstone.FiatTransactionData {
+    func map() -> Primitives.FiatTransactionData {
+        Primitives.FiatTransactionData(
+            transaction: transaction.map(),
+            detailsUrl: detailsUrl,
+        )
+    }
+}
+
+public extension Primitives.FiatTransactionData {
+    func map() -> Gemstone.FiatTransactionData {
+        Gemstone.FiatTransactionData(
+            transaction: transaction.map(),
+            detailsUrl: detailsUrl,
+        )
+    }
+}
+
+public extension Gemstone.InAppNotification {
+    func map() -> Primitives.InAppNotification {
+        Primitives.InAppNotification(
+            walletId: Primitives.WalletId(core: walletId),
+            readAt: readAt,
+            createdAt: createdAt,
+            item: item.map(),
+        )
+    }
+}
+
+public extension Primitives.InAppNotification {
+    func map() -> Gemstone.InAppNotification {
+        Gemstone.InAppNotification(
+            walletId: walletId.identifier,
+            readAt: readAt,
+            createdAt: createdAt,
+            item: item.map(),
         )
     }
 }
@@ -2669,6 +2934,94 @@ public extension Primitives.ReportNft {
             collectionId: collectionId,
             assetId: assetId,
             reason: reason,
+        )
+    }
+}
+
+public extension Gemstone.SupportAgent {
+    func map() -> Primitives.SupportAgent {
+        Primitives.SupportAgent(
+            name: name,
+        )
+    }
+}
+
+public extension Primitives.SupportAgent {
+    func map() -> Gemstone.SupportAgent {
+        Gemstone.SupportAgent(
+            name: name,
+        )
+    }
+}
+
+public extension Gemstone.SupportMessage {
+    func map() -> Primitives.SupportMessage {
+        Primitives.SupportMessage(
+            id: id,
+            content: content,
+            sender: sender.map(),
+            status: status.map(),
+            createdAt: createdAt,
+            images: images.map { $0.map() },
+        )
+    }
+}
+
+public extension Primitives.SupportMessage {
+    func map() -> Gemstone.SupportMessage {
+        Gemstone.SupportMessage(
+            id: id,
+            content: content,
+            sender: sender.map(),
+            status: status.map(),
+            createdAt: createdAt,
+            images: images.map { $0.map() },
+        )
+    }
+}
+
+public extension Gemstone.SupportMessageImage {
+    func map() -> Primitives.SupportMessageImage {
+        Primitives.SupportMessageImage(
+            id: id,
+            url: url,
+            thumbnailUrl: thumbnailUrl,
+            fileName: fileName,
+            fileSize: fileSize,
+            width: width,
+            height: height,
+        )
+    }
+}
+
+public extension Primitives.SupportMessageImage {
+    func map() -> Gemstone.SupportMessageImage {
+        Gemstone.SupportMessageImage(
+            id: id,
+            url: url,
+            thumbnailUrl: thumbnailUrl,
+            fileName: fileName,
+            fileSize: fileSize,
+            width: width,
+            height: height,
+        )
+    }
+}
+
+public extension Gemstone.SupportTyping {
+    func map() -> Primitives.SupportTyping {
+        Primitives.SupportTyping(
+            status: status.map(),
+            agent: agent.map(),
+        )
+    }
+}
+
+public extension Primitives.SupportTyping {
+    func map() -> Gemstone.SupportTyping {
+        Gemstone.SupportTyping(
+            status: status.map(),
+            agent: agent.map(),
         )
     }
 }

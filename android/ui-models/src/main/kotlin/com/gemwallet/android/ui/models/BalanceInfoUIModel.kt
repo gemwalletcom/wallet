@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.models
 
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.DelegationBase
@@ -30,7 +31,9 @@ class RewardsInfoUIModel(
     balance = balance,
     price = assetInfo.price?.price?.price,
     currency = assetInfo.price?.currency ?: Currency.USD,
-)
+) {
+    override val cryptoFormatted: String by lazy { ValueFormatter(style = ValueFormatter.Style.Auto).string(balance, asset) }
+}
 
 class DelegationBalanceInfoUIModel(
     assetInfo: AssetInfo,

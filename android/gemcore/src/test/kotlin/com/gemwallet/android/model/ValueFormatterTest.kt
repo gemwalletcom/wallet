@@ -36,6 +36,8 @@ class ValueFormatterTest {
         assertEquals("0.1234", f.string(BigInteger("123456789012345678"), decimals = 18))
         assertEquals("0.01234", f.string(BigInteger("12340000000000000"), decimals = 18))
         assertEquals("0.00000546 BTC", f.string(BigInteger.valueOf(546L), decimals = 8, currency = "BTC"))
+        assertEquals("0.000009646 BNB", f.string(BigInteger("9646202573492"), decimals = 18, currency = "BNB"))
+        assertEquals("0.000000000000000001 ETH", f.string(BigInteger.ONE, decimals = 18, currency = "ETH"))
     }
 
     @Test

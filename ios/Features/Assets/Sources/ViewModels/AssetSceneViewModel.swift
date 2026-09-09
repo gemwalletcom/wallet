@@ -198,7 +198,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var visibleBanners: [Banner] {
-        bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
+        bannerContext.visibleBanners(stored: banners.map { $0.map() }).map { $0.map() }
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
@@ -208,7 +208,7 @@ public final class AssetSceneViewModel: Sendable {
     private var bannerContext: GemBannerContext {
         GemBannerContext(
             wallet: wallet.map(),
-            assetId: asset.id.identifier,
+            asset: asset.map(),
             isStakeable: assetData.metadata.isStakeEnabled,
             hasStakeBalance: stakedValue > .zero,
             hasAvailableBalance: assetData.balance.available > 0,

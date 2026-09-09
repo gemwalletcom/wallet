@@ -44,11 +44,7 @@ class ValueFormatter(
     private fun precision(magnitude: BigDecimal): Precision = when (style) {
         Style.Full -> Precision.full
         Style.Short -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
-        Style.Auto -> when {
-            magnitude >= BigDecimal.ONE -> Precision.upToTwoPlaces
-            magnitude >= DUST_THRESHOLD -> Precision.fourSignificant
-            else -> Precision.full
-        }
+        Style.Auto -> if (magnitude >= BigDecimal.ONE) Precision.upToTwoPlaces else Precision.fourSignificant
     }
 
     private fun abbreviated(decimal: BigDecimal): String {

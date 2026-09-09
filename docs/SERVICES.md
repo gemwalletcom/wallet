@@ -301,7 +301,26 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
-- **Hosts live in Core.** `GemApiClient`, `GemDeviceApiClient` and `GemStaticApiClient` construct on the production hosts, `GemDeviceRequestSigner::device_stream_request` returns the socket URL with its `Authorization` header, and `WalletConnectConfig` carries the project id and the app metadata Reown needs, so neither app keeps an assets or stream URL constant (Android's `Constants` object is gone; iOS keeps the app-group identifier and `apiURL`, which only the widget's `GemAPI` reads, for the reason below).
+- **What a price alert row says is one Core answer.** `PriceAlertFormatter::row(alert, current
+  price, 24h change) -> GemPriceAlertRow { kind, direction }` names the row — auto, over, under,
+  increase or decrease — and the direction it colours by, so each app only localizes the five kinds.
+  Both had written the decision themselves and disagreed on the alert that has a target price but no
+  direction: Android compared the target against the current price, iOS fell back to the day's
+  change colour. Android's `PriceAlertType` enum is gone, and the thirteen app tests over the
+  decision went to Core as one.
+- **Which banners a screen shows is one Core answer, in Core's records.**
+  `GemBannerContext::visible_banners(stored) -> [Banner]` takes and returns the banner the apps
+  persist, so neither app converts a banner to a `GemBannerItem`, matches the visible items back
+  against the stored ones by event and asset id, and constructs the ones Core added. That mapping
+  was written twice and disagreed: the fabricated welcome banner carried the wallet id on iOS and
+  none on Android, which is the key its dismissal is stored under. The context carries the asset
+  instead of its id, which is what it needed to build one. `GemBannerItem` is Core-internal now,
+  and the two iOS tests over the mapping went with it — Core covers both cases.
+- **The device key never leaves Core.** `GemDeviceKeyService::device_stream_request()` signs the
+  socket request and hands back the URL and the `Authorization` header, so neither app reads the
+  device private key to build a signer with it — which is what both did, iOS on every reconnect and
+  Android once behind a `lazy`. `key_pair` and `GemDeviceRequestSigner` are Core-internal now.
+- **Hosts live in Core.** `GemApiClient`, `GemDeviceApiClient` and `GemStaticApiClient` construct on the production hosts, the device key service returns the socket URL with its `Authorization` header, and `WalletConnectConfig` carries the project id and the app metadata Reown needs, so neither app keeps an assets or stream URL constant (Android's `Constants` object is gone; iOS keeps the app-group identifier and `apiURL`, which only the widget's `GemAPI` reads, for the reason below).
 - **iOS `Packages/GemAPI`** — one endpoint, one caller: `GemPriceWidget` reads asset prices with it. It stays. Routing the widget through Core would link the Rust library into an app extension that runs under a tight memory budget and makes a single GET, so the trade is wrong; nothing else in the app or the feature packages depends on the package. Android's equivalent is already down to the alien provider itself: `data/services/native-provider` is `NativeProvider` plus its cache, named after the trait it implements the way iOS's `NativeProviderService` package is.
 - **A foreign provider sends every request Core describes.** Android's `NativeProvider` handed OkHttp a
   null body for a body-less POST, and OkHttp rejects a POST without a body before the call is made, so
@@ -341,30 +360,26 @@ Each is one question. Nothing below is blocked on investigation.
 `GemSwapSession::on_transfer_abandoned` is the only transition that clears a transfer left
 `Loading`, and `start_transfer` refuses to start while one is, yet neither app calls it — the swap
 screens resume with `on_refresh_resumed`, which only lifts the pause. Either a screen should call
-it when a confirm is dismissed mid-load, or the transition goes. A sweep of the 416 exported
-methods against both apps found only that one, plus a duplicate of the free
-`wallet_default_assets` and the Core-internal `accepts_quotes`, both now off the FFI surface.
+it when a confirm is dismissed mid-load, or the transition goes. A sweep of the 538 exported
+methods against both apps found only that one: `CryptoFiatConverter::to_crypto` was dead and is
+deleted, and `generate_device_key_pair` is Core-internal, so it is no longer an export — a function
+that hands out a private key has no reason to be reachable from an app.
 
 ### 3. Unused generated models to remove
 
-A sweep of the `#[typeshare]` types in `core/crates/primitives` against both apps' non-generated sources found 26 with no app reference. The nine standalone ones are removed (`CosmosDenom`, `QuoteAsset`, `SlippageMode`, `SwapProviderMode`, `SwapResult`, `SwapStatus`, `WCEthereumTransaction`, `WalletImport`). What is left:
+Empty. The sweep — every `#[typeshare]` type in `core/crates/primitives` against both apps'
+non-generated sources — reports no unreferenced twin. The last ten went once the JSON bridge did,
+because "nested inside a bridged type the apps decode" had been the reason the previous passes kept
+them: `AddressChains`, `WalletSubscription`, `WalletSubscriptionChains`, `WalletConfiguration`,
+`WalletConfigurationResult`, `WalletConnectionMethods`, `StakeValidator`, `PortfolioAllocation`,
+`TransactionResourceTypeMetadata` and `TransactionWalletConnectMetadata` are Rust-only types now.
 
-- **Sixteen are nested** inside a type the apps do use — `StreamEvent` hosts six, `Markets` two, plus `CoreListItem`, `WalletSubscription`, `PortfolioAssets`, `FiatProvider`/`FiatQuote`, `RewardRedemptionOption`, `StreamMessage`, `WalletConfigurationResult`. Their generated model is still required; they go only when the host does.
-- **`TransactionInputType`** is unreferenced but stays — it is the target of the transfer-model collapse in section 5.
-- A later pass (September 2026) found `BalanceType` — a file that was not even in `lib.rs` — and
-  `AssetRank`, which only `AssetScore::rank_type` (a skipped field) uses in Core; the first is
-  deleted with its two generated files, the second is no longer shared. `AssetScoreType` went
-  with the verification-status move. A third pass un-shared `WalletConnectionEvents` (Core's
-  `rules::` enumerates it; neither app named it). The other unreferenced names the sweep still
-  prints — `AddressChains`, `TransactionWalletConnectMetadata`, the `Stream*`/`Support*` event
-  payloads, `RewardLevel`/`RewardRedemptionType`, `WebSocketPricePayload` — are nested in a
-  `json_bridge!` type (`WalletSubscription`, `Transaction` metadata, `StreamEvent`, `Rewards`)
-  the apps decode, so they stay.
-
-Three gotchas if you repeat the sweep, all met on this pass:
-1. A `#[typeshare(skip)]` on a *field* stops compiling once the struct attribute is removed, so it has to go with it.
+Three gotchas if you repeat the sweep:
+1. A `#[typeshare(skip)]` or `#[typeshare(serialized_as = ...)]` on a *field* stops compiling once
+   the type's attribute is removed, so it has to go with it.
 2. Removing the last attribute in a file leaves `use typeshare::typeshare;` unused — clippy fails on it.
-3. **The generator does not delete a file that now emits nothing.** `WalletImport.swift`, `WalletConnect.swift` and `swap/Result.kt` survived `just generate-models` with stale contents and had to be deleted by hand. Check `git status` for generated files that *did not* change and confirm they still have a source.
+3. **The generator does not delete a file that now emits nothing.** Check `git status` for generated
+   files that *did not* change and confirm they still have a source.
 
 ### 4. Rules still written once per platform
 
@@ -457,9 +472,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   transit types do not. What a provider row shows is `GemFiatQuoteRow` — the provider, the crypto
   amount, the fiat amount to display and the rate — so neither app decides that a buy row prices off
   the USD asset price when there is one and off the quote otherwise, and a quote that buys nothing
-  has no rate instead of formatting `NaN`, which is what iOS rendered. `FiatTransaction` and its
-  wrappers stay on the bridge: they only travel Core to app, and the generator has no way to emit the
-  app-to-core direction for a record whose skipped fields have no default. The asset search results
+  has no rate instead of formatting `NaN`, which is what iOS rendered. `FiatTransaction` and
+  `FiatTransactionData` followed. They only travel Core to app, but the generator emits both
+  directions, so the field the twin had no way to default — the update timestamp — is on the twin
+  now; the three optional ones fall back to none. `FiatTransactionAssetData` stopped nesting a
+  transaction at the same time: each app persists a projection of the record, so a nested transaction
+  was a shape the store could never rebuild, and it carries the row's own fields instead, which is
+  all either list item ever read. The asset search results
 went across next — `AssetBasic`, `AssetProperties`, `AssetScore`, `AssetRank`, `AssetList` and
 `ChainAsset` — so a search that runs on every keystroke stops parsing a JSON string per result on
 both apps, and the chain asset table each app builds once at startup is a mapper call rather than a
@@ -477,11 +496,32 @@ whole series out of a string on every period or type change. `PortfolioChartType
 because the picker needs `CaseIterable` and `Identifiable`, which uniffi does not give an enum, and
 `PortfolioStatistic` carries named fields. `Charts` left the bridge entirely — no app has referenced
 it in either language, so it was generating a twin nothing read. `AssetFull`, `AssetAssociation` and `PerpetualBasic` finished
-the asset cluster the same way. What is left on the bridge is mostly types the generator still cannot
-map: a data-carrying enum that must keep its twin has no mapper emission, which is why `SupportMessage`
-stays (Room stores its `SupportMessageSender` through a converter, so the twin cannot go), alongside
-`FiatTransaction`, whose skipped fields have no app-to-core default. Those two shapes are the
-remaining generator work, not app work. The generator is one table-driven
+the asset cluster the same way. The JSON bridge is gone: `ConfigResponse` and `ConfigVersions` were
+the last entries on it and no exported signature had named them for some time, so the module, the
+generator half that emitted the two bridge files, its fixtures and both apps' bridge files went with
+them. `JsonCodable` stays on iOS for `AnyCodableValue`, which is how transaction metadata still
+crosses.
+The one shape the generator could not map was a data-carrying enum that has to keep its twin, and that is
+closed: both apps render such an enum as a sealed hierarchy, so the generator matches on the case
+and carries the payload through — reading the payload name from the enum's serde `content`, since
+that is what the TypeShare twin calls it. It only handles a single unnamed payload per variant,
+because a twin renders a named or multi-field variant as a type of its own. That is what let the
+support chat cross as records: `SupportMessage`, `SupportMessageSender`, `SupportAgent`,
+`SupportMessageImage`, `SupportMessageStatus`, `SupportTyping` and `SupportTypingStatus`. Room
+stores the sender through a converter and both stores build a message out of persisted columns, so
+every twin there stays; what went is the JSON string per message on both save paths, on the typing
+event and on retry. `SupportMessageInput` left the bridge entirely — it is the request body Core
+sends, and neither app has ever read it. The in-app notification went across on the same change:
+`InAppNotification`, `CoreListItem` and the three list-item enums are records now, so the
+notification stream stops serialising a notification per event. Their twins stay — Android stores
+the list item through a converter and iOS as JSON text — and `CoreListItemIcon` is the data-carrying
+enum the new emission was written for. The stream envelopes went a different way: the app is a pipe
+there — it hands Core the socket text and puts Core's text on the socket — so `StreamEvent` and
+`StreamMessage` are `String` in the two signatures and Core parses and serialises them itself. That
+deleted every twin behind them (the six stream payloads, the price payload and the support stream
+event), the Kotlin tagged-bridge file the generator only wrote for them, and the two app tests that
+were exercising the twin's own coding. A type the apps never look inside does not need a model on
+either side; it needs the wire text and one owner of the format. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper
@@ -556,8 +596,7 @@ remaining generator work, not app work. The generator is one table-driven
   which find the Hyperliquid account on the session wallet (the app-side `hyperliquidAccount`
   rule and the observer's `update(wallet)` are gone from both apps; `sync_positions(wallet_id,
   chain, address)` and `account_mode` are Core-internal, used by the socket connection). The
-  batch is done; what remains on Android is the welcome-banner key, reading the session for a
-  wallet id Core could hand out. `GemBalanceService`,
+  batch is done. `GemBalanceService`,
   `GemSwapService` and the socket-driven `GemPerpetualService::{connection, sync_positions,
   apply_socket_message}` stay explicit underneath: the app-start and observer flows call them
   for the wallet whose socket they hold. Keep an explicit
