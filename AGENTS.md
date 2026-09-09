@@ -39,7 +39,6 @@ If a task spans platforms, read every affected guide. Generation and parity requ
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
 - [Architecture](docs/ARCHITECTURE.md) — Current ownership contracts and a task-based index of implementation examples
-- [Decision Records](docs/DECISIONS.md) — repo-wide architectural choices and their rationale
 - [Services](docs/SERVICES.md) — how a Gemstone service is built and the remaining migration work
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
 - [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
