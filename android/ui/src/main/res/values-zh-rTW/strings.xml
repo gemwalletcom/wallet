@@ -105,7 +105,7 @@
   <string name="wallets_title">錢包</string>
   <string name="wallets_watch">觀察</string>
   <string name="receive_title">接收%1$s</string>
-  <string name="receive_warning">請僅向此地址傳送 %2$@ 網路上的 %1$@。</string>
+  <string name="receive_warning">請僅向此地址傳送 %2$s 網路上的 %1$s。</string>
   <string name="buy_title">購買%1$s</string>
   <string name="buy_providers_title">服務商</string>
   <string name="buy_rate">匯率</string>
