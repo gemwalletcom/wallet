@@ -22,7 +22,7 @@ class TransactionsQueryBuilderTest {
         assertTrue(query.sql.trimStart().startsWith("SELECT"))
         assertTrue(query.sql.contains("FROM transactions as tx"))
         assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC LIMIT ?"))
-        assertEquals(listOf<Any>(walletId.id, 250), query.args)
+        assertEquals(listOf<Any>(walletId.id, 1000), query.args)
     }
 
     @Test

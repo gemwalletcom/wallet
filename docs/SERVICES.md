@@ -402,7 +402,7 @@ intentional one-sided integration surfaces.
   are gone too: the scene walks Core's sections and asks `value(row)` for the payload, so the sealed
   `TransactionDetailsValue` is what a row renders, not a second list of what rows exist. An app keeps
   a payload type per row; it does not keep a kind.
-- **The activity list is bounded, and Core says where.** `transactions_list_limit()` is 250; both
+- **The activity list is bounded, and Core says where.** `transactions_list_limit()` is 1000; both
   list queries apply it (`buildExtendedTransactionsSql` on Android, `TransactionsRequest.limit` on
   iOS, which the scene inputs pass because `Store` cannot import Gemstone). The count query and the
   pending-transaction tracking read stay unbounded — one is a number, the other is what still has
