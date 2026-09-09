@@ -84,7 +84,7 @@ pub mod asset_id;
 pub use self::asset_id::{AssetId, AssetIdVecExt, CHAIN_SEPARATOR, TOKEN_ID_SEPARATOR};
 pub use crate::asset::AssetHashSetExt;
 pub mod asset_score;
-pub use self::asset_score::AssetScore;
+pub use self::asset_score::{AssetRank, AssetScore};
 pub mod asset_type;
 pub use self::asset_type::{AssetSubtype, AssetType};
 pub mod asset_price;
@@ -231,7 +231,7 @@ pub use self::nft::{NFTAsset, NFTAssetData, NFTAssetId, NFTAttribute, NFTAttribu
 pub mod price_alert;
 pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertDirection, PriceAlertNotificationType, PriceAlertType, PriceAlerts};
 pub mod rewards;
-pub use self::rewards::{ReferralCode, ReferralLeader, ReferralLeaderboard, RewardEvent, RewardEventType, RewardLevel, RewardStatus, Rewards};
+pub use self::rewards::{RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards};
 pub mod tag;
 pub use self::tag::AssetTag;
 pub mod chain_cosmos;
@@ -362,6 +362,8 @@ pub use self::secure_preferences::{InMemoryPreferences, Preferences, Preferences
 
 pub mod signer_error;
 pub use self::signer_error::SignerError;
+pub mod domain;
+
 pub mod date_ext;
 pub use self::date_ext::{DurationExt, NaiveDateTimeExt, now};
 pub mod number_incrementer;

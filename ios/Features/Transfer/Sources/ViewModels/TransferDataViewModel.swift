@@ -63,11 +63,11 @@ struct TransferDataViewModel {
             case .activate: Localized.Transfer.ActivateAsset.title
             }
         case let .perpetual(_, type):
-            switch Primitives.PerpetualType(core: type) {
-            case let .open(data): PerpetualDirectionViewModel(direction: data.direction).title
+            switch type {
+            case let .open(data): PerpetualDirectionViewModel(direction: data.direction.map()).title
             case .close: Localized.Perpetual.closePosition
-            case let .increase(data): PerpetualDirectionViewModel(direction: data.direction).increaseTitle
-            case let .reduce(data): PerpetualDirectionViewModel(direction: data.positionDirection).reduceTitle
+            case let .increase(data): PerpetualDirectionViewModel(direction: data.direction.map()).increaseTitle
+            case let .reduce(data): PerpetualDirectionViewModel(direction: data.positionDirection.map()).reduceTitle
             case .modify: Localized.Perpetual.modifyPosition
             }
         case let .earn(_, type, _):

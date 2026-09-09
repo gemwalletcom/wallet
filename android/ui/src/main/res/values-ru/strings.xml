@@ -9,6 +9,7 @@
   <string name="common_copy">Копировать</string>
   <string name="common_share">Поделиться</string>
   <string name="common_continue">Продолжить</string>
+  <string name="common_sign_in_with">Войти через %1$s</string>
   <string name="common_provider">Провайдер</string>
   <string name="common_loading">Загрузка</string>
   <string name="common_address">Адрес</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Заработать</string>
   <string name="common_method">Метод</string>
   <string name="common_token">Токен</string>
+  <string name="common_expiration">Срок действия</string>
   <string name="common_suspicious_address">Подозрительный адрес</string>
   <string name="common_refresh">Обновить</string>
   <string name="common_no_thanks">Нет, спасибо</string>

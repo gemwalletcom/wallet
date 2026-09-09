@@ -4,6 +4,7 @@ import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PerpetualType
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
@@ -35,6 +36,7 @@ import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
+import uniffi.gemstone.perpetualDetails
 import uniffi.gemstone.swapQuoteSummary
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.FeeSelection
@@ -57,7 +59,6 @@ import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -367,8 +368,10 @@ class ConfirmViewModel @Inject constructor(
         perpetualType: PerpetualType?,
     ): ConfirmDetailElement? = when (val type = perpetualType) {
         null -> null
-        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.content, confirmService)
-        else -> PerpetualConfirmDetailsUIModelFactory.create(type)?.let(ConfirmDetailElement::PerpetualDetails)
+        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.data, confirmService)
+        else -> perpetualDetails(type)
+            ?.let(PerpetualConfirmDetailsUIModelFactory::create)
+            ?.let(ConfirmDetailElement::PerpetualDetails)
     }
 
     private fun buildSwapDetailElement(
@@ -410,6 +413,8 @@ class ConfirmViewModel @Inject constructor(
     }
 
     fun acquireFlow(asset: Asset): GemAcquireAssetFlow = confirmService.acquireAssetFlow(asset.chain.string)
+
+    fun networkFeeBuyAmount(): Int = confirmService.insufficientNetworkFeeBuyAmount()
 
     private fun ConfirmState.phase(content: ConfirmContent?): GemConfirmPhase = when (this) {
         ConfirmState.Prepare -> GemConfirmPhase.LOADING

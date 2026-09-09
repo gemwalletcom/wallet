@@ -136,7 +136,7 @@ public extension DelegationSceneViewModel {
         case .stake:
             onAmountInputAction?(amountInput(.stake(.stake(validators: validators.map { $0.map() }, delegation: model.delegation.map()))))
         case .unstake:
-            if stakeChain.canChangeAmountOnUnstake {
+            if service.canChangeAmountOnUnstake(chain: asset.chain.rawValue) {
                 onAmountInputAction?(amountInput(.stake(.unstake(delegation: model.delegation.map()))))
             } else {
                 onTransferAction?(stakeTransferData(.unstake(model.delegation)))
@@ -184,7 +184,4 @@ extension DelegationSceneViewModel {
         model.delegation.validator.providerType
     }
 
-    private var stakeChain: StakeChain {
-        StakeChain(rawValue: asset.chain.rawValue)!
-    }
 }

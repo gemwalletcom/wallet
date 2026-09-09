@@ -100,7 +100,6 @@ pub struct AssetPricesRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Charts {
     pub price: Option<Price>,

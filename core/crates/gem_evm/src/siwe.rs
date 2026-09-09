@@ -1,9 +1,9 @@
 use alloy_primitives::Address;
 use chrono::DateTime;
-use primitives::{Chain, ChainType};
+use primitives::{Chain, ChainType, domain::parse_domain};
 use url::Url;
 
-use crate::domain::{extract_host, parse_url};
+use crate::domain::host_with_port;
 
 const PREAMBLE_SUFFIX: &str = " wants you to sign in with your Ethereum account:";
 const URI_PREFIX: &str = "URI:";
@@ -30,7 +30,7 @@ impl SiweMessage {
         let lines: Vec<_> = raw.lines().collect();
 
         let domain = lines.first()?.trim().strip_suffix(PREAMBLE_SUFFIX)?.trim();
-        let domain = extract_host(domain)?;
+        let domain = host_with_port(domain)?;
 
         let address = lines.get(1)?.trim().parse::<Address>().ok()?.to_checksum(None);
 
@@ -74,7 +74,7 @@ impl SiweMessage {
         DateTime::parse_from_rfc3339(&self.issued_at).map_err(|_| "Invalid timestamp".to_string())?;
 
         let uri = Url::parse(&self.uri).map_err(|_| "Invalid URI".to_string())?;
-        let domain_url = parse_url(&self.domain).ok_or("Invalid domain".to_string())?;
+        let domain_url = parse_domain(&self.domain).ok_or("Invalid domain".to_string())?;
 
         let uri_host = uri.host_str().ok_or("Invalid URI host".to_string())?;
         let domain_host = domain_url.host_str().ok_or("Invalid domain host".to_string())?;
@@ -100,6 +100,7 @@ impl SiweMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::siwe_mock::mock_siwe_message;
 
     fn sample_message() -> String {
         [
@@ -183,6 +184,28 @@ mod tests {
         let siwe = SiweMessage::try_parse(&tampered).unwrap();
         let err = siwe.validate(Chain::Ethereum).unwrap_err();
         assert!(err.contains("mismatch"));
+    }
+
+    #[test]
+    fn test_validate_invalid_domain() {
+        let message = SiweMessage::try_parse(&mock_siwe_message("example.com", 1)).unwrap();
+        for domain in [
+            "example.com/path",
+            "user@example.com",
+            "example.com?query",
+            "example.com#fragment",
+            "example.com\\path",
+            " example.com",
+        ] {
+            assert_eq!(
+                SiweMessage {
+                    domain: domain.to_string(),
+                    ..message.clone()
+                }
+                .validate(Chain::Ethereum),
+                Err("Invalid domain".to_string()),
+            );
+        }
     }
 
     #[test]

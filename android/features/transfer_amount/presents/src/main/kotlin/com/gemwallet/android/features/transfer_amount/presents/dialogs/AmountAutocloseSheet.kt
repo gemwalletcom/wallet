@@ -38,7 +38,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
-import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
 
 @Composable

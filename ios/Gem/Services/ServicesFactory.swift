@@ -76,7 +76,7 @@ struct ServicesFactory {
         let walletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemstoneWalletStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService, session: walletSessionService)
         let scanConfiguration = URLSessionConfiguration.default
-        scanConfiguration.timeoutIntervalForRequest = TimeInterval(Config().getScanConfig().timeoutSeconds)
+        scanConfiguration.timeoutIntervalForRequest = Config().scanTimeout()
         let scanService = Gemstone.GemScanService(
             api: Self.makeDeviceApiClient(
                 provider: NativeProvider(session: URLSession(configuration: scanConfiguration)),
@@ -86,7 +86,7 @@ struct ServicesFactory {
         let paymentService = Gemstone.GemPaymentService(provider: nativeProvider)
         let transactionSimulationService = GemSimulationService(provider: nativeProvider)
         let serviceStatusConfiguration = URLSessionConfiguration.default
-        serviceStatusConfiguration.timeoutIntervalForRequest = TimeInterval(serviceStatusTimeoutSeconds())
+        serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
         let serviceStatusService = Gemstone.GemServiceStatus(
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration)),
         )
@@ -223,6 +223,7 @@ struct ServicesFactory {
             interactor: walletConnectorInteractor,
             transactionSimulationService: transactionSimulationService,
             walletSessionService: walletSessionService,
+            assetsService: assetsService,
             chainService: chainService,
         )
 
@@ -455,6 +456,7 @@ extension ServicesFactory {
         interactor: WalletConnectorInteractor,
         transactionSimulationService: GemSimulationService,
         walletSessionService: GemWalletSessionService,
+        assetsService: GemAssetsService,
         chainService: Gemstone.GemChainService,
     ) -> WalletConnectorService {
         WalletConnectorService(
@@ -465,6 +467,7 @@ extension ServicesFactory {
                 store: GemstoneConnectionStore(store: connectionsStore),
                 signer: interactor,
                 session: walletSessionService,
+                assets: assetsService,
             ),
             chainService: chainService,
         )

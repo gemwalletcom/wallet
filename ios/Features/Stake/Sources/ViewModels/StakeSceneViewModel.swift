@@ -110,7 +110,7 @@ public final class StakeSceneViewModel {
 
     var lockTimeField: ListItemField {
         let now = Date.now
-        let date = now.addingTimeInterval(chain.lockTime)
+        let date = now.addingTimeInterval(TimeInterval(service.lockTimeSeconds(chain: chain.chain.rawValue)))
         let value = Self.lockTimeFormatter.string(from: now, to: date) ?? .empty
         return ListItemField(title: Localized.Stake.lockTime, value: value)
     }
@@ -124,8 +124,9 @@ public final class StakeSceneViewModel {
     }
 
     var minAmountField: ListItemField? {
-        guard chain.minAmount != 0 else { return .none }
-        let value = formatter.string(chain.minAmount, decimals: Int(asset.decimals), currency: asset.symbol)
+        let minAmount = service.minStakeAmount(chain: chain.chain.rawValue)
+        guard minAmount != 0 else { return .none }
+        let value = formatter.string(minAmount, decimals: Int(asset.decimals), currency: asset.symbol)
         return ListItemField(title: Localized.Stake.minimumAmount, value: value)
     }
 
@@ -209,7 +210,7 @@ public final class StakeSceneViewModel {
     }
 
     var showTronResources: Bool {
-        balanceModel.hasStakingResources
+        service.usesFreeze(chain: chain.chain.rawValue)
     }
 }
 

@@ -8,13 +8,12 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.referral.values.ReferralError
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.RewardRedemptionOption
-import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemRewardsServiceInterface
+import uniffi.gemstone.RewardRedemptionOption
+import uniffi.gemstone.Rewards
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,7 +45,7 @@ class ReferralViewModel @Inject constructor(
     val rewards = MutableStateFlow<Rewards?>(null)
     val inSync = MutableStateFlow(SyncType.Init)
 
-    val uiState = rewards.mapLatest { service.state(it?.toJson()) }
+    val uiState = rewards.mapLatest { service.state(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, service.state(null))
 
     val referralLink = rewards.mapLatest { it?.code?.let(service::referralLink) }
@@ -83,9 +82,7 @@ class ReferralViewModel @Inject constructor(
     private fun sync(wallet: Wallet, type: SyncType) = viewModelScope.launch(Dispatchers.IO) {
         inSync.update { type }
         val rewards = try {
-            service.getRewards(wallet.id.id).decodeJson<Rewards>()
-        } catch (_: Exception) {
-            null
+            runCatchingCancellable { service.getRewards(wallet.id.id) }.getOrNull()
         } finally {
             inSync.update { SyncType.None }
         }
@@ -95,7 +92,7 @@ class ReferralViewModel @Inject constructor(
     fun createReferral(username: String, callback: (Exception?) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         val rewards = try {
             val wallet = currentWallet.value ?: return@launch
-            val response = service.createReferral(wallet.toGem(), username).decodeJson<Rewards>()
+            val response = service.createReferral(wallet.toGem(), username)
             withContext(Dispatchers.Main) {
                 callback(null)
             }

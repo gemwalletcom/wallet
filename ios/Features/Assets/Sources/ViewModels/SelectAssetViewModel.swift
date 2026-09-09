@@ -15,6 +15,7 @@ import Recents
 import Store
 import Style
 import SwiftUI
+import class Gemstone.GemPerpetual
 
 @Observable
 @MainActor
@@ -218,7 +219,7 @@ extension SelectAssetViewModel {
     func displayAssetData(_ assetData: AssetData) -> AssetData {
         guard flow.depositAssetDisplay else { return assetData }
         return AssetData(
-            asset: PerpetualConfig.depositAsset,
+            asset: GemPerpetual(provider: .hypercore).depositAsset().map(),
             balance: assetData.balance,
             account: assetData.account,
             price: assetData.price,
@@ -277,7 +278,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await service.searchAssets(query: query).map { try AssetBasic($0) }
+            let assets = try await service.searchAssets(query: query).map { $0.map() }
             state = .data(assets)
         } catch {
             handle(error: error)

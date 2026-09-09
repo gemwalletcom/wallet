@@ -5,12 +5,13 @@ use gem_hypercore::{
     perpetual_formatter::PerpetualFormatter,
     provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},
 };
+use primitives::known_assets::ARBITRUM_USDC;
 use primitives::{
-    AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualProvider,
-    PerpetualType, TpslType,
+    Asset, AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection,
+    PerpetualProvider, PerpetualType, TpslType,
 };
 
-use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
+use crate::config::perpetual_config::{HYPERLIQUID_DEPOSIT_ADDRESS, LEVERAGE_OPTIONS, STOP_LOSS_PERCENT_OPTIONS, TAKE_PROFIT_PERCENT_OPTIONS, leverage_options};
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
@@ -41,6 +42,27 @@ impl GemPerpetual {
 
     pub fn funding_apr(&self, funding: f64) -> f64 {
         perpetual_rules::funding_apr(funding)
+    }
+
+    pub fn deposit_asset(&self) -> Asset {
+        match self.provider {
+            PerpetualProvider::Hypercore => ARBITRUM_USDC.clone(),
+        }
+    }
+
+    pub fn leverage_options(&self, max_leverage: Option<u8>) -> Vec<u8> {
+        match max_leverage {
+            Some(max_leverage) => leverage_options(max_leverage),
+            None => LEVERAGE_OPTIONS.to_vec(),
+        }
+    }
+
+    pub fn take_profit_options(&self) -> Vec<u8> {
+        TAKE_PROFIT_PERCENT_OPTIONS.to_vec()
+    }
+
+    pub fn stop_loss_options(&self) -> Vec<u8> {
+        STOP_LOSS_PERCENT_OPTIONS.to_vec()
     }
 
     pub fn recipient(&self) -> GemRecipient {

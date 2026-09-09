@@ -64,8 +64,8 @@ impl GemRecipientService {
 impl GemRecipientService {
     fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {
         Ok(match self.payments.decode_url(url)? {
-            GemPayment::Request(request) => self.payments.transfer_destination(request, asset),
-            GemPayment::Link(_) => GemPaymentDestination::Unsupported,
+            GemPayment::Request { request } => self.payments.transfer_destination(request, asset),
+            GemPayment::Link { link: _ } => GemPaymentDestination::Unsupported,
         })
     }
 }

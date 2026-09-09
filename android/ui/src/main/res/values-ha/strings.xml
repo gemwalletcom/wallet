@@ -9,6 +9,7 @@
   <string name="common_copy">Kwafi</string>
   <string name="common_share">Raba</string>
   <string name="common_continue">Ci gaba</string>
+  <string name="common_sign_in_with">Shiga da %1$s</string>
   <string name="common_provider">Mai bayarwa</string>
   <string name="common_loading">Ana lodawa</string>
   <string name="common_address">Adireshi</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Sami</string>
   <string name="common_method">Hanyar</string>
   <string name="common_token">Alamar Token</string>
+  <string name="common_expiration">Ƙarewa</string>
   <string name="common_suspicious_address">Adireshin da ake zargi</string>
   <string name="common_refresh">Sabuntawa</string>
   <string name="common_no_thanks">A\'a na gode</string>

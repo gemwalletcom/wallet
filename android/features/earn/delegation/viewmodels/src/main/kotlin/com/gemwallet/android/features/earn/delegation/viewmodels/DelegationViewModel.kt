@@ -11,7 +11,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.changeAmountOnUnstake
 import com.gemwallet.android.model.AmountParams
 import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
@@ -122,7 +121,7 @@ class DelegationViewModel @Inject constructor(
     fun onUnstake(amountCall: AmountTransactionAction, confirmCall: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
-        if (assetInfo.chain.changeAmountOnUnstake) {
+        if (stakeService.canChangeAmountOnUnstake(assetInfo.chain.string)) {
             buildUndelegate()?.let { amountCall(it) }
             return
         }

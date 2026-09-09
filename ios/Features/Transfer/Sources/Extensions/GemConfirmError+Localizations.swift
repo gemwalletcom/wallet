@@ -17,7 +17,9 @@ extension GemConfirmError: @retroactive LocalizedError {
         case let .ScanMemoRequired(symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
         case .FeeRatesMissing: Localized.Errors.unableEstimateNetworkFee
         case .Cancelled: Localized.Errors.cancelled
-        case .AccountMissing, .BalanceMissing, .SenderMismatch: Localized.Errors.unknown
+        case .BalanceMissing: String(describing: self)
+        case .AccountMissing: Localized.Errors.walletAccountMissing
+        case .SenderMismatch: Localized.Errors.unknown
         case let .InsufficientBalance(asset, requirement):
             Localized.Info.balanceRequiredDescription(
                 Self.amount(requirement.required, asset: asset).boldMarkdown(),

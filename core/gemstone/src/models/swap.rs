@@ -45,7 +45,7 @@ impl GemSwapValue {
     }
 }
 
-pub fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
+fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
     if pay_fiat_value <= 0.0 || receive_fiat_value <= 0.0 || !pay_fiat_value.is_finite() || !receive_fiat_value.is_finite() {
         return None;
     }

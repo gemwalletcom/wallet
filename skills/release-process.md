@@ -27,6 +27,7 @@ The repo follows a GitFlow-like release model:
 ## Commits
 
 - Run the relevant tests, linters, and formatters before committing
+- Stage only task-owned paths or hunks and inspect the staged diff; preserve pre-existing staged changes. Do not use `git add -A` in a shared checkout
 - Write concise commit messages that explain the reason for the change, not just the file edits
 - Do not add agent attribution trailers, `Co-Authored-By` lines, or session links to commits or PR descriptions. Match the repository style: a short imperative subject, optionally followed by a numbered list of the changes
 - For a cross-stack feature, keep dependency-ordered commits that each build on their own (Core, then the Core provider or swap layer, then apps). Do not squash or re-split them without asking; that shape is what makes review and bisect work

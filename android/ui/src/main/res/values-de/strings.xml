@@ -9,6 +9,7 @@
   <string name="common_copy">Kopieren</string>
   <string name="common_share">Teilen</string>
   <string name="common_continue">Weiter</string>
+  <string name="common_sign_in_with">Mit %1$s anmelden</string>
   <string name="common_provider">Anbieter</string>
   <string name="common_loading">Wird geladen</string>
   <string name="common_address">Adresse</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Verdienen</string>
   <string name="common_method">Methode</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Ablauf</string>
   <string name="common_suspicious_address">Verdächtige Adresse</string>
   <string name="common_refresh">Aktualisieren</string>
   <string name="common_no_thanks">Nein danke</string>

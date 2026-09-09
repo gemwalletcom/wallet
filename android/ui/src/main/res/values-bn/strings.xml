@@ -9,6 +9,7 @@
   <string name="common_copy">কপি</string>
   <string name="common_share">শেয়ার করুন</string>
   <string name="common_continue">চালিয়ে যান</string>
+  <string name="common_sign_in_with">%1$s দিয়ে সাইন ইন করুন</string>
   <string name="common_provider">প্রদানকারী</string>
   <string name="common_loading">লোড হচ্ছে</string>
   <string name="common_address">ঠিকানা</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">আয় করুন</string>
   <string name="common_method">পদ্ধতি</string>
   <string name="common_token">টোকেন</string>
+  <string name="common_expiration">মেয়াদ শেষ</string>
   <string name="common_suspicious_address">সন্দেহজনক ঠিকানা</string>
   <string name="common_refresh">রিফ্রেশ</string>
   <string name="common_no_thanks">না ধন্যবাদ</string>

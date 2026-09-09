@@ -29,7 +29,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.title
-import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.ext.networkName
@@ -63,12 +62,13 @@ import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
-import com.wallet.core.primitives.PerpetualType
+import uniffi.gemstone.PerpetualType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -96,6 +96,8 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
 import uniffi.gemstone.SimulationResult
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.PerpetualProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,7 +172,7 @@ fun ConfirmScreen(
         ) {
             item {
                 when {
-                    isPayment && simulation.headerAsset == null && state is ConfirmState.Prepare -> Box(
+                    isPayment && simulation.header == null && state is ConfirmState.Prepare -> Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0f)
@@ -178,16 +180,7 @@ fun ConfirmScreen(
                     ) {
                         AmountListHead(amount = "", icon = input.asset)
                     }
-                    simulation.headerAsset != null -> {
-                        val asset = requireNotNull(simulation.headerAsset)
-                        val title = if (simulation.headerIsUnlimited) {
-                            stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
-                        } else {
-                            simulation.headerValue
-                                ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: asset.symbol
-                        }
-                        AmountListHead(amount = title, icon = asset)
-                    }
+                    simulation.header != null -> AssetValueListHead(requireNotNull(simulation.header))
                     amountModel?.headerKind is GemTransactionHeaderKind.Swap -> {
                         val model = requireNotNull(amountModel)
                         SwapListHead(
@@ -213,7 +206,7 @@ fun ConfirmScreen(
                         amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
                         icon = if (input?.inputType is TransactionInputType.Withdrawal) {
-                            PerpetualConfig.depositAsset
+                            GemPerpetual(PerpetualProvider.HYPERCORE).use { it.depositAsset() }.toPrimitives()
                         } else {
                             amountModel?.asset
                         },
@@ -299,6 +292,7 @@ fun ConfirmScreen(
                     onDismissBottomSheetInfo = viewModel::dismissNetworkFeeSheet,
                     assetPrice = assetPrice,
                     acquireFlow = viewModel::acquireFlow,
+                    networkFeeBuyAmount = viewModel.networkFeeBuyAmount(),
                     onAcquireAsset = onAcquireAsset,
                 )
             }

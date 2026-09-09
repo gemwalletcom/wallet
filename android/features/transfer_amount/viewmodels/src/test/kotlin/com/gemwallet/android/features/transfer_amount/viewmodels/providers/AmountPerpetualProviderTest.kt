@@ -10,6 +10,7 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
+import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
@@ -31,7 +32,6 @@ import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemPerpetualAutoclose
-import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProviderTest {
@@ -59,7 +59,7 @@ class AmountPerpetualProviderTest {
     @Test
     fun `showsAutoclose is true for Open and false for Reduce`() {
         assertTrue(makeProvider().showsAutoclose)
-        val reduce = makeProvider(positionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(direction = PerpetualDirection.Long), BigInteger.TEN))
+        val reduce = makeProvider(positionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(direction = PerpetualDirection.Long), mockPerpetualPosition().toGem()))
         assertFalse(reduce.showsAutoclose)
     }
 

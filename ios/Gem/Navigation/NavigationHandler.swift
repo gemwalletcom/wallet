@@ -6,6 +6,7 @@ import enum Gemstone.Deeplink
 import protocol Gemstone.GemAssetsServiceProtocol
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemPaymentService
+import enum Gemstone.Payment
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
@@ -131,7 +132,7 @@ extension NavigationHandler {
     private func handleURLAction(_ action: UrlAction) async throws {
         switch action {
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
-        case let .payment(payment): try await handlePayment(Payment(payment))
+        case let .payment(payment): try await handlePayment(payment)
         case let .walletConnect(link): await handleWalletConnect(link)
         }
     }
@@ -168,7 +169,7 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handlePayment(_ payment: Payment) async throws {
+    private func handlePayment(_ payment: Gemstone.Payment) async throws {
         guard let wallet = await walletSessionService.currentWallet else { return }
         switch payment {
         case let .request(request):
@@ -176,7 +177,7 @@ extension NavigationHandler {
             presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets, paymentService: paymentService)
         case let .link(link):
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
-            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
+            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address).map() }
             let transaction = try await paymentService.load(link: link, addresses: addresses)
             let asset = try await assetsService.ensureTokenAsset(for: Primitives.AssetId(core: paymentService.transactionAssetId(transaction: transaction)))
             toastPresenter.toastMessage = nil

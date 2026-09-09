@@ -161,15 +161,14 @@ Keystore side:
 
 Source paths:
 
-- [Wallet legacy-id extension](../ios/Packages/GemstonePrimitives/Sources/Extensions/Wallet+GemstonePrimitives.swift)
-- [Local keystore](../ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystore.swift)
+- [Local keystore and Wallet legacy-id extension](../ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystore.swift)
 - [Transaction signer adapter](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift)
 - [Core wallet service](../core/gemstone/src/services/wallet/mod.rs)
-- [GemKeystore extensions](../ios/Packages/GemstonePrimitives/Sources/Extensions/GemKeystore+GemstonePrimitives.swift)
+- [Core GemKeystore API](../core/gemstone/src/keystore/keystore.rs)
 
 Rules:
 
-- `Wallet.keystoreId` is always computed from `wallet.id.id`.
+- `GemKeystore.keystoreId(walletId:)` derives the keystore identifier from `wallet.id.id`.
 - v4 wallets should keep `Wallet.externalId == nil`.
 - `Wallet.externalId` is legacy-only and exposed as `legacyV3Id = externalId ?? id.id`.
 - iOS v3 migration locates the WalletCore file using `legacyV3Id`; v4 files share the same directory but never match its name, suffix, or JSON `id` rules.

@@ -1,3 +1,5 @@
+#![allow(clippy::result_large_err)]
+
 pub mod model;
 pub mod rules;
 
@@ -5,7 +7,10 @@ use std::sync::Arc;
 
 use primitives::{Asset, Chain, Currency, Delegation, PerpetualDirection, StakeType};
 
-pub use model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
+pub use model::{
+    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
+    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+};
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 
@@ -97,6 +102,10 @@ impl GemAmountService {
 
     pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
         transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
+    }
+
+    pub fn uses_whole_amounts(&self, chain: Chain) -> bool {
+        stake_rules::uses_whole_amounts(chain)
     }
 
     pub async fn earn_transfer_data(&self, asset: Asset, earn_type: GemEarnType, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {

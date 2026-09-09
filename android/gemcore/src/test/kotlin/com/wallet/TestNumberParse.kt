@@ -1,5 +1,6 @@
 package com.wallet
 
+import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.math.parseInputNumber
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -48,5 +49,13 @@ class TestNumberParse {
         assertEquals(BigDecimal("730.1234567"), "730.1234567".parseInputNumber())
         assertEquals(BigDecimal("730.1234567"), "730,1234567".parseInputNumber())
         assertEquals(BigDecimal("122726.1234567"), "122 726.1234567".parseInputNumber())
+    }
+
+    @Test
+    fun testPlainInputNumberKeepsUnparsableTextForCore() {
+        assertEquals("1000.5", "1 000,5".plainInputNumber())
+        assertEquals("122726.1234567", "122,726.1234567".plainInputNumber())
+        assertEquals("", "".plainInputNumber())
+        assertEquals("abc", "abc".plainInputNumber())
     }
 }

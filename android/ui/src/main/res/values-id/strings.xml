@@ -9,6 +9,7 @@
   <string name="common_copy">Salin</string>
   <string name="common_share">Bagikan</string>
   <string name="common_continue">Lanjutkan</string>
+  <string name="common_sign_in_with">Masuk dengan %1$s</string>
   <string name="common_provider">Penyedia</string>
   <string name="common_loading">Memuat</string>
   <string name="common_address">Alamat</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Hasilkan</string>
   <string name="common_method">Metode</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Kedaluwarsa</string>
   <string name="common_suspicious_address">Alamat mencurigakan</string>
   <string name="common_refresh">Menyegarkan</string>
   <string name="common_no_thanks">Tidak, terima kasih</string>

@@ -9,6 +9,7 @@
   <string name="common_copy">Kopyala</string>
   <string name="common_share">Paylaş</string>
   <string name="common_continue">Devam et</string>
+  <string name="common_sign_in_with">%1$s ile giriş yap</string>
   <string name="common_provider">Sağlayıcı</string>
   <string name="common_loading">Yükleniyor</string>
   <string name="common_address">Adres</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Kazan</string>
   <string name="common_method">Yöntem</string>
   <string name="common_token">Jeton</string>
+  <string name="common_expiration">Son kullanma</string>
   <string name="common_suspicious_address">Şüpheli adres</string>
   <string name="common_refresh">Yenile</string>
   <string name="common_no_thanks">Hayır, teşekkürler</string>

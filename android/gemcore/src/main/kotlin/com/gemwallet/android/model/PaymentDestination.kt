@@ -6,7 +6,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.PaymentRequest
+import uniffi.gemstone.PaymentRequest
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemPaymentConfirmTransfer
 import uniffi.gemstone.GemPaymentDestination
@@ -28,7 +28,7 @@ sealed interface PaymentDestination {
 
     companion object {
         fun from(request: PaymentRequest, assets: List<AssetInfo>, paymentService: GemPaymentService): PaymentDestination =
-            when (val destination = paymentService.destination(request.toJson(), assets.map { it.toPaymentWalletAsset() })) {
+            when (val destination = paymentService.destination(request, assets.map { it.toPaymentWalletAsset() })) {
                 is GemPaymentDestination.Confirm -> destination.transfer.toTransferData(assets, paymentService)?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> Recipient(destination.assetId.toAssetId()!!, destination.payment)
                 is GemPaymentDestination.SelectAsset -> SelectAsset(

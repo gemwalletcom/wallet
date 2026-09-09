@@ -9,6 +9,7 @@
   <string name="common_copy">Kopyahin</string>
   <string name="common_share">Ibahagi</string>
   <string name="common_continue">Magpatuloy</string>
+  <string name="common_sign_in_with">Mag-sign in gamit ang %1$s</string>
   <string name="common_provider">Provider</string>
   <string name="common_loading">Naglo-load</string>
   <string name="common_address">Address</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Kumita</string>
   <string name="common_method">Paraan</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Pag-expire</string>
   <string name="common_suspicious_address">Kahina-hinalang address</string>
   <string name="common_refresh">I-refresh</string>
   <string name="common_no_thanks">Hindi salamat</string>

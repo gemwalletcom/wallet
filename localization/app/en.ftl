@@ -20,6 +20,7 @@ common_copy = Copy
 common_share = Share
 # Used in shared app UI for the continue label.
 common_continue = Continue
+common_sign_in_with = Sign In with %@
 # Used in shared app UI for the provider label.
 common_provider = Provider
 # Used in shared app UI for the loading label.
@@ -116,6 +117,8 @@ common_earn = Earn
 common_method = Method
 # Used in shared app UI for the token label.
 common_token = Token
+# Used in shared app UI for the expiration label.
+common_expiration = Expiration
 # Used in shared app UI for the suspicious address label.
 common_suspicious_address = Suspicious address
 # Used in shared app UI for the refresh label.

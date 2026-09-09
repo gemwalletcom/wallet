@@ -9,6 +9,7 @@
   <string name="common_copy">Copiere</string>
   <string name="common_share">Distribuie</string>
   <string name="common_continue">Continuă</string>
+  <string name="common_sign_in_with">Autentificare cu %1$s</string>
   <string name="common_provider">Furnizor</string>
   <string name="common_loading">Încărcare</string>
   <string name="common_address">Adresa</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Câștigă</string>
   <string name="common_method">Metodă</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Expirare</string>
   <string name="common_suspicious_address">Adresă suspectă</string>
   <string name="common_refresh">Reîmprospăta</string>
   <string name="common_no_thanks">Nu, mulțumesc</string>

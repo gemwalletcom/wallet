@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.lockTime
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -51,7 +50,7 @@ import uniffi.gemstone.GemStakeActionItem
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
-import com.gemwallet.android.domains.gemConfig
+import java.math.BigInteger
 
 @Composable
 internal fun StakeScene(
@@ -61,6 +60,8 @@ internal fun StakeScene(
     rewardsText: String,
     delegations: List<Delegation>,
     stakeInfoUrl: String?,
+    lockTimeDays: Int?,
+    minStakeAmount: BigInteger,
     amountAction: AmountTransactionAction,
     onAction: (StakeSceneAction) -> Unit,
 ) {
@@ -91,7 +92,7 @@ internal fun StakeScene(
                     )
                 }
 
-                stakeInfoSection(assetInfo)
+                stakeInfoSection(assetInfo, lockTimeDays, minStakeAmount)
 
                 stakeActions(
                     actions = actions,
@@ -125,25 +126,24 @@ internal fun StakeScene(
 }
 
 private sealed interface StakeInfoRow {
-    data class MinAmount(val value: Long, val chain: Chain) : StakeInfoRow
+    data class MinAmount(val value: BigInteger, val chain: Chain) : StakeInfoRow
     data class Apr(val value: Double, val iconUrl: Any?) : StakeInfoRow
     data class LockTime(val days: Int, val iconUrl: Any?) : StakeInfoRow
 }
 
-private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
-    val minAmountValue = gemConfig.getStakeConfig(assetInfo.asset.chain.string).minAmount.toLong()
+private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo, lockTimeDays: Int?, minStakeAmount: BigInteger) {
     val iconUrl = assetInfo.id().iconModel()
     val rows = listOfNotNull(
         StakeInfoRow.Apr(assetInfo.metadata.stakingApr ?: 0.0, iconUrl),
-        assetInfo.lockTime?.let { StakeInfoRow.LockTime(it, iconUrl) },
-        minAmountValue.takeIf { it > 0 }?.let { StakeInfoRow.MinAmount(it, assetInfo.asset.chain) },
+        lockTimeDays?.let { StakeInfoRow.LockTime(it, iconUrl) },
+        minStakeAmount.takeIf { it > BigInteger.ZERO }?.let { StakeInfoRow.MinAmount(it, assetInfo.asset.chain) },
     )
     itemsPositioned(rows) { position, row ->
         when (row) {
             is StakeInfoRow.MinAmount -> PropertyItem(
                 title = stringResource(id = R.string.stake_minimum_amount, ""),
                 data = ValueFormatter(style = ValueFormatter.Style.Auto)
-                    .string(row.value.toBigInteger(), row.chain.asset()),
+                    .string(row.value, row.chain.asset()),
                 listPosition = position,
             )
             is StakeInfoRow.Apr -> PropertyItem(

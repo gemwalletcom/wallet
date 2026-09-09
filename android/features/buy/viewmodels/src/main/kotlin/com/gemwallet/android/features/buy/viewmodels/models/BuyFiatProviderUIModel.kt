@@ -1,19 +1,21 @@
 package com.gemwallet.android.features.buy.viewmodels.models
 
 import androidx.compose.runtime.Stable
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FiatProvider
-import com.wallet.core.primitives.FiatQuote
-import com.wallet.core.primitives.FiatQuoteType
+import com.wallet.core.primitives.FiatProviderName
 import java.math.BigDecimal
+import uniffi.gemstone.GemFiatQuoteRow
 
 @Stable
 data class BuyFiatProviderUIModel(
-    val provider: FiatProvider,
+    val provider: FiatProviderName,
+    val providerName: String,
+    val providerImageUrl: String?,
     override val asset: Asset,
     override val cryptoAmount: Double,
     val fiatFormatted: String,
@@ -27,24 +29,15 @@ data class BuyFiatProviderUIModel(
     }
 }
 
-fun FiatQuote.toProviderUIModel(
-    asset: Asset,
-    currency: Currency,
-    assetPrice: Double? = null,
-): BuyFiatProviderUIModel {
+fun GemFiatQuoteRow.toProviderUIModel(asset: Asset, currency: Currency): BuyFiatProviderUIModel {
     val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
     return BuyFiatProviderUIModel(
-        provider = provider,
+        provider = provider.toPrimitives(),
+        providerName = providerName,
+        providerImageUrl = providerImageUrl,
         asset = asset,
         cryptoAmount = cryptoAmount,
-        fiatFormatted = formatter.string(displayFiatAmount(assetPrice)),
-        rate = "1 ${asset.symbol} ≈ ${formatter.string(fiatAmount / cryptoAmount)}",
+        fiatFormatted = formatter.string(fiatAmount),
+        rate = rate?.let { "1 ${asset.symbol} ≈ ${formatter.string(it)}" }.orEmpty(),
     )
 }
-
-private fun FiatQuote.displayFiatAmount(assetPrice: Double?): Double = when (type) {
-    FiatQuoteType.Buy -> assetPrice?.takeIf { it > 0.0 }?.let { it * cryptoAmount } ?: fiatAmount
-    FiatQuoteType.Sell -> fiatAmount
-}
-
-

@@ -42,7 +42,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import com.gemwallet.android.ext.secondsToDays
 import uniffi.gemstone.DocsUrl
+import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -71,6 +73,15 @@ class StakeViewModel @Inject constructor(
     val stakeInfoUrl = assetInfo
         .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.string)) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val lockTimeDays = assetInfo
+        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.lockTimeSeconds(chain) } }
+        .mapLatest { seconds -> seconds?.takeIf { it > 0uL }?.let { it.toLong().secondsToDays() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val minStakeAmount = assetInfo
+        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.minStakeAmount(chain) } ?: BigInteger.ZERO }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

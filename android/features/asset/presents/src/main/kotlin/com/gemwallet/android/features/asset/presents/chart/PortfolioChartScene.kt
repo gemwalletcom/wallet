@@ -29,8 +29,8 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.StateViewType
-import com.wallet.core.primitives.PortfolioChartType
 import com.wallet.core.primitives.PortfolioType
+import uniffi.gemstone.PortfolioChartType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,6 +132,6 @@ private fun PortfolioType.titleRes(): Int = when (this) {
 }
 
 private fun PortfolioChartType.titleRes(): Int = when (this) {
-    PortfolioChartType.Value -> R.string.perpetual_value
-    PortfolioChartType.Pnl -> R.string.perpetual_pnl
+    PortfolioChartType.VALUE -> R.string.perpetual_value
+    PortfolioChartType.PNL -> R.string.perpetual_pnl
 }

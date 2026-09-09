@@ -1,0 +1,10 @@
+[package]
+name = "dexscreener"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+primitives = { path = "../primitives" }
+reqwest = { workspace = true }

@@ -57,6 +57,19 @@ pub(crate) fn decode_ethereum_calldata(transaction: &WcEthereumTransactionData) 
 mod tests {
     use super::*;
     #[test]
+    fn test_siws_origin_mismatch_is_a_critical_warning() {
+        let data = bs58::encode(include_str!("../../../crates/gem_solana/testdata/siws_sign_in.txt")).into_string();
+        assert_eq!(
+            sign_message_validation_warnings(Chain::Solana, &WcSignDigestType::Base58, &data, "https://example.com"),
+            vec![]
+        );
+        assert_eq!(
+            sign_message_validation_warnings(Chain::Solana, &WcSignDigestType::Base58, &data, "https://other.xyz"),
+            vec![SimulationWarning::validation_error("SIWS domain does not match session origin")]
+        );
+    }
+
+    #[test]
     fn decode_ethereum_transaction_with_calldata_decodes_bytes() {
         let data = serde_json::json!({
             "from": "0xF977814e90dA44bFA03b6295A0616a897441aceC",

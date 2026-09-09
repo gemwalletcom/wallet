@@ -7,7 +7,6 @@ pub mod node;
 pub mod perpetual_config;
 pub mod public;
 pub mod rewards;
-pub mod scan_config;
 pub mod search_config;
 pub mod social;
 pub mod stake;
@@ -17,17 +16,15 @@ pub mod wallet_connect;
 
 use crate::config::chain::ChainConfig;
 use crate::services::nft::rules::nft_chains;
-use primitives::{Chain, StakeChain, node_config::NodeRegion};
-use std::str::FromStr;
+use primitives::{Chain, node_config::NodeRegion};
+use std::time::Duration;
 
 use {
-    fiat_config::{FiatConfig, get_fiat_config},
-    perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
-    scan_config::{ScanConfig, get_scan_config},
-    stake::{StakeChainConfig, get_stake_config},
     swap_config::{SwapConfig, get_swap_config},
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
 };
+
+const SCAN_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// Config
 #[derive(uniffi::Object)]
@@ -39,29 +36,12 @@ impl Config {
         Self {}
     }
 
-    fn get_stake_config(&self, chain: &str) -> StakeChainConfig {
-        let chain = StakeChain::from_str(chain).unwrap();
-        get_stake_config(chain)
-    }
-
     fn get_swap_config(&self) -> SwapConfig {
         get_swap_config()
     }
 
-    fn get_perpetual_config(&self) -> PerpetualConfig {
-        get_perpetual_config()
-    }
-
-    fn get_fiat_config(&self) -> FiatConfig {
-        get_fiat_config()
-    }
-
-    fn get_scan_config(&self) -> ScanConfig {
-        get_scan_config()
-    }
-
-    fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {
-        leverage_options(max_leverage)
+    fn scan_timeout(&self) -> Duration {
+        SCAN_TIMEOUT
     }
 
     fn get_nft_chains(&self) -> Vec<Chain> {

@@ -32,10 +32,6 @@ impl GemAssetConfigService {
         wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
     }
 
-    pub fn wallet_default_assets(&self, chain: Chain) -> Vec<Asset> {
-        wallet_default_assets(chain)
-    }
-
     pub fn chain_asset(&self, chain: Chain) -> ChainAsset {
         chain_asset_wrapper(chain)
     }

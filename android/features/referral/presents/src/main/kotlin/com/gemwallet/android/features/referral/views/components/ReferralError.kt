@@ -22,8 +22,8 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.tinyIconSize
-import com.wallet.core.primitives.RewardStatus
-import com.wallet.core.primitives.Rewards
+import com.gemwallet.android.features.referral.views.previewRewards
+import uniffi.gemstone.Rewards
 
 internal fun LazyListScope.referralError(rewards: Rewards) {
     val reason = rewards.disableReason ?: return
@@ -56,13 +56,7 @@ private fun ReferralErrorPreview() {
     WalletTheme {
         LazyColumn {
             referralError(
-                Rewards(
-                    referralCount = 0,
-                    points = 0,
-                    status = RewardStatus.Pending,
-                    redemptionOptions = emptyList(),
-                    disableReason = "Account verification required"
-                )
+                previewRewards(disableReason = "Account verification required")
             )
         }
     }

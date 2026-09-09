@@ -1,8 +1,6 @@
 package com.gemwallet.android.domains.asset
 
 import uniffi.gemstone.GemSwapValue
-import android.text.format.DateUtils
-import com.gemwallet.android.ext.millisToSeconds
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.toAssetPriceValue
 import com.gemwallet.android.model.Crypto
@@ -10,7 +8,6 @@ import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
-import com.gemwallet.android.domains.gemConfig
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -28,11 +25,6 @@ val AssetInfo.stakeChain: StakeChain? // TODO: Out to StakeExt
 
 val AssetInfo.chain: Chain
     get() = asset.chain
-
-val AssetInfo.lockTime: Int?  // TODO: Out to StakeExt
-    get() = owner?.chain?.string?.let {
-        (gemConfig.getStakeConfig(it).timeLock.toLong() / DateUtils.DAY_IN_MILLIS.millisToSeconds()).toInt()
-    }
 
 val AssetInfo.availableBalance: String  // TODO: Out to BalanceExt
     get() = Crypto(balance.balance.available)

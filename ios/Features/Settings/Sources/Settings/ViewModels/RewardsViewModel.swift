@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.Rewards
+import struct Gemstone.RewardRedemptionOption
 import protocol Gemstone.GemRewardsServiceProtocol
 import struct Gemstone.GemRewardsState
 import GemstonePrimitives

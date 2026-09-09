@@ -31,29 +31,29 @@ pub fn decode(path: &str) -> Result<Payment> {
     let memo = query::value(&parameters, QUERY_MEMO);
 
     match function {
-        Some(TRANSFER_FUNCTION) => Ok(Payment::Request(PaymentRequest {
+        Some(TRANSFER_FUNCTION) => Ok(Payment::Request { request: PaymentRequest {
             address: query::value(&parameters, QUERY_ADDRESS).ok_or_else(|| PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string()))?,
             amount: query::value(&parameters, QUERY_UINT256)
                 .and_then(|value| amount::atomic(&value))
-                .map(PaymentAmount::AtomicValue),
+                .map(|value| PaymentAmount::AtomicValue { value }),
             memo,
             label: None,
             references: None,
             asset_id: Some(AssetId::from(chain, Some(target.to_string()))),
-        })),
+        } }),
         Some(function) => Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}"))),
         None if target.is_empty() => Err(PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string())),
-        None => Ok(Payment::Request(PaymentRequest {
+        None => Ok(Payment::Request { request: PaymentRequest {
             address: target.to_string(),
             amount: query::value(&parameters, QUERY_VALUE)
                 .and_then(|value| amount::exact_from_atomic(&value, chain))
                 .or_else(|| query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)))
-                .map(PaymentAmount::ExactValue),
+                .map(|value| PaymentAmount::ExactValue { value }),
             memo,
             label: None,
             references: None,
             asset_id: Some(AssetId::from_chain(chain)),
-        })),
+        } }),
     }
 }
 
@@ -79,64 +79,64 @@ mod tests {
     fn test_decode() {
         assert_eq!(
             decode(&format!("{ADDRESS}@1")).unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: ADDRESS.to_string(),
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
         assert_eq!(
             decode(&format!("{ADDRESS}@0x38?amount=1.23")).unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: ADDRESS.to_string(),
-                amount: Some(PaymentAmount::ExactValue("1.23".to_string())),
+                amount: Some(PaymentAmount::ExactValue { value: "1.23".to_string() }),
                 asset_id: Some(AssetId::from_chain(Chain::SmartChain)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
         assert_eq!(
             decode(&format!("{ADDRESS}?value=2.014e18")).unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: ADDRESS.to_string(),
-                amount: Some(PaymentAmount::ExactValue("2.014".to_string())),
+                amount: Some(PaymentAmount::ExactValue { value: "2.014".to_string() }),
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
         assert_eq!(
             decode(&format!("pay-{ADDRESS}?value=1e6")).unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: ADDRESS.to_string(),
-                amount: Some(PaymentAmount::ExactValue("0.000000000001".to_string())),
+                amount: Some(PaymentAmount::ExactValue { value: "0.000000000001".to_string() }),
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
         assert_eq!(
             decode("0x32Be343B94f860124dC4fEe278FDCBD38C102D88?value=10&gas=200000&gasPrice=20000000000").unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: "0x32Be343B94f860124dC4fEe278FDCBD38C102D88".to_string(),
-                amount: Some(PaymentAmount::ExactValue("0.00000000000000001".to_string())),
+                amount: Some(PaymentAmount::ExactValue { value: "0.00000000000000001".to_string() }),
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
 
         assert_eq!(
             decode("my-wallet.eth").unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: "my-wallet.eth".to_string(),
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
         assert_eq!(
             decode("pay-gemwallet.eth@1").unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: "gemwallet.eth".to_string(),
                 asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
     }
 
@@ -144,22 +144,22 @@ mod tests {
     fn test_decode_token_transfer() {
         let token = Some(AssetId::from(Chain::Ethereum, Some(TOKEN.to_string())));
 
-        let one_and_a_half_usdc = Payment::Request(PaymentRequest {
+        let one_and_a_half_usdc = Payment::Request { request: PaymentRequest {
             address: ADDRESS.to_string(),
-            amount: Some(PaymentAmount::AtomicValue(BigUint::from(1_500_000u32))),
+            amount: Some(PaymentAmount::AtomicValue { value: BigUint::from(1_500_000u32) }),
             asset_id: token.clone(),
             ..PaymentRequest::mock()
-        });
+        } };
 
         assert_eq!(decode(&format!("{TOKEN}@1/transfer?address={ADDRESS}&uint256=1500000")).unwrap(), one_and_a_half_usdc);
         assert_eq!(decode(&format!("{TOKEN}@1/transfer?address={ADDRESS}&uint256=1.5e6")).unwrap(), one_and_a_half_usdc);
         assert_eq!(
             decode(&format!("{TOKEN}/transfer?address={ADDRESS}&uint256=1.5")).unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: ADDRESS.to_string(),
                 asset_id: token,
                 ..PaymentRequest::mock()
-            })
+            } }
         );
     }
 

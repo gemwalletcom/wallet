@@ -1,0 +1,11 @@
+[
+  {
+    "chainId": "solana",
+    "baseToken": {
+      "address": "Token"
+    },
+    "info": {
+      "imageUrl": "https://example.com/token.png"
+    }
+  }
+]

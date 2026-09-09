@@ -9,6 +9,7 @@
   <string name="common_copy">複製</string>
   <string name="common_share">分享</string>
   <string name="common_continue">繼續</string>
+  <string name="common_sign_in_with">使用%1$s登入</string>
   <string name="common_provider">供應商</string>
   <string name="common_loading">載入中</string>
   <string name="common_address">地址</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">賺取</string>
   <string name="common_method">方法</string>
   <string name="common_token">代幣</string>
+  <string name="common_expiration">有效期限</string>
   <string name="common_suspicious_address">可疑地址</string>
   <string name="common_refresh">重新整理</string>
   <string name="common_no_thanks">不用，謝謝</string>

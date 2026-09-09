@@ -35,7 +35,7 @@ android/
 
 ## Build Flavors
 
-Product flavors are distribution channels: `google` (default), `universal`, `huawei`, `solana`, `samsung`, `emerald`, and `fdroid`. All of them are declared in one matrix, `gradle/channels.gradle.kts`; select one with `-Pchannel=<name>`. See the decision record in `../docs/DECISIONS.md` before changing channel wiring.
+Product flavors are distribution channels: `google` (default), `universal`, `huawei`, `solana`, `samsung`, `emerald`, and `fdroid`. All of them are declared in one matrix, `gradle/channels.gradle.kts`; select one with `-Pchannel=<name>`. See `../docs/ARCHITECTURE.md` § 14 before changing channel wiring.
 
 ## Key Dependencies
 

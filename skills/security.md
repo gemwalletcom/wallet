@@ -2,9 +2,9 @@
 
 Gem Wallet is a crypto wallet. Security-sensitive changes require extra scrutiny even when the code change looks small.
 
-## Pause Before Editing These Areas
+## Establish Security Invariants Before Editing
 
-Before editing any of the following, confirm the task explicitly intends to change security behavior. If it does not, the change is probably wrong — stop and ask. Re-read this file in full before continuing.
+Before editing these areas, identify the security invariants and confirm the change is within the requested task. Proceed with authorized work that preserves them. Ask only when a necessary security behavior change is outside scope or the task leaves that decision unresolved.
 
 - Seed phrases, private keys, backup material, wallet import and export
 - Transaction construction, signing, simulation, and submission
@@ -47,7 +47,7 @@ For deeper security review, an agent may load external security skill packs when
 - [Trail of Bits Skills](https://github.com/trailofbits/skills): security research, vulnerability detection, audit workflows, static analysis, supply-chain review, constant-time analysis, zeroization audit, and related skills.
 - [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector): scanner for AI agent skills that can help detect malicious patterns, unsafe instructions, and security risks in skill definitions.
 
-Use external skills when the change touches wallet-critical flows, cryptography, signing, dependency or supply-chain risk, untrusted input handling, CI automation, or agent skill definitions. Do not install or run external tools in a way that uploads secrets, private code, wallet data, signing payloads, or credentials without explicit approval.
+Consider relevant available external skills for deeper review of these areas. Loading a skill does not expand the task into a repository-wide audit. Do not install or run external tools in a way that uploads secrets, private code, wallet data, signing payloads, or credentials without explicit approval.
 
 ## Review Checklist
 

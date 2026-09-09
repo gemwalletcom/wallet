@@ -1,6 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import func Gemstone.perpetualDetails
+import struct Gemstone.PerpetualConfirmData
+import enum Gemstone.PerpetualDirection
+import struct Gemstone.PerpetualReduceData
+import enum Gemstone.PerpetualType
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -66,16 +72,28 @@ struct PerpetualDetailsViewModelTests {
 }
 
 extension PerpetualDetailsViewModel {
-    static func mock(_ type: PerpetualDetailsType) -> PerpetualDetailsViewModel {
-        PerpetualDetailsViewModel(type: type)
+    static func mock(_ type: PerpetualType) -> PerpetualDetailsViewModel {
+        PerpetualDetailsViewModel(details: perpetualDetails(perpetualType: type)!)
     }
 }
 
-extension PerpetualDetailsType {
+extension PerpetualType {
+    static func open(_ data: PerpetualConfirmData = .mock()) -> PerpetualType {
+        .open(data: data)
+    }
+
+    static func close(_ data: PerpetualConfirmData = .mock()) -> PerpetualType {
+        .close(data: data)
+    }
+
+    static func increase(_ data: PerpetualConfirmData = .mock()) -> PerpetualType {
+        .increase(data: data)
+    }
+
     static func reduce(
         _ data: PerpetualConfirmData = .mock(),
         positionDirection: PerpetualDirection = .long,
-    ) -> PerpetualDetailsType {
-        .reduce(PerpetualReduceData(data: data, positionDirection: positionDirection))
+    ) -> PerpetualType {
+        .reduce(data: PerpetualReduceData(data: data, positionDirection: positionDirection))
     }
 }

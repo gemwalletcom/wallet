@@ -49,7 +49,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FiatProvider
+import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatQuotePhase
@@ -69,7 +69,7 @@ fun BuyScene(
     titleContent: @Composable () -> Unit,
     onLotSelect: (FiatSuggestion) -> Unit,
     onAmount: (String) -> Unit,
-    onProviderSelect: (FiatProvider) -> Unit,
+    onProviderSelect: (FiatProviderName) -> Unit,
     onRetry: () -> Unit,
     onFiatTransactions: () -> Unit,
     onBuy: () -> Unit
@@ -167,7 +167,7 @@ fun BuyScene(
                     title = { PropertyTitleText(R.string.common_provider) },
                     data = {
                         PropertyDataText(
-                            selectedProvider.provider.name,
+                            selectedProvider.providerName,
                             badge = {
                                 DataBadgeChevron(isShowChevron = uiState.canSelectProvider) {
                                     AsyncImage(

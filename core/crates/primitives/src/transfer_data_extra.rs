@@ -1,10 +1,9 @@
 use num_bigint::BigInt;
-use serde::{Deserialize, Serialize};
 
 use crate::swap::ApprovalData;
 use crate::{GasPriceType, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransferDataExtra {
     pub to: String,
     pub gas_limit: Option<BigInt>,

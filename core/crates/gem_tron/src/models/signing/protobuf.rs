@@ -170,6 +170,25 @@ proto_encode!(UnfreezeBalanceV2Contract {
 });
 
 #[derive(Clone, Debug, Default)]
+struct DelegateResourceContract {
+    owner_address: Option<Vec<u8>>,
+    resource: Option<u64>,
+    balance: Option<u64>,
+    receiver_address: Option<Vec<u8>>,
+    lock: Option<bool>,
+    lock_period: Option<u64>,
+}
+
+proto_encode!(DelegateResourceContract {
+    1 => owner_address: optional_bytes,
+    2 => resource: optional_varint_u64,
+    3 => balance: optional_varint_u64,
+    4 => receiver_address: optional_bytes,
+    5 => lock: optional_bool,
+    6 => lock_period: optional_varint_u64,
+});
+
+#[derive(Clone, Debug, Default)]
 struct OwnerContract {
     owner_address: Option<Vec<u8>>,
 }
@@ -228,6 +247,42 @@ fn contract_value(contract: &TronContract) -> Vec<u8> {
                 let resource = u64::from(*resource);
                 (resource > 0).then_some(resource)
             },
+        }
+        .encode(),
+        TronContract::DelegateResource {
+            owner,
+            receiver,
+            balance,
+            resource,
+            lock,
+            lock_period,
+        } => DelegateResourceContract {
+            owner_address: Some(owner.as_bytes().to_vec()),
+            receiver_address: Some(receiver.as_bytes().to_vec()),
+            balance: (*balance > 0).then_some(*balance),
+            resource: {
+                let resource = u64::from(*resource);
+                (resource > 0).then_some(resource)
+            },
+            lock: lock.then_some(true),
+            lock_period: (*lock_period > 0).then_some(*lock_period),
+        }
+        .encode(),
+        TronContract::UnDelegateResource {
+            owner,
+            receiver,
+            balance,
+            resource,
+        } => DelegateResourceContract {
+            owner_address: Some(owner.as_bytes().to_vec()),
+            receiver_address: Some(receiver.as_bytes().to_vec()),
+            balance: (*balance > 0).then_some(*balance),
+            resource: {
+                let resource = u64::from(*resource);
+                (resource > 0).then_some(resource)
+            },
+            lock: None,
+            lock_period: None,
         }
         .encode(),
         TronContract::WithdrawBalance { owner } | TronContract::WithdrawExpireUnfreeze { owner } => OwnerContract {

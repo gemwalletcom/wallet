@@ -23,9 +23,9 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsNestedRecord() throws {
-        let asset = Primitives.AssetBasic.mock()
-        let decoded = try Primitives.AssetBasic(asset.json())
-        #expect(decoded.asset.id == asset.asset.id)
-        #expect(decoded.score.rank == asset.score.rank)
+        let message = Primitives.SupportMessage.mock(sender: .agent(.mock(name: "Gemma")))
+        let decoded = try Primitives.SupportMessage(message.json())
+        #expect(decoded.sender == message.sender)
+        #expect(decoded.id == message.id)
     }
 }

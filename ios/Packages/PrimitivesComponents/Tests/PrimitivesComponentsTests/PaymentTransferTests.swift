@@ -3,6 +3,7 @@
 import BigInt
 import Gemstone
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -17,13 +18,13 @@ struct PaymentTransferTests {
         let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
         let transaction = try Self.paymentTransaction(
             memo: "payment-memo",
-            request: Primitives.PaymentRequest(
+            request: Gemstone.PaymentRequest(
                 address: recipient,
-                amount: .atomicValue("19000000"),
+                amount: .atomicValue(value: "19000000"),
                 memo: "payment-memo",
                 label: nil,
                 references: nil,
-                assetId: asset.id,
+                assetId: asset.id.identifier,
             ),
         )
 
@@ -46,13 +47,13 @@ struct PaymentTransferTests {
         let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
         let transaction = try Self.paymentTransaction(
             memo: nil,
-            request: Primitives.PaymentRequest(
+            request: Gemstone.PaymentRequest(
                 address: recipient,
-                amount: .atomicValue("19000000"),
+                amount: .atomicValue(value: "19000000"),
                 memo: nil,
                 label: nil,
                 references: nil,
-                assetId: asset.id,
+                assetId: asset.id.identifier,
             ),
         )
 
@@ -73,13 +74,13 @@ struct PaymentTransferTests {
         let asset = Asset.mockSolanaUSDC()
         let transaction = try Self.paymentTransaction(
             memo: "payment-memo",
-            request: Primitives.PaymentRequest(
+            request: Gemstone.PaymentRequest(
                 address: "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n",
-                amount: .atomicValue("19000000"),
+                amount: .atomicValue(value: "19000000"),
                 memo: "payment-memo",
                 label: nil,
                 references: nil,
-                assetId: Primitives.Chain.solana.assetId,
+                assetId: Primitives.Chain.solana.assetId.identifier,
             ),
         )
 
@@ -98,7 +99,7 @@ struct PaymentTransferTests {
     @Test
     func destinationWithExactAmountConfirms() throws {
         let asset = Asset.mockEthereum()
-        let payment = PaymentRequest.mock(address: " \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", amount: .exactValue("1.234"))
+        let payment = PaymentRequest.mock(address: " \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", amount: .exactValue(value: "1.234"))
 
         guard case let .confirm(data) = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, paymentService: paymentService) else {
             Issue.record("Expected confirmation")
@@ -111,7 +112,7 @@ struct PaymentTransferTests {
     @Test
     func destinationWithoutMemoRequiresRecipient() throws {
         let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
-        let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue("10"), references: ["reference"], assetId: xrp.id)
+        let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue(value: "10"), references: ["reference"], assetId: xrp.id)
 
         guard case let .recipient(data) = try PaymentDestinationBuilder.transfer(payment: payment, asset: xrp, paymentService: paymentService) else {
             Issue.record("Expected recipient review for XRP payment without a destination tag")
@@ -125,7 +126,7 @@ struct PaymentTransferTests {
 
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
 
-    private static func paymentTransaction(memo: String?, request: Primitives.PaymentRequest?) throws -> GemPaymentTransaction {
+    private static func paymentTransaction(memo: String?, request: Gemstone.PaymentRequest?) throws -> GemPaymentTransaction {
         try GemPaymentTransaction(
             merchant: Primitives.ApplicationMetadata(
                 name: "Merchant",
@@ -138,7 +139,7 @@ struct PaymentTransferTests {
             transaction: "encoded-transaction",
             transactionType: Primitives.TransactionType.transfer.map(),
             memo: memo,
-            request: request.map { $0.json() },
+            request: request,
         )
     }
 }

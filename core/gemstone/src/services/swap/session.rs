@@ -240,10 +240,6 @@ impl GemSwapSession {
         matches!(self.quote_phase, GemSwapQuotePhase::NoInput)
     }
 
-    pub fn accepts_quotes(&self) -> bool {
-        matches!(self.transfer_phase, GemSwapTransferPhase::Idle)
-    }
-
     pub fn refreshes_quotes(&self, is_screen_active: bool) -> bool {
         is_screen_active && !self.refresh_paused_until_restart && !self.is_transfer_loading()
     }
@@ -287,6 +283,10 @@ impl GemSwapSession {
 }
 
 impl GemSwapSession {
+    pub fn accepts_quotes(&self) -> bool {
+        matches!(self.transfer_phase, GemSwapTransferPhase::Idle)
+    }
+
     fn accepts_quote_phase(&self) -> bool {
         !self.is_transfer_loading() && !self.refresh_paused_until_restart
     }

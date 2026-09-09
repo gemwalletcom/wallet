@@ -397,6 +397,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         throw AnyError("not stubbed")
     }
 
+    public func usesWholeAmounts(chain: Gemstone.Chain) -> Bool {
+        builder.usesWholeAmounts(chain: chain)
+    }
+
     public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 {
         min(5, maxLeverage)
     }
@@ -427,10 +431,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
-    private let quotes: [Primitives.FiatQuote]
-    private let check: @Sendable (Primitives.FiatQuote?) -> GemFiatAmountCheck
+    private let quotes: [Gemstone.FiatQuote]
+    private let check: @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck
 
-    public init(quotes: [Primitives.FiatQuote] = [], check: @escaping @Sendable (Primitives.FiatQuote?) -> GemFiatAmountCheck = { _ in .valid }) {
+    public init(quotes: [Gemstone.FiatQuote] = [], check: @escaping @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck = { _ in .valid }) {
         self.quotes = quotes
         self.check = check
     }
@@ -439,8 +443,8 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         Primitives.Currency.usd.rawValue
     }
 
-    public func config() -> Gemstone.FiatConfig {
-        Gemstone.FiatConfig(defaultBuyAmount: 50, defaultSellAmount: 100, minimumAmount: 5, maximumAmount: 10000, randomMaxAmount: 1000, suggestedAmounts: [100, 250], insufficientNetworkFeeBuyAmount: 10)
+    public func suggestedAmounts() -> [Int32] {
+        [100, 250]
     }
 
     private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
@@ -460,7 +464,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     }
 
     public func amountCheck(quoteType _: Gemstone.FiatQuoteType, amount _: Double, quote: Gemstone.FiatQuote?, available _: GemBigUint) -> GemFiatAmountCheck {
-        check(quote.flatMap { try? Primitives.FiatQuote($0) })
+        check(quote)
     }
 
     public func quoteDebounceMilliseconds() -> UInt64 {
@@ -474,7 +478,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     public func syncTransactions() async throws {}
 
     public func quotes(quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
-        quotes.map { $0.json() }
+        quotes
     }
 
     public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
@@ -546,11 +550,11 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
     }
 
     public func portfolioData(wallet _: Gemstone.Wallet, portfolioType _: Gemstone.PortfolioType, period _: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioData {
-        try Primitives.PortfolioData(
-            charts: [PortfolioChartData(chartType: .value, values: [])],
-            statistics: [allTimeHigh.map { .allTimeHigh($0) }, allTimeLow.map { .allTimeLow($0) }].compactMap(\.self),
+        Gemstone.PortfolioData(
+            charts: [Gemstone.PortfolioChartData(chartType: .value, values: [])],
+            statistics: [allTimeHigh.map { .allTimeHigh(value: $0.map()) }, allTimeLow.map { .allTimeLow(value: $0.map()) }].compactMap(\.self),
             availablePeriods: [.day, .week, .month, .year, .all],
-        ).json()
+        )
     }
 }
 
@@ -561,6 +565,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let explorerAddress: String?
     private let actions: [Gemstone.GemDelegationAction]
     private let validators: [Gemstone.DelegationValidator]
+    private let lockTime: UInt64
+    private let minStake: Gemstone.GemBigInt
+    private let changesAmountOnUnstake: Bool
+    private let freezes: Bool
+    private let wholeAmounts: Bool
 
     public init(
         rewardsShown: Bool = false,
@@ -569,6 +578,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         explorerAddress: String? = nil,
         actions: [Gemstone.GemDelegationAction] = [],
         validators: [Gemstone.DelegationValidator] = [],
+        lockTime: UInt64 = 0,
+        minStake: Gemstone.GemBigInt = 0,
+        changesAmountOnUnstake: Bool = false,
+        freezes: Bool = false,
+        wholeAmounts: Bool = false,
     ) {
         self.rewardsShown = rewardsShown
         self.completionDateShown = completionDateShown
@@ -576,6 +590,31 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.explorerAddress = explorerAddress
         self.actions = actions
         self.validators = validators
+        self.lockTime = lockTime
+        self.minStake = minStake
+        self.changesAmountOnUnstake = changesAmountOnUnstake
+        self.freezes = freezes
+        self.wholeAmounts = wholeAmounts
+    }
+
+    public func lockTimeSeconds(chain _: Gemstone.Chain) -> UInt64 {
+        lockTime
+    }
+
+    public func minStakeAmount(chain _: Gemstone.Chain) -> Gemstone.GemBigInt {
+        minStake
+    }
+
+    public func canChangeAmountOnUnstake(chain _: Gemstone.Chain) -> Bool {
+        changesAmountOnUnstake
+    }
+
+    public func usesFreeze(chain _: Gemstone.Chain) -> Bool {
+        freezes
+    }
+
+    public func usesWholeAmounts(chain _: Gemstone.Chain) -> Bool {
+        wholeAmounts
     }
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
@@ -904,7 +943,7 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
     }
 
     public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
-        assets.map { $0.json() }
+        assets.map { $0.map() }
     }
 }
 

@@ -5,14 +5,14 @@ Use when writing or changing any Core test, fixture, or integration test gate.
 
 - Integration tests in `tests/`, `#[tokio::test]` for async, names prefixed `test_`, `Result<(), Box<dyn std::error::Error + Send + Sync>>` for test errors
 - Configure integration tests with `test = false` and `required-features` so they run only on demand
-- Prefer real networks for RPC client tests (Ethereum mainnet); unit tests use pure fixtures or injected clients
+- Test deterministic RPC behavior with fixtures or injected clients; use gated live tests for network compatibility
 - `.unwrap()` in tests, not `.expect("...")`; the test name already says what failed
 - Compare whole values with `assert_eq!` against a constructed expected value (derive `PartialEq` on test-relevant types). Do not destructure with `let ... else { panic!() }`, and do not `assert!(x.contains(...))`
 - One test function with many assertions per behavior, named `test_<function_name>`
 
 ## What a Test Must Protect
 
-- An independent domain rule, invariant, or failure boundary, never implementation details or serialized output. If the test still passes when the rule flips or the function returns a hardcoded constant, remove or fix it
+- Follow the shared [test-intent rule](../../skills/engineering-principles.md#tests). Exact bytes or serialized output belong in tests when they are the contract: signing vectors, request encoding, and compatibility fixtures
 - Do not unit-test static lookup tables, fixture catalogs, enum-to-variant wiring, or literal configuration by copying their values into assertions. Test the behavior that consumes the data, an invariant shared across entries, or a validation boundary; with no independent behavior, add no test
 - No tolerance-based assertions against live network values or values recomputed from separate RPC/API calls; they are flaky and low-signal. Integration tests assert stable invariants; exact numeric behavior belongs in unit tests with deterministic inputs
 
@@ -22,10 +22,9 @@ JSON longer than about 20 lines lives in the crate's `testdata/` and loads with 
 
 ## Testkit Mocks
 
-- Reusable fixtures live in the owning crate's `testkit` module as `impl Type { pub fn mock() -> Self }`; parameterize with `mock_with_*` or a clearly named variant only when needed. A fixture needed outside one assertion goes in testkit first, never as a helper in a test module.
+- Reusable domain fixtures live in the owning crate's `testkit` module as `impl Type { pub fn mock() -> Self }`; parameterize only for current tests. Keep one-off inputs inline and small constructors local to one test module when they have no shared domain role.
 - Consume another crate's fixtures by enabling its `testkit` feature under `[dev-dependencies]`; do not re-create a local copy.
 - Share a fixture only when its domain meaning is shared. Identical address or payload literals used for different provider roles are not automatically the same fixture. Keep provider-specific wallet or identity fixtures in that provider's testkit, give constants a `TEST_` prefix, and gate live-test-only fixtures with the same feature as their consumers.
-- A small local constructor function for a frequently built enum variant inside one test module is fine.
 
 Reference: `crates/primitives/src/testkit/asset_mock.rs`, `crates/storage/src/testkit/scan_address_mock.rs`, `crates/gem_hypercore/src/testkit.rs`.
 

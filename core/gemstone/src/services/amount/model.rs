@@ -1,7 +1,7 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::transfer::GemRecipient;
-use primitives::{Delegation, PerpetualDirection, Resource};
+use primitives::{Asset, Delegation, PerpetualDirection, Resource};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountType {
@@ -64,6 +64,33 @@ pub struct GemAmountInput {
     pub shows_asset_balance: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemAmountInputType {
+    Asset,
+    Fiat,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountEquivalent {
+    Fiat { amount: f64 },
+    Asset { value: GemBigInt },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountEntry {
+    pub value: Option<GemBigInt>,
+    pub error: Option<GemAmountError>,
+    pub equivalent: Option<GemAmountEquivalent>,
+    pub is_max: bool,
+    pub reserved_fee: Option<GemBigInt>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountMaxEntry {
+    pub input_type: GemAmountInputType,
+    pub value: GemBigInt,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualAutoclose {
     pub take_profit: Option<f64>,
@@ -72,17 +99,21 @@ pub struct GemPerpetualAutoclose {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GemAmountError {
+    InvalidNumber,
+    PriceMissing,
     Zero,
-    BelowMinimum { minimum: GemBigInt },
-    InsufficientBalance { requirement: GemBalanceRequirement },
+    BelowMinimum { asset: Asset, minimum: GemBigInt },
+    InsufficientBalance { asset: Asset, requirement: GemBalanceRequirement },
 }
 
 impl std::fmt::Display for GemAmountError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::InvalidNumber => write!(f, "amount is not a number"),
+            Self::PriceMissing => write!(f, "amount needs a price to convert from fiat"),
             Self::Zero => write!(f, "amount must be positive"),
-            Self::BelowMinimum { minimum } => write!(f, "amount is below the minimum {minimum}"),
-            Self::InsufficientBalance { requirement } => write!(f, "amount exceeds the available balance {}", requirement.available),
+            Self::BelowMinimum { asset, minimum } => write!(f, "amount is below the minimum {minimum} {}", asset.symbol),
+            Self::InsufficientBalance { asset, requirement } => write!(f, "amount exceeds the available {} balance {}", asset.symbol, requirement.available),
         }
     }
 }

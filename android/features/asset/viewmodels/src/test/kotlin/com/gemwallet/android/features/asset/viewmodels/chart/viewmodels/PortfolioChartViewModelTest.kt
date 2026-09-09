@@ -5,19 +5,18 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
-import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValuePercentage
-import com.wallet.core.primitives.PortfolioChartData
-import com.wallet.core.primitives.PortfolioChartType
-import com.wallet.core.primitives.PortfolioData
-import com.wallet.core.primitives.PortfolioStatistic
 import com.wallet.core.primitives.PortfolioType
+import uniffi.gemstone.ChartDateValue
+import uniffi.gemstone.PortfolioChartData
+import uniffi.gemstone.PortfolioChartType
+import uniffi.gemstone.PortfolioData
+import uniffi.gemstone.PortfolioStatistic
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -56,7 +55,7 @@ class PortfolioChartViewModelTest {
     private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {
         coEvery {
             service.portfolioData(any(), type?.toGem() ?: any(), period?.toGem() ?: any())
-        } returns data.toJson()
+        } returns data
     }
 
     @Before
@@ -163,7 +162,7 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `exposes all time statistics from portfolio`() = runTest(testDispatcher) {
-        val allTimeHigh = ChartValuePercentage(date = 1L, value = 99f, percentage = 5f)
+        val allTimeHigh = ChartValuePercentage(date = 1L, value = 99f, percentage = 5f).toGem()
         stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, portfolioData(listOf(1f, 2f), statistics = listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh))))
 
         val viewModel = createViewModel()
@@ -179,14 +178,14 @@ class PortfolioChartViewModelTest {
     ) = PortfolioData(
         charts = listOf(
             PortfolioChartData(
-                chartType = PortfolioChartType.Value,
+                chartType = PortfolioChartType.VALUE,
                 values = values.mapIndexed { index, value ->
                     ChartDateValue(date = TimeUnit.SECONDS.toMillis((index + 1).toLong()), value = value.toDouble())
                 },
             ),
         ),
         statistics = statistics,
-        availablePeriods = availablePeriods,
+        availablePeriods = availablePeriods.map { it.toGem() },
     )
 
     private fun createViewModel(initialType: PortfolioType = PortfolioType.Wallet) = PortfolioChartViewModel(

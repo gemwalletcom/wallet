@@ -1,6 +1,6 @@
-use primitives::{FiatQuote, FiatQuoteType};
+use primitives::{FiatProviderName, FiatQuote, FiatQuoteType};
 
-use super::model::GemFiatAmountCheck;
+use super::model::{GemFiatAmountCheck, GemFiatQuoteRow};
 use super::rules;
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigUint;
@@ -48,7 +48,7 @@ pub struct GemFiatOperation {
     pub quote_type: FiatQuoteType,
     pub amount: String,
     pub quotes: Vec<FiatQuote>,
-    pub selected_provider: Option<String>,
+    pub selected_provider: Option<FiatProviderName>,
     pub phase: GemFiatQuotePhase,
 }
 
@@ -132,8 +132,16 @@ impl GemFiatSession {
         self.with_operation(self.operation(results.request.quote_type).on_quote_results(results))
     }
 
-    pub fn on_provider_selected(&self, provider: String) -> GemFiatSession {
+    pub fn on_provider_selected(&self, provider: FiatProviderName) -> GemFiatSession {
         self.with_operation(self.current().on_provider_selected(provider))
+    }
+
+    pub fn quote_rows(&self, asset_price: Option<f64>) -> Vec<GemFiatQuoteRow> {
+        self.current().quotes.iter().map(|quote| rules::quote_row(quote, asset_price)).collect()
+    }
+
+    pub fn selected_quote_row(&self, asset_price: Option<f64>) -> Option<GemFiatQuoteRow> {
+        self.selected_quote().map(|quote| rules::quote_row(&quote, asset_price))
     }
 
     pub fn selected_quote(&self) -> Option<FiatQuote> {
@@ -210,7 +218,7 @@ impl GemFiatOperation {
             return self.clone();
         }
         Self {
-            selected_provider: self.selected_provider.clone(),
+            selected_provider: self.selected_provider,
             ..Self::new(self.quote_type, amount)
         }
     }
@@ -248,8 +256,8 @@ impl GemFiatOperation {
         Self { quotes, phase, ..self.clone() }
     }
 
-    fn on_provider_selected(&self, provider: String) -> Self {
-        if !self.quotes.iter().any(|quote| quote.provider.id.id() == provider) {
+    fn on_provider_selected(&self, provider: FiatProviderName) -> Self {
+        if !self.quotes.iter().any(|quote| quote.provider.id == provider) {
             return self.clone();
         }
         Self {
@@ -259,7 +267,7 @@ impl GemFiatOperation {
     }
 
     fn selected_quote(&self) -> Option<FiatQuote> {
-        rules::selected_quote(&self.quotes, self.selected_provider.as_deref())
+        rules::selected_quote(&self.quotes, self.selected_provider)
     }
 }
 
@@ -413,9 +421,9 @@ mod tests {
         let session = ready(vec![quote(FiatProviderName::Transak, 1.0), quote(FiatProviderName::MoonPay, 2.0)]);
         assert!(session.can_select_provider());
 
-        let selected = session.on_provider_selected("moonpay".to_string());
+        let selected = session.on_provider_selected(FiatProviderName::MoonPay);
         assert_eq!(selected.selected_quote().map(|quote| quote.provider.id), Some(FiatProviderName::MoonPay));
-        assert_eq!(session.on_provider_selected("banxa".to_string()), session);
+        assert_eq!(session.on_provider_selected(FiatProviderName::Banxa), session);
 
         let refreshed = selected
             .on_fetch_started(GemFiatQuoteRequest {

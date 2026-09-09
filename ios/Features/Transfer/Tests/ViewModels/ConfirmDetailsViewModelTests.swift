@@ -32,7 +32,7 @@ struct ConfirmDetailsViewModelTests {
 
     @Test
     func perpetual() {
-        let model = ConfirmDetailsViewModel(type: .perpetual(.mock(), .open(.mock())), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmTransferServiceMock())
+        let model = ConfirmDetailsViewModel(type: .perpetual(.mock(), .open(data: .mock())), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmTransferServiceMock())
 
         guard case .perpetualDetails = model.itemModel else {
             Issue.record("Expected .perpetualDetails")

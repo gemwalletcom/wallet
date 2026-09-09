@@ -1,9 +1,9 @@
+use std::{env, path::PathBuf, time::Duration};
+
 use config::{Config, ConfigError, Environment, File};
 use primitives::ImageType;
 use serde::Deserialize;
 use serde_serializers::duration;
-use std::time::Duration;
-use std::{env, path::PathBuf};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ImgDownloaderConfig {
@@ -14,6 +14,7 @@ pub struct ImgDownloaderConfig {
     pub coingecko: CoingeckoConfig,
     pub coinmarketcap: CoinMarketCapConfig,
     pub jupiter: JupiterConfig,
+    pub dexscreener: DexScreenerConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -45,6 +46,12 @@ pub struct CoinMarketCapConfig {
 pub struct JupiterConfig {
     pub top: TopConfig,
     pub trending: TrendingConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DexScreenerConfig {
+    pub top: TopConfig,
+    pub trending: TopConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]

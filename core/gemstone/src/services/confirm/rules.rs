@@ -349,7 +349,7 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
     }
 }
 
-pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &GemTransactionLoadFee) -> GemFeeRateRows {
+fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &GemTransactionLoadFee) -> GemFeeRateRows {
     let unit_value = |rate: &GemFeeRate| rate.gas_price_type.clone().total_fee();
     let rate_total = |priority: FeePriority| rates.iter().find(|rate| rate.priority == priority).map(unit_value);
     let selected_total = match selection {
@@ -553,8 +553,7 @@ mod tests {
             extra: TransferDataExtra {
                 output_action: TransferDataOutputAction::Sign,
                 ..TransferDataExtra::mock()
-            }
-            .into(),
+            },
         };
 
         assert_eq!(generic.output().output_action, TransferDataOutputAction::Sign);
@@ -739,12 +738,12 @@ mod tests {
         let payment = TransactionInputType::Generic {
             asset: Asset::mock_sol(),
             metadata: ApplicationMetadata::mock(),
-            extra: TransferDataExtra::mock().into(),
+            extra: TransferDataExtra::mock(),
         };
         let ethereum_payment = TransactionInputType::Generic {
             asset: Asset::mock(),
             metadata: ApplicationMetadata::mock(),
-            extra: TransferDataExtra::mock().into(),
+            extra: TransferDataExtra::mock(),
         };
 
         let approve = TransactionInputType::TokenApprove {
@@ -757,7 +756,7 @@ mod tests {
         };
         let perpetual = TransactionInputType::Perpetual {
             asset: Asset::mock_sol(),
-            perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
         };
         let ethereum_swap = TransactionInputType::Swap {
             from_asset: Asset::mock(),
@@ -804,7 +803,7 @@ mod tests {
             input_type: TransactionInputType::Generic {
                 asset: Asset::mock_sol(),
                 metadata: ApplicationMetadata::mock(),
-                extra: TransferDataExtra::mock().into(),
+                extra: TransferDataExtra::mock(),
             },
             sender_address: "sender".to_string(),
             destination_address: "contract".to_string(),
@@ -824,7 +823,7 @@ mod tests {
         let generic = |metadata: ApplicationMetadata, extra: TransferDataExtra| TransactionInputType::Generic {
             asset: Asset::mock_sol(),
             metadata,
-            extra: extra.into(),
+            extra,
         };
 
         assert_eq!(generic(metadata.clone(), extra.clone()).simulation_payload(), Some("0xdeadbeef".to_string()));

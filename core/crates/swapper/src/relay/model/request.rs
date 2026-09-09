@@ -122,7 +122,7 @@ mod tests {
         let depository_hash = decode_hex("e7844ac5fd48b3f5dcfbcecb34a8d5cfe2614ea6c4e4dc1cbd5b528db6ab5fac").unwrap();
         let other_hash = decode_hex("99b98b83646fbae04d5b86085f9af9fa785d506a7fcffad85547ab3112866956").unwrap();
 
-        assert!(request.has_input_transaction(&[depository_hash.clone()]));
+        assert!(request.has_input_transaction(std::slice::from_ref(&depository_hash)));
         assert!(!request.has_input_transaction(&[other_hash]));
         assert!(!RelayRequest::mock_with_status(RelayStatus::Pending).has_input_transaction(&[depository_hash]));
     }

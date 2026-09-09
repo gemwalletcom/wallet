@@ -9,6 +9,7 @@
   <string name="common_copy">نسخ</string>
   <string name="common_share">مشاركة</string>
   <string name="common_continue">يكمل</string>
+  <string name="common_sign_in_with">تسجيل الدخول باستخدام %1$s</string>
   <string name="common_provider">مزود</string>
   <string name="common_loading">تحميل</string>
   <string name="common_address">عنوان</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">يكسب</string>
   <string name="common_method">طريقة</string>
   <string name="common_token">رمز مميز</string>
+  <string name="common_expiration">انتهاء الصلاحية</string>
   <string name="common_suspicious_address">عنوان مشبوه</string>
   <string name="common_refresh">ينعش</string>
   <string name="common_no_thanks">ًلا شكرا</string>

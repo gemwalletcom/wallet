@@ -1,17 +1,10 @@
-use primitives::Charts;
-use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
-use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
-use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
+use primitives::{ConfigResponse, ConfigVersions, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    AssetList, ChainAsset, Payment, PaymentAmount, PaymentLink, PaymentRequest, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
-    TronVote, UTXO,
+    TronStakeData, TronUnfreeze,
 };
 use primitives::{
-    AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioData, ReferralCode,
-    Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
+    FiatQuoteRequest, FiatTransactionData, InAppNotification, SupportMessage, SupportMessageInput, TransactionsResponse,
 };
-use primitives::{PerpetualConfirmData, PerpetualType};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -34,59 +27,18 @@ macro_rules! json_bridge {
 }
 
 json_bridge!(
-    AssetBasic,
-    AssetFull,
-    AssetList,
-    AssetMarket,
-    AuthNonce,
-    AuthPayload,
-    CancelOrderData,
-    ChainAsset,
-    ChartValuePercentage,
-    Charts,
     ConfigResponse,
     ConfigVersions,
-    FiatAssets,
-    FiatQuote,
     FiatQuoteRequest,
-    FiatQuoteUrl,
-    FiatQuotes,
     FiatTransactionData,
     InAppNotification,
-    Markets,
-    Payment,
-    PaymentAmount,
-    PaymentLink,
-    PaymentRequest,
-    PerpetualAccountSummary,
-    PerpetualConfirmData,
-    PerpetualModifyConfirmData,
-    PerpetualModifyPositionType,
-    PerpetualPortfolio,
-    PerpetualPortfolioTimeframeData,
-    PerpetualReduceData,
-    PerpetualType,
-    PortfolioData,
-    RedemptionRequest,
-    RedemptionResult,
-    ReferralCode,
-    Rewards,
     SearchResponse,
     StreamEvent,
     StreamMessage,
-    SolanaNftStandard,
-    StakeValidator,
     SupportMessage,
     SupportMessageInput,
     SupportTyping,
-    TPSLOrderData,
-    TransactionPerpetualMetadata,
     TransactionsResponse,
     TronStakeData,
     TronUnfreeze,
-    TronVote,
-    UTXO,
-    WalletConfigurationResult,
-    WalletSubscription,
-    WalletSubscriptionChains,
 );

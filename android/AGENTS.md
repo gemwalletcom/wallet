@@ -27,7 +27,7 @@ Before finishing an Android task:
 1. Use [Quality Checks](../skills/quality-checks.md) to choose targeted vs full verification
 2. Run at least one real Gradle verification command for the touched codepath
 3. If Core changed Android-facing interfaces, generated artifacts, build inputs, or app integration, regenerate the required artifacts and verify Android still builds
-4. Clean imports and avoid unnecessary comments
+4. Clean imports and follow the shared comment policy
 5. In tests, prefer shared `:gemcore` fixtures with sensible defaults over inline full-field mock construction
 
 For UI changes, smoke the changed flow on an emulator or device when the flow is reachable. `git diff --check`, code inspection, or reasoning are not enough. If Gradle is blocked by unrelated repo failures, report the exact command and blocking error instead of claiming the change was verified.

@@ -92,13 +92,13 @@ struct PortfolioSceneViewModelTests {
     func testStatisticModel() {
         let model = PortfolioSceneViewModel.mock()
 
-        #expect(model.statisticModel(.allTimeHigh(.mock())).title == "All Time High")
-        #expect(model.statisticModel(.allTimeLow(.mock())).title == "All Time Low")
-        #expect(model.statisticModel(.unrealizedPnl(500)).title == "Unrealized PnL")
-        #expect(model.statisticModel(.accountLeverage(2.5)).title == "Account Leverage")
-        #expect(model.statisticModel(.accountLeverage(2.5)).subtitle == "2.50x")
-        #expect(model.statisticModel(.marginUsage(.mock())).title == "Margin Usage")
-        #expect(model.statisticModel(.allTimePnl(1200)).title == "All Time PnL")
-        #expect(model.statisticModel(.volume(50000)).title == "Volume")
+        #expect(model.statisticModel(.allTimeHigh(value: .mock())).title == "All Time High")
+        #expect(model.statisticModel(.allTimeLow(value: .mock())).title == "All Time Low")
+        #expect(model.statisticModel(.unrealizedPnl(value: 500)).title == "Unrealized PnL")
+        #expect(model.statisticModel(.accountLeverage(value: 2.5)).title == "Account Leverage")
+        #expect(model.statisticModel(.accountLeverage(value: 2.5)).subtitle == "2.50x")
+        #expect(model.statisticModel(.marginUsage(value: .mock())).title == "Margin Usage")
+        #expect(model.statisticModel(.allTimePnl(value: 1200)).title == "All Time PnL")
+        #expect(model.statisticModel(.volume(value: 50000)).title == "Volume")
     }
 }

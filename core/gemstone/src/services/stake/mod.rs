@@ -104,6 +104,26 @@ impl GemStakeService {
         rules::shows_rewards(&delegation)
     }
 
+    pub fn lock_time_seconds(&self, chain: Chain) -> u64 {
+        rules::lock_time_seconds(chain)
+    }
+
+    pub fn min_stake_amount(&self, chain: Chain) -> GemBigInt {
+        rules::min_stake_amount(chain)
+    }
+
+    pub fn can_change_amount_on_unstake(&self, chain: Chain) -> bool {
+        rules::can_change_amount_on_unstake(chain)
+    }
+
+    pub fn uses_freeze(&self, chain: Chain) -> bool {
+        rules::uses_freeze(chain)
+    }
+
+    pub fn uses_whole_amounts(&self, chain: Chain) -> bool {
+        rules::uses_whole_amounts(chain)
+    }
+
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
         rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
     }

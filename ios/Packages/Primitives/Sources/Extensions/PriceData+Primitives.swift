@@ -7,3 +7,9 @@ extension PriceData: Identifiable {
         asset.id.identifier
     }
 }
+
+public extension PriceData {
+    static func with(asset: Asset) -> PriceData {
+        PriceData(asset: asset, price: nil, priceAlerts: [], market: nil, links: [])
+    }
+}

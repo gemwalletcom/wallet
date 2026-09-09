@@ -54,13 +54,15 @@ import com.gemwallet.android.features.referral.views.components.referralUnverifi
 import com.gemwallet.android.features.referral.views.components.referralInfo
 import com.gemwallet.android.features.referral.views.dialogs.GetStartedDialog
 import com.gemwallet.android.features.referral.views.dialogs.ReferralCodeDialog
-import com.wallet.core.primitives.RewardRedemptionOption
-import com.wallet.core.primitives.RewardStatus
-import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.RewardRedemptionOption
+import uniffi.gemstone.ReferralAllowance
+import uniffi.gemstone.ReferralQuota
+import uniffi.gemstone.RewardStatus
+import uniffi.gemstone.Rewards
 
 @Composable
 fun ReferralScene(
@@ -219,11 +221,16 @@ private fun ReferralScenePreview() {
             isAvailableWalletSelect = false,
             rewards = Rewards(
                 code = "testuser",
+                inviteRewardPoints = 100,
                 referralCount = 5,
                 points = 1000,
                 usedReferralCode = null,
-                status = RewardStatus.Verified,
+                status = RewardStatus.VERIFIED,
+                createdAt = 0L,
+                verifyAfter = null,
                 redemptionOptions = emptyList(),
+                disableReason = null,
+                referralAllowance = ReferralAllowance(daily = ReferralQuota(limit = 5, available = 5), weekly = ReferralQuota(limit = 20, available = 20)),
             ),
             referralLink = null,
             uiState = previewState(hasReferralCode = true, canInvite = true, showsInfo = true),

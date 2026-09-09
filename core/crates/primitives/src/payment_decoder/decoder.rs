@@ -59,35 +59,35 @@ mod tests {
     fn test_address() {
         assert_eq!(
             PaymentURLDecoder::decode("0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326").unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326".to_string(),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
 
         assert_eq!(
             PaymentURLDecoder::decode("0x25851Bf7D35293A89F710eBFbD4718322eF7B174?amount=50.72").unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: "0x25851Bf7D35293A89F710eBFbD4718322eF7B174".to_string(),
-                amount: Some(PaymentAmount::ExactValue("50.72".to_string())),
+                amount: Some(PaymentAmount::ExactValue { value: "50.72".to_string() }),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
     }
 
     #[test]
     fn test_uri_normalization() {
-        let bitcoin = Payment::Request(PaymentRequest {
+        let bitcoin = Payment::Request { request: PaymentRequest {
             address: BITCOIN_ADDRESS.to_string(),
-            amount: Some(PaymentAmount::ExactValue("0.1".to_string())),
+            amount: Some(PaymentAmount::ExactValue { value: "0.1".to_string() }),
             asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
             ..PaymentRequest::mock()
-        });
-        let address_only = Payment::Request(PaymentRequest {
+        } };
+        let address_only = Payment::Request { request: PaymentRequest {
             address: BITCOIN_ADDRESS.to_string(),
             asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
             ..PaymentRequest::mock()
-        });
+        } };
         let uri = format!("bitcoin:{BITCOIN_ADDRESS}?amount=0.1");
 
         assert_eq!(PaymentURLDecoder::decode(&uri).unwrap(), bitcoin);
@@ -111,21 +111,21 @@ mod tests {
 
         assert_eq!(
             PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?memo=see%20http%3A%2F%2Fx.com")).unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: BITCOIN_ADDRESS.to_string(),
                 memo: Some("see http://x.com".to_string()),
                 asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
         assert_eq!(
             PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?memo=YWJjZA==")).unwrap(),
-            Payment::Request(PaymentRequest {
+            Payment::Request { request: PaymentRequest {
                 address: BITCOIN_ADDRESS.to_string(),
                 memo: Some("YWJjZA==".to_string()),
                 asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
                 ..PaymentRequest::mock()
-            })
+            } }
         );
     }
 

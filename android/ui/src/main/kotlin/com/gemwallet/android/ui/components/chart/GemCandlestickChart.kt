@@ -154,7 +154,6 @@ fun GemCandlestickChart(
             modifier = Modifier
                 .fillMaxSize()
                 .chartSelection(
-                    selection = selection,
                     chartSize,
                     model.candles.size,
                     indexAt = ::touchToIndex,

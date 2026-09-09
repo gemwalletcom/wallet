@@ -1,10 +1,8 @@
 use crate::{Asset, FiatQuoteType, PaymentType, fiat_provider::FiatProvider};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatQuote {
     pub id: String,
@@ -15,10 +13,8 @@ pub struct FiatQuote {
     pub fiat_amount: f64,
     pub fiat_currency: String,
     pub crypto_amount: f64,
-    #[typeshare(skip)]
     #[serde(default)]
     pub value: BigUint,
-    #[typeshare(skip)]
     #[serde(default)]
     pub latency: u64,
     pub payment_methods: Vec<PaymentType>,
@@ -53,20 +49,16 @@ impl FiatQuote {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 pub struct FiatQuotes {
     pub quotes: Vec<FiatQuote>,
-    #[typeshare(skip)]
     pub errors: Vec<FiatQuoteError>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatQuoteUrl {
     pub redirect_url: String,
     #[serde(skip_serializing)]
-    #[typeshare(skip)]
     pub provider_transaction_id: Option<String>,
 }
 

@@ -14,13 +14,13 @@ References: `ios/Gem/App.swift` (app composition), `ios/Gem/ViewModels/MainTabVi
 
 - One type per file
 - Protocol conformances in extensions
-- Action methods grouped in a `// MARK: - Actions` extension of the view model (`ios/Features/Perpetuals/Sources/ViewModels/PerpetualSceneViewModel.swift`)
+- Group action methods in a view-model extension; existing section markers do not require adding new comments
 - Shared functionality lives in `Packages/`; features do not depend on each other directly
 
 ## Style
 
 - `Spacing` constants from the `Style` package, never hardcoded spacing (`ios/Packages/Style/Sources/Spacing.swift`)
-- No comments for obvious code or test behavior; minimal API surface; remove dead code and unnecessary abstractions
+- Follow the shared [comment and API-surface rules](../../skills/engineering-principles.md#clean-code-principles)
 
 ## TestKit Mocks
 

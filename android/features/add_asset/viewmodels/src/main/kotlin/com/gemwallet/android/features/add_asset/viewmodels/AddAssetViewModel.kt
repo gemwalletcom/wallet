@@ -146,11 +146,9 @@ class AddAssetViewModel @Inject constructor(
         }
     }
 
-    private suspend fun searchToken(chain: Chain, address: String): TokenSearchState = try {
-        TokenSearchState.Found(service.token(chain.string, address).toPrimitives())
-    } catch (_: Exception) {
-        TokenSearchState.Error
-    }
+    private suspend fun searchToken(chain: Chain, address: String): TokenSearchState =
+        runCatchingCancellable { TokenSearchState.Found(service.token(chain.string, address).toPrimitives()) }
+            .getOrDefault(TokenSearchState.Error)
 
     private companion object {
         const val TAG = "AddAsset"

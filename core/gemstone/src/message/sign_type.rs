@@ -1,5 +1,13 @@
 use primitives::Chain;
 
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum MessageType {
+    Text,
+    Eip712,
+    Siwe,
+    Siws,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum SignDigestType {
     Eip191,

@@ -5,6 +5,8 @@ remote:
   - Transaction
   - PriceProvider
   - Price
+  - AuthNonce
+  - AuthPayload
   - Account
   - AccountDataType
   - AddressName
@@ -24,6 +26,7 @@ remote:
   - ChartCandleUpdate
   - ChartDateValue
   - ChartPeriod
+  - ChartValuePercentage
   - DelegationState
   - ConnectionComponent
   - ConnectionStatus
@@ -34,16 +37,45 @@ remote:
   - DeviceLocale
   - Asset
   - AssetLink
+  - AssetRank
+  - AssetScore
+  - AssetProperties
+  - AssetBasic
+  - AssetList
+  - ChainAsset
+  - AssetAssociationType
+  - AssetAssociation
+  - PerpetualBasic
+  - AssetFull
+  - PaymentAmount
+  - PaymentRequest
+  - PaymentLink
+  - Payment
+  - AssetMarket
   - AssetMetaData
   - AssetPrice
   - FeePriority
   - FeeUnitType
   - FiatRate
   - FiatQuoteType
+  - FiatProviderName
+  - FiatProvider
+  - PaymentType
+  - FiatQuote
+  - FiatQuoteUrl
   - GasPriceType
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
+  - PerpetualAccountSummary
+  - PerpetualPortfolioTimeframeData
+  - PerpetualPortfolio
+  - TransactionPerpetualMetadata
+  - UTXO
+  - MarketsAssets
+  - MarketDominance
+  - Markets
+  - FiatAssets
   - PortfolioAsset
   - Perpetual
   - PerpetualBalance
@@ -55,6 +87,13 @@ remote:
   - PerpetualPositionsSummary
   - PerpetualProvider
   - PerpetualTriggerOrder
+  - PerpetualConfirmData
+  - CancelOrderData
+  - TPSLOrderData
+  - PerpetualModifyPositionType
+  - PerpetualModifyConfirmData
+  - PerpetualReduceData
+  - PerpetualType
   - Platform
   - PlatformStore
   - Wallet
@@ -67,6 +106,15 @@ remote:
   - WalletConnectionState
   - WalletConnectionVerificationStatus
   - VerificationStatus
+  - RewardStatus
+  - RewardRedemptionType
+  - RewardRedemptionOption
+  - ReferralQuota
+  - ReferralAllowance
+  - Rewards
+  - RewardRedemption
+  - RedemptionStatus
+  - RedemptionResult
   - RecentActivityType
   - Release
   - Resource
@@ -78,6 +126,7 @@ remote:
   - SimulationBalanceChange
   - SimulationHeader
   - SimulationResult
+  - SolanaNftStandard
   - SolanaTokenProgramId
   - StakeProviderType
   - SwapPriceImpact
@@ -103,6 +152,11 @@ remote:
   - NodeState
   - Latency
   - PortfolioType
+  - PortfolioChartType
+  - PortfolioMarginUsage
+  - PortfolioChartData
+  - PortfolioStatistic
+  - PortfolioData
   - PriceAlert
   - PriceAlertDirection
   - PriceAlertNotificationType
@@ -155,6 +209,7 @@ scalars:
   - f64
 defaults:
   PriceProvider: Coingecko
+  AssetRank: Unknown
 
 conversions:
   UInt64:
@@ -181,6 +236,7 @@ conversions:
       - "{}.json()"
 
 declared:
+  NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt
   UInt64: primitives::UInt64
   serde_json::Value: GemJsonValue

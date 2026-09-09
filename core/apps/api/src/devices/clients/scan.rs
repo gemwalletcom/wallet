@@ -28,15 +28,21 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Durati
 }
 
 #[derive(Clone)]
+pub struct TransactionScanConfig {
+    pub providers: TransactionScanProviders,
+    pub enable: bool,
+    pub required_successes: usize,
+}
+
+#[derive(Clone)]
 pub struct ScanClient {
     database: Database,
-    providers: TransactionScanProviders,
-    enable: bool,
+    config: TransactionScanConfig,
 }
 
 impl ScanClient {
-    pub fn new(database: Database, providers: TransactionScanProviders, enable: bool) -> Self {
-        Self { database, providers, enable }
+    pub fn new(database: Database, config: TransactionScanConfig) -> Self {
+        Self { database, config }
     }
 
     pub async fn get_scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, Box<dyn Error + Send + Sync>> {
@@ -68,7 +74,7 @@ impl ScanClient {
             .chain(poisoning_scans.iter().map(Option::is_some))
             .chain(website_scans.iter().map(Option::is_some))
             .collect::<Vec<_>>();
-        let is_scan_complete = Self::is_scan_complete(self.enable, !address_scans.is_empty(), &completed_scans);
+        let is_scan_complete = Self::is_scan_complete(self.config.enable, self.config.required_successes, &completed_scans);
 
         Ok(ScanTransaction {
             is_malicious: Some(!malicious_addresses.is_empty() || malicious_website.is_some()),
@@ -141,8 +147,8 @@ impl ScanClient {
         Some((address, poisoning, website))
     }
 
-    fn is_scan_complete(enable: bool, has_address_scan: bool, scans: &[bool]) -> bool {
-        enable && has_address_scan && scans.iter().all(|is_complete| *is_complete)
+    fn is_scan_complete(enable: bool, required_successes: usize, scans: &[bool]) -> bool {
+        enable && scans.iter().filter(|is_complete| **is_complete).count() >= required_successes
     }
 
     fn is_malicious_asset_rank(rank: i32) -> bool {
@@ -163,11 +169,12 @@ impl ScanClient {
     }
 
     pub async fn scan_address_providers(&self, target: AddressTarget) -> Vec<Option<ScanResult<AddressTarget>>> {
-        if !self.enable {
+        if !self.config.enable {
             return Vec::new();
         }
         future::join_all(
-            self.providers
+            self.config
+                .providers
                 .addresses
                 .iter()
                 .filter(|provider| provider.supports_chain(target.chain))
@@ -196,14 +203,15 @@ impl ScanClient {
     }
 
     async fn scan_address_poisoning_providers(&self, target: Option<AddressPoisoningTarget>) -> Vec<Option<ScanResult<AddressPoisoningTarget>>> {
-        if !self.enable {
+        if !self.config.enable {
             return Vec::new();
         }
         let Some(target) = target else {
             return Vec::new();
         };
         future::join_all(
-            self.providers
+            self.config
+                .providers
                 .poisoning
                 .iter()
                 .filter(|provider| provider.supports_chain(target.target.chain))
@@ -238,14 +246,15 @@ impl ScanClient {
     }
 
     async fn scan_website_providers(&self, target: Option<WebsiteTarget>) -> Vec<Option<ScanResult<WebsiteTarget>>> {
-        if !self.enable {
+        if !self.config.enable {
             return Vec::new();
         }
         let Some(target) = target else {
             return Vec::new();
         };
         future::join_all(
-            self.providers
+            self.config
+                .providers
                 .websites
                 .iter()
                 .map(|provider| async { (provider.name(), provider.scan_website(&target).await) }),
@@ -293,11 +302,21 @@ mod tests {
     }
 
     #[test]
-    fn test_scan_complete_requires_provider_results() {
-        assert!(ScanClient::is_scan_complete(true, true, &[true, true]));
-        assert!(!ScanClient::is_scan_complete(true, true, &[true, false]));
-        assert!(!ScanClient::is_scan_complete(true, false, &[true]));
-        assert!(!ScanClient::is_scan_complete(false, true, &[true, true]));
+    fn test_scan_complete_requires_configured_success_count() {
+        assert!(ScanClient::is_scan_complete(true, 1, &[true, false, false]));
+        assert!(ScanClient::is_scan_complete(true, 1, &[false, true, false]));
+        assert!(ScanClient::is_scan_complete(true, 1, &[false, false, true]));
+        assert!(ScanClient::is_scan_complete(true, 2, &[true, false, true]));
+        assert!(ScanClient::is_scan_complete(true, 2, &[true, true, true]));
+        assert!(!ScanClient::is_scan_complete(true, 2, &[true, false, false]));
+        assert!(!ScanClient::is_scan_complete(true, 3, &[true, true]));
+        assert!(!ScanClient::is_scan_complete(true, 1, &[false, false]));
+        assert!(!ScanClient::is_scan_complete(true, 1, &[]));
+        assert!(!ScanClient::is_scan_complete(false, 1, &[true, true]));
+        assert!(ScanClient::is_scan_complete(true, 0, &[false, false]));
+        assert!(ScanClient::is_scan_complete(true, 0, &[true]));
+        assert!(ScanClient::is_scan_complete(true, 0, &[]));
+        assert!(!ScanClient::is_scan_complete(false, 0, &[]));
     }
 
     #[test]

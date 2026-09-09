@@ -9,6 +9,7 @@
   <string name="common_copy">کاپی</string>
   <string name="common_share">شیئر کریں۔</string>
   <string name="common_continue">جاری رکھیں</string>
+  <string name="common_sign_in_with">%1$s کے ساتھ سائن ان کریں</string>
   <string name="common_provider">فراہم کرنے والا</string>
   <string name="common_loading">لوڈ ہو رہا ہے۔</string>
   <string name="common_address">پتہ</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">کمائیں</string>
   <string name="common_method">طریقہ</string>
   <string name="common_token">ٹوکن</string>
+  <string name="common_expiration">میعاد ختم</string>
   <string name="common_suspicious_address">مشکوک پتہ</string>
   <string name="common_refresh">ریفریش کریں۔</string>
   <string name="common_no_thanks">نہیں شکریہ</string>

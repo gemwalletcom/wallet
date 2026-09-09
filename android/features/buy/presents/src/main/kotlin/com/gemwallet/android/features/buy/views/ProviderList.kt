@@ -22,7 +22,7 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
-import com.wallet.core.primitives.FiatProvider
+import com.wallet.core.primitives.FiatProviderName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +30,7 @@ fun ProviderList(
     isShow: MutableState<Boolean>,
     providers: List<BuyFiatProviderUIModel>,
     selectedProvider: BuyFiatProviderUIModel?,
-    onProviderSelect: (FiatProvider) -> Unit,
+    onProviderSelect: (FiatProviderName) -> Unit,
 ) {
     ModalBottomSheet(
         isVisible = isShow.value,
@@ -42,7 +42,7 @@ fun ProviderList(
                 FiatProviderListItemView(
                     provider = item,
                     listPosition = ListPosition.getPosition(index, providers.size),
-                    isSelected = item.provider.name == selectedProvider?.provider?.name,
+                    isSelected = item.provider == selectedProvider?.provider,
                     onProviderSelect = {
                         onProviderSelect(item.provider)
                         isShow.value = false
@@ -80,7 +80,7 @@ private fun FiatProviderListItemView(
                 )
             }
         },
-        title = { ListItemTitleText(provider.provider.name) },
+        title = { ListItemTitleText(provider.providerName) },
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(provider.cryptoText)

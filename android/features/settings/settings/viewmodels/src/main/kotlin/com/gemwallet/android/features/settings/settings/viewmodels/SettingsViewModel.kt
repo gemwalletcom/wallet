@@ -9,7 +9,6 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
@@ -70,7 +69,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     val perpetualLeverage = userConfig.perpetualLeverage()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualConfig.defaultLeverage)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, userConfig.perpetualLeverage().value)
 
     fun setPerpetualEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         userConfig.setPerpetualEnabled(enabled)
@@ -81,14 +80,14 @@ class SettingsViewModel @Inject constructor(
     }
 
     val perpetualTakeProfit = userConfig.perpetualTakeProfit()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualConfig.defaultTakeProfit)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, userConfig.perpetualTakeProfit().value)
 
     fun setPerpetualTakeProfit(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         userConfig.setPerpetualTakeProfit(value)
     }
 
     val perpetualStopLoss = userConfig.perpetualStopLoss()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualConfig.defaultStopLoss)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, userConfig.perpetualStopLoss().value)
 
     fun setPerpetualStopLoss(value: Int) = viewModelScope.launch(Dispatchers.IO) {
         userConfig.setPerpetualStopLoss(value)

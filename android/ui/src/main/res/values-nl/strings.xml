@@ -9,6 +9,7 @@
   <string name="common_copy">Kopieer</string>
   <string name="common_share">Deel</string>
   <string name="common_continue">Ga door</string>
+  <string name="common_sign_in_with">Inloggen met %1$s</string>
   <string name="common_provider">Aanbieder</string>
   <string name="common_loading">Laden</string>
   <string name="common_address">Adres</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">Verdien</string>
   <string name="common_method">Methode</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Vervaldatum</string>
   <string name="common_suspicious_address">Verdacht adres</string>
   <string name="common_refresh">Vernieuwen</string>
   <string name="common_no_thanks">Nee bedankt</string>

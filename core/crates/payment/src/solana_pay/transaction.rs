@@ -37,7 +37,7 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
     let memo = transaction.memo();
     let request = transaction.simple_transfer(&signer).map(|transfer| PaymentRequest {
         address: transfer.recipient,
-        amount: Some(PaymentAmount::AtomicValue(transfer.value)),
+        amount: Some(PaymentAmount::AtomicValue { value: transfer.value }),
         memo: memo.clone(),
         label: None,
         references: None,
@@ -109,7 +109,7 @@ mod tests {
         assert_eq!(prepared.transaction_type, TransactionType::Transfer);
         assert_eq!(prepared.memo.as_deref(), Some(memo));
         let request = prepared.request.expect("expected a decoded transfer request");
-        assert_eq!(request.amount, Some(PaymentAmount::AtomicValue(0u32.into())));
+        assert_eq!(request.amount, Some(PaymentAmount::AtomicValue { value: 0u32.into() }));
         assert_eq!(request.memo.as_deref(), Some(memo));
 
         let mut ambiguous = VersionedTransaction::deserialize_with_version(&decode_base64(TRANSACTION).unwrap()).unwrap();

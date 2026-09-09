@@ -13,7 +13,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
@@ -63,7 +62,7 @@ import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemServiceStatus
-import uniffi.gemstone.serviceStatusTimeoutSeconds
+import uniffi.gemstone.serviceStatusTimeout
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemSimulationServiceInterface
 import javax.inject.Singleton
@@ -270,7 +269,7 @@ object GatewayModule {
             NativeProvider(
                 nodeService = nodeService,
                 httpClient = okHttpClient.newBuilder()
-                    .callTimeout(gemConfig.getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                    .callTimeout(gemConfig.scanTimeout())
                     .build(),
             ),
             deviceKeyService,
@@ -291,7 +290,7 @@ object GatewayModule {
         okHttpClient: OkHttpClient,
     ): GemServiceStatus {
         val httpClient = okHttpClient.newBuilder()
-            .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
+            .callTimeout(serviceStatusTimeout())
             .build()
         val provider = NativeProvider(
             nodeService = nodeService,

@@ -140,7 +140,6 @@ fun GemLineChart(
                 modifier = Modifier
                     .fillMaxSize()
                     .chartSelection(
-                        selection = selection,
                         points,
                         indexAt = { touchX -> findClosestIndex(points, touchX, curveLeft, curveWidth) },
                         onSelectionChanged = onSelectionChanged,

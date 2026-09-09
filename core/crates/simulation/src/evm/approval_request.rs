@@ -196,20 +196,12 @@ impl ApprovalRequest {
     }
 
     fn payload(&self) -> Vec<SimulationPayloadField> {
-        let mut payload = vec![
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Contract,
-                &self.contract_address,
-                SimulationPayloadFieldType::Address,
-                SimulationPayloadFieldDisplay::Primary,
-            ),
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Method,
-                self.method.to_string(),
-                SimulationPayloadFieldType::Text,
-                SimulationPayloadFieldDisplay::Primary,
-            ),
-        ];
+        let mut payload = vec![SimulationPayloadField::standard(
+            SimulationPayloadFieldKind::Spender,
+            &self.spender_address,
+            SimulationPayloadFieldType::Address,
+            SimulationPayloadFieldDisplay::Primary,
+        )];
 
         if let Some(token_address) = self.token_address.as_deref() {
             payload.push(SimulationPayloadField::standard(
@@ -220,13 +212,6 @@ impl ApprovalRequest {
             ));
         }
 
-        payload.push(SimulationPayloadField::standard(
-            SimulationPayloadFieldKind::Spender,
-            &self.spender_address,
-            SimulationPayloadFieldType::Address,
-            SimulationPayloadFieldDisplay::Primary,
-        ));
-
         if self.method.supports_value_display()
             && let Some(approval_value) = self.approval_value.as_ref()
         {
@@ -234,18 +219,31 @@ impl ApprovalRequest {
                 SimulationPayloadFieldKind::Value,
                 approval_value.display_value(),
                 SimulationPayloadFieldType::Text,
-                SimulationPayloadFieldDisplay::Secondary,
+                SimulationPayloadFieldDisplay::Primary,
             ));
         }
 
         if let Some(expiration) = self.display_expiration {
-            payload.push(SimulationPayloadField::custom(
-                "expiration",
+            payload.push(SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Expiration,
                 expiration.to_string(),
                 SimulationPayloadFieldType::Timestamp,
-                SimulationPayloadFieldDisplay::Secondary,
+                SimulationPayloadFieldDisplay::Primary,
             ));
         }
+
+        payload.push(SimulationPayloadField::standard(
+            SimulationPayloadFieldKind::Contract,
+            &self.contract_address,
+            SimulationPayloadFieldType::Address,
+            SimulationPayloadFieldDisplay::Secondary,
+        ));
+        payload.push(SimulationPayloadField::standard(
+            SimulationPayloadFieldKind::Method,
+            self.method.to_string(),
+            SimulationPayloadFieldType::Text,
+            SimulationPayloadFieldDisplay::Secondary,
+        ));
 
         payload
     }

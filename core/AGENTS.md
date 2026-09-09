@@ -32,12 +32,13 @@ Subsystem references live in [docs/](../docs). Read the relevant one before chan
 
 ## Before Coding
 
-- Every Rust `use` declaration at the top of the file; never import inside a function or write a fully qualified path inline (see `skills/code-style.md` § Imports)
+- Follow [Code Style § Imports](skills/code-style.md#imports), including the Diesel DSL exception
 - State assumptions explicitly. UniFFI bounds, lifetimes, provider trait contracts, and JSON shape assumptions are invisible — call them out so a reviewer can spot the wrong one
-- Read before you write. Open the file's existing exports, the immediate caller, the related provider/mapper/repository, and any obvious testkit fixture before adding code. "Looks orthogonal to me" is the most expensive sentence in this crate
-- If two patterns in the codebase contradict (e.g., two providers handling decimals or error mapping differently), do not average them. Pick one — typically the more recent or better tested — explain why, and flag the other for cleanup
+- Ground changes in the owner, callers, and relevant example using [Task Workflow](../skills/task-workflow.md#2-ground-the-change-before-editing)
+- When working with multiple providers, follow [Provider and Mapper](skills/architecture.md#provider-and-mapper) and compare sibling implementations before editing. Use fiat providers, price providers, and chain providers as the structural references.
+- Resolve conflicting patterns with the shared [Engineering Principles](../skills/engineering-principles.md#clean-code-principles)
 - Use single-word names for Core settings keys; `_` is reserved for separating the settings hierarchy in environment variables
-- Keep `docs/FEATURES.md` (repo root) current in the same change when chain capabilities, simulations, WalletConnect coverage, transaction-indexing routes, active swap, fiat, or NFT providers, provider modes, amount/slippage behavior, deployments, or supported assets change. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
+- Keep `docs/FEATURES.md` (repo root) focused on high-level capabilities and provider coverage, including per-chain and supported-method coverage tables. Update it when supported chains, assets, features, providers, provider modes, or deployments change. Routine bug fixes, amount-validation details, formatting, and internal refactors do not need entries. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
 
 ## Task Completion
 

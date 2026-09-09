@@ -257,6 +257,8 @@ public enum Localized {
     public static let earn = Localized.tr("Localizable", "common.earn", fallback: "Earn")
     /// Emoji
     public static let emoji = Localized.tr("Localizable", "common.emoji", fallback: "Emoji")
+    /// Expiration
+    public static let expiration = Localized.tr("Localizable", "common.expiration", fallback: "Expiration")
     /// Get Started
     public static let getStarted = Localized.tr("Localizable", "common.get_started", fallback: "Get Started")
     /// Hidden
@@ -328,6 +330,10 @@ public enum Localized {
     /// Show %@
     public static func show(_ p1: Any) -> String {
       return Localized.tr("Localizable", "common.show", String(describing: p1), fallback: "Show %@")
+    }
+    /// Sign In with %@
+    public static func signInWith(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.sign_in_with", String(describing: p1), fallback: "Sign In with %@")
     }
     /// Skip
     public static let skip = Localized.tr("Localizable", "common.skip", fallback: "Skip")

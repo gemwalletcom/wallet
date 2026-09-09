@@ -36,11 +36,6 @@ pub mod wallet_connect;
 use alien::AlienError;
 
 uniffi::setup_scaffolding!("gemstone");
-const LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-pub fn lib_version() -> String {
-    String::from(LIB_VERSION)
-}
 
 /// GemstoneError
 #[derive(Debug, PartialEq, Eq, uniffi::Error)]

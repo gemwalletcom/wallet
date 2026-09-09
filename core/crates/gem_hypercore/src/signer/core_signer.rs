@@ -1,5 +1,6 @@
 use ::signer::Signer;
 use alloy_primitives::hex;
+use gem_evm::eip712::hash_typed_data;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType,
@@ -194,11 +195,11 @@ impl HyperCoreSigner {
         timestamp_incrementer: &mut NumberIncrementer,
     ) -> SignerResult<Vec<String>> {
         let (data, is_open) = match perpetual_type {
-            PerpetualType::Modify(modify_data) => return self.sign_modify_orders(modify_data, agent_key, builder, timestamp_incrementer),
-            PerpetualType::Open(data) => return self.sign_open_orders(data, agent_key, builder, timestamp_incrementer),
-            PerpetualType::Increase(data) => (data, true),
-            PerpetualType::Close(data) => (data, false),
-            PerpetualType::Reduce(reduce_data) => (&reduce_data.data, false),
+            PerpetualType::Modify { data: modify_data } => return self.sign_modify_orders(modify_data, agent_key, builder, timestamp_incrementer),
+            PerpetualType::Open { data } => return self.sign_open_orders(data, agent_key, builder, timestamp_incrementer),
+            PerpetualType::Increase { data } => (data, true),
+            PerpetualType::Close { data } => (data, false),
+            PerpetualType::Reduce { data: reduce_data } => (&reduce_data.data, false),
         };
 
         let order = Self::market_order_from_confirm_data(data, is_open, builder);
@@ -248,11 +249,11 @@ impl HyperCoreSigner {
             .modify_types
             .iter()
             .map(|modify_type| match modify_type {
-                PerpetualModifyPositionType::Cancel(orders) => {
+                PerpetualModifyPositionType::Cancel { orders } => {
                     let cancels = orders.iter().map(|o| CancelOrder::new(o.asset_index as u32, o.order_id)).collect();
                     self.sign_cancel_order(Cancel::new(cancels), timestamp_incrementer.next_val(), agent_key)
                 }
-                PerpetualModifyPositionType::Tpsl(tpsl) => {
+                PerpetualModifyPositionType::Tpsl { order: tpsl } => {
                     let order = make_position_tp_sl(
                         modify_data.asset_index as u32,
                         tpsl.direction == PerpetualDirection::Long,
@@ -286,8 +287,10 @@ impl HyperCoreSigner {
     }
 
     fn sign_action(&self, typed_data: &str, action: &str, timestamp: u64, private_key: &[u8]) -> SignerResult<String> {
-        let signature = Signer::sign_eip712(typed_data, private_key).map_err(|err| SignerError::InvalidInput(format!("Failed to sign typed data: {err}")))?;
-        self.build_signed_request(signature, action, timestamp)
+        let signature = hash_typed_data(typed_data)
+            .and_then(|digest| Signer::sign_ethereum_digest(&digest, private_key))
+            .map_err(|err| SignerError::InvalidInput(format!("Failed to sign typed data: {err}")))?;
+        self.build_signed_request(hex::encode(signature), action, timestamp)
     }
 
     fn sign_serialized_action<T, F>(&self, value: T, timestamp: u64, private_key: &[u8], typed_data_fn: F, action_name: &'static str) -> SignerResult<String>

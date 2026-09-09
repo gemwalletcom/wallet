@@ -9,6 +9,7 @@
   <string name="common_copy">کپی کردن</string>
   <string name="common_share">اشتراک گذاری</string>
   <string name="common_continue">ادامه</string>
+  <string name="common_sign_in_with">ورود با %1$s</string>
   <string name="common_provider">ارائه دهنده</string>
   <string name="common_loading">در حال بارگذاری</string>
   <string name="common_address">آدرس</string>
@@ -54,6 +55,7 @@
   <string name="common_earn">کسب درآمد</string>
   <string name="common_method">روش</string>
   <string name="common_token">توکن</string>
+  <string name="common_expiration">انقضا</string>
   <string name="common_suspicious_address">آدرس مشکوک</string>
   <string name="common_refresh">تازه کردن</string>
   <string name="common_no_thanks">خیر. سپاس.</string>

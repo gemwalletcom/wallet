@@ -80,6 +80,7 @@ private fun fieldTitleRes(field: SimulationPayloadField): Int? = when (field.kin
     SimulationPayloadFieldKind.TOKEN -> R.string.common_token
     SimulationPayloadFieldKind.SPENDER -> R.string.transfer_to
     SimulationPayloadFieldKind.VALUE -> R.string.perpetual_value
+    SimulationPayloadFieldKind.EXPIRATION -> R.string.common_expiration
     else -> null
 }
 

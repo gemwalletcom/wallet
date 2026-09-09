@@ -80,7 +80,7 @@ impl GemAutocloseModify {
             take_profit_order_id: self.take_profit.order_id,
             stop_loss_order_id: self.stop_loss.order_id,
         };
-        GemPerpetual::new(provider).transfer_data(asset, PerpetualType::Modify(data), GemBigInt::ZERO, false)
+        GemPerpetual::new(provider).transfer_data(asset, PerpetualType::Modify { data }, GemBigInt::ZERO, false)
     }
 
     pub fn build(&self) -> Vec<PerpetualModifyPositionType> {
@@ -90,15 +90,17 @@ impl GemAutocloseModify {
             .collect();
         let mut result = Vec::new();
         if !cancels.is_empty() {
-            result.push(PerpetualModifyPositionType::Cancel(cancels));
+            result.push(PerpetualModifyPositionType::Cancel { orders: cancels });
         }
         if self.take_profit.should_set() || self.stop_loss.should_set() {
-            result.push(PerpetualModifyPositionType::Tpsl(TPSLOrderData {
-                direction: self.direction.clone(),
-                take_profit: self.take_profit.set_price(),
-                stop_loss: self.stop_loss.set_price(),
-                size: "0".to_string(),
-            }));
+            result.push(PerpetualModifyPositionType::Tpsl {
+                order: TPSLOrderData {
+                    direction: self.direction.clone(),
+                    take_profit: self.take_profit.set_price(),
+                    stop_loss: self.stop_loss.set_price(),
+                    size: "0".to_string(),
+                },
+            });
         }
         result
     }
@@ -162,20 +164,20 @@ mod tests {
     fn test_build_sets_and_cancels() {
         let none = field(None, None, false, None);
         let set_only = modify(field(Some(110.0), None, true, None), none.clone()).build();
-        assert!(matches!(&set_only[..], [PerpetualModifyPositionType::Tpsl(order)] if order.take_profit.as_deref() == Some("110.0") && order.stop_loss.is_none()));
+        assert!(matches!(&set_only[..], [PerpetualModifyPositionType::Tpsl { order }] if order.take_profit.as_deref() == Some("110.0") && order.stop_loss.is_none()));
 
         let cancel_only = modify(field(None, Some(100.0), false, Some(12345)), none.clone()).build();
-        assert!(matches!(&cancel_only[..], [PerpetualModifyPositionType::Cancel(cancels)] if cancels.len() == 1 && cancels[0].order_id == 12345 && cancels[0].asset_index == 5));
+        assert!(matches!(&cancel_only[..], [PerpetualModifyPositionType::Cancel { orders: cancels }] if cancels.len() == 1 && cancels[0].order_id == 12345 && cancels[0].asset_index == 5));
 
         let both = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(80.0), Some(90.0), true, Some(67890))).build();
         assert_eq!(both.len(), 2);
-        assert!(matches!(&both[0], PerpetualModifyPositionType::Cancel(cancels) if cancels.len() == 2));
+        assert!(matches!(&both[0], PerpetualModifyPositionType::Cancel { orders: cancels } if cancels.len() == 2));
         assert!(
-            matches!(&both[1], PerpetualModifyPositionType::Tpsl(order) if order.take_profit.as_deref() == Some("120.0") && order.stop_loss.as_deref() == Some("80.0") && order.size == "0")
+            matches!(&both[1], PerpetualModifyPositionType::Tpsl { order } if order.take_profit.as_deref() == Some("120.0") && order.stop_loss.as_deref() == Some("80.0") && order.size == "0")
         );
 
         let unchanged_stop_loss = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(90.0), Some(90.0), true, Some(67890))).build();
-        assert!(matches!(&unchanged_stop_loss[1], PerpetualModifyPositionType::Tpsl(order) if order.stop_loss.is_none()));
+        assert!(matches!(&unchanged_stop_loss[1], PerpetualModifyPositionType::Tpsl { order } if order.stop_loss.is_none()));
     }
 
     #[test]
@@ -184,7 +186,7 @@ mod tests {
         let transfer = modify.transfer(PerpetualProvider::Hypercore, Asset::from_chain(primitives::Chain::HyperCore));
 
         let primitives::TransactionInputType::Perpetual {
-            perpetual_type: PerpetualType::Modify(data),
+            perpetual_type: PerpetualType::Modify { data },
             ..
         } = &transfer.input_type
         else {
