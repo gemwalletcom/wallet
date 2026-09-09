@@ -8,7 +8,7 @@ use primitives::currency::Currency;
 use primitives::{AssetId, Chain, PriceAlert, StreamMessage, WalletId};
 
 use super::{GemStreamConnection, GemStreamSubscriptionService};
-use crate::services::balance::{GemAssetBalance, GemBalanceStore, GemBalanceUpdate};
+use crate::services::balance::{GemAssetBalance, GemBalanceRecord, GemBalanceStore};
 use crate::services::error::GemServiceError;
 use crate::services::price_alert::GemPriceAlertStore;
 
@@ -47,7 +47,7 @@ impl GemBalanceStore for MemoryBalanceStore {
         Ok(vec![])
     }
 
-    async fn update_balances(&self, _wallet_id: WalletId, _updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
+    async fn update_balances(&self, _wallet_id: WalletId, _balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
         Ok(())
     }
 

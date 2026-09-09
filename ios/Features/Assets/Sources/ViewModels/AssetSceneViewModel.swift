@@ -466,7 +466,7 @@ extension AssetSceneViewModel {
     }
 
     private var stakeBalance: GemAssetBalance {
-        GemAssetBalance(assetData.balance, assetId: asset.id)
+        GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive)
     }
 
     private var stakedValue: BigInt {

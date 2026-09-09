@@ -18,6 +18,7 @@ impl GemAssetBalance {
             withdrawable: BigUint::ZERO,
             earn: BigUint::ZERO,
             metadata: None,
+            is_active: true,
         }
     }
 }

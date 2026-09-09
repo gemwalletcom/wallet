@@ -344,6 +344,15 @@ intentional one-sided integration surfaces.
   `GemDeviceService::set_push_enabled`, which writes the preference and syncs the device. Each app
   had half of that: Android wrote the preference without ever asking for permission, so the switch
   read on while the OS blocked notifications and the optimistic state was never corrected when the
+- **A balance is written only when it changed, and the store writes the whole row.**
+  `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
+  rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one
+  statement instead of five per-source updates (Android's `updateCoinBalance` … `updateStakeBalance`
+  and iOS's `UpdateBalanceType` switch are gone). Prices already worked that way; balances wrote
+  every enabled asset on every refresh, socket event and asset enable, and one write to the balances
+  table re-runs every screen observing it — three queries on the iOS wallet tab, the list and the
+  summary on Android. The stored balance carries `is_active` now, which the diff needs; the
+  `updated_at` stamp stays and only lands on rows that actually changed.
   call failed; iOS asked but the granted branch only synced, so the preference it reads back stayed
   false and the device synced with push off. Android's `DevicePushSettings` takes Core's answer now
   instead of setting the device flag itself, and the `catch (_: Throwable) {}` around it is gone.

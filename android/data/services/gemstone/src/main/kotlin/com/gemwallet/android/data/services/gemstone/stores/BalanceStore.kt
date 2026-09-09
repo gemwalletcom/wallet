@@ -8,8 +8,7 @@ import uniffi.gemstone.GemAssetBalance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemBalanceStore
-import uniffi.gemstone.GemBalanceUpdate
-import uniffi.gemstone.GemBalanceUpdateType
+import uniffi.gemstone.GemBalanceRecord
 
 class GemstoneBalanceStore(
     private val balancesDao: BalancesDao,
@@ -31,77 +30,41 @@ class GemstoneBalanceStore(
         assetsDao.setBalanceConfig(walletId, assetId, isPinned = pinned, isVisible = balance.isVisible, listPosition = balance.listPosition)
     }
 
-    override suspend fun updateBalances(walletId: String, updates: List<GemBalanceUpdate>) = transactionRunner.run {
+    override suspend fun updateBalances(walletId: String, balances: List<GemBalanceRecord>) = transactionRunner.run {
         val updatedAt = System.currentTimeMillis()
-        for (update in updates) {
-            when (val type = update.updateType) {
-                is GemBalanceUpdateType.Coin -> balancesDao.updateCoinBalance(
-                    walletId = walletId,
-                    assetId = update.assetId,
-                    available = type.available.value.toString(),
-                    availableAmount = type.available.amount,
-                    frozen = type.frozen.value.toString(),
-                    frozenAmount = type.frozen.amount,
-                    reserved = type.reserved.value.toString(),
-                    reservedAmount = type.reserved.amount,
-                    pendingUnconfirmed = type.pendingUnconfirmed.value.toString(),
-                    pendingUnconfirmedAmount = type.pendingUnconfirmed.amount,
-                    isActive = update.isActive,
-                    updatedAt = updatedAt,
-                )
-                is GemBalanceUpdateType.Token -> balancesDao.updateTokenBalance(
-                    walletId = walletId,
-                    assetId = update.assetId,
-                    available = type.available.value.toString(),
-                    availableAmount = type.available.amount,
-                    isActive = update.isActive,
-                    updatedAt = updatedAt,
-                )
-                is GemBalanceUpdateType.Stake -> {
-                    val metadata = type.metadata?.toPrimitives()
-                    balancesDao.updateStakeBalance(
-                        walletId = walletId,
-                        assetId = update.assetId,
-                        staked = type.staked.value.toString(),
-                        stakedAmount = type.staked.amount,
-                        frozen = type.frozen.value.toString(),
-                        frozenAmount = type.frozen.amount,
-                        locked = type.locked.value.toString(),
-                        lockedAmount = type.locked.amount,
-                        pending = type.pending.value.toString(),
-                        pendingAmount = type.pending.amount,
-                        rewards = type.rewards.value.toString(),
-                        rewardsAmount = type.rewards.amount,
-                        votes = metadata?.votes?.toLong(),
-                        energyAvailable = metadata?.energyAvailable?.toLong(),
-                        energyTotal = metadata?.energyTotal?.toLong(),
-                        bandwidthAvailable = metadata?.bandwidthAvailable?.toLong(),
-                        bandwidthTotal = metadata?.bandwidthTotal?.toLong(),
-                        isActive = update.isActive,
-                        updatedAt = updatedAt,
-                    )
-                }
-                is GemBalanceUpdateType.Perpetual -> balancesDao.updatePerpetualBalance(
-                    walletId = walletId,
-                    assetId = update.assetId,
-                    available = type.available.value.toString(),
-                    availableAmount = type.available.amount,
-                    reserved = type.reserved.value.toString(),
-                    reservedAmount = type.reserved.amount,
-                    withdrawable = type.withdrawable.value.toString(),
-                    withdrawableAmount = type.withdrawable.amount,
-                    isActive = update.isActive,
-                    updatedAt = updatedAt,
-                )
-                is GemBalanceUpdateType.Earn -> balancesDao.updateEarnBalance(
-                    walletId = walletId,
-                    assetId = update.assetId,
-                    earn = type.balance.value.toString(),
-                    earnAmount = type.balance.amount,
-                    isActive = update.isActive,
-                    updatedAt = updatedAt,
-                )
-            }
+        for (balance in balances) {
+            val metadata = balance.metadata?.toPrimitives()
+            balancesDao.updateBalance(
+                walletId = walletId,
+                assetId = balance.assetId,
+                available = balance.available.value.toString(),
+                availableAmount = balance.available.amount,
+                frozen = balance.frozen.value.toString(),
+                frozenAmount = balance.frozen.amount,
+                locked = balance.locked.value.toString(),
+                lockedAmount = balance.locked.amount,
+                staked = balance.staked.value.toString(),
+                stakedAmount = balance.staked.amount,
+                pending = balance.pending.value.toString(),
+                pendingAmount = balance.pending.amount,
+                pendingUnconfirmed = balance.pendingUnconfirmed.value.toString(),
+                pendingUnconfirmedAmount = balance.pendingUnconfirmed.amount,
+                rewards = balance.rewards.value.toString(),
+                rewardsAmount = balance.rewards.amount,
+                reserved = balance.reserved.value.toString(),
+                reservedAmount = balance.reserved.amount,
+                withdrawable = balance.withdrawable.value.toString(),
+                withdrawableAmount = balance.withdrawable.amount,
+                earn = balance.earn.value.toString(),
+                earnAmount = balance.earn.amount,
+                votes = metadata?.votes?.toLong() ?: 0L,
+                energyAvailable = metadata?.energyAvailable?.toLong() ?: 0L,
+                energyTotal = metadata?.energyTotal?.toLong() ?: 0L,
+                bandwidthAvailable = metadata?.bandwidthAvailable?.toLong() ?: 0L,
+                bandwidthTotal = metadata?.bandwidthTotal?.toLong() ?: 0L,
+                isActive = balance.isActive,
+                updatedAt = updatedAt,
+            )
         }
     }
 }

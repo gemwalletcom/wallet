@@ -2,11 +2,9 @@ use std::collections::HashMap;
 
 use crate::services::collections::{missing, unique};
 
-use num_bigint::BigUint;
-use number_formatter::BigNumberFormatter;
 use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, Chain, TotalFiatValue};
 
-use super::model::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+use super::model::{GemAssetBalance, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
 
 pub fn total_fiat_value(balances: &[AssetFiatValue]) -> TotalFiatValue {
     BalanceCalculator::total_fiat_value(balances)
@@ -67,44 +65,62 @@ pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<Bala
         .collect()
 }
 
-pub fn balance_updates(assets: &[Asset], balances: Vec<(BalanceKind, AssetBalance)>) -> Vec<GemBalanceUpdate> {
-    let decimals: HashMap<AssetId, u32> = assets.iter().map(|asset| (asset.id.clone(), asset.decimals.max(0) as u32)).collect();
+pub fn balance_updates(balances: Vec<(BalanceKind, AssetBalance)>) -> Vec<GemBalanceUpdate> {
     balances
         .into_iter()
-        .filter_map(|(kind, balance)| {
-            let decimals = *decimals.get(&balance.asset_id)?;
-            let value = |amount: &BigUint| GemBalanceValue {
-                value: amount.clone(),
-                amount: BigNumberFormatter::value_as_f64(&amount.to_string(), decimals).unwrap_or_default(),
-            };
+        .map(|(kind, balance)| {
             let update_type = match kind {
                 BalanceKind::Coin => GemBalanceUpdateType::Coin {
-                    available: value(&balance.balance.available),
-                    frozen: value(&balance.balance.frozen),
-                    reserved: value(&balance.balance.reserved),
-                    pending_unconfirmed: value(&balance.balance.pending_unconfirmed),
+                    available: balance.balance.available,
+                    frozen: balance.balance.frozen,
+                    reserved: balance.balance.reserved,
+                    pending_unconfirmed: balance.balance.pending_unconfirmed,
                 },
                 BalanceKind::Token => GemBalanceUpdateType::Token {
-                    available: value(&balance.balance.available),
+                    available: balance.balance.available,
                 },
                 BalanceKind::Stake => GemBalanceUpdateType::Stake {
-                    staked: value(&balance.balance.staked),
-                    pending: value(&balance.balance.pending),
-                    rewards: value(&balance.balance.rewards),
-                    locked: value(&balance.balance.locked),
-                    frozen: value(&balance.balance.frozen),
-                    metadata: balance.balance.metadata.clone(),
+                    staked: balance.balance.staked,
+                    pending: balance.balance.pending,
+                    rewards: balance.balance.rewards,
+                    locked: balance.balance.locked,
+                    frozen: balance.balance.frozen,
+                    metadata: balance.balance.metadata,
                 },
-                BalanceKind::Earn => GemBalanceUpdateType::Earn {
-                    balance: value(&balance.balance.earn),
-                },
+                BalanceKind::Earn => GemBalanceUpdateType::Earn { balance: balance.balance.earn },
             };
-            Some(GemBalanceUpdate {
+            GemBalanceUpdate {
                 asset_id: balance.asset_id,
                 update_type,
                 is_active: balance.is_active,
-            })
+            }
         })
+        .collect()
+}
+
+pub fn changed_balances(stored: Vec<GemAssetBalance>, updates: Vec<GemBalanceUpdate>) -> Vec<GemAssetBalance> {
+    let stored: HashMap<AssetId, GemAssetBalance> = stored.into_iter().map(|balance| (balance.asset_id.clone(), balance)).collect();
+    let mut order = Vec::new();
+    let mut applied: HashMap<AssetId, GemAssetBalance> = HashMap::new();
+    for update in updates {
+        let balance = applied.entry(update.asset_id.clone()).or_insert_with(|| {
+            order.push(update.asset_id.clone());
+            stored.get(&update.asset_id).cloned().unwrap_or_else(|| GemAssetBalance::zero(update.asset_id.clone()))
+        });
+        *balance = balance.applying(&update);
+    }
+    order
+        .into_iter()
+        .filter_map(|asset_id| applied.remove(&asset_id))
+        .filter(|balance| stored.get(&balance.asset_id) != Some(balance))
+        .collect()
+}
+
+pub fn balance_records(balances: Vec<GemAssetBalance>, assets: &[Asset]) -> Vec<GemBalanceRecord> {
+    let decimals: HashMap<AssetId, u32> = assets.iter().map(|asset| (asset.id.clone(), asset.decimals.max(0) as u32)).collect();
+    balances
+        .into_iter()
+        .filter_map(|balance| Some(GemBalanceRecord::new(balance.clone(), *decimals.get(&balance.asset_id)?)))
         .collect()
 }
 
@@ -119,6 +135,46 @@ pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
+
+    #[test]
+    fn test_changed_balances_keeps_only_what_differs_from_the_stored_row() {
+        let asset_id = AssetId::from_chain(Chain::Ethereum);
+        let stored = GemAssetBalance {
+            asset_id: asset_id.clone(),
+            available: BigUint::from(10u32),
+            ..GemAssetBalance::mock()
+        };
+        let value = |amount: u32| BigUint::from(amount);
+        let token = |available: u32, is_active: bool| GemBalanceUpdate {
+            asset_id: asset_id.clone(),
+            update_type: GemBalanceUpdateType::Token { available: value(available) },
+            is_active,
+        };
+
+        assert!(changed_balances(vec![stored.clone()], vec![token(10, true)]).is_empty(), "same value and state is not a change");
+        assert_eq!(changed_balances(vec![stored.clone()], vec![token(11, true)]).len(), 1, "a new value is");
+        assert_eq!(changed_balances(vec![stored.clone()], vec![token(10, false)]).len(), 1, "so is an activation change alone");
+        assert_eq!(changed_balances(vec![], vec![token(10, true)]).len(), 1, "a balance with no stored row is always written");
+
+        let stake = GemBalanceUpdate {
+            asset_id: asset_id.clone(),
+            update_type: GemBalanceUpdateType::Stake {
+                staked: value(0),
+                pending: value(0),
+                rewards: value(0),
+                locked: value(0),
+                frozen: value(0),
+                metadata: None,
+            },
+            is_active: true,
+        };
+        assert!(changed_balances(vec![stored.clone()], vec![stake.clone()]).is_empty(), "a stake update leaves the coin's available alone and compares its own fields");
+
+        let folded = changed_balances(vec![stored], vec![token(11, true), stake]);
+        assert_eq!(folded.len(), 1, "two updates for one asset fold into one row");
+        assert_eq!(folded[0].available, BigUint::from(11u32));
+    }
     use primitives::{AssetType, Balance};
 
     #[test]
@@ -165,31 +221,25 @@ mod tests {
     }
 
     #[test]
-    fn test_balance_updates_convert_with_asset_decimals_and_skip_unknown_assets() {
+    fn test_balance_records_convert_with_asset_decimals_and_skip_unknown_assets() {
         let ethereum = AssetId::from_chain(Chain::Ethereum);
         let unknown = AssetId::from_token(Chain::Ethereum, "0xunknown");
         let asset = Asset::new(ethereum.clone(), "Ethereum".into(), "ETH".into(), 18, AssetType::NATIVE);
+        let updates = balance_updates(vec![
+            (
+                BalanceKind::Coin,
+                AssetBalance::new_balance(ethereum.clone(), Balance::coin_balance(BigUint::from(1_500_000_000_000_000_000u64))),
+            ),
+            (BalanceKind::Token, AssetBalance::new(unknown, BigUint::from(1u64))),
+        ]);
 
-        let updates = balance_updates(
-            &[asset],
-            vec![
-                (
-                    BalanceKind::Coin,
-                    AssetBalance::new_balance(ethereum.clone(), Balance::coin_balance(BigUint::from(1_500_000_000_000_000_000u64))),
-                ),
-                (BalanceKind::Token, AssetBalance::new(unknown, BigUint::from(1u64))),
-            ],
-        );
+        let records = balance_records(changed_balances(vec![], updates), &[asset]);
 
-        assert_eq!(updates.len(), 1);
-        assert_eq!(updates[0].asset_id, ethereum);
-        match &updates[0].update_type {
-            GemBalanceUpdateType::Coin { available, .. } => {
-                assert_eq!(available.value, BigUint::from(1_500_000_000_000_000_000u64));
-                assert_eq!(available.amount, 1.5);
-            }
-            other => panic!("unexpected update {other:?}"),
-        }
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].asset_id, ethereum);
+        assert_eq!(records[0].available.value, BigUint::from(1_500_000_000_000_000_000u64));
+        assert_eq!(records[0].available.amount, 1.5);
+        assert_eq!(records[0].staked.amount, 0.0);
     }
 
     #[test]

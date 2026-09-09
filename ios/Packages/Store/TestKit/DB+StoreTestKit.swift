@@ -72,9 +72,9 @@ public extension DB {
             ])
         try balanceStore.updateBalances(
             [
-                .mockCoin(assetId: ethereum.id, available: 3),
-                .mockCoin(assetId: bnb.id, available: 10),
-                .mockPerpetual(assetId: perpetual.id, available: 50, reserved: 25),
+                .mock(assetId: ethereum.id, available: 3),
+                .mock(assetId: bnb.id, available: 10),
+                .mock(assetId: perpetual.id, available: 50, reserved: 25),
             ],
             for: .mock(),
         )

@@ -40,67 +40,33 @@ public struct BalanceStore: Sendable {
     ) throws {
         try db.write { (db: Database) in
             for balance in balances {
-                let balanceFields: [ColumnAssignment] = switch balance.type {
-                case let .coin(balance):
-                    [
-                        BalanceRecord.Columns.available.set(to: balance.available.value),
-                        BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
-                        BalanceRecord.Columns.frozen.set(to: balance.frozen.value),
-                        BalanceRecord.Columns.frozenAmount.set(to: balance.frozen.amount),
-                        BalanceRecord.Columns.reserved.set(to: balance.reserved.value),
-                        BalanceRecord.Columns.reservedAmount.set(to: balance.reserved.amount),
-                        BalanceRecord.Columns.pendingUnconfirmed.set(to: balance.pendingUnconfirmed.value),
-                        BalanceRecord.Columns.pendingUnconfirmedAmount.set(to: balance.pendingUnconfirmed.amount),
-                    ]
-                case let .token(balance):
-                    [
-                        BalanceRecord.Columns.available.set(to: balance.available.value),
-                        BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
-                    ]
-                case let .stake(balance):
-                    [
-                        BalanceRecord.Columns.staked.set(to: balance.staked.value),
-                        BalanceRecord.Columns.stakedAmount.set(to: balance.staked.amount),
-                        BalanceRecord.Columns.frozen.set(to: balance.frozen.value),
-                        BalanceRecord.Columns.frozenAmount.set(to: balance.frozen.amount),
-                        BalanceRecord.Columns.locked.set(to: balance.locked.value),
-                        BalanceRecord.Columns.lockedAmount.set(to: balance.locked.amount),
-                        BalanceRecord.Columns.pending.set(to: balance.pending.value),
-                        BalanceRecord.Columns.pendingAmount.set(to: balance.pending.amount),
-                        BalanceRecord.Columns.rewards.set(to: balance.rewards.value),
-                        BalanceRecord.Columns.rewardsAmount.set(to: balance.rewards.amount),
-                    ]
-                case let .perpetual(balance):
-                    [
-                        BalanceRecord.Columns.available.set(to: balance.available.value),
-                        BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
-                        BalanceRecord.Columns.reserved.set(to: balance.reserved.value),
-                        BalanceRecord.Columns.reservedAmount.set(to: balance.reserved.amount),
-                        BalanceRecord.Columns.withdrawable.set(to: balance.withdrawable.value),
-                        BalanceRecord.Columns.withdrawableAmount.set(to: balance.withdrawable.amount),
-                    ]
-                case let .earn(balance):
-                    [
-                        BalanceRecord.Columns.earn.set(to: balance.balance.value),
-                        BalanceRecord.Columns.earnAmount.set(to: balance.balance.amount),
-                    ]
+                var assignments: [ColumnAssignment] = [
+                    BalanceRecord.Columns.available.set(to: balance.available.value),
+                    BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
+                    BalanceRecord.Columns.frozen.set(to: balance.frozen.value),
+                    BalanceRecord.Columns.frozenAmount.set(to: balance.frozen.amount),
+                    BalanceRecord.Columns.locked.set(to: balance.locked.value),
+                    BalanceRecord.Columns.lockedAmount.set(to: balance.locked.amount),
+                    BalanceRecord.Columns.staked.set(to: balance.staked.value),
+                    BalanceRecord.Columns.stakedAmount.set(to: balance.staked.amount),
+                    BalanceRecord.Columns.pending.set(to: balance.pending.value),
+                    BalanceRecord.Columns.pendingAmount.set(to: balance.pending.amount),
+                    BalanceRecord.Columns.pendingUnconfirmed.set(to: balance.pendingUnconfirmed.value),
+                    BalanceRecord.Columns.pendingUnconfirmedAmount.set(to: balance.pendingUnconfirmed.amount),
+                    BalanceRecord.Columns.rewards.set(to: balance.rewards.value),
+                    BalanceRecord.Columns.rewardsAmount.set(to: balance.rewards.amount),
+                    BalanceRecord.Columns.reserved.set(to: balance.reserved.value),
+                    BalanceRecord.Columns.reservedAmount.set(to: balance.reserved.amount),
+                    BalanceRecord.Columns.withdrawable.set(to: balance.withdrawable.value),
+                    BalanceRecord.Columns.withdrawableAmount.set(to: balance.withdrawable.amount),
+                    BalanceRecord.Columns.earn.set(to: balance.earn.value),
+                    BalanceRecord.Columns.earnAmount.set(to: balance.earn.amount),
+                    BalanceRecord.Columns.updatedAt.set(to: balance.updatedAt),
+                    BalanceRecord.Columns.isActive.set(to: balance.isActive),
+                ]
+                if let metadata = balance.metadata {
+                    assignments.append(BalanceRecord.Columns.metadata.set(to: try JSONEncoder().encode(metadata).encodeString()))
                 }
-
-                let defaultFields: [ColumnAssignment] = try {
-                    var items: [ColumnAssignment] = [
-                        BalanceRecord.Columns.updatedAt.set(to: balance.updatedAt),
-                        BalanceRecord.Columns.isActive.set(to: balance.isActive),
-                    ]
-
-                    if let metadata = balance.type.metadata {
-                        let metadataString = try JSONEncoder().encode(metadata).encodeString()
-                        items.append(BalanceRecord.Columns.metadata.set(to: metadataString))
-                    }
-                    return items
-                }()
-
-                let assignments = balanceFields + defaultFields
-
                 try BalanceRecord
                     .filter(BalanceRecord.Columns.walletId == walletId.id)
                     .filter(BalanceRecord.Columns.assetId == balance.assetId.identifier)
@@ -110,13 +76,8 @@ public struct BalanceStore: Sendable {
     }
 
     @discardableResult
-    public func getBalance(walletId: WalletId, assetId: AssetId) throws -> Balance? {
-        try db.read { db in
-            try BalanceRecord
-                .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(BalanceRecord.Columns.assetId == assetId.identifier)
-                .fetchOne(db)?.mapToBalance()
-        }
+    public func getBalance(walletId: WalletId, assetId: AssetId) throws -> StoredBalance? {
+        try getBalanceRecord(walletId: walletId, assetId: assetId).map { StoredBalance(balance: $0.mapToBalance(), isActive: $0.isActive) }
     }
 
     @discardableResult
