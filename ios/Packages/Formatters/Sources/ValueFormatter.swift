@@ -105,8 +105,7 @@ private extension ValueFormatter {
         case (.short, Self.smallAmountThreshold...): .upToTwoPlaces
         case (.short, _): .upToFourPlaces
         case (.auto, 1...): .upToTwoPlaces
-        case (.auto, Self.dustThreshold...): .fourSignificant
-        case (.auto, _): .full
+        case (.auto, _): .fourSignificant
         }
     }
 

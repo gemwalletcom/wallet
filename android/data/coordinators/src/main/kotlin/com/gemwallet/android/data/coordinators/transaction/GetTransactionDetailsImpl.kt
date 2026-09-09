@@ -67,7 +67,7 @@ class TransactionDetailsAggregateImpl(
     override val currency: Currency,
 ) : TransactionDetailsAggregate {
 
-    private val fullFormatter = ValueFormatter(style = ValueFormatter.Style.Full)
+    private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
     private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
 
     override val id: String = data.transaction.id.identifier
@@ -99,7 +99,7 @@ class TransactionDetailsAggregateImpl(
 
     override val fee: TransactionDetailsValue.Fee = rows.fee.let { fee ->
         val asset = fee.asset.toPrimitives()
-        TransactionDetailsValue.Fee(asset, fullFormatter.string(fee.value, asset), fee.fiat(asset).orEmpty())
+        TransactionDetailsValue.Fee(asset, valueFormatter.string(fee.value, asset), fee.fiat(asset).orEmpty())
     }
 
     override val date: TransactionDetailsValue.Date = TransactionDetailsValue.Date(getRelativeDate(data.transaction.createdAt))
@@ -179,7 +179,7 @@ class TransactionDetailsAggregateImpl(
         val asset = asset.toPrimitives()
         return TransactionDetailsValue.Amount.Plain(
             asset = asset,
-            value = sign.format(fullFormatter.string(value, asset)),
+            value = sign.format(valueFormatter.string(value, asset)),
             equivalent = fiat(asset).takeIf { showsFiat }.orEmpty(),
         )
     }
