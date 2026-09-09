@@ -414,6 +414,13 @@ intentional one-sided integration surfaces.
   `get_rates()` — a read added to `GemPriceStore`, answered from each app's rates table — saves the
   rates that changed, and reconverts prices when the session currency is among them. Steady state
   is zero rows per tick; prices and balances already worked this way.
+- **Android no longer keeps an app-wide transactions observer alive.** `GetTransactionsImpl` held
+  a `StateFlow` started `Eagerly` in its own IO scope whose only reader was the activity view
+  model's `initialValue`, so every transaction, asset, address or price write re-ran the history
+  query and rebuilt rows for a screen that might never open. The flow and
+  `GetTransactions.transactions()` are gone; the view model starts at `null` and the scene draws
+  nothing until the first emission rather than flashing the empty state. iOS never had the
+  equivalent — `ObservableQuery` fetches synchronously on bind.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one

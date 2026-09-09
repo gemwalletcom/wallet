@@ -19,15 +19,11 @@ import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.transactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
@@ -41,15 +37,7 @@ private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Short)
 class GetTransactionsImpl(
     private val getCurrentWalletId: GetCurrentWalletId,
     private val transactionStore: GemstoneTransactionStore,
-    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
-
-    private val transactions: StateFlow<List<TransactionDataAggregate>> =
-        transactionStore.walletTransactions(getCurrentWalletId, emptyList())
-            .aggregates()
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
-
-    override fun transactions(): StateFlow<List<TransactionDataAggregate>> = transactions
 
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
