@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **An import is validated once, by Core.** iOS's wallet service wrapper called
+  `GemWalletImportType::validated()` before handing the import to `import_wallet`, which validates
+  it again; the export existed for that one call. The wrapper passes the import straight through
+  now and the method is Core-internal.
 - **The swap slippage preference no longer crosses the boundary.** `get_swap_slippage_bps` and
   `set_swap_slippage_bps` on `GemPreferencesService` were exported for an Android config flow that
   no screen read or set, deleted earlier in this sweep; Core's swap quote service is their only

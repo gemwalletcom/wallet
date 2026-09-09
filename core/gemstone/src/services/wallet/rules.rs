@@ -7,7 +7,6 @@ use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
 
-#[uniffi::export]
 impl GemWalletImportType {
     pub fn validated(self) -> Result<Self, GemWalletImportError> {
         match self {
