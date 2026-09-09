@@ -11,40 +11,16 @@ public struct TransactionStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func getTransactionWallets(
-        states: [TransactionState],
-    ) throws -> [TransactionWallet] {
+    public func getTransactions(states: [TransactionState]) throws -> [WalletId: [Transaction]] {
         try db.read { db in
-            try TransactionRecord
-                .including(required: TransactionRecord.wallet.including(all: WalletRecord.accounts))
-                .filter(states.map(\.rawValue).contains(TransactionRecord.Columns.state))
-                .asRequest(of: WalletTransactionInfo.self)
-                .fetchAll(db)
-                .map(\.transactionWallet)
-        }
-    }
-
-    public func getTransactionWallet(
-        walletId: WalletId,
-        transactionId: TransactionId,
-    ) throws -> TransactionWallet? {
-        try db.read { db in
-            try TransactionRecord
-                .including(required: TransactionRecord.wallet.including(all: WalletRecord.accounts))
-                .filter(TransactionRecord.Columns.walletId == walletId.id)
-                .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
-                .asRequest(of: WalletTransactionInfo.self)
-                .fetchOne(db)?
-                .transactionWallet
-        }
-    }
-
-    public func getTransactions(states: [TransactionState]) throws -> [Transaction] {
-        try db.read { db in
-            try TransactionRecord
+            let records = try TransactionRecord
                 .filter(states.map(\.rawValue).contains(TransactionRecord.Columns.state))
                 .fetchAll(db)
-                .compactMap { $0.mapToTransaction() }
+            var transactions: [WalletId: [Transaction]] = [:]
+            for record in records {
+                try transactions[WalletId.from(id: record.walletId), default: []].append(record.mapToTransaction())
+            }
+            return transactions
         }
     }
 

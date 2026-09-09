@@ -13,18 +13,30 @@ import Store
 
 public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unchecked Sendable {
     private let store: TransactionStore
+    private let walletStore: WalletStore
 
-    public init(store: TransactionStore) {
+    public init(store: TransactionStore, walletStore: WalletStore) {
         self.store = store
+        self.walletStore = walletStore
     }
 
     public func getPendingTransactions() async throws -> [GemPendingTransaction] {
-        try store.getTransactionWallets(states: [.pending, .inTransit]).map { GemPendingTransaction(wallet: $0.wallet.map(), transaction: $0.transaction.map()) }
+        let wallets = Dictionary(uniqueKeysWithValues: try walletStore.getWallets().map { ($0.id, $0) })
+        return try store.getTransactions(states: [.pending, .inTransit]).flatMap { (walletId, transactions) -> [GemPendingTransaction] in
+            guard let wallet = wallets[walletId] else { return [] }
+            return transactions.map { GemPendingTransaction(wallet: wallet.map(), transaction: $0.map()) }
+        }
     }
 
     public func getTransaction(walletId: String, transactionId: Gemstone.TransactionId) async throws -> GemPendingTransaction? {
-        try store.getTransactionWallet(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(id: transactionId))
-            .map { GemPendingTransaction(wallet: $0.wallet.map(), transaction: $0.transaction.map()) }
+        let walletId = try WalletId.from(id: walletId)
+        let transactionId = try Primitives.TransactionId(id: transactionId)
+        guard
+            let wallet = try walletStore.getWallet(id: walletId),
+            try store.getTransactionState(walletId: walletId, transactionId: transactionId) != nil
+        else { return nil }
+        let transaction = try store.getTransaction(walletId: walletId, transactionId: transactionId).transaction
+        return GemPendingTransaction(wallet: wallet.map(), transaction: transaction.map())
     }
 
     public func addTransactions(walletId: String, transactions: [Gemstone.Transaction]) async throws {

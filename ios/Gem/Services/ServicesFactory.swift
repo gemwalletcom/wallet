@@ -127,7 +127,7 @@ struct ServicesFactory {
             session: walletSessionService,
         )
         let nftService = Gemstone.GemNftService(api: deviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore), session: walletSessionService)
-        let transactionStateStore = GemstoneTransactionStateStore(store: storeManager.transactionStore)
+        let transactionStateStore = GemstoneTransactionStateStore(store: storeManager.transactionStore, walletStore: storeManager.walletStore)
         let transactionStateService = gatewayService.transactionStateService(
             store: transactionStateStore,
             assets: assetsService,

@@ -301,6 +301,15 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Three generated twins outlived their Core type, and one had become an iOS model.**
+  `FiatQuoteRequest` crosses the FFI as a remote record, `TransactionStateRequest` and
+  `TransactionSwapStateRequest` lost their `typeshare` a fortnight ago, and `TransactionWallet`
+  no longer exists in Core at all; the generator never deletes an emptied file, so all six
+  twins stayed behind. iOS's store had kept returning `TransactionWallet` for the
+  transaction-state adapter to repack into `GemPendingTransaction`, the record the store trait
+  actually asks for and the one Android builds from its rows and its wallet store. iOS does the
+  same now: the store returns pending transactions keyed by wallet id, the adapter reads the
+  wallets from the wallet store and builds Core's record, and no app defines the pair.
 - **Whether an amount is typed whole or fractional is Core's answer on both apps.**
   `GemAmountInput.uses_whole_amounts` is true for a stake or unstake on a chain whose staking
   takes whole units. iOS asked Core `uses_whole_amounts(chain)` and then decided in its own
