@@ -187,6 +187,12 @@ pub struct GemHeaderButton {
     pub is_enabled: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+pub enum GemHeaderActions {
+    WatchOnly,
+    Buttons { buttons: Vec<GemHeaderButton> },
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetEmptyAction {
     Buy,
@@ -196,7 +202,7 @@ pub enum GemAssetEmptyAction {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetDetailsState {
     pub is_view_only: bool,
-    pub header_buttons: Vec<GemHeaderButton>,
+    pub header_actions: GemHeaderActions,
     pub shows_banners: bool,
     pub shows_manage: bool,
     pub shows_resources: bool,

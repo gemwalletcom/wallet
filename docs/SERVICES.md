@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **What a header offers is one Core enum on both screens and both apps.** `GemHeaderActions {
+  WatchOnly, Buttons { buttons } }` replaces the pair the apps had to reconcile: the wallet home
+  asked Core for `header_buttons` and then hid them behind a watch-only note whenever the wallet
+  type was `view`, on iOS in `WalletHeaderViewModel` and on Android in `AssetsHead`; the asset
+  screen's `GemAssetDetailsState` carried `is_view_only` next to an empty `header_buttons` for the
+  same case. `GemWalletHomeService::header_actions(wallet, is_enabled)` and the asset state's
+  `header_actions` now say it once, and the summary aggregate no longer carries a wallet type.
 - **Which secret a wallet holds is Core's answer on both apps.** `wallet_secret_kind(wallet) ->
   Option<GemWalletSecretKind { Phrase, PrivateKey }>` is the exported face of the `secret_export`
   rule the keystore already used. iOS's detail scene switched on the wallet type to pick the

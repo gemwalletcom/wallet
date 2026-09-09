@@ -5,7 +5,7 @@ use std::sync::Arc;
 use primitives::{Asset, AssetFiatValue, AssetId, BannerEvent, Currency, PerpetualBalance, TotalFiatValue, Wallet};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
-use crate::services::assets::model::GemHeaderButton;
+use crate::services::assets::model::GemHeaderActions;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerKey, GemBannerService};
@@ -57,8 +57,8 @@ impl GemWalletHomeService {
         balance_rules::shows_pnl(&total)
     }
 
-    pub fn header_buttons(&self, wallet: Wallet, is_enabled: bool) -> Vec<GemHeaderButton> {
-        rules::header_buttons(&wallet, is_enabled)
+    pub fn header_actions(&self, wallet: Wallet, is_enabled: bool) -> GemHeaderActions {
+        rules::header_actions(&wallet, is_enabled)
     }
 
     pub async fn update_balances(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {

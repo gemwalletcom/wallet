@@ -15,7 +15,6 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +27,7 @@ import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
 import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemHeaderButton
+import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 import uniffi.gemstone.walletRow
@@ -71,7 +70,7 @@ class GetWalletSummaryImpl(
                     showsPnl = walletHomeService.showsPnl(total),
                 ),
                 isBalanceHidden = hideBalances,
-                headerButtons = walletHomeService.headerButtons(wallet.toGem(), isEnabled = !hasMultiSign),
+                headerActions = walletHomeService.headerActions(wallet.toGem(), isEnabled = !hasMultiSign),
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -127,10 +126,8 @@ internal class WalletSummaryAggregateImpl(
     wallet: Wallet,
     displayState: WalletSummaryDisplayState,
     override val isBalanceHidden: Boolean,
-    override val headerButtons: List<GemHeaderButton>,
+    override val headerActions: GemHeaderActions,
 ) : WalletSummaryAggregate {
-    override val walletType: WalletType = wallet.type
-
     override val walletName: String = wallet.name
 
     override val walletIcon: WalletIcon = WalletIcon(

@@ -2,27 +2,24 @@
 
 import Components
 import Formatters
-import struct Gemstone.GemHeaderButton
+import enum Gemstone.GemHeaderActions
 import Primitives
 import Style
 import SwiftUI
 
 public struct WalletHeaderViewModel {
-    private let walletType: WalletType
     private let totalValue: TotalFiatValue
-    private let headerButtons: [GemHeaderButton]
+    private let actions: GemHeaderActions
     private let totalValueViewModel: TotalValueViewModel
 
     public init(
-        walletType: WalletType,
         totalValue: TotalFiatValue,
         currencyCode: String,
         showsPnl: Bool,
-        buttons: [GemHeaderButton],
+        actions: GemHeaderActions,
     ) {
-        self.walletType = walletType
         self.totalValue = totalValue
-        headerButtons = buttons
+        self.actions = actions
         let formatter = CurrencyFormatter(type: .fiat, currencyCode: currencyCode)
         totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter, showsPnl: showsPnl)
     }
@@ -32,7 +29,7 @@ public struct WalletHeaderViewModel {
 
 extension WalletHeaderViewModel: ValueHeaderViewModel {
     public var isWatchWallet: Bool {
-        walletType == .view
+        actions == .watchOnly
     }
 
     public var title: String {
@@ -58,6 +55,9 @@ extension WalletHeaderViewModel: ValueHeaderViewModel {
     }
 
     public var buttons: [HeaderButton] {
-        headerButtons.map { HeaderButton(type: $0.kind.headerButtonType, isEnabled: $0.isEnabled) }
+        switch actions {
+        case .watchOnly: []
+        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind.headerButtonType, isEnabled: $0.isEnabled) }
+        }
     }
 }

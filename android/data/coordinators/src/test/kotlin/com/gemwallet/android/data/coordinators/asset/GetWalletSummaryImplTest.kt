@@ -9,6 +9,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
@@ -77,7 +78,7 @@ class GetWalletSummaryImplTest {
                 changedValue = null,
             ),
             isBalanceHidden = false,
-            headerButtons = emptyList(),
+            headerActions = GemHeaderActions.Buttons(emptyList()),
         )
 
         assertEquals(GemWalletPlaceholder.Chain(Chain.Base.toGem()), summary.walletIcon.placeholder)
