@@ -11,7 +11,7 @@ pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
     }
 
     if !request.chains.is_empty() {
-        filters.push(filter_array("asset.chain", request.chains.clone()));
+        filters.push(filter_array("chain", request.chains.clone()));
     }
 
     filters
@@ -72,7 +72,14 @@ mod tests {
         let request = SearchRequest::new("ethereum contract", Some("ethereum"), None, MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "asset.chain IN [\"ethereum\"]"]);
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "chain IN [\"ethereum\"]"]);
+
+        let request = SearchRequest::new("", Some("smartchain"), Some("bstocks"), MAX_QUERY_LIMIT, None);
+
+        assert_eq!(
+            build_assets_filters(&request),
+            vec!["properties.isEnabled = true", "score.rank > 15", "tags IN [\"bstocks\"]", "chain IN [\"smartchain\"]"]
+        );
     }
 
     #[test]

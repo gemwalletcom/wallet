@@ -7,9 +7,7 @@ use chrono::{DateTime, Utc};
 use pricer::PriceClient;
 use primitives::asset_score::AssetRank;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetList, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
-use search_index::{
-    ASSET_LISTS_INDEX_NAME, ASSETS_INDEX_NAME, AssetDocument, AssetListDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient,
-};
+use search_index::{ASSET_LISTS_INDEX_NAME, ASSETS_INDEX_NAME, AssetListDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient};
 use storage::{AssetFilter, AssetsAddressesRepository, AssetsRepository, Database, WalletsRepository};
 
 #[derive(Clone)]
@@ -88,7 +86,7 @@ impl SearchClient {
     pub async fn get_assets_search(&self, request: &SearchRequest) -> Result<Vec<primitives::AssetBasic>, Box<dyn Error + Send + Sync>> {
         let filters = build_assets_filters(request);
 
-        let assets: Vec<AssetDocument> = self
+        let assets: Vec<AssetBasic> = self
             .client
             .search(ASSETS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset)
             .await?;

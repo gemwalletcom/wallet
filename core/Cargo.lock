@@ -7643,7 +7643,6 @@ dependencies = [
  "meilisearch-sdk",
  "primitives",
  "serde",
- "serde_json",
 ]
 
 [[package]]
