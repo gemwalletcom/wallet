@@ -52,10 +52,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var isAutocloseEnabled: Bool {
-        switch action {
-        case .open: true
-        case .increase, .reduce: false
-        }
+        action.showsAutoclose()
     }
 
     private var direction: PerpetualDirection {

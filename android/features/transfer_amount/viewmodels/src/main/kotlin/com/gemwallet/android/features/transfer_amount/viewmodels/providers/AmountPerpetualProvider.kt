@@ -75,7 +75,7 @@ class AmountPerpetualProvider(
         stopLossInput.value = value?.takeIf { it.isNotEmpty() }
     }
 
-    val showsAutoclose: Boolean = isOpenAction
+    val showsAutoclose: Boolean = params.positionAction.showsAutoclose()
 
     private val userSelectedLeverage = MutableStateFlow<Int?>(null)
 

@@ -307,6 +307,10 @@ intentional one-sided integration surfaces.
   `DelegationActions` dropped `DEPOSIT` on the way in. Both twins are gone; the screens iterate
   and title Core's actions, and Android renders nothing for a deposit, which its stake
   delegations never produce.
+- **Only opening a position edits its autoclose.** `GemPerpetualPositionAction::shows_autoclose()`
+  says so once; iOS's `isAutocloseEnabled` switch and Android's `showsAutoclose = isOpenAction`
+  both spelled it. Android's `AmountParams.transactionType` had no reader and disagreed with Core
+  (it called an increase or reduce a modify, where Core calls them open and close); it is deleted.
 - **Members nothing reads are gone on both apps.** A declare-then-grep sweep over every
   non-private symbol in the iOS packages and features and the Android modules, counting readers in
   production and test code alike, found nineteen iOS members and six Android ones with no reader

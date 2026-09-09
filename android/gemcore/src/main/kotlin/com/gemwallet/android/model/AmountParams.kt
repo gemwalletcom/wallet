@@ -11,7 +11,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.Resource
-import com.wallet.core.primitives.TransactionType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Contextual
@@ -19,7 +18,6 @@ import kotlinx.serialization.Contextual
 @Serializable
 sealed interface AmountParams {
     val assetId: AssetId
-    val transactionType: TransactionType
     val amount: String? get() = null
 
     fun pack(): String? = packRoutePayload()
@@ -32,25 +30,19 @@ sealed interface AmountParams {
         val memo: String? = null,
         val references: List<String> = emptyList(),
         override val amount: String? = null,
-    ) : AmountParams {
-        override val transactionType: TransactionType get() = TransactionType.Transfer
-    }
+    ) : AmountParams
 
     @Serializable
     @SerialName("perpetual.deposit")
     data class Deposit(
         override val assetId: AssetId,
-    ) : AmountParams {
-        override val transactionType: TransactionType get() = TransactionType.Transfer
-    }
+    ) : AmountParams
 
     @Serializable
     @SerialName("perpetual.withdraw")
     data class Withdraw(
         override val assetId: AssetId,
-    ) : AmountParams {
-        override val transactionType: TransactionType get() = TransactionType.Transfer
-    }
+    ) : AmountParams
 
     @Serializable
     sealed interface Stake : AmountParams {
@@ -59,59 +51,45 @@ sealed interface AmountParams {
         data class Delegate(
             override val assetId: AssetId,
             val validatorId: String? = null,
-        ) : Stake {
-            override val transactionType: TransactionType get() = TransactionType.StakeDelegate
-        }
+        ) : Stake
 
         @Serializable @SerialName("stake.undelegate")
         data class Undelegate(
             override val assetId: AssetId,
             val validatorId: String,
             val delegationId: String,
-        ) : Stake {
-            override val transactionType: TransactionType get() = TransactionType.StakeUndelegate
-        }
+        ) : Stake
 
         @Serializable @SerialName("stake.redelegate")
         data class Redelegate(
             override val assetId: AssetId,
             val validatorId: String,
             val delegationId: String,
-        ) : Stake {
-            override val transactionType: TransactionType get() = TransactionType.StakeRedelegate
-        }
+        ) : Stake
 
         @Serializable @SerialName("stake.withdraw")
         data class Withdraw(
             override val assetId: AssetId,
             val validatorId: String,
             val delegationId: String,
-        ) : Stake {
-            override val transactionType: TransactionType get() = TransactionType.StakeWithdraw
-        }
+        ) : Stake
 
         @Serializable @SerialName("stake.rewards")
         data class Rewards(
             override val assetId: AssetId,
-        ) : Stake {
-            override val transactionType: TransactionType get() = TransactionType.StakeRewards
-        }
+        ) : Stake
 
         @Serializable @SerialName("stake.freeze")
         data class Freeze(
             override val assetId: AssetId,
             val resource: Resource,
-        ) : Stake {
-            override val transactionType: TransactionType get() = TransactionType.StakeFreeze
-        }
+        ) : Stake
 
         @Serializable @SerialName("stake.unfreeze")
         data class Unfreeze(
             override val assetId: AssetId,
             val resource: Resource,
-        ) : Stake {
-            override val transactionType: TransactionType get() = TransactionType.StakeUnfreeze
-        }
+        ) : Stake
     }
 
     @Serializable
@@ -123,11 +101,6 @@ sealed interface AmountParams {
     ) : AmountParams {
         val direction: PerpetualDirection get() = positionAction.transferData().direction.toPrimitives()
 
-        override val transactionType: TransactionType get() = when (positionAction) {
-            is GemPerpetualPositionAction.Open -> TransactionType.PerpetualOpenPosition
-            is GemPerpetualPositionAction.Increase,
-            is GemPerpetualPositionAction.Reduce -> TransactionType.PerpetualModifyPosition
-        }
     }
 
     companion object {
