@@ -28,10 +28,6 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).isMemoSupported
     }
 
-    var isStakeSupported: Bool {
-        ChainConfig.config(chain: self).isStakeSupported
-    }
-
     var type: Primitives.ChainType {
         ChainConfig.config(chain: self).chainType.map()
     }

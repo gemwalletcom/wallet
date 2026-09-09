@@ -384,6 +384,20 @@ Each is one question. Nothing below is blocked on investigation.
 | Stake amount screen owned by Core | Done 2026-09-07: the amount screen's stake type was a hand-written iOS enum (`AmountStakeType`) and an Android `when (params)` that each decided which validator is selected by default and whether the user may change it. `GemStakeAmountInput` is that type now — iOS names it directly in `AmountType`, Android maps its navigation params onto it — and `stake_validator_selection` answers with the options, the default and `can_select` in one record. The iOS twin and its two mapping properties are gone, Android's `GetRecommendedValidator` and `GetRedelegateValidator` cases are deleted (the provider observes the validators and asks Core), and `recommended_validator`/`redelegate_validator` stopped being FFI exports. | When two apps each switch over the same action enum, the enum belongs in Core; the app is left mapping its navigation payload onto it, which carries no policy. |
 | Frozen `assetConfig` table | `Chain.asset()` builds an immutable lookup once at first access. Threading a service through ~21 Android sites so a pure function can read a constant costs every caller a parameter for nothing at runtime, and a frozen table cannot drift into an app-side variant. | Decide whether the no-service-at-a-call-site rule carves this out before spending the change. |
 
+### 1b. Leftovers of the migration, swept 2026-09-09
+
+Four sweeps over what the migration left in the apps — cases and coordinators with no caller,
+cases that only re-run a Core rule, typed wrappers that only forward, and symbols nothing references
+in the domain, extension and service layers of both apps. What was dead is gone: Android's
+`EnableAsset` (interface, implementation, binding, test, no caller) and `EnableDevicePush` (a case
+wrapping a case that re-ran Core's price-alert push enable through the notifications service);
+iOS's `Chain.isStakeSupported`, `Chain.stakeChain`, both `approvalValue` extensions and the
+`GemSignerError` alias. What the sweeps flag and is live by design: the one-line Android cases over
+a store `Flow` (the narrow observed read the architecture asks for), the iOS `Gem*Service`
+extensions (the twin-mapping seam, gone only when the twin is), Hilt modules (found by annotation,
+never by name), and `WalletIdGenerator` (a Room migration derives old wallet ids with it). Re-run
+the four scripts before assuming a layer is dead weight — the file-level hits are mostly false.
+
 ### 2. Core surface with no caller
 
 `GemSwapSession::on_transfer_abandoned` is the only transition that clears a transfer left
