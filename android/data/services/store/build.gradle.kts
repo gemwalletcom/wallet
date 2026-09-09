@@ -44,7 +44,6 @@ android {
         enable = true
     }
 
-
     sourceSets {
         getByName("androidTest") {
             assets {
@@ -71,15 +70,12 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.room.ktx)
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)
 
     implementation(libs.ktx.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.junit.ktx)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.room.testing)
     androidTestImplementation(testFixtures(project(":gemcore")))
 }

@@ -39,8 +39,4 @@ android {
 
 dependencies {
     implementation(project(":gemcore"))
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

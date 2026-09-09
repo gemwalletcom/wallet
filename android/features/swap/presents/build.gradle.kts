@@ -57,15 +57,5 @@ dependencies {
     implementation(project(":features:asset_select:presents"))
     implementation(project(":features:asset_select:viewmodels"))
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
-
-
-    debugImplementation(libs.androidx.ui.tooling)
-    implementation(libs.androidx.ui.tooling.preview)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

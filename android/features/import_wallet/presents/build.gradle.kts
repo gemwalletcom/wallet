@@ -54,12 +54,8 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":gemcore"))
     implementation(project(":features:import_wallet:viewmodels"))
-    implementation(project(":features:add_asset:viewmodels"))
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 
     implementation(libs.navigation3.runtime)
@@ -68,6 +64,4 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }
