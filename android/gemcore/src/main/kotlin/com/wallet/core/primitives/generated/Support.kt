@@ -54,11 +54,6 @@ data class SupportMessage (
 )
 
 @Serializable
-data class SupportMessageInput (
-	val content: String
-)
-
-@Serializable
 enum class SupportTypingStatus(val string: String) {
 	@SerialName("on")
 	On("on"),

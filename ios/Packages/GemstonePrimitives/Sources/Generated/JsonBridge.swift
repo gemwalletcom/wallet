@@ -8,6 +8,3 @@ extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
 extension Primitives.StreamEvent: JsonCodable {}
 extension Primitives.StreamMessage: JsonCodable {}
-extension Primitives.SupportMessage: JsonCodable {}
-extension Primitives.SupportMessageInput: JsonCodable {}
-extension Primitives.SupportTyping: JsonCodable {}

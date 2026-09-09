@@ -98,14 +98,6 @@ public struct SupportMessage: Codable, Equatable, Sendable {
 	}
 }
 
-public struct SupportMessageInput: Codable, Equatable, Sendable {
-	public let content: String
-
-	public init(content: String) {
-		self.content = content
-	}
-}
-
 public enum SupportTypingStatus: String, Codable, CaseIterable, Equatable, Sendable {
 	case on
 	case off

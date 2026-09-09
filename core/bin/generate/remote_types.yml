@@ -188,6 +188,13 @@ remote:
   - TransactionsResponse
   - FiatQuoteRequest
   - FiatTransactionStatus
+  - SupportAgent
+  - SupportMessageSender
+  - SupportMessageStatus
+  - SupportMessageImage
+  - SupportMessage
+  - SupportTypingStatus
+  - SupportTyping
   - FiatTransaction
   - FiatTransactionData
 codes:

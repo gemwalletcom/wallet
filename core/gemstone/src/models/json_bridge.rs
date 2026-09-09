@@ -1,4 +1,4 @@
-use primitives::{ConfigResponse, ConfigVersions, InAppNotification, StreamEvent, StreamMessage, SupportMessage, SupportMessageInput, SupportTyping};
+use primitives::{ConfigResponse, ConfigVersions, InAppNotification, StreamEvent, StreamMessage};
 
 macro_rules! json_bridge {
     ($($type:ident),* $(,)?) => {
@@ -26,7 +26,4 @@ json_bridge!(
     InAppNotification,
     StreamEvent,
     StreamMessage,
-    SupportMessage,
-    SupportMessageInput,
-    SupportTyping,
 );

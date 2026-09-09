@@ -74,7 +74,6 @@ pub struct SupportMessage {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct SupportMessageInput {
     pub content: String,

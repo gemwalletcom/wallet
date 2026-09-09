@@ -10,7 +10,7 @@ import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
 import com.gemwallet.android.ext.millisToSeconds
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
 import uniffi.gemstone.GemSupportServiceInterface
@@ -70,7 +70,7 @@ class SupportChatSceneViewModel @Inject constructor(
     fun retry(message: SupportMessage) {
         if (message.images.isNotEmpty()) return
         viewModelScope.launch(Dispatchers.IO) {
-            perform("retry") { supportService.retryMessage(message.toJson()) }
+            perform("retry") { supportService.retryMessage(message.toGem()) }
         }
     }
 

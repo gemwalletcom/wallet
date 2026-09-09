@@ -20,16 +20,16 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsDate() throws {
-        let message = Primitives.SupportMessage.mock(createdAt: Date(timeIntervalSince1970: 1_700_000_000))
+        let notification = InAppNotification.mock(createdAt: Date(timeIntervalSince1970: 1_700_000_000))
 
-        #expect(try Primitives.SupportMessage(message.json()).createdAt == message.createdAt)
+        #expect(try Primitives.InAppNotification(notification.json()).createdAt == notification.createdAt)
     }
 
     @Test
     func roundTripsNestedRecord() throws {
-        let message = Primitives.SupportMessage.mock(sender: .agent(.mock(name: "Gemma")))
-        let decoded = try Primitives.SupportMessage(message.json())
-        #expect(decoded.sender == message.sender)
-        #expect(decoded.id == message.id)
+        let notification = InAppNotification.mock(item: .mock(icon: .emoji(.gift)))
+        let decoded = try Primitives.InAppNotification(notification.json())
+        #expect(decoded.item.icon == notification.item.icon)
+        #expect(decoded.item.id == notification.item.id)
     }
 }

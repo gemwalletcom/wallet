@@ -997,6 +997,62 @@ public extension Primitives.StakeProviderType {
     }
 }
 
+public extension Gemstone.SupportMessageSender {
+    func map() -> Primitives.SupportMessageSender {
+        switch self {
+        case .user: .user
+        case .agent(let value): .agent(value.map())
+        }
+    }
+}
+
+public extension Primitives.SupportMessageSender {
+    func map() -> Gemstone.SupportMessageSender {
+        switch self {
+        case .user: .user
+        case .agent(let value): .agent(value.map())
+        }
+    }
+}
+
+public extension Gemstone.SupportMessageStatus {
+    func map() -> Primitives.SupportMessageStatus {
+        switch self {
+        case .sending: .sending
+        case .sent: .sent
+        case .failed: .failed
+        }
+    }
+}
+
+public extension Primitives.SupportMessageStatus {
+    func map() -> Gemstone.SupportMessageStatus {
+        switch self {
+        case .sending: .sending
+        case .sent: .sent
+        case .failed: .failed
+        }
+    }
+}
+
+public extension Gemstone.SupportTypingStatus {
+    func map() -> Primitives.SupportTypingStatus {
+        switch self {
+        case .on: .on
+        case .off: .off
+        }
+    }
+}
+
+public extension Primitives.SupportTypingStatus {
+    func map() -> Gemstone.SupportTypingStatus {
+        switch self {
+        case .on: .on
+        case .off: .off
+        }
+    }
+}
+
 public extension Gemstone.SwapPriceImpactType {
     func map() -> Primitives.SwapPriceImpactType {
         switch self {
@@ -2746,6 +2802,94 @@ public extension Primitives.ReportNft {
             collectionId: collectionId,
             assetId: assetId,
             reason: reason,
+        )
+    }
+}
+
+public extension Gemstone.SupportAgent {
+    func map() -> Primitives.SupportAgent {
+        Primitives.SupportAgent(
+            name: name,
+        )
+    }
+}
+
+public extension Primitives.SupportAgent {
+    func map() -> Gemstone.SupportAgent {
+        Gemstone.SupportAgent(
+            name: name,
+        )
+    }
+}
+
+public extension Gemstone.SupportMessage {
+    func map() -> Primitives.SupportMessage {
+        Primitives.SupportMessage(
+            id: id,
+            content: content,
+            sender: sender.map(),
+            status: status.map(),
+            createdAt: createdAt,
+            images: images.map { $0.map() },
+        )
+    }
+}
+
+public extension Primitives.SupportMessage {
+    func map() -> Gemstone.SupportMessage {
+        Gemstone.SupportMessage(
+            id: id,
+            content: content,
+            sender: sender.map(),
+            status: status.map(),
+            createdAt: createdAt,
+            images: images.map { $0.map() },
+        )
+    }
+}
+
+public extension Gemstone.SupportMessageImage {
+    func map() -> Primitives.SupportMessageImage {
+        Primitives.SupportMessageImage(
+            id: id,
+            url: url,
+            thumbnailUrl: thumbnailUrl,
+            fileName: fileName,
+            fileSize: fileSize,
+            width: width,
+            height: height,
+        )
+    }
+}
+
+public extension Primitives.SupportMessageImage {
+    func map() -> Gemstone.SupportMessageImage {
+        Gemstone.SupportMessageImage(
+            id: id,
+            url: url,
+            thumbnailUrl: thumbnailUrl,
+            fileName: fileName,
+            fileSize: fileSize,
+            width: width,
+            height: height,
+        )
+    }
+}
+
+public extension Gemstone.SupportTyping {
+    func map() -> Primitives.SupportTyping {
+        Primitives.SupportTyping(
+            status: status.map(),
+            agent: agent.map(),
+        )
+    }
+}
+
+public extension Primitives.SupportTyping {
+    func map() -> Gemstone.SupportTyping {
+        Gemstone.SupportTyping(
+            status: status.map(),
+            agent: agent.map(),
         )
     }
 }
