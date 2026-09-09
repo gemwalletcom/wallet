@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Android's import screen carries Core's import kind, not a wallet type.** `ImportType` held a
+  `WalletType` and mapped it to `GemWalletImportKind` and back (`toWalletType(chain)`), so every
+  branch in the screen, the input field, the tabs and the routes asked "is this a view or a
+  private-key wallet" where the question was "is this an address, a private key or a phrase".
+  It now holds the kind and the chain, the tabs are Core's `import_kinds(chain)` unchanged, and the
+  multicoin import is the phrase kind with no chain, which is also what its route means. Both
+  mappings are gone; iOS already worked this way.
 - **Delegation actions are Core's enum on both apps.** Each app kept a twin of
   `GemDelegationAction`: iOS's `DelegationActionType` added a `claimRewards` case the delegation
   screen never listed (its claim button already called `onClaimRewards` directly), and Android's

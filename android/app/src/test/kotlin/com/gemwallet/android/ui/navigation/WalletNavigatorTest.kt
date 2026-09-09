@@ -52,6 +52,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -247,16 +248,15 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(OnboardingRoute)
 
         navigator.openImportWallet()
-        navigator.openImportWallet(ImportType(WalletType.Multicoin))
-        navigator.openImportWallet(ImportType(WalletType.PrivateKey, Chain.Solana))
-        navigator.openImportWallet(ImportType(WalletType.Single))
+        navigator.openImportWallet(ImportType(GemWalletImportKind.PHRASE))
+        navigator.openImportWallet(ImportType(GemWalletImportKind.PRIVATE_KEY, Chain.Solana))
 
         assertEquals(
             listOf(
                 OnboardingRoute,
                 ImportSelectTypeRoute,
                 ImportMulticoinWalletRoute,
-                ImportChainWalletRoute(WalletType.PrivateKey, Chain.Solana),
+                ImportChainWalletRoute(GemWalletImportKind.PRIVATE_KEY, Chain.Solana),
             ),
             navigator.backStack.toList(),
         )

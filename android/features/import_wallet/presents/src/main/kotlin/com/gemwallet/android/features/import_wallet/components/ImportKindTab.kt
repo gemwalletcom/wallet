@@ -15,17 +15,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.alpha10
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 
-internal fun importTypeTabIndex(walletType: WalletType, tabs: List<WalletType>): Int {
-    return tabs.indexOf(walletType).takeIf { it >= 0 } ?: 0
+internal fun importTypeTabIndex(kind: GemWalletImportKind, tabs: List<GemWalletImportKind>): Int {
+    return tabs.indexOf(kind).takeIf { it >= 0 } ?: 0
 }
 
 @Composable
-internal fun WalletTypeTab(
-    type: WalletType,
-    selectedType: WalletType,
-    onTypeChange: (WalletType) -> Unit,
+internal fun ImportKindTab(
+    type: GemWalletImportKind,
+    selectedType: GemWalletImportKind,
+    onTypeChange: (GemWalletImportKind) -> Unit,
 ) {
     val isSelected = type == selectedType
     Tab(
@@ -45,9 +45,9 @@ internal fun WalletTypeTab(
         text = {
             Text(
                 text = when (type) {
-                    WalletType.View -> stringResource(id = R.string.common_address)
-                    WalletType.Single, WalletType.Multicoin -> stringResource(id = R.string.common_phrase)
-                    WalletType.PrivateKey -> stringResource(id = R.string.common_private_key)
+                    GemWalletImportKind.ADDRESS -> stringResource(id = R.string.common_address)
+                    GemWalletImportKind.PHRASE -> stringResource(id = R.string.common_phrase)
+                    GemWalletImportKind.PRIVATE_KEY -> stringResource(id = R.string.common_private_key)
                 },
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.onSurface,

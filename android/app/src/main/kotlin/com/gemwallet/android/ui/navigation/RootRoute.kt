@@ -217,7 +217,7 @@ class WalletNavigator(
     fun openCreateWallet() = push(CreateWalletRoute)
     fun openImportWallet() = push(ImportSelectTypeRoute)
     fun openImportWallet(importType: ImportType) {
-        importType.toImportRoute()?.let(::push)
+        push(importType.toImportRoute())
     }
     fun openWallet(walletId: WalletId) = push(WalletDetailsRoute(walletId))
     fun openWalletImage(walletId: WalletId, source: WalletImageSource = WalletImageSource.Wallet) = push(WalletImageRoute(walletId, source))
@@ -384,11 +384,9 @@ internal fun NavKey.isPendingNavigationProtectedRoute(): Boolean {
         this is WalletPhraseRoute
 }
 
-private fun ImportType.toImportRoute(): NavKey? {
-    return when (walletType) {
-        WalletType.Multicoin -> ImportMulticoinWalletRoute
-        WalletType.Single,
-        WalletType.PrivateKey,
-        WalletType.View -> chain?.let { ImportChainWalletRoute(walletType, it) }
+private fun ImportType.toImportRoute(): NavKey {
+    return when (val chain = chain) {
+        null -> ImportMulticoinWalletRoute
+        else -> ImportChainWalletRoute(kind, chain)
     }
 }

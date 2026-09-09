@@ -3,7 +3,7 @@ package com.gemwallet.android.features.import_wallet.views
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.model.ImportType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -12,7 +12,7 @@ class ImportScreenTitleTest {
     @Test
     fun multicoinImport_usesMulticoinTitleResource() {
         val title = importSceneTitle(
-            importType = ImportType(walletType = WalletType.Multicoin),
+            importType = ImportType(GemWalletImportKind.PHRASE),
             chainName = "",
         )
 
@@ -22,7 +22,7 @@ class ImportScreenTitleTest {
     @Test
     fun chainImport_usesChainNameTitle() {
         val title = importSceneTitle(
-            importType = ImportType(walletType = WalletType.Single, chain = Chain.Bitcoin),
+            importType = ImportType(GemWalletImportKind.PHRASE, Chain.Bitcoin),
             chainName = "Bitcoin",
         )
 
