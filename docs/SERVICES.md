@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Delegation actions are Core's enum on both apps.** Each app kept a twin of
+  `GemDelegationAction`: iOS's `DelegationActionType` added a `claimRewards` case the delegation
+  screen never listed (its claim button already called `onClaimRewards` directly), and Android's
+  `DelegationActions` dropped `DEPOSIT` on the way in. Both twins are gone; the screens iterate
+  and title Core's actions, and Android renders nothing for a deposit, which its stake
+  delegations never produce.
 - **Members nothing reads are gone on both apps.** A declare-then-grep sweep over every
   non-private symbol in the iOS packages and features and the Android modules, counting readers in
   production and test code alike, found nineteen iOS members and six Android ones with no reader
