@@ -64,7 +64,13 @@ fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
         BannerEvent::Stake => can_sign && has_asset && !context.has_stake_balance,
         BannerEvent::ActivateAsset => can_sign && has_asset && !context.is_asset_activated,
         BannerEvent::SuspiciousAsset => has_asset && is_suspicious(context),
-        BannerEvent::TradePerpetuals => has_asset && context.wallet.as_ref().is_some_and(crate::services::perpetual::rules::supports_perpetuals),
+        BannerEvent::TradePerpetuals => {
+            has_asset
+                && context
+                    .wallet
+                    .as_ref()
+                    .is_some_and(|wallet| crate::services::perpetual::rules::supports_perpetuals(wallet.wallet_type, &wallet.chains()))
+        }
         BannerEvent::Onboarding => !has_asset && context.is_wallet_empty,
     }
 }
@@ -368,7 +374,7 @@ mod tests {
             for asset in [None, Some(tron.clone()), Some(token.clone())] {
                 let context = GemBannerContext {
                     wallet: Some(Wallet {
-                        wallet_type: wallet_type.clone(),
+                        wallet_type,
                         ..Wallet::mock()
                     }),
                     asset,

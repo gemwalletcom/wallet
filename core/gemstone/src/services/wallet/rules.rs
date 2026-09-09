@@ -187,10 +187,10 @@ pub fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
     sorted
 }
 
-pub fn show_collections(wallet: &Wallet) -> bool {
-    match wallet.wallet_type {
+pub fn show_collections(wallet_type: WalletType, chains: &[Chain]) -> bool {
+    match wallet_type {
         WalletType::Multicoin => true,
-        WalletType::Single | WalletType::PrivateKey | WalletType::View => wallet.accounts.first().is_some_and(|account| account.chain.is_nft_supported()),
+        WalletType::Single | WalletType::PrivateKey | WalletType::View => chains.first().is_some_and(|chain| chain.is_nft_supported()),
     }
 }
 
@@ -442,18 +442,10 @@ mod tests {
 
     #[test]
     fn test_show_collections_follows_the_first_account_chain_outside_multicoin() {
-        assert!(show_collections(&wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Bitcoin])));
-        assert!(show_collections(&wallet(
-            WalletId::Single(Chain::Ethereum, "0x2".to_string()),
-            WalletType::Single,
-            &[Chain::Ethereum]
-        )));
-        assert!(!show_collections(&wallet(
-            WalletId::Single(Chain::Bitcoin, "0x3".to_string()),
-            WalletType::Single,
-            &[Chain::Bitcoin]
-        )));
-        assert!(!show_collections(&wallet(WalletId::View(Chain::Ethereum, "0x4".to_string()), WalletType::View, &[])));
+        assert!(show_collections(WalletType::Multicoin, &[Chain::Bitcoin]));
+        assert!(show_collections(WalletType::Single, &[Chain::Ethereum]));
+        assert!(!show_collections(WalletType::Single, &[Chain::Bitcoin]));
+        assert!(!show_collections(WalletType::View, &[]));
     }
 
     #[test]

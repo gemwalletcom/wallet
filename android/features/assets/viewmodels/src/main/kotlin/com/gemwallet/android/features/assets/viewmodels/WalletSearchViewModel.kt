@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.assets.viewmodels
 
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemSearchScope
@@ -63,7 +64,7 @@ class WalletSearchViewModel @Inject constructor(
         service.search(query, GemSearchScope.All)
     }
 
-    private val showPerpetuals = getSession().map { service.showPerpetuals(it?.wallet?.toGem()) }
+    private val showPerpetuals = getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false }
 
     private val visiblePerpetuals = combine(
         getPerpetuals.getPerpetuals(currentQuery.map { it.takeIf(String::isNotEmpty) }),

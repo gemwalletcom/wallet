@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.config
 
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
@@ -50,9 +51,9 @@ class UserConfig(
 
     fun setRateApplicationShown() = preferencesService.setRateApplicationShown()
 
-    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.toGem())
+    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.type.toGem(), wallet.chainIds)
 
-    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.toGem())
+    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.type.toGem(), wallet.chainIds)
 
     fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().toPrimitives()
 

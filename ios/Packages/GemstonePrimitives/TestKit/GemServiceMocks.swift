@@ -113,13 +113,13 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         perpetualEnabled = enabled
     }
 
-    public func showPerpetuals(wallet _: Gemstone.Wallet) -> Bool {
+    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
         perpetualEnabled
     }
 
     public var collectionsShown = true
 
-    public func showCollections(wallet _: Gemstone.Wallet) -> Bool {
+    public func showCollections(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
         collectionsShown
     }
 
@@ -829,7 +829,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         total.value > 0 && total.pnlAmount != 0
     }
 
-    public func headerActions(wallet _: Gemstone.Wallet, isEnabled: Bool) -> GemHeaderActions {
+    public func headerActions(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain], isEnabled: Bool) -> GemHeaderActions {
         .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) })
     }
 

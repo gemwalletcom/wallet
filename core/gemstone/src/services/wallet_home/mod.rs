@@ -2,7 +2,7 @@ mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, AssetFiatValue, AssetId, BannerEvent, Currency, PerpetualBalance, TotalFiatValue, Wallet};
+use primitives::{Asset, AssetFiatValue, AssetId, BannerEvent, Chain, Currency, PerpetualBalance, TotalFiatValue, WalletType};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
 use crate::services::assets::model::GemHeaderActions;
@@ -57,8 +57,8 @@ impl GemWalletHomeService {
         balance_rules::shows_pnl(&total)
     }
 
-    pub fn header_actions(&self, wallet: Wallet, is_enabled: bool) -> GemHeaderActions {
-        rules::header_actions(&wallet, is_enabled)
+    pub fn header_actions(&self, wallet_type: WalletType, chains: Vec<Chain>, is_enabled: bool) -> GemHeaderActions {
+        rules::header_actions(wallet_type, &chains, is_enabled)
     }
 
     pub async fn update_balances(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {

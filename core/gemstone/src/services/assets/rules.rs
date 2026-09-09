@@ -98,7 +98,7 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
         native.into_iter().chain(wallet_default_assets(chain).into_iter().map(|asset| asset.id))
     }))
     .into_iter()
-    .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
+    .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type))
 }
 
 pub fn network_destination(asset_id: &AssetId) -> Option<GemAssetNetworkDestination> {
@@ -563,7 +563,7 @@ mod tests {
     fn test_details_state_shows_banners_for_every_wallet_type() {
         for wallet_type in [WalletType::Multicoin, WalletType::Single, WalletType::PrivateKey, WalletType::View] {
             for event in [BannerEvent::AccountBlockedMultiSignature, BannerEvent::SuspiciousAsset] {
-                let state = state(wallet_type.clone(), Chain::Tron, &metadata(true, true, true, true), &[event]);
+                let state = state(wallet_type, Chain::Tron, &metadata(true, true, true, true), &[event]);
                 assert!(state.shows_banners, "{wallet_type:?} {event:?}");
             }
             assert!(!state(wallet_type, Chain::Tron, &metadata(true, true, true, true), &[]).shows_banners);

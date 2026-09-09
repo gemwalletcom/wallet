@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
+import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemWalletHomeServiceInterface
@@ -70,7 +71,7 @@ class GetWalletSummaryImpl(
                     showsPnl = walletHomeService.showsPnl(total),
                 ),
                 isBalanceHidden = hideBalances,
-                headerActions = walletHomeService.headerActions(wallet.toGem(), isEnabled = !hasMultiSign),
+                headerActions = walletHomeService.headerActions(wallet.type.toGem(), wallet.chainIds, isEnabled = !hasMultiSign),
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)

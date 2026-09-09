@@ -467,6 +467,13 @@ intentional one-sided integration surfaces.
   wallet, on the session change both apps fire at launch) stays as it is: both stores already
   insert balances with `IGNORE` and flip asset flags only where they differ, so the second pass is
   a few reads and no writes, and a ledger to skip it would be process state for nothing.
+- **Wallet predicates take the wallet's type and chains, not the wallet.** `show_perpetuals`,
+  `show_collections` and `header_actions` read two facts — `WalletType` and which chains the
+  accounts cover — but took the whole `Wallet` (≈75 accounts with addresses, derivation paths and
+  extended keys) across the FFI on every call, and iOS asked several times per body pass. They now
+  take `(WalletType, Vec<Chain>)`; Core's own callers pass `wallet.chains()`, and each app's
+  wrapper (`showPerpetuals(for:)`, `UserConfig.showPerpetuals`) still accepts its `Wallet` and
+  sends only the type and chain ids. `WalletType` is `Copy` now, as a fieldless enum should be.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one

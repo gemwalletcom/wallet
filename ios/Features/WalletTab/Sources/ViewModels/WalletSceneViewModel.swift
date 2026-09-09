@@ -143,7 +143,11 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             totalValue: totalFiatValue,
             currencyCode: currencyCode,
             showsPnl: service.showsPnl(total: totalFiatValue.map()),
-            actions: service.headerActions(wallet: wallet.map(), isEnabled: HeaderBannerEventViewModel(events: banners.map(\.event)).isButtonsEnabled),
+            actions: service.headerActions(
+                walletType: wallet.type.map(),
+                chains: wallet.chains.map(\.rawValue),
+                isEnabled: HeaderBannerEventViewModel(events: banners.map(\.event)).isButtonsEnabled,
+            ),
         )
     }
 

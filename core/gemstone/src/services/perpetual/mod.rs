@@ -96,7 +96,7 @@ impl GemPerpetualService {
     }
 
     pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet.is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
+        wallet.is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), wallet.wallet_type, &wallet.chains()))
     }
 
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {

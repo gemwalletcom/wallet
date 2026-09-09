@@ -111,7 +111,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPerpetuals: Bool {
-        sections.perpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
+        sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.map(), chains: wallet.chains.map(\.rawValue))
     }
 
     var searchState: SearchContentState {
@@ -132,7 +132,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPinnedPerpetuals: Bool {
-        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
+        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.map(), chains: wallet.chains.map(\.rawValue))
     }
 
     var showAssets: Bool {

@@ -1,4 +1,4 @@
-use primitives::{AssetFiatValue, PerpetualBalance, Wallet, WalletType};
+use primitives::{AssetFiatValue, Chain, PerpetualBalance, WalletType};
 
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonKind};
 
@@ -17,21 +17,21 @@ pub fn wallet_balances(balances: Vec<AssetFiatValue>, perpetual: Option<Perpetua
         .collect()
 }
 
-pub fn header_actions(wallet: &Wallet, is_enabled: bool) -> GemHeaderActions {
-    match wallet.wallet_type {
+pub fn header_actions(wallet_type: WalletType, chains: &[Chain], is_enabled: bool) -> GemHeaderActions {
+    match wallet_type {
         WalletType::View => GemHeaderActions::WatchOnly,
         WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
-            buttons: header_buttons(wallet, is_enabled),
+            buttons: header_buttons(wallet_type, chains, is_enabled),
         },
     }
 }
 
-fn header_buttons(wallet: &Wallet, is_enabled: bool) -> Vec<GemHeaderButton> {
+fn header_buttons(wallet_type: WalletType, chains: &[Chain], is_enabled: bool) -> Vec<GemHeaderButton> {
     [
         Some(GemHeaderButtonKind::Send),
         Some(GemHeaderButtonKind::Receive),
         Some(GemHeaderButtonKind::Buy),
-        swaps(wallet).then_some(GemHeaderButtonKind::Swap),
+        swaps(wallet_type, chains).then_some(GemHeaderButtonKind::Swap),
     ]
     .into_iter()
     .flatten()
@@ -39,10 +39,10 @@ fn header_buttons(wallet: &Wallet, is_enabled: bool) -> Vec<GemHeaderButton> {
     .collect()
 }
 
-fn swaps(wallet: &Wallet) -> bool {
-    match wallet.wallet_type {
+fn swaps(wallet_type: WalletType, chains: &[Chain]) -> bool {
+    match wallet_type {
         WalletType::Multicoin => true,
-        WalletType::Single | WalletType::PrivateKey => wallet.accounts.first().is_some_and(|account| account.chain.is_swap_supported()),
+        WalletType::Single | WalletType::PrivateKey => chains.first().is_some_and(|chain| chain.is_swap_supported()),
         WalletType::View => false,
     }
 }
@@ -50,29 +50,16 @@ fn swaps(wallet: &Wallet) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Account, Chain};
 
-    fn wallet(wallet_type: WalletType, chain: Chain) -> Wallet {
-        Wallet {
-            wallet_type,
-            ..Wallet::mock_with_accounts(vec![Account {
-                chain,
-                address: "address".to_string(),
-                derivation_path: String::new(),
-                extended_public_key: None,
-            }])
-        }
-    }
-
-    fn buttons(wallet: &Wallet, is_enabled: bool) -> Vec<GemHeaderButton> {
-        match header_actions(wallet, is_enabled) {
+    fn buttons(wallet_type: WalletType, chain: Chain, is_enabled: bool) -> Vec<GemHeaderButton> {
+        match header_actions(wallet_type, &[chain], is_enabled) {
             GemHeaderActions::Buttons { buttons } => buttons,
             GemHeaderActions::WatchOnly => panic!("the header offers no buttons"),
         }
     }
 
-    fn kinds(wallet: &Wallet) -> Vec<GemHeaderButtonKind> {
-        buttons(wallet, true).into_iter().map(|button| button.kind).collect()
+    fn kinds(wallet_type: WalletType, chain: Chain) -> Vec<GemHeaderButtonKind> {
+        buttons(wallet_type, chain, true).into_iter().map(|button| button.kind).collect()
     }
 
     #[test]
@@ -113,11 +100,11 @@ mod tests {
     #[test]
     fn test_the_header_offers_swap_to_multicoin_and_swappable_single_chain_wallets_only() {
         use GemHeaderButtonKind::*;
-        assert_eq!(kinds(&wallet(WalletType::Multicoin, Chain::Bitcoin)), vec![Send, Receive, Buy, Swap]);
-        assert_eq!(kinds(&wallet(WalletType::Single, Chain::Ethereum)), vec![Send, Receive, Buy, Swap]);
-        assert_eq!(kinds(&wallet(WalletType::PrivateKey, Chain::Solana)), vec![Send, Receive, Buy, Swap]);
-        assert_eq!(kinds(&wallet(WalletType::Single, Chain::Mayachain)), vec![Send, Receive, Buy]);
-        assert_eq!(header_actions(&wallet(WalletType::View, Chain::Ethereum), true), GemHeaderActions::WatchOnly);
-        assert!(buttons(&wallet(WalletType::Multicoin, Chain::Ethereum), false).iter().all(|button| !button.is_enabled));
+        assert_eq!(kinds(WalletType::Multicoin, Chain::Bitcoin), vec![Send, Receive, Buy, Swap]);
+        assert_eq!(kinds(WalletType::Single, Chain::Ethereum), vec![Send, Receive, Buy, Swap]);
+        assert_eq!(kinds(WalletType::PrivateKey, Chain::Solana), vec![Send, Receive, Buy, Swap]);
+        assert_eq!(kinds(WalletType::Single, Chain::Mayachain), vec![Send, Receive, Buy]);
+        assert_eq!(header_actions(WalletType::View, &[Chain::Ethereum], true), GemHeaderActions::WatchOnly);
+        assert!(buttons(WalletType::Multicoin, Chain::Ethereum, false).iter().all(|button| !button.is_enabled));
     }
 }

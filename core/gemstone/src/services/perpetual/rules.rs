@@ -3,10 +3,7 @@ use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
-use primitives::{
-    Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType,
-    PerpetualPosition, PerpetualProvider, Wallet, WalletType,
-};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType};
 
 use super::model::{
     GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualOrderAction, GemPerpetualOrderInput,
@@ -142,12 +139,12 @@ pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
     }
 }
 
-pub fn show_perpetuals(enabled: bool, wallet: &Wallet) -> bool {
-    enabled && supports_perpetuals(wallet)
+pub fn show_perpetuals(enabled: bool, wallet_type: WalletType, chains: &[Chain]) -> bool {
+    enabled && supports_perpetuals(wallet_type, chains)
 }
 
-pub fn supports_perpetuals(wallet: &Wallet) -> bool {
-    wallet.wallet_type == WalletType::Multicoin && crate::services::stream::rules::hyperliquid_account(&wallet.accounts).is_some()
+pub fn supports_perpetuals(wallet_type: WalletType, chains: &[Chain]) -> bool {
+    wallet_type == WalletType::Multicoin && chains.iter().any(|chain| crate::services::stream::rules::is_hyperliquid_chain(*chain))
 }
 
 fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
@@ -748,31 +745,11 @@ mod tests {
     }
 
     #[test]
-    fn test_show_perpetuals_needs_flag_multicoin_and_hyperliquid_account() {
-        let wallet = |wallet_type: WalletType, chains: &[Chain]| Wallet {
-            id: primitives::WalletId::Multicoin("w".to_string()),
-            external_id: None,
-            name: "w".to_string(),
-            index: 0,
-            wallet_type,
-            accounts: chains
-                .iter()
-                .map(|chain| primitives::Account {
-                    chain: *chain,
-                    address: "a".to_string(),
-                    derivation_path: String::new(),
-                    extended_public_key: None,
-                })
-                .collect(),
-            is_pinned: false,
-            image_url: None,
-            source: primitives::WalletSource::Import,
-        };
-
-        assert!(show_perpetuals(true, &wallet(WalletType::Multicoin, &[Chain::Arbitrum])));
-        assert!(!show_perpetuals(false, &wallet(WalletType::Multicoin, &[Chain::Arbitrum])));
-        assert!(!show_perpetuals(true, &wallet(WalletType::Single, &[Chain::Arbitrum])));
-        assert!(!show_perpetuals(true, &wallet(WalletType::Multicoin, &[Chain::Bitcoin])));
+    fn test_show_perpetuals_needs_flag_multicoin_and_hyperliquid_chain() {
+        assert!(show_perpetuals(true, WalletType::Multicoin, &[Chain::Arbitrum]));
+        assert!(!show_perpetuals(false, WalletType::Multicoin, &[Chain::Arbitrum]));
+        assert!(!show_perpetuals(true, WalletType::Single, &[Chain::Arbitrum]));
+        assert!(!show_perpetuals(true, WalletType::Multicoin, &[Chain::Bitcoin]));
     }
 
     #[test]
