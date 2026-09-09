@@ -28,7 +28,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.formatLeverage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.LinkItem
@@ -43,6 +42,9 @@ import com.gemwallet.android.features.settings.currency.presents.components.emoj
 import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewModel
 import com.wallet.core.primitives.Appearance
 import java.util.Locale
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.PerpetualProvider
+import com.gemwallet.android.math.toUnsignedInts
 
 @Composable
 fun PreferencesScene(
@@ -155,7 +157,7 @@ fun PreferencesScene(
                     OptionPickerLinkItem(
                         title = stringResource(R.string.settings_preferences_perpetual_default_leverage),
                         current = perpetualLeverage,
-                        options = PerpetualConfig.leverageOptions,
+                        options = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.leverageOptions(null) }.toUnsignedInts(),
                         listPosition = ListPosition.Middle,
                         label = { it.formatLeverage() },
                         onSelect = { viewModel.setPerpetualLeverage(it) },
@@ -165,7 +167,7 @@ fun PreferencesScene(
                     OptionPickerLinkItem(
                         title = stringResource(R.string.settings_preferences_perpetual_default_take_profit),
                         current = perpetualTakeProfit,
-                        options = PerpetualConfig.takeProfitOptions,
+                        options = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.takeProfitOptions() }.toUnsignedInts(),
                         listPosition = ListPosition.Middle,
                         label = { autocloseLabel(it) },
                         onSelect = { viewModel.setPerpetualTakeProfit(it) },
@@ -175,7 +177,7 @@ fun PreferencesScene(
                     OptionPickerLinkItem(
                         title = stringResource(R.string.settings_preferences_perpetual_default_stop_loss),
                         current = perpetualStopLoss,
-                        options = PerpetualConfig.stopLossOptions,
+                        options = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.stopLossOptions() }.toUnsignedInts(),
                         listPosition = ListPosition.Last,
                         label = { autocloseLabel(it) },
                         onSelect = { viewModel.setPerpetualStopLoss(it) },

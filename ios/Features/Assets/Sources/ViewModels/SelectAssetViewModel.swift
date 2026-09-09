@@ -15,6 +15,7 @@ import Recents
 import Store
 import Style
 import SwiftUI
+import class Gemstone.GemPerpetual
 
 @Observable
 @MainActor
@@ -218,7 +219,7 @@ extension SelectAssetViewModel {
     func displayAssetData(_ assetData: AssetData) -> AssetData {
         guard flow.depositAssetDisplay else { return assetData }
         return AssetData(
-            asset: PerpetualConfig.depositAsset,
+            asset: GemPerpetual(provider: .hypercore).depositAsset().map(),
             balance: assetData.balance,
             account: assetData.account,
             price: assetData.price,

@@ -20,7 +20,6 @@ use primitives::{Chain, node_config::NodeRegion};
 use std::time::Duration;
 
 use {
-    perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
     swap_config::{SwapConfig, get_swap_config},
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
 };
@@ -41,16 +40,8 @@ impl Config {
         get_swap_config()
     }
 
-    fn get_perpetual_config(&self) -> PerpetualConfig {
-        get_perpetual_config()
-    }
-
     fn scan_timeout(&self) -> Duration {
         SCAN_TIMEOUT
-    }
-
-    fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {
-        leverage_options(max_leverage)
     }
 
     fn get_nft_chains(&self) -> Vec<Chain> {

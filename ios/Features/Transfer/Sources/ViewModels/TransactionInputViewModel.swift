@@ -10,6 +10,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 import struct Gemstone.GemTransferData
+import class Gemstone.GemPerpetual
 
 public struct TransactionInputViewModel: Sendable {
     let data: GemTransferData
@@ -65,7 +66,7 @@ public struct TransactionInputViewModel: Sendable {
 
     private var displayAsset: Asset {
         switch data.inputType {
-        case .withdrawal: PerpetualConfig.depositAsset
+        case .withdrawal: GemPerpetual(provider: .hypercore).depositAsset().map()
         default: data.asset
         }
     }
