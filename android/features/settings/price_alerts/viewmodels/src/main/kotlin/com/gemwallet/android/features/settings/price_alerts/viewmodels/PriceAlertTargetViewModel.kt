@@ -5,7 +5,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toCurrency
@@ -47,7 +46,6 @@ import javax.inject.Inject
 class PriceAlertTargetViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val service: GemPriceAlertServiceInterface,
-    private val enableDevicePush: EnableDevicePush,
     private val priceAlertFormatter: PriceAlertFormatter,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -138,10 +136,6 @@ class PriceAlertTargetViewModel @Inject constructor(
                 .onFailure { Log.e(TAG, "enabling the price alert for ${assetId.toIdentifier()} failed", it) }
         }
         return PriceAlertConfirmResult(type, direction, type.formatAmount(inputValue, currency))
-    }
-
-    fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
-        enableDevicePush()
     }
 
     private companion object {

@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetAssetById
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
@@ -12,7 +11,6 @@ import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetInfoImpl
@@ -102,13 +100,6 @@ object AssetModule {
         walletHomeService = walletHomeService,
     )
 
-
-
-    @Provides
-    @Singleton
-    fun provideEnableAsset(
-        balanceService: GemBalanceService,
-    ): EnableAsset = EnableAssetImpl(balanceService)
 
     @Provides
     @Singleton

@@ -49,7 +49,10 @@ class DevicePushSettings(
         }
     }
 
-    override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart { migratePushEnabled() }
+    override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart {
+        migratePushEnabled()
+        pushEnabledState.value = notificationsAvailable && preferencesService.isPushNotificationsEnabled()
+    }
 
     override fun setPushToken(token: String) {
         val stored = if (notificationsAvailable) token else ""
