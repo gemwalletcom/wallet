@@ -22,8 +22,6 @@ extension Primitives.Rewards: JsonCodable {}
 extension Primitives.SearchResponse: JsonCodable {}
 extension Primitives.StreamEvent: JsonCodable {}
 extension Primitives.StreamMessage: JsonCodable {}
-extension Primitives.SolanaNftStandard: JsonCodable {}
-extension Primitives.StakeValidator: JsonCodable {}
 extension Primitives.SupportMessage: JsonCodable {}
 extension Primitives.SupportMessageInput: JsonCodable {}
 extension Primitives.SupportTyping: JsonCodable {}
@@ -31,8 +29,4 @@ extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
 extension Primitives.TransactionsResponse: JsonCodable {}
 extension Primitives.TronStakeData: JsonCodable {}
 extension Primitives.TronUnfreeze: JsonCodable {}
-extension Primitives.TronVote: JsonCodable {}
 extension Primitives.UTXO: JsonCodable {}
-extension Primitives.WalletConfigurationResult: JsonCodable {}
-extension Primitives.WalletSubscription: JsonCodable {}
-extension Primitives.WalletSubscriptionChains: JsonCodable {}

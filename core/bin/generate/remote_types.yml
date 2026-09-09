@@ -106,6 +106,7 @@ remote:
   - SimulationBalanceChange
   - SimulationHeader
   - SimulationResult
+  - SolanaNftStandard
   - SolanaTokenProgramId
   - StakeProviderType
   - SwapPriceImpact

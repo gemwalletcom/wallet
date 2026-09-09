@@ -2,12 +2,11 @@ use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, Perpetu
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
-    TronVote, UTXO,
+    TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, UTXO,
 };
 use primitives::{
     AuthNonce, AuthPayload, FiatQuoteRequest, FiatTransactionData, InAppNotification, ReferralCode,
-    Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
+    Rewards, SupportMessage, SupportMessageInput, TransactionsResponse,
 };
 
 macro_rules! json_bridge {
@@ -50,8 +49,6 @@ json_bridge!(
     SearchResponse,
     StreamEvent,
     StreamMessage,
-    SolanaNftStandard,
-    StakeValidator,
     SupportMessage,
     SupportMessageInput,
     SupportTyping,
@@ -59,9 +56,5 @@ json_bridge!(
     TransactionsResponse,
     TronStakeData,
     TronUnfreeze,
-    TronVote,
     UTXO,
-    WalletConfigurationResult,
-    WalletSubscription,
-    WalletSubscriptionChains,
 );
