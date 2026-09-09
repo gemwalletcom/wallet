@@ -14,7 +14,7 @@ struct AssetsRequestTests {
 
         try db.dbQueue.read { db in
             let assets = try AssetsRequest.mock().fetch(db)
-            let priceAlertAssets = try AssetsRequest.mock(filters: [.priceAlerts]).fetch(db)
+            let priceAlertAssets = try AssetsRequest.mock(scope: .allAssets).fetch(db)
 
             #expect(assets.map(\.asset.id) == [visible.asset.id])
             #expect(priceAlertAssets.map(\.asset.id) == [visible.asset.id])
@@ -34,7 +34,7 @@ struct AssetsRequestTests {
         try store.add(assets: [.mock()])
 
         try db.dbQueue.read { db in
-            let assets = try AssetsRequest.mock(filters: [.priceAlerts]).fetch(db)
+            let assets = try AssetsRequest.mock(scope: .allAssets).fetch(db)
 
             #expect(assets.count == 1)
         }
@@ -239,9 +239,10 @@ struct AssetsRequestTests {
 extension AssetsRequest {
     static func mock(
         walletId: WalletId = .mock(),
+        scope: AssetsRequestScope = .wallet,
         searchBy: String = "",
         filters: [AssetsRequestFilter] = [],
     ) -> AssetsRequest {
-        AssetsRequest(walletId: walletId, searchBy: searchBy, filters: filters)
+        AssetsRequest(walletId: walletId, scope: scope, searchBy: searchBy, filters: filters)
     }
 }

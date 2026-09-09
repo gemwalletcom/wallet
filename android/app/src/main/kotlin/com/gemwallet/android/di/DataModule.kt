@@ -35,6 +35,7 @@ import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemSearchService
+import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemSimulationService
@@ -74,6 +75,7 @@ object DataModule {
         preferencesService: GemPreferencesService,
         perpetualService: GemPerpetualService,
         walletSessionService: GemWalletSessionService,
+        swapService: GemSwapService,
     ): GemAssetSelectionServiceInterface = GemAssetSelectionService(
         searchService,
         balanceService,
@@ -82,6 +84,7 @@ object DataModule {
         preferencesService,
         perpetualService,
         walletSessionService,
+        swapService,
     )
 
     @Provides

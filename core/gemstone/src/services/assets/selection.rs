@@ -3,7 +3,7 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType};
 
-use super::model::{GemAssetAction, GemWalletSearchLimits};
+use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemWalletSearchLimits};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
 use crate::services::nft::GemNftSearchItem;
@@ -15,6 +15,7 @@ use crate::services::perpetual::GemPerpetualService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::search::{GemSearchScope, GemSearchService};
+use crate::services::swap::GemSwapService;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -27,6 +28,7 @@ pub struct GemAssetSelectionService {
     preferences: Arc<GemPreferencesService>,
     perpetuals: Arc<GemPerpetualService>,
     session: Arc<GemWalletSessionService>,
+    swap: Arc<GemSwapService>,
 }
 
 #[uniffi::export]
@@ -40,6 +42,7 @@ impl GemAssetSelectionService {
         preferences: Arc<GemPreferencesService>,
         perpetuals: Arc<GemPerpetualService>,
         session: Arc<GemWalletSessionService>,
+        swap: Arc<GemSwapService>,
     ) -> Self {
         Self {
             search,
@@ -49,7 +52,16 @@ impl GemAssetSelectionService {
             preferences,
             perpetuals,
             session,
+            swap,
         }
+    }
+
+    pub fn flow(&self, select_type: GemSelectAssetType) -> GemSelectAssetFlow {
+        let swap_receive_assets = match &select_type {
+            GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) } => Some(self.swap.supported_assets(pay_asset_id.clone())),
+            _ => None,
+        };
+        rules::select_asset_flow(select_type, swap_receive_assets)
     }
 
     pub fn wallet_search_limits(&self, query: String) -> GemWalletSearchLimits {

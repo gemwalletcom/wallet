@@ -1,5 +1,6 @@
-use primitives::{Asset, AssetType, Chain, RecentActivityType};
+use primitives::{Asset, AssetId, AssetType, Chain, RecentActivityType};
 use strum::IntoEnumIterator;
+use swapper::AssetList as SwapAssetList;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AssetList {
@@ -25,14 +26,14 @@ pub enum GemAssetAction {
     SwapReceive,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSelectAssetType {
     Send,
     Receive,
     ReceiveCollection,
     Buy,
     SwapPay,
-    SwapReceive,
+    SwapReceive { pay_asset_id: Option<AssetId> },
     Manage,
     PriceAlert,
     Deposit,
@@ -48,10 +49,18 @@ pub enum GemSelectRowAction {
     Select,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetScope {
+    Wallet,
+    AllAssets,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemSelectAssetFlow {
     pub row_action: GemSelectRowAction,
     pub action: Option<GemAssetAction>,
+    pub scope: GemSelectAssetScope,
+    pub filters: Vec<GemAssetFilter>,
     pub enables_price_alert: bool,
     pub network_search: bool,
     pub chain_filter: bool,
@@ -65,11 +74,11 @@ pub struct GemSelectAssetFlow {
 #[uniffi::export]
 impl GemSelectAssetType {
     pub fn flow(&self) -> GemSelectAssetFlow {
-        super::rules::select_asset_flow(*self)
+        super::rules::select_asset_flow(self.clone(), None)
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetFilter {
     Enabled,
     Buyable,
@@ -77,6 +86,22 @@ pub enum GemAssetFilter {
     Swappable,
     HasBalance,
     HasAvailableBalance,
+    ChainsOrAssetIds { chains: Vec<Chain>, asset_ids: Vec<AssetId> },
+}
+
+impl GemAssetFilter {
+    pub fn asset_ids(asset_ids: Vec<AssetId>) -> Self {
+        Self::ChainsOrAssetIds { chains: Vec::new(), asset_ids }
+    }
+}
+
+impl From<SwapAssetList> for GemAssetFilter {
+    fn from(assets: SwapAssetList) -> Self {
+        Self::ChainsOrAssetIds {
+            chains: assets.chains,
+            asset_ids: assets.asset_ids,
+        }
+    }
 }
 
 #[uniffi::export]

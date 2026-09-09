@@ -321,8 +321,7 @@ extension SwapSceneViewModel {
 
     func onSelectAssetReceive() {
         guard let fromAsset else { return }
-        let (chains, assetIds) = service.supportedAssets(for: fromAsset.asset.id)
-        isPresentingInfoSheet = .selectAsset(.receive(chains: chains, assetIds: assetIds))
+        isPresentingInfoSheet = .selectAsset(.receive(payAssetId: fromAsset.asset.id))
     }
 
     func onSelectSwapDetails() {

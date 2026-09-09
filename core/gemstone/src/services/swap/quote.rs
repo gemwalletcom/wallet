@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Currency};
-use swapper::{AssetList, Quote, SwapperError, SwapperSlippage};
+use swapper::{Quote, SwapperError, SwapperSlippage};
 
 use super::rules;
 use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
@@ -72,10 +72,6 @@ impl GemSwapQuoteService {
 
     pub fn quote_debounce_milliseconds(&self) -> u64 {
         rules::quote_debounce_milliseconds()
-    }
-
-    pub fn supported_assets(&self, asset_id: AssetId) -> AssetList {
-        self.swap.supported_assets(asset_id)
     }
 
     pub async fn get_quotes(&self, from_asset: Asset, to_asset: Asset, value: GemBigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<Vec<Quote>, SwapperError> {

@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
 import com.gemwallet.android.domains.asset.assetConfig
-import com.gemwallet.android.domains.asset.recentFilters
+import com.gemwallet.android.domains.asset.toQueryFilters
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
@@ -68,7 +68,7 @@ open class BaseAssetSelectViewModel(
     selectType: GemSelectAssetType,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
-    val flow = selectType.flow()
+    val flow = service.flow(selectType)
     val queryState = TextFieldState()
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)
@@ -99,7 +99,15 @@ open class BaseAssetSelectViewModel(
         chainFilter,
         balanceFilter,
     ) { session, query, chainFilter, hasBalance ->
-        SelectAssetFilters(session = session, query = query, chainFilter = chainFilter, hasBalance = hasBalance, limit = assetsSearchLimit(query))
+        SelectAssetFilters(
+            session = session,
+            query = query,
+            chainFilter = chainFilter,
+            hasBalance = hasBalance,
+            limit = assetsSearchLimit(query),
+            scope = flow.scope,
+            filters = flow.filters,
+        )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -273,7 +281,7 @@ open class BaseAssetSelectViewModel(
     val recentTypes: List<RecentActivityType>
         get() = flow.action?.recentActivityTypes()?.map { it.toPrimitives() } ?: RecentActivityType.entries
 
-    open fun assetFilters(): Set<AssetFilter> = flow.action?.recentFilters().orEmpty()
+    fun assetFilters(): Set<AssetFilter> = flow.filters.toQueryFilters()
 
     open fun assetsSearchLimit(query: String): Int = NO_QUERY_LIMIT
 

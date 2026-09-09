@@ -1,42 +1,32 @@
 package com.gemwallet.android.domains.asset
 
+import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.hasAvailable
-import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemAssetFilter
 
-fun GemAssetAction.recentFilters(): Set<AssetFilter> = filters().mapNotNull { it.recentFilter() }.toSet()
+fun List<GemAssetFilter>.toQueryFilters(): Set<AssetFilter> = mapNotNull { it.queryFilter() }.toSet()
 
-fun GemAssetAction.queryFilters(): Set<AssetFilter> = filters().mapNotNull { it.queryFilter() }.toSet()
-
-fun GemAssetAction.eligible(items: List<AssetInfo>): List<AssetInfo> {
-    val filters = filters()
-    return items.filter { item -> filters.all { item.matches(it) } }
-}
+fun List<GemAssetFilter>.eligible(items: List<AssetInfo>): List<AssetInfo> = items.filter { item -> all { item.matches(it) } }
 
 private fun AssetInfo.matches(filter: GemAssetFilter): Boolean = when (filter) {
-    GemAssetFilter.ENABLED -> metadata.isEnabled
-    GemAssetFilter.BUYABLE -> metadata.isBuyEnabled
-    GemAssetFilter.SELLABLE -> metadata.isSellEnabled
-    GemAssetFilter.SWAPPABLE -> metadata.isSwapEnabled
-    GemAssetFilter.HAS_BALANCE -> balance.totalAmount != 0.0
-    GemAssetFilter.HAS_AVAILABLE_BALANCE -> balance.balance.hasAvailable()
+    GemAssetFilter.Enabled -> metadata.isEnabled
+    GemAssetFilter.Buyable -> metadata.isBuyEnabled
+    GemAssetFilter.Sellable -> metadata.isSellEnabled
+    GemAssetFilter.Swappable -> metadata.isSwapEnabled
+    GemAssetFilter.HasBalance -> balance.totalAmount != 0.0
+    GemAssetFilter.HasAvailableBalance -> balance.balance.hasAvailable()
+    is GemAssetFilter.ChainsOrAssetIds -> asset.id.chain in filter.chains.map { it.requireChain() } || asset.id.toIdentifier() in filter.assetIds
 }
 
 private fun GemAssetFilter.queryFilter(): AssetFilter? = when (this) {
-    GemAssetFilter.BUYABLE -> AssetFilter.Buyable
-    GemAssetFilter.SELLABLE -> AssetFilter.Sellable
-    GemAssetFilter.SWAPPABLE -> AssetFilter.Swappable
-    GemAssetFilter.HAS_BALANCE -> AssetFilter.HasBalance
-    GemAssetFilter.HAS_AVAILABLE_BALANCE -> AssetFilter.HasAvailableBalance
-    GemAssetFilter.ENABLED -> null
-}
-
-private fun GemAssetFilter.recentFilter(): AssetFilter? = when (this) {
-    GemAssetFilter.BUYABLE -> AssetFilter.Buyable
-    GemAssetFilter.SWAPPABLE -> AssetFilter.Swappable
-    GemAssetFilter.HAS_BALANCE -> AssetFilter.HasBalance
-    GemAssetFilter.HAS_AVAILABLE_BALANCE -> AssetFilter.HasAvailableBalance
-    GemAssetFilter.ENABLED, GemAssetFilter.SELLABLE -> null
+    GemAssetFilter.Buyable -> AssetFilter.Buyable
+    GemAssetFilter.Sellable -> AssetFilter.Sellable
+    GemAssetFilter.Swappable -> AssetFilter.Swappable
+    GemAssetFilter.HasBalance -> AssetFilter.HasBalance
+    GemAssetFilter.HasAvailableBalance -> AssetFilter.HasAvailableBalance
+    is GemAssetFilter.ChainsOrAssetIds -> AssetFilter.ChainsOrAssetIds(chains.map { it.requireChain() }, assetIds)
+    GemAssetFilter.Enabled -> null
 }

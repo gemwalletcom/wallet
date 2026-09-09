@@ -337,6 +337,7 @@ public struct ViewModelFactory: Sendable {
             preferences: preferencesService,
             perpetuals: perpetualService,
             session: walletSessionService,
+            swap: swapService,
         )
     }
 

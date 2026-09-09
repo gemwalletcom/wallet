@@ -57,7 +57,7 @@ class WalletSearchViewModel @Inject constructor(
     recentAssetsService,
     service,
     BaseSelectSearch(searchService),
-    GemSelectAssetType.WALLET_SEARCH,
+    GemSelectAssetType.WalletSearch,
 ) {
 
     override suspend fun searchRemote(query: String) {

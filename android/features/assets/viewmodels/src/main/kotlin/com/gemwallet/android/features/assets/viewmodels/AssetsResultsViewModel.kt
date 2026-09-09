@@ -62,7 +62,7 @@ class AssetsResultsViewModel @Inject constructor(
     recentAssetsService,
     service,
     selectSearchOf(savedStateHandle, searchService, service),
-    GemSelectAssetType.WALLET_SEARCH_RESULTS,
+    GemSelectAssetType.WalletSearchResults,
 ) {
 
     private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))

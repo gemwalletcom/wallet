@@ -23,14 +23,6 @@ public extension GemSwapQuoteServiceProtocol {
         try setSlippageBps(bps: slippage.exactBps)
     }
 
-    func supportedAssets(for assetId: Primitives.AssetId) -> ([Primitives.Chain], [Primitives.AssetId]) {
-        let assetList = supportedAssets(assetId: assetId.identifier)
-        return (
-            assetList.chains.map { Primitives.Chain(core: $0) },
-            assetList.assetIds.compactMap { try? Primitives.AssetId(id: $0) },
-        )
-    }
-
     func getQuotes(
         fromAsset: Asset,
         toAsset: Asset,

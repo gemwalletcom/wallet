@@ -20,5 +20,5 @@ class ReceiveSelectViewModel @Inject constructor(
     recentAssetsService,
     service,
     BaseSelectSearch(searchService),
-    GemSelectAssetType.RECEIVE,
+    GemSelectAssetType.Receive,
 )

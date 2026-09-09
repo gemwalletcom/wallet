@@ -16,6 +16,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.DbRecentAsset
 import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.chainsOrAssetIds
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.Chain
@@ -259,6 +260,7 @@ interface AssetsDao {
             AND (NOT :swappable OR isSwapEnabled = 1)
             AND (NOT :hasBalance OR balanceTotalAmount > 0)
             AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
+            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
             LIMIT :limit
         """)
@@ -272,6 +274,9 @@ interface AssetsDao {
         swappable: Boolean = false,
         hasBalance: Boolean = false,
         hasAvailableBalance: Boolean = false,
+        byChainsOrAssetIds: Boolean = false,
+        chains: List<Chain> = emptyList(),
+        assetIds: List<String> = emptyList(),
     ): Flow<List<DbAssetInfo>>
 
     @Query("""
@@ -289,6 +294,7 @@ interface AssetsDao {
             AND (NOT :swappable OR isSwapEnabled = 1)
             AND (NOT :hasBalance OR balanceTotalAmount > 0)
             AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
+            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
             LIMIT :limit
         """)
@@ -302,6 +308,9 @@ interface AssetsDao {
         swappable: Boolean = false,
         hasBalance: Boolean = false,
         hasAvailableBalance: Boolean = false,
+        byChainsOrAssetIds: Boolean = false,
+        chains: List<Chain> = emptyList(),
+        assetIds: List<String> = emptyList(),
     ): Flow<List<DbAssetInfo>>
 
     @Query("""
@@ -343,18 +352,6 @@ interface AssetsDao {
     fun swapSearch(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 
     @Query("""
-        SELECT asset_info.*
-        FROM $ASSET_INFO
-        JOIN search ON asset_info.id = search.assetId
-        WHERE
-            (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
-            AND assetRank >= 0
-            AND search.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
-        """)
-    fun swapSearchWithPriority(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
-
-    @Query("""
         SELECT asset.*, MAX(recent_assets.addedAt) AS added_at
         FROM asset
         JOIN recent_assets
@@ -377,6 +374,7 @@ interface AssetsDao {
                     AND balances.wallet_id = :walletId
                     AND balances.available_amount > 0
             ))
+            AND (NOT :byChainsOrAssetIds OR asset.chain IN (:chains) OR asset.id IN (:assetIds))
         GROUP BY asset.id
         ORDER BY added_at DESC, asset.id ASC
         LIMIT CASE WHEN :limit <= 0 THEN -1 ELSE :limit END
@@ -388,6 +386,9 @@ interface AssetsDao {
         swappable: Boolean,
         hasBalance: Boolean,
         hasAvailableBalance: Boolean,
+        byChainsOrAssetIds: Boolean,
+        chains: List<Chain>,
+        assetIds: List<String>,
         limit: Int,
     ): Flow<List<DbRecentAsset>>
 
@@ -403,6 +404,9 @@ interface AssetsDao {
         swappable = AssetFilter.Swappable in filters,
         hasBalance = AssetFilter.HasBalance in filters,
         hasAvailableBalance = AssetFilter.HasAvailableBalance in filters,
+        byChainsOrAssetIds = filters.chainsOrAssetIds() != null,
+        chains = filters.chainsOrAssetIds()?.chains.orEmpty(),
+        assetIds = filters.chainsOrAssetIds()?.ids.orEmpty(),
         limit = limit,
     )
 

@@ -1,13 +1,21 @@
 use std::str::FromStr;
 
+use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
-    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BannerEvent, Chain, ConfigVersions, StakeChain, VerificationStatus, Wallet, WalletType,
+    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BannerEvent, Chain, ConfigVersions, PerpetualProvider, StakeChain, VerificationStatus,
+    Wallet, WalletType,
 };
 
-use super::model::{AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetNetworkDestination, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetType, GemSelectRowAction, GemWalletSearchLimits};
+use super::model::{
+    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
+    GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetType, GemSelectRowAction, GemWalletSearchLimits,
+};
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::models::custom_types::GemBigUint;
+use crate::perpetual::GemPerpetual;
 use crate::services::balance::GemAssetBalance;
+use crate::services::nft::rules::nft_chains;
+use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing, missing_by, unique};
@@ -119,10 +127,17 @@ pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatu
     }
 }
 
-pub fn select_asset_flow(select_type: GemSelectAssetType) -> GemSelectAssetFlow {
+fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> GemSelectAssetFlow {
+    flow.filters.extend(filter);
+    flow
+}
+
+pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: Option<SwapAssetList>) -> GemSelectAssetFlow {
     let flow = |row_action: GemSelectRowAction, action: Option<GemAssetAction>| GemSelectAssetFlow {
         row_action,
         action,
+        scope: GemSelectAssetScope::Wallet,
+        filters: action.map(|action| action.filters()).unwrap_or_default(),
         enables_price_alert: false,
         network_search: false,
         chain_filter: false,
@@ -144,11 +159,14 @@ pub fn select_asset_flow(select_type: GemSelectAssetType) -> GemSelectAssetFlow 
             recents: true,
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
         },
-        GemSelectAssetType::ReceiveCollection => GemSelectAssetFlow {
-            network_search: true,
-            recents: true,
-            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
-        },
+        GemSelectAssetType::ReceiveCollection => with_filter(
+            GemSelectAssetFlow {
+                network_search: true,
+                recents: true,
+                ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
+            },
+            Some(GemAssetFilter::asset_ids(nft_chains().into_iter().map(AssetId::from_chain).collect())),
+        ),
         GemSelectAssetType::Buy => GemSelectAssetFlow {
             network_search: true,
             chain_filter: true,
@@ -161,31 +179,47 @@ pub fn select_asset_flow(select_type: GemSelectAssetType) -> GemSelectAssetFlow 
             recents: true,
             ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapPay))
         },
-        GemSelectAssetType::SwapReceive => GemSelectAssetFlow {
-            network_search: true,
-            chain_filter: true,
-            recents: true,
-            ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
-        },
-        GemSelectAssetType::Manage => GemSelectAssetFlow {
-            network_search: true,
-            chain_filter: true,
-            balance_filter: true,
-            add_custom_token: true,
-            ..flow(GemSelectRowAction::Toggle, None)
-        },
-        GemSelectAssetType::PriceAlert => GemSelectAssetFlow {
-            enables_price_alert: true,
-            network_search: true,
-            chain_filter: true,
-            popular_section: true,
-            ..flow(GemSelectRowAction::Select, None)
-        },
-        GemSelectAssetType::Deposit => flow(GemSelectRowAction::Navigate, None),
-        GemSelectAssetType::Withdraw => GemSelectAssetFlow {
-            deposit_asset_display: true,
-            ..flow(GemSelectRowAction::Navigate, None)
-        },
+        GemSelectAssetType::SwapReceive { .. } => with_filter(
+            GemSelectAssetFlow {
+                network_search: true,
+                chain_filter: true,
+                recents: true,
+                ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
+            },
+            swap_receive_assets.map(GemAssetFilter::from),
+        ),
+        GemSelectAssetType::Manage => with_filter(
+            GemSelectAssetFlow {
+                network_search: true,
+                chain_filter: true,
+                balance_filter: true,
+                add_custom_token: true,
+                ..flow(GemSelectRowAction::Toggle, None)
+            },
+            Some(GemAssetFilter::Enabled),
+        ),
+        GemSelectAssetType::PriceAlert => with_filter(
+            GemSelectAssetFlow {
+                enables_price_alert: true,
+                network_search: true,
+                chain_filter: true,
+                popular_section: true,
+                scope: GemSelectAssetScope::AllAssets,
+                ..flow(GemSelectRowAction::Select, None)
+            },
+            Some(GemAssetFilter::Enabled),
+        ),
+        GemSelectAssetType::Deposit => with_filter(
+            flow(GemSelectRowAction::Navigate, None),
+            Some(GemAssetFilter::asset_ids(vec![GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id])),
+        ),
+        GemSelectAssetType::Withdraw => with_filter(
+            GemSelectAssetFlow {
+                deposit_asset_display: true,
+                ..flow(GemSelectRowAction::Navigate, None)
+            },
+            Some(GemAssetFilter::asset_ids(vec![HYPERCORE_PERPETUAL_USDC.id.clone()])),
+        ),
         GemSelectAssetType::WalletSearch => GemSelectAssetFlow {
             network_search: true,
             recents: true,
@@ -272,7 +306,10 @@ mod tests {
         assert_eq!(row(GemSelectAssetType::ReceiveCollection), (GemSelectRowAction::Navigate, Some(GemAssetAction::Receive)));
         assert_eq!(row(GemSelectAssetType::Buy), (GemSelectRowAction::Navigate, Some(GemAssetAction::Buy)));
         assert_eq!(row(GemSelectAssetType::SwapPay), (GemSelectRowAction::Select, Some(GemAssetAction::SwapPay)));
-        assert_eq!(row(GemSelectAssetType::SwapReceive), (GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive)));
+        assert_eq!(
+            row(GemSelectAssetType::SwapReceive { pay_asset_id: None }),
+            (GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
+        );
         assert_eq!(row(GemSelectAssetType::Manage), (GemSelectRowAction::Toggle, None));
         assert_eq!(row(GemSelectAssetType::PriceAlert), (GemSelectRowAction::Select, None));
         assert_eq!(row(GemSelectAssetType::Deposit), (GemSelectRowAction::Navigate, None));
@@ -304,7 +341,10 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::ReceiveCollection), ["network_search", "recents"]);
         assert_eq!(enabled(GemSelectAssetType::Buy), ["network_search", "chain_filter", "recents", "popular_section"]);
         assert_eq!(enabled(GemSelectAssetType::SwapPay), ["chain_filter", "recents"]);
-        assert_eq!(enabled(GemSelectAssetType::SwapReceive), ["network_search", "chain_filter", "recents"]);
+        assert_eq!(
+            enabled(GemSelectAssetType::SwapReceive { pay_asset_id: None }),
+            ["network_search", "chain_filter", "recents"]
+        );
         assert_eq!(
             enabled(GemSelectAssetType::Manage),
             ["network_search", "chain_filter", "balance_filter", "add_custom_token"]
@@ -317,6 +357,91 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::Withdraw), ["deposit_asset_display"]);
         assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents"]);
         assert!(enabled(GemSelectAssetType::WalletSearchResults).is_empty());
+    }
+
+    #[test]
+    fn test_each_select_flow_lists_the_rows_its_action_can_offer() {
+        let rows = |select_type: GemSelectAssetType| (select_type.flow().scope, select_type.flow().filters);
+        assert_eq!(
+            rows(GemSelectAssetType::Send),
+            (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled, GemAssetFilter::HasBalance])
+        );
+        assert_eq!(rows(GemSelectAssetType::Receive), (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled]));
+        let (_, collection_filters) = rows(GemSelectAssetType::ReceiveCollection);
+        assert_eq!(collection_filters[0], GemAssetFilter::Enabled);
+        let GemAssetFilter::ChainsOrAssetIds {
+            chains: collection_chains,
+            asset_ids: collection_assets,
+        } = &collection_filters[1]
+        else {
+            panic!("receive collection lists the NFT chains' native assets");
+        };
+        assert!(collection_chains.is_empty());
+        assert!(collection_assets.contains(&AssetId::from_chain(Chain::Ethereum)));
+        assert!(!collection_assets.contains(&AssetId::from_chain(Chain::Bitcoin)));
+        assert!(collection_assets.iter().all(AssetId::is_native));
+        assert_eq!(
+            rows(GemSelectAssetType::Buy),
+            (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled, GemAssetFilter::Buyable])
+        );
+        assert_eq!(
+            rows(GemSelectAssetType::SwapPay),
+            (
+                GemSelectAssetScope::Wallet,
+                vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable, GemAssetFilter::HasAvailableBalance]
+            )
+        );
+        assert_eq!(
+            rows(GemSelectAssetType::SwapReceive { pay_asset_id: None }),
+            (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable])
+        );
+        assert_eq!(rows(GemSelectAssetType::Manage), (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled]));
+        assert_eq!(rows(GemSelectAssetType::PriceAlert), (GemSelectAssetScope::AllAssets, vec![GemAssetFilter::Enabled]));
+        assert_eq!(
+            rows(GemSelectAssetType::Deposit),
+            (
+                GemSelectAssetScope::Wallet,
+                vec![GemAssetFilter::ChainsOrAssetIds {
+                    chains: Vec::new(),
+                    asset_ids: vec![AssetId::from_token(Chain::Arbitrum, "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")]
+                }]
+            )
+        );
+        assert_eq!(
+            rows(GemSelectAssetType::Withdraw),
+            (
+                GemSelectAssetScope::Wallet,
+                vec![GemAssetFilter::ChainsOrAssetIds {
+                    chains: Vec::new(),
+                    asset_ids: vec![HYPERCORE_PERPETUAL_USDC.id.clone()]
+                }]
+            )
+        );
+        assert_eq!(rows(GemSelectAssetType::WalletSearch), (GemSelectAssetScope::Wallet, Vec::new()));
+        assert_eq!(rows(GemSelectAssetType::WalletSearchResults), (GemSelectAssetScope::Wallet, Vec::new()));
+    }
+
+    #[test]
+    fn test_swap_receive_lists_the_pay_assets_swap_universe() {
+        let pay_asset_id = AssetId::from_chain(Chain::Ethereum);
+        let universe = SwapAssetList {
+            chains: vec![Chain::Solana],
+            asset_ids: vec![AssetId::from_token(Chain::SmartChain, "0x123")],
+        };
+
+        let flow = select_asset_flow(GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) }, Some(universe.clone()));
+
+        assert_eq!(
+            flow.filters,
+            vec![
+                GemAssetFilter::Enabled,
+                GemAssetFilter::Swappable,
+                GemAssetFilter::ChainsOrAssetIds {
+                    chains: universe.chains,
+                    asset_ids: universe.asset_ids,
+                },
+            ]
+        );
     }
 
     #[test]

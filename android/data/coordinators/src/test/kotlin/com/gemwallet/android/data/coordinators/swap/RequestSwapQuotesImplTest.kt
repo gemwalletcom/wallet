@@ -33,7 +33,6 @@ import uniffi.gemstone.GemSwapTransferPhase
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapTransfer
-import uniffi.gemstone.SwapperAssetList
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -313,8 +312,6 @@ class RequestSwapQuotesImplTest {
         }
 
         override suspend fun getTransfer(quote: SwapperQuote): GemSwapTransfer = throw UnsupportedOperationException()
-
-        override fun supportedAssets(assetId: String): SwapperAssetList = SwapperAssetList(emptyList(), emptyList())
 
         override suspend fun suggestPair(payAssetId: String?): GemSwapPairSuggestion? = null
 

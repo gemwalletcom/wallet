@@ -56,12 +56,12 @@ public final class SelectAssetViewModel {
         self.service = service
         self.wallet = wallet
         self.selectType = selectType
-        flow = selectType.flow
+        flow = service.flow(selectType: selectType.flowType)
         presentation = selectType.presentation()
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
-            type: selectType,
+            flow: flow,
             model: ChainsFilterViewModel(
                 chains: service.filterChains(wallet: wallet.map()).map { Chain(core: $0) },
                 selected: chains,
@@ -69,11 +69,11 @@ public final class SelectAssetViewModel {
         )
         filterModel = filter
 
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: filter.filters), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters), initialValue: [])
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
-            types: selectType.action?.recentActivityTypes().map { $0.map() } ?? RecentActivityType.allCases,
-            filters: filter.defaultFilters,
+            types: flow.action?.recentActivityTypes().map { $0.map() } ?? RecentActivityType.allCases,
+            filters: flow.requestFilters,
             service: recentAssetsService,
         )
     }
@@ -247,7 +247,7 @@ extension SelectAssetViewModel {
                 await setPriceAlert(assetId: asset.id, enabled: true)
             }
         }
-        if let action = selectType.action {
+        if let action = flow.action {
             Task { [service] in
                 do {
                     try await service.addRecent(action: action, asset: asset.map())
