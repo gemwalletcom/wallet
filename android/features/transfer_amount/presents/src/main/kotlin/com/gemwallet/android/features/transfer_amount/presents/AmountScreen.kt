@@ -44,6 +44,7 @@ fun AmountScreen(
     val amountType by provider.amountType.collectAsStateWithLifecycle()
     val canChangeValue = input?.canChangeValue ?: true
     val showsAssetBalance = input?.showsAssetBalance ?: true
+    val usesWholeAmounts = input?.usesWholeAmounts ?: false
 
     AnimatedContent(
         isSelectValidator && canPickValidator,
@@ -73,6 +74,7 @@ fun AmountScreen(
                 currency = viewModel.currency,
                 canSwitchInputType = amountType?.canSwitchInputType() ?: false,
                 readOnly = !canChangeValue,
+                usesWholeAmounts = usesWholeAmounts,
                 showsAssetBalance = showsAssetBalance,
                 error = error,
                 equivalent = equivalent,

@@ -62,6 +62,7 @@ pub struct GemAmountInput {
     pub reserved_fee: Option<GemBigInt>,
     pub can_change_value: bool,
     pub shows_asset_balance: bool,
+    pub uses_whole_amounts: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]

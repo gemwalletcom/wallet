@@ -383,9 +383,6 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         throw AnyError("not stubbed")
     }
 
-    public func usesWholeAmounts(chain: Gemstone.Chain) -> Bool {
-        builder.usesWholeAmounts(chain: chain)
-    }
 
     public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 {
         min(5, maxLeverage)
@@ -599,9 +596,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         freezes
     }
 
-    public func usesWholeAmounts(chain _: Gemstone.Chain) -> Bool {
-        wholeAmounts
-    }
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
         GemTransferData(inputType: .stake(asset: asset, stakeType: stakeType), recipient: GemRecipient(address: ""), value: value, useMaxAmount: useMaxAmount)

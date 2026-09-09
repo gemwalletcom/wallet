@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Whether an amount is typed whole or fractional is Core's answer on both apps.**
+  `GemAmountInput.uses_whole_amounts` is true for a stake or unstake on a chain whose staking
+  takes whole units. iOS asked Core `uses_whole_amounts(chain)` and then decided in its own
+  `AmountInputConfig` which stake actions it applied to; Android never asked and offered a decimal
+  keyboard everywhere. Both read the input record now, the standalone export is gone, and
+  Android's amount field takes the keyboard from it.
 - **An import is validated once, by Core.** iOS's wallet service wrapper called
   `GemWalletImportType::validated()` before handing the import to `import_wallet`, which validates
   it again; the export existed for that one call. The wrapper passes the import straight through

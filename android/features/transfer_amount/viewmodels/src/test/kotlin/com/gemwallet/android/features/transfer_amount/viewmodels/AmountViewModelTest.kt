@@ -208,6 +208,7 @@ class AmountViewModelTest {
         reservedFee = reservedFee,
         canChangeValue = true,
         showsAssetBalance = true,
+        usesWholeAmounts = false,
     )
 
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {

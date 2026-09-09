@@ -120,10 +120,6 @@ impl GemStakeService {
         rules::uses_freeze(chain)
     }
 
-    pub fn uses_whole_amounts(&self, chain: Chain) -> bool {
-        rules::uses_whole_amounts(chain)
-    }
-
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
         rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
     }

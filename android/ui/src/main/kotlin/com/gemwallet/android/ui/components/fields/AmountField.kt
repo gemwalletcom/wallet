@@ -54,6 +54,7 @@ fun ColumnScope.AmountField(
     inputType: GemAmountInputType = GemAmountInputType.ASSET,
     onInputTypeClick: (() -> Unit)? = null,
     readOnly: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Decimal,
     error: String,
     textStyle: TextStyle = MaterialTheme.typography.displaySmall,
     transformation: AmountTransformation = CryptoAmountTransformation(
@@ -83,7 +84,7 @@ fun ColumnScope.AmountField(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface
         ),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { onNext() }
         ),
