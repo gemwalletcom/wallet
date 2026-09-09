@@ -122,7 +122,11 @@ impl GemAssetsService {
         if !rules::can_open(&wallet, &asset_id) {
             return Ok(None);
         }
-        let asset = self.ensure_asset(asset_id.clone()).await?;
+        let asset = match self.ensure_asset(asset_id.clone()).await {
+            Ok(asset) => asset,
+            Err(GemServiceError::NotFound { .. }) => return Ok(None),
+            Err(error) => return Err(error),
+        };
         self.add_missing_balances(wallet.id, vec![asset_id]).await?;
         Ok(Some(asset))
     }
