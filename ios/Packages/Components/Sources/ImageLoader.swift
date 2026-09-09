@@ -35,7 +35,15 @@ final class ImageLoader: @unchecked Sendable {
     }
 
     func cached(_ request: ImageRequest) -> UIImage? {
-        images.object(forKey: request.cacheKey)
+        if let image = images.object(forKey: request.cacheKey) {
+            return image
+        }
+        guard let cached = session.configuration.urlCache?.cachedResponse(for: URLRequest(url: request.url)),
+              let image = Self.decode(cached.data, request: request)
+        else {
+            return nil
+        }
+        return store(image, for: request)
     }
 
     func image(for request: ImageRequest) async throws -> UIImage {
@@ -48,9 +56,6 @@ final class ImageLoader: @unchecked Sendable {
     private func load(_ request: ImageRequest) async throws -> UIImage {
         let urlRequest = URLRequest(url: request.url)
         let cache = session.configuration.urlCache
-        if let cached = cache?.cachedResponse(for: urlRequest), let image = Self.decode(cached.data, request: request) {
-            return store(image, for: request)
-        }
         let (data, response) = try await session.data(for: urlRequest)
         guard let image = Self.decode(data, request: request) else {
             throw ImageLoadingError.undecodable

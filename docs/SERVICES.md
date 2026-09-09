@@ -473,10 +473,13 @@ intentional one-sided integration surfaces.
   was the vendored view that built a `URLSession` and decoded the cached PNG synchronously in every
   `init`, which SwiftUI runs on every parent body pass. It is now a thin view over `ImageLoader`:
   one shared session, an `NSCache` of decoded images keyed by URL and pixel size, ImageIO
-  thumbnails at the requested size off the main actor, and in-flight de-duplication so thirty
-  rows sharing a chain icon fetch it once. `AssetImageView` and `AsyncImageView` pass their
-  display size; NFT and support images decode at full size, still once and off the main thread.
-  Android already had this shape in Coil.
+  thumbnails at the requested size, and in-flight de-duplication so thirty rows sharing a chain
+  icon fetch it once. `AssetImageView` and `AsyncImageView` pass their display size; NFT and
+  support images decode at full size. Only a network load is asynchronous: an icon already in the
+  `URLCache` is decoded synchronously the first time a view asks for it in a launch (once, not
+  per body pass), because the first frame after a relaunch must show a token's icon the way the
+  vendored view did, not a placeholder that the image replaces a frame later. Android already
+  had this shape in Coil.
 - **Launch legs run together, and a device that has nothing to sync does not wait.** `run()`
   joins banners, config → assets and device sync instead of awaiting them in a row (config stays
   ahead of the asset availability sync, which reads it). `synchronize_if_needed` decides whether a

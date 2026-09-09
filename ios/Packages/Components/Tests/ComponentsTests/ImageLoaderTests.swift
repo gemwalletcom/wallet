@@ -42,6 +42,21 @@ struct ImageLoaderTests {
     }
 
     @Test
+    func cachedDecodesTheStoredResponseWithoutLoading() throws {
+        let cache = URLCache(memoryCapacity: 1024 * 1024, diskCapacity: 0)
+        let loader = ImageLoader(cache: cache)
+        let request = ImageRequest(url: url, maxPixelSize: 44, scale: 2)
+        #expect(loader.cached(request) == nil)
+
+        let response = try #require(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
+        cache.storeCachedResponse(CachedURLResponse(response: response, data: png(side: 200)), for: URLRequest(url: url))
+
+        let image = try #require(loader.cached(request))
+        #expect(image.cgImage?.width == 44)
+        #expect(loader.cached(request) === image)
+    }
+
+    @Test
     func cacheKeyDistinguishesSizeAndScale() {
         let small = ImageRequest(url: url, maxPixelSize: 44, scale: 2)
         let large = ImageRequest(url: url, maxPixelSize: 88, scale: 2)
