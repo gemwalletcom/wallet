@@ -9,8 +9,9 @@ use primitives::name::NameRecord;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{
     AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
-    MAX_QUERY_LIMIT, MAX_QUERY_PAGES, NFTAssetData, NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction,
+    NFTAssetData, NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction,
     ScanTransactionPayload, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
+    transactions_page_limit,
 };
 use serde::de::DeserializeOwned;
 
@@ -108,14 +109,14 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
         let mut transactions = Vec::new();
         let mut address_names = Vec::new();
 
-        for _ in 0..MAX_QUERY_PAGES {
+        while let Some(limit) = transactions_page_limit(transactions.len()) {
             let offset = transactions.len();
             let response: TransactionsResponse = self
                 .send(GemDeviceApiTarget::GetTransactions {
                     wallet_id: wallet_id.clone(),
                     asset_id: asset_id.clone(),
                     from_timestamp,
-                    limit: MAX_QUERY_LIMIT,
+                    limit,
                     offset,
                 })
                 .await?;
@@ -128,7 +129,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
                 }
             }
 
-            if page_size < MAX_QUERY_LIMIT {
+            if page_size < limit {
                 break;
             }
         }

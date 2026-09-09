@@ -126,7 +126,7 @@ pub struct GemTransactionRow {
 
 #[uniffi::export]
 pub fn transactions_list_limit() -> u32 {
-    1000
+    primitives::TRANSACTIONS_LIMIT as u32
 }
 
 #[uniffi::export]

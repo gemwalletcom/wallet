@@ -140,7 +140,7 @@ pub use self::device_token::DeviceToken;
 pub mod defi;
 pub use self::defi::{DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 pub mod pagination;
-pub use self::pagination::{MAX_QUERY_LIMIT, MAX_QUERY_PAGES};
+pub use self::pagination::{MAX_QUERY_LIMIT, TRANSACTIONS_LIMIT, transactions_page_limit};
 pub mod transaction;
 pub use self::transaction::{Transaction, TransactionsResponse};
 pub mod transaction_type;

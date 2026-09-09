@@ -402,11 +402,13 @@ intentional one-sided integration surfaces.
   are gone too: the scene walks Core's sections and asks `value(row)` for the payload, so the sealed
   `TransactionDetailsValue` is what a row renders, not a second list of what rows exist. An app keeps
   a payload type per row; it does not keep a kind.
-- **The activity list is bounded, and Core says where.** `transactions_list_limit()` is 1000; both
-  list queries apply it (`buildExtendedTransactionsSql` on Android, `TransactionsRequest.limit` on
-  iOS, which the scene inputs pass because `Store` cannot import Gemstone). The count query and the
-  pending-transaction tracking read stay unbounded — one is a number, the other is what still has
-  to be watched.
+- **The activity list and the sync share one limit, and Core owns it.** `TRANSACTIONS_LIMIT`
+  (1000, in `primitives::pagination`) is what `transactions_list_limit()` returns for both list
+  queries (`buildExtendedTransactionsSql` on Android, `TransactionsRequest.limit` on iOS, passed in
+  by the scene inputs because `Store` cannot import Gemstone) and what `gem_api`'s sync pages
+  towards, `MAX_QUERY_LIMIT` rows at a time (`transactions_page_limit`); `MAX_QUERY_PAGES` (a
+  10,000-row ceiling nothing else read) is gone. The count query and the pending-transaction
+  tracking read stay unbounded — one is a number, the other is what still has to be watched.
 - **The activity list follows prices and currency, but only emits changes.** Both list queries
   join `prices` for the fiat column and are observed on that table again: `set_currency` rewrites
   every price row (`convert_prices`), and a list that stopped watching prices kept the old
