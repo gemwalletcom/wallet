@@ -221,11 +221,9 @@ impl GemSwapSession {
         }
     }
 
-    pub fn transfer_error(&self) -> Option<SwapperError> {
-        match &self.transfer_phase {
-            GemSwapTransferPhase::Failed { error, .. } => Some(error.clone()),
-            GemSwapTransferPhase::Idle | GemSwapTransferPhase::Loading { .. } => None,
-        }
+    /// The error the screen shows: a failed transfer outranks a failed quote, the way `action` reads them.
+    pub fn error(&self) -> Option<SwapperError> {
+        self.transfer_error().or_else(|| self.quote_error())
     }
 
     pub fn is_quote_loading(&self) -> bool {
@@ -283,6 +281,13 @@ impl GemSwapSession {
 }
 
 impl GemSwapSession {
+    pub(crate) fn transfer_error(&self) -> Option<SwapperError> {
+        match &self.transfer_phase {
+            GemSwapTransferPhase::Failed { error, .. } => Some(error.clone()),
+            GemSwapTransferPhase::Idle | GemSwapTransferPhase::Loading { .. } => None,
+        }
+    }
+
     pub fn accepts_quotes(&self) -> bool {
         matches!(self.transfer_phase, GemSwapTransferPhase::Idle)
     }
@@ -427,6 +432,7 @@ mod tests {
 
         let failed = started.on_transfer_failed(transfer.clone(), SwapperError::TransactionError("boom".into()));
         assert_eq!(failed.transfer_error(), Some(SwapperError::TransactionError("boom".into())));
+        assert_eq!(failed.error(), failed.transfer_error(), "a failed transfer outranks the quote it came from");
         assert_eq!(
             failed.action(),
             GemSwapSessionAction::TransferError {

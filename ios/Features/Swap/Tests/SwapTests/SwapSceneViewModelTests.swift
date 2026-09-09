@@ -132,10 +132,10 @@ struct SwapSceneViewModelTests {
         let model = await model()
 
         model.session = model.session.failedTransfer(.TransactionError("nonce"))
-        #expect(model.session.transferError() != nil)
+        #expect(model.session.error() != nil)
 
         model.onFinishSwapProviderSelection(.mock())
-        #expect(model.session.transferError() == nil)
+        #expect(model.session.error() == nil)
 
         model.session = model.session.startTransfer()!
         #expect(model.swapDetailsViewModel?.allowSelectProvider == false)
@@ -236,7 +236,7 @@ struct SwapSceneViewModelTests {
         #expect(model.amountInputModel.text == "1")
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
-        #expect(model.session.transferError() == nil)
+        #expect(model.session.error() == nil)
         #expect(model.loadTrigger?.isImmediate == true)
     }
 

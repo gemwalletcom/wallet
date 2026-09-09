@@ -177,7 +177,7 @@ public final class SwapSceneViewModel {
     }
 
     var error: (any Error)? {
-        session.transferError() ?? session.quoteError()
+        session.error()
     }
 
     var isQuoteInteractionEnabled: Bool {

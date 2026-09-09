@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The swap error a screen shows is one Core answer.** `GemSwapSession::error()` returns the
+  failed transfer's error, else the failed quote's, the order `action()` already reads them in.
+  iOS wrote that as `transferError() ?? quoteError()` and Android as a `when` over `action`, so the
+  precedence lived in two places; `transfer_error` is Core-internal now.
 - **The notifications toggle is one Core rule on both apps.**
   `GemNotificationsService::set_enabled` asks for permission, and only then turns push on through
   `GemDeviceService::set_push_enabled`, which writes the preference and syncs the device. Each app

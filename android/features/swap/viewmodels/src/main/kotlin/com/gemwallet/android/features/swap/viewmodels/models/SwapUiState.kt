@@ -31,20 +31,11 @@ data class SwapUiState(
     val action: GemSwapSessionAction = GemSwapSessionAction.None,
     val buttonAction: GemSwapButtonAction = GemSwapButtonAction.Swap,
     val buttonState: ButtonState = ButtonState.Disabled,
+    val error: SwapperException? = null,
     val isQuoteLoading: Boolean = false,
     val isTransferLoading: Boolean = false,
     val isInputEmpty: Boolean = true,
 ) {
-    val error: SwapperException?
-        get() = when (val currentAction = action) {
-            is GemSwapSessionAction.QuoteError -> currentAction.error
-            is GemSwapSessionAction.TransferError -> currentAction.error
-            GemSwapSessionAction.None,
-            GemSwapSessionAction.QuoteLoading,
-            GemSwapSessionAction.Ready,
-            GemSwapSessionAction.TransferLoading -> null
-        }
-
     val isReceiveLoading: Boolean
         get() = isQuoteLoading && !isTransferLoading
 
@@ -66,6 +57,7 @@ internal fun createSwapUiState(session: GemSwapSession, buttonAction: GemSwapBut
         GemSwapButtonState.LOADING -> ButtonState.Loading
         GemSwapButtonState.ENABLED -> ButtonState.Enabled
     },
+    error = session.error(),
     isQuoteLoading = session.isQuoteLoading(),
     isTransferLoading = session.isTransferLoading(),
     isInputEmpty = session.isInputEmpty(),
