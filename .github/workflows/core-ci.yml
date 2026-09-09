@@ -69,7 +69,11 @@ jobs:
 
       - name: Check gemstone dependencies
         run: |
-          cargo tree --package gemstone | grep -i reqwest && exit 1 || echo "✓ No reqwest dependencies found in gemstone"
+          dependencies=$(cargo tree --locked --package gemstone --edges normal,build --prefix none)
+          if grep -E '^(reqwest|gem_alchemy|gem_ankr|gem_blockscout) ' <<< "$dependencies"; then
+            echo "Unexpected backend dependencies found in gemstone"
+            exit 1
+          fi
 
   check_schema:
     runs-on: ubuntu-latest
