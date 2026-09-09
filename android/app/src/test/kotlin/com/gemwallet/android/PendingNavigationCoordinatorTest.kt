@@ -2,6 +2,8 @@ package com.gemwallet.android
 
 import android.content.Intent
 import com.gemwallet.android.model.PushNotificationField
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import io.mockk.coEvery
@@ -15,13 +17,16 @@ import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.FiatQuoteType
 import uniffi.gemstone.GemDeeplinkService
 
 class PendingNavigationCoordinatorTest {
 
     private val notificationNavigation = mockk<NotificationNavigation>(relaxed = true)
     private val paymentNavigation = mockk<PaymentNavigation>(relaxed = true)
-    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation, GemDeeplinkService())
+    private val assetNavigation = mockk<AssetNavigation>()
+    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation, assetNavigation, GemDeeplinkService())
 
     @Test
     fun buildRoutes_withoutPendingInput_isNoOp() = runTest {
@@ -63,6 +68,28 @@ class PendingNavigationCoordinatorTest {
 
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
         assertEquals(listOf(ReferralRoute(code = "gemcoder")), routes)
+    }
+
+    @Test
+    fun buildRoutes_buyDeepLink_storesRouteWhenCoreOpensTheAsset() = runTest {
+        val asset = mockAsset(chain = Chain.Bitcoin)
+        coEvery { assetNavigation.fiatRoute(asset.id, 100, FiatQuoteType.Buy) } returns FiatInputRoute(asset.id, 100, FiatQuoteType.Buy)
+        coordinator.handleScan("gem://tokens/bitcoin/buy?amount=100")
+
+        coordinator.buildRoutes(NoOpWalletConnect)
+
+        val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
+        assertEquals(listOf(FiatInputRoute(asset.id, amount = 100, type = FiatQuoteType.Buy)), routes)
+    }
+
+    @Test
+    fun buildRoutes_buyDeepLink_isDroppedWhenCoreRejectsTheAsset() = runTest {
+        coEvery { assetNavigation.fiatRoute(any(), any(), any()) } returns null
+        coordinator.handleScan("gem://tokens/bitcoin/buy")
+
+        coordinator.buildRoutes(NoOpWalletConnect)
+
+        assertNull(coordinator.pendingNavigation.value)
     }
 
     @Test

@@ -8,6 +8,7 @@ import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
@@ -41,12 +42,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemServiceException
-import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -179,15 +178,14 @@ class FiatViewModel @Inject constructor(
         quoteRetry.value += 1
     }
 
-    fun getUrl(callback: (String?) -> Unit) {
-        val quoteId = session.value.selectedQuoteRow(null)?.quoteId ?: return callback(null)
-        viewModelScope.launch {
-            isUrlLoading.value = true
-            val url = runCatching { service.quoteUrl(assetId.toIdentifier(), quoteId).redirectUrl }
+    suspend fun quoteUrl(): Result<String> {
+        val quoteId = requireNotNull(session.value.selectedQuoteRow(null)).quoteId
+        isUrlLoading.value = true
+        try {
+            return runCatchingCancellable { service.quoteUrl(assetId.toIdentifier(), quoteId).redirectUrl }
                 .onFailure { Log.e(TAG, "fiat quote url request failed", it) }
-                .getOrNull()
+        } finally {
             isUrlLoading.value = false
-            callback(url)
         }
     }
 

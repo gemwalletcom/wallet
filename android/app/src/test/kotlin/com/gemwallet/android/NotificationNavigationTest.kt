@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import android.util.Log
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
@@ -30,16 +31,20 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
+import uniffi.gemstone.GemServiceException
 import com.wallet.core.primitives.WalletId
 
 class NotificationNavigationTest {
@@ -57,17 +62,25 @@ class NotificationNavigationTest {
         setCurrentWallet = setCurrentWallet,
         getWallet = getWallet,
         createTransaction = createTransaction,
+        assetNavigation = AssetNavigation(assetsService),
         assetsService = assetsService,
         pushNotificationService = pushNotificationService,
     )
 
     @Before
     fun setup() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
         every { getSession() } returns session
         coEvery { setCurrentWallet.setCurrentWallet(any()) } coAnswers {
             session.value = mockSession(wallet = mockWallet(id = (invocation.args.first() as WalletId).id))
         }
         coEvery { assetsService.syncMissingAssets(any()) } returns emptyList()
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(Log::class)
     }
 
     @Test
@@ -219,6 +232,26 @@ class NotificationNavigationTest {
                 "the notification routes are built on the main scope. Got $callingThreads",
             callingThreads.single().startsWith("DefaultDispatcher-worker"),
         )
+    }
+
+    @Test
+    fun buyAssetNotification_isRejectedWhenCoreDoesNotOpenTheAsset() = runBlocking {
+        val assetId = mockAssetId(Chain.Bitcoin)
+        coEvery { assetsService.openAsset(assetId.toIdentifier()) } returns null
+
+        val route = subject.prepareNavigation(GemPushNotification.BuyAsset(assetId.toIdentifier()))
+
+        assertEquals(emptyList<Any>(), route)
+    }
+
+    @Test
+    fun buyAssetNotification_isRejectedWhenCoreFails() = runBlocking {
+        val assetId = mockAssetId(Chain.Bitcoin)
+        coEvery { assetsService.openAsset(assetId.toIdentifier()) } throws GemServiceException.Api("offline")
+
+        val route = subject.prepareNavigation(GemPushNotification.BuyAsset(assetId.toIdentifier()))
+
+        assertEquals(emptyList<Any>(), route)
     }
 
     @Test
