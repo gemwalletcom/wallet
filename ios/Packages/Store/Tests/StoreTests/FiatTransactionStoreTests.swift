@@ -29,7 +29,7 @@ struct FiatTransactionStoreTests {
     private func storedIds(_ db: DB) throws -> [String] {
         try db.dbQueue
             .read { try FiatTransactionsRequest(walletId: .mock()).fetch($0) }
-            .map(\.transaction.id)
+            .map(\.id)
             .sorted()
     }
 }

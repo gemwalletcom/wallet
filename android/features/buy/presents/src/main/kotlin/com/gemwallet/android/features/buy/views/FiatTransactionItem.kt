@@ -40,38 +40,37 @@ fun FiatTransactionItem(
     listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
-    val transaction = info.transaction
     val asset = info.asset
 
-    val typeTitle = when (transaction.transactionType) {
+    val typeTitle = when (info.transactionType) {
         FiatQuoteType.Buy -> stringResource(R.string.wallet_buy)
         FiatQuoteType.Sell -> stringResource(R.string.wallet_sell)
     }
 
     val cryptoAmount = ValueFormatter(style = ValueFormatter.Style.Short)
-        .string(BigInteger(transaction.value), asset)
+        .string(BigInteger(info.value), asset)
 
-    val fiatCurrency = transaction.fiatCurrency.toCurrency()
-    val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = fiatCurrency).string(transaction.fiatAmount)
+    val fiatCurrency = info.fiatCurrency.toCurrency()
+    val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = fiatCurrency).string(info.fiatAmount)
 
-    val isDimmed = transaction.status == FiatTransactionStatus.Failed ||
-            transaction.status == FiatTransactionStatus.Unknown
+    val isDimmed = info.status == FiatTransactionStatus.Failed ||
+            info.status == FiatTransactionStatus.Unknown
 
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         leading = {
             AsyncImage(
-                model = transaction.provider.iconModel(),
+                model = info.provider.iconModel(),
                 size = listItemIconSize,
             )
         },
         title = {
             ListItemTitleText(
                 text = typeTitle,
-                titleBadge = { FiatTransactionStatusBadge(transaction.status) }
+                titleBadge = { FiatTransactionStatusBadge(info.status) }
             )
         },
-        subtitle = { ListItemSupportText("${asset.name} (${transaction.provider.name})") },
+        subtitle = { ListItemSupportText("${asset.name} (${info.provider.name})") },
         listPosition = listPosition,
         trailing = {
             Column(horizontalAlignment = Alignment.End) {

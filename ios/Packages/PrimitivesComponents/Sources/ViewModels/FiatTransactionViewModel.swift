@@ -11,9 +11,6 @@ import SwiftUI
 
 public struct FiatTransactionViewModel: Sendable {
     private let info: FiatTransactionAssetData
-    private var transaction: FiatTransaction {
-        info.transaction
-    }
 
     private let formatter: ValueFormatter
 
@@ -23,13 +20,13 @@ public struct FiatTransactionViewModel: Sendable {
     }
 
     public var listItemModel: ListItemModel {
-        let statusModel = FiatTransactionStatusViewModel(status: transaction.status)
+        let statusModel = FiatTransactionStatusViewModel(status: info.status)
         return ListItemModel(
             title: typeTitle,
             titleStyle: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
             titleTag: titleTag(statusModel),
             titleTagStyle: titleTagStyle(statusModel),
-            titleExtra: "\(info.asset.name) (\(transaction.provider.displayName))",
+            titleExtra: "\(info.asset.name) (\(info.provider.displayName))",
             titleStyleExtra: .footnote,
             subtitle: amount,
             subtitleStyle: TextStyle(font: .callout, color: subtitleColor, fontWeight: .semibold),
@@ -48,18 +45,18 @@ public struct FiatTransactionViewModel: Sendable {
 
 extension FiatTransactionViewModel {
     private var typeTitle: String {
-        switch transaction.transactionType {
+        switch info.transactionType {
         case .buy: Localized.Wallet.buy
         case .sell: Localized.Wallet.sell
         }
     }
 
     private var providerImage: AssetImage {
-        .image(transaction.provider.image)
+        .image(info.provider.image)
     }
 
     private func titleTag(_ model: FiatTransactionStatusViewModel) -> String? {
-        switch transaction.status {
+        switch info.status {
         case .complete, .unknown: .none
         case .pending, .failed: model.title
         }
@@ -74,16 +71,16 @@ extension FiatTransactionViewModel {
     }
 
     private var amount: String {
-        guard let value = BigInt(transaction.value) else { return "" }
+        guard let value = BigInt(info.value) else { return "" }
         return formatter.string(value, decimals: info.asset.decimals.asInt, currency: info.asset.symbol)
     }
 
     private var fiatValueText: String {
-        CurrencyFormatter(currencyCode: transaction.fiatCurrency).string(transaction.fiatAmount)
+        CurrencyFormatter(currencyCode: info.fiatCurrency).string(info.fiatAmount)
     }
 
     private var subtitleColor: Color {
-        switch transaction.status {
+        switch info.status {
         case .failed, .unknown: Colors.gray
         case .pending, .complete: Colors.black
         }

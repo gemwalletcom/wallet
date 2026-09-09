@@ -187,6 +187,9 @@ remote:
   - SearchResponse
   - TransactionsResponse
   - FiatQuoteRequest
+  - FiatTransactionStatus
+  - FiatTransaction
+  - FiatTransactionData
 codes:
   - Chain
   - Currency

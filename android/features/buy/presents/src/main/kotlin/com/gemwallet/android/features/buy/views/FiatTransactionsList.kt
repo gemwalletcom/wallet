@@ -10,8 +10,8 @@ fun LazyListScope.fiatTransactionsList(
 ) {
     dateGroupedList(
         items = items,
-        createdAt = { it.transaction.createdAt },
-        key = { _, item -> item.transaction.id },
+        createdAt = { it.createdAt },
+        key = { _, item -> item.id },
     ) { position, item ->
         FiatTransactionItem(
             info = item,

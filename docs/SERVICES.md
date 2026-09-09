@@ -457,9 +457,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   transit types do not. What a provider row shows is `GemFiatQuoteRow` — the provider, the crypto
   amount, the fiat amount to display and the rate — so neither app decides that a buy row prices off
   the USD asset price when there is one and off the quote otherwise, and a quote that buys nothing
-  has no rate instead of formatting `NaN`, which is what iOS rendered. `FiatTransaction` and its
-  wrappers stay on the bridge: they only travel Core to app, and the generator has no way to emit the
-  app-to-core direction for a record whose skipped fields have no default. The asset search results
+  has no rate instead of formatting `NaN`, which is what iOS rendered. `FiatTransaction` and
+  `FiatTransactionData` followed. They only travel Core to app, but the generator emits both
+  directions, so the field the twin had no way to default — the update timestamp — is on the twin
+  now; the three optional ones fall back to none. `FiatTransactionAssetData` stopped nesting a
+  transaction at the same time: each app persists a projection of the record, so a nested transaction
+  was a shape the store could never rebuild, and it carries the row's own fields instead, which is
+  all either list item ever read. The asset search results
 went across next — `AssetBasic`, `AssetProperties`, `AssetScore`, `AssetRank`, `AssetList` and
 `ChainAsset` — so a search that runs on every keystroke stops parsing a JSON string per result on
 both apps, and the chain asset table each app builds once at startup is a mapper call rather than a
@@ -479,9 +483,8 @@ because the picker needs `CaseIterable` and `Identifiable`, which uniffi does no
 it in either language, so it was generating a twin nothing read. `AssetFull`, `AssetAssociation` and `PerpetualBasic` finished
 the asset cluster the same way. What is left on the bridge is mostly types the generator still cannot
 map: a data-carrying enum that must keep its twin has no mapper emission, which is why `SupportMessage`
-stays (Room stores its `SupportMessageSender` through a converter, so the twin cannot go), alongside
-`FiatTransaction`, whose skipped fields have no app-to-core default. Those two shapes are the
-remaining generator work, not app work. The generator is one table-driven
+stays (Room stores its `SupportMessageSender` through a converter, so the twin cannot go). That
+shape is the remaining generator work, not app work. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper

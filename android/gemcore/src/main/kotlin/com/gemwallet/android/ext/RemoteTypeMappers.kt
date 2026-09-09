@@ -353,6 +353,20 @@ fun com.wallet.core.primitives.FiatQuoteType.toGem(): uniffi.gemstone.FiatQuoteT
     com.wallet.core.primitives.FiatQuoteType.Sell -> uniffi.gemstone.FiatQuoteType.SELL
 }
 
+fun uniffi.gemstone.FiatTransactionStatus.toPrimitives(): com.wallet.core.primitives.FiatTransactionStatus = when (this) {
+    uniffi.gemstone.FiatTransactionStatus.COMPLETE -> com.wallet.core.primitives.FiatTransactionStatus.Complete
+    uniffi.gemstone.FiatTransactionStatus.PENDING -> com.wallet.core.primitives.FiatTransactionStatus.Pending
+    uniffi.gemstone.FiatTransactionStatus.FAILED -> com.wallet.core.primitives.FiatTransactionStatus.Failed
+    uniffi.gemstone.FiatTransactionStatus.UNKNOWN -> com.wallet.core.primitives.FiatTransactionStatus.Unknown
+}
+
+fun com.wallet.core.primitives.FiatTransactionStatus.toGem(): uniffi.gemstone.FiatTransactionStatus = when (this) {
+    com.wallet.core.primitives.FiatTransactionStatus.Complete -> uniffi.gemstone.FiatTransactionStatus.COMPLETE
+    com.wallet.core.primitives.FiatTransactionStatus.Pending -> uniffi.gemstone.FiatTransactionStatus.PENDING
+    com.wallet.core.primitives.FiatTransactionStatus.Failed -> uniffi.gemstone.FiatTransactionStatus.FAILED
+    com.wallet.core.primitives.FiatTransactionStatus.Unknown -> uniffi.gemstone.FiatTransactionStatus.UNKNOWN
+}
+
 fun uniffi.gemstone.LatencyType.toPrimitives(): com.wallet.core.primitives.LatencyType = when (this) {
     uniffi.gemstone.LatencyType.FAST -> com.wallet.core.primitives.LatencyType.Fast
     uniffi.gemstone.LatencyType.NORMAL -> com.wallet.core.primitives.LatencyType.Normal
@@ -1329,6 +1343,45 @@ fun uniffi.gemstone.FiatRate.toPrimitives(): com.wallet.core.primitives.FiatRate
 fun com.wallet.core.primitives.FiatRate.toGem(): uniffi.gemstone.FiatRate = uniffi.gemstone.FiatRate(
     symbol = symbol.toGem(),
     rate = rate,
+)
+
+fun uniffi.gemstone.FiatTransaction.toPrimitives(): com.wallet.core.primitives.FiatTransaction = com.wallet.core.primitives.FiatTransaction(
+    id = id,
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    transactionType = transactionType.toPrimitives(),
+    provider = provider.toPrimitives(),
+    status = status.toPrimitives(),
+    fiatAmount = fiatAmount,
+    fiatCurrency = fiatCurrency,
+    value = value.toString(),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun com.wallet.core.primitives.FiatTransaction.toGem(): uniffi.gemstone.FiatTransaction = uniffi.gemstone.FiatTransaction(
+    id = id,
+    assetId = assetId.toIdentifier(),
+    transactionType = transactionType.toGem(),
+    provider = provider.toGem(),
+    providerTransactionId = null,
+    status = status.toGem(),
+    country = null,
+    fiatAmount = fiatAmount,
+    fiatCurrency = fiatCurrency,
+    value = java.math.BigInteger(value),
+    transactionHash = null,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun uniffi.gemstone.FiatTransactionData.toPrimitives(): com.wallet.core.primitives.FiatTransactionData = com.wallet.core.primitives.FiatTransactionData(
+    transaction = transaction.toPrimitives(),
+    detailsUrl = detailsUrl,
+)
+
+fun com.wallet.core.primitives.FiatTransactionData.toGem(): uniffi.gemstone.FiatTransactionData = uniffi.gemstone.FiatTransactionData(
+    transaction = transaction.toGem(),
+    detailsUrl = detailsUrl,
 )
 
 fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency = com.wallet.core.primitives.Latency(

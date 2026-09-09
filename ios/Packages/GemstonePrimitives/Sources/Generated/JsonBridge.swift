@@ -5,7 +5,6 @@ import Primitives
 
 extension Primitives.ConfigResponse: JsonCodable {}
 extension Primitives.ConfigVersions: JsonCodable {}
-extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
 extension Primitives.StreamEvent: JsonCodable {}
 extension Primitives.StreamMessage: JsonCodable {}

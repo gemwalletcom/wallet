@@ -515,6 +515,28 @@ public extension Primitives.FiatQuoteType {
     }
 }
 
+public extension Gemstone.FiatTransactionStatus {
+    func map() -> Primitives.FiatTransactionStatus {
+        switch self {
+        case .complete: .complete
+        case .pending: .pending
+        case .failed: .failed
+        case .unknown: .unknown
+        }
+    }
+}
+
+public extension Primitives.FiatTransactionStatus {
+    func map() -> Gemstone.FiatTransactionStatus {
+        switch self {
+        case .complete: .complete
+        case .pending: .pending
+        case .failed: .failed
+        case .unknown: .unknown
+        }
+    }
+}
+
 public extension Gemstone.LatencyType {
     func map() -> Primitives.LatencyType {
         switch self {
@@ -1993,6 +2015,61 @@ public extension Primitives.FiatRate {
         Gemstone.FiatRate(
             symbol: symbol.rawValue,
             rate: rate,
+        )
+    }
+}
+
+public extension Gemstone.FiatTransaction {
+    func map() -> Primitives.FiatTransaction {
+        Primitives.FiatTransaction(
+            id: id,
+            assetId: Primitives.AssetId(core: assetId),
+            transactionType: transactionType.map(),
+            provider: provider.map(),
+            status: status.map(),
+            fiatAmount: fiatAmount,
+            fiatCurrency: fiatCurrency,
+            value: value.description,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension Primitives.FiatTransaction {
+    func map() -> Gemstone.FiatTransaction {
+        Gemstone.FiatTransaction(
+            id: id,
+            assetId: assetId.identifier,
+            transactionType: transactionType.map(),
+            provider: provider.map(),
+            providerTransactionId: nil,
+            status: status.map(),
+            country: nil,
+            fiatAmount: fiatAmount,
+            fiatCurrency: fiatCurrency,
+            value: BigUInt(stringLiteral: value),
+            transactionHash: nil,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension Gemstone.FiatTransactionData {
+    func map() -> Primitives.FiatTransactionData {
+        Primitives.FiatTransactionData(
+            transaction: transaction.map(),
+            detailsUrl: detailsUrl,
+        )
+    }
+}
+
+public extension Primitives.FiatTransactionData {
+    func map() -> Gemstone.FiatTransactionData {
+        Gemstone.FiatTransactionData(
+            transaction: transaction.map(),
+            detailsUrl: detailsUrl,
         )
     }
 }

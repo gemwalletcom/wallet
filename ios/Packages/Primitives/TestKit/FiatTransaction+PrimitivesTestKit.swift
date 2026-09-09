@@ -14,6 +14,7 @@ public extension FiatTransaction {
         fiatCurrency: String = "USD",
         value: String = "0",
         createdAt: Date = .now,
+        updatedAt: Date = .now,
     ) -> FiatTransaction {
         FiatTransaction(
             id: id,
@@ -25,6 +26,7 @@ public extension FiatTransaction {
             fiatCurrency: fiatCurrency,
             value: value,
             createdAt: createdAt,
+            updatedAt: updatedAt,
         )
     }
 }
@@ -43,13 +45,27 @@ public extension FiatTransactionData {
 
 public extension FiatTransactionAssetData {
     static func mock(
-        transaction: FiatTransaction = .mock(),
+        id: String = "mock_id",
         asset: Asset = .mock(),
+        transactionType: FiatQuoteType = .buy,
+        provider: FiatProviderName = .moonPay,
+        status: FiatTransactionStatus = .complete,
+        fiatAmount: Double = 100.0,
+        fiatCurrency: String = "USD",
+        value: String = "0",
+        createdAt: Date = .now,
         detailsUrl: String? = nil,
     ) -> FiatTransactionAssetData {
         FiatTransactionAssetData(
-            transaction: transaction,
+            id: id,
             asset: asset,
+            transactionType: transactionType,
+            provider: provider,
+            status: status,
+            fiatAmount: fiatAmount,
+            fiatCurrency: fiatCurrency,
+            value: value,
+            createdAt: createdAt,
             detailsUrl: detailsUrl,
         )
     }
