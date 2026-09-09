@@ -31,22 +31,28 @@ public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, Bindab
         startObservation()
     }
 
+    private func observation() -> ValueObservation<ValueReducers.Fetch<Request.Value>> {
+        let request = request
+        if let regions = (request as? any RegionTrackingQueryable)?.trackedRegions {
+            return ValueObservation.tracking(regions: regions) { db in try request.fetch(db) }
+        }
+        return ValueObservation.tracking { db in try request.fetch(db) }
+    }
+
     private func startObservation() {
         guard let dbQueue else { return }
 
-        cancellable = ValueObservation.tracking { [request] db in
-            try request.fetch(db)
-        }
-        .publisher(in: dbQueue, scheduling: .immediate)
-        .sink(
-            receiveCompletion: { completion in
-                if case let .failure(error) = completion {
-                    debugLog("ObservableQuery<\(Request.self)> error: \(error)")
-                }
-            },
-            receiveValue: { [weak self] newValue in
-                self?.value = newValue
-            },
-        )
+        cancellable = observation()
+            .publisher(in: dbQueue, scheduling: .immediate)
+            .sink(
+                receiveCompletion: { completion in
+                    if case let .failure(error) = completion {
+                        debugLog("ObservableQuery<\(Request.self)> error: \(error)")
+                    }
+                },
+                receiveValue: { [weak self] newValue in
+                    self?.value = newValue
+                },
+            )
     }
 }

@@ -344,6 +344,14 @@ intentional one-sided integration surfaces.
   are gone too: the scene walks Core's sections and asks `value(row)` for the payload, so the sealed
   `TransactionDetailsValue` is what a row renders, not a second list of what rows exist. An app keeps
   a payload type per row; it does not keep a kind.
+- **The activity list does not follow prices live.** Both list queries join `prices` for the fiat
+  column, and both were observed on that table, so every socket price tick re-ran the twelve-join
+  history query and rebuilt every row through `transaction_row`. Android's `getExtendedTransactions`
+  no longer lists `DbPrice` in `observedEntities`; iOS's `TransactionsRequest` declares the tables
+  it follows (`RegionTrackingQueryable`, which `ObservableQuery` hands to
+  `ValueObservation.tracking(regions:)`), and neither includes prices. The fiat column refreshes
+  with the next transaction, asset or address write; the single-transaction details query still
+  follows prices, since it is one row.
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one

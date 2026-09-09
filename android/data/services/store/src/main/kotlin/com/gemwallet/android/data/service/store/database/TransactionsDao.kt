@@ -11,7 +11,6 @@ import androidx.sqlite.db.SupportSQLiteQuery
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbSwapPair
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
@@ -111,7 +110,6 @@ interface TransactionsDao {
         observedEntities = [
             DbTransaction::class,
             DbAsset::class,
-            DbPrice::class,
             DbTransactionSwapMetadata::class,
             DbAddress::class,
         ]

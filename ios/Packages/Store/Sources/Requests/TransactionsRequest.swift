@@ -104,3 +104,14 @@ extension TransactionsRequest {
 }
 
 extension TransactionsRequest: Equatable {}
+
+extension TransactionsRequest: RegionTrackingQueryable {
+    public var trackedRegions: [any DatabaseRegionConvertible] {
+        [
+            Table(TransactionRecord.databaseTableName),
+            Table(TransactionAssetAssociationRecord.databaseTableName),
+            Table(AssetRecord.databaseTableName),
+            Table(AddressRecord.databaseTableName),
+        ]
+    }
+}
