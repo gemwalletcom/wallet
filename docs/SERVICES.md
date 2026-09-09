@@ -1312,10 +1312,12 @@ one passes against the old code too.
 
 `ConfirmViewModelRetryTest > retryAfterPreloadFailureRunsThePreloaderAgain` (Android) failed once
 in a full `just test` run on 2026-09-09 with the same `CompletionHandlerException` from a cancelled
-coroutine, and passed on rerun. `ConfirmViewModel` already catches `CancellationException` ahead of
-`Throwable` on both of its catch sites, so the anti-pattern above is not the cause here — the test
-collects `viewModel.state` with `first { }` inside `runTest`, and the collector outlives the scope.
-Treat a repeat as a test-scope fix, not a view-model one.
+coroutine. `ConfirmViewModel` already catches `CancellationException` ahead of `Throwable` on both
+of its catch sites, so the anti-pattern above was not the cause: the test collected
+`viewModel.state` with `first { }` inside `runTest` and never cancelled the view-model scope, so
+its coroutines outlived the test. It cancels the scope in `tearDown` now, the way the rewritten
+rewards tests do. Four forced runs passed before the change too, so this is the anti-pattern fix,
+not a proven repro.
 
 `Migration_88_89Test` asserts what the migration does to the rows now: the banners it cannot rebuild
 are dropped, and the recreated table takes a row with no chain. Mutating the migration to carry the
