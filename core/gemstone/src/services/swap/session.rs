@@ -221,7 +221,6 @@ impl GemSwapSession {
         }
     }
 
-    /// The error the screen shows: a failed transfer outranks a failed quote, the way `action` reads them.
     pub fn error(&self) -> Option<SwapperError> {
         self.transfer_error().or_else(|| self.quote_error())
     }
