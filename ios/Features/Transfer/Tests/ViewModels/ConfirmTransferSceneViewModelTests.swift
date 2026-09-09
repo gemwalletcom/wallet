@@ -424,7 +424,7 @@ struct ConfirmTransferSceneViewModelTests {
     func missingWalletDataErrorDetails() {
         for (error, description) in [
             (GemConfirmError.BalanceMissing(assetId: "tron"), "BalanceMissing(assetId: \"tron\")"),
-            (GemConfirmError.AccountMissing(chain: .tron), Localized.Errors.walletAccountMissing),
+            (GemConfirmError.AccountMissing(chain: Primitives.Chain.tron.rawValue), Localized.Errors.walletAccountMissing),
         ] {
             let model = ConfirmTransferSceneViewModel.mock()
             model.state = .mock(transaction: .error(error))
