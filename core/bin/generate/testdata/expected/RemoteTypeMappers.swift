@@ -38,6 +38,24 @@ public extension Primitives.ConnectionState {
     }
 }
 
+public extension Gemstone.StakeOwner {
+    func map() -> Primitives.StakeOwner {
+        switch self {
+        case .wallet: .wallet
+        case .validator(let value): .validator(value.map())
+        }
+    }
+}
+
+public extension Primitives.StakeOwner {
+    func map() -> Gemstone.StakeOwner {
+        switch self {
+        case .wallet: .wallet
+        case .validator(let value): .validator(value.map())
+        }
+    }
+}
+
 public extension Gemstone.Account {
     func map() -> Primitives.Account {
         Primitives.Account(

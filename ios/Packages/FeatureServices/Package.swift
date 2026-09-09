@@ -35,6 +35,7 @@ let package = Package(
                 "Gemstone",
                 "GemstonePrimitives",
                 .product(name: "WebSocketClient", package: "SwiftHTTPClient"),
+                "GemstoneServices",
             ],
             path: "StreamService",
             exclude: ["TestKit"],

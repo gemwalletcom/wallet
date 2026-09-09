@@ -15,7 +15,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.data.services.gemstone.assets.listPriorityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchTag
@@ -61,11 +60,12 @@ class AssetsResultsViewModel @Inject constructor(
     getSession,
     recentAssetsService,
     service,
-    selectSearchOf(savedStateHandle, searchService),
+    selectSearchOf(savedStateHandle, searchService, service),
     GemSelectAssetType.WALLET_SEARCH_RESULTS,
 ) {
 
     private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
+    private val searchKey: String = searchKeyOf(savedStateHandle, service)
     val title: String = savedStateHandle.get<String?>(RouteArgument.Title.key)
         ?: context.getString(R.string.assets_title)
 
@@ -81,7 +81,7 @@ class AssetsResultsViewModel @Inject constructor(
     val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = when (scope) {
         is WalletSearchTag.List ->
             combine(
-                getPerpetuals.getPerpetuals(listPriorityQuery(scope.id)),
+                getPerpetuals.getPerpetuals(searchKey),
                 getSession().map { service.showPerpetuals(it?.wallet?.toGem()) },
             ) { items, show ->
                 if (show) items.take(resultsLimit()) else emptyList()
@@ -137,12 +137,19 @@ class AssetsResultsViewModel @Inject constructor(
 
 }
 
+private fun searchKeyOf(savedStateHandle: SavedStateHandle, service: GemAssetSelectionServiceInterface): String {
+    val query = savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()
+    val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
+    return service.searchKey(query, scope.toGem())
+}
+
 private fun selectSearchOf(
     savedStateHandle: SavedStateHandle,
     searchService: AssetsSearchService,
+    service: GemAssetSelectionServiceInterface,
 ): SelectSearch {
-    return when (val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
-        is WalletSearchTag.List -> ListSelectSearch(searchService, scope.id)
+    return when (walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
+        is WalletSearchTag.List -> ListSelectSearch(searchService, searchKeyOf(savedStateHandle, service))
         WalletSearchTag.All -> BaseSelectSearch(searchService)
     }
 }

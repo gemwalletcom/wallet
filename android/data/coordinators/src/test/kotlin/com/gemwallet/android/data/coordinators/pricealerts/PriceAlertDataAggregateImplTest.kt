@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetPriceInfo
+import uniffi.gemstone.PriceAlertFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetPrice
@@ -87,6 +87,11 @@ class PriceAlertDataAggregateImplTest {
         asset = asset,
         assetPrice = assetPrice,
         priceAlert = priceAlert,
+        row = PriceAlertFormatter().row(
+            alert = priceAlert.toGem(),
+            currentPrice = assetPrice?.price?.price,
+            priceChangePercentage24h = assetPrice?.price?.priceChangePercentage24h,
+        ),
     )
 
     @Test
@@ -107,105 +112,6 @@ class PriceAlertDataAggregateImplTest {
         val aggregate = createAggregate(asset = solAsset)
 
         assertEquals("SOL", aggregate.titleBadge)
-    }
-
-    @Test
-    fun testValueDirection_directionUp() {
-        val priceAlert = createPriceAlert(
-            priceDirection = PriceAlertDirection.Up
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
-
-        assertEquals(ValueDirection.Up, aggregate.priceState)
-    }
-
-    @Test
-    fun testValueDirection_directionDown() {
-        val priceAlert = createPriceAlert(
-            priceDirection = PriceAlertDirection.Down
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
-
-        assertEquals(ValueDirection.Down, aggregate.priceState)
-    }
-
-    @Test
-    fun testValueDirection_alertPriceAboveCurrentPrice() {
-        val assetPrice = createAssetPriceInfo(price = 45000.0)
-        val priceAlert = createPriceAlert(
-            price = 50000.0,
-            priceDirection = null,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals(ValueDirection.Up, aggregate.priceState)
-    }
-
-    @Test
-    fun testValueDirection_alertPriceBelowCurrentPrice() {
-        val assetPrice = createAssetPriceInfo(price = 45000.0)
-        val priceAlert = createPriceAlert(
-            price = 40000.0,
-            priceDirection = null,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals(ValueDirection.Down, aggregate.priceState)
-    }
-
-    @Test
-    fun testValueDirection_noPriceNoDirection_positiveChange() {
-        val assetPrice = createAssetPriceInfo(
-            price = 45000.0,
-            priceChangePercentage24h = 3.5,
-        )
-        val priceAlert = createPriceAlert(
-            price = null,
-            priceDirection = null,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals(ValueDirection.Up, aggregate.priceState)
-    }
-
-    @Test
-    fun testValueDirection_noPriceNoDirection_negativeChange() {
-        val assetPrice = createAssetPriceInfo(
-            price = 45000.0,
-            priceChangePercentage24h = -2.1,
-        )
-        val priceAlert = createPriceAlert(
-            price = null,
-            priceDirection = null,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals(ValueDirection.Down, aggregate.priceState)
-    }
-
-    @Test
-    fun testValueDirection_withoutAssetPrice_returnsNone() {
-        val aggregate = createAggregate(
-            assetPrice = null,
-            priceAlert = createPriceAlert(
-                price = null,
-                priceDirection = null,
-            ),
-        )
-
-        assertEquals(ValueDirection.None, aggregate.priceState)
     }
 
     @Test
@@ -332,82 +238,6 @@ class PriceAlertDataAggregateImplTest {
         )
 
         assertEquals("", aggregate.percentage)
-    }
-
-    @Test
-    fun testType_directionUp() {
-        val priceAlert = createPriceAlert(
-            priceDirection = PriceAlertDirection.Up
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
-
-        assertEquals(PriceAlertType.Auto, aggregate.type)
-    }
-
-    @Test
-    fun testType_directionDown() {
-        val priceAlert = createPriceAlert(
-            priceDirection = PriceAlertDirection.Down
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
-
-        assertEquals(PriceAlertType.Auto, aggregate.type)
-    }
-
-    @Test
-    fun testType_alertPriceAboveCurrentPrice() {
-        val assetPrice = createAssetPriceInfo(price = 45000.0)
-        val priceAlert = createPriceAlert(
-            price = 50000.0,
-            priceDirection = null,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals(PriceAlertType.Auto, aggregate.type)
-    }
-
-    @Test
-    fun testType_alertPriceBelowCurrentPrice() {
-        val assetPrice = createAssetPriceInfo(price = 45000.0)
-        val priceAlert = createPriceAlert(
-            price = 40000.0,
-            priceDirection = PriceAlertDirection.Down,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals(PriceAlertType.Under, aggregate.type)
-    }
-
-    @Test
-    fun testType_noPriceNoDirection() {
-        val priceAlert = createPriceAlert(
-            price = null,
-            priceDirection = null,
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
-
-        assertEquals(PriceAlertType.Auto, aggregate.type)
-    }
-
-    @Test
-    fun testType_directionOverridesPrice() {
-        val assetPrice = createAssetPriceInfo(price = 45000.0)
-        val priceAlert = createPriceAlert(
-            price = 50000.0,
-            priceDirection = PriceAlertDirection.Down,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals(PriceAlertType.Under, aggregate.type)
     }
 
     @Test

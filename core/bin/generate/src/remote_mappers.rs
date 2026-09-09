@@ -67,6 +67,7 @@ pub enum RemoteType {
         module: String,
         variants: Vec<Variant>,
         typeshared: bool,
+        content: Option<String>,
     },
     Record {
         name: String,
@@ -151,15 +152,18 @@ impl Generator {
             let mut lines = source.lines();
             let mut typeshare = false;
             let mut camel_case_fields = false;
+            let mut content = None;
             while let Some(line) = lines.next() {
                 let Some((keyword, name)) = declaration(line.trim()) else {
                     let attribute = line.trim().starts_with("#[");
                     typeshare = attribute && (typeshare || line.trim().starts_with("#[typeshare"));
                     camel_case_fields = attribute && (camel_case_fields || line.trim() == "#[serde(rename_all = \"camelCase\")]");
+                    content = attribute.then(|| content.take().or_else(|| serde_content(line.trim()))).flatten();
                     continue;
                 };
                 let declared = std::mem::take(&mut typeshare);
                 let camel = std::mem::take(&mut camel_case_fields);
+                let tagged_content = content.take();
                 if config.codes.contains(&name) {
                     if !declared {
                         continue;
@@ -178,6 +182,7 @@ impl Generator {
                         name,
                         module: module.clone(),
                         typeshared: declared,
+                        content: tagged_content,
                     },
                     _ => RemoteType::Record {
                         name,
@@ -289,26 +294,35 @@ impl Generator {
                 };
                 out.push_str(&language.open.replace("{from}", from).replace("{function}", language.functions[index]).replace("{to}", to));
                 match remote {
-                    RemoteType::Enum { variants, .. } => {
+                    RemoteType::Enum { variants, content, .. } => {
+                        let sealed = variants.iter().any(|variant| !variant.fields.is_empty());
+                        let cases = match sealed {
+                            true => &language.sealed_cases,
+                            false => &language.cases,
+                        };
                         out.push_str(language.enum_open);
                         for variant in variants {
-                            assert!(
-                                variant.fields.is_empty(),
-                                "{name}::{} carries fields; a data-carrying enum crosses without a TypeShare twin",
-                                variant.name
-                            );
                             let (from_case, to_case) = match index {
-                                0 => ((language.cases[0])(&variant.name), (language.cases[1])(&variant.name)),
-                                _ => ((language.cases[1])(&variant.name), (language.cases[0])(&variant.name)),
+                                0 => ((cases[0])(&variant.name), (cases[1])(&variant.name)),
+                                _ => ((cases[1])(&variant.name), (cases[0])(&variant.name)),
                             };
-                            out.push_str(
-                                &language
-                                    .enum_arm
-                                    .replace("{from_type}", from)
-                                    .replace("{from_case}", &from_case)
-                                    .replace("{to_type}", to)
-                                    .replace("{to_case}", &to_case),
-                            );
+                            let arm = match (sealed, variant.fields.as_slice()) {
+                                (false, _) => language.enum_arm.to_string(),
+                                (true, []) => language.sealed_arm.to_string(),
+                                (true, [field]) if field.rust.is_empty() => {
+                                    let content = content.as_deref().unwrap_or_else(|| {
+                                        panic!("{name}::{} carries a payload but {name} has no serde content name", variant.name)
+                                    });
+                                    let payload = language.payloads[index].replace("{content}", content);
+                                    let value = language.convert(&self.config, &field.type_name, &payload, index);
+                                    language.sealed_arm_data.replace("{payload}", &payload).replace("{value}", &value)
+                                }
+                                (true, _) => panic!(
+                                    "{name}::{} carries named or multiple fields; a TypeShare twin renders those as a type of their own",
+                                    variant.name
+                                ),
+                            };
+                            out.push_str(&arm.replace("{from_type}", from).replace("{from_case}", &from_case).replace("{to_type}", to).replace("{to_case}", &to_case));
                         }
                         out.push_str(language.enum_close);
                     }
@@ -512,6 +526,10 @@ fn fields(body: &[&str], camel_case_fields: bool) -> Vec<Field> {
     fields
 }
 
+fn serde_content(line: &str) -> Option<String> {
+    Some(line.split("content = \"").nth(1)?.split('"').next()?.to_string())
+}
+
 fn serde_rename(line: &str) -> Option<String> {
     Some(line.strip_prefix("#[serde(rename = \"")?.split('"').next()?.to_string())
 }
@@ -569,11 +587,18 @@ struct Language {
     app_modules: bool,
     functions: [&'static str; 2],
     cases: [fn(&str) -> String; 2],
+    /// Case names of an enum that carries data: both apps render it as a sealed hierarchy, which
+    /// the plain enum spelling does not match.
+    sealed_cases: [fn(&str) -> String; 2],
+    /// How the payload of a data variant reads on each side.
+    payloads: [&'static str; 2],
     code_mapper: &'static str,
     open: &'static str,
     close: &'static str,
     enum_open: &'static str,
     enum_arm: &'static str,
+    sealed_arm: &'static str,
+    sealed_arm_data: &'static str,
     enum_close: &'static str,
     record_open: &'static str,
     field: &'static str,
@@ -595,11 +620,15 @@ const SWIFT: Language = Language {
     app_modules: false,
     functions: ["map", "map"],
     cases: [uniffi_swift_case, swift_case],
+    sealed_cases: [uniffi_swift_case, swift_case],
+    payloads: ["value", "value"],
     code_mapper: "\npublic extension Primitives.{name} {\n    init(core: Gemstone.{name}) {\n        guard let value = Primitives.{name}(rawValue: core) else {\n            fatalError(\"Core returned a {name} this build does not know: \\(core)\")\n        }\n        self = value\n    }\n\n    func map() -> Gemstone.{name} {\n        rawValue\n    }\n}\n",
     open: "\npublic extension {from} {\n    func {function}() -> {to} {\n",
     close: "    }\n}\n",
     enum_open: "        switch self {\n",
     enum_arm: "        case .{from_case}: .{to_case}\n",
+    sealed_arm: "        case .{from_case}: .{to_case}\n",
+    sealed_arm_data: "        case .{from_case}(let {payload}): .{to_case}({value})\n",
     enum_close: "        }\n",
     record_open: "        {to}(\n",
     field: "            {label}: {value},\n",
@@ -621,11 +650,15 @@ const KOTLIN: Language = Language {
     app_modules: true,
     functions: ["toPrimitives", "toGem"],
     cases: [screaming_snake_case, str::to_string],
+    sealed_cases: [str::to_string, str::to_string],
+    payloads: ["v1", "{content}"],
     code_mapper: "\nfun uniffi.gemstone.{name}.to{name}(): com.wallet.core.primitives.{name} = com.wallet.core.primitives.{name}.entries.firstOrNull { it.string == this }\n    ?: throw IllegalStateException(\"Core returned a {name} this build does not know: $this\")\n\nfun com.wallet.core.primitives.{name}.toGem(): uniffi.gemstone.{name} = string\n",
     open: "\nfun {from}.{function}(): {to} = ",
     close: "",
     enum_open: "when (this) {\n",
     enum_arm: "    {from_type}.{from_case} -> {to_type}.{to_case}\n",
+    sealed_arm: "    is {from_type}.{from_case} -> {to_type}.{to_case}\n",
+    sealed_arm_data: "    is {from_type}.{from_case} -> {to_type}.{to_case}({value})\n",
     enum_close: "}\n",
     record_open: "{to}(\n",
     field: "    {label} = {value},\n",
@@ -758,11 +791,10 @@ fn uniffi_type_name(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::json_bridge;
     use std::path::PathBuf;
 
     /// `testdata/` holds a `remote_types.yml`, one primitives source per generator feature under
-    /// `primitives/`, a `json_bridge.rs`, and under `expected/` the exact files the generator must
+    /// `primitives/` and, under `expected/`, the exact files the generator must
     /// write for them. Run with `UPDATE_GOLDEN=1` to rewrite the expected files after a deliberate
     /// change, and read the diff before committing it.
     fn testdata() -> PathBuf {
@@ -803,16 +835,6 @@ mod tests {
     }
 
     #[test]
-    fn test_json_bridge_files_match_the_expected_files() {
-        let bridge = testdata().join("json_bridge.rs");
-        expect_generated("JsonBridge.swift", json_bridge::swift_json_bridge(&json_bridge::bridge_types(&bridge)));
-        expect_generated(
-            "TaggedJsonBridge.kt",
-            json_bridge::kotlin_tagged_bridge(&json_bridge::tagged_bridge_types(&bridge, &testdata().join("primitives"))),
-        );
-    }
-
-    #[test]
     fn test_core_type_names_follow_uniffi_casing() {
         assert_eq!(uniffi_type_name("NFTAsset"), "NftAsset");
         assert_eq!(uniffi_type_name("TPSLOrderData"), "TpslOrderData");
@@ -827,7 +849,7 @@ mod tests {
         let generator = generator();
         let stake = generator.types.iter().find(|remote| remote.name() == "GasPriceType").unwrap();
         assert!(!stake.typeshared());
-        assert_eq!(generator.types.iter().filter(|remote| remote.typeshared()).count(), 7);
+        assert_eq!(generator.types.iter().filter(|remote| remote.typeshared()).count(), 8);
     }
 
     #[test]

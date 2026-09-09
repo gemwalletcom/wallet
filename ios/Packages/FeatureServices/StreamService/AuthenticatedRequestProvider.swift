@@ -2,7 +2,8 @@
 
 import Foundation
 import class Gemstone.GemDeviceKeyService
-import class Gemstone.GemDeviceRequestSigner
+import GemstonePrimitives
+import GemstoneServices
 import Primitives
 import WebSocketClient
 
@@ -14,7 +15,7 @@ public struct AuthenticatedRequestProvider: WebSocketRequestProvider {
     }
 
     public func makeRequest() throws -> URLRequest {
-        let stream = try GemDeviceRequestSigner(privateKey: deviceKeyService.keyPair().privateKey).deviceStreamRequest()
+        let stream = try deviceKeyService.deviceStreamRequest()
         guard let url = URL(string: stream.url) else {
             throw AnyError("invalid device stream url: \(stream.url)")
         }

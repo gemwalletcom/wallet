@@ -343,13 +343,13 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
     private let prepare: @Sendable () async throws -> Bool
     private let onConnected: @Sendable () async throws -> Void
     private let onDisconnected: @Sendable () async -> Void
-    private let onEvent: @Sendable (Gemstone.StreamEvent) async throws -> Void
+    private let onEvent: @Sendable (String) async throws -> Void
 
     public init(
         prepare: @escaping @Sendable () async throws -> Bool = { true },
         onConnected: @escaping @Sendable () async throws -> Void = {},
         onDisconnected: @escaping @Sendable () async -> Void = {},
-        onEvent: @escaping @Sendable (Gemstone.StreamEvent) async throws -> Void = { _ in },
+        onEvent: @escaping @Sendable (String) async throws -> Void = { _ in },
     ) {
         self.prepare = prepare
         self.onConnected = onConnected
@@ -369,7 +369,7 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
         await onDisconnected()
     }
 
-    public func handle(event: Gemstone.StreamEvent) async throws {
+    public func handle(event: String) async throws {
         try await onEvent(event)
     }
 }

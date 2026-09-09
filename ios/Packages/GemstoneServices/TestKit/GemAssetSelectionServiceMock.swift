@@ -69,6 +69,14 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         return true
     }
 
+    public func searchKey(query: String, scope: GemSearchScope) -> String {
+        let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch scope {
+        case .all: return query
+        case let .list(id): return query.isEmpty ? "tag:\(id)" : query
+        }
+    }
+
     public func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {
         onSetAssetPinned?(assetId, pinned)
     }

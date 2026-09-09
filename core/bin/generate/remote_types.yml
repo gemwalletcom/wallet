@@ -18,6 +18,7 @@ remote:
   - AssetFiatValue
   - AssetType
   - BannerEvent
+  - Banner
   - BalanceMetadata
   - BannerState
   - ChainAddress
@@ -187,6 +188,21 @@ remote:
   - SearchResponse
   - TransactionsResponse
   - FiatQuoteRequest
+  - FiatTransactionStatus
+  - CoreEmoji
+  - CoreListItemBadge
+  - CoreListItemIcon
+  - CoreListItem
+  - InAppNotification
+  - SupportAgent
+  - SupportMessageSender
+  - SupportMessageStatus
+  - SupportMessageImage
+  - SupportMessage
+  - SupportTypingStatus
+  - SupportTyping
+  - FiatTransaction
+  - FiatTransactionData
 codes:
   - Chain
   - Currency

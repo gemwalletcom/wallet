@@ -23,21 +23,11 @@ data class TransactionPerpetualMetadata (
 )
 
 @Serializable
-data class TransactionResourceTypeMetadata (
-	val resourceType: Resource
-)
-
-@Serializable
 data class TransactionSwapMetadata (
 	val fromAsset: AssetId,
 	val fromValue: String,
 	val toAsset: AssetId,
 	val toValue: String,
 	val provider: String? = null
-)
-
-@Serializable
-data class TransactionWalletConnectMetadata (
-	val outputAction: TransferDataOutputAction
 )
 

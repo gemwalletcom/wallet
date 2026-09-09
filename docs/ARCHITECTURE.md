@@ -344,10 +344,12 @@ handles fieldless enums and records whose fields are scalars, `DateTime<Utc>`, o
 types, codes or identifiers, plain or wrapped in `Option` / `Vec`, whatever subdirectory of
 `primitives/src` declares them; a `#[typeshare(skip)]` field
 travels Core → app only and is filled with its empty value on the way back (scalars, `Option`,
-`Vec` and `String` have one; anything else fails generation). `StakeType` has data-carrying
-variants, so adding it mechanically would produce an incomplete mapping. Keep a single JSON bridge at the
-boundary until the generator supports the type; never add a second app-side model or copy policy
-to avoid that bridge.
+`Vec` and `String` have one; anything else fails generation). A data-carrying enum maps too when it
+keeps a twin, as long as each variant carries at most one unnamed payload — a twin renders a named
+or multi-field variant as a type of its own, which the generator will not invent. A type an app
+never looks inside does not need a model on either side: pass the wire text and let Core own the
+format. Never add a second app-side model or copy policy to avoid a gap in the generator; close the
+gap.
 
 ## 7. At most one Core service on iOS; narrow cases on Android
 

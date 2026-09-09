@@ -3,7 +3,6 @@ use typeshare::typeshare;
 
 use crate::PlatformStore;
 
-#[typeshare(swift = "Sendable")]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfigResponse {
@@ -13,7 +12,6 @@ pub struct ConfigResponse {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct SwapConfig {
     pub enabled_providers: Vec<String>,
@@ -34,7 +32,6 @@ impl Release {
     }
 }
 
-#[typeshare(swift = "Sendable")]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfigVersions {

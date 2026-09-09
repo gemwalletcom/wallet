@@ -39,13 +39,6 @@ data class PerpetualPortfolio (
 )
 
 @Serializable
-data class PortfolioAllocation (
-	val assetId: AssetId,
-	val percentage: Float,
-	val value: Float
-)
-
-@Serializable
 enum class PortfolioChartType(val string: String) {
 	@SerialName("value")
 	Value("value"),

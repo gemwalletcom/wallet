@@ -47,7 +47,7 @@ impl GemSearchScope {
         }
     }
 
-    pub(super) fn search_key(&self, query: &str) -> String {
+    pub fn search_key(&self, query: &str) -> String {
         let query = query.trim();
         match self {
             Self::List { id } if query.is_empty() => format!("tag:{id}"),

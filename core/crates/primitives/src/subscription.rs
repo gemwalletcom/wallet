@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::chain::Chain;
 use crate::chain_address::ChainAddress;
@@ -10,7 +9,6 @@ use crate::wallet::WalletSource;
 use crate::wallet_id::WalletId;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AddressChains {
     pub address: String,
@@ -27,10 +25,8 @@ impl AddressChains {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WalletSubscription {
-    #[typeshare(serialized_as = "String")]
     pub wallet_id: WalletId,
     #[serde(default)]
     pub source: Option<WalletSource>,
@@ -49,10 +45,8 @@ impl WalletSubscription {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WalletSubscriptionChains {
-    #[typeshare(serialized_as = "String")]
     pub wallet_id: WalletId,
     pub chains: Vec<Chain>,
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import typealias Gemstone.InAppNotification
+import struct Gemstone.InAppNotification
 import protocol Gemstone.GemNotificationStore
 import GemstonePrimitives
 import Primitives
@@ -15,7 +15,7 @@ public final class GemstoneNotificationStore: GemNotificationStore, @unchecked S
     }
 
     public func saveNotifications(notifications: [Gemstone.InAppNotification]) async throws {
-        try store.addNotifications(notifications.map { try Primitives.InAppNotification($0) })
+        try store.addNotifications(notifications.map { $0.map() })
     }
 
     public func hasUnreadNotifications(walletId: String) async throws -> Bool {
