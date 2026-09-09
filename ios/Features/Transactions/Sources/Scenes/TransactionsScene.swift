@@ -20,10 +20,7 @@ public struct TransactionsScene: View {
     public var body: some View {
         VStack {
             List {
-                TransactionsList(
-                                        model.transactions,
-                    currency: model.currency,
-                )
+                TransactionsList(sections: model.sections, currency: model.currency)
                 .listRowInsets(.assetListRowInsets)
             }
             .listSectionSpacing(.compact)
@@ -34,7 +31,7 @@ public struct TransactionsScene: View {
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .overlay {
-            if model.transactions.isEmpty {
+            if model.sections.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
                     .padding(.horizontal, .medium)
             }

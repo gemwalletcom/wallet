@@ -131,7 +131,7 @@ extension TransactionSceneViewModel {
     }
 
     private func onSelectStatusInfo() {
-        let assetImage = TransactionViewModel(transaction: transactionExtended, currency: service.getCurrency()).assetImage
+        let assetImage = TransactionViewModel(transaction: transactionExtended).assetImage
         isPresentingTransactionSheet = .info(.transactionState(
             imageURL: assetImage.imageURL,
             placeholder: assetImage.placeholder,

@@ -35,3 +35,5 @@ public struct ListSection<T: Sendable & Identifiable>: Identifiable, Sendable {
         self.values = values
     }
 }
+
+extension ListSection: Equatable where T: Equatable {}

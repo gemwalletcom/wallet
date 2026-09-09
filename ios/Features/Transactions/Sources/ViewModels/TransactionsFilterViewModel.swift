@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import func Gemstone.transactionsListLimit
 import Localization
@@ -14,14 +15,14 @@ public final class TransactionsFilterViewModel {
     private let type: TransactionsRequestType
 
     public var chainsFilter: ChainsFilterViewModel {
-        didSet { query.request.filters = requestFilters }
+        didSet { query.request.base.filters = requestFilters }
     }
 
     public var transactionTypesFilter: TransactionTypesFilterViewModel {
-        didSet { query.request.filters = requestFilters }
+        didSet { query.request.base.filters = requestFilters }
     }
 
-    public let query: ObservableQuery<TransactionsRequest>
+    public let query: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
 
     private let transactionTypes = TransactionType.allCases
 
@@ -43,7 +44,7 @@ public final class TransactionsFilterViewModel {
             filters: defaultFilters + [.types(transactionTypes.map(\.rawValue))],
             limit: Int(transactionsListLimit()),
         )
-        query = ObservableQuery(request, initialValue: [])
+        query = ObservableQuery(MappedRequest(request, transform: TransactionViewModel.sections), initialValue: [])
     }
 
     public var isAnyFilterSpecified: Bool {

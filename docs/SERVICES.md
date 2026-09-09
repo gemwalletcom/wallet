@@ -418,6 +418,15 @@ intentional one-sided integration surfaces.
   `get_rates()` — a read added to `GemPriceStore`, answered from each app's rates table — saves the
   rates that changed, and reconverts prices when the session currency is among them. Steady state
   is zero rows per tick; prices and balances already worked this way.
+- **iOS builds activity rows when the query emits, not when the list draws.** `TransactionViewModel`
+  (a `transaction_row` call plus the asset mapping per row) and the date sections were built inside
+  `TransactionsList.body`, so every body pass of the activity, asset and perpetual scenes — a sheet
+  toggle, a connection change, each row scrolled into view — re-ran them on the main thread. The
+  three scenes now observe `MappedRequest(transactionsRequest, transform: TransactionViewModel.sections)`:
+  `Store`'s `MappedRequest` runs a transform inside the fetch, so rows are built once per emission
+  on the database queue and the views read `[ListSection<TransactionViewModel>]`. The currency moved
+  from the row model to render time (`subtitleTextValue(currency:)`), so a currency change does not
+  invalidate the rows. Android already built its aggregates per emission in `GetTransactionsImpl`.
 - **Android no longer keeps an app-wide transactions observer alive.** `GetTransactionsImpl` held
   a `StateFlow` started `Eagerly` in its own IO scope whose only reader was the activity view
   model's `initialValue`, so every transaction, asset, address or price write re-ran the history

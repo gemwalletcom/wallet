@@ -3,6 +3,7 @@
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
+import Components
 import Formatters
 import Foundation
 import func Gemstone.transactionsListLimit
@@ -30,7 +31,7 @@ public final class PerpetualSceneViewModel {
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     public let perpetualQuery: ObservableQuery<PerpetualRequest>
-    public let transactionsQuery: ObservableQuery<TransactionsRequest>
+    public let transactionsQuery: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -40,7 +41,7 @@ public final class PerpetualSceneViewModel {
         perpetualQuery.value
     }
 
-    public var transactions: [TransactionExtended] {
+    public var transactionSections: [ListSection<TransactionViewModel>] {
         transactionsQuery.value
     }
 
@@ -69,10 +70,9 @@ public final class PerpetualSceneViewModel {
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
         transactionsQuery = ObservableQuery(
-            TransactionsRequest.perpetualScene(
-                walletId: wallet.id,
-                assetId: asset.id,
-                limit: Int(transactionsListLimit()),
+            MappedRequest(
+                TransactionsRequest.perpetualScene(walletId: wallet.id, assetId: asset.id, limit: Int(transactionsListLimit())),
+                transform: TransactionViewModel.sections,
             ),
             initialValue: [],
         )
