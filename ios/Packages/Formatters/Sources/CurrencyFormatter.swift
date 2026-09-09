@@ -25,13 +25,11 @@ public struct CurrencyFormatter: Sendable, Hashable {
     }
 
     public var symbol: String {
-        Self.symbolFormatters.value(for: SymbolKey(locale: locale, currencyCode: currencyCode)) {
-            let formatter = NumberFormatter()
-            formatter.locale = locale
-            formatter.numberStyle = .currency
-            formatter.currencyCode = currencyCode
-            return formatter
-        }.currencySymbol
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .currency
+        formatter.currencyCode = currencyCode
+        return formatter.currencySymbol
     }
 
     public func string(_ value: Double) -> String {
@@ -45,13 +43,6 @@ public struct CurrencyFormatter: Sendable, Hashable {
 // MARK: - Private
 
 private extension CurrencyFormatter {
-    struct SymbolKey: Hashable {
-        let locale: Locale
-        let currencyCode: String
-    }
-
-    static let symbolFormatters = FormatterCache<SymbolKey, NumberFormatter>()
-
     var abbreviatedFormatter: AbbreviatedFormatter {
         AbbreviatedFormatter(locale: locale)
     }

@@ -16,19 +16,6 @@ class ValueFormatter(
 ) {
     enum class Style { Full, Short, Auto }
 
-    private val decimalFormatter = ThreadLocal.withInitial {
-        (NumberFormat.getInstance(locale) as DecimalFormat).apply { roundingMode = ROUNDING_MODE }
-    }
-
-    private val compactFormatter = ThreadLocal.withInitial {
-        CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT).apply {
-            setSignificantDigitsUsed(false)
-            minimumFractionDigits = 0
-            maximumFractionDigits = 2
-            roundingMode = android.icu.math.BigDecimal.ROUND_DOWN
-        }
-    }
-
     fun string(value: BigInteger, asset: Asset): String =
         string(value, decimals = asset.decimals, currency = asset.symbol)
 
@@ -46,7 +33,10 @@ class ValueFormatter(
             return appendCurrency("<${formattedDustThreshold()}", currency)
         }
 
-        return appendCurrency(decimalFormatter.get().format(value, precision(value.abs())), currency)
+        val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
+            roundingMode = ROUNDING_MODE
+        }
+        return appendCurrency(formatter.format(value, precision(value.abs())), currency)
     }
 
     fun rounded(value: BigDecimal): BigDecimal = value.rounded(precision(value.abs()), ROUNDING_MODE)
@@ -57,9 +47,22 @@ class ValueFormatter(
         Style.Auto -> if (magnitude >= BigDecimal.ONE) Precision.upToTwoPlaces else Precision.fourSignificant
     }
 
-    private fun abbreviated(decimal: BigDecimal): String = compactFormatter.get().format(decimal)
+    private fun abbreviated(decimal: BigDecimal): String {
+        val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
+        formatter.setSignificantDigitsUsed(false)
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        formatter.roundingMode = android.icu.math.BigDecimal.ROUND_DOWN
+        return formatter.format(decimal)
+    }
 
-    private fun formattedDustThreshold(): String = decimalFormatter.get().format(DUST_THRESHOLD, Precision.Fraction(min = 4, max = 4))
+    private fun formattedDustThreshold(): String {
+        val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
+            minimumFractionDigits = 4
+            maximumFractionDigits = 4
+        }
+        return formatter.format(DUST_THRESHOLD)
+    }
 
     private fun appendCurrency(value: String, currency: String): String =
         if (currency.isEmpty()) value else "$value $currency"
