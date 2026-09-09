@@ -90,7 +90,7 @@ impl ConfirmTestkit {
         ));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
-            Arc::new(GemSimulationService::new(provider)),
+            Arc::new(GemSimulationService::new(provider, Arc::new(EmptyPreferences))),
             Arc::new(GemScanService::new(device_api.clone())),
             transactions,
             balance,

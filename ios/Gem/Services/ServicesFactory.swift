@@ -31,7 +31,7 @@ struct ServicesFactory {
         let preferencesService = Gemstone.GemPreferencesService(store: preferencesStore)
         let observablePreferences = ObservablePreferences(preferencesService: preferencesService)
         let nodeService = GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore), preferences: preferencesStore)
-        let nativeProvider = NativeProvider(nodeProvider: nodeService)
+        let nativeProvider = NativeProvider()
         let deviceKeyService = Gemstone.GemDeviceKeyService(store: GemstoneSecurePreferencesStore(namespace: "gateway"))
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
 
@@ -48,7 +48,6 @@ struct ServicesFactory {
         let deviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
         deviceApiClient.setDeviceSyncPreflight(device: deviceService)
 
-        let nodeProvider: any NodeURLProvidable = nodeService
         let connectionService = Gemstone.GemConnectionService()
         let connectionStatusObserver = ConnectionStatusObserver(
             connectionService: connectionService,
@@ -82,7 +81,7 @@ struct ServicesFactory {
             ),
         )
         let paymentService = Gemstone.GemPaymentService(provider: nativeProvider)
-        let transactionSimulationService = GemSimulationService(provider: nativeProvider)
+        let transactionSimulationService = GemSimulationService(provider: nativeProvider, preferences: preferencesStore)
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
         let serviceStatusService = Gemstone.GemServiceStatus(
@@ -200,7 +199,7 @@ struct ServicesFactory {
             service: streamService,
             webSocket: webSocket,
         )
-        let swapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
+        let swapper = GemSwapper(rpcProvider: NativeProvider(), preferences: preferencesStore)
         let swapService = Gemstone.GemSwapService(
             swapper: swapper,
             keystore: storages.keystore.gemKeystore,

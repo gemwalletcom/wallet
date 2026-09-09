@@ -353,7 +353,7 @@ mod tests {
             wallet_session.clone(),
         ));
         GemWalletConnectService::new(
-            Arc::new(GemSimulationService::new(provider)),
+            Arc::new(GemSimulationService::new(provider, Arc::new(EmptyPreferences))),
             store,
             Arc::new(TestWalletConnectSigner { result: signer }),
             wallet_session,

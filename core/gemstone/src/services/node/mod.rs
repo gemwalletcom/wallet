@@ -37,7 +37,7 @@ impl GemNodeService {
     }
 
     pub fn node_url(&self, chain: Chain) -> String {
-        rules::preferred_chain_node(chain, self.selected_url(chain)).url
+        node_url(self.preferences.as_ref(), chain)
     }
 
     pub fn websocket_node_url(&self, chain: Chain) -> String {
@@ -108,6 +108,10 @@ impl GemNodeService {
     fn set_selected_url(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.preferences.set(node_key(chain), url)
     }
+}
+
+pub fn node_url(preferences: &dyn GemPreferencesStore, chain: Chain) -> String {
+    rules::preferred_chain_node(chain, preferences.get(node_key(chain))).url
 }
 
 fn node_key(chain: Chain) -> String {

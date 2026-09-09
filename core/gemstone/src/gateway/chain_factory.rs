@@ -45,7 +45,7 @@ impl ChainClientFactory {
     }
 
     pub async fn create(&self, chain: Chain) -> Result<Arc<dyn ChainTraits>, GatewayError> {
-        let url = self.alien.get_endpoint(chain).map_err(|e| GatewayError::PlatformError { msg: e.to_string() })?;
+        let url = crate::services::node::node_url(self.preferences.as_ref(), chain);
         self.create_with_url(chain, url).await
     }
 

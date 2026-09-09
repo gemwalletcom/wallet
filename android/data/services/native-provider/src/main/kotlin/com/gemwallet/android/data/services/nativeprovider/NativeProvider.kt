@@ -14,17 +14,12 @@ import uniffi.gemstone.AlienHttpMethod
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.AlienResponse
 import uniffi.gemstone.AlienTarget
-import uniffi.gemstone.Chain
 import uniffi.gemstone.GatewayException
-import uniffi.gemstone.GemNodeServiceInterface
 import java.io.IOException
 
 class NativeProvider(
-    private val nodeService: GemNodeServiceInterface,
     private val httpClient: OkHttpClient = OkHttpClient(),
 ) : AlienProvider {
-    override fun getEndpoint(chain: Chain): String = nodeService.nodeUrl(chain)
-
     override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
         val requestBuilder = Request.Builder()
             .url(target.url)

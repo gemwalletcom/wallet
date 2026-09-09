@@ -236,9 +236,6 @@ public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
         throw AnyError("StubAlienProvider does not perform requests")
     }
 
-    public func getEndpoint(chain _: Gemstone.Chain) throws -> String {
-        throw AnyError("StubAlienProvider has no endpoints")
-    }
 }
 
 private func contactService() -> GemContactService {

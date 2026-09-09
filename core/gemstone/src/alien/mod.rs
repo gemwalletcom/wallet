@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 pub use client::{AlienClient, new_alien_client};
 pub use error::AlienError;
-pub use provider::{AlienProvider, AlienProviderWrapper};
+pub use provider::{AlienProvider, AlienProviderWrapper, NodeEndpoints, PreferencesNodeEndpoints};
 pub use target::{AlienHttpMethod, AlienResponse, AlienTarget};
 
 pub(crate) fn coalescing_provider(provider: Arc<dyn AlienProvider>) -> Arc<dyn AlienProvider> {

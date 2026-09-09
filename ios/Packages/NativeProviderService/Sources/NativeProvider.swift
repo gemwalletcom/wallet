@@ -5,36 +5,15 @@ import enum Gemstone.AlienError
 import protocol Gemstone.AlienProvider
 import class Gemstone.AlienResponse
 import struct Gemstone.AlienTarget
-import typealias Gemstone.Chain
 import Primitives
 
 public actor NativeProvider {
     private let session: URLSession
-    private let nodeProvider: any NodeURLProvidable
     private let requestInterceptor: any RequestInterceptable
 
-    public init(
-        session: URLSession = .shared,
-        nodeProvider: any NodeURLProvidable,
-        requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
-    ) {
-        self.session = session
-        self.nodeProvider = nodeProvider
-        self.requestInterceptor = requestInterceptor
-    }
-
     public init(session: URLSession = .shared, requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor()) {
-        self.init(
-            session: session,
-            nodeProvider: ApiOnlyNodes(),
-            requestInterceptor: requestInterceptor,
-        )
-    }
-}
-
-struct ApiOnlyNodes: NodeURLProvidable {
-    func node(for chain: Primitives.Chain) -> URL {
-        preconditionFailure("API-only provider asked for a \(chain) node")
+        self.session = session
+        self.requestInterceptor = requestInterceptor
     }
 }
 
@@ -56,9 +35,5 @@ extension NativeProvider: AlienProvider {
             }
             throw error
         }
-    }
-
-    public nonisolated func getEndpoint(chain: Chain) throws -> String {
-        try nodeProvider.node(for: Primitives.Chain(id: chain)).absoluteString
     }
 }
