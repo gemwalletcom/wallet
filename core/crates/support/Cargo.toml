@@ -12,7 +12,6 @@ backend = [
     "dep:hex",
     "dep:hmac",
     "dep:localizer",
-    "dep:reqwest",
     "dep:serde",
     "dep:serde_json",
     "dep:storage",
@@ -24,7 +23,6 @@ backend = [
 chrono = { workspace = true, optional = true }
 hex = { workspace = true, optional = true }
 hmac = { workspace = true, optional = true }
-reqwest = { workspace = true, features = ["multipart"], optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 url = { workspace = true }

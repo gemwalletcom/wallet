@@ -20,6 +20,5 @@ num-traits = { workspace = true }
 gem_hash = { path = "../gem_hash" }
 hex = { workspace = true }
 chrono = { workspace = true }
-reqwest = { workspace = true, features = ["json"] }
 regex = { workspace = true }
 async-trait = { workspace = true }

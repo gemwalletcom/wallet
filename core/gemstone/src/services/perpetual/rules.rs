@@ -407,7 +407,7 @@ pub fn apply_candle_update(candles: Vec<ChartCandleStick>, update: ChartCandleUp
     (update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
 }
 
-pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
+fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
     let Some(last_date) = candles.last().map(|last| last.date) else {
         return candles;
     };

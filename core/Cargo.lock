@@ -552,7 +552,6 @@ version = "2.114.18"
 dependencies = [
  "gem_client",
  "primitives",
- "reqwest 0.13.4",
  "serde",
 ]
 
@@ -3409,7 +3408,6 @@ dependencies = [
  "num-bigint 0.5.1",
  "prettytable-rs",
  "primitives",
- "reqwest 0.13.4",
  "serde",
  "serde_serializers",
  "tokio",
@@ -3784,7 +3782,6 @@ version = "2.114.18"
 dependencies = [
  "async-trait",
  "gem_client",
- "hex",
  "percent-encoding",
  "primitives",
  "reqwest 0.13.4",
@@ -3915,7 +3912,6 @@ dependencies = [
  "num-traits",
  "primitives",
  "regex",
- "reqwest 0.13.4",
  "serde",
  "serde_json",
  "storage",
@@ -6967,7 +6963,6 @@ dependencies = [
  "bytes",
  "encoding_rs",
  "futures-core",
- "futures-util",
  "h2 0.4.15",
  "http 1.4.2",
  "http-body 1.1.0",
@@ -6978,7 +6973,6 @@ dependencies = [
  "js-sys",
  "log",
  "mime",
- "mime_guess",
  "percent-encoding",
  "pin-project-lite",
  "quinn",
@@ -8465,7 +8459,6 @@ dependencies = [
  "hmac 0.13.0",
  "localizer",
  "primitives",
- "reqwest 0.13.4",
  "serde",
  "serde_json",
  "sha2 0.11.0",

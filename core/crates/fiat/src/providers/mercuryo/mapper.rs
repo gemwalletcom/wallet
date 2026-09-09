@@ -274,7 +274,7 @@ mod tests {
             .unwrap()
             .data;
         let limits = map_asset_limits(None, Currency::USD, &currencies.fiat_payment_methods);
-        assert_eq!(limits.is_empty(), false);
+        assert!(!limits.is_empty());
 
         for (buy, sell) in [(false, false), (false, true), (true, false), (true, true)] {
             let mut asset = currencies.config.crypto_currencies[0].clone();

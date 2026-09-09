@@ -86,7 +86,7 @@ pub fn requires_frozen_balance(chain: Chain, frozen_value: &BigUint) -> bool {
     uses_freeze(chain) && *frozen_value == BigUint::ZERO
 }
 
-pub fn can_claim_stake_rewards(chain: Chain, rewards_value: &BigUint) -> bool {
+fn can_claim_stake_rewards(chain: Chain, rewards_value: &BigUint) -> bool {
     stake_config(chain).is_some_and(|config| config.can_claim_rewards) && *rewards_value > BigUint::ZERO
 }
 
@@ -215,7 +215,7 @@ pub fn selectable_validators(validators: Vec<DelegationValidator>) -> Vec<Delega
     selectable
 }
 
-pub fn recommended_validator_ids(chain: Chain) -> Vec<String> {
+fn recommended_validator_ids(chain: Chain) -> Vec<String> {
     get_validators().remove(chain.as_ref()).unwrap_or_default()
 }
 
@@ -224,14 +224,14 @@ pub fn recommended_validators(chain: Chain, validators: &[DelegationValidator]) 
     validators.iter().filter(|validator| recommended.contains(&validator.id)).cloned().collect()
 }
 
-pub fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
+fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
     recommended_validators(chain, &validators)
         .choose(&mut rand::rng())
         .cloned()
         .or_else(|| validators.first().cloned())
 }
 
-pub fn redelegate_validator(chain: Chain, validators: Vec<DelegationValidator>, from_validator_id: &str) -> Option<DelegationValidator> {
+fn redelegate_validator(chain: Chain, validators: Vec<DelegationValidator>, from_validator_id: &str) -> Option<DelegationValidator> {
     recommended_validator(chain, validators.into_iter().filter(|validator| validator.id != from_validator_id).collect())
 }
 

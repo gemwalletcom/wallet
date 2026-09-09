@@ -95,10 +95,6 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
-    pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
-        rules::default_nodes(chain)
-    }
-
     pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
         rules::sorted_nodes(chain, nodes)
     }

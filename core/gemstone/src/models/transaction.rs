@@ -5,8 +5,8 @@ use primitives::contract_call_data::ContractCallData;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
-    AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionType, TronStakeData,
+    AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata,
+    TransactionType, TronStakeData,
 };
 use std::collections::HashMap;
 

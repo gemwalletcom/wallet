@@ -770,8 +770,7 @@ mod tests {
                 extra: TransferDataExtra {
                     output_action: TransferDataOutputAction::Sign,
                     ..TransferDataExtra::mock()
-                }
-                .into(),
+                },
             },
             "0",
         );
@@ -830,8 +829,7 @@ mod tests {
                 output_type: TransferDataOutputType::Signature,
                 output_action: TransferDataOutputAction::Sign,
                 ..TransferDataExtra::mock()
-            }
-            .into(),
+            },
         };
         let signed = signature.output();
         assert_eq!(signed.output_type, TransferDataOutputType::Signature);

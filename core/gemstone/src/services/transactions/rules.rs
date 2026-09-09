@@ -257,7 +257,7 @@ fn nft_metadata(transaction: &Transaction) -> Option<TransactionNFTTransferMetad
     serde_json::from_value::<TransactionNFTTransferMetadata>(metadata).ok()
 }
 
-pub fn transaction_title(transaction: &Transaction) -> GemTransactionTitle {
+fn transaction_title(transaction: &Transaction) -> GemTransactionTitle {
     match transaction.transaction_type {
         TransactionType::Transfer | TransactionType::TransferNFT => transfer_title(transaction),
         TransactionType::SmartContractCall => GemTransactionTitle::SmartContract,
@@ -292,7 +292,7 @@ fn transfer_title(transaction: &Transaction) -> GemTransactionTitle {
     }
 }
 
-pub fn transaction_subtitle(transaction: &Transaction) -> GemTransactionSubtitle {
+fn transaction_subtitle(transaction: &Transaction) -> GemTransactionSubtitle {
     match transaction.transaction_type {
         TransactionType::Transfer | TransactionType::TransferNFT | TransactionType::TokenApproval | TransactionType::SmartContractCall => match transaction.direction {
             TransactionDirection::Incoming => GemTransactionSubtitle::FromAddress {
@@ -314,7 +314,7 @@ pub fn transaction_subtitle(transaction: &Transaction) -> GemTransactionSubtitle
     }
 }
 
-pub fn transaction_participant(transaction: &Transaction) -> Option<(GemTransactionParticipantRole, String)> {
+fn transaction_participant(transaction: &Transaction) -> Option<(GemTransactionParticipantRole, String)> {
     let role = match transaction.transaction_type {
         TransactionType::Transfer | TransactionType::TransferNFT => match transaction.direction {
             TransactionDirection::Incoming => GemTransactionParticipantRole::Sender,
@@ -346,7 +346,7 @@ pub fn transaction_participant(transaction: &Transaction) -> Option<(GemTransact
     (!address.is_empty()).then(|| (role, address.clone()))
 }
 
-pub fn transaction_value(transaction: &Transaction) -> GemTransactionValue {
+fn transaction_value(transaction: &Transaction) -> GemTransactionValue {
     match transaction.transaction_type {
         TransactionType::Swap => GemTransactionValue::SwapReceived,
         TransactionType::TokenApproval => GemTransactionValue::AssetSymbol,
@@ -372,7 +372,7 @@ pub fn transaction_value(transaction: &Transaction) -> GemTransactionValue {
     }
 }
 
-pub fn transaction_equivalent_value(transaction: &Transaction) -> GemTransactionValue {
+fn transaction_equivalent_value(transaction: &Transaction) -> GemTransactionValue {
     match transaction.transaction_type {
         TransactionType::Swap => GemTransactionValue::SwapSpent,
         _ => GemTransactionValue::None,
