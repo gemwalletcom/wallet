@@ -11,7 +11,6 @@ import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.svg.SvgDecoder
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
-import com.gemwallet.android.application.transactions.cases.GetTransactions
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
@@ -22,8 +21,6 @@ class App : Application(), SingletonImageLoader.Factory {
 
     @Inject
     lateinit var appLifecycleCoordinator: AppLifecycleCoordinator
-    @Inject
-    lateinit var getTransactions: GetTransactions
     @Inject
     lateinit var getActiveAssetsInfo: GetActiveAssetsInfo
 

@@ -462,9 +462,13 @@ intentional one-sided integration surfaces.
   a `StateFlow` started `Eagerly` in its own IO scope whose only reader was the activity view
   model's `initialValue`, so every transaction, asset, address or price write re-ran the history
   query and rebuilt rows for a screen that might never open. The flow and
-  `GetTransactions.transactions()` are gone; the view model starts at `null` and the scene draws
-  nothing until the first emission rather than flashing the empty state. iOS never had the
-  equivalent — `ObservableQuery` fetches synchronously on bind.
+  `GetTransactions.transactions()` are gone, and so is the `App` injection that only existed to
+  start it; the view model starts at `null` and the scene draws nothing until the first emission
+  rather than flashing the empty state. iOS never had the equivalent — `ObservableQuery` fetches
+  synchronously on bind. The other app-scoped `Eagerly` flows stay: `App` injects
+  `GetActiveAssetsInfo` on purpose so the wallet's asset query is running before the splash lifts,
+  and `GetAllWallets` is eager because `WalletsViewModel` seeds its first frame from `.value`;
+  starting either on subscription would bring back the empty first frame.
 - **iOS decodes an icon once, off the main thread, at the size it is shown.** `CachedAsyncImage`
   was the vendored view that built a `URLSession` and decoded the cached PNG synchronously in every
   `init`, which SwiftUI runs on every parent body pass. It is now a thin view over `ImageLoader`:
