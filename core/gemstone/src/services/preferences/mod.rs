@@ -143,17 +143,6 @@ impl GemPreferencesService {
         self.store.set(APPEARANCE.to_string(), rules::appearance_value(appearance).to_string())
     }
 
-    pub fn get_swap_slippage_bps(&self) -> Option<u32> {
-        rules::swap_slippage_bps(self.store.get(SWAP_SLIPPAGE_BPS.to_string()))
-    }
-
-    pub fn set_swap_slippage_bps(&self, bps: Option<u32>) -> Result<(), GemServiceError> {
-        match bps.filter(|bps| *bps > 0) {
-            Some(bps) => self.store.set(SWAP_SLIPPAGE_BPS.to_string(), bps.to_string()),
-            None => self.store.remove(SWAP_SLIPPAGE_BPS.to_string()),
-        }
-    }
-
     pub fn get_perpetual_leverage(&self) -> u8 {
         rules::percent_or_default(self.store.get(PERPETUAL_LEVERAGE.to_string()), perpetual_config::DEFAULT_LEVERAGE)
     }
@@ -214,6 +203,17 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn get_swap_slippage_bps(&self) -> Option<u32> {
+        rules::swap_slippage_bps(self.store.get(SWAP_SLIPPAGE_BPS.to_string()))
+    }
+
+    pub fn set_swap_slippage_bps(&self, bps: Option<u32>) -> Result<(), GemServiceError> {
+        match bps.filter(|bps| *bps > 0) {
+            Some(bps) => self.store.set(SWAP_SLIPPAGE_BPS.to_string(), bps.to_string()),
+            None => self.store.remove(SWAP_SLIPPAGE_BPS.to_string()),
+        }
+    }
+
     pub fn get_perpetual_chart_period(&self) -> ChartPeriod {
         self.store
             .get(PERPETUAL_CHART_PERIOD.to_string())

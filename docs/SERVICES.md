@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The swap slippage preference no longer crosses the boundary.** `get_swap_slippage_bps` and
+  `set_swap_slippage_bps` on `GemPreferencesService` were exported for an Android config flow that
+  no screen read or set, deleted earlier in this sweep; Core's swap quote service is their only
+  caller, so they are Core-internal now and the iOS mock that mirrored them is gone.
 - **Three more iOS members nothing read.** A rerun of the declare-then-grep sweep after this
   session's batches found `Locale.canonical`, left behind by the deleted `displayedNumber`
   formatter, and two view-model strings no view bound, `ReceiveViewModel.shareTitle` and

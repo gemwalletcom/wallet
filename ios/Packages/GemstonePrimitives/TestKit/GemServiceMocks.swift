@@ -155,12 +155,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         self.appearance = appearance
     }
 
-    public func getSwapSlippageBps() -> UInt32? {
-        nil
-    }
-
-    public func setSwapSlippageBps(bps _: UInt32?) throws {}
-
     public func getPerpetualLeverage() -> UInt8 {
         5
     }
