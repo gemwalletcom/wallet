@@ -20,16 +20,26 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsDate() throws {
-        let notification = InAppNotification.mock(createdAt: Date(timeIntervalSince1970: 1_700_000_000))
+        let createdAt = Date(timeIntervalSince1970: 1_700_000_000)
+        let event = Primitives.StreamEvent.inAppNotification(StreamNotificationUpdate(walletId: .mock(), notification: .mock(createdAt: createdAt)))
 
-        #expect(try Primitives.InAppNotification(notification.json()).createdAt == notification.createdAt)
+        guard case let .inAppNotification(update) = try Primitives.StreamEvent(event.json()) else {
+            Issue.record("the tag did not survive the round trip")
+            return
+        }
+        #expect(update.notification.createdAt == createdAt)
     }
 
     @Test
     func roundTripsNestedRecord() throws {
-        let notification = InAppNotification.mock(item: .mock(icon: .emoji(.gift)))
-        let decoded = try Primitives.InAppNotification(notification.json())
-        #expect(decoded.item.icon == notification.item.icon)
-        #expect(decoded.item.id == notification.item.id)
+        let item = CoreListItem.mock(id: "reward", icon: .emoji(.gift))
+        let event = Primitives.StreamEvent.inAppNotification(StreamNotificationUpdate(walletId: .mock(), notification: .mock(item: item)))
+
+        guard case let .inAppNotification(update) = try Primitives.StreamEvent(event.json()) else {
+            Issue.record("the tag did not survive the round trip")
+            return
+        }
+        #expect(update.notification.item.icon == item.icon)
+        #expect(update.notification.item.id == item.id)
     }
 }

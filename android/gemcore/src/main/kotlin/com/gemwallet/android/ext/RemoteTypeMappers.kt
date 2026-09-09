@@ -212,6 +212,40 @@ fun com.wallet.core.primitives.ConnectionStatus.toGem(): uniffi.gemstone.Connect
     com.wallet.core.primitives.ConnectionStatus.NoService -> uniffi.gemstone.ConnectionStatus.NO_SERVICE
 }
 
+fun uniffi.gemstone.CoreEmoji.toPrimitives(): com.wallet.core.primitives.CoreEmoji = when (this) {
+    uniffi.gemstone.CoreEmoji.GIFT -> com.wallet.core.primitives.CoreEmoji.Gift
+    uniffi.gemstone.CoreEmoji.GEM -> com.wallet.core.primitives.CoreEmoji.Gem
+    uniffi.gemstone.CoreEmoji.PARTY -> com.wallet.core.primitives.CoreEmoji.Party
+    uniffi.gemstone.CoreEmoji.WARNING -> com.wallet.core.primitives.CoreEmoji.Warning
+}
+
+fun com.wallet.core.primitives.CoreEmoji.toGem(): uniffi.gemstone.CoreEmoji = when (this) {
+    com.wallet.core.primitives.CoreEmoji.Gift -> uniffi.gemstone.CoreEmoji.GIFT
+    com.wallet.core.primitives.CoreEmoji.Gem -> uniffi.gemstone.CoreEmoji.GEM
+    com.wallet.core.primitives.CoreEmoji.Party -> uniffi.gemstone.CoreEmoji.PARTY
+    com.wallet.core.primitives.CoreEmoji.Warning -> uniffi.gemstone.CoreEmoji.WARNING
+}
+
+fun uniffi.gemstone.CoreListItemBadge.toPrimitives(): com.wallet.core.primitives.CoreListItemBadge = when (this) {
+    uniffi.gemstone.CoreListItemBadge.NEW -> com.wallet.core.primitives.CoreListItemBadge.New
+}
+
+fun com.wallet.core.primitives.CoreListItemBadge.toGem(): uniffi.gemstone.CoreListItemBadge = when (this) {
+    com.wallet.core.primitives.CoreListItemBadge.New -> uniffi.gemstone.CoreListItemBadge.NEW
+}
+
+fun uniffi.gemstone.CoreListItemIcon.toPrimitives(): com.wallet.core.primitives.CoreListItemIcon = when (this) {
+    is uniffi.gemstone.CoreListItemIcon.Emoji -> com.wallet.core.primitives.CoreListItemIcon.Emoji(v1.toPrimitives())
+    is uniffi.gemstone.CoreListItemIcon.Asset -> com.wallet.core.primitives.CoreListItemIcon.Asset(com.wallet.core.primitives.AssetId(v1))
+    is uniffi.gemstone.CoreListItemIcon.Image -> com.wallet.core.primitives.CoreListItemIcon.Image(v1)
+}
+
+fun com.wallet.core.primitives.CoreListItemIcon.toGem(): uniffi.gemstone.CoreListItemIcon = when (this) {
+    is com.wallet.core.primitives.CoreListItemIcon.Emoji -> uniffi.gemstone.CoreListItemIcon.Emoji(value.toGem())
+    is com.wallet.core.primitives.CoreListItemIcon.Asset -> uniffi.gemstone.CoreListItemIcon.Asset(value.toIdentifier())
+    is com.wallet.core.primitives.CoreListItemIcon.Image -> uniffi.gemstone.CoreListItemIcon.Image(value)
+}
+
 fun uniffi.gemstone.Currency.toCurrency(): com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.entries.firstOrNull { it.string == this }
     ?: throw IllegalStateException("Core returned a Currency this build does not know: $this")
 
@@ -1307,6 +1341,28 @@ fun com.wallet.core.primitives.ContactAddress.toGem(): uniffi.gemstone.ContactAd
     memo = memo,
 )
 
+fun uniffi.gemstone.CoreListItem.toPrimitives(): com.wallet.core.primitives.CoreListItem = com.wallet.core.primitives.CoreListItem(
+    id = id,
+    title = title,
+    subtitle = subtitle,
+    value = value,
+    subvalue = subvalue,
+    icon = icon?.let { it.toPrimitives() },
+    badge = badge?.let { it.toPrimitives() },
+    url = url,
+)
+
+fun com.wallet.core.primitives.CoreListItem.toGem(): uniffi.gemstone.CoreListItem = uniffi.gemstone.CoreListItem(
+    id = id,
+    title = title,
+    subtitle = subtitle,
+    value = value,
+    subvalue = subvalue,
+    icon = icon?.let { it.toGem() },
+    badge = badge?.let { it.toGem() },
+    url = url,
+)
+
 fun uniffi.gemstone.DelegationValidator.toPrimitives(): com.wallet.core.primitives.DelegationValidator = com.wallet.core.primitives.DelegationValidator(
     chain = chain.toChain(),
     id = id,
@@ -1414,6 +1470,20 @@ fun uniffi.gemstone.FiatTransactionData.toPrimitives(): com.wallet.core.primitiv
 fun com.wallet.core.primitives.FiatTransactionData.toGem(): uniffi.gemstone.FiatTransactionData = uniffi.gemstone.FiatTransactionData(
     transaction = transaction.toGem(),
     detailsUrl = detailsUrl,
+)
+
+fun uniffi.gemstone.InAppNotification.toPrimitives(): com.wallet.core.primitives.InAppNotification = com.wallet.core.primitives.InAppNotification(
+    walletId = com.wallet.core.primitives.WalletId(walletId),
+    readAt = readAt,
+    createdAt = createdAt,
+    item = item.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.InAppNotification.toGem(): uniffi.gemstone.InAppNotification = uniffi.gemstone.InAppNotification(
+    walletId = walletId.toIdentifier(),
+    readAt = readAt,
+    createdAt = createdAt,
+    item = item.toGem(),
 )
 
 fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency = com.wallet.core.primitives.Latency(

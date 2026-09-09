@@ -318,6 +318,64 @@ public extension Primitives.ConnectionStatus {
     }
 }
 
+public extension Gemstone.CoreEmoji {
+    func map() -> Primitives.CoreEmoji {
+        switch self {
+        case .gift: .gift
+        case .gem: .gem
+        case .party: .party
+        case .warning: .warning
+        }
+    }
+}
+
+public extension Primitives.CoreEmoji {
+    func map() -> Gemstone.CoreEmoji {
+        switch self {
+        case .gift: .gift
+        case .gem: .gem
+        case .party: .party
+        case .warning: .warning
+        }
+    }
+}
+
+public extension Gemstone.CoreListItemBadge {
+    func map() -> Primitives.CoreListItemBadge {
+        switch self {
+        case .new: .new
+        }
+    }
+}
+
+public extension Primitives.CoreListItemBadge {
+    func map() -> Gemstone.CoreListItemBadge {
+        switch self {
+        case .new: .new
+        }
+    }
+}
+
+public extension Gemstone.CoreListItemIcon {
+    func map() -> Primitives.CoreListItemIcon {
+        switch self {
+        case .emoji(let value): .emoji(value.map())
+        case .asset(let value): .asset(Primitives.AssetId(core: value))
+        case .image(let value): .image(value)
+        }
+    }
+}
+
+public extension Primitives.CoreListItemIcon {
+    func map() -> Gemstone.CoreListItemIcon {
+        switch self {
+        case .emoji(let value): .emoji(value.map())
+        case .asset(let value): .asset(value.identifier)
+        case .image(let value): .image(value)
+        }
+    }
+}
+
 public extension Primitives.Currency {
     init(core: Gemstone.Currency) {
         guard let value = Primitives.Currency(rawValue: core) else {
@@ -1973,6 +2031,36 @@ public extension Primitives.ContactAddress {
     }
 }
 
+public extension Gemstone.CoreListItem {
+    func map() -> Primitives.CoreListItem {
+        Primitives.CoreListItem(
+            id: id,
+            title: title,
+            subtitle: subtitle,
+            value: value,
+            subvalue: subvalue,
+            icon: icon.map { $0.map() },
+            badge: badge.map { $0.map() },
+            url: url,
+        )
+    }
+}
+
+public extension Primitives.CoreListItem {
+    func map() -> Gemstone.CoreListItem {
+        Gemstone.CoreListItem(
+            id: id,
+            title: title,
+            subtitle: subtitle,
+            value: value,
+            subvalue: subvalue,
+            icon: icon.map { $0.map() },
+            badge: badge.map { $0.map() },
+            url: url,
+        )
+    }
+}
+
 public extension Gemstone.DelegationValidator {
     func map() -> Primitives.DelegationValidator {
         Primitives.DelegationValidator(
@@ -2126,6 +2214,28 @@ public extension Primitives.FiatTransactionData {
         Gemstone.FiatTransactionData(
             transaction: transaction.map(),
             detailsUrl: detailsUrl,
+        )
+    }
+}
+
+public extension Gemstone.InAppNotification {
+    func map() -> Primitives.InAppNotification {
+        Primitives.InAppNotification(
+            walletId: Primitives.WalletId(core: walletId),
+            readAt: readAt,
+            createdAt: createdAt,
+            item: item.map(),
+        )
+    }
+}
+
+public extension Primitives.InAppNotification {
+    func map() -> Gemstone.InAppNotification {
+        Gemstone.InAppNotification(
+            walletId: walletId.identifier,
+            readAt: readAt,
+            createdAt: createdAt,
+            item: item.map(),
         )
     }
 }

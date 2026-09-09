@@ -188,6 +188,11 @@ remote:
   - TransactionsResponse
   - FiatQuoteRequest
   - FiatTransactionStatus
+  - CoreEmoji
+  - CoreListItemBadge
+  - CoreListItemIcon
+  - CoreListItem
+  - InAppNotification
   - SupportAgent
   - SupportMessageSender
   - SupportMessageStatus
