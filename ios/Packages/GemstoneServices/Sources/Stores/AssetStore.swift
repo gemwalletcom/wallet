@@ -32,7 +32,7 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
     }
 
     public func saveAsset(asset: Gemstone.AssetFull) async throws {
-        let asset = try Primitives.AssetFull(asset)
+        let asset = asset.map()
         try assetStore.add(assets: [asset.basic])
         try assetStore.updateLinks(assetId: asset.asset.id, asset.links)
         try assetStore.updateAssociations(assetId: asset.asset.id, associations: asset.associations)

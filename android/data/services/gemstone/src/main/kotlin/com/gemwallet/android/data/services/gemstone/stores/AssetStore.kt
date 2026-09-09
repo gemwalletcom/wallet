@@ -44,8 +44,8 @@ class GemstoneAssetStore(
         assetsDao.updateBasicAssets(basics.map { it.toUpdateRecord() })
     }
 
-    override suspend fun saveAsset(asset: String) = withContext(Dispatchers.IO) {
-        val assetFull = asset.decodeJson<AssetFull>()
+    override suspend fun saveAsset(asset: uniffi.gemstone.AssetFull) = withContext(Dispatchers.IO) {
+        val assetFull = asset.toPrimitives()
         assetsDao.upsertAssetMetadata(
             asset = assetFull.toRecord().copy(updatedAt = System.currentTimeMillis()),
             links = assetFull.links.toAssetLinkRecord(assetFull.asset.id),

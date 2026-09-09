@@ -5,22 +5,18 @@ use primitives::contract_call_data::ContractCallData;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
-    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData,
+    AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionType, TronStakeData,
 };
 use std::collections::HashMap;
 
 pub type GemFeeOption = FeeOption;
-pub type GemTransferDataOutputType = TransferDataOutputType;
-pub type GemTransferDataOutputAction = TransferDataOutputAction;
 pub type GemTronStakeData = TronStakeData;
 
 #[uniffi::remote(Enum)]
 pub enum FeeOption {
     TokenAccountCreation,
 }
-
-pub type GemAccountDataType = AccountDataType;
 
 pub type GemHyperliquidOrder = HyperliquidOrder;
 
@@ -38,8 +34,6 @@ pub struct GemHyperliquidOrder {
 pub type GemContractCallData = ContractCallData;
 
 pub type GemEarnType = EarnType;
-
-pub type GemPerpetualType = PerpetualType;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemTransactionLoadInput {

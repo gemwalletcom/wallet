@@ -1,6 +1,6 @@
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AssetFull, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
+use primitives::{ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
     SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze,
     TronVote, UTXO,
@@ -31,7 +31,6 @@ macro_rules! json_bridge {
 }
 
 json_bridge!(
-    AssetFull,
     AuthNonce,
     AuthPayload,
     ConfigResponse,

@@ -3,7 +3,6 @@
 
 import Primitives
 
-extension Primitives.AssetFull: JsonCodable {}
 extension Primitives.AuthNonce: JsonCodable {}
 extension Primitives.AuthPayload: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}

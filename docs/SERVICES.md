@@ -476,7 +476,12 @@ belongs in Core. The portfolio chart followed: `PortfolioData`, `PortfolioChartD
 whole series out of a string on every period or type change. `PortfolioChartType` keeps its twin
 because the picker needs `CaseIterable` and `Identifiable`, which uniffi does not give an enum, and
 `PortfolioStatistic` carries named fields. `Charts` left the bridge entirely — no app has referenced
-it in either language, so it was generating a twin nothing read. The generator is one table-driven
+it in either language, so it was generating a twin nothing read. `AssetFull`, `AssetAssociation` and `PerpetualBasic` finished
+the asset cluster the same way. What is left on the bridge is mostly types the generator still cannot
+map: a data-carrying enum that must keep its twin has no mapper emission, which is why `SupportMessage`
+stays (Room stores its `SupportMessageSender` through a converter, so the twin cannot go), alongside
+`FiatTransaction`, whose skipped fields have no app-to-core default. Those two shapes are the
+remaining generator work, not app work. The generator is one table-driven
   emitter (`Generator` parses the primitives sources once; `Language` holds the Swift and Kotlin
   syntax) with the JSON bridge in its own module, and every type name it knows lives in
   `remote_types.yml`: the remote list, codes, identifiers, the scalars that pass through a mapper

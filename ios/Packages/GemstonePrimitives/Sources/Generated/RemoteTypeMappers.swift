@@ -83,6 +83,26 @@ public extension Primitives.ApplicationMetadataSource {
     }
 }
 
+public extension Gemstone.AssetAssociationType {
+    func map() -> Primitives.AssetAssociationType {
+        switch self {
+        case .official: .official
+        case .bridged: .bridged
+        case .wrapped: .wrapped
+        }
+    }
+}
+
+public extension Primitives.AssetAssociationType {
+    func map() -> Gemstone.AssetAssociationType {
+        switch self {
+        case .official: .official
+        case .bridged: .bridged
+        case .wrapped: .wrapped
+        }
+    }
+}
+
 public extension Gemstone.AssetType {
     func map() -> Primitives.AssetType {
         switch self {
@@ -1385,6 +1405,24 @@ public extension Primitives.Asset {
     }
 }
 
+public extension Gemstone.AssetAssociation {
+    func map() -> Primitives.AssetAssociation {
+        Primitives.AssetAssociation(
+            assetId: Primitives.AssetId(core: assetId),
+            type: associationType.map(),
+        )
+    }
+}
+
+public extension Primitives.AssetAssociation {
+    func map() -> Gemstone.AssetAssociation {
+        Gemstone.AssetAssociation(
+            assetId: assetId.identifier,
+            associationType: type.map(),
+        )
+    }
+}
+
 public extension Gemstone.AssetBasic {
     func map() -> Primitives.AssetBasic {
         Primitives.AssetBasic(
@@ -1423,6 +1461,38 @@ public extension Primitives.AssetFiatValue {
             amount: amount,
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
+        )
+    }
+}
+
+public extension Gemstone.AssetFull {
+    func map() -> Primitives.AssetFull {
+        Primitives.AssetFull(
+            asset: asset.map(),
+            properties: properties.map(),
+            score: score.map(),
+            tags: tags,
+            links: links.map { $0.map() },
+            associations: associations.map { $0.map() },
+            perpetuals: perpetuals.map { $0.map() },
+            price: price.map { $0.map() },
+            market: market.map { $0.map() },
+        )
+    }
+}
+
+public extension Primitives.AssetFull {
+    func map() -> Gemstone.AssetFull {
+        Gemstone.AssetFull(
+            asset: asset.map(),
+            properties: properties.map(),
+            score: score.map(),
+            tags: tags,
+            links: links.map { $0.map() },
+            associations: associations.map { $0.map() },
+            perpetuals: perpetuals.map { $0.map() },
+            price: price.map { $0.map() },
+            market: market.map { $0.map() },
         )
     }
 }
@@ -2183,6 +2253,26 @@ public extension Primitives.PerpetualBalance {
             available: available,
             reserved: reserved,
             withdrawable: withdrawable,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualBasic {
+    func map() -> Primitives.PerpetualBasic {
+        Primitives.PerpetualBasic(
+            assetId: Primitives.AssetId(core: assetId),
+            perpetualId: Primitives.PerpetualId(core: perpetualId),
+            provider: provider.map(),
+        )
+    }
+}
+
+public extension Primitives.PerpetualBasic {
+    func map() -> Gemstone.PerpetualBasic {
+        Gemstone.PerpetualBasic(
+            assetId: assetId.identifier,
+            perpetualId: perpetualId.identifier,
+            provider: provider.map(),
         )
     }
 }

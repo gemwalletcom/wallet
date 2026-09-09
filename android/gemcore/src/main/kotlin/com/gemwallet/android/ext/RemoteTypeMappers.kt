@@ -49,6 +49,18 @@ fun com.wallet.core.primitives.ApplicationMetadataSource.toGem(): uniffi.gemston
     com.wallet.core.primitives.ApplicationMetadataSource.Payment -> uniffi.gemstone.ApplicationMetadataSource.PAYMENT
 }
 
+fun uniffi.gemstone.AssetAssociationType.toPrimitives(): com.wallet.core.primitives.AssetAssociationType = when (this) {
+    uniffi.gemstone.AssetAssociationType.OFFICIAL -> com.wallet.core.primitives.AssetAssociationType.Official
+    uniffi.gemstone.AssetAssociationType.BRIDGED -> com.wallet.core.primitives.AssetAssociationType.Bridged
+    uniffi.gemstone.AssetAssociationType.WRAPPED -> com.wallet.core.primitives.AssetAssociationType.Wrapped
+}
+
+fun com.wallet.core.primitives.AssetAssociationType.toGem(): uniffi.gemstone.AssetAssociationType = when (this) {
+    com.wallet.core.primitives.AssetAssociationType.Official -> uniffi.gemstone.AssetAssociationType.OFFICIAL
+    com.wallet.core.primitives.AssetAssociationType.Bridged -> uniffi.gemstone.AssetAssociationType.BRIDGED
+    com.wallet.core.primitives.AssetAssociationType.Wrapped -> uniffi.gemstone.AssetAssociationType.WRAPPED
+}
+
 fun uniffi.gemstone.AssetType.toPrimitives(): com.wallet.core.primitives.AssetType = when (this) {
     uniffi.gemstone.AssetType.NATIVE -> com.wallet.core.primitives.AssetType.NATIVE
     uniffi.gemstone.AssetType.ERC20 -> com.wallet.core.primitives.AssetType.ERC20
@@ -927,6 +939,16 @@ fun com.wallet.core.primitives.Asset.toGem(): uniffi.gemstone.Asset = uniffi.gem
     assetType = type.toGem(),
 )
 
+fun uniffi.gemstone.AssetAssociation.toPrimitives(): com.wallet.core.primitives.AssetAssociation = com.wallet.core.primitives.AssetAssociation(
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    type = associationType.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.AssetAssociation.toGem(): uniffi.gemstone.AssetAssociation = uniffi.gemstone.AssetAssociation(
+    assetId = assetId.toIdentifier(),
+    associationType = type.toGem(),
+)
+
 fun uniffi.gemstone.AssetBasic.toPrimitives(): com.wallet.core.primitives.AssetBasic = com.wallet.core.primitives.AssetBasic(
     asset = asset.toPrimitives(),
     properties = properties.toPrimitives(),
@@ -951,6 +973,30 @@ fun com.wallet.core.primitives.AssetFiatValue.toGem(): uniffi.gemstone.AssetFiat
     amount = amount,
     price = price,
     priceChangePercentage24h = priceChangePercentage24h,
+)
+
+fun uniffi.gemstone.AssetFull.toPrimitives(): com.wallet.core.primitives.AssetFull = com.wallet.core.primitives.AssetFull(
+    asset = asset.toPrimitives(),
+    properties = properties.toPrimitives(),
+    score = score.toPrimitives(),
+    tags = tags,
+    links = links.map { it.toPrimitives() },
+    associations = associations.map { it.toPrimitives() },
+    perpetuals = perpetuals.map { it.toPrimitives() },
+    price = price?.let { it.toPrimitives() },
+    market = market?.let { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.AssetFull.toGem(): uniffi.gemstone.AssetFull = uniffi.gemstone.AssetFull(
+    asset = asset.toGem(),
+    properties = properties.toGem(),
+    score = score.toGem(),
+    tags = tags,
+    links = links.map { it.toGem() },
+    associations = associations.map { it.toGem() },
+    perpetuals = perpetuals.map { it.toGem() },
+    price = price?.let { it.toGem() },
+    market = market?.let { it.toGem() },
 )
 
 fun uniffi.gemstone.AssetLink.toPrimitives(): com.wallet.core.primitives.AssetLink = com.wallet.core.primitives.AssetLink(
@@ -1455,6 +1501,18 @@ fun com.wallet.core.primitives.PerpetualBalance.toGem(): uniffi.gemstone.Perpetu
     available = available,
     reserved = reserved,
     withdrawable = withdrawable,
+)
+
+fun uniffi.gemstone.PerpetualBasic.toPrimitives(): com.wallet.core.primitives.PerpetualBasic = com.wallet.core.primitives.PerpetualBasic(
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    perpetualId = com.wallet.core.primitives.PerpetualId(perpetualId),
+    provider = provider.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.PerpetualBasic.toGem(): uniffi.gemstone.PerpetualBasic = uniffi.gemstone.PerpetualBasic(
+    assetId = assetId.toIdentifier(),
+    perpetualId = perpetualId.toIdentifier(),
+    provider = provider.toGem(),
 )
 
 fun uniffi.gemstone.PerpetualData.toPrimitives(): com.wallet.core.primitives.PerpetualData = com.wallet.core.primitives.PerpetualData(

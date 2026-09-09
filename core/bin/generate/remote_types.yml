@@ -41,6 +41,10 @@ remote:
   - AssetBasic
   - AssetList
   - ChainAsset
+  - AssetAssociationType
+  - AssetAssociation
+  - PerpetualBasic
+  - AssetFull
   - PaymentAmount
   - PaymentRequest
   - PaymentLink
