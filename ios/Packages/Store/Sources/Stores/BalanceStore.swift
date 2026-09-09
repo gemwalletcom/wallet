@@ -76,8 +76,14 @@ public struct BalanceStore: Sendable {
     }
 
     @discardableResult
-    public func getBalance(walletId: WalletId, assetId: AssetId) throws -> StoredBalance? {
-        try getBalanceRecord(walletId: walletId, assetId: assetId).map { StoredBalance(balance: $0.mapToBalance(), isActive: $0.isActive) }
+    public func getBalances(walletId: WalletId, assetIds: [AssetId]) throws -> [StoredBalance] {
+        try db.read { db in
+            try BalanceRecord
+                .filter(BalanceRecord.Columns.walletId == walletId.id)
+                .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
+                .fetchAll(db)
+                .map { StoredBalance(assetId: $0.assetId, balance: $0.mapToBalance(), isActive: $0.isActive) }
+        }
     }
 
     @discardableResult

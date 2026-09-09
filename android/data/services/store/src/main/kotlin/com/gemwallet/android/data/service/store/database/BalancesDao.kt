@@ -25,8 +25,8 @@ interface BalancesDao {
     @Query("DELETE FROM balances WHERE asset_id = :assetId")
     fun deleteByAssetId(assetId: String)
 
-    @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
-    fun getByAsset(walletId: String, assetId: String): DbBalance?
+    @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id IN (:assetIds)")
+    fun getByAssets(walletId: String, assetIds: List<String>): List<DbBalance>
 
     @Query("SELECT asset_id FROM balances WHERE wallet_id = :walletId AND is_visible != 0")
     suspend fun getEnabledAssetIds(walletId: String): List<String>

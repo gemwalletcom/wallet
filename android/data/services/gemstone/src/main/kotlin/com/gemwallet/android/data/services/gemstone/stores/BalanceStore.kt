@@ -17,7 +17,7 @@ class GemstoneBalanceStore(
 ) : GemBalanceStore {
 
     override suspend fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> = withContext(Dispatchers.IO) {
-        assetIds.mapNotNull { balancesDao.getByAsset(walletId, it)?.toGemAssetBalance() }
+        balancesDao.getByAssets(walletId, assetIds).map { it.toGemAssetBalance() }
     }
 
     override suspend fun getEnabledAssetIds(walletId: String): List<String> = balancesDao.getEnabledAssetIds(walletId)

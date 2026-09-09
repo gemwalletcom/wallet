@@ -494,6 +494,15 @@ intentional one-sided integration surfaces.
   (session, URL state, USD price for fiat; session, amount, pay balance for swap), so a body pass
   costs one equality check and the FFI runs once per input change; Android derives it in one
   `combine`. Android's selected fiat quote now uses the USD price like iOS instead of `null`.
+- **The confirm screen's first frame waits for its slowest leg, not the sum.** `state()` awaited
+  its balances-and-prices metadata, the selectable fee assets, the simulation state and the
+  recipient's address name one after another, `metadata` awaited balances then prices, and
+  `session.load` awaited the whole network preload before asking for `state()`. Each is a
+  `futures::join!` now, so a confirm opened straight into `load` runs the state reads while the
+  preload is in flight. Both balance stores answered `get_available_balances` with one query per
+  asset (`getBalance` on iOS, `getByAsset` on Android); each now runs a single `IN (...)` query,
+  so a swap confirm's two or three lookups per load are one. (`fee_assets` already returned early
+  for chains without fee assets; the review had that wrong.)
 - **A balance is written only when it changed, and the store writes the whole row.**
   `GemBalanceService` folds every update onto the stored `GemAssetBalance` (`applying`), keeps the
   rows that differ, and hands each store a full `GemBalanceRecord`, so both adapters are one

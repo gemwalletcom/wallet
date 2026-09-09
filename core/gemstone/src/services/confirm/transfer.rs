@@ -149,13 +149,19 @@ impl GemConfirmTransferService {
     pub(super) async fn state(&self, wallet_id: WalletId, input: &GemConfirmInput, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
         let input_type = input.transfer.input_type.clone();
         let chain = input_type.transaction_asset().chain();
+        let (metadata, fee_assets, simulation, address_name) = futures::join!(
+            self.confirm.input_metadata(wallet_id.clone(), &input_type, input_type.fee_asset().id),
+            self.fee_assets(wallet_id, chain),
+            self.simulation_state(input_type.clone(), simulation),
+            self.names.address_name(chain, input.transfer.recipient.address.clone()),
+        );
         Ok(GemConfirmLoad {
             sender: input.from.clone(),
             fee_asset: input_type.fee_asset(),
-            metadata: self.confirm.input_metadata(wallet_id.clone(), &input_type, input_type.fee_asset().id).await?,
-            fee_assets: self.fee_assets(wallet_id, chain).await?,
-            simulation: self.simulation_state(input_type, simulation).await?,
-            address_name: self.names.address_name(chain, input.transfer.recipient.address.clone()).await.unwrap_or_default(),
+            metadata: metadata?,
+            fee_assets: fee_assets?,
+            simulation: simulation?,
+            address_name: address_name.unwrap_or_default(),
             preload: None,
         })
     }

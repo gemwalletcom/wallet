@@ -18,11 +18,8 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     }
 
     public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
-        let walletId = try WalletId.from(id: walletId)
-        return try assetIds.compactMap { assetId in
-            let assetId = try Primitives.AssetId(id: assetId)
-            return try store.getBalance(walletId: walletId, assetId: assetId).map { GemAssetBalance($0.balance, assetId: assetId, isActive: $0.isActive) }
-        }
+        try store.getBalances(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) })
+            .map { GemAssetBalance($0.balance, assetId: $0.assetId, isActive: $0.isActive) }
     }
 
     public func updateBalances(walletId: String, balances: [GemBalanceRecord]) async throws {
