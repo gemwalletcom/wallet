@@ -1,6 +1,6 @@
 use primitives::{AssetId, Chain, DelegationValidator, ImageFormatter};
 
-use super::public::{ASSETS_URL, NFT_ASSETS_URL};
+use super::public::ASSETS_URL;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemImage {
@@ -19,7 +19,7 @@ impl GemImage {
                 ImageFormatter::get_asset_url_for_asset_id(ASSETS_URL, AssetId::from_chain(*chain))
             }
             Self::Validator { chain, validator_id } => ImageFormatter::get_validator_url(ASSETS_URL, chain.as_ref(), validator_id),
-            Self::NftAsset { asset_id } => ImageFormatter::get_nft_asset_url(NFT_ASSETS_URL, asset_id),
+            Self::NftAsset { asset_id } => ImageFormatter::get_nft_asset_url(&format!("{ASSETS_URL}/nft"), asset_id),
             Self::AssetList { list_id } => ImageFormatter::get_asset_list_url(ASSETS_URL, list_id),
         }
     }
@@ -63,7 +63,7 @@ mod tests {
                 asset_id: "ethereum_0xabc::1".to_string()
             }
             .url(),
-            "https://nft-assets.gemwallet.com/assets/ethereum_0xabc::1/preview"
+            "https://assets.gemwallet.com/nft/assets/ethereum_0xabc::1/preview"
         );
         assert_eq!(
             GemImage::AssetList { list_id: "trending".to_string() }.url(),
