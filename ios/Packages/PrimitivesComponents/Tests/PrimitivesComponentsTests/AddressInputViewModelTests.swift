@@ -18,7 +18,7 @@ struct AddressInputViewModelTests {
         #expect(model.validate() == false)
 
         model.inputModel.text = "test.eth"
-        model.nameRecordViewModel.state = .loading
+        model.nameRecordViewModel.state = .loading(name: "test.eth")
         #expect(model.validate() == false)
 
         model.nameRecordViewModel.state = .error

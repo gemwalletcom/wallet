@@ -46,7 +46,7 @@ struct ManageContactAddressViewModelTests {
         let model = ManageContactAddressViewModel.mock(mode: .add)
         model.addressInputModel.text = "john"
 
-        model.addressInputModel.nameRecordViewModel.state = .loading
+        model.addressInputModel.nameRecordViewModel.state = .loading(name: "john")
         #expect(model.buttonState == .disabled)
 
         model.addressInputModel.nameRecordViewModel.state = .error
