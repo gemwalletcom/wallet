@@ -1506,6 +1506,10 @@ public enum Localized {
     public static let network = Localized.tr("Localizable", "transfer.network", fallback: "Network")
     /// Network Fee
     public static let networkFee = Localized.tr("Localizable", "transfer.network_fee", fallback: "Network Fee")
+    /// Pay with
+    public static let payWith = Localized.tr("Localizable", "transfer.pay_with", fallback: "Pay with")
+    /// Payment
+    public static let paymentTitle = Localized.tr("Localizable", "transfer.payment_title", fallback: "Payment")
     /// We've left %@ in your balance to cover future network fees.
     public static func reservedFees(_ p1: Any) -> String {
       return Localized.tr("Localizable", "transfer.reserved_fees", String(describing: p1), fallback: "We've left %@ in your balance to cover future network fees.")

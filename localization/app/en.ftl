@@ -247,6 +247,8 @@ buy_no_results = No quotes available
 
 # Used in Transfer, Send, Stake, and confirmation flows for the network fee label.
 transfer_network_fee = Network Fee
+transfer_pay_with = Pay with
+transfer_payment_title = Payment
 # Used in Transfer, Send, Stake, and confirmation flows for the memo label.
 transfer_memo = Memo
 # Used in Transfer, Send, Stake, and confirmation flows for the confirm label.
