@@ -422,6 +422,7 @@ extension SwapSceneViewModel {
         }
         guard !isTransferDataLoading else { return }
         session = session.onRequestChanged(request: input.request)
+        resetToValue()
         loadTrigger = SwapLoadTrigger(input: input, isImmediate: isImmediate)
 
         Task {

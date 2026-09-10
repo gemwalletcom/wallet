@@ -186,6 +186,38 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
+    func changingAmountClearsReceiveValueBeforeFetch() async {
+        let model = await model()
+
+        #expect(model.toValue.isNotEmpty)
+
+        model.amountInputModel.text = "2"
+        model.onChangeFromValue("1", "2")
+
+        #expect(model.isReceiveFieldLoading)
+        #expect(model.toValue.isEmpty)
+        #expect(model.loadTrigger?.isImmediate == false)
+
+        await model.load()
+
+        #expect(model.isReceiveFieldLoading == false)
+        #expect(model.toValue.isNotEmpty)
+    }
+
+    @Test
+    func changingSlippageClearsReceiveValueBeforeFetch() async {
+        let model = await model()
+
+        #expect(model.toValue.isNotEmpty)
+
+        model.onSelectSlippage(.manual(bps: 150))
+
+        #expect(model.isReceiveFieldLoading)
+        #expect(model.toValue.isEmpty)
+        #expect(model.loadTrigger?.isImmediate == true)
+    }
+
+    @Test
     func clearingInputResetsQuoteImmediately() async {
         let model = await model()
 
