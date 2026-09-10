@@ -165,6 +165,9 @@ impl GemAssetsService {
     }
 
     pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
         let stored = self.store.get_asset_ids(asset_ids).await?;
         if stored.is_empty() {
             return Ok(());
@@ -172,11 +175,11 @@ impl GemAssetsService {
         self.store.add_missing_balances(wallet_id, stored).await
     }
 
-    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<Vec<AssetId>, GemServiceError> {
-        let (enabled, disabled) = rules::default_balances(&wallet);
-        self.store.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
-        self.store.add_balances(wallet.id, disabled, false).await?;
-        Ok(enabled)
+    pub async fn add_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
+        self.store.add_balances(wallet_id, asset_ids, enabled).await
     }
 
     pub async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
@@ -251,13 +254,18 @@ impl GemAssetsService {
     }
 
     pub async fn sync_default_assets(&self) -> Result<(), GemServiceError> {
+        self.ensure_default_assets().await?;
+        self.store.set_stakeable_assets(rules::stakeable_asset_ids()).await
+    }
+
+    pub async fn ensure_default_assets(&self) -> Result<(), GemServiceError> {
         let assets = rules::default_assets();
         let existing = self.store.get_asset_ids(assets.iter().map(|asset| asset.asset.id.clone()).collect()).await?;
         let missing = rules::missing_assets(assets, existing);
-        if !missing.is_empty() {
-            self.store.save_assets(missing).await?;
+        if missing.is_empty() {
+            return Ok(());
         }
-        self.store.set_stakeable_assets(rules::stakeable_asset_ids()).await
+        self.store.save_assets(missing).await
     }
 
     pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {

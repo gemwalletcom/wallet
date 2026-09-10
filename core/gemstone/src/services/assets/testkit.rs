@@ -9,6 +9,7 @@ use crate::services::error::GemServiceError;
 #[derive(Default)]
 pub struct MemoryAssetStore {
     assets: Mutex<Vec<Asset>>,
+    pub added_balances: Mutex<Vec<(WalletId, Vec<AssetId>, bool)>>,
 }
 
 #[async_trait]
@@ -27,10 +28,12 @@ impl GemAssetStore for MemoryAssetStore {
         self.assets.lock().unwrap().push(asset.asset);
         Ok(())
     }
-    async fn add_missing_balances(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+    async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        self.added_balances.lock().unwrap().push((wallet_id, asset_ids, false));
         Ok(())
     }
-    async fn add_balances(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>, _enabled: bool) -> Result<(), GemServiceError> {
+    async fn add_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        self.added_balances.lock().unwrap().push((wallet_id, asset_ids, enabled));
         Ok(())
     }
     async fn set_buyable_assets(&self, _asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {

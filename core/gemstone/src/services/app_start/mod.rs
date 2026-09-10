@@ -89,7 +89,7 @@ impl GemAppStartService {
         let mut failures = Vec::new();
         record(&mut failures, GemAppStartStep::SetupWalletBanners, self.banners.setup_wallet(wallet.clone())).await;
         record(&mut failures, GemAppStartStep::SetupWalletAssets, async {
-            self.assets.sync_default_assets().await?;
+            self.assets.ensure_default_assets().await?;
             self.balance.setup_wallet(wallet.clone()).await
         })
         .await;

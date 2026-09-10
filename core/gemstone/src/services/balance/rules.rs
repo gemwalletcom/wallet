@@ -124,8 +124,8 @@ pub fn balance_records(balances: Vec<GemAssetBalance>, assets: &[Asset]) -> Vec<
         .collect()
 }
 
-pub fn newly_enabled_asset_ids(requested: &[AssetId], enabled: &[AssetId]) -> Vec<AssetId> {
-    missing(requested.iter().cloned(), enabled.iter().cloned())
+pub fn missing_asset_ids(requested: &[AssetId], stored: &[AssetId]) -> Vec<AssetId> {
+    missing(requested.iter().cloned(), stored.iter().cloned())
 }
 
 pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
@@ -251,7 +251,7 @@ mod tests {
             unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]),
             vec![bitcoin.clone(), ethereum.clone()]
         );
-        assert_eq!(newly_enabled_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
+        assert_eq!(missing_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
     }
 
     #[test]

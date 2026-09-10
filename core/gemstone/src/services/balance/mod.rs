@@ -63,10 +63,10 @@ impl GemBalanceService {
             self.assets.sync_missing_assets(asset_ids.clone()).await?;
         }
         let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone()).await?;
-        self.assets.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
+        self.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
         self.store.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), enabled).await?;
         if enabled {
-            self.refresh_enabled_assets(wallet_id, rules::newly_enabled_asset_ids(&asset_ids, &enabled_ids)).await;
+            self.refresh_enabled_assets(wallet_id, rules::missing_asset_ids(&asset_ids, &enabled_ids)).await;
         } else {
             let _ = self.stream.resubscribe().await;
         }
@@ -117,10 +117,21 @@ impl GemBalanceService {
     }
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
-        let stored = self.store.get_enabled_asset_ids(wallet.id.clone()).await?;
-        let enabled = self.assets.setup_wallet(wallet.clone()).await?;
-        self.refresh_enabled_assets(wallet.id, rules::newly_enabled_asset_ids(&enabled, &stored)).await;
+        let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet);
+        let stored = self.store.get_available_balances(wallet.id.clone(), [enabled.clone(), disabled.clone()].concat()).await?;
+        let stored_ids: Vec<AssetId> = stored.into_iter().map(|balance| balance.asset_id).collect();
+        let enabled = rules::missing_asset_ids(&enabled, &stored_ids);
+        let disabled = rules::missing_asset_ids(&disabled, &stored_ids);
+        self.assets.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
+        self.assets.add_balances(wallet.id.clone(), disabled, false).await?;
+        self.refresh_enabled_assets(wallet.id, enabled).await;
         Ok(())
+    }
+
+    async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        let stored = self.store.get_available_balances(wallet_id.clone(), asset_ids.clone()).await?;
+        let stored_ids: Vec<AssetId> = stored.into_iter().map(|balance| balance.asset_id).collect();
+        self.assets.add_missing_balances(wallet_id, rules::missing_asset_ids(&asset_ids, &stored_ids)).await
     }
 
     async fn refresh_enabled_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) {
@@ -142,8 +153,9 @@ impl GemBalanceService {
 
     async fn write_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>, assets: &[Asset]) -> Result<(), GemServiceError> {
         let asset_ids: Vec<AssetId> = rules::unique_asset_ids(updates.iter().map(|update| update.asset_id.clone()).collect());
-        self.assets.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
-        let stored = self.store.get_available_balances(wallet_id.clone(), asset_ids).await?;
+        let stored = self.store.get_available_balances(wallet_id.clone(), asset_ids.clone()).await?;
+        let stored_ids: Vec<AssetId> = stored.iter().map(|balance| balance.asset_id.clone()).collect();
+        self.assets.add_missing_balances(wallet_id.clone(), rules::missing_asset_ids(&asset_ids, &stored_ids)).await?;
         let records = rules::balance_records(rules::changed_balances(stored, updates), assets);
         if records.is_empty() {
             return Ok(());
@@ -187,5 +199,149 @@ impl GemBalanceService {
             },
         );
         Ok(rules::chain_balances(coin?, stake?, tokens?, earn?))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures::executor::block_on;
+    use crate::api::GemApiClient;
+    use crate::gateway::{EmptyPreferences, GemGateway};
+    use crate::services::assets::testkit::MemoryAssetStore;
+    use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
+    use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
+    use crate::services::stream::testkit::SubscriptionTestkit;
+    use crate::services::wallet::testkit::MemoryWalletStore;
+    use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+    use crate::testkit::TestAlienProvider;
+    use async_trait::async_trait;
+    use primitives::{Account, Chain, WalletType};
+    use std::sync::Mutex;
+
+    struct MemoryBalanceStore {
+        rows: Mutex<Vec<AssetId>>,
+        updates: Mutex<usize>,
+    }
+
+    #[async_trait]
+    impl GemBalanceStore for MemoryBalanceStore {
+        async fn get_available_balances(&self, _wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
+            Ok(self.rows.lock().unwrap().iter().filter(|id| asset_ids.contains(id)).cloned().map(GemAssetBalance::zero).collect())
+        }
+        async fn update_balances(&self, _wallet_id: WalletId, _balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
+            *self.updates.lock().unwrap() += 1;
+            Ok(())
+        }
+        async fn get_enabled_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+            Ok(Vec::new())
+        }
+        async fn set_assets_enabled(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>, _enabled: bool) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+        async fn set_asset_pinned(&self, _wallet_id: WalletId, _asset_id: AssetId, _pinned: bool) -> Result<(), GemServiceError> {
+            Ok(())
+        }
+    }
+
+    fn service(rows: Vec<AssetId>) -> (GemBalanceService, Arc<MemoryAssetStore>, Arc<MemoryBalanceStore>) {
+        let provider = Arc::new(TestAlienProvider::with_status(503));
+        let preferences_store = Arc::new(MemoryPreferencesStore::default());
+        let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
+        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
+        let wallets = Arc::new(MemoryWalletStore::default());
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore { current: Mutex::new(None) }), wallets.clone()));
+        let asset_store = Arc::new(MemoryAssetStore::default());
+        let assets = Arc::new(GemAssetsService::new(
+            Arc::new(GemApiClient::new(provider)),
+            gateway.clone(),
+            asset_store.clone(),
+            Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
+            preferences,
+            session,
+        ));
+        let store = Arc::new(MemoryBalanceStore {
+            rows: Mutex::new(rows),
+            updates: Mutex::new(0),
+        });
+        let service = GemBalanceService::new(gateway, wallets, asset_store.clone(), store.clone(), assets, Arc::new(SubscriptionTestkit::new(&[], &[]).service));
+        (service, asset_store, store)
+    }
+
+    fn wallet() -> Wallet {
+        Wallet {
+            wallet_type: WalletType::Multicoin,
+            ..Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Cosmos, Chain::Ethereum], "address"))
+        }
+    }
+
+    #[test]
+    fn test_setup_of_a_new_wallet_adds_every_default_balance() {
+        block_on(async {
+            let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet());
+            let (service, asset_store, _) = service(Vec::new());
+
+            service.setup_wallet(wallet()).await.unwrap();
+
+            let added = asset_store.added_balances.lock().unwrap();
+            assert_eq!(added.len(), 2);
+            assert_eq!(added[0], (wallet().id, enabled, true));
+            assert_eq!(added[1], (wallet().id, disabled, false));
+        });
+    }
+
+    #[test]
+    fn test_setup_of_a_complete_wallet_writes_nothing() {
+        block_on(async {
+            let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet());
+            let (service, asset_store, store) = service([enabled, disabled].concat());
+
+            service.setup_wallet(wallet()).await.unwrap();
+
+            assert!(asset_store.added_balances.lock().unwrap().is_empty());
+            assert_eq!(*store.updates.lock().unwrap(), 0);
+        });
+    }
+
+    #[test]
+    fn test_a_balance_update_creates_only_the_rows_it_lacks() {
+        block_on(async {
+            let ethereum = AssetId::from_chain(Chain::Ethereum);
+            let cosmos = AssetId::from_chain(Chain::Cosmos);
+            let (service, asset_store, store) = service(vec![ethereum.clone()]);
+            asset_store
+                .save_assets(vec![
+                    crate::services::assets::rules::default_asset_basic(Asset::from_chain(Chain::Ethereum)),
+                    crate::services::assets::rules::default_asset_basic(Asset::from_chain(Chain::Cosmos)),
+                ])
+                .await
+                .unwrap();
+            let update = |asset_id: AssetId| GemBalanceUpdate {
+                asset_id,
+                update_type: GemBalanceUpdateType::Token { available: num_bigint::BigUint::ZERO },
+                is_active: true,
+            };
+
+            service.update_balances(wallet().id, vec![update(ethereum), update(cosmos.clone())]).await.unwrap();
+
+            assert_eq!(*asset_store.added_balances.lock().unwrap(), vec![(wallet().id, vec![cosmos], false)]);
+            assert_eq!(*store.updates.lock().unwrap(), 1);
+        });
+    }
+
+    #[test]
+    fn test_setup_adds_only_the_balances_the_wallet_lacks() {
+        block_on(async {
+            let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet());
+            let missing_enabled = enabled[0].clone();
+            let missing_disabled = disabled[0].clone();
+            let rows = [enabled, disabled].concat().into_iter().filter(|id| id != &missing_enabled && id != &missing_disabled).collect();
+            let (service, asset_store, _) = service(rows);
+
+            service.setup_wallet(wallet()).await.unwrap();
+
+            let added = asset_store.added_balances.lock().unwrap();
+            assert_eq!(*added, vec![(wallet().id, vec![missing_enabled], true), (wallet().id, vec![missing_disabled], false)]);
+        });
     }
 }

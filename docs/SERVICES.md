@@ -611,6 +611,22 @@ intentional one-sided integration surfaces.
   stops deriving it from the session. The header-buttons rule (a blocked multi-signature account
   disables them) moved from iOS's `HeaderBannerEventViewModel` to
   `wallet_home::rules::header_buttons_enabled`.
+- **Wallet setup reads once and writes only what the wallet lacks.** Every session change
+  re-ran the wallet setup as a set of blind writes: one insert-or-ignore per default balance,
+  one per setup banner, and an unconditional stakeable-flag update, so switching wallets cost
+  a dozen no-op write transactions (and their Room invalidation) before anything visible
+  happened, and a default asset the user had hidden was re-fetched on every switch because
+  "not enabled" was read as "new". Core now asks the balance store which of the wallet's
+  default balances already exist and inserts only the missing rows, refreshing only those; the
+  banner setup checks each key's state before adding it, so a dismissed banner stays dismissed
+  and a present one costs a read, not a write; and the stakeable flags are synced once at app
+  start, with the per-wallet path only ensuring the default asset rows exist; a balance update
+  likewise creates only the rows it lacks instead of re-inserting every one it touches. Measured
+  on the emulator with Room query logging, a wallet switch went from fourteen setup statements
+  in four write transactions (ten balance inserts, three banner inserts, one stakeable update) to
+  none, and app launch from about a thousand statements to little over a hundred; the wallet
+  list also lands in one frame instead of after an intermediate one. Both apps get this through
+  the existing store contracts, so nothing changed in the app layers.
 - **A user action that fails says so on both apps, and never reports success early.** The same
   sweep found the other places where a tap could end in silence: saving a contact and adding an
   address to one, deleting a contact, adding a custom token, setting or deleting a price alert,
