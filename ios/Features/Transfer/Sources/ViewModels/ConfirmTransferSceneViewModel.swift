@@ -47,19 +47,7 @@ public final class ConfirmTransferSceneViewModel {
 
     public var isPresentingSheet: ConfirmTransferSheetType?
 
-    public var isPresentingAlertMessage: AlertMessage? {
-        get {
-            switch state.confirmation {
-            case let .failed(error): AlertMessage(title: Localized.Errors.transferError, message: error.localizedDescription)
-            case .idle, .confirming: nil
-            }
-        }
-        set {
-            if newValue == nil {
-                state.confirmation = .idle
-            }
-        }
-    }
+    public var isPresentingAlertMessage: AlertMessage?
 
 
     private let request: ConfirmTransferRequest
@@ -90,6 +78,7 @@ public final class ConfirmTransferSceneViewModel {
         let state = ConfirmTransferState(
             transfer: request.data,
             simulation: ConfirmSimulationState(result: request.simulation, chain: request.data.chain),
+            screen: session.screen(),
         )
         let screen = state.screen
         self.feeSelection = feeSelection
@@ -129,14 +118,14 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var isConfirming: Bool {
-        state.confirmation.isConfirming
+        state.screen.phase == .confirming
     }
 
     var isHeaderVisible: Bool {
         guard request.data.applicationMetadata?.source == .payment else {
             return true
         }
-        return state.transaction.value != nil
+        return state.preload != nil
     }
 
     var simulationWarnings: [SimulationWarning] {
@@ -297,21 +286,22 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectConfirm() {
-        guard let preload = state.transaction.value, case let .success(amount)? = state.transferAmount else {
-            Task { await load() }
-            return
+        switch state.screen.action() {
+        case .load: Task { await load() }
+        case .execute: confirm()
+        case .none: break
         }
-        confirm(confirmData: preload.confirmData, amount: amount)
     }
 
     func load() async {
+        state.screen = state.screen.onLoadStarted()
         do {
-            state = try ConfirmTransferState(await session.state())
-            state.transaction = .loading
-            state = try ConfirmTransferState(await session.load(options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection)))
+            state = try ConfirmTransferState(await session.state(), screen: state.screen)
+            let load = try await session.load(options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection))
+            state = try ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch {
             guard !Task.isCancelled else { return }
-            state.transaction.setError(error)
+            state.screen = state.screen.onLoadFailed(error: error.confirmError)
             debugLog("confirm load error: \(error)")
         }
     }
@@ -352,23 +342,23 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
-    private func confirm(confirmData: GemConfirmData, amount: GemTransferAmount) {
-        guard !state.confirmation.isConfirming else { return }
-        state.confirmation = .confirming
+    private func confirm() {
+        guard let preload = state.preload, case let .success(amount)? = state.transferAmount else { return }
+        state.screen = state.screen.onExecuteStarted()
         Task {
             do {
                 try await submit(
                     request: request,
-                    confirmData: confirmData,
+                    confirmData: preload.confirmData,
                     amount: amount,
                     simulation: state.simulation.result,
                 )
-                state.confirmation = .idle
                 onComplete?()
             } catch GemConfirmError.Cancelled {
-                state.confirmation = .idle
+                state.screen = state.screen.onExecuteCancelled()
             } catch {
-                state.confirmation = .failed(error)
+                state.screen = state.screen.onExecuteFailed(error: error.confirmError)
+                isPresentingAlertMessage = AlertMessage(title: Localized.Errors.transferError, message: error.localizedDescription)
                 debugLog("confirm transaction error: \(error)")
             }
         }

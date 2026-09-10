@@ -5,9 +5,8 @@ use primitives::{
 
 use super::error::GemConfirmError;
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmData, GemConfirmFeeLoad, GemConfirmFeeRow,
-    GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmPhase, GemConfirmPreload, GemConfirmScreen, GemConfirmSimulationState, GemFeeAsset,
-    GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmPreload,
+    GemConfirmSimulationState, GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
@@ -15,6 +14,7 @@ use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPrel
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
 use crate::services::balance::GemBalanceRequirement;
+use crate::services::collections::unique;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::services::transfer::rules::TransferInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
@@ -60,13 +60,7 @@ fn signing_address(wallet: &Wallet, chain: Chain, from: &str) -> Result<String, 
 }
 
 pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asset_ids: Vec<AssetId>) -> Vec<AssetId> {
-    let mut asset_ids: Vec<AssetId> = Vec::new();
-    for asset_id in [asset_id.clone(), fee_asset_id.clone()].into_iter().chain(extra_asset_ids) {
-        if !asset_ids.contains(&asset_id) {
-            asset_ids.push(asset_id);
-        }
-    }
-    asset_ids
+    unique([asset_id.clone(), fee_asset_id.clone()].into_iter().chain(extra_asset_ids))
 }
 
 pub(super) trait ConfirmInput {
@@ -205,25 +199,6 @@ impl GemConfirmLoad {
     }
 }
 
-pub fn confirm_button(screen: &GemConfirmScreen) -> GemConfirmButton {
-    let button = |kind, state| GemConfirmButton { kind, state };
-    match screen.phase {
-        GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading),
-        GemConfirmPhase::Failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
-        GemConfirmPhase::Ready if screen.amount_failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
-        GemConfirmPhase::Ready if screen.has_critical_warning => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled),
-        GemConfirmPhase::Ready => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled),
-    }
-}
-
-pub fn confirm_fee_row(screen: &GemConfirmScreen) -> GemConfirmFeeRow {
-    match screen.phase {
-        GemConfirmPhase::Loading => GemConfirmFeeRow::Loading,
-        GemConfirmPhase::Failed => GemConfirmFeeRow::Unavailable,
-        GemConfirmPhase::Ready | GemConfirmPhase::Confirming => GemConfirmFeeRow::Ready,
-    }
-}
-
 pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>) -> Vec<GemFeeAsset> {
     balances
         .into_iter()
@@ -259,11 +234,8 @@ pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
     }
 }
 
-pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -> bool {
-    if matches!(fee_asset_id.chain, Chain::HyperCore | Chain::Tron) || !fee_asset_id.is_native() {
-        return false;
-    }
-    fee_available.trim().is_empty() || fee_available.trim().chars().all(|character| character == '0')
+pub fn is_insufficient_network_fee(fee_asset_id: &AssetId, fee_available: &GemBigUint) -> bool {
+    !matches!(fee_asset_id.chain, Chain::HyperCore | Chain::Tron) && fee_asset_id.is_native() && *fee_available == GemBigUint::ZERO
 }
 
 impl SendInput {
@@ -419,11 +391,12 @@ impl GemConfirmFeeSelection {
 #[cfg(test)]
 mod tests {
     use super::super::model::GemConfirmData;
+    use super::super::testkit::confirm_data;
     use super::*;
     use crate::models::custom_types::GemBigInt;
     use crate::models::custom_types::GemBigUint;
     use crate::models::transaction::{GemFeeOptions, GemTransactionLoadMetadata};
-    use crate::services::transfer::{GemRecipient, GemTransferData};
+    use crate::services::transfer::GemTransferData;
     use crate::transfer_amount::GemTransferAmount;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
@@ -451,33 +424,7 @@ mod tests {
     fn send_input_from(chain: Chain, input_type: TransactionInputType, from: &str) -> SendInput {
         SendInput {
             wallet: wallet(chain),
-            confirm: GemConfirmData {
-                input: GemConfirmInput {
-                    from: Account::mock(chain, from),
-                    transfer: GemTransferData {
-                        input_type,
-                        recipient: GemRecipient {
-                            address: "recipient".to_string(),
-                            name: None,
-                            memo: Some("memo".to_string()),
-                            references: vec![],
-                        },
-                        value: BigInt::from(10),
-                        use_max_amount: true,
-                    },
-                },
-                fee: GemTransactionLoadFee {
-                    fee: BigInt::ZERO,
-                    gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(5) },
-                    gas_limit: BigInt::from(21_000),
-                    options: Default::default(),
-                    fee_asset: AssetId::from_chain(Chain::Solana),
-                },
-                selected_priority: FeePriority::Normal,
-                fee_rates: vec![],
-                metadata: GemTransactionLoadMetadata::None,
-                simulation: None,
-            },
+            confirm: confirm_data(chain, input_type, from),
             value: BigInt::from(9),
             network_fee: BigInt::from(1),
             simulation: None,
@@ -756,7 +703,9 @@ mod tests {
         };
         let perpetual = TransactionInputType::Perpetual {
             asset: Asset::mock_sol(),
-            perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
+            perpetual_type: PerpetualType::Open {
+                data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+            },
         };
         let ethereum_swap = TransactionInputType::Swap {
             from_asset: Asset::mock(),
@@ -941,14 +890,15 @@ mod tests {
 
     #[test]
     fn test_insufficient_network_fee_only_for_empty_native_balances() {
-        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "0"));
-        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), ""));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "10"));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Tron), "0"));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::HyperCore), "0"));
+        let empty = GemBigUint::ZERO;
+        let funded = GemBigUint::from(10u32);
+        assert!(is_insufficient_network_fee(&AssetId::from_chain(Chain::Ethereum), &empty));
+        assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::Ethereum), &funded));
+        assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::Tron), &empty));
+        assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::HyperCore), &empty));
         assert!(!is_insufficient_network_fee(
-            AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())),
-            "0"
+            &AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())),
+            &empty
         ));
     }
 
@@ -1242,54 +1192,5 @@ mod tests {
 
         let resimulated = screen.with_fee(fee, Some(simulation_state(vec![SimulationWarning::validation_error("preload")])));
         assert_eq!(resimulated.simulation.warnings.len(), 1);
-    }
-
-    #[test]
-    fn test_confirm_button_follows_the_phase_and_the_ready_checks() {
-        let screen = |phase, amount_failed, has_critical_warning| GemConfirmScreen {
-            phase,
-            amount_failed,
-            has_critical_warning,
-        };
-        let button = |kind, state| GemConfirmButton { kind, state };
-
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Loading, false, false)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Confirming, false, false)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Failed, false, true)),
-            button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Ready, true, true)),
-            button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Ready, false, true)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Ready, false, false)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled)
-        );
-    }
-
-    #[test]
-    fn test_confirm_fee_row_waits_for_the_preload_and_gives_up_on_failure() {
-        let screen = |phase| GemConfirmScreen {
-            phase,
-            amount_failed: true,
-            has_critical_warning: true,
-        };
-
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Loading)), GemConfirmFeeRow::Loading);
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Ready)), GemConfirmFeeRow::Ready);
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Confirming)), GemConfirmFeeRow::Ready);
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Failed)), GemConfirmFeeRow::Unavailable);
     }
 }

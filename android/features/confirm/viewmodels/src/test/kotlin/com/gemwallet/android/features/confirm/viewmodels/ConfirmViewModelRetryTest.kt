@@ -5,7 +5,6 @@ import uniffi.gemstone.GemTransferAmountResult
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemConfirmInput
@@ -16,6 +15,8 @@ import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
+import uniffi.gemstone.GemConfirmPhase
+import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmSimulationState
@@ -89,13 +90,13 @@ class ConfirmViewModelRetryTest {
         runCurrent()
         coVerify(timeout = 5_000, exactly = 1) { confirmSession.load(any()) }
 
-        assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.first { it.phase == GemConfirmPhase.FAILED }.phase)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
         coVerify(timeout = 5_000, exactly = 2) { confirmSession.load(any()) }
-        assertTrue(viewModel.state.first { it is ConfirmState.Ready } is ConfirmState.Ready)
+        assertEquals(GemConfirmPhase.READY, viewModel.screen.first { it.phase == GemConfirmPhase.READY }.phase)
         assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
     }
 
@@ -103,6 +104,7 @@ class ConfirmViewModelRetryTest {
         val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
         every { confirmService.session(any(), transfer, any()) } returns confirmSession
+        every { confirmSession.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, false, null)
         coEvery { confirmSession.state() } returns mockGemConfirmLoad(asset, preload = null)
         var calls = 0
         coEvery { confirmSession.load(any()) } answers {

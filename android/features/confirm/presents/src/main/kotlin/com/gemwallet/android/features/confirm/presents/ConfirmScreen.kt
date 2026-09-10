@@ -38,10 +38,12 @@ import com.gemwallet.android.model.GemNetworkError
 import com.gemwallet.android.ui.models.ButtonState
 import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmButtonState
+import uniffi.gemstone.GemConfirmPhase
+import uniffi.gemstone.GemConfirmStage
+import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemSignerError
 import com.gemwallet.android.domains.confirm.ConfirmProperty
-import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.features.confirm.presents.components.ConfirmErrorInfo
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -113,7 +115,7 @@ fun ConfirmScreen(
     val transactionProperties by viewModel.transactionProperties.collectAsStateWithLifecycle()
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val screen by viewModel.screen.collectAsStateWithLifecycle()
     val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
     val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
@@ -130,9 +132,8 @@ fun ConfirmScreen(
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
-    var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.error) {
-        mutableStateOf(state is ConfirmState.BroadcastError)
-    }
+    val executeError = screen.failure?.takeIf { it.stage == GemConfirmStage.EXECUTE }?.error
+    var isShowedBroadcastError by remember(executeError) { mutableStateOf(executeError != null) }
     val isShowBottomSheetInfo by viewModel.isNetworkFeeSheetVisible.collectAsStateWithLifecycle()
 
     LaunchedEffect(input, simulationResult) {
@@ -153,7 +154,7 @@ fun ConfirmScreen(
         onClose = { cancelAction() },
         mainAction = {
             MainActionButton(
-                title = state.buttonLabel(button.kind),
+                title = screen.buttonLabel(button.kind),
                 state = button.state.toButtonState(),
                 onClick = {
                     context.requestAuth(AuthRequest.Confirmation) {
@@ -169,7 +170,7 @@ fun ConfirmScreen(
         ) {
             item {
                 when {
-                    isPayment && simulation.header == null && state is ConfirmState.Prepare -> Box(
+                    isPayment && simulation.header == null && screen.phase == GemConfirmPhase.LOADING -> Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0f)
@@ -283,7 +284,7 @@ fun ConfirmScreen(
             }
             item {
                 ConfirmErrorInfo(
-                    state = state,
+                    failure = screen.failure,
                     fee = feeModel as? FeeUIModel.FeeInfo,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
                     onDismissBottomSheetInfo = viewModel::dismissNetworkFeeSheet,
@@ -338,7 +339,7 @@ fun ConfirmScreen(
                 Text(stringResource(R.string.errors_transfer_error))
             },
             text = {
-                Text((state as? ConfirmState.BroadcastError)?.error?.toBroadcastLabel() ?: stringResource(R.string.errors_error_occurred))
+                Text(executeError?.toBroadcastLabel() ?: stringResource(R.string.errors_error_occurred))
             }
         )
     }
@@ -396,8 +397,8 @@ private fun ConfirmDetailElementBottomSheet(
 }
 
 @Composable
-fun ConfirmState.buttonLabel(kind: GemConfirmButtonKind): String = when {
-    this is ConfirmState.FatalError -> stringResource(messageRes)
+fun GemConfirmScreen.buttonLabel(kind: GemConfirmButtonKind): String = when {
+    failure?.error is GemConfirmException.AccountMissing -> stringResource(R.string.errors_wallet_account_missing)
     kind == GemConfirmButtonKind.RETRY -> stringResource(R.string.common_try_again)
     else -> stringResource(R.string.transfer_confirm)
 }

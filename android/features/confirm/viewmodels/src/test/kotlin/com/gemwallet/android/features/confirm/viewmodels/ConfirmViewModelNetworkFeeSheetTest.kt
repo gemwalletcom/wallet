@@ -2,7 +2,6 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAccount
@@ -28,11 +27,14 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemConfirmPhase
+import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemRecipient
@@ -59,13 +61,13 @@ class ConfirmViewModelNetworkFeeSheetTest {
         val viewModel = viewModel()
         runCurrent()
 
-        assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.first { it.phase == GemConfirmPhase.FAILED }.phase)
         assertTrue(viewModel.isNetworkFeeSheetVisible.first { it })
 
         viewModel.dismissNetworkFeeSheet()
         runCurrent()
 
-        assertTrue(viewModel.state.value is ConfirmState.Error)
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
         assertFalse(viewModel.isNetworkFeeSheetVisible.value)
 
         viewModel.send(FinishConfirmAction { _ -> })
@@ -83,6 +85,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
         every { confirmService.session(any(), transfer, any()) } returns confirmSession
+        every { confirmSession.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, false, null)
         coEvery { confirmSession.state() } returns mockGemConfirmLoad(asset, preload = null)
         coEvery { confirmSession.load(any()) } answers {
             throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null)

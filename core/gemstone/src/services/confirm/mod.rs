@@ -3,6 +3,7 @@
 mod error;
 mod model;
 pub(crate) mod rules;
+pub(crate) mod screen;
 mod session;
 mod signer;
 #[cfg(test)]

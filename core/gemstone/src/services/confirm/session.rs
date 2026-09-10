@@ -4,7 +4,7 @@ use futures::lock::Mutex;
 use primitives::{SimulationResult, Wallet};
 
 use super::rules::preload_simulation;
-use super::{GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmTransferService};
+use super::{GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmScreen, GemConfirmTransferService};
 use crate::services::transfer::GemTransferData;
 
 #[derive(uniffi::Object)]
@@ -30,6 +30,10 @@ impl GemConfirmSession {
 
 #[uniffi::export]
 impl GemConfirmSession {
+    pub fn screen(&self) -> GemConfirmScreen {
+        GemConfirmScreen::initial(self.simulation.as_ref())
+    }
+
     pub async fn state(&self) -> Result<GemConfirmLoad, GemConfirmError> {
         if let Some(screen) = self.screen.lock().await.clone() {
             return Ok(screen);

@@ -2,6 +2,7 @@
 
 public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
+public import struct Gemstone.GemConfirmScreen
 public import protocol Gemstone.GemConfirmSessionProtocol
 
 public final class GemConfirmSessionMock: GemConfirmSessionProtocol, @unchecked Sendable {
@@ -13,6 +14,10 @@ public final class GemConfirmSessionMock: GemConfirmSessionProtocol, @unchecked 
     public init(state: GemConfirmLoad, load: Result<GemConfirmLoad, any Error>) {
         initialState = state
         loadResult = load
+    }
+
+    public func screen() -> GemConfirmScreen {
+        GemConfirmScreen(phase: .loading, amountFailed: false, hasCriticalWarning: false, failure: nil)
     }
 
     public func state() async throws -> GemConfirmLoad {

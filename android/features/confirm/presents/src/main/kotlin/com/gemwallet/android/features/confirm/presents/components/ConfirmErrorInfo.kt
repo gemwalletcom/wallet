@@ -9,7 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.confirm.ConfirmState
+import uniffi.gemstone.GemConfirmFailure
+import uniffi.gemstone.GemConfirmStage
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.confirm.presents.toPreloadLabel
@@ -35,7 +36,7 @@ import java.math.BigInteger
 
 @Composable
 internal fun ConfirmErrorInfo(
-    state: ConfirmState,
+    failure: GemConfirmFailure?,
     fee: FeeUIModel.FeeInfo?,
     isShowBottomSheetInfo: Boolean,
     onDismissBottomSheetInfo: () -> Unit,
@@ -48,10 +49,7 @@ internal fun ConfirmErrorInfo(
     var isShowGetAssetSheet by remember { mutableStateOf(false) }
     var buyAmount by remember { mutableStateOf<Int?>(null) }
 
-    if (state !is ConfirmState.Error) {
-        return
-    }
-    val error = state.error
+    val error = failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error ?: return
     val requiredAsset = when (error) {
         is GemConfirmException.InsufficientBalance -> error.asset.toPrimitives()
         is GemConfirmException.InsufficientNetworkFee -> error.asset.toPrimitives()

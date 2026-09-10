@@ -227,11 +227,30 @@ pub enum GemConfirmPhase {
     Failed,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConfirmStage {
+    Load,
+    Execute,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmFailure {
+    pub stage: GemConfirmStage,
+    pub error: GemConfirmError,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmScreen {
     pub phase: GemConfirmPhase,
     pub amount_failed: bool,
     pub has_critical_warning: bool,
+    pub failure: Option<GemConfirmFailure>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConfirmAction {
+    Load,
+    Execute,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
@@ -258,17 +277,6 @@ pub enum GemConfirmFeeRow {
     Loading,
     Ready,
     Unavailable,
-}
-
-#[uniffi::export]
-impl GemConfirmScreen {
-    pub fn button(&self) -> GemConfirmButton {
-        super::rules::confirm_button(self)
-    }
-
-    pub fn fee_row(&self) -> GemConfirmFeeRow {
-        super::rules::confirm_fee_row(self)
-    }
 }
 
 #[cfg(test)]

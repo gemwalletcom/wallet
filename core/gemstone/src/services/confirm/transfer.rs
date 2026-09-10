@@ -194,7 +194,7 @@ impl GemConfirmTransferService {
 
     async fn missing_network_fee(&self, wallet_id: WalletId, input_type: TransactionInputType) -> Option<GemConfirmError> {
         let balance = self.confirm.input_metadata(wallet_id, &input_type, input_type.fee_asset().id).await.ok()?.fee_asset_balance;
-        is_insufficient_network_fee(balance.asset_id.clone(), &balance.available.to_string()).then(|| GemConfirmError::InsufficientNetworkFee {
+        is_insufficient_network_fee(&balance.asset_id, &balance.available).then(|| GemConfirmError::InsufficientNetworkFee {
             asset: Asset::from_chain(balance.asset_id.chain),
             requirement: None,
         })

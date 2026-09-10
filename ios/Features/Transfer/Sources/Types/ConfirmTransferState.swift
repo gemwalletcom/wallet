@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmData
+import enum Gemstone.GemConfirmError
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemConfirmLoad
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemConfirmPreload
-import enum Gemstone.GemConfirmPhase
 import struct Gemstone.GemConfirmScreen
 import struct Gemstone.GemFeeAsset
 import struct Gemstone.GemFeeRateRows
@@ -20,8 +20,7 @@ struct ConfirmTransferState {
     var feeAsset: Asset
     var load: GemConfirmLoad?
     var simulation: ConfirmSimulationState
-    var transaction: StateViewType<GemConfirmPreload>
-    var confirmation: ConfirmationPhase = .idle
+    var screen: GemConfirmScreen
 
     var metadata: GemConfirmMetadata? { load?.metadata }
     var feeAssets: [GemFeeAsset] { load?.feeAssets ?? [] }
@@ -30,38 +29,34 @@ struct ConfirmTransferState {
 }
 
 extension ConfirmTransferState {
-    init(transfer: GemTransferData, simulation: ConfirmSimulationState) {
+    init(transfer: GemTransferData, simulation: ConfirmSimulationState, screen: GemConfirmScreen) {
         self.init(
             feeAsset: transfer.feeAsset().map(),
             load: nil,
             simulation: simulation,
-            transaction: .loading,
+            screen: screen,
         )
     }
 
-    init(_ load: GemConfirmLoad) throws {
+    init(_ load: GemConfirmLoad, screen: GemConfirmScreen) throws {
         self.init(
             feeAsset: load.feeAsset.map(),
             load: load,
             simulation: try ConfirmSimulationState(load.simulation),
-            transaction: load.preload.map { .data($0) } ?? .loading,
+            screen: screen,
         )
+    }
+
+    var preload: GemConfirmPreload? {
+        load?.preload
     }
 
     var transferAmount: TransferAmountValidation? {
-        transaction.value?.amount.map()
+        preload?.amount.map()
     }
 
     var fee: GemTransactionLoadFee? {
-        transaction.value?.confirmData.fee
-    }
-
-    var screen: GemConfirmScreen {
-        GemConfirmScreen(
-            phase: phase,
-            amountFailed: transferAmount?.isFailure == true,
-            hasCriticalWarning: simulation.hasCriticalWarning,
-        )
+        preload?.confirmData.fee
     }
 
     func feeRateRows(selection: GemConfirmFeeSelection) -> GemFeeRateRows? {
@@ -69,16 +64,14 @@ extension ConfirmTransferState {
     }
 
     var transactionError: ConfirmTransferError? {
-        if case let .error(error) = transaction { return ConfirmTransferError(error: error) }
+        if let failure = screen.failure, failure.stage == .load { return ConfirmTransferError(error: failure.error) }
         if case let .failure(error)? = transferAmount { return ConfirmTransferError(error: error) }
         return nil
     }
+}
 
-    private var phase: GemConfirmPhase {
-        switch transaction {
-        case .noData, .loading: .loading
-        case .error: .failed
-        case .data: confirmation.isConfirming ? .confirming : .ready
-        }
+extension Error {
+    var confirmError: GemConfirmError {
+        self as? GemConfirmError ?? .Load(msg: localizedDescription)
     }
 }

@@ -7,6 +7,7 @@ import enum Gemstone.FeePriority
 import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
+import struct Gemstone.GemConfirmFailure
 import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemFeeRate
 import protocol Gemstone.GemNameServiceProtocol
@@ -36,7 +37,7 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock(data: data)
 
         #expect(model.isHeaderVisible == false)
-        model.state.transaction = .data(.mock())
+        model.state.load = .mock(preload: .mock())
         #expect(model.isHeaderVisible == true)
     }
 
@@ -210,7 +211,7 @@ struct ConfirmTransferSceneViewModelTests {
     func networkFeeItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
 
-        model.state = .mock(transaction: .error(AnyError("test")))
+        model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: .Load(msg: "test"))))
         let errorFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = errorFeeItem?.itemModel {
@@ -221,7 +222,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected network fee item model for error state")
         }
 
-        model.state = .mock(transaction: .data(.mock()), load: .mock())
+        model.state = .mock(load: .mock(preload: .mock()), screen: .mock(phase: .ready))
         let loadedFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = loadedFeeItem?.itemModel {
@@ -236,7 +237,7 @@ struct ConfirmTransferSceneViewModelTests {
     func networkFeeStaysSelectableWhileReloading() {
         let model = ConfirmTransferSceneViewModel.mock()
 
-        model.state = .mock(transaction: .loading, load: .mock(preload: .mock(confirmData: .mock(feeRates: [
+        model.state = .mock(load: .mock(preload: .mock(confirmData: .mock(feeRates: [
             GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
             GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
         ]))))
@@ -262,14 +263,14 @@ struct ConfirmTransferSceneViewModelTests {
         )
 
         await model.load()
-        #expect(model.state.transaction.value?.confirmData.feeRates.map(\.priority) == priorities)
+        #expect(model.state.preload?.confirmData.feeRates.map(\.priority) == priorities)
 
         model.state.simulation = .mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
         model.feeSelection = .priority(priority: .fast)
         await model.load()
 
         #expect(model.state.simulation.warnings.isEmpty)
-        #expect(model.state.transaction.value?.confirmData.feeRates.map(\.priority) == priorities)
+        #expect(model.state.preload?.confirmData.feeRates.map(\.priority) == priorities)
     }
 
     @Test
@@ -296,7 +297,7 @@ struct ConfirmTransferSceneViewModelTests {
             session.onLoad = {
                 let feeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
                 guard case let .networkFee(listItem, selectable) = feeItem?.itemModel else { return }
-                #expect(model.state.transaction.isLoading)
+                #expect(model.state.screen.phase == .loading)
                 #expect(model.state.confirmData != nil)
                 #expect(listItem.hasSubtitlePlaceholder)
                 #expect(selectable)
@@ -305,7 +306,7 @@ struct ConfirmTransferSceneViewModelTests {
             model.feeSelection = .priority(priority: .fast)
             await model.load()
         }
-        #expect(model.state.transaction.value?.confirmData.feeRates.count == 2)
+        #expect(model.state.preload?.confirmData.feeRates.count == 2)
     }
 
     @Test
@@ -326,13 +327,13 @@ struct ConfirmTransferSceneViewModelTests {
 
         await confirmation { preloading in
             session.onLoad = {
-                #expect(model.state.transaction.isLoading)
+                #expect(model.state.screen.phase == .loading)
                 #expect(model.state.addressName?.name == "vitalik.eth")
                 preloading()
             }
             await model.load()
         }
-        #expect(model.state.transaction.value != nil)
+        #expect(model.state.preload != nil)
         #expect(model.state.addressName?.name == "vitalik.eth")
     }
 
@@ -346,7 +347,7 @@ struct ConfirmTransferSceneViewModelTests {
         task.cancel()
         await task.value
 
-        #expect(model.state.transaction.isLoading)
+        #expect(model.state.screen.phase == .loading)
     }
 
     @Test
@@ -406,7 +407,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func errorItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.state = .mock(transaction: .error(AnyError("Test error")))
+        model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: .Load(msg: "Test error"))))
 
         let errorItem = model.itemModel(for: .error) as? ConfirmErrorViewModel
 
@@ -426,7 +427,7 @@ struct ConfirmTransferSceneViewModelTests {
             (GemConfirmError.AccountMissing(chain: Primitives.Chain.tron.rawValue), Localized.Errors.walletAccountMissing),
         ] {
             let model = ConfirmTransferSceneViewModel.mock()
-            model.state = .mock(transaction: .error(error))
+            model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: error)))
 
             let errorItem = model.itemModel(for: .error) as? ConfirmErrorViewModel
             guard case let .error(_, displayError, _) = errorItem?.itemModel else {
@@ -616,7 +617,7 @@ struct ConfirmTransferSceneViewModelTests {
         let asset = Asset.mockTempoPathUSD()
         let feeAsset = Asset.mockTempoUSDC()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.state = .mock(transaction: .data(.mock()), feeAsset: feeAsset)
+        model.state = .mock(load: .mock(preload: .mock()), feeAsset: feeAsset, screen: .mock(phase: .ready))
 
         #expect(model.swapFromAsset(to: asset) == feeAsset)
     }

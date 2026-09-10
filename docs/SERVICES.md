@@ -301,6 +301,21 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The confirm screen's lifecycle is Core's state machine.** `GemConfirmScreen` is a state record
+  now: `GemConfirmSession::screen()` gives the initial one, and `on_load_started`, `on_loaded(load)`,
+  `on_load_failed(error)`, `on_execute_started`, `on_execute_cancelled` and `on_execute_failed(error)`
+  return the next one, carrying the phase, the amount and critical-warning flags and the last
+  `GemConfirmFailure { stage: Load | Execute, error }`. `action()` says what the button tap does,
+  `Load` or `Execute`, so retry after a failed preload or an invalid amount reloads and retry after a
+  failed broadcast signs again. Both apps mapped their own lifecycle enum into `GemConfirmPhase` and
+  disagreed: a broadcast failure left iOS on "Confirm" with an alert while Android showed "Retry", and
+  an invalid amount made iOS reload but Android re-throw on every tap. iOS's `ConfirmationPhase` and
+  the `StateViewType` it kept for the preload, and Android's `ConfirmState` (`Prepare`, `Ready`,
+  `Sending`, `Result`, `Error`, `BroadcastError`, `FatalError`) are deleted; each app holds the Core
+  record and renders it. The screen rules moved out of `confirm/rules.rs` into `confirm/screen.rs`
+  as methods on the record, the model's delegating wrappers are gone, the confirm-data test fixture
+  is shared through the test kit, and the insufficient-network-fee check takes the balance instead
+  of its decimal string.
 - **Android's in-memory asset filter matcher is gone.** `List<GemAssetFilter>.eligible(items)`
   restated every `GemAssetFilter` variant against an `AssetInfo` and no screen called it: the
   select flows only translate Core's filters into the store query, the same thing iOS does. It was

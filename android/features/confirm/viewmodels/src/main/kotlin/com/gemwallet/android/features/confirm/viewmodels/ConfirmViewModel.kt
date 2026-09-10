@@ -26,6 +26,7 @@ import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
 import uniffi.gemstone.GemConfirmButton
+import uniffi.gemstone.GemConfirmAction
 import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmButtonState
@@ -52,7 +53,6 @@ import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
-import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AddressName
@@ -93,7 +93,7 @@ class ConfirmViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
-    val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
+    val screen = MutableStateFlow(GemConfirmScreen(phase = GemConfirmPhase.LOADING, amountFailed = false, hasCriticalWarning = false, failure = null))
 
     val isNetworkFeeSheetVisible = MutableStateFlow(false)
     val feeSelection = MutableStateFlow<FeeSelection>(FeeSelection.Preset(FeePriority.Normal))
@@ -113,7 +113,7 @@ class ConfirmViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val confirmSession = combine(request.filterNotNull(), session.filterNotNull()) { request, session ->
-        confirmService.session(session.wallet.toGem(), request, requestSimulation)
+        confirmService.session(session.wallet.toGem(), request, requestSimulation).also { screen.value = it.screen() }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -128,15 +128,14 @@ class ConfirmViewModel @Inject constructor(
     }
     .flatMapLatest { (session, options) ->
         flow {
-            state.update { ConfirmState.Prepare }
+            screen.update { it.onLoadStarted() }
             try {
                 emit(session.state())
-                emit(session.load(options))
-                state.update { ConfirmState.Ready }
+                val load = session.load(options)
+                emit(load)
+                screen.update { it.onLoaded(load) }
             } catch (error: CancellationException) {
                 throw error
-            } catch (_: GemConfirmException.AccountMissing) {
-                state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
             } catch (err: Throwable) {
                 showError(err)
             }
@@ -162,14 +161,6 @@ class ConfirmViewModel @Inject constructor(
                 .associate { it.address.lowercase() to it.name }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-
-    private val screen = combine(state, content, simulation) { state, content, simulation ->
-        GemConfirmScreen(
-            phase = state.phase(content),
-            amountFailed = content?.load?.preload?.amount is GemTransferAmountResult.Error,
-            hasCriticalWarning = simulation.hasCriticalWarning,
-        )
-    }
 
     val button = screen.map { it.button() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemConfirmButtonState.LOADING))
@@ -256,7 +247,7 @@ class ConfirmViewModel @Inject constructor(
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
             }
-            state.update { ConfirmState.Prepare }
+            screen.update { it.onLoadStarted() }
             savedStateHandle[RouteArgument.Params.key] = pack
         }
     }
@@ -266,7 +257,7 @@ class ConfirmViewModel @Inject constructor(
     }
 
     private fun showError(error: Throwable) {
-        state.update { ConfirmState.Error(error) }
+        screen.update { it.onLoadFailed(error.toConfirmError()) }
         isNetworkFeeSheetVisible.value = error is GemConfirmException.InsufficientNetworkFee
     }
 
@@ -277,7 +268,7 @@ class ConfirmViewModel @Inject constructor(
 
     fun changeFeeSelection(selection: FeeSelection) {
         if (selection == feeSelection.value) return
-        state.update { ConfirmState.Prepare }
+        screen.update { it.onLoadStarted() }
         feeSelection.update { selection }
     }
 
@@ -285,16 +276,19 @@ class ConfirmViewModel @Inject constructor(
         if (feeAsset.value?.asset?.id == assetId) return
         val selection = FeeAssetSelection.Selected(assetId)
         if (selection == feeAssetSelection.value) return
-        state.update { ConfirmState.Prepare }
+        screen.update { it.onLoadStarted() }
         feeAssetSelection.update { selection }
     }
 
     fun send(finishAction: FinishConfirmAction) = viewModelScope.launch(Dispatchers.IO) {
-        if (state.value is ConfirmState.Error) {
-            restart.update { !it }
-            return@launch
+        when (screen.value.action()) {
+            GemConfirmAction.LOAD -> {
+                restart.update { !it }
+                return@launch
+            }
+            GemConfirmAction.EXECUTE -> screen.update { it.onExecuteStarted() }
+            null -> return@launch
         }
-        state.update { ConfirmState.Sending }
 
         val preload = content.value?.load?.preload
 
@@ -307,16 +301,15 @@ class ConfirmViewModel @Inject constructor(
                 is GemTransferAmountResult.Error -> throw calculated.error
             }
             val transactionHash = execute(preload.confirmData, amount)
-            state.update { ConfirmState.Result(transactionHash = transactionHash) }
             viewModelScope.launch(Dispatchers.Main) {
                 finishAction(transactionHash)
             }
         } catch (error: CancellationException) {
             throw error
         } catch (_: GemConfirmException.Cancelled) {
-            state.update { ConfirmState.Ready }
+            screen.update { it.onExecuteCancelled() }
         } catch (err: Throwable) {
-            state.update { ConfirmState.BroadcastError(err) }
+            screen.update { it.onExecuteFailed(err.toConfirmError()) }
         }
     }
 
@@ -411,11 +404,6 @@ class ConfirmViewModel @Inject constructor(
 
     fun networkFeeBuyAmount(): Int = confirmService.insufficientNetworkFeeBuyAmount()
 
-    private fun ConfirmState.phase(content: ConfirmContent?): GemConfirmPhase = when (this) {
-        ConfirmState.Prepare -> GemConfirmPhase.LOADING
-        ConfirmState.Ready -> GemConfirmPhase.READY
-        ConfirmState.Sending, is ConfirmState.Result -> GemConfirmPhase.CONFIRMING
-        is ConfirmState.Error -> if (content?.load?.preload?.amount is GemTransferAmountResult.Error) GemConfirmPhase.READY else GemConfirmPhase.FAILED
-        is ConfirmState.BroadcastError, is ConfirmState.FatalError -> GemConfirmPhase.FAILED
-    }
 }
+
+private fun Throwable.toConfirmError(): GemConfirmException = this as? GemConfirmException ?: GemConfirmException.Load(msg = message.orEmpty())

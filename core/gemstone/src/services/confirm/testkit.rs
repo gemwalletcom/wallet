@@ -1,15 +1,15 @@
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, DelegationBase, DelegationValidator, StakeProviderType, Transaction, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, DelegationBase, DelegationValidator, StakeProviderType, Transaction, Wallet, WalletId};
 
-use super::{GemConfirmService, GemConfirmTransferService, GemTransactionSigner};
+use super::{GemConfirmData, GemConfirmInput, GemConfirmService, GemConfirmTransferService, GemTransactionSigner};
 use crate::GemstoneError;
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::{EmptyPreferences, GemGateway};
-use crate::models::transaction::{GemSignedTransaction, GemSignerInput};
+use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::assets::{GemAssetStore, GemAssetsService, config::GemAssetConfigService};
-use crate::services::balance::{GemAssetBalance, GemBalanceService, GemBalanceRecord, GemBalanceStore};
+use crate::services::balance::{GemAssetBalance, GemBalanceRecord, GemBalanceService, GemBalanceStore};
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -21,10 +21,13 @@ use crate::services::stake::{GemStakeService, GemStakeStore};
 use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService, testkit::MemoryTransactionStateStore};
 use crate::services::transfer::{GemRecentActivityService, testkit::MemoryRecentActivityStore};
+use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore};
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
 use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::TestAlienProvider;
+use num_bigint::BigInt;
+use primitives::{Account, FeePriority, GasPriceType, TransactionInputType};
 
 pub struct ConfirmTestkit {
     pub service: Arc<GemConfirmTransferService>,
@@ -223,5 +226,35 @@ struct UnusedTransactionStatus;
 impl GemTransactionStatusService for UnusedTransactionStatus {
     fn track(&self, _: WalletId, _: Vec<Transaction>) {
         panic!("unexpected transaction tracking")
+    }
+}
+
+pub(super) fn confirm_data(chain: Chain, input_type: TransactionInputType, from: &str) -> GemConfirmData {
+    GemConfirmData {
+        input: GemConfirmInput {
+            from: Account::mock(chain, from),
+            transfer: GemTransferData {
+                input_type,
+                recipient: GemRecipient {
+                    address: "recipient".to_string(),
+                    name: None,
+                    memo: Some("memo".to_string()),
+                    references: vec![],
+                },
+                value: BigInt::from(10),
+                use_max_amount: true,
+            },
+        },
+        fee: GemTransactionLoadFee {
+            fee: BigInt::ZERO,
+            gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(5) },
+            gas_limit: BigInt::from(21_000),
+            options: Default::default(),
+            fee_asset: AssetId::from_chain(Chain::Solana),
+        },
+        selected_priority: FeePriority::Normal,
+        fee_rates: vec![],
+        metadata: GemTransactionLoadMetadata::None,
+        simulation: None,
     }
 }
