@@ -16,11 +16,11 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     static func make(from input: AmountInput, service: any GemAmountServiceProtocol) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient), service: service))
+            .transfer(AmountTransferViewModel(asset: input.asset, transfer: .send(payment: recipient), service: service))
         case .deposit:
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit, service: service))
+            .transfer(AmountTransferViewModel(asset: input.asset, transfer: .deposit, service: service))
         case .withdraw:
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw, service: service))
+            .transfer(AmountTransferViewModel(asset: input.asset, transfer: .withdraw, service: service))
         case let .stake(stakeType):
             .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, service: service))
         case let .perpetual(action):

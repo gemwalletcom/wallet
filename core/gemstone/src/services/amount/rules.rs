@@ -13,9 +13,9 @@ use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
-use crate::services::stake::rules as stake_rules;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules::margin_amount_value;
+use crate::services::stake::rules as stake_rules;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
@@ -167,9 +167,31 @@ pub fn earn_amount_type(earn_type: EarnType) -> GemAmountType {
     }
 }
 
+pub fn transfer_amount_type(transfer: &GemAmountTransfer) -> GemAmountType {
+    match transfer {
+        GemAmountTransfer::Send { .. } => GemAmountType::Transfer,
+        GemAmountTransfer::Deposit => GemAmountType::Deposit,
+        GemAmountTransfer::Withdraw => GemAmountType::Withdraw,
+    }
+}
+
+pub fn transfer_display_asset(transfer: &GemAmountTransfer, asset: Asset) -> Asset {
+    match transfer {
+        GemAmountTransfer::Withdraw => GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset(),
+        GemAmountTransfer::Send { .. } | GemAmountTransfer::Deposit => asset,
+    }
+}
+
+pub fn transfer_prefilled_amount(transfer: &GemAmountTransfer) -> Option<String> {
+    match transfer {
+        GemAmountTransfer::Send { payment } => payment.amount.clone(),
+        GemAmountTransfer::Deposit | GemAmountTransfer::Withdraw => None,
+    }
+}
+
 pub fn transfer_data(asset: Asset, transfer: GemAmountTransfer, owner: Option<GemRecipient>, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
     let (input_type, recipient) = match transfer {
-        GemAmountTransfer::Send { recipient } => (TransactionInputType::Transfer { asset }, recipient),
+        GemAmountTransfer::Send { payment } => (TransactionInputType::Transfer { asset }, payment.recipient),
         GemAmountTransfer::Deposit => (TransactionInputType::Deposit { asset }, GemPerpetual::new(PerpetualProvider::Hypercore).deposit_recipient()),
         GemAmountTransfer::Withdraw => {
             let owner = owner.ok_or_else(|| GemServiceError::NotFound {
@@ -327,6 +349,7 @@ mod tests {
     use super::*;
     use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
     use crate::models::custom_types::GemBigUint;
+    use crate::payment::GemPaymentRecipient;
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
@@ -450,7 +473,11 @@ mod tests {
         let tron = asset(Chain::Tron);
         let funded = balance(10_000_000, 0, 0, 0);
         assert!(stake(GemAmountStakeType::Stake).input(&tron, &funded).uses_whole_amounts);
-        assert!(stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) }).input(&tron, &funded).uses_whole_amounts);
+        assert!(
+            stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) })
+                .input(&tron, &funded)
+                .uses_whole_amounts
+        );
         assert!(!stake(GemAmountStakeType::Rewards { delegations: vec![] }).input(&tron, &funded).uses_whole_amounts);
         assert!(!GemAmountType::Transfer.input(&tron, &funded).uses_whole_amounts);
         assert!(!stake(GemAmountStakeType::Stake).input(&asset(Chain::Cosmos), &funded).uses_whole_amounts);
@@ -626,9 +653,7 @@ mod tests {
                     size_decimals: 4,
                 };
                 let balance = balance(100_000_000, 0, 0, 0);
-                let check = |amount: &GemAmountType, value: BigInt| {
-                    validate(&usdc(), &value, &amount.available_value(&usdc(), &balance), &minimum_value(amount, &usdc()))
-                };
+                let check = |amount: &GemAmountType, value: BigInt| validate(&usdc(), &value, &amount.available_value(&usdc(), &balance), &minimum_value(amount, &usdc()));
                 let reduce = amount_type(GemAmountPerpetualPosition::Reduce { available: available.into() });
                 assert_eq!(check(&reduce, available.into()), Ok(()));
                 assert_eq!(check(&reduce, BigInt::ZERO), Err(GemAmountError::Zero));
@@ -842,7 +867,11 @@ mod tests {
         let recipient = GemRecipient::named("to".into(), "friend".into());
         let owner = GemRecipient::named("owner".into(), "wallet".into());
 
-        let send = transfer_data(usdc(), GemAmountTransfer::Send { recipient: recipient.clone() }, None, GemBigInt::from(1), false).unwrap();
+        let payment = GemPaymentRecipient {
+            recipient: recipient.clone(),
+            amount: Some("1.5".into()),
+        };
+        let send = transfer_data(usdc(), GemAmountTransfer::Send { payment: payment.clone() }, None, GemBigInt::from(1), false).unwrap();
         assert!(matches!(send.input_type, TransactionInputType::Transfer { .. }));
         assert_eq!(send.recipient, recipient);
 
@@ -856,5 +885,29 @@ mod tests {
         assert_eq!(withdraw.recipient, owner);
 
         assert!(transfer_data(usdc(), GemAmountTransfer::Withdraw, None, GemBigInt::from(3), false).is_err());
+    }
+
+    #[test]
+    fn test_each_transfer_kind_names_its_amount_type_display_asset_and_prefill() {
+        let send = GemAmountTransfer::Send {
+            payment: GemPaymentRecipient {
+                recipient: GemRecipient::named("to".into(), "friend".into()),
+                amount: Some("2".into()),
+            },
+        };
+
+        assert_eq!(transfer_amount_type(&send), GemAmountType::Transfer);
+        assert_eq!(transfer_amount_type(&GemAmountTransfer::Deposit), GemAmountType::Deposit);
+        assert_eq!(transfer_amount_type(&GemAmountTransfer::Withdraw), GemAmountType::Withdraw);
+
+        assert_eq!(transfer_display_asset(&send, usdc()), usdc());
+        assert_eq!(transfer_display_asset(&GemAmountTransfer::Deposit, usdc()), usdc());
+        assert_eq!(
+            transfer_display_asset(&GemAmountTransfer::Withdraw, usdc()),
+            GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
+        );
+
+        assert_eq!(transfer_prefilled_amount(&send).as_deref(), Some("2"));
+        assert_eq!(transfer_prefilled_amount(&GemAmountTransfer::Withdraw), None);
     }
 }

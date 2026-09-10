@@ -70,7 +70,7 @@ fun AmountScreen(
                 title = title,
                 amount = viewModel.amount,
                 amountInputType = amountInputType,
-                asset = (provider as? AmountTransferProvider)?.displayAsset ?: assetInfo.asset,
+                asset = (provider as? AmountTransferProvider)?.displayAsset(assetInfo.asset) ?: assetInfo.asset,
                 currency = viewModel.currency,
                 canSwitchInputType = amountType?.canSwitchInputType() ?: false,
                 readOnly = !canChangeValue,

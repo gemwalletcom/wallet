@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **A transfer's amount type, display asset and prefilled amount come off the transfer.**
+  `GemAmountTransfer::Send` carries a `GemPaymentRecipient` (recipient plus the optional amount a
+  payment link supplied), and the enum answers `amount_type()`, `display_asset(asset)` (a withdrawal
+  shows the Hypercore deposit asset) and `prefilled_amount()`. iOS held a `TransferAction` twin of
+  the enum and mapped it three ways; Android mapped its route params to the amount type and rebuilt
+  the withdraw display asset itself. Both mappings are gone and each app hands Core the transfer it
+  was given.
 - **The validator picker's sections are Core's answer.** `GemStakeValidatorSelection` carries
   `recommended` next to `options`: the configured validators for a stake, the same minus the one
   being left for a redelegate, none for an unstake, withdraw, rewards claim or resource change. Each

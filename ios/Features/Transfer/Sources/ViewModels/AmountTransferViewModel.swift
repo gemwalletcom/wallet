@@ -10,34 +10,24 @@ import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Localization
 import Primitives
-import class Gemstone.GemPerpetual
-
-enum TransferAction {
-    case send(GemPaymentRecipient)
-    case deposit
-    case withdraw
-}
 
 public final class AmountTransferViewModel: AmountDataProvidable {
     let asset: Asset
-    let action: TransferAction
+    let transfer: GemAmountTransfer
     private let service: any GemAmountServiceProtocol
 
-    init(asset: Asset, action: TransferAction, service: any GemAmountServiceProtocol) {
+    init(asset: Asset, transfer: GemAmountTransfer, service: any GemAmountServiceProtocol) {
         self.asset = asset
-        self.action = action
+        self.transfer = transfer
         self.service = service
     }
 
     var displayAsset: Asset {
-        switch action {
-        case .withdraw: GemPerpetual(provider: .hypercore).depositAsset().map()
-        case .send, .deposit: asset
-        }
+        transfer.displayAsset(asset: asset.map()).map()
     }
 
     var title: String {
-        switch action {
+        switch transfer {
         case .send: Localized.Transfer.Send.title
         case .deposit: Localized.Wallet.deposit
         case .withdraw: Localized.Wallet.withdraw
@@ -45,32 +35,22 @@ public final class AmountTransferViewModel: AmountDataProvidable {
     }
 
     var amountType: AmountType {
-        switch action {
-        case let .send(recipient): .transfer(recipient: recipient)
+        switch transfer {
+        case let .send(payment): .transfer(recipient: payment)
         case .deposit: .deposit
         case .withdraw: .withdraw
         }
     }
 
     var gemAmountType: GemAmountType {
-        switch action {
-        case .send: .transfer
-        case .deposit: .deposit
-        case .withdraw: .withdraw
-        }
+        transfer.amountType()
     }
 
     var prefilledAmount: String? {
-        guard case let .send(recipient) = action else { return nil }
-        return recipient.amount
+        transfer.prefilledAmount()
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        let transfer: GemAmountTransfer = switch action {
-        case let .send(recipient): .send(recipient: recipient.recipient)
-        case .deposit: .deposit
-        case .withdraw: .withdraw
-        }
-        return try await service.transferData(asset: asset.map(), transfer: transfer, value: value, useMaxAmount: useMaxAmount)
+        try await service.transferData(asset: asset.map(), transfer: transfer, value: value, useMaxAmount: useMaxAmount)
     }
 }

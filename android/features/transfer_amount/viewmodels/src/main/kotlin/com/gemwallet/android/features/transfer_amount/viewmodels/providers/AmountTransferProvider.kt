@@ -16,11 +16,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemAmountTransfer
+import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemAmountServiceInterface
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemPerpetual
-import uniffi.gemstone.PerpetualProvider
 import com.gemwallet.android.ext.toPrimitives
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -31,40 +30,32 @@ class AmountTransferProvider(
     scope: CoroutineScope,
 ) : AmountDataProvider(scope) {
 
-    override val title: AmountTitle = when (params) {
-        is AmountParams.Deposit -> AmountTitle.Deposit
-        is AmountParams.Withdraw -> AmountTitle.Withdraw
-        else -> AmountTitle.Send
+    private val transfer: GemAmountTransfer = when (params) {
+        is AmountParams.Deposit -> GemAmountTransfer.Deposit
+        is AmountParams.Withdraw -> GemAmountTransfer.Withdraw
+        is AmountParams.Transfer -> GemAmountTransfer.Send(
+            GemPaymentRecipient(params.destination.copy(memo = params.memo, references = params.references), params.amount),
+        )
+        else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
     }
 
-    override val amountType: StateFlow<GemAmountType?> = MutableStateFlow(
-        when (params) {
-            is AmountParams.Deposit -> GemAmountType.Deposit
-            is AmountParams.Withdraw -> GemAmountType.Withdraw
-            else -> GemAmountType.Transfer
-        }
-    )
+    override val title: AmountTitle = when (transfer) {
+        is GemAmountTransfer.Send -> AmountTitle.Send
+        GemAmountTransfer.Deposit -> AmountTitle.Deposit
+        GemAmountTransfer.Withdraw -> AmountTitle.Withdraw
+    }
+
+    override val amountType: StateFlow<GemAmountType?> = MutableStateFlow(transfer.amountType())
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)
             .flowOn(Dispatchers.IO)
             .stateIn(scope, SharingStarted.Eagerly, null)
 
-    val displayAsset: Asset? by lazy {
-        when (params) {
-            is AmountParams.Withdraw -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.depositAsset() }.toPrimitives()
-            else -> null
-        }
-    }
+    fun displayAsset(asset: Asset): Asset = transfer.displayAsset(asset.toGem()).toPrimitives()
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         val current = assetInfo.value ?: error("assetInfo not loaded")
-        val transfer = when (params) {
-            is AmountParams.Deposit -> GemAmountTransfer.Deposit
-            is AmountParams.Withdraw -> GemAmountTransfer.Withdraw
-            is AmountParams.Transfer -> GemAmountTransfer.Send(params.destination.copy(memo = params.memo, references = params.references))
-            else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
-        }
         return service.transferData(current.asset.toGem(), transfer, amount.atomicValue, isMax)
     }
 }

@@ -1,6 +1,6 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::payment::GemPaymentRecipient;
 use crate::services::balance::GemBalanceRequirement;
-use crate::services::transfer::GemRecipient;
 use primitives::{Asset, Delegation, PerpetualDirection, Resource};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -25,9 +25,24 @@ pub enum GemAmountType {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountTransfer {
-    Send { recipient: GemRecipient },
+    Send { payment: GemPaymentRecipient },
     Deposit,
     Withdraw,
+}
+
+#[uniffi::export]
+impl GemAmountTransfer {
+    pub fn amount_type(&self) -> GemAmountType {
+        super::rules::transfer_amount_type(self)
+    }
+
+    pub fn display_asset(&self, asset: Asset) -> Asset {
+        super::rules::transfer_display_asset(self, asset)
+    }
+
+    pub fn prefilled_amount(&self) -> Option<String> {
+        super::rules::transfer_prefilled_amount(self)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
