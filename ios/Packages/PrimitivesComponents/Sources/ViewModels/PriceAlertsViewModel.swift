@@ -11,14 +11,6 @@ public struct PriceAlertsViewModel {
         self.priceAlerts = priceAlerts.displayedAlerts
     }
 
-    public var hasPriceAlerts: Bool {
-        priceAlerts.isNotEmpty
-    }
-
-    public var setPriceAlertTitle: String {
-        Localized.PriceAlerts.SetAlert.title
-    }
-
     public var priceAlertsTitle: String {
         Localized.Settings.PriceAlerts.title
     }
