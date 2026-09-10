@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Android's in-memory asset filter matcher is gone.** `List<GemAssetFilter>.eligible(items)`
+  restated every `GemAssetFilter` variant against an `AssetInfo` and no screen called it: the
+  select flows only translate Core's filters into the store query, the same thing iOS does. It was
+  kept alive by its own test.
 - **Which NFT rows a list shows is Core's rule.** `GemNftService::list_items(data, list)` takes the
   wallet's collections and a `GemNftList` (`Collections`, `Unverified`, `Collection`) and returns
   `GemNftItem { Collection { data } | Asset { data } }` already filtered, sorted and flattened: a
