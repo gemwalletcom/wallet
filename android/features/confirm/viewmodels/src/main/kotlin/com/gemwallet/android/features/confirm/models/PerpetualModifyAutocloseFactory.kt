@@ -5,15 +5,15 @@ import com.gemwallet.android.ui.theme.Placeholder
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.PerpetualModifyConfirmData
 import uniffi.gemstone.GemAutocloseSummary
-import uniffi.gemstone.GemConfirmTransferServiceInterface
+import uniffi.gemstone.GemConfirmSessionInterface
 
 object PerpetualModifyAutocloseFactory {
 
     fun create(
         data: PerpetualModifyConfirmData,
-        confirmService: GemConfirmTransferServiceInterface,
+        session: GemConfirmSessionInterface,
     ): ConfirmDetailElement.PerpetualModifyAutoclose? =
-        confirmService.autocloseSummary(data)?.let(::element)
+        session.autocloseSummary(data)?.let(::element)
 
     internal fun element(summary: GemAutocloseSummary): ConfirmDetailElement.PerpetualModifyAutoclose {
         val formatter = CurrencyFormatter(currency = Currency.USD)

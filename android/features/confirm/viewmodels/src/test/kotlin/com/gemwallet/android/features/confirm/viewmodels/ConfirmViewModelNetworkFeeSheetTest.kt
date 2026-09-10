@@ -83,7 +83,8 @@ class ConfirmViewModelNetworkFeeSheetTest {
             value = BigInteger.TEN,
         )
         val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
-        every { confirmService.getCurrency() } returns Currency.USD.toGem()
+        every { confirmSession.getCurrency() } returns Currency.USD.toGem()
+        every { confirmSession.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmService.session(any(), transfer, any()) } returns confirmSession
         every { confirmSession.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, false, null)
         coEvery { confirmSession.state() } returns mockGemConfirmLoad(asset, preload = null)

@@ -8,7 +8,7 @@ import com.gemwallet.android.model.toAssetValueHeader
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemConfirmSimulationState
-import uniffi.gemstone.GemConfirmTransferServiceInterface
+import uniffi.gemstone.GemConfirmSessionInterface
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Asset
 import com.gemwallet.android.ext.requireChain
@@ -30,7 +30,7 @@ data class SimulationAssetChange(
 )
 
 fun GemConfirmSimulationState.toSimulation(
-    confirmService: GemConfirmTransferServiceInterface,
+    session: GemConfirmSessionInterface,
 ): Simulation {
     val simulationWarnings = warnings
     val details = simulation ?: return Simulation(warnings = simulationWarnings)
@@ -40,9 +40,9 @@ fun GemConfirmSimulationState.toSimulation(
         warnings = simulationWarnings,
         hasCriticalWarning = details.hasCriticalWarning,
         primaryPayloadFields = details.primaryFields
-            .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
+            .withExplorerLinks(chain) { chain, address -> session.addressUrl(chain.string, address) },
         secondaryPayloadFields = details.secondaryFields
-            .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
+            .withExplorerLinks(chain) { chain, address -> session.addressUrl(chain.string, address) },
         header = details.header?.toAssetValueHeader(),
         balanceChanges = details.balanceChanges.map { SimulationAssetChange(asset = it.asset.toPrimitives(), value = it.value) },
     )

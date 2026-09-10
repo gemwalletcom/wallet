@@ -240,7 +240,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemChainSettingsService` | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
 | `GemChartService` | `ChartSceneViewModel` | `ChartViewModel` |
 | `GemCollectibleService` | `CollectibleViewModel`, `ReportNftViewModel` | `NftDetailsViewModel` (+ `GetNftAssetDetails` observed read) |
-| `GemConfirmTransferService` | `ConfirmTransferSceneViewModel` | `ConfirmViewModel` |
+| `GemConfirmSession` (from `GemConfirmTransferService::session`) | `ConfirmTransferSceneViewModel` | `ConfirmViewModel` |
 | `GemContactService` | `ContactsViewModel` | `ContactsViewModel` |
 | `GemCurrencyService` | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ session currency cases) |
 | `GemDeveloperService` | `DeveloperViewModel` (+ the iOS stores it wipes) | `DevelopViewModel` |
@@ -301,6 +301,20 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The confirm screen holds one Core object.** `GemConfirmSession` is the screen's whole API:
+  `screen()`, `state()` and `load(options)` as before, plus `execute()`, which signs and broadcasts
+  the preload the session already holds (the loaded confirm data, the computed amount and network
+  fee, and the enriched simulation) so neither app re-assembles the send input, and the reads a
+  confirm needs while open: `authentication()`, `get_currency()`, `address_url`,
+  `acquire_asset_flow`, `insufficient_network_fee_buy_amount` and `autoclose_summary`.
+  `GemConfirmTransferService` exports `new`, `session(wallet, transfer, simulation)` and
+  `address_url` (the Android properties builder's reader) and nothing else; its execute path takes
+  the session's wallet instead of re-reading the wallet session, so the service no longer depends on
+  `GemWalletSessionService`. iOS's view model held the service next to the session and Android's
+  held the service next to the session flow; both now hold the session only, iOS's `submit` is one
+  call, the transfer-service mock is deleted and the session mock is the single confirm test double.
+  The currency read follows the swap precedent: a `currency` property on the iOS session extension,
+  no mapping in the view model.
 - **A transfer's amount type, display asset and prefilled amount come off the transfer.**
   `GemAmountTransfer::Send` carries a `GemPaymentRecipient` (recipient plus the optional amount a
   payment link supplied), and the enum answers `amount_type()`, `display_asset(asset)` (a withdrawal

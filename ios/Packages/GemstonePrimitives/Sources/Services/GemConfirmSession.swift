@@ -1,11 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import protocol Gemstone.GemConfirmTransferServiceProtocol
+import protocol Gemstone.GemConfirmSessionProtocol
 import struct Gemstone.GemConfirmSimulationState
 import Primitives
 
-public extension GemConfirmTransferServiceProtocol {
+public extension GemConfirmSessionProtocol {
+    var currency: Primitives.Currency {
+        Primitives.Currency(core: getCurrency())
+    }
+
     func explorerLink(chain: Primitives.Chain, address: String) -> BlockExplorerLink {
         addressUrl(chain: chain.rawValue, address: address).map()
     }

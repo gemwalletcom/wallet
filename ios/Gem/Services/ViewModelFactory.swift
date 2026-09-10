@@ -528,7 +528,6 @@ public struct ViewModelFactory: Sendable {
         simulation: SimulationResult? = nil,
         onComplete: VoidAction,
     ) -> ConfirmTransferSceneViewModel {
-        let service = confirmTransferService()
         return ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(
                 data: data,
@@ -536,8 +535,7 @@ public struct ViewModelFactory: Sendable {
                 delegate: confirmTransferDelegate,
             ),
             wallet: wallet,
-            service: service,
-            session: service.session(wallet: wallet.map(), transfer: data, simulation: simulation),
+            session: confirmTransferService().session(wallet: wallet.map(), transfer: data, simulation: simulation),
             onComplete: { [toastPresenter] in
                 Task { toastPresenter.present(.transfer(for: data.inputType)) }
                 onComplete?()
@@ -555,7 +553,6 @@ public struct ViewModelFactory: Sendable {
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,
             preferences: preferencesService,
-            session: walletSessionService,
         )
     }
 

@@ -1,14 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemConfirmFeeSelection
 import Foundation
 import enum Gemstone.GemConfirmError
-import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemConfirmSimulation
 import enum Gemstone.GemExecuteResult
 import struct Gemstone.GemSimulationBalanceChange
 import struct Gemstone.GemSimulationValue
-import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -27,50 +24,37 @@ struct ConfirmSubmissionTests {
     @Test
     func confirmReportsEveryHashAndTracksSentTransactions() async throws {
         let tracked = Primitives.Transaction.mock()
-        let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.map()])))
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
+        try await ConfirmTransferSceneViewModel.mock(
             request: request,
-            confirmData: .mock(),
-            amount: .mock(),
-            simulation: nil,
-        )
+            execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.map()])),
+        ).submit(request: request)
 
         #expect(reported.values == ["hash-1", "hash-2"])
-        #expect(gemConfirmService.executedInputs.count == 1)
     }
 
     @Test
     func confirmReportsSignedDataWithoutTracking() async throws {
-        let gemConfirmService = GemConfirmServiceMock(execute: .success(.signed(data: ["signed"])))
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
-            request: request,
-            confirmData: .mock(),
-            amount: .mock(),
-            simulation: nil,
-        )
+        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"]))).submit(request: request)
 
         #expect(reported.values == ["signed"])
     }
 
     @Test
     func partialBroadcastReportsBroadcastHashesAndRethrows() async throws {
-        let gemConfirmService = GemConfirmServiceMock(execute: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")))
         let reported = ReportedValues()
 
         await #expect(throws: GemConfirmError.self) {
             let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-            try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
+            try await ConfirmTransferSceneViewModel.mock(
                 request: request,
-                confirmData: .mock(),
-                amount: .mock(),
-                simulation: nil,
-            )
+                execute: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")),
+            ).submit(request: request)
         }
 
         #expect(reported.values == ["hash-1"])

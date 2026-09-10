@@ -287,7 +287,6 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(data: data, simulation: nil),
             wallet: wallet,
-            service: GemConfirmTransferServiceMock(wallet: wallet),
             session: session,
             onComplete: nil,
         )
@@ -320,7 +319,6 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(data: data, simulation: nil),
             wallet: wallet,
-            service: GemConfirmTransferServiceMock(wallet: wallet),
             session: session,
             onComplete: nil,
         )
@@ -609,7 +607,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected fiatConnect sheet")
             return
         }
-        #expect(amount == Int(GemConfirmTransferServiceMock.networkFeeBuyAmount))
+        #expect(amount == Int(GemConfirmSessionMock.networkFeeBuyAmount))
     }
 
     @Test
@@ -743,7 +741,7 @@ struct ConfirmTransferSceneViewModelTests {
             return
         }
         #expect(asset.id == Asset.mockTron().id)
-        #expect(buyAmount == Int(GemConfirmTransferServiceMock.networkFeeBuyAmount))
+        #expect(buyAmount == Int(GemConfirmSessionMock.networkFeeBuyAmount))
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {

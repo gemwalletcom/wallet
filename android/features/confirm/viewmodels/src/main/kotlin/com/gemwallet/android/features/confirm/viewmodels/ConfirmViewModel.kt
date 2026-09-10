@@ -34,6 +34,7 @@ import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmScreen
+import uniffi.gemstone.GemConfirmSession
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
@@ -79,7 +80,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.SimulationResult
-import java.math.BigInteger
 import javax.inject.Inject
 import com.gemwallet.android.domains.confirm.unpackTransferData
 
@@ -108,15 +108,21 @@ class ConfirmViewModel @Inject constructor(
     val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val currency = flow { emit(confirmService.getCurrency().toCurrency()) }
-        .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     private val confirmSession = combine(request.filterNotNull(), session.filterNotNull()) { request, session ->
         confirmService.session(session.wallet.toGem(), request, requestSimulation).also { screen.value = it.screen() }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val currency = confirmSession.filterNotNull()
+        .map { it.getCurrency().toCurrency() }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val networkFeeBuyAmount = confirmSession.filterNotNull()
+        .map { it.insufficientNetworkFeeBuyAmount() }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     private val load = combine(
         confirmSession.filterNotNull(),
@@ -144,13 +150,13 @@ class ConfirmViewModel @Inject constructor(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val content = combine(load.filterNotNull(), currency.filterNotNull()) { load, currency ->
-        ConfirmContent(currency, load)
+    private val content = combine(confirmSession.filterNotNull(), load.filterNotNull(), currency.filterNotNull()) { session, load, currency ->
+        ConfirmContent(session, currency, load)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val simulation = content
-        .map { it?.load?.simulation?.toSimulation(confirmService) ?: Simulation() }
+        .map { it?.load?.simulation?.toSimulation(it.session) ?: Simulation() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
 
     val payloadAddressNames = content
@@ -289,18 +295,13 @@ class ConfirmViewModel @Inject constructor(
             GemConfirmAction.EXECUTE -> screen.update { it.onExecuteStarted() }
             null -> return@launch
         }
-
-        val preload = content.value?.load?.preload
+        val session = confirmSession.value ?: return@launch
 
         try {
-            if (preload == null) {
-                error("confirm input is not loaded")
+            val transactionHash = when (val result = session.execute()) {
+                is GemExecuteResult.Signed -> result.data.first()
+                is GemExecuteResult.Sent -> result.hashes.last()
             }
-            val amount = when (val calculated = preload.amount) {
-                is GemTransferAmountResult.Amount -> calculated.amount.value
-                is GemTransferAmountResult.Error -> throw calculated.error
-            }
-            val transactionHash = execute(preload.confirmData, amount)
             viewModelScope.launch(Dispatchers.Main) {
                 finishAction(transactionHash)
             }
@@ -313,20 +314,8 @@ class ConfirmViewModel @Inject constructor(
         }
     }
 
-    private suspend fun execute(confirmData: GemConfirmData, value: BigInteger): String {
-        val result = confirmService.execute(
-            confirm = confirmData,
-            value = value,
-            networkFee = confirmData.fee.fee,
-            simulation = requestSimulation,
-        )
-        return when (result) {
-            is GemExecuteResult.Signed -> result.data.first()
-            is GemExecuteResult.Sent -> result.hashes.last()
-        }
-    }
-
     private data class ConfirmContent(
+        val session: GemConfirmSession,
         val currency: Currency,
         val load: GemConfirmLoad,
     ) {
@@ -356,7 +345,7 @@ class ConfirmViewModel @Inject constructor(
         perpetualType: PerpetualType?,
     ): ConfirmDetailElement? = when (val type = perpetualType) {
         null -> null
-        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.data, confirmService)
+        is PerpetualType.Modify -> confirmSession.value?.let { PerpetualModifyAutocloseFactory.create(type.data, it) }
         else -> perpetualDetails(type)
             ?.let(PerpetualConfirmDetailsUIModelFactory::create)
             ?.let(ConfirmDetailElement::PerpetualDetails)
@@ -400,10 +389,7 @@ class ConfirmViewModel @Inject constructor(
         return ConfirmDetailElement.SwapDetails(model)
     }
 
-    fun acquireFlow(asset: Asset): GemAcquireAssetFlow = confirmService.acquireAssetFlow(asset.chain.string)
-
-    fun networkFeeBuyAmount(): Int = confirmService.insufficientNetworkFeeBuyAmount()
-
+    fun acquireFlow(asset: Asset): GemAcquireAssetFlow = requireNotNull(confirmSession.value).acquireAssetFlow(asset.chain.string)
 }
 
 private fun Throwable.toConfirmError(): GemConfirmException = this as? GemConfirmException ?: GemConfirmException.Load(msg = message.orEmpty())

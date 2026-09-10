@@ -117,6 +117,7 @@ fun ConfirmScreen(
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val screen by viewModel.screen.collectAsStateWithLifecycle()
+    val networkFeeBuyAmount by viewModel.networkFeeBuyAmount.collectAsStateWithLifecycle()
     val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
     val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
@@ -291,7 +292,7 @@ fun ConfirmScreen(
                     onDismissBottomSheetInfo = viewModel::dismissNetworkFeeSheet,
                     assetPrice = assetPrice,
                     acquireFlow = viewModel::acquireFlow,
-                    networkFeeBuyAmount = viewModel.networkFeeBuyAmount(),
+                    networkFeeBuyAmount = networkFeeBuyAmount,
                     onAcquireAsset = onAcquireAsset,
                 )
             }

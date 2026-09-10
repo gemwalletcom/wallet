@@ -1,11 +1,14 @@
 use std::sync::Arc;
 
 use futures::lock::Mutex;
-use primitives::{SimulationResult, Wallet};
+use primitives::currency::Currency;
+use primitives::{BlockExplorerLink, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet};
 
 use super::rules::preload_simulation;
-use super::{GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmScreen, GemConfirmTransferService};
+use super::{GemAcquireAssetFlow, GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmScreen, GemConfirmTransferService, GemExecuteResult, GemTransferAmountResult};
+use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::transfer::GemTransferData;
+use crate::services::wallet::GemKeystoreAuthentication;
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmSession {
@@ -32,6 +35,45 @@ impl GemConfirmSession {
 impl GemConfirmSession {
     pub fn screen(&self) -> GemConfirmScreen {
         GemConfirmScreen::initial(self.simulation.as_ref())
+    }
+
+    pub fn get_currency(&self) -> Currency {
+        self.service.get_currency()
+    }
+
+    pub fn authentication(&self) -> GemKeystoreAuthentication {
+        self.service.authentication()
+    }
+
+    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
+        self.service.address_url(chain, address)
+    }
+
+    pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
+        self.service.acquire_asset_flow(chain)
+    }
+
+    pub fn insufficient_network_fee_buy_amount(&self) -> i32 {
+        self.service.insufficient_network_fee_buy_amount()
+    }
+
+    pub fn autoclose_summary(&self, data: PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
+        self.service.autoclose_summary(data)
+    }
+
+    pub async fn execute(&self) -> Result<GemExecuteResult, GemConfirmError> {
+        let screen = self.screen.lock().await.clone();
+        let preload = screen.as_ref().and_then(|screen| screen.preload.clone()).ok_or_else(|| GemConfirmError::Load {
+            msg: "confirm input is not loaded".to_string(),
+        })?;
+        let amount = match preload.amount {
+            GemTransferAmountResult::Amount { amount } => amount,
+            GemTransferAmountResult::Error { error } => return Err(error),
+        };
+        let simulation = screen.and_then(|screen| screen.simulation.result);
+        self.service
+            .execute(self.wallet.clone(), preload.confirm_data, amount.value, amount.network_fee, simulation)
+            .await
     }
 
     pub async fn state(&self) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -72,7 +114,7 @@ mod tests {
     use primitives::{Account, Asset, AssetId, Chain, FeePriority, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, Wallet, WalletId};
 
     use super::super::testkit::ConfirmTestkit;
-    use crate::services::confirm::{GemConfirmFeeSelection, GemConfirmLoadOptions};
+    use crate::services::confirm::{GemConfirmError, GemConfirmFeeSelection, GemConfirmLoadOptions};
     use crate::services::transfer::{GemRecipient, GemTransferData};
 
     #[test]
@@ -108,6 +150,27 @@ mod tests {
             };
             assert!(session.load(options).await.is_err());
             assert_eq!(*testkit.balances.requests.lock().unwrap(), vec![wallet.id.clone(), wallet.id]);
+        });
+    }
+
+    #[test]
+    fn test_execute_refuses_a_session_without_a_preload() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+            let transfer = GemTransferData {
+                input_type: TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Tron),
+                },
+                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
+                value: 0.into(),
+                use_max_amount: false,
+            };
+            let session = testkit.service.session(wallet, transfer, None);
+
+            assert!(matches!(session.execute().await, Err(GemConfirmError::Load { .. })));
+            session.state().await.unwrap();
+            assert!(matches!(session.execute().await, Err(GemConfirmError::Load { .. })));
         });
     }
 

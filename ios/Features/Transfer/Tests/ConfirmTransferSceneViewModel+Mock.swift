@@ -2,7 +2,7 @@
 
 import struct Gemstone.GemConfirmData
 import struct Gemstone.GemConfirmLoad
-import protocol Gemstone.GemTransactionStateServiceProtocol
+import enum Gemstone.GemExecuteResult
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -23,21 +23,17 @@ extension ConfirmTransferSceneViewModel {
         simulation: SimulationResult? = nil,
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
+        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [])),
         onComplete: VoidAction = nil,
     ) -> ConfirmTransferSceneViewModel {
         let wallet = wallet ?? .mock(accounts: [.mock(chain: data.chain)])
         return ConfirmTransferSceneViewModel(
             request: request ?? ConfirmTransferRequest(data: data, simulation: simulation),
             wallet: wallet,
-            service: GemConfirmTransferServiceMock(
-                wallet: wallet,
-                confirm: gemConfirmService,
-                transactionState: transactionStateService,
-            ),
             session: GemConfirmSessionMock(
                 state: .mock(feeAsset: data.feeAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
                 load: load,
+                execute: execute,
             ),
             onComplete: onComplete,
         )

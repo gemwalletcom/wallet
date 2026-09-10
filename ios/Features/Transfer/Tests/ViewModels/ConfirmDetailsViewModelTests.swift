@@ -12,7 +12,7 @@ import TransferTestKit
 struct ConfirmDetailsViewModelTests {
     @Test
     func swap() {
-        let model = ConfirmDetailsViewModel(type: .swap(.mock(), .mock(), .mock()), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmTransferServiceMock())
+        let model = ConfirmDetailsViewModel(type: .swap(.mock(), .mock(), .mock()), metadata: nil, session: GemConfirmSessionMock())
 
         guard case .swapDetails = model.itemModel else {
             Issue.record("Expected .swapDetails")
@@ -22,7 +22,7 @@ struct ConfirmDetailsViewModelTests {
 
     @Test
     func transfer() {
-        let model = ConfirmDetailsViewModel(type: .transfer(.mock()), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmTransferServiceMock())
+        let model = ConfirmDetailsViewModel(type: .transfer(.mock()), metadata: nil, session: GemConfirmSessionMock())
 
         guard case .empty = model.itemModel else {
             Issue.record("Expected .empty")
@@ -32,7 +32,7 @@ struct ConfirmDetailsViewModelTests {
 
     @Test
     func perpetual() {
-        let model = ConfirmDetailsViewModel(type: .perpetual(.mock(), .open(data: .mock())), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmTransferServiceMock())
+        let model = ConfirmDetailsViewModel(type: .perpetual(.mock(), .open(data: .mock())), metadata: nil, session: GemConfirmSessionMock())
 
         guard case .perpetualDetails = model.itemModel else {
             Issue.record("Expected .perpetualDetails")

@@ -2,7 +2,7 @@
 
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
-import protocol Gemstone.GemConfirmTransferServiceProtocol
+import protocol Gemstone.GemConfirmSessionProtocol
 import enum Gemstone.TransactionInputType
 import struct Gemstone.GemSwapQuoteSummary
 import func Gemstone.perpetualDetails
@@ -16,19 +16,16 @@ import Swap
 public struct ConfirmDetailsViewModel {
     private let type: TransactionInputType
     private let metadata: GemConfirmMetadata?
-    private let currency: String
-    private let service: any GemConfirmTransferServiceProtocol
+    private let session: any GemConfirmSessionProtocol
 
     init(
         type: TransactionInputType,
         metadata: GemConfirmMetadata?,
-        currency: String,
-        service: any GemConfirmTransferServiceProtocol,
+        session: any GemConfirmSessionProtocol,
     ) {
         self.type = type
         self.metadata = metadata
-        self.currency = currency
-        self.service = service
+        self.session = session
     }
 }
 
@@ -49,7 +46,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     toAssetPrice: toAssetPrice,
                     selectedQuote: quote,
                     slippage: .manual(bps: quote.slippageBps),
-                    currency: currency,
+                    currency: session.currency.rawValue,
                     swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
                         .priceImpact(receive: toAssetPrice.swapValue(quote.toValue))
                         .map { $0.map() },
@@ -59,7 +56,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
             )
         case let .perpetual(_, perpetualType):
             if case let .modify(data) = perpetualType {
-                return .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data)))
+                return .perpetualModifyPosition(PerpetualModifyViewModel(summary: session.autocloseSummary(data: data)))
             }
             guard let details = perpetualDetails(perpetualType: perpetualType) else { return .empty }
             return .perpetualDetails(PerpetualDetailsViewModel(details: details))

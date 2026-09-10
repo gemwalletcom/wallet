@@ -109,9 +109,8 @@ impl ConfirmTestkit {
             Arc::new(GemAssetConfigService::new()),
             Arc::new(UnusedSigner),
             Arc::new(MemoryKeystorePassword::default()),
-            Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session.clone())),
+            Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),
             preferences,
-            session,
         ));
         Self { service, balances }
     }

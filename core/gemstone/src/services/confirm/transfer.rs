@@ -19,7 +19,6 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivityService, GemTransferData};
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
-use crate::services::wallet_session::GemWalletSessionService;
 use primitives::BlockExplorerLink;
 use primitives::TransactionInputType;
 
@@ -33,7 +32,6 @@ pub struct GemConfirmTransferService {
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
-    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
@@ -48,7 +46,6 @@ impl GemConfirmTransferService {
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
-        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             confirm,
@@ -59,60 +56,15 @@ impl GemConfirmTransferService {
             password,
             recent_activity,
             preferences,
-            session,
         }
-    }
-
-    pub fn get_currency(&self) -> Currency {
-        self.preferences.get_currency()
-    }
-
-    pub fn authentication(&self) -> GemKeystoreAuthentication {
-        self.password.authentication().unwrap_or(GemKeystoreAuthentication::None)
     }
 
     pub fn session(self: Arc<Self>, wallet: Wallet, transfer: GemTransferData, simulation: Option<SimulationResult>) -> Arc<GemConfirmSession> {
         Arc::new(GemConfirmSession::new(self, wallet, transfer, simulation))
     }
 
-    pub async fn execute(
-        &self,
-        confirm: GemConfirmData,
-        value: GemBigInt,
-        network_fee: GemBigInt,
-        simulation: Option<SimulationResult>,
-    ) -> Result<GemExecuteResult, GemConfirmError> {
-        let wallet = self.wallet().await?;
-        let wallet_id = wallet.id.clone();
-        let input_type = confirm.input.transfer.input_type.clone();
-        let input = SendInput {
-            wallet,
-            confirm,
-            value,
-            network_fee,
-            simulation,
-        };
-        let result = self.confirm.execute(input, self.signer.clone()).await?;
-        if is_broadcast(&result) {
-            let _ = self.recent_activity.add(input_type, wallet_id).await;
-        }
-        Ok(result)
-    }
-
     pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
-    }
-
-    pub fn autoclose_summary(&self, data: PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
-        autoclose_summary(&data)
-    }
-
-    pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
-        self.asset_config.acquire_flow(chain)
-    }
-
-    pub fn insufficient_network_fee_buy_amount(&self) -> i32 {
-        get_fiat_config().insufficient_network_fee_buy_amount
     }
 }
 
@@ -134,8 +86,44 @@ fn is_broadcast(result: &GemExecuteResult) -> bool {
 }
 
 impl GemConfirmTransferService {
-    async fn wallet(&self) -> Result<Wallet, GemConfirmError> {
-        Ok(self.session.current_wallet().await?)
+    pub(super) fn get_currency(&self) -> Currency {
+        self.preferences.get_currency()
+    }
+    pub(super) fn authentication(&self) -> GemKeystoreAuthentication {
+        self.password.authentication().unwrap_or(GemKeystoreAuthentication::None)
+    }
+    pub(super) fn autoclose_summary(&self, data: PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
+        autoclose_summary(&data)
+    }
+    pub(super) fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
+        self.asset_config.acquire_flow(chain)
+    }
+    pub(super) fn insufficient_network_fee_buy_amount(&self) -> i32 {
+        get_fiat_config().insufficient_network_fee_buy_amount
+    }
+
+    pub(super) async fn execute(
+        &self,
+        wallet: Wallet,
+        confirm: GemConfirmData,
+        value: GemBigInt,
+        network_fee: GemBigInt,
+        simulation: Option<SimulationResult>,
+    ) -> Result<GemExecuteResult, GemConfirmError> {
+        let wallet_id = wallet.id.clone();
+        let input_type = confirm.input.transfer.input_type.clone();
+        let input = SendInput {
+            wallet,
+            confirm,
+            value,
+            network_fee,
+            simulation,
+        };
+        let result = self.confirm.execute(input, self.signer.clone()).await?;
+        if is_broadcast(&result) {
+            let _ = self.recent_activity.add(input_type, wallet_id).await;
+        }
+        Ok(result)
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
