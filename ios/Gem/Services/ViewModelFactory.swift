@@ -281,17 +281,15 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func validatorSelectScene(
-        type: ValidatorSelectType,
-        chain: Chain,
         currentValidator: DelegationValidator?,
+        recommended: [DelegationValidator],
         validators: [DelegationValidator],
         selectValidator: @escaping (DelegationValidator) -> Void,
     ) -> ValidatorSelectSceneViewModel {
         ValidatorSelectSceneViewModel(
             service: stakeService,
-            type: type,
-            chain: chain,
             currentValidator: currentValidator,
+            recommended: recommended,
             validators: validators,
             selectValidator: selectValidator,
         )

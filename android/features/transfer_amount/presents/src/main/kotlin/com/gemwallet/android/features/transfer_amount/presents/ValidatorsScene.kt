@@ -12,14 +12,14 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.features.transfer_amount.models.ValidatorsUIState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
 
 @Composable
 fun ValidatorsScene(
-    uiState: ValidatorsUIState.Loaded,
+    recommended: List<DelegationValidator>,
+    validators: List<DelegationValidator>,
     selectedValidatorId: String,
     onSelect: (String) -> Unit,
     onCancel: () -> Unit,
@@ -29,11 +29,11 @@ fun ValidatorsScene(
         onClose = onCancel,
     ) {
         LazyColumn {
-            if (uiState.recommended.isNotEmpty()) {
+            if (recommended.isNotEmpty()) {
                 item {
                     SubheaderItem(R.string.common_recommended)
                 }
-                itemsPositioned(uiState.recommended, key = { index, item -> "recommended-${item.id}" }) { position, item ->
+                itemsPositioned(recommended, key = { index, item -> "recommended-${item.id}" }) { position, item ->
                     ValidatorItem(
                         data = item,
                         listPosition = position,
@@ -46,8 +46,8 @@ fun ValidatorsScene(
             item {
                 SubheaderItem(R.string.stake_active)
             }
-            val validatorsSize = uiState.validators.size
-            itemsIndexed(uiState.validators, key = { index, item -> item.id }) { index, item ->
+            val validatorsSize = validators.size
+            itemsIndexed(validators, key = { index, item -> item.id }) { index, item ->
                 ValidatorItem(
                     data = item,
                     listPosition = ListPosition.getPosition(index, validatorsSize),
@@ -64,9 +64,8 @@ fun ValidatorsScene(
 fun PreviewValidatorsScene() {
     WalletTheme {
         ValidatorsScene(
-            uiState = ValidatorsUIState.Loaded(
-                recommended = emptyList(),
-                validators = listOf(
+            recommended = emptyList(),
+            validators = listOf(
                     DelegationValidator(
                         chain = Chain.Sei,
                         id = "some_validator_id",
@@ -95,7 +94,6 @@ fun PreviewValidatorsScene() {
                         providerType = StakeProviderType.Stake,
                     ),
                 ),
-            ),
             selectedValidatorId = "some_validator_id_1",
             onCancel = {},
             onSelect = {},

@@ -66,9 +66,8 @@ struct AmountNavigationView: View {
                 {
                     ValidatorSelectScene(
                         model: viewModelFactory.validatorSelectScene(
-                            type: stake.validatorSelectType,
-                            chain: model.asset.chain,
                             currentValidator: validator,
+                            recommended: stake.recommendedValidators,
                             validators: validatorSelection.options,
                             selectValidator: model.onValidatorSelected,
                         ),

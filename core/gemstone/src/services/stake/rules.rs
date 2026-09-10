@@ -231,14 +231,15 @@ fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> 
         .or_else(|| validators.first().cloned())
 }
 
-fn redelegate_validator(chain: Chain, validators: Vec<DelegationValidator>, from_validator_id: &str) -> Option<DelegationValidator> {
-    recommended_validator(chain, validators.into_iter().filter(|validator| validator.id != from_validator_id).collect())
+fn other_validators(validators: &[DelegationValidator], validator_id: &str) -> Vec<DelegationValidator> {
+    validators.iter().filter(|validator| validator.id != validator_id).cloned().collect()
 }
 
 pub fn validator_selection(chain: Chain, input: &GemStakeAmountInput) -> GemStakeValidatorSelection {
     match input {
         GemStakeAmountInput::Stake { validators, delegation } => GemStakeValidatorSelection {
             options: validators.clone(),
+            recommended: recommended_validators(chain, validators),
             validator: delegation
                 .as_ref()
                 .map(|delegation| delegation.validator.clone())
@@ -247,21 +248,25 @@ pub fn validator_selection(chain: Chain, input: &GemStakeAmountInput) -> GemStak
         },
         GemStakeAmountInput::Redelegate { validators, delegation } => GemStakeValidatorSelection {
             options: validators.clone(),
-            validator: redelegate_validator(chain, validators.clone(), &delegation.validator.id),
+            recommended: recommended_validators(chain, &other_validators(validators, &delegation.validator.id)),
+            validator: recommended_validator(chain, other_validators(validators, &delegation.validator.id)),
             can_select: true,
         },
         GemStakeAmountInput::Unstake { delegation } | GemStakeAmountInput::Withdraw { delegation } => GemStakeValidatorSelection {
             options: vec![delegation.validator.clone()],
+            recommended: vec![],
             validator: Some(delegation.validator.clone()),
             can_select: false,
         },
         GemStakeAmountInput::Rewards { delegations } => GemStakeValidatorSelection {
             options: delegations.iter().map(|delegation| delegation.validator.clone()).collect(),
+            recommended: vec![],
             validator: delegations.first().map(|delegation| delegation.validator.clone()),
             can_select: delegations.len() > 1,
         },
         GemStakeAmountInput::Freeze { .. } | GemStakeAmountInput::Unfreeze { .. } => GemStakeValidatorSelection {
             options: Vec::new(),
+            recommended: vec![],
             validator: None,
             can_select: false,
         },
@@ -573,13 +578,32 @@ mod tests {
     }
 
     #[test]
-    fn test_a_redelegate_never_lands_on_the_validator_it_leaves() {
+    fn test_a_redelegate_never_lands_on_or_recommends_the_validator_it_leaves() {
         let recommended = recommended_validator_ids(Chain::Cosmos);
         let validators = vec![validator("other"), validator(&recommended[0])];
+        let redelegate = |from: &str, validators: Vec<DelegationValidator>| {
+            validator_selection(
+                Chain::Cosmos,
+                &GemStakeAmountInput::Redelegate {
+                    validators,
+                    delegation: delegation_to(validator(from)),
+                },
+            )
+        };
 
-        assert_eq!(redelegate_validator(Chain::Cosmos, validators.clone(), "other").unwrap().id, recommended[0]);
-        assert_eq!(redelegate_validator(Chain::Cosmos, validators, &recommended[0]).unwrap().id, "other");
-        assert!(redelegate_validator(Chain::Cosmos, vec![validator("other")], "other").is_none());
+        let leaving_other = redelegate("other", validators.clone());
+        assert_eq!(leaving_other.validator.unwrap().id, recommended[0]);
+        assert_eq!(ids(&leaving_other.recommended), vec![recommended[0].as_str()]);
+
+        let leaving_recommended = redelegate(&recommended[0], validators);
+        assert_eq!(leaving_recommended.validator.unwrap().id, "other");
+        assert!(leaving_recommended.recommended.is_empty());
+
+        assert!(redelegate("other", vec![validator("other")]).validator.is_none());
+    }
+
+    fn ids(validators: &[DelegationValidator]) -> Vec<&str> {
+        validators.iter().map(|validator| validator.id.as_str()).collect()
     }
 
     fn delegation_to(validator: DelegationValidator) -> Delegation {
@@ -604,6 +628,7 @@ mod tests {
             validators: validators.clone(),
             delegation: None,
         });
+        assert_eq!(ids(&stake_fresh.recommended), vec![recommended[0].as_str()]);
         assert_eq!(stake_fresh.validator.unwrap().id, recommended[0]);
         assert!(stake_fresh.can_select);
 
@@ -629,6 +654,7 @@ mod tests {
             },
         ] {
             let held = selection(held);
+            assert!(held.recommended.is_empty());
             assert_eq!(held.validator.unwrap().id, "current");
             assert!(!held.can_select);
         }
@@ -652,6 +678,7 @@ mod tests {
                 selection(resource),
                 GemStakeValidatorSelection {
                     options: Vec::new(),
+                    recommended: vec![],
                     validator: None,
                     can_select: false
                 }

@@ -51,16 +51,6 @@ struct AmountStakeViewModelTests {
     }
 
     @Test
-    func validatorSelectType() {
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [DelegationValidator.mock().map()], delegation: .none), service: GemAmountService.mock()).validatorSelectType == .stake)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(validators: [DelegationValidator.mock(id: "from").map(), DelegationValidator.mock(id: "to").map()], delegation: Delegation.mock(validator: .mock(id: "from")).map()), service: GemAmountService.mock()).validatorSelectType == .stake)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .unstake(delegation: Delegation.mock().map()), service: GemAmountService.mock()).validatorSelectType == .unstake)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(delegation: Delegation.mock().map()), service: GemAmountService.mock()).validatorSelectType == .unstake)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .freeze(resource: Resource.bandwidth.map()), service: GemAmountService.mock()).validatorSelectType == .unstake)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(resource: Resource.bandwidth.map()), service: GemAmountService.mock()).validatorSelectType == .unstake)
-    }
-
-    @Test
     func canChangeValue() {
         let assetData = AssetData.mock(asset: .mockBNB())
         #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [DelegationValidator.mock().map()], delegation: .none), service: GemAmountService.mock()).input(from: assetData).canChangeValue == true)

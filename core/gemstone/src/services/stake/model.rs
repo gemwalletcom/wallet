@@ -77,6 +77,7 @@ pub enum GemStakeAmountInput {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemStakeValidatorSelection {
     pub options: Vec<DelegationValidator>,
+    pub recommended: Vec<DelegationValidator>,
     pub validator: Option<DelegationValidator>,
     pub can_select: bool,
 }

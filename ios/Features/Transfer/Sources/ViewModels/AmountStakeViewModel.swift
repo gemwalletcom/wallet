@@ -22,43 +22,25 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
     let action: GemStakeAmountInput
     public let selection: AmountStakeSelection
+    public let recommendedValidators: [DelegationValidator]
     private let service: any GemAmountServiceProtocol
 
     init(asset: Asset, type: GemStakeAmountInput, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.service = service
         action = type
-        selection = Self.makeSelection(asset: asset, type: type, service: service)
-    }
-
-    private static func makeSelection(asset: Asset, type: GemStakeAmountInput, service: any GemAmountServiceProtocol) -> AmountStakeSelection {
         switch type {
         case let .freeze(resource), let .unfreeze(resource):
-            return .resource(SelectionState(options: [.bandwidth, .energy], selected: resource.map(), isEnabled: true, title: Localized.Stake.resource))
-        default:
-            break
-        }
-
-        let selection = service.stakeValidatorSelection(chain: asset.chain.rawValue, input: type)
-        let options = selection.options.map { $0.map() }
-        guard let selected = selection.validator?.map() ?? options.first else {
-            preconditionFailure("Stake action \(type) requires at least one validator")
-        }
-
-        return .validator(
-            SelectionState(
-                options: options,
-                selected: selected,
-                isEnabled: selection.canSelect,
-                title: Localized.Stake.validator,
-            ),
-        )
-    }
-
-    public var validatorSelectType: ValidatorSelectType {
-        switch action {
-        case .stake, .redelegate: .stake
-        case .unstake, .withdraw, .rewards, .freeze, .unfreeze: .unstake
+            selection = .resource(SelectionState(options: [.bandwidth, .energy], selected: resource.map(), isEnabled: true, title: Localized.Stake.resource))
+            recommendedValidators = []
+        case .stake, .unstake, .redelegate, .withdraw, .rewards:
+            let validators = service.stakeValidatorSelection(chain: asset.chain.rawValue, input: type)
+            let options = validators.options.map { $0.map() }
+            guard let selected = validators.validator?.map() ?? options.first else {
+                preconditionFailure("Stake action \(type) requires at least one validator")
+            }
+            selection = .validator(SelectionState(options: options, selected: selected, isEnabled: validators.canSelect, title: Localized.Stake.validator))
+            recommendedValidators = validators.recommended.map { $0.map() }
         }
     }
 

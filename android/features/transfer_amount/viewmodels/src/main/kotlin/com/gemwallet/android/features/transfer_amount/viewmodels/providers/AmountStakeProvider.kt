@@ -7,7 +7,6 @@ import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
@@ -116,7 +115,7 @@ class AmountStakeProvider(
         source.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.Eagerly, null)
     }
 
-    private val validatorSelection: StateFlow<GemStakeValidatorSelection?> =
+    val validatorSelection: StateFlow<GemStakeValidatorSelection?> =
         combine(getValidators(params.assetId), delegation, rewardsDelegations) { validators, currentDelegation, rewards ->
             validatorInput(validators, currentDelegation, rewards)?.let { service.stakeValidatorSelection(params.assetId.chain.string, it) }
         }.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.Eagerly, null)
@@ -144,18 +143,6 @@ class AmountStakeProvider(
         is AmountParams.Stake.Freeze -> GemStakeAmountInput.Freeze(params.resource.toGem())
         is AmountParams.Stake.Unfreeze -> GemStakeAmountInput.Unfreeze(params.resource.toGem())
     }
-
-    val validatorSource: StateFlow<ValidatorsSource?> = assetInfo.mapLatest { current ->
-        when (params) {
-            is AmountParams.Stake.Rewards ->
-                current?.walletId?.let { ValidatorsSource.Rewards(walletId = it, assetId = params.assetId) }
-            is AmountParams.Stake.Freeze, is AmountParams.Stake.Unfreeze -> null
-            is AmountParams.Stake.Delegate,
-            is AmountParams.Stake.Redelegate,
-            is AmountParams.Stake.Undelegate,
-            is AmountParams.Stake.Withdraw -> ValidatorsSource.ChainValidators(assetId = params.assetId)
-        }
-    }.stateIn(scope, SharingStarted.Eagerly, null)
 
     val canSelectValidator: StateFlow<Boolean> = validatorSelection
         .map { it?.canSelect == true }

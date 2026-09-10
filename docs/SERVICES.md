@@ -301,6 +301,15 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The validator picker's sections are Core's answer.** `GemStakeValidatorSelection` carries
+  `recommended` next to `options`: the configured validators for a stake, the same minus the one
+  being left for a redelegate, none for an unstake, withdraw, rewards claim or resource change. Each
+  picker renders a "Recommended" and an "Active" section from the one record. iOS had derived a
+  `ValidatorSelectType` from the stake action to decide whether to ask `recommended_validators`;
+  Android had derived a `ValidatorsSource` from its route params and re-queried the chain's validators
+  or the rewarding delegations in a second view model, ignoring the options Core had already listed.
+  Both twins, the Android `ValidatorsViewModel` and `ValidatorsUIState`, and the
+  `recommended_validators` export are gone.
 - **The confirm screen's lifecycle is Core's state machine.** `GemConfirmScreen` is a state record
   now: `GemConfirmSession::screen()` gives the initial one, and `on_load_started`, `on_loaded(load)`,
   `on_load_failed(error)`, `on_execute_started`, `on_execute_cancelled` and `on_execute_failed(error)`
