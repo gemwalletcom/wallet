@@ -34,7 +34,7 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
     public var executedInputs: [GemConfirmData] { lock.withLock { inputs } }
 
     public init(
-        execute: Result<GemExecuteResult, any Error> = .success(.sent(hashes: [], transactions: [])),
+        execute: Result<GemExecuteResult, any Error> = .success(.sent(hashes: [], transactions: [], warning: nil)),
         metadata: Result<GemConfirmMetadata, any Error>? = nil,
         feeAssets: [GemFeeAsset] = [],
         preload: Result<GemConfirmPreload, any Error> = .failure(GemConfirmError.FeeRatesMissing),

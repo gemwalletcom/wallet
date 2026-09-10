@@ -73,6 +73,7 @@ public struct TransactionInputViewModel: Sendable {
              .stake,
              .tokenApprove,
              .generic,
+             .payment,
              .transferNft,
              .account,
              .perpetual,

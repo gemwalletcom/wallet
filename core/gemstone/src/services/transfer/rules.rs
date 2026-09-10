@@ -57,6 +57,9 @@ impl GemTransferData {
     }
 
     pub fn confirm_rows(&self) -> Vec<GemConfirmRow> {
+        if let TransactionInputType::Payment { .. } = self.input_type {
+            return vec![GemConfirmRow::Recipient, GemConfirmRow::Sender, GemConfirmRow::Network, GemConfirmRow::PaymentAsset];
+        }
         let is_generic = matches!(self.input_type, TransactionInputType::Generic { .. });
         [
             self.input_type.application_short_name().is_some().then_some(GemConfirmRow::App),

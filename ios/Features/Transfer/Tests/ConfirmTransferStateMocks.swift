@@ -8,6 +8,7 @@ import struct Gemstone.GemConfirmLoad
 import enum Gemstone.GemConfirmPhase
 import struct Gemstone.GemConfirmPreload
 import struct Gemstone.GemConfirmScreen
+import struct Gemstone.GemTransferData
 import Components
 import Primitives
 import PrimitivesComponents
@@ -34,12 +35,13 @@ extension ConfirmSimulationState {
 
 extension ConfirmTransferState {
     static func mock(
+        transfer: GemTransferData = .mock(),
         load: GemConfirmLoad? = nil,
         simulation: ConfirmSimulationState = .mock(),
         feeAsset: Asset = .mock(),
         screen: GemConfirmScreen = .mock(),
     ) -> ConfirmTransferState {
-        ConfirmTransferState(feeAsset: feeAsset, load: load, simulation: simulation, screen: screen)
+        ConfirmTransferState(transfer: load?.transfer ?? transfer, feeAsset: feeAsset, load: load, simulation: simulation, screen: screen)
     }
 }
 
