@@ -13,6 +13,7 @@ pub const TEST_PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161
 #[derive(Default)]
 pub struct MemoryWalletStore {
     pub wallets: Mutex<Vec<Wallet>>,
+    pub add_wallet_error: Mutex<Option<GemServiceError>>,
 }
 
 #[async_trait::async_trait]
@@ -24,6 +25,9 @@ impl GemWalletStore for MemoryWalletStore {
         Ok(self.wallets.lock().unwrap().iter().find(|wallet| wallet.id == wallet_id).cloned())
     }
     async fn add_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+        if let Some(error) = self.add_wallet_error.lock().unwrap().clone() {
+            return Err(error);
+        }
         let mut wallets = self.wallets.lock().unwrap();
         wallets.retain(|stored| stored.id != wallet.id);
         wallets.push(wallet);

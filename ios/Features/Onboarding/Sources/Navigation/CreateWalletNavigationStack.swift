@@ -48,6 +48,7 @@ public struct CreateWalletNavigationStack: View {
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
                 }
+                .alertSheet($model.isPresentingAlertMessage)
         }
     }
 
@@ -83,25 +84,16 @@ extension CreateWalletNavigationStack {
         }
     }
 
-    func onVerifyPhraseComplete(words: [String]) {
-        Task {
-            do {
-                let created = try await model.createWallet(words: words)
-
-                if created.hasExistingWallets {
-                    navigate(to: .walletProfile(wallet: created.wallet))
-                } else {
-                    onSetupWalletComplete(wallet: created.wallet)
-                }
-            } catch {
-                debugLog("Failed to create wallet: \(error)")
-            }
+    func onVerifyPhraseComplete(words: [String]) async throws {
+        let created = try await model.createWallet(words: words)
+        if created.hasExistingWallets {
+            navigate(to: .walletProfile(wallet: created.wallet))
+        } else {
+            onSetupWalletComplete(wallet: created.wallet)
         }
     }
 
     func onSetupWalletComplete(wallet: Wallet) {
-        Task {
-            await model.setupWalletComplete(wallet: wallet)
-        }
+        model.setupWalletComplete(wallet: wallet)
     }
 }

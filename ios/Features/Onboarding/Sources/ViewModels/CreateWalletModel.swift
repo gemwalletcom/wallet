@@ -7,6 +7,8 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 import SwiftUI
+import Components
+import Localization
 
 @Observable
 @MainActor
@@ -17,6 +19,7 @@ public final class CreateWalletModel {
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(
         service: any GemWalletServiceProtocol,
@@ -78,12 +81,12 @@ extension CreateWalletModel {
         return CreatedWallet(wallet: result.wallet, hasExistingWallets: name.hasExistingWallets)
     }
 
-    func setupWalletComplete(wallet: Wallet) async {
-        dismiss()
+    func setupWalletComplete(wallet: Wallet) {
         do {
             try service.setCurrentWalletId(walletId: wallet.id.id)
+            dismiss()
         } catch {
-            debugLog("set current wallet error: \(error)")
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, message: error.localizedDescription)
         }
     }
 }

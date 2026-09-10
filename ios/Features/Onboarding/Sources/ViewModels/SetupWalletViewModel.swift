@@ -23,6 +23,7 @@ public final class SetupWalletViewModel: Sendable {
     }
 
     var nameInput: String
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(
         wallet: Wallet,
@@ -66,7 +67,7 @@ public final class SetupWalletViewModel: Sendable {
         do {
             try await service.rename(walletId: wallet.id, newName: nameInput)
         } catch {
-            debugLog("Rename wallet error: \(error)")
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, message: error.localizedDescription)
         }
     }
 }

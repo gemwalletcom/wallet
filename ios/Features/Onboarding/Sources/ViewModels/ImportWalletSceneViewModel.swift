@@ -126,11 +126,10 @@ extension ImportWalletSceneViewModel {
         do {
             try await importWallet()
         } catch {
-            isPresentingAlertMessage = AlertMessage(
-                title: alertTitle,
-                message: error.localizedDescription,
-            )
             buttonState = .normal
+            if !error.isCancelled {
+                isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.localizedDescription)
+            }
         }
     }
 

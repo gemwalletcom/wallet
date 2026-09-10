@@ -558,6 +558,21 @@ intentional one-sided integration surfaces.
   stops deriving it from the session. The header-buttons rule (a blocked multi-signature account
   disables them) moved from iOS's `HeaderBannerEventViewModel` to
   `wallet_home::rules::header_buttons_enabled`.
+- **A wallet that fails to be created says so, and leaves nothing behind.** iOS's verify-phrase
+  screen set its button spinning and handed the words to a navigation callback that swallowed
+  every failure (a cancelled Face ID prompt while creating an additional wallet, any keystore or
+  database write error), so the spinner never stopped and no message appeared, a hole that
+  predates the Core service. The verify view model now owns the outcome of Continue: a failure
+  re-enables the button and shows it under the create-wallet error title, a cancelled prompt just
+  re-enables it, the way the import screen already behaved; setting the new wallet current and
+  renaming it on the setup screen surface their errors too instead of logging them, and so does
+  choosing a wallet in the wallets list. Two Core rules back this on both apps:
+  `import_wallet` deletes the secret it just stored when the wallet row fails to write, so a
+  failed creation never leaves key material on the device without a wallet (a re-import of the
+  same phrase already reused an existing entry, so this was recoverable but wrong); and a
+  cancelled keystore prompt (`GemServiceError::Cancelled`, which the iOS password store now
+  raises for a keychain user-cancel) maps to `GemConfirmError::Cancelled`, so the confirm screen
+  returns to idle rather than reporting "cancelled" as a load failure.
 - **Equal fiat totals have a defined order on Android.** The wallet, portfolio, network and
   by-id asset queries ordered by fiat total alone, so every zero-balance row (and any two rows
   worth the same) came out in SQLite's scan order, which is the `asset` table's rowid order and

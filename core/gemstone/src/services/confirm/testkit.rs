@@ -41,6 +41,7 @@ impl ConfirmTestkit {
         });
         let wallets = Arc::new(MemoryWalletStore {
             wallets: Mutex::new(vec![wallet.clone(), selected_wallet]),
+            ..Default::default()
         });
         let session = Arc::new(GemWalletSessionService::new(selected.clone(), wallets.clone()));
         let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));

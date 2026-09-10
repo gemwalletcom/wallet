@@ -14,7 +14,7 @@ import SwiftUI
 final class VerifyPhraseViewModel {
     private let words: [String]
     private let shuffledWords: [String]
-    private let onComplete: ([String]) -> Void
+    private let onComplete: ([String]) async throws -> Void
 
     var wordsVerified: [String]
     var wordsIndex: Int = 0
@@ -24,7 +24,7 @@ final class VerifyPhraseViewModel {
 
     init(
         words: [String],
-        onComplete: @escaping ([String]) -> Void,
+        onComplete: @escaping ([String]) async throws -> Void,
     ) {
         self.words = words
         shuffledWords = words.shuffleInGroups(groupSize: 4)
@@ -83,6 +83,19 @@ final class VerifyPhraseViewModel {
 extension VerifyPhraseViewModel {
     func onContinue() {
         buttonState = .loading(showProgress: true)
-        onComplete(words)
+        Task {
+            await complete()
+        }
+    }
+
+    func complete() async {
+        do {
+            try await onComplete(words)
+        } catch {
+            buttonState = .normal
+            if !error.isCancelled {
+                isPresentingAlertMessage = AlertMessage(title: Localized.Errors.createWallet(""), message: error.localizedDescription)
+            }
+        }
     }
 }

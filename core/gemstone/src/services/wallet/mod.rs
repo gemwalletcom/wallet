@@ -151,15 +151,20 @@ impl GemWalletService {
             return Ok(GemWalletImportResult::Existing { wallet });
         }
         let index = rules::next_wallet_index(&wallets);
-        let wallet = match import {
-            GemWalletImportType::Address { address, chain } => Wallet {
-                index,
-                ..rules::view_wallet(name, chain, address)
-            },
+        let (wallet, stored_secret) = match import {
+            GemWalletImportType::Address { address, chain } => (
+                Wallet {
+                    index,
+                    ..rules::view_wallet(name, chain, address)
+                },
+                None,
+            ),
             import => {
+                let keystore_id = keystore_id_for_wallet(wallet_id.id());
+                let is_new_secret = !self.keystore.exists(keystore_id.clone());
                 let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?)?);
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
-                Wallet {
+                let wallet = Wallet {
                     id: wallet_id,
                     external_id: None,
                     name,
@@ -169,10 +174,16 @@ impl GemWalletService {
                     is_pinned: false,
                     image_url: None,
                     source,
-                }
+                };
+                (wallet, is_new_secret.then_some(keystore_id))
             }
         };
-        self.store_wallet(&wallet).await?;
+        if let Err(error) = self.store_wallet(&wallet).await {
+            if let Some(keystore_id) = stored_secret {
+                let _ = self.keystore.delete(keystore_id);
+            }
+            return Err(error);
+        }
         if wallet.source == WalletSource::Create {
             self.preferences.complete_initial_synchronization(wallet.id.clone())?;
         }
@@ -373,6 +384,7 @@ mod tests {
 
     struct TestContext {
         service: GemWalletService,
+        wallets: Arc<MemoryWalletStore>,
         passwords: Arc<MemoryKeystorePassword>,
         addresses: Arc<MemoryAddressStore>,
         directory: TempDir,
@@ -391,7 +403,7 @@ mod tests {
             let service = GemWalletService::new(
                 keystore,
                 passwords.clone(),
-                wallets,
+                wallets.clone(),
                 session,
                 app_preferences.clone(),
                 Arc::new(NoopFileStore),
@@ -402,6 +414,7 @@ mod tests {
             );
             Self {
                 service,
+                wallets,
                 passwords,
                 addresses,
                 directory,
@@ -488,6 +501,28 @@ mod tests {
             context.import("Second", OTHER_PHRASE).await;
 
             assert_eq!(*context.passwords.create_requests.lock().unwrap(), vec![true, false]);
+        });
+    }
+
+    #[test]
+    fn test_a_failed_wallet_write_removes_the_secret_it_stored() {
+        block_on(async {
+            let context = TestContext::new();
+            let import = GemWalletImportType::MulticoinPhrase {
+                words: PHRASE.iter().map(|word| word.to_string()).collect(),
+                chains: vec![Chain::Ethereum],
+            };
+            *context.wallets.add_wallet_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
+
+            let error = context.service.import_wallet("First".to_string(), import.clone(), WalletSource::Create).await.unwrap_err();
+
+            assert!(matches!(error, GemServiceError::Store { .. }));
+            assert!(!context.service.keystore.has_stored_wallets().unwrap());
+            assert!(context.wallets.get_wallets().await.unwrap().is_empty());
+
+            *context.wallets.add_wallet_error.lock().unwrap() = None;
+            let result = context.service.import_wallet("First".to_string(), import, WalletSource::Create).await.unwrap();
+            assert!(matches!(result, GemWalletImportResult::New { .. }));
         });
     }
 

@@ -110,7 +110,10 @@ pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError 
 
 impl From<GemServiceError> for GemConfirmError {
     fn from(error: GemServiceError) -> Self {
-        Self::Load { msg: error.to_string() }
+        match error {
+            GemServiceError::Cancelled => Self::Cancelled,
+            error => Self::Load { msg: error.to_string() },
+        }
     }
 }
 
@@ -141,6 +144,12 @@ mod tests {
             sign_error(Chain::Ethereum, GemstoneError::AnyError { msg: "boom".into() }),
             GemConfirmError::Sign { error: GemSignerError::SigningError(msg), chain: Chain::Ethereum, .. } if msg == "boom"
         ));
+    }
+
+    #[test]
+    fn test_a_cancelled_keystore_prompt_is_a_cancel_not_a_load_failure() {
+        assert!(matches!(GemConfirmError::from(GemServiceError::Cancelled), GemConfirmError::Cancelled));
+        assert!(matches!(GemConfirmError::from(GemServiceError::Store { msg: "x".to_string() }), GemConfirmError::Load { .. }));
     }
 
     #[test]

@@ -65,7 +65,7 @@ extension WalletsSceneViewModel {
         do {
             try service.setCurrentWalletId(walletId: walletId.id)
         } catch {
-            debugLog("set current wallet error: \(error)")
+            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }
     }
 
