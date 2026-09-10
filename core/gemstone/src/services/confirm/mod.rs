@@ -316,11 +316,13 @@ impl GemConfirmService {
         let Some(transaction) = input.transfer.input_type.simulation_payload() else {
             return Ok(None);
         };
-        self.simulation
+        let simulation = self
+            .simulation
             .simulate_transaction(chain, transaction, Some(input.from.address.clone()))
             .await
-            .map(Some)
-            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        input.transfer.input_type.validate_simulation(&simulation)?;
+        Ok(Some(simulation))
     }
 }
 
