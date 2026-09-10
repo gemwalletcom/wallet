@@ -27,8 +27,6 @@ fun Chain.chainConfig(): ChainConfig = chainConfigCache.getValue(this)
 
 fun Chain.assetType(): AssetType? = chainConfig().defaultAssetType?.toPrimitives()
 
-fun Chain.isStakeSupported(): Boolean = chainConfig().isStakeSupported
-
 fun Chain.asset(): Asset {
     return chainAsset().asset
 }

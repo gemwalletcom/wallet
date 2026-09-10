@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Dead-code sweep, 2026-09-10.** `GemNodeService::node_url` leaves the FFI: its websocket twin is
+  its only caller. The keystore exports the sweep flagged (`preview_import`, `create_store`,
+  `export_recovery_phrase`, `export_private_key`) and `GemPaymentService::decode_url` stay: the iOS
+  keystore test kit, the Android keystore and import instrumented tests and the Android payment
+  instrumented test are their readers, so an un-called-export sweep has to count test kits and
+  instrumented tests before it un-exports. On the apps, iOS's unread `Result.isSuccess`/`isFailure`
+  extension and Android's `Chain.isStakeSupported()` (only a test stubbed it) are gone; the other
+  sweep hits were locals and same-file callers, not dead members.
 - **The chart's base and its current point are Core's.** `GemChart` carries `base_value` (the
   first non-zero value, the first value when every value is zero) and a `current` point that
   holds Core's `change_percentage`: the price's 24-hour change on the day period, the change
@@ -793,6 +801,7 @@ Each is one question. Nothing below is blocked on investigation.
 
 | Item | Question | Recommendation |
 |---|---|---|
+| Native fee-rate rows | On chains whose fee unit is the native asset, a fee-rate row shows the rate (`unit_value`) on iOS and the resulting fee (`fee`, falling back to the rate) on Android; `GemFeeRateRows` carries both. | Pick the resulting fee (what the row's fiat line already prices) and let `GemFeeRateRow` carry a `display_value` so neither app chooses. |
 | S3 biometric gate | iOS gates at the Keychain ACL so every secret read prompts; Android calls a UI prompt at each call site and `PasswordStore` itself is unauthenticated, so any new caller bypasses it. | Core should mark which operations require authentication, and the adapter enforces it. |
 | N1 notification permission | Core owns "granted / denied / never asked", but Android's adapter holds an application `Context` and cannot tell "never asked" from "denied", so it opens Settings for a first-time user. | Core owns the three-state decision; Android needs an activity-scoped requester. |
 | S8 privacy lock | iOS has an app-lock setting with a `shouldCoverScreen` rule and an overlay window; Android has none. | Product call. The cover predicate is Core's; the overlay is platform. |

@@ -36,10 +36,6 @@ impl GemNodeService {
         rules::can_delete_node(chain, &url)
     }
 
-    pub fn node_url(&self, chain: Chain) -> String {
-        node_url(self.preferences.as_ref(), chain)
-    }
-
     pub fn websocket_node_url(&self, chain: Chain) -> String {
         rules::websocket_url(&self.node_url(chain))
     }
@@ -101,6 +97,10 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
+    fn node_url(&self, chain: Chain) -> String {
+        node_url(self.preferences.as_ref(), chain)
+    }
+
     fn selected_url(&self, chain: Chain) -> Option<String> {
         self.preferences.get(node_key(chain))
     }
