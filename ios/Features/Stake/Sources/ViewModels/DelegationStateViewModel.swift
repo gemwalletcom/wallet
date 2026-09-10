@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemDelegationStatus
 import Localization
-import Primitives
 import Style
 import SwiftUI
 
 public struct DelegationStateViewModel {
-    public let state: DelegationState
+    private let status: GemDelegationStatus
 
-    public init(state: DelegationState) {
-        self.state = state
+    public init(status: GemDelegationStatus) {
+        self.status = status
     }
 
     public var title: String {
-        switch state {
+        switch status.state {
         case .active: Localized.Stake.active
         case .pending: Localized.Stake.pending
         case .inactive: Localized.Stake.inactive
@@ -24,13 +24,10 @@ public struct DelegationStateViewModel {
     }
 
     public var color: Color {
-        switch state {
-        case .active: Colors.green
-        case .pending,
-             .activating,
-             .deactivating: Colors.orange
-        case .inactive,
-             .awaitingWithdrawal: Colors.red
+        switch status.tone {
+        case .positive: Colors.green
+        case .pending: Colors.orange
+        case .negative: Colors.red
         }
     }
 

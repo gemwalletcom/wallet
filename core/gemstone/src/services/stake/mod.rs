@@ -14,7 +14,8 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationDestination, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationStatus, GemDelegationTone, GemStakeAction,
+    GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection,
 };
 pub use store::GemStakeStore;
 
@@ -94,10 +95,6 @@ impl GemStakeService {
 
     pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, delegation: Delegation) -> bool {
         rules::can_claim_rewards(wallet_type, &delegation)
-    }
-
-    pub fn shows_completion_date(&self, delegation: DelegationBase) -> bool {
-        rules::shows_completion_date(&delegation)
     }
 
     pub fn shows_rewards(&self, delegation: DelegationBase) -> bool {

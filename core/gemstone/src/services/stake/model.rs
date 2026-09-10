@@ -4,7 +4,32 @@ use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
-use primitives::{Delegation, DelegationValidator, Resource, StakeType};
+use primitives::{Delegation, DelegationState, DelegationValidator, Resource, StakeType};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemDelegationTone {
+    Positive,
+    Pending,
+    Negative,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemDelegationCompletion {
+    ActiveIn,
+    AvailableIn,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+pub struct GemDelegationStatus {
+    pub state: DelegationState,
+    pub tone: GemDelegationTone,
+    pub completion: Option<GemDelegationCompletion>,
+}
+
+#[uniffi::export]
+pub fn delegation_status(delegation: Delegation) -> GemDelegationStatus {
+    rules::delegation_status(&delegation)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemDelegationAction {

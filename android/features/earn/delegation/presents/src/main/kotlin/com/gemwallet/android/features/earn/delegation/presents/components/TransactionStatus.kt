@@ -2,18 +2,18 @@ package com.gemwallet.android.features.earn.delegation.presents.components
 
 import androidx.compose.runtime.Composable
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.stateColor
 import com.gemwallet.android.ui.components.list_item.stateText
 import com.gemwallet.android.ui.models.ListPosition
-import com.wallet.core.primitives.DelegationState
+import uniffi.gemstone.GemDelegationStatus
 
 @Composable
-internal fun TransactionStatus(state: DelegationState, active: Boolean, listPosition: ListPosition) {
+internal fun TransactionStatus(status: GemDelegationStatus, listPosition: ListPosition) {
     PropertyItem(
         title = R.string.transaction_status,
-        data = state.stateText(active),
-        dataColor = state.stateColor(),
+        data = status.stateText(),
+        dataColor = status.tone.color(),
         listPosition = listPosition
     )
 }

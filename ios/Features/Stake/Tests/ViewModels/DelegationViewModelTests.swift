@@ -33,12 +33,8 @@ struct DelegationViewModelTests {
     func completionDate() {
         let completionDate = Date.now.addingTimeInterval(86400)
 
-        #expect(
-            DelegationViewModel
-                .mock(completionDate: completionDate, completionDateShown: true)
-                .completionDateText == "23 hours, 59 minutes",
-        )
-        #expect(DelegationViewModel.mock(completionDate: completionDate, completionDateShown: false).completionDateText == nil)
+        #expect(DelegationViewModel.mock(state: .pending, completionDate: completionDate).completionDateText == "23 hours, 59 minutes")
+        #expect(DelegationViewModel.mock(state: .active, completionDate: completionDate).completionDateText == nil)
     }
 }
 
@@ -47,10 +43,9 @@ extension DelegationViewModel {
         state: DelegationState = .active,
         completionDate: Date? = nil,
         rewardsShown: Bool = false,
-        completionDateShown: Bool = false,
     ) -> DelegationViewModel {
         DelegationViewModel(
-            service: GemStakeServiceMock(rewardsShown: rewardsShown, completionDateShown: completionDateShown),
+            service: GemStakeServiceMock(rewardsShown: rewardsShown),
             delegation: .mock(
                 state: state,
                 price: Price.mock(price: 2.0),

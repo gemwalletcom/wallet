@@ -301,6 +301,16 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **How a delegation's state is presented is one Core answer.** `delegation_status(delegation) ->
+  GemDelegationStatus { state, tone, completion }`: the state to label (an active delegation on a
+  validator that is no longer active reads as inactive), the tone its label takes (`Positive`,
+  `Pending`, `Negative`) and which completion-date title the row carries (`ActiveIn` while
+  activating, `AvailableIn` while pending, deactivating or awaiting withdrawal, none on an earn
+  position). Both apps grouped the six states into three colours themselves; Android alone relabelled
+  the inactive-validator case but kept it green, iOS ignored it; iOS hid the completion date for an
+  awaiting withdrawal that Core's `shows_completion_date` said to show. iOS `DelegationStateViewModel`
+  and Android's `stateText`/`stateColor` take the status now, the `shows_completion_date` export is
+  gone, and the two title rules live in the record. The localized labels stay on the apps.
 - **Which transaction types a filter group covers is Core's answer.** `GemTransactionFilter`
   (`Transfers`, `Swaps`, `Stake`, `SmartContract`, `Perpetuals`, `Others`) answers
   `transaction_types()`, and `transaction_filters()` lists the groups in the order the screen

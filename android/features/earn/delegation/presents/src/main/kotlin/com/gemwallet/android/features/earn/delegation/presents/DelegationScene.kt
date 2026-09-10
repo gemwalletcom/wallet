@@ -79,13 +79,12 @@ fun DelegationScene(
                         listPosition = position,
                     )
                     is DelegationProperty.State -> DelegationState(
-                        item.state,
+                        item.completion,
                         item.availableIn,
                         position
                     )
                     is DelegationProperty.TransactionStatus -> TransactionStatus(
-                        item.state,
-                        item.isActive,
+                        item.status,
                         position
                     )
                 }

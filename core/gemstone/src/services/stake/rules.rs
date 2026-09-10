@@ -11,7 +11,8 @@ use primitives::{
 use rand::seq::IndexedRandom;
 
 use super::model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationDestination, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationStatus, GemDelegationTone, GemStakeAction,
+    GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection,
 };
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
@@ -73,10 +74,34 @@ pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<Str
     }
 }
 
-pub fn shows_completion_date(delegation: &DelegationBase) -> bool {
-    match delegation.state {
-        DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => true,
-        DelegationState::Active | DelegationState::Inactive => false,
+pub fn delegation_status(delegation: &Delegation) -> GemDelegationStatus {
+    let state = match delegation.base.state {
+        DelegationState::Active if !delegation.validator.is_active => DelegationState::Inactive,
+        state => state,
+    };
+    GemDelegationStatus {
+        state,
+        tone: delegation_tone(state),
+        completion: delegation_completion(delegation),
+    }
+}
+
+fn delegation_tone(state: DelegationState) -> GemDelegationTone {
+    match state {
+        DelegationState::Active => GemDelegationTone::Positive,
+        DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating => GemDelegationTone::Pending,
+        DelegationState::Inactive | DelegationState::AwaitingWithdrawal => GemDelegationTone::Negative,
+    }
+}
+
+fn delegation_completion(delegation: &Delegation) -> Option<GemDelegationCompletion> {
+    match delegation.validator.provider_type {
+        StakeProviderType::Earn => None,
+        StakeProviderType::Stake => match delegation.base.state {
+            DelegationState::Activating => Some(GemDelegationCompletion::ActiveIn),
+            DelegationState::Pending | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => Some(GemDelegationCompletion::AvailableIn),
+            DelegationState::Active | DelegationState::Inactive => None,
+        },
     }
 }
 
@@ -493,6 +518,42 @@ mod tests {
     }
 
     #[test]
+    fn test_delegation_status_presents_the_state_its_tone_and_the_completion_label() {
+        let status = |state, provider_type| delegation_status(&delegation(Chain::Cosmos, provider_type, state, 100));
+
+        let active = status(DelegationState::Active, StakeProviderType::Stake);
+        assert_eq!((active.state, active.tone, active.completion), (DelegationState::Active, GemDelegationTone::Positive, None));
+        let inactive = status(DelegationState::Inactive, StakeProviderType::Stake);
+        assert_eq!(
+            (inactive.state, inactive.tone, inactive.completion),
+            (DelegationState::Inactive, GemDelegationTone::Negative, None)
+        );
+        let activating = status(DelegationState::Activating, StakeProviderType::Stake);
+        assert_eq!(
+            (activating.tone, activating.completion),
+            (GemDelegationTone::Pending, Some(GemDelegationCompletion::ActiveIn))
+        );
+        for state in [DelegationState::Pending, DelegationState::Deactivating] {
+            let pending = status(state, StakeProviderType::Stake);
+            assert_eq!(
+                (pending.state, pending.tone, pending.completion),
+                (state, GemDelegationTone::Pending, Some(GemDelegationCompletion::AvailableIn))
+            );
+        }
+        let awaiting = status(DelegationState::AwaitingWithdrawal, StakeProviderType::Stake);
+        assert_eq!(
+            (awaiting.tone, awaiting.completion),
+            (GemDelegationTone::Negative, Some(GemDelegationCompletion::AvailableIn))
+        );
+        assert_eq!(status(DelegationState::Pending, StakeProviderType::Earn).completion, None);
+
+        let mut on_inactive_validator = delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100);
+        on_inactive_validator.validator.is_active = false;
+        let shown = delegation_status(&on_inactive_validator);
+        assert_eq!((shown.state, shown.tone), (DelegationState::Inactive, GemDelegationTone::Negative));
+    }
+
+    #[test]
     fn test_delegation_rows_follow_state() {
         for state in [
             DelegationState::Pending,
@@ -501,11 +562,7 @@ mod tests {
             DelegationState::AwaitingWithdrawal,
         ] {
             let base = delegation(Chain::Cosmos, StakeProviderType::Stake, state, 100).base;
-            assert!(shows_completion_date(&base));
             assert!(!shows_rewards(&base));
-        }
-        for state in [DelegationState::Active, DelegationState::Inactive] {
-            assert!(!shows_completion_date(&delegation(Chain::Cosmos, StakeProviderType::Stake, state, 100).base));
         }
         assert!(shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100).base));
         assert!(!shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0).base));

@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.delegationStatus
+import struct Gemstone.GemDelegationStatus
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Formatters
@@ -49,12 +51,12 @@ public struct DelegationViewModel: Sendable {
         priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
     }
 
-    public var state: DelegationState {
-        delegation.base.state
+    public var status: GemDelegationStatus {
+        delegationStatus(delegation: delegation.map())
     }
 
     public var stateModel: DelegationStateViewModel {
-        DelegationStateViewModel(state: state)
+        DelegationStateViewModel(status: status)
     }
 
     public var titleStyle: TextStyle {
@@ -116,7 +118,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var completionDateText: String? {
-        guard service.showsCompletionDate(delegation: delegation.base.map()) else { return nil }
+        guard status.completion != nil else { return nil }
         let now = Date.now
         if let completionDate = delegation.base.completionDate, completionDate > now {
             if now.distance(to: completionDate) < 86400 {

@@ -4,6 +4,7 @@ import protocol Gemstone.GemStakeServiceProtocol
 import Components
 import Foundation
 import enum Gemstone.GemDelegationAction
+import enum Gemstone.GemDelegationCompletion
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -72,7 +73,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var stateModel: DelegationStateViewModel {
-        DelegationStateViewModel(state: model.state)
+        model.stateModel
     }
 
     public var providerUrl: URL? {
@@ -83,20 +84,11 @@ public struct DelegationSceneViewModel {
     }
 
     public var completionDateField: ListItemField? {
-        let title: String? = switch providerType {
-        case .stake:
-            switch model.state {
-            case .pending, .deactivating: Localized.Stake.availableIn
-            case .activating: Localized.Stake.activeIn
-            default: .none
-            }
-        case .earn: .none
+        guard let completion = model.status.completion, let text = model.completionDateText else { return nil }
+        let title = switch completion {
+        case .activeIn: Localized.Stake.activeIn
+        case .availableIn: Localized.Stake.availableIn
         }
-        let text: String? = switch providerType {
-        case .stake: model.completionDateText
-        case .earn: .none
-        }
-        guard let title, let text else { return nil }
         return ListItemField(title: title, value: text)
     }
 

@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
 import uniffi.gemstone.GemStakeServiceInterface
+import uniffi.gemstone.delegationStatus
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
@@ -68,12 +69,13 @@ class DelegationViewModel @Inject constructor(
         }
         val availableIn = availableIn(delegation)
         val validatorUrl = stakeService.validatorUrl(delegation.validator.toGem())?.link
+        val status = delegationStatus(delegation.toGem())
         listOfNotNull(
             DelegationProperty.Name(delegation.validator.name, validatorUrl),
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },
-            DelegationProperty.TransactionStatus(delegation.base.state, delegation.validator.isActive),
-            delegation.base.state
-                .takeIf { stakeService.showsCompletionDate(delegation.base.toGem()) && availableIn.isNotEmpty() }
+            DelegationProperty.TransactionStatus(status),
+            status.completion
+                ?.takeIf { availableIn.isNotEmpty() }
                 ?.let { DelegationProperty.State(it, availableIn) }
         )
     }
