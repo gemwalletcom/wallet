@@ -11,8 +11,6 @@ import kotlinx.serialization.SerialName
 enum class ApplicationMetadataSource(val string: String) {
 	@SerialName("walletConnect")
 	WalletConnect("walletConnect"),
-	@SerialName("payment")
-	Payment("payment"),
 }
 
 @Serializable
