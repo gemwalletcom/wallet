@@ -98557,6 +98557,28 @@
         }
       }
     },
+    "transfer.pay_with": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay with"
+          }
+        }
+      }
+    },
+    "transfer.payment_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment"
+          }
+        }
+      }
+    },
     "transfer.recipient.address_field": {
       "extractionState": "manual",
       "localizations": {
