@@ -267,6 +267,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.material)
     implementation(libs.okhttp)
 
     implementation(libs.tink)

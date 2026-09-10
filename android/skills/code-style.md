@@ -12,7 +12,7 @@ Use for any Kotlin or Compose change.
 
 ## Gradle Dependencies
 
-- A module declares what its own sources import, nothing more. A dependency reachable through another direct dependency's `api` counts as declared (`:ui` exports the Compose stack and `:ui-models` this way); a public class that extends a type from another module exposes it with `api`. `runtime-ktx`-style artifacts arrive transitively, test dependencies belong only to modules with test sources, and `hilt-android` plus `ksp(hilt-compiler)` belong only to modules with Hilt annotations; a presents module that calls `hiltViewModel()` needs `hilt-lifecycle-viewmodel-compose` alone
+- A module declares dependencies used by its sources or resources, including XML theme parents. `:app` owns the Material Components dependency for `Theme.Material3.DayNight.NoActionBar`; Compose Material3 does not provide that XML theme. A dependency reachable through another direct dependency's `api` counts as declared (`:ui` exports the Compose stack and `:ui-models` this way); a public class that extends a type from another module exposes it with `api`. `runtime-ktx`-style artifacts arrive transitively, test dependencies belong only to modules with test sources, and `hilt-android` plus `ksp(hilt-compiler)` belong only to modules with Hilt annotations; a presents module that calls `hiltViewModel()` needs `hilt-lifecycle-viewmodel-compose` alone
 - Runtime plugins are the exception: `camera-camera2`, `coil-network-okhttp` and `coil-svg` register through service loading and are never imported
 
 ## Security and Hygiene
