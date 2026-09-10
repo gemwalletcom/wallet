@@ -50,7 +50,7 @@ Do not skip migration tests when changing Room schemas — they catch data loss 
 
 Host unit tests load the Rust `gemstone` library through JNA from `core/target/debug` (configured in the root `build.gradle.kts`). Running `./gradlew :<module>:testDebugUnitTest` for a module that reaches gemstone before that library exists fails with JNA link or class errors unrelated to your change. Build it first, or use `just test`, which does so:
 ```bash
-cd ../core && cargo build --package gemstone
+cd ../core && cargo rustc --package gemstone --lib --crate-type cdylib
 ```
 If a test still fails on a clean tree with the library present, treat it as environmental: report it with the command and judge only the classes you touched.
 

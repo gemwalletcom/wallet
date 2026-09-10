@@ -4,11 +4,7 @@ name = "gemstone"
 version = { workspace = true }
 
 [lib]
-crate-type = [
-    "staticlib", # iOS
-    "rlib",      # for Other crate
-    "cdylib",    # Android
-]
+crate-type = ["rlib"]
 
 name = "gemstone"
 
@@ -79,9 +75,6 @@ futures.workspace = true
 tracing.workspace = true
 bs58 = { workspace = true }
 zeroize = { workspace = true }
-
-[build-dependencies]
-uniffi = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 primitives = { path = "../crates/primitives", features = ["testkit"] }

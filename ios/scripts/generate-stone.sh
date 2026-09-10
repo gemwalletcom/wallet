@@ -97,8 +97,8 @@ build_ios_static_libraries() {
     host_arch="$(uname -m)"
 
     if [ "${BUILD_MODE:-}" = "release" ]; then
-        profile="release"
-        build_flag="--release"
+        profile="mobile"
+        build_flag="--profile mobile"
     fi
 
     if [ "$host_arch" != "arm64" ]; then
@@ -110,8 +110,6 @@ build_ios_static_libraries() {
     for rust_target in $targets; do
         env -u MACOSX_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET -u XROS_DEPLOYMENT_TARGET \
             -u SWIFT_DEBUG_INFORMATION_FORMAT -u SWIFT_DEBUG_INFORMATION_VERSION \
-            CARGO_PROFILE_RELEASE_LTO=fat \
-            CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 \
             IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \
             cargo rustc --manifest-path "$STONE_DIR/Cargo.toml" --target "$rust_target" --lib ${build_flag} --crate-type staticlib
     done

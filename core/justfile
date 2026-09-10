@@ -14,7 +14,7 @@ build-gemstone:
 build-ios:
     just gemstone build-ios
 
-install: install-sccache install-typeshare install-postgres install-diesel
+install: install-sccache install-typeshare install-postgres install-diesel install-nextest
 
 install-sccache:
     @echo Install sccache
@@ -41,21 +41,25 @@ install-diesel:
     @echo Install Diesel
     cargo install diesel_cli --no-default-features --features postgres --version 2.3.3 --force
 
+install-nextest:
+    @command -v cargo-nextest >/dev/null || curl -LsSf https://get.nexte.st/0.9.143/{{ if os() == "macos" { "mac" } else { "linux" } }} | tar zxf - -C "${CARGO_HOME:-$HOME/.cargo}/bin"
+    @cargo nextest --version | head -1
+
 test CRATE="":
     @echo "Running unit tests only..."
     @if [ -n "{{CRATE}}" ]; then \
-        cargo test --package {{CRATE}} --lib --bins --all-features -- --skip integration_tests; \
+        cargo nextest run --package {{CRATE}} --lib --bins --all-features -E 'not test(integration_tests)'; \
     else \
-        cargo test --lib --bins --workspace --features unit_tests; \
+        cargo nextest run --lib --bins --workspace --features unit_tests; \
     fi
 
 test-integration:
     @echo "Running integration tests only..."
-    cargo test --lib --all --features chain_integration_tests -- chain_integration_tests --test-threads=1
-    cargo test --lib -p gemstone --features swap_integration_tests -- swap_integration_tests --test-threads=1
-    cargo test --lib -p fiat --features fiat_integration_tests -- fiat_integration_tests --test-threads=1 
-    cargo test --lib -p nft --features nft_integration_tests -- nft_integration_tests --test-threads=1
-    cargo test --lib -p prices --features price_integration_tests -- price_integration_tests --test-threads=1
+    cargo nextest run --lib --workspace --features chain_integration_tests -E 'test(chain_integration_tests)' --test-threads 1
+    cargo nextest run --lib -p gemstone --features swap_integration_tests -E 'test(swap_integration_tests)' --test-threads 1
+    cargo nextest run --lib -p fiat --features fiat_integration_tests -E 'test(fiat_integration_tests)' --test-threads 1
+    cargo nextest run --lib -p nft --features nft_integration_tests -E 'test(nft_integration_tests)' --test-threads 1
+    cargo nextest run --lib -p prices --features price_integration_tests -E 'test(price_integration_tests)' --test-threads 1
 
 build-integration-tests:
     @echo "Building all integration tests..."

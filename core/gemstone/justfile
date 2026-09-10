@@ -69,6 +69,8 @@ export DY_LIB_NAME := if os() == "macos" { "libgemstone.dylib" } else { "libgems
 export BUILD_MODE := if env("BUILD_MODE", "debug") == "release" { "release" } else { "debug" }
 export XCODE_CONFIGURATION := if BUILD_MODE == "release" { "Release" } else { "Debug" }
 CARGO_BUILD_FLAG := if BUILD_MODE == "release" { "--release" } else { "" }
+MOBILE_PROFILE := if BUILD_MODE == "release" { "mobile" } else { "debug" }
+MOBILE_PROFILE_FLAG := if BUILD_MODE == "release" { "--profile mobile" } else { "" }
 
 export TARGET_DIR := "../target"
 export GEN_SWIFT_FOLDER := "generated/swift"
@@ -87,8 +89,8 @@ build-ios-lib targets=IOS_RUST_TARGETS:
     set -euo pipefail
 
     targets="{{targets}}"
-    profile="${BUILD_MODE}"
-    build_flag="{{CARGO_BUILD_FLAG}}"
+    profile="{{MOBILE_PROFILE}}"
+    build_flag="{{MOBILE_PROFILE_FLAG}}"
 
     products_dir="$PWD/${IOS_DERIVED_DATA}/Build/Products/$XCODE_CONFIGURATION-iphonesimulator"
     mkdir -p "$products_dir"
@@ -98,10 +100,10 @@ build-ios-lib targets=IOS_RUST_TARGETS:
         echo "note: Building Gemstone Rust library for $rust_target ($profile)"
         case "$rust_target" in
             aarch64-apple-ios | aarch64-apple-ios-sim)
-                IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo build --target "$rust_target" --lib ${build_flag}
+                IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo rustc --target "$rust_target" --lib --crate-type staticlib ${build_flag}
                 ;;
             aarch64-apple-ios-macabi | aarch64-apple-darwin)
-                env -u IPHONEOS_DEPLOYMENT_TARGET cargo build --target "$rust_target" --lib ${build_flag}
+                env -u IPHONEOS_DEPLOYMENT_TARGET cargo rustc --target "$rust_target" --lib --crate-type staticlib ${build_flag}
                 ;;
             *)
                 echo "error: unsupported Gemstone iOS Rust target: $rust_target" >&2
@@ -129,7 +131,7 @@ bindgen-swift:
     if [ "${BUILD_MODE}" == "release" ]; then \
         export RUSTFLAGS="${RUSTFLAGS:-} -C strip=none"; \
     fi
-    cargo build {{CARGO_BUILD_FLAG}}
+    cargo rustc --lib --crate-type cdylib {{CARGO_BUILD_FLAG}}
     if [ ! -f "${LIB_OUTPUT_PATH}" ]; then \
         echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
         exit 1; \
@@ -151,7 +153,7 @@ bindgen-kotlin:
     if [ "${BUILD_MODE}" == "release" ]; then \
         export RUSTFLAGS="${RUSTFLAGS:-} -C strip=none"; \
     fi
-    cargo build {{CARGO_BUILD_FLAG}}
+    cargo rustc --lib --crate-type cdylib {{CARGO_BUILD_FLAG}}
     if [ ! -f "${LIB_OUTPUT_PATH}" ]; then \
         echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
         exit 1; \

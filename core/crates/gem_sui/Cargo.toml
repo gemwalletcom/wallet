@@ -21,7 +21,7 @@ primitives = { path = "../primitives" }
 chain_primitives = { path = "../chain_primitives" }
 sui-types = { workspace = true }
 sui-transaction-builder = { package = "sui-transaction-builder", version = "0.3.1", default-features = false }
-bcs = { version = "0.2.1" }
+bcs = { workspace = true }
 hex = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 gem_client = { path = "../gem_client", optional = true }

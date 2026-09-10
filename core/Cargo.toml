@@ -19,7 +19,6 @@ members = [
     "bin/img-downloader",
     "bin/generate",
     "bin/uniffi-*",
-    "bin/gas-bench",
     "bin/nodecheck",
 
     "gemstone",
@@ -152,3 +151,9 @@ debug = 0
 
 [profile.dev.package.argon2]
 opt-level = 3
+
+[profile.mobile]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+strip = "symbols"

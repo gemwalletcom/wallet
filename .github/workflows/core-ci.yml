@@ -49,6 +49,9 @@ jobs:
       - name: Setup Rust
         uses: ./.github/actions/setup-rust-ci
 
+      - name: Install nextest
+        run: just install-nextest
+
       - name: Run tests
         run: just test
 

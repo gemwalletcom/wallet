@@ -88,7 +88,7 @@ test: build-gemstone-host
     @./gradlew testGoogleDebugUnitTest testDebugUnitTest
 
 build-gemstone-host:
-    @cd ../core && cargo build --package gemstone
+    @cd ../core && cargo rustc --package gemstone --lib --crate-type cdylib
 
 test-integration:
     @./gradlew connectedGoogleDebugAndroidTest connectedDebugAndroidTest

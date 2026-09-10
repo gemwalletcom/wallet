@@ -14,6 +14,8 @@ just gemstone prepare-ios-package # Prepare the core iOS GemTest package (run in
 just gemstone build-android     # Build Android AAR (run in gemstone/)
 ```
 
+`gemstone` builds an rlib by default; the platform recipes pass `cargo rustc --crate-type staticlib` (iOS) or `--crate-type cdylib` (Android, bindgen). Store builds use `--profile mobile`, whose outputs land under `target/<triple>/mobile/`; the rationale is in [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) § 14.
+
 First-time machine setup, including the kache build cache, is in [Setup](setup.md).
 
 ## Test
@@ -26,7 +28,7 @@ just gemstone test-ios          # Run iOS integration tests (run in gemstone/)
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
 
-`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
+`just test` runs through `cargo nextest` (`just install-nextest`, included in `just install`), which runs test binaries in parallel and fails when the selection matches no tests. `just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
 
 Cargo accepts one positional test filter. Run multiple filters as separate commands. Confirm the active worktree and run commands from the directory assumed by the path arguments. If parallel Cargo commands contend on workspace locks or do not return a clear final status, rerun the closing checks individually.
 

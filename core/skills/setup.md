@@ -16,6 +16,7 @@ just install-rust
 just install-typeshare
 just install-postgres
 just install-diesel
+just install-nextest
 ```
 
 `just install` runs the same steps plus `install-sccache`, a legacy step from before the local cache moved to kache (below); sccache is not needed on a developer machine.
