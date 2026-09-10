@@ -1,6 +1,6 @@
 use primitives::{
     ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult,
-    Transaction, TransactionPreloadInput, Wallet,
+    SimulationWarningType, Transaction, TransactionPreloadInput, Wallet,
 };
 
 use super::error::GemConfirmError;
@@ -67,6 +67,7 @@ pub(super) trait ConfirmInput {
     fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)>;
     fn validate_approvals(&self, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError>;
     fn simulation_payload(&self) -> Option<String>;
+    fn validate_simulation(&self, simulation: &SimulationResult) -> Result<(), GemConfirmError>;
     fn broadcast_options(&self) -> GemBroadcastOptions;
 }
 
@@ -105,11 +106,34 @@ impl ConfirmInput for TransactionInputType {
         }
     }
 
-    fn broadcast_options(&self) -> GemBroadcastOptions {
-        match (self.get_asset().chain(), self) {
-            (Chain::Solana, Self::Swap { .. } | Self::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
-            _ => GemBroadcastOptions { skip_preflight: false },
+    fn validate_simulation(&self, simulation: &SimulationResult) -> Result<(), GemConfirmError> {
+        let Self::Generic { metadata, .. } = self else {
+            return Ok(());
+        };
+
+        match metadata.source {
+            ApplicationMetadataSource::Payment => {}
+            ApplicationMetadataSource::WalletConnect => return Ok(()),
         }
+
+        if let Some(warning) = simulation.warnings.iter().find(|warning| warning.warning == SimulationWarningType::ValidationError) {
+            return Err(GemConfirmError::Load {
+                msg: warning.message.clone().unwrap_or_else(|| "Payment simulation failed".to_string()),
+            });
+        }
+        Ok(())
+    }
+
+    fn broadcast_options(&self) -> GemBroadcastOptions {
+        let skip_preflight = match (self.get_asset().chain(), self) {
+            (Chain::Solana, Self::Generic { metadata, .. }) => match metadata.source {
+                ApplicationMetadataSource::Payment => false,
+                ApplicationMetadataSource::WalletConnect => true,
+            },
+            (Chain::Solana, Self::Swap { .. }) => true,
+            _ => false,
+        };
+        GemBroadcastOptions { skip_preflight }
     }
 }
 
@@ -403,8 +427,8 @@ mod tests {
     use primitives::FeeOption;
     use primitives::GasPriceType;
     use primitives::{
-        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType,
-        TransferDataExtra, TransferDataOutputAction, Wallet, WalletId,
+        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationSeverity, SimulationWarning, StakeType, SwapProvider,
+        TransactionType, TransferDataExtra, TransferDataOutputAction, Wallet, WalletId,
         swap::{ApprovalData, SwapData},
     };
     use primitives::{AddressName, AddressType, VerificationStatus};
@@ -675,6 +699,40 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_simulation() {
+        let input = |chain, source| TransactionInputType::Generic {
+            asset: Asset::from_chain(chain),
+            metadata: ApplicationMetadata {
+                source,
+                ..ApplicationMetadata::mock()
+            },
+            extra: TransferDataExtra::mock(),
+        };
+        for chain in [Chain::Solana, Chain::Ethereum, Chain::Sui] {
+            let payment = input(chain, ApplicationMetadataSource::Payment);
+            let wallet_connect = input(chain, ApplicationMetadataSource::WalletConnect);
+            for warning in [
+                SimulationWarning::execution_error("InstructionError"),
+                SimulationWarning::validation_error("Invalid transaction"),
+            ] {
+                let message = warning.message.clone().unwrap();
+                let simulation = SimulationResult::new(vec![warning], vec![]);
+                assert_eq!(payment.validate_simulation(&simulation).map_err(|error| error.to_string()), Err(message));
+                assert!(wallet_connect.validate_simulation(&simulation).is_ok());
+            }
+            assert!(payment.validate_simulation(&SimulationResult::default()).is_ok());
+            let simulation = |warning| SimulationResult::new(vec![SimulationWarning::new(SimulationSeverity::Warning, warning, None)], vec![]);
+            assert!(payment.validate_simulation(&simulation(SimulationWarningType::SuspiciousSpender)).is_ok());
+            assert_eq!(
+                payment
+                    .validate_simulation(&simulation(SimulationWarningType::ValidationError))
+                    .map_err(|error| error.to_string()),
+                Err("Payment simulation failed".to_string())
+            );
+        }
+    }
+
+    #[test]
     fn test_broadcast_policy() {
         let transfer = TransactionInputType::Transfer { asset: Asset::mock_sol() };
         let swap = TransactionInputType::Swap {
@@ -682,16 +740,24 @@ mod tests {
             to_asset: Asset::mock_spl_token(),
             swap_data: SwapData::mock(),
         };
-        let payment = TransactionInputType::Generic {
-            asset: Asset::mock_sol(),
-            metadata: ApplicationMetadata::mock(),
-            extra: TransferDataExtra::mock(),
-        };
-        let ethereum_payment = TransactionInputType::Generic {
-            asset: Asset::mock(),
-            metadata: ApplicationMetadata::mock(),
-            extra: TransferDataExtra::mock(),
-        };
+        for (chain, source, skip_preflight) in [
+            (Chain::Solana, ApplicationMetadataSource::Payment, false),
+            (Chain::Solana, ApplicationMetadataSource::WalletConnect, true),
+            (Chain::Ethereum, ApplicationMetadataSource::Payment, false),
+            (Chain::Ethereum, ApplicationMetadataSource::WalletConnect, false),
+            (Chain::Sui, ApplicationMetadataSource::Payment, false),
+            (Chain::Sui, ApplicationMetadataSource::WalletConnect, false),
+        ] {
+            let input = TransactionInputType::Generic {
+                asset: Asset::from_chain(chain),
+                metadata: ApplicationMetadata {
+                    source,
+                    ..ApplicationMetadata::mock()
+                },
+                extra: TransferDataExtra::mock(),
+            };
+            assert_eq!(input.broadcast_options().skip_preflight, skip_preflight, "{chain}: {source:?}");
+        }
 
         let approve = TransactionInputType::TokenApprove {
             asset: Asset::mock_sol(),
@@ -714,12 +780,10 @@ mod tests {
         };
 
         assert!(swap.broadcast_options().skip_preflight);
-        assert!(payment.broadcast_options().skip_preflight);
         assert!(!transfer.broadcast_options().skip_preflight);
         assert!(!approve.broadcast_options().skip_preflight);
         assert!(!stake.broadcast_options().skip_preflight);
         assert!(!perpetual.broadcast_options().skip_preflight);
-        assert!(!ethereum_payment.broadcast_options().skip_preflight);
         assert!(!ethereum_swap.broadcast_options().skip_preflight);
 
         assert_eq!(broadcast_delay_milliseconds(Chain::Ethereum), 0);
