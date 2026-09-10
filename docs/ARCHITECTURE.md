@@ -747,6 +747,10 @@ Understand the rationale before changing one of these. Code-style exceptions bel
 
 Gemstone (the Rust-to-mobile bridge) is built and bundled from source rather than fetched as a prebuilt package. This ensures the mobile apps always link against the exact Core revision in the repo and avoids version drift between Core logic and mobile bindings.
 
+### One mobile profile for both stores
+
+`core/Cargo.toml` defines `[profile.mobile]` (inherits `release`; fat LTO, one codegen unit, stripped symbols). The store recipes in `ios/scripts/generate-stone.sh` and `android/gemstone/build.gradle.kts` both select it with `--profile mobile`, so the two apps ship the same optimisation of the same crate, and the backend containers keep plain `--release`. `panic` stays `unwind`: UniFFI turns Rust panics into foreign exceptions, and `abort` would crash the apps instead. `gemstone` declares only an rlib; the platform recipes pass `cargo rustc --crate-type staticlib` (iOS) or `--crate-type cdylib` (Android, bindgen), so host builds and tests never link a static archive and a dylib of the whole dependency tree.
+
 ### TypeShare + UniFFI for code generation
 
 TypeShare generates shared model types; UniFFI generates FFI bindings. Both run from `just generate`. Two tools are used because TypeShare handles pure data models efficiently while UniFFI handles the full FFI bridge (functions, callbacks, async). Do not consolidate them.

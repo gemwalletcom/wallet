@@ -4,7 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-ed25519-dalek = { version = "3.0.0", default-features = false, features = ["zeroize"] }
+ed25519-dalek = { workspace = true }
 k256 = { workspace = true }
 primitives = { path = "../primitives" }
 bs58 = { workspace = true }

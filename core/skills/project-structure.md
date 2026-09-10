@@ -39,7 +39,6 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 
 - **uniffi-bindgen** (`bin/uniffi-bindgen/`): UniFFI bindings generator for iOS and Android
 - **generate** (`bin/generate/`): Code generation utilities
-- **gas-bench** (`bin/gas-bench/`): Gas benchmarking tool for blockchain operations
 - **img-downloader** (`bin/img-downloader/`): Image asset downloader utility
 - **cli** (`bin/cli/`): Command-line entry point for Core operations
 - **nodecheck** (`bin/nodecheck/`): Node availability and RPC health checks

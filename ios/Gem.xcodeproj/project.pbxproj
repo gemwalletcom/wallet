@@ -1369,11 +1369,11 @@
 				MARKETING_VERSION = 2.114.21;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
-					"$(SRCROOT)/../core/target/aarch64-apple-ios/release/libgemstone.a",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios/mobile/libgemstone.a",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
 					"$(inherited)",
-					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/release/libgemstone.a",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/mobile/libgemstone.a",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.gemwallet.ios;

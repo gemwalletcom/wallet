@@ -10,7 +10,7 @@ val rustSrcDir = gemstoneRoot.resolve("src")
 val cratesDir = rootProject.projectDir.resolve("../core/crates")
 val jniLibsDir = gemstoneSrc.resolve("main/jniLibs")
 val generatedKotlinDir = gemstoneSrc.resolve("main/java")
-val cargoBuildFlag = if (System.getenv("BUILD_MODE") == "release") "--release" else null
+val cargoProfileFlag = if (System.getenv("BUILD_MODE") == "release") "--profile mobile" else null
 val defaultCargoNdkAbis = if (System.getenv("UNIT_TESTS") == "true") {
     "x86_64"
 } else {
@@ -77,9 +77,9 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     inputs.dir(rustSrcDir)
     inputs.dir(cratesDir)
     inputs.file(gemstoneRoot.resolve("Cargo.toml"))
-    inputs.property("cargoBuildFlag", cargoBuildFlag.orEmpty())
+    inputs.property("cargoProfileFlag", cargoProfileFlag.orEmpty())
     outputs.dir(jniLibsDir)
-    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib ${cargoBuildFlag.orEmpty()}")
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} rustc --lib --crate-type cdylib ${cargoProfileFlag.orEmpty()}")
 }
 
 tasks.configureEach {
