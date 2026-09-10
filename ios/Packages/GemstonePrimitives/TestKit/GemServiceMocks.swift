@@ -389,10 +389,6 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         builder.perpetualAmountType(action: action, leverage: leverage)
     }
 
-    public func stakeAmountType(stakeType: Gemstone.StakeType, delegations: [Gemstone.Delegation]) -> GemAmountType {
-        builder.stakeAmountType(stakeType: stakeType, delegations: delegations)
-    }
-
     public func stakeValidatorSelection(chain: Gemstone.Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
         builder.stakeValidatorSelection(chain: chain, input: input)
     }

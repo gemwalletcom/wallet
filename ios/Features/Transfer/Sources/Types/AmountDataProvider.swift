@@ -38,10 +38,6 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.title
     }
 
-    var amountType: AmountType {
-        provider.amountType
-    }
-
     var gemAmountType: GemAmountType {
         provider.gemAmountType
     }

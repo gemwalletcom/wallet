@@ -5,7 +5,8 @@ use crate::services::collections::{stale, unique};
 use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
 use primitives::{
-    AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeChain, StakeProviderType, StakeType, VerificationStatus, WalletType,
+    AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
+    VerificationStatus, WalletType,
 };
 use rand::seq::IndexedRandom;
 
@@ -14,6 +15,7 @@ use super::model::{
 };
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
+use crate::services::error::GemServiceError;
 use crate::services::transfer::rules as transfer_rules;
 
 use crate::config::chain::account_activation_fee_url;
@@ -237,19 +239,22 @@ fn other_validators(validators: &[DelegationValidator], validator_id: &str) -> V
 
 pub fn validator_selection(chain: Chain, input: &GemStakeAmountInput) -> GemStakeValidatorSelection {
     match input {
-        GemStakeAmountInput::Stake { validators, delegation } => GemStakeValidatorSelection {
+        GemStakeAmountInput::Stake { validators, validator } => GemStakeValidatorSelection {
             options: validators.clone(),
             recommended: recommended_validators(chain, validators),
-            validator: delegation
-                .as_ref()
-                .map(|delegation| delegation.validator.clone())
-                .or_else(|| recommended_validator(chain, validators.clone())),
+            validator: validator.clone().or_else(|| recommended_validator(chain, validators.clone())),
             can_select: true,
         },
-        GemStakeAmountInput::Redelegate { validators, delegation } => GemStakeValidatorSelection {
+        GemStakeAmountInput::Redelegate {
+            validators,
+            delegation,
+            validator,
+        } => GemStakeValidatorSelection {
             options: validators.clone(),
             recommended: recommended_validators(chain, &other_validators(validators, &delegation.validator.id)),
-            validator: recommended_validator(chain, other_validators(validators, &delegation.validator.id)),
+            validator: validator
+                .clone()
+                .or_else(|| recommended_validator(chain, other_validators(validators, &delegation.validator.id))),
             can_select: true,
         },
         GemStakeAmountInput::Unstake { delegation } | GemStakeAmountInput::Withdraw { delegation } => GemStakeValidatorSelection {
@@ -258,10 +263,10 @@ pub fn validator_selection(chain: Chain, input: &GemStakeAmountInput) -> GemStak
             validator: Some(delegation.validator.clone()),
             can_select: false,
         },
-        GemStakeAmountInput::Rewards { delegations } => GemStakeValidatorSelection {
+        GemStakeAmountInput::Rewards { delegations, validator } => GemStakeValidatorSelection {
             options: delegations.iter().map(|delegation| delegation.validator.clone()).collect(),
             recommended: vec![],
-            validator: delegations.first().map(|delegation| delegation.validator.clone()),
+            validator: rewards_validator(delegations, validator),
             can_select: delegations.len() > 1,
         },
         GemStakeAmountInput::Freeze { .. } | GemStakeAmountInput::Unfreeze { .. } => GemStakeValidatorSelection {
@@ -270,6 +275,62 @@ pub fn validator_selection(chain: Chain, input: &GemStakeAmountInput) -> GemStak
             validator: None,
             can_select: false,
         },
+    }
+}
+
+pub(crate) fn rewards_validator(delegations: &[Delegation], validator: &Option<DelegationValidator>) -> Option<DelegationValidator> {
+    validator.clone().or_else(|| delegations.first().map(|delegation| delegation.validator.clone()))
+}
+
+pub fn stake_type(input: &GemStakeAmountInput) -> Result<StakeType, GemServiceError> {
+    match input {
+        GemStakeAmountInput::Stake { validator, .. } => Ok(StakeType::Stake(confirmed_validator(validator)?)),
+        GemStakeAmountInput::Redelegate { delegation, validator, .. } => Ok(StakeType::Redelegate(RedelegateData {
+            delegation: delegation.clone(),
+            to_validator: confirmed_validator(validator)?,
+        })),
+        GemStakeAmountInput::Unstake { delegation } => Ok(StakeType::Unstake(delegation.clone())),
+        GemStakeAmountInput::Withdraw { delegation } => Ok(StakeType::Withdraw(delegation.clone())),
+        GemStakeAmountInput::Rewards { validator, .. } => Ok(StakeType::Rewards(vec![confirmed_validator(validator)?])),
+        GemStakeAmountInput::Freeze { resource } => Ok(StakeType::Freeze(*resource)),
+        GemStakeAmountInput::Unfreeze { resource } => Ok(StakeType::Unfreeze(*resource)),
+    }
+}
+
+fn confirmed_validator(validator: &Option<DelegationValidator>) -> Result<DelegationValidator, GemServiceError> {
+    validator.clone().ok_or_else(|| GemServiceError::InvalidInput {
+        msg: "stake needs a validator".to_string(),
+    })
+}
+
+pub fn with_validator(input: &GemStakeAmountInput, validator: DelegationValidator) -> GemStakeAmountInput {
+    match input {
+        GemStakeAmountInput::Stake { validators, .. } => GemStakeAmountInput::Stake {
+            validators: validators.clone(),
+            validator: Some(validator),
+        },
+        GemStakeAmountInput::Redelegate { validators, delegation, .. } => GemStakeAmountInput::Redelegate {
+            validators: validators.clone(),
+            delegation: delegation.clone(),
+            validator: Some(validator),
+        },
+        GemStakeAmountInput::Rewards { delegations, .. } => GemStakeAmountInput::Rewards {
+            delegations: delegations.clone(),
+            validator: Some(validator),
+        },
+        GemStakeAmountInput::Unstake { .. } | GemStakeAmountInput::Withdraw { .. } | GemStakeAmountInput::Freeze { .. } | GemStakeAmountInput::Unfreeze { .. } => input.clone(),
+    }
+}
+
+pub fn with_resource(input: &GemStakeAmountInput, resource: Resource) -> GemStakeAmountInput {
+    match input {
+        GemStakeAmountInput::Freeze { .. } => GemStakeAmountInput::Freeze { resource },
+        GemStakeAmountInput::Unfreeze { .. } => GemStakeAmountInput::Unfreeze { resource },
+        GemStakeAmountInput::Stake { .. }
+        | GemStakeAmountInput::Redelegate { .. }
+        | GemStakeAmountInput::Unstake { .. }
+        | GemStakeAmountInput::Withdraw { .. }
+        | GemStakeAmountInput::Rewards { .. } => input.clone(),
     }
 }
 
@@ -587,6 +648,7 @@ mod tests {
                 &GemStakeAmountInput::Redelegate {
                     validators,
                     delegation: delegation_to(validator(from)),
+                    validator: None,
                 },
             )
         };
@@ -626,7 +688,7 @@ mod tests {
 
         let stake_fresh = selection(GemStakeAmountInput::Stake {
             validators: validators.clone(),
-            delegation: None,
+            validator: None,
         });
         assert_eq!(ids(&stake_fresh.recommended), vec![recommended[0].as_str()]);
         assert_eq!(stake_fresh.validator.unwrap().id, recommended[0]);
@@ -634,13 +696,14 @@ mod tests {
 
         let stake_more = selection(GemStakeAmountInput::Stake {
             validators: validators.clone(),
-            delegation: Some(delegation_to(current.clone())),
+            validator: Some(current.clone()),
         });
         assert_eq!(stake_more.validator.unwrap().id, "current");
 
         let redelegate = selection(GemStakeAmountInput::Redelegate {
             validators: validators.clone(),
             delegation: delegation_to(current.clone()),
+            validator: None,
         });
         assert_eq!(redelegate.validator.unwrap().id, recommended[0]);
         assert!(redelegate.can_select);
@@ -661,14 +724,23 @@ mod tests {
 
         let one_reward = selection(GemStakeAmountInput::Rewards {
             delegations: vec![delegation_to(current.clone())],
+            validator: None,
         });
         assert_eq!(one_reward.validator.unwrap().id, "current");
         assert!(!one_reward.can_select);
 
         let many_rewards = selection(GemStakeAmountInput::Rewards {
-            delegations: vec![delegation_to(current), delegation_to(validator(&recommended[0]))],
+            delegations: vec![delegation_to(current.clone()), delegation_to(validator(&recommended[0]))],
+            validator: None,
         });
         assert!(many_rewards.can_select);
+        assert_eq!(many_rewards.validator.unwrap().id, "current");
+
+        let picked_reward = selection(GemStakeAmountInput::Rewards {
+            delegations: vec![delegation_to(current), delegation_to(validator(&recommended[0]))],
+            validator: Some(validator(&recommended[0])),
+        });
+        assert_eq!(picked_reward.validator.unwrap().id, recommended[0]);
 
         for resource in [
             GemStakeAmountInput::Freeze { resource: Resource::Bandwidth },
@@ -684,6 +756,62 @@ mod tests {
                 }
             );
         }
+    }
+
+    #[test]
+    fn test_stake_type_needs_the_confirmed_validator_and_keeps_the_pick() {
+        let current = validator("current");
+        let other = validator("other");
+        let validators = vec![current.clone(), other.clone()];
+
+        let stake = GemStakeAmountInput::Stake {
+            validators: validators.clone(),
+            validator: None,
+        };
+        assert!(stake_type(&stake).is_err());
+        assert!(matches!(stake_type(&with_validator(&stake, other.clone())).unwrap(), StakeType::Stake(validator) if validator.id == "other"));
+
+        let redelegate = GemStakeAmountInput::Redelegate {
+            validators,
+            delegation: delegation_to(current.clone()),
+            validator: None,
+        };
+        assert!(stake_type(&redelegate).is_err());
+        match stake_type(&with_validator(&redelegate, other.clone())).unwrap() {
+            StakeType::Redelegate(data) => {
+                assert_eq!(data.delegation.validator.id, "current");
+                assert_eq!(data.to_validator.id, "other");
+            }
+            _ => panic!("expected a redelegate"),
+        }
+
+        let rewards = GemStakeAmountInput::Rewards {
+            delegations: vec![delegation_to(current.clone()), delegation_to(other.clone())],
+            validator: None,
+        };
+        assert!(stake_type(&rewards).is_err());
+        assert!(matches!(stake_type(&with_validator(&rewards, other.clone())).unwrap(), StakeType::Rewards(validators) if validators.len() == 1 && validators[0].id == "other"));
+
+        let unstake = GemStakeAmountInput::Unstake {
+            delegation: delegation_to(current.clone()),
+        };
+        assert!(matches!(stake_type(&with_validator(&unstake, other)).unwrap(), StakeType::Unstake(delegation) if delegation.validator.id == "current"));
+        let withdraw = GemStakeAmountInput::Withdraw {
+            delegation: delegation_to(current),
+        };
+        assert!(matches!(stake_type(&withdraw).unwrap(), StakeType::Withdraw(delegation) if delegation.validator.id == "current"));
+
+        let freeze = GemStakeAmountInput::Freeze { resource: Resource::Bandwidth };
+        assert!(matches!(
+            stake_type(&with_resource(&freeze, Resource::Energy)).unwrap(),
+            StakeType::Freeze(Resource::Energy)
+        ));
+        let unfreeze = GemStakeAmountInput::Unfreeze { resource: Resource::Energy };
+        assert!(matches!(
+            stake_type(&with_resource(&unfreeze, Resource::Bandwidth)).unwrap(),
+            StakeType::Unfreeze(Resource::Bandwidth)
+        ));
+        assert!(matches!(with_resource(&stake, Resource::Energy), GemStakeAmountInput::Stake { validator: None, .. }));
     }
 
     #[test]

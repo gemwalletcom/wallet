@@ -77,10 +77,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         }
     }
 
-    var amountType: AmountType {
-        .perpetual(action)
-    }
-
     var gemAmountType: GemAmountType {
         service.perpetualAmountType(action: action, leverage: leverage)
     }

@@ -38,10 +38,6 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         }
     }
 
-    var amountType: AmountType {
-        .earn(action)
-    }
-
     var gemAmountType: GemAmountType {
         service.earnAmountType(earnType: action.map())
     }

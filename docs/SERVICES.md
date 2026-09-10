@@ -301,6 +301,19 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The stake amount screen's pick lives in Core's input.** `GemStakeAmountInput` carries the
+  validator the user confirmed (`Stake`, `Redelegate` and `Rewards` gained `validator`; `Stake`
+  lost the delegation it only used to preselect one) and answers `amount_type()`, `stake_type()`,
+  `with_validator(validator)` and `with_resource(resource)`. `stake_validator_selection` honours
+  the pick before falling back to the recommended or first validator, and `stake_type()` refuses
+  an input whose validator was never confirmed instead of re-rolling the random recommendation
+  at submit. Both apps composed `StakeType` from the input plus their picker state in a seven-arm
+  switch and handed it back for the amount type and the transfer; iOS's `stakeType`,
+  `selectedValidator`, `selectedResource` and `rewardsDelegations`, the never-read
+  `amountType: AmountType` on every iOS amount provider, and Android's `stakeType()` and the
+  seven-arm `missingSelection()` are gone. iOS pins Core's proposed validator into the input at
+  init and on each pick; Android folds the displayed validator into the input it submits. The
+  `stake_amount_type` service export is deleted.
 - **The confirm screen holds one Core object.** `GemConfirmSession` is the screen's whole API:
   `screen()`, `state()` and `load(options)` as before, plus `execute()`, which signs and broadcasts
   the preload the session already holds (the loaded confirm data, the computed amount and network

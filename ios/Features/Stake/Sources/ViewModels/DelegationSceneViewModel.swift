@@ -133,7 +133,7 @@ public extension DelegationSceneViewModel {
     func onSelectAction(_ action: GemDelegationAction) {
         switch action {
         case .stake:
-            onAmountInputAction?(amountInput(.stake(.stake(validators: validators.map { $0.map() }, delegation: model.delegation.map()))))
+            onAmountInputAction?(amountInput(.stake(.stake(validators: validators.map { $0.map() }, validator: model.delegation.validator.map()))))
         case .unstake:
             if service.canChangeAmountOnUnstake(chain: asset.chain.rawValue) {
                 onAmountInputAction?(amountInput(.stake(.unstake(delegation: model.delegation.map()))))
@@ -141,7 +141,7 @@ public extension DelegationSceneViewModel {
                 onTransferAction?(stakeTransferData(.unstake(model.delegation)))
             }
         case .redelegate:
-            onAmountInputAction?(amountInput(.stake(.redelegate(validators: validators.map { $0.map() }, delegation: model.delegation.map()))))
+            onAmountInputAction?(amountInput(.stake(.redelegate(validators: validators.map { $0.map() }, delegation: model.delegation.map(), validator: nil))))
         case .deposit:
             onAmountInputAction?(amountInput(.earn(.deposit(model.delegation.validator))))
         case .withdraw:

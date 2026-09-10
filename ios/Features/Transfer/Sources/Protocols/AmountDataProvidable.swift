@@ -14,7 +14,6 @@ import Primitives
 protocol AmountDataProvidable {
     var asset: Asset { get }
     var title: String { get }
-    var amountType: AmountType { get }
     var gemAmountType: GemAmountType { get }
     var prefilledAmount: String? { get }
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData

@@ -60,7 +60,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 2_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [DelegationValidator.mock().map()], delegation: .none)),
+            type: .stake(.stake(validators: [DelegationValidator.mock().map()], validator: nil)),
             assetData: assetData,
         )
 
@@ -80,7 +80,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [DelegationValidator.mock().map()], delegation: .none)),
+            type: .stake(.stake(validators: [DelegationValidator.mock().map()], validator: nil)),
             assetData: assetData,
         )
 
@@ -149,7 +149,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [validator1.map(), validator2.map()], delegation: .none)),
+            type: .stake(.stake(validators: [validator1.map(), validator2.map()], validator: nil)),
             assetData: assetData,
         )
 

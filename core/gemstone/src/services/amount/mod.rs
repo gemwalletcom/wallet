@@ -5,7 +5,7 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, Chain, Currency, Delegation, PerpetualDirection, StakeType};
+use primitives::{Asset, Chain, Currency, PerpetualDirection, StakeType};
 
 pub use model::{
     GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
@@ -76,10 +76,6 @@ impl GemAmountService {
 
     pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
         stake_rules::validator_selection(chain, &input)
-    }
-
-    pub fn stake_amount_type(&self, stake_type: StakeType, delegations: Vec<Delegation>) -> GemAmountType {
-        rules::stake_amount_type(stake_type, delegations)
     }
 
     pub fn earn_amount_type(&self, earn_type: GemEarnType) -> GemAmountType {

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, AutocloseEstimator, Chain, Delegation, EarnType, PerpetualDirection, StakeChain, StakeType, TpslType};
+use primitives::{Asset, AutocloseEstimator, Chain, EarnType, PerpetualDirection, StakeChain, TpslType};
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
@@ -15,6 +15,7 @@ use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules::margin_amount_value;
+use crate::services::stake::model::GemStakeAmountInput;
 use crate::services::stake::rules as stake_rules;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -140,20 +141,20 @@ pub fn perpetual_amount_type(action: &GemPerpetualPositionAction, leverage: u8) 
     }
 }
 
-pub fn stake_amount_type(stake_type: StakeType, delegations: Vec<Delegation>) -> GemAmountType {
-    let stake_type = match stake_type {
-        StakeType::Stake(_) => GemAmountStakeType::Stake,
-        StakeType::Unstake(delegation) => GemAmountStakeType::Unstake { delegation },
-        StakeType::Redelegate(data) => GemAmountStakeType::Redelegate { delegation: data.delegation },
-        StakeType::Withdraw(delegation) => GemAmountStakeType::Withdraw { delegation },
-        StakeType::Rewards(validators) => GemAmountStakeType::Rewards {
-            delegations: delegations
-                .into_iter()
-                .filter(|delegation| validators.iter().any(|validator| validator.id == delegation.validator.id))
-                .collect(),
+pub fn stake_amount_type(input: &GemStakeAmountInput) -> GemAmountType {
+    let stake_type = match input {
+        GemStakeAmountInput::Stake { .. } => GemAmountStakeType::Stake,
+        GemStakeAmountInput::Unstake { delegation } => GemAmountStakeType::Unstake { delegation: delegation.clone() },
+        GemStakeAmountInput::Redelegate { delegation, .. } => GemAmountStakeType::Redelegate { delegation: delegation.clone() },
+        GemStakeAmountInput::Withdraw { delegation } => GemAmountStakeType::Withdraw { delegation: delegation.clone() },
+        GemStakeAmountInput::Rewards { delegations, validator } => GemAmountStakeType::Rewards {
+            delegations: match stake_rules::rewards_validator(delegations, validator) {
+                Some(validator) => delegations.iter().filter(|delegation| delegation.validator.id == validator.id).cloned().collect(),
+                None => vec![],
+            },
         },
-        StakeType::Freeze(resource) => GemAmountStakeType::Freeze { resource },
-        StakeType::Unfreeze(resource) => GemAmountStakeType::Unfreeze { resource },
+        GemStakeAmountInput::Freeze { resource } => GemAmountStakeType::Freeze { resource: *resource },
+        GemStakeAmountInput::Unfreeze { resource } => GemAmountStakeType::Unfreeze { resource: *resource },
     };
     GemAmountType::Stake { stake_type }
 }
@@ -806,7 +807,7 @@ mod tests {
     }
 
     #[test]
-    fn test_stake_amount_type_mirrors_the_stake_type_and_keeps_only_the_rewarded_delegations() {
+    fn test_stake_amount_type_mirrors_the_input_and_keeps_only_the_confirmed_validator_rewards() {
         let delegation = delegation(100, 5);
         let other = Delegation {
             base: DelegationBase {
@@ -818,28 +819,38 @@ mod tests {
                 ..delegation.validator.clone()
             },
         };
+        let validators = vec![delegation.validator.clone(), other.validator.clone()];
 
-        assert_eq!(stake_amount_type(StakeType::Stake(delegation.validator.clone()), vec![]), stake(GemAmountStakeType::Stake));
         assert_eq!(
-            stake_amount_type(StakeType::Unstake(delegation.clone()), vec![]),
+            stake_amount_type(&GemStakeAmountInput::Stake {
+                validators: validators.clone(),
+                validator: None
+            }),
+            stake(GemAmountStakeType::Stake)
+        );
+        assert_eq!(
+            stake_amount_type(&GemStakeAmountInput::Unstake { delegation: delegation.clone() }),
             stake(GemAmountStakeType::Unstake { delegation: delegation.clone() })
         );
         assert_eq!(
-            stake_amount_type(
-                StakeType::Redelegate(primitives::RedelegateData {
-                    delegation: delegation.clone(),
-                    to_validator: other.validator.clone(),
-                }),
-                vec![]
-            ),
+            stake_amount_type(&GemStakeAmountInput::Redelegate {
+                validators,
+                delegation: delegation.clone(),
+                validator: Some(other.validator.clone()),
+            }),
             stake(GemAmountStakeType::Redelegate { delegation: delegation.clone() })
         );
+        let rewards = |validator| GemStakeAmountInput::Rewards {
+            delegations: vec![other.clone(), delegation.clone()],
+            validator,
+        };
+        assert_eq!(stake_amount_type(&rewards(None)), stake(GemAmountStakeType::Rewards { delegations: vec![other.clone()] }));
         assert_eq!(
-            stake_amount_type(StakeType::Rewards(vec![delegation.validator.clone()]), vec![other, delegation.clone()]),
+            stake_amount_type(&rewards(Some(delegation.validator.clone()))),
             stake(GemAmountStakeType::Rewards { delegations: vec![delegation] })
         );
         assert_eq!(
-            stake_amount_type(StakeType::Freeze(Resource::Energy), vec![]),
+            stake_amount_type(&GemStakeAmountInput::Freeze { resource: Resource::Energy }),
             stake(GemAmountStakeType::Freeze { resource: Resource::Energy })
         );
     }

@@ -1,6 +1,10 @@
+use super::rules;
 use crate::models::custom_types::GemBigInt;
+use crate::services::amount::model::GemAmountType;
+use crate::services::amount::rules as amount_rules;
+use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
-use primitives::{Delegation, DelegationValidator, Resource};
+use primitives::{Delegation, DelegationValidator, Resource, StakeType};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemDelegationAction {
@@ -51,11 +55,12 @@ pub enum GemClaimRewardsDestination {
 pub enum GemStakeAmountInput {
     Stake {
         validators: Vec<DelegationValidator>,
-        delegation: Option<Delegation>,
+        validator: Option<DelegationValidator>,
     },
     Redelegate {
         validators: Vec<DelegationValidator>,
         delegation: Delegation,
+        validator: Option<DelegationValidator>,
     },
     Unstake {
         delegation: Delegation,
@@ -65,6 +70,7 @@ pub enum GemStakeAmountInput {
     },
     Rewards {
         delegations: Vec<Delegation>,
+        validator: Option<DelegationValidator>,
     },
     Freeze {
         resource: Resource,
@@ -72,6 +78,25 @@ pub enum GemStakeAmountInput {
     Unfreeze {
         resource: Resource,
     },
+}
+
+#[uniffi::export]
+impl GemStakeAmountInput {
+    pub fn amount_type(&self) -> GemAmountType {
+        amount_rules::stake_amount_type(self)
+    }
+
+    pub fn stake_type(&self) -> Result<StakeType, GemServiceError> {
+        rules::stake_type(self)
+    }
+
+    pub fn with_validator(&self, validator: DelegationValidator) -> GemStakeAmountInput {
+        rules::with_validator(self, validator)
+    }
+
+    pub fn with_resource(&self, resource: Resource) -> GemStakeAmountInput {
+        rules::with_resource(self, resource)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

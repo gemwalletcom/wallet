@@ -198,7 +198,10 @@ extension AmountSceneViewModel {
         isPresentingSheet = nil
     }
 
-    func onChangeResource(_: Resource, _: Resource) {
+    func onChangeResource(_: Resource, _ resource: Resource) {
+        if case let .stake(stake) = provider {
+            stake.select(resource)
+        }
         cleanInput()
     }
 
@@ -210,9 +213,8 @@ extension AmountSceneViewModel {
     }
 
     public func onValidatorSelected(_ validator: DelegationValidator) {
-        guard case let .stake(stake) = provider,
-              case let .validator(state) = stake.selection else { return }
-        state.selected = validator
+        guard case let .stake(stake) = provider else { return }
+        stake.select(validator)
         if !canChangeValue {
             setMax()
         }

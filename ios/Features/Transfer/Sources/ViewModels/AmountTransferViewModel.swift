@@ -34,14 +34,6 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
     }
 
-    var amountType: AmountType {
-        switch transfer {
-        case let .send(payment): .transfer(recipient: payment)
-        case .deposit: .deposit
-        case .withdraw: .withdraw
-        }
-    }
-
     var gemAmountType: GemAmountType {
         transfer.amountType()
     }

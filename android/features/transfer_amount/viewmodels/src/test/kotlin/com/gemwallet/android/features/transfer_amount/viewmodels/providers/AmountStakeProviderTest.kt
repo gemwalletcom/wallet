@@ -21,8 +21,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemAmountStakeType
-import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeValidatorSelection
 import uniffi.gemstone.TransactionInputType
@@ -70,7 +68,6 @@ class AmountStakeProviderTest {
         coEvery { this@mockk.invoke(asset.id, "v1") } returns validator
     }
     private val service = mockk<GemAmountServiceInterface> {
-        every { stakeAmountType(any(), any()) } returns GemAmountType.Stake(GemAmountStakeType.Stake)
         every { stakeValidatorSelection(any(), any()) } returns GemStakeValidatorSelection(recommended = emptyList(), options = listOf(validator.toGem()), validator = validator.toGem(), canSelect = true)
         every { stakeTransferData(any(), any(), any(), any()) } answers {
             GemTransferData(
@@ -105,6 +102,7 @@ class AmountStakeProviderTest {
     fun `delegate without validator throws NoValidatorSelected`() = runBlocking {
         coEvery { getStakeValidator(any(), any()) } returns null
         every { getDelegation(any(), any(), any()) } returns flowOf(null)
+        every { getValidators(any()) } returns flowOf(emptyList())
         every { service.stakeValidatorSelection(any(), any()) } returns GemStakeValidatorSelection(recommended = emptyList(), options = emptyList(), validator = null, canSelect = true)
         val provider = makeProvider(AmountParams.Stake.Delegate(asset.id, validatorId = null))
         provider.assetInfo.filterNotNull().first()
@@ -202,7 +200,7 @@ class AmountStakeProviderTest {
     @Test
     fun `freeze builds a Freeze stake with the selected resource`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Freeze(asset.id, Resource.Bandwidth))
-        provider.assetInfo.filterNotNull().first()
+        provider.amountType.filterNotNull().first()
         provider.setResource(Resource.Bandwidth)
         val confirm = provider.stakeType()
         assertTrue(confirm is StakeType.Freeze)
@@ -212,7 +210,7 @@ class AmountStakeProviderTest {
     @Test
     fun `unfreeze builds an Unfreeze stake`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Energy))
-        provider.assetInfo.filterNotNull().first()
+        provider.amountType.filterNotNull().first()
         provider.setResource(Resource.Energy)
         val confirm = provider.stakeType()
         assertTrue(confirm is StakeType.Unfreeze)
@@ -221,7 +219,7 @@ class AmountStakeProviderTest {
     @Test
     fun `unfreeze follows the live resource selection`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth))
-        provider.assetInfo.filterNotNull().first()
+        provider.amountType.filterNotNull().first()
         assertEquals(Resource.Bandwidth, (provider.stakeType() as StakeType.Unfreeze).content)
 
         provider.setResource(Resource.Energy)
