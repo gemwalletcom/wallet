@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.nft.viewmodels
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
+import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,7 +10,7 @@ import com.gemwallet.android.application.nft.cases.GetNftCollections
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ui.models.NftItemUIModel
+import com.gemwallet.android.ui.models.toUIModel
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,21 +51,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val collections = nftData
-        .map { data ->
-            val filtered = when (mode) {
-                is NftListMode.Collection -> data.filter { it.assets.isNotEmpty() }
-                NftListMode.Unverified -> nftService.unverifiedCollections(data.map { it.toGem() }).map { it.toPrimitives() }
-                NftListMode.Collections -> nftService.verifiedCollections(data.map { it.toGem() }).map { it.toPrimitives() }
-            }
-            nftService.sortedCollections(filtered.map { it.toGem() }).map { it.toPrimitives() }.flatMap { nftData ->
-                val isSingleAsset = nftData.assets.size == 1
-                if (mode is NftListMode.Collection || isSingleAsset) {
-                    nftData.assets.map { NftItemUIModel(nftData.collection, it) }
-                } else {
-                    listOf(NftItemUIModel(nftData.collection, null, nftData.assets.size))
-                }
-            }
-        }
+        .map { data -> nftService.listItems(data.map { it.toGem() }, mode.toGem()).map { it.toUIModel() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedCount = nftData
@@ -102,4 +88,10 @@ class NftListViewModels @Inject constructor(
     private companion object {
         const val TAG = "NftList"
     }
+}
+
+private fun NftListMode.toGem(): GemNftList = when (this) {
+    NftListMode.Collections -> GemNftList.COLLECTIONS
+    NftListMode.Unverified -> GemNftList.UNVERIFIED
+    is NftListMode.Collection -> GemNftList.COLLECTION
 }

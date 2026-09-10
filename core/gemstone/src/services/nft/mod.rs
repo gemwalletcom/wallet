@@ -12,8 +12,10 @@ use std::sync::Arc;
 use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, Wallet, WalletId};
 
 pub use collectible::GemCollectibleService;
-pub use model::{GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection};
-pub use rules::GemNftSearchItem;
+pub use model::{
+    GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem,
+    GemNftList,
+};
 pub use store::GemNftStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -58,12 +60,8 @@ impl GemNftService {
         rules::receive_accounts(&wallet, &query)
     }
 
-    pub fn sorted_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
-        rules::sorted_collections(data)
-    }
-
-    pub fn verified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
-        rules::verified_collections(data)
+    pub fn list_items(&self, data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {
+        rules::list_items(data, list)
     }
 
     pub fn unverified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {

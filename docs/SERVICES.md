@@ -301,6 +301,15 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Which NFT rows a list shows is Core's rule.** `GemNftService::list_items(data, list)` takes the
+  wallet's collections and a `GemNftList` (`Collections`, `Unverified`, `Collection`) and returns
+  `GemNftItem { Collection { data } | Asset { data } }` already filtered, sorted and flattened: a
+  collection holding one asset is that asset, the assets of one collection are listed one by one,
+  and the search reuses the same row rule for a collection matched by name. Both apps had written
+  the single-asset rule twice each — once for the list and once more over the search results — and
+  iOS listed unverified collections unsorted, empty ones included. The `NFTSearchItem` twin and its
+  mapper are gone (the uniffi item is the type the apps hold), the `verified_collections` and
+  `sorted_collections` exports are internal now, and each app keeps one item-to-poster mapping.
 - **The collectible and chart screens take their sections from Core.**
   `GemCollectibleService::details(wallet_type, asset_data, is_owned) -> GemCollectibleDetails { can_send, sections }`
   lists status (only when the collection is not verified), the info rows (collection, network,

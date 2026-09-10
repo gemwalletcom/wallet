@@ -110,16 +110,12 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Collection.self) { scene in
             CollectionsScene(
-                model: CollectionViewModel(
-                    wallet: model.wallet,
-                    collectionId: scene.id,
-                    collectionName: scene.name,
-                ),
+                model: viewModelFactory.collectionScene(wallet: model.wallet, collectionId: scene.id, collectionName: scene.name),
             )
         }
         .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
             CollectionsScene(
-                model: UnverifiedCollectionsViewModel(wallet: model.wallet),
+                model: viewModelFactory.unverifiedCollectionsScene(wallet: model.wallet),
             )
         }
         .navigationDestination(for: Scenes.Price.self) {

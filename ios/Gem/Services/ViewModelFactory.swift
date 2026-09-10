@@ -270,6 +270,16 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
+    public func collectionScene(wallet: Wallet, collectionId: String, collectionName: String) -> CollectionViewModel {
+        CollectionViewModel(service: nftService, wallet: wallet, collectionId: collectionId, collectionName: collectionName)
+    }
+
+    @MainActor
+    public func unverifiedCollectionsScene(wallet: Wallet) -> UnverifiedCollectionsViewModel {
+        UnverifiedCollectionsViewModel(service: nftService, wallet: wallet)
+    }
+
+    @MainActor
     public func validatorSelectScene(
         type: ValidatorSelectType,
         chain: Chain,

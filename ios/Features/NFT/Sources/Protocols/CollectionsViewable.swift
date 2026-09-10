@@ -37,12 +37,4 @@ public extension CollectionsViewable {
     func onSelectReceive() {
         isPresentingReceiveSelectAssetType = .receive(.collection)
     }
-
-    func buildGridItem(from data: NFTData) -> GridPosterViewItem {
-        NFTGridPosterBuilder.item(from: data)
-    }
-
-    func buildGridItem(collection: NFTCollection, asset: NFTAsset) -> GridPosterViewItem {
-        NFTGridPosterBuilder.item(collection: collection, asset: asset)
-    }
 }

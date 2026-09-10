@@ -33,32 +33,12 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     public var content: CollectionsContent {
-        CollectionsContent(
-            items: verifiedItems,
-            unverifiedCount: unverifiedCount,
+        let data = query.value.map { $0.map() }
+        let unverifiedCount = service.unverifiedCollections(data: data).count
+        return CollectionsContent(
+            items: service.listItems(data: data, list: .collections).map(NFTGridPosterBuilder.item),
+            unverifiedCount: unverifiedCount > 0 ? unverifiedCount.asString : nil,
         )
-    }
-
-    // MARK: - Private
-
-    private var nftDataList: [NFTData] {
-        query.value
-    }
-
-    private var verifiedItems: [GridPosterViewItem] {
-        collections(verified: true).map { buildGridItem(from: $0) }
-    }
-
-    private var unverifiedCount: String? {
-        let unverified = collections(verified: false)
-        guard unverified.isNotEmpty else { return nil }
-        return unverified.count.asString
-    }
-
-    private func collections(verified: Bool) -> [NFTData] {
-        let data = nftDataList.map { $0.map() }
-        let collections = verified ? service.verifiedCollections(data: data) : service.unverifiedCollections(data: data)
-        return service.sortedCollections(data: collections).map { $0.map() }
     }
 
     // MARK: - Actions

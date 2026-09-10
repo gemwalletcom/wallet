@@ -1,5 +1,19 @@
 use chrono::{DateTime, Utc};
-use primitives::{AssetLink, BlockExplorerLink, Chain, VerificationStatus};
+use primitives::{AssetLink, BlockExplorerLink, Chain, NFTAssetData, NFTData, VerificationStatus};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemNftList {
+    Collections,
+    Unverified,
+    Collection,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemNftItem {
+    Collection { data: NFTData },
+    Asset { data: NFTAssetData },
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCollectibleDetails {

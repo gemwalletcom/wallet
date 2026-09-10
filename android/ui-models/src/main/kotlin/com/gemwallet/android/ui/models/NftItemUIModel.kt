@@ -1,8 +1,10 @@
 package com.gemwallet.android.ui.models
 
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.VerificationStatus
+import uniffi.gemstone.GemNftItem
 
 data class NftItemUIModel(
     val collection: NFTCollection,
@@ -12,4 +14,9 @@ data class NftItemUIModel(
     val imageUrl: String get() = asset?.images?.preview?.url ?: collection.images.preview.url
     val name: String get() = asset?.name ?: collection.name
     val isVerified: Boolean get() = collection.status == VerificationStatus.Verified
+}
+
+fun GemNftItem.toUIModel(): NftItemUIModel = when (this) {
+    is GemNftItem.Collection -> data.toPrimitives().let { NftItemUIModel(it.collection, null, it.assets.size) }
+    is GemNftItem.Asset -> data.toPrimitives().let { NftItemUIModel(it.collection, it.asset) }
 }

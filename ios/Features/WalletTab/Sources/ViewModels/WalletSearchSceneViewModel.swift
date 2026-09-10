@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import enum Gemstone.GemNftItem
 import struct Gemstone.GemWalletSearchLimits
 import GemstonePrimitives
 import GemstoneServices
@@ -85,21 +86,15 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var collectionsContent: CollectionsContent {
-        CollectionsContent(items: previewNFTs.map { item in
-            switch item {
-            case let .collection(data): NFTGridPosterBuilder.item(from: data)
-            case let .asset(assetData): NFTGridPosterBuilder.item(collection: assetData.collection, asset: assetData.asset)
-            }
-        })
+        CollectionsContent(items: previewNFTs.map(NFTGridPosterBuilder.item))
     }
 
     var sections: WalletSearchSections {
         .from(searchResult, nfts: nftSearchItems)
     }
 
-    private var nftSearchItems: [NFTSearchItem] {
+    private var nftSearchItems: [GemNftItem] {
         service.searchCollections(data: searchResult.collections.map { $0.map() }, query: searchQuery.request.searchBy)
-            .map { $0.map() }
     }
 
     var currencyCode: String {
@@ -163,7 +158,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         sections.perpetuals.prefix(Int(limits.perpetuals)).asArray()
     }
 
-    var previewNFTs: [NFTSearchItem] {
+    var previewNFTs: [GemNftItem] {
         sections.nfts.prefix(Int(limits.nfts)).asArray()
     }
 

@@ -6,7 +6,7 @@ use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType}
 use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemWalletSearchLimits};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
-use crate::services::nft::GemNftSearchItem;
+use crate::services::nft::GemNftItem;
 use crate::services::nft::rules as nft_rules;
 
 use crate::services::balance::GemBalanceService;
@@ -80,7 +80,7 @@ impl GemAssetSelectionService {
         wallet.is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
     }
 
-    pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftSearchItem> {
+    pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftItem> {
         nft_rules::search_collections(data, &query)
     }
 
