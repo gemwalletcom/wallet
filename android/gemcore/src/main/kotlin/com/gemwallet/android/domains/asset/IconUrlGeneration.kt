@@ -12,7 +12,6 @@ import uniffi.gemstone.GemLocalTokenIcon
 import uniffi.gemstone.GemImage
 import java.util.concurrent.ConcurrentHashMap
 import com.wallet.core.primitives.DelegationValidator
-import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
 private val assetIcons = ConcurrentHashMap<String, GemAssetIcon>()
@@ -47,8 +46,6 @@ fun DelegationValidator.getIconUrl(): String =
     validatorIcons.computeIfAbsent("${chain.string}/$id") { GemImage.Validator(chain.string, id).url() }
 
 fun getListIconUrl(listId: String): String = GemImage.AssetList(listId).url()
-
-fun NFTAsset.getImageUrl(): String = nftImageUrl(id.toIdentifier())
 
 fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId.toIdentifier())
 

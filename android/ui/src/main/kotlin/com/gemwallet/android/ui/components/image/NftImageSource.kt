@@ -11,13 +11,13 @@ data class NftImageSource(
 )
 
 fun NFTAsset.toImageSource(): NftImageSource =
-    NftImageSource(url = getImageUrl(), name = name)
+    NftImageSource(url = images.preview.url, name = name)
 
 fun TransactionNFTTransferMetadata.toImageSource(): NftImageSource =
     NftImageSource(url = getImageUrl(), name = name.orEmpty())
 
 fun NftItemUIModel.toImageSource(): NftImageSource =
     NftImageSource(
-        url = asset?.getImageUrl() ?: collection.images.preview.url,
+        url = imageUrl,
         name = name,
     )
