@@ -9,6 +9,7 @@ import struct Gemstone.TransferDataExtra
 import Primitives
 import PrimitivesTestKit
 import struct Gemstone.GemTransferData
+import struct Gemstone.PaymentInvoice
 
 public extension GemTransferData {
     static func mock(
@@ -30,11 +31,12 @@ public extension GemTransferData {
         transaction: String = "transaction",
         recipient: GemRecipient = .mock(),
         value: BigInt = .zero,
+        invoice: PaymentInvoice = .mock(),
     ) -> GemTransferData {
         .mock(
-            type: .generic(
-                asset: asset,
-                metadata: .mock(source: .payment),
+            type: .payment(
+                asset: asset.map(),
+                invoice: invoice,
                 extra: .mock(data: Data(transaction.utf8)),
             ),
             recipient: recipient,

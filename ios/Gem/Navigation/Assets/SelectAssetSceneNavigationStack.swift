@@ -101,7 +101,7 @@ struct SelectAssetSceneNavigationStack: View {
                                 },
                             ),
                         )
-                    case .manage, .priceAlert, .swap:
+                    case .manage, .priceAlert, .swap, .payment:
                         EmptyView()
                     }
                 }

@@ -238,42 +238,6 @@ public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
 
 }
 
-private func contactService() -> GemContactService {
-    GemContactService(
-        store: GemContactStoreMock(),
-        addressStore: GemAddressStoreMock(),
-        files: GemFileStoreMock(),
-    )
-}
-
-public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
-    private let service: GemManageContactService
-
-    public init() {
-        service = GemManageContactService(
-            contacts: contactService(),
-            addresses: GemAddressService(),
-            payments: GemPaymentService.mock(),
-        )
-    }
-
-    public func scannedAddress(input: String) -> GemContactScannedAddress {
-        service.scannedAddress(input: input)
-    }
-
-    public func defaultChain() -> Gemstone.Chain {
-        service.defaultChain()
-    }
-
-    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
-        try await service.saveContact(input: input)
-    }
-
-    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
-        service.formatAddress(address: address, chain: chain, style: style)
-    }
-}
-
 public final class GemContactStoreMock: GemContactStore, @unchecked Sendable {
     public init() {}
 
@@ -459,12 +423,6 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
 
     public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
         throw AnyError("not stubbed")
-    }
-}
-
-public extension GemPaymentService {
-    static func mock() -> GemPaymentService {
-        GemPaymentService(provider: StubAlienProvider())
     }
 }
 

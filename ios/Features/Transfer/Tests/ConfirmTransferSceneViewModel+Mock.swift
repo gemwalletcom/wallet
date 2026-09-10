@@ -22,17 +22,18 @@ extension ConfirmTransferSceneViewModel {
         data: GemTransferData = .mock(),
         simulation: SimulationResult? = nil,
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
-        load: Result<GemConfirmLoad, any Error> = .success(.mock()),
+        load: Result<GemConfirmLoad, any Error>? = nil,
         execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [])),
-        onComplete: VoidAction = nil,
+        session: GemConfirmSessionMock? = nil,
+        onComplete: ((GemExecuteResult) -> Void)? = nil,
     ) -> ConfirmTransferSceneViewModel {
         let wallet = wallet ?? .mock(accounts: [.mock(chain: data.chain)])
         return ConfirmTransferSceneViewModel(
             request: request ?? ConfirmTransferRequest(data: data, simulation: simulation),
             wallet: wallet,
-            session: GemConfirmSessionMock(
-                state: .mock(feeAsset: data.feeAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
-                load: load,
+            session: session ?? GemConfirmSessionMock(
+                state: .mock(transfer: data, feeAsset: data.feeAsset().map(), simulation: gemConfirmService.simulation, preload: nil),
+                load: (load ?? .success(.mock())).map { GemConfirmLoad(transfer: data, sender: $0.sender, feeAsset: $0.feeAsset, metadata: $0.metadata, feeAssets: $0.feeAssets, simulation: $0.simulation, addressName: $0.addressName, preload: $0.preload) },
                 execute: execute,
             ),
             onComplete: onComplete,

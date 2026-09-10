@@ -6,9 +6,11 @@ import Localization
 import PriceAlerts
 import GemstonePrimitives
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 import Transactions
+import Transfer
 import GemstoneServices
 import WalletTab
 
@@ -81,18 +83,7 @@ struct MainTabView: View {
                 onComplete: { onComplete(type: input.type) },
             )
         }
-        .sheet(item: presenter.isPresentingPayment) { input in
-            switch input {
-            case let .confirm(data):
-                ConfirmTransferNavigationStack(wallet: wallet, transferData: data, onComplete: onPaymentComplete)
-            case let .recipient(assetInput):
-                SelectedAssetNavigationStack(input: assetInput, wallet: wallet, onComplete: onPaymentComplete)
-            case let .selectAsset(type, chains):
-                SelectAssetSceneNavigationStack(
-                    model: viewModelFactory.selectAssetScene(wallet: wallet, selectType: type, chains: chains),
-                )
-            }
-        }
+        .sheet(item: presenter.isPresentingPayment) { PaymentNavigationStack(type: $0, wallet: wallet) }
         .sheet(item: presenter.isPresentingPriceAlert) { asset in
             SetPriceAlertNavigationStack(
                 model: viewModelFactory.setPriceAlertScene(walletId: wallet.id, asset: asset, onComplete: onSetPriceAlertComplete),
@@ -121,10 +112,6 @@ extension MainTabView {
 extension MainTabView {
     private func onSelect(tab: TabItem) {
         navigationState.select(tab: tab)
-    }
-
-    private func onPaymentComplete() {
-        presenter.isPresentingPayment.wrappedValue = nil
     }
 
     private func onSetPriceAlertComplete(message: String) {

@@ -22,6 +22,7 @@ struct ConfirmTransferState {
     var simulation: ConfirmSimulationState
     var screen: GemConfirmScreen
 
+    var transfer: GemTransferData? { load?.transfer }
     var metadata: GemConfirmMetadata? { load?.metadata }
     var feeAssets: [GemFeeAsset] { load?.feeAssets ?? [] }
     var confirmData: GemConfirmData? { load?.preload?.confirmData }

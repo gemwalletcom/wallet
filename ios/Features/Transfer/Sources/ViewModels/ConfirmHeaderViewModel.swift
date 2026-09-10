@@ -1,20 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemTransferData
 import Primitives
 import PrimitivesComponents
 
 struct ConfirmHeaderViewModel {
-    private let request: ConfirmTransferRequest
+    private let transfer: GemTransferData
     private let state: ConfirmTransferState
     private let currency: Currency
 
     init(
-        request: ConfirmTransferRequest,
+        transfer: GemTransferData,
         state: ConfirmTransferState,
         currency: Currency,
     ) {
-        self.request = request
+        self.transfer = transfer
         self.state = state
         self.currency = currency
     }
@@ -36,7 +37,7 @@ extension ConfirmHeaderViewModel: ItemModelProvidable {
 extension TransactionHeaderType {
     var showsClearHeader: Bool {
         switch self {
-        case .amount, .nft, .asset, .assetValue: true
+        case .amount, .payment, .nft, .asset, .assetValue: true
         case .swap: false
         }
     }
@@ -50,18 +51,18 @@ private extension ConfirmHeaderViewModel {
             return .assetValue(headerData)
         }
 
-        if case let .tokenApprove(asset, _) = request.data.inputType {
+        if case let .tokenApprove(asset, _) = transfer.inputType {
             return .asset(image: AssetViewModel(asset: asset.map()).assetImage)
         }
 
-        if case .generic = request.data.inputType,
-           let header = request.simulation?.header
+        if case .generic = transfer.inputType,
+           let header = state.simulation.result?.header
         {
             return .asset(image: AssetIdViewModel(assetId: AssetId(core: header.assetId)).assetImage)
         }
 
         return TransactionInputViewModel(
-            data: request.data,
+            data: transfer,
             fee: state.fee,
             metaData: state.metadata,
             transferAmount: state.transferAmount,

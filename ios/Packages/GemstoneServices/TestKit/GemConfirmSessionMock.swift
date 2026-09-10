@@ -23,6 +23,7 @@ public final class GemConfirmSessionMock: GemConfirmSessionProtocol, @unchecked 
     private let authenticationValue: GemKeystoreAuthentication
     private let assetConfig = GemAssetConfigService()
     private var loaded: GemConfirmLoad?
+    public private(set) var loadOptions: [GemConfirmLoadOptions] = []
     public var onLoad: (@MainActor () -> Void)?
 
     public init(
@@ -45,7 +46,8 @@ public final class GemConfirmSessionMock: GemConfirmSessionProtocol, @unchecked 
         loaded ?? initialState
     }
 
-    public func load(options _: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
+    public func load(options: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
+        loadOptions.append(options)
         await onLoad?()
         loaded = try loadResult.get()
         return try loadResult.get()

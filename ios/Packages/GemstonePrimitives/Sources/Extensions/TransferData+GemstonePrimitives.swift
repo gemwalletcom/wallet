@@ -2,6 +2,7 @@
 
 import enum Gemstone.TransactionInputType
 import struct Gemstone.GemTransferData
+import struct Gemstone.PaymentInvoice
 import Primitives
 
 public extension GemTransferData {
@@ -11,6 +12,13 @@ public extension GemTransferData {
 
     var chain: Chain {
         asset.chain
+    }
+
+    var invoice: PaymentInvoice? {
+        switch inputType {
+        case let .payment(_, invoice, _): invoice
+        default: nil
+        }
     }
 
     var applicationMetadata: Primitives.ApplicationMetadata? {

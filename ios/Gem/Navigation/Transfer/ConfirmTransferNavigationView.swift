@@ -28,6 +28,16 @@ struct ConfirmTransferNavigationView: View {
                     SFSafariView(url: url)
                 case .networkFeeSelector:
                     NetworkFeeSheet(model: model.feeModel)
+                case .paymentAsset:
+                    if let invoice = model.payment {
+                        SelectAssetSceneNavigationStack(
+                            model: viewModelFactory.selectAssetScene(
+                                wallet: model.assetAcquisitionWallet,
+                                selectType: .payment(invoice.quotes.map { AssetId(core: $0.assetId) }),
+                                selectAssetAction: model.selectPaymentAsset,
+                            ),
+                        )
+                    }
                 case .payloadDetails:
                     NavigationStack {
                         SimulationPayloadDetailsScene(

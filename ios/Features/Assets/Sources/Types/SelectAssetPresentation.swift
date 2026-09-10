@@ -48,6 +48,8 @@ public extension SelectAssetType {
             case .receive:
                 SelectAssetPresentation(title: Localized.Swap.youReceive, listType: .view)
             }
+        case .payment:
+            SelectAssetPresentation(title: Localized.Transfer.payWith, listType: .view)
         case .manage:
             SelectAssetPresentation(title: Localized.Wallet.manageTokenList, listType: .manage)
         case .priceAlert:
