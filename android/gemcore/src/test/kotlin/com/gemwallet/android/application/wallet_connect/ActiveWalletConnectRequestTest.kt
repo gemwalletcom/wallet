@@ -80,4 +80,14 @@ class ActiveWalletConnectRequestTest {
 
         assertNull(activeRequest.current.value)
     }
+
+    @Test
+    fun everyRequestKindHasItsOwnKey() {
+        val proposalKey = WalletConnectUserRequest.SessionProposal(proposal("dapp"), verifyContext).key
+        val firstRequest = WalletConnectUserRequest.SessionRequest(sessionRequest(1), verifyContext).key
+        val secondRequest = WalletConnectUserRequest.SessionRequest(sessionRequest(2), verifyContext).key
+
+        assertEquals(firstRequest, WalletConnectUserRequest.SessionRequest(sessionRequest(1), verifyContext).key)
+        assertEquals(3, setOf(proposalKey, firstRequest, secondRequest).size)
+    }
 }

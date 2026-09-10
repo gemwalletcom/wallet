@@ -39,6 +39,7 @@ import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
@@ -538,6 +539,28 @@ class WalletNavigatorTest {
         navigator.clearToastMessage(target)
 
         assertNull(navigator.toastMessage(target))
+    }
+
+
+    @Test
+    fun showWalletConnectRequest_pushesOneRouteAndReplacesItForTheNextRequest() {
+        val navigator = navigatorWith(WalletRootRoute)
+
+        navigator.showWalletConnectRequest("request/topic/1")
+        navigator.showWalletConnectRequest("request/topic/1")
+        assertEquals(listOf(WalletRootRoute, WalletConnectRequestRoute("request/topic/1")), navigator.backStack.toList())
+
+        navigator.showWalletConnectRequest("request/topic/2")
+        assertEquals(listOf(WalletRootRoute, WalletConnectRequestRoute("request/topic/2")), navigator.backStack.toList())
+    }
+
+    @Test
+    fun showWalletConnectRequest_removesTheRouteUnderneathAScreenItOpened() {
+        val navigator = navigatorWith(WalletRootRoute, WalletConnectRequestRoute("request/topic/1"), ReceiveRoute(mockAssetId(Chain.Tron)))
+
+        navigator.showWalletConnectRequest(null)
+
+        assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
     }
 
     private fun navigatorWith(

@@ -46,11 +46,18 @@ impl GemConfirmSession {
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
         let input = self.service.confirm_input(self.wallet.clone(), self.transfer.clone())?;
-        let (screen, fee) = futures::join!(self.state(), self.service.preload(self.wallet.id.clone(), input, options));
+        let input_type = self.transfer.input_type.clone();
+        let requested = async {
+            match self.simulation.clone() {
+                Some(simulation) => Some(self.service.simulation_state(input_type.clone(), Some(simulation)).await),
+                None => None,
+            }
+        };
+        let (screen, fee, requested) = futures::join!(self.state(), self.service.preload(self.wallet.id.clone(), input, options), requested);
         let fee = fee?;
         let simulation = match preload_simulation(self.simulation.as_ref(), &fee.preload) {
-            Some(simulation) => Some(self.service.simulation_state(self.transfer.input_type.clone(), Some(simulation)).await?),
-            None => None,
+            Some(simulation) => Some(self.service.simulation_state(input_type, Some(simulation)).await?),
+            None => requested.transpose()?,
         };
         let screen = screen?.with_fee(fee, simulation);
         *self.screen.lock().await = Some(screen.clone());
@@ -61,7 +68,8 @@ impl GemConfirmSession {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
-    use primitives::{Account, Asset, Chain, FeePriority, TransactionInputType, Wallet, WalletId};
+    use num_bigint::BigInt;
+    use primitives::{Account, Asset, AssetId, Chain, FeePriority, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, Wallet, WalletId};
 
     use super::super::testkit::ConfirmTestkit;
     use crate::services::confirm::{GemConfirmFeeSelection, GemConfirmLoadOptions};
@@ -100,6 +108,36 @@ mod tests {
             };
             assert!(session.load(options).await.is_err());
             assert_eq!(*testkit.balances.requests.lock().unwrap(), vec![wallet.id.clone(), wallet.id]);
+        });
+    }
+
+    #[test]
+    fn test_state_shows_the_request_simulation_without_waiting_for_its_assets_and_names() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+            let simulation = SimulationResult {
+                warnings: vec![SimulationWarning::validation_error("careful")],
+                balance_changes: vec![SimulationBalanceChange::mock(AssetId::from(Chain::Tron, Some("unknown-token".into())), BigInt::from(1), 6)],
+                payload: vec![],
+                header: None,
+            };
+            let transfer = GemTransferData {
+                input_type: TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Tron),
+                },
+                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
+                value: 0.into(),
+                use_max_amount: false,
+            };
+            let session = testkit.service.session(wallet, transfer, Some(simulation.clone()));
+
+            let state = session.state().await.unwrap();
+
+            assert_eq!(state.simulation.result, Some(simulation));
+            assert_eq!(state.simulation.warnings.len(), 1);
+            assert!(state.simulation.simulation.is_none());
+            assert!(state.simulation.address_names.is_empty());
         });
     }
 }

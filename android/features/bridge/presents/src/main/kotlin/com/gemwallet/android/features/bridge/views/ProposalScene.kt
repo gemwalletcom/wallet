@@ -51,6 +51,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.WalletConnectionVerificationStatus
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun ProposalScene(
@@ -60,6 +61,7 @@ fun ProposalScene(
 ) {
     val context = LocalContext.current
     val viewModel: ProposalSceneViewModel = hiltViewModel()
+    BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val peer by viewModel.proposal.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()

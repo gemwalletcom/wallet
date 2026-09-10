@@ -52,6 +52,13 @@ sealed interface WalletConnectUserRequest {
 
     val verifyContext: WalletConnectVerifyContext
 
+    val key: String
+        get() = when (this) {
+            is SessionRequest -> "request/${request.topic}/${request.request.id}"
+            is AuthenticationRequest -> "auth/${request.id}"
+            is SessionProposal -> "proposal/${proposal.proposerPublicKey}"
+        }
+
     class SessionRequest(
         val request: WalletConnectSessionRequest,
         override val verifyContext: WalletConnectVerifyContext,

@@ -11,6 +11,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 
 @Composable
 internal fun rememberWalletNavBackStack(startDestination: NavKey): NavBackStack<NavKey> {
@@ -55,5 +56,5 @@ internal fun List<NavKey>.dropNonRestorableRoutes(startDestination: NavKey): Lis
 }
 
 private fun NavKey.isNonRestorableRoute(): Boolean {
-    return isPendingNavigationProtectedRoute()
+    return isPendingNavigationProtectedRoute() || this is WalletConnectRequestRoute
 }

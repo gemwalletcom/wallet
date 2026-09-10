@@ -116,6 +116,16 @@ impl GemConfirmTransferService {
     }
 }
 
+fn simulation_seed(chain: Chain, simulation: Option<SimulationResult>) -> GemConfirmSimulationState {
+    GemConfirmSimulationState {
+        chain,
+        warnings: simulation.as_ref().map(|result| result.warnings.clone()).unwrap_or_default(),
+        result: simulation,
+        simulation: None,
+        address_names: Vec::new(),
+    }
+}
+
 fn is_broadcast(result: &GemExecuteResult) -> bool {
     match result {
         GemExecuteResult::Sent { .. } => true,
@@ -149,10 +159,9 @@ impl GemConfirmTransferService {
     pub(super) async fn state(&self, wallet_id: WalletId, input: &GemConfirmInput, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
         let input_type = input.transfer.input_type.clone();
         let chain = input_type.transaction_asset().chain();
-        let (metadata, fee_assets, simulation, address_name) = futures::join!(
+        let (metadata, fee_assets, address_name) = futures::join!(
             self.confirm.input_metadata(wallet_id.clone(), &input_type, input_type.fee_asset().id),
             self.fee_assets(wallet_id, chain),
-            self.simulation_state(input_type.clone(), simulation),
             self.names.address_name(chain, input.transfer.recipient.address.clone()),
         );
         Ok(GemConfirmLoad {
@@ -160,7 +169,7 @@ impl GemConfirmTransferService {
             fee_asset: input_type.fee_asset(),
             metadata: metadata?,
             fee_assets: fee_assets?,
-            simulation: simulation?,
+            simulation: simulation_seed(chain, simulation),
             address_name: address_name.unwrap_or_default(),
             preload: None,
         })
@@ -173,13 +182,7 @@ impl GemConfirmTransferService {
             None => Vec::new(),
         };
         let Ok(details) = self.confirm.simulation(input_type, simulation.clone(), assets) else {
-            return Ok(GemConfirmSimulationState {
-                chain,
-                warnings: simulation.as_ref().map(|result| result.warnings.clone()).unwrap_or_default(),
-                result: simulation,
-                simulation: None,
-                address_names: Vec::new(),
-            });
+            return Ok(simulation_seed(chain, simulation));
         };
         let requests = details.address_requests(chain);
         let address_names = self.names.get_address_names(requests).await.unwrap_or_default();

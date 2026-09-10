@@ -19,6 +19,8 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.TransactionId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.wallet.core.primitives.AssetId
 
 @Composable
 fun PerpetualPositionNavScreen(
@@ -26,6 +28,7 @@ fun PerpetualPositionNavScreen(
     confirmAction: ConfirmTransactionAction,
     onClose: () -> Unit,
     onTransaction: (TransactionId) -> Unit,
+    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
     viewModel: PerpetualDetailsViewModel = hiltViewModel(),
 ) {
     LifecycleResumeEffect(Unit) {
@@ -81,6 +84,7 @@ fun PerpetualPositionNavScreen(
         AutocloseNavGraph(
             onDismiss = { showAutoclose = false },
             finishAction = FinishConfirmAction { _ -> viewModel.fetch() },
+            onAcquireAsset = onAcquireAsset,
         )
     }
 }

@@ -57,6 +57,7 @@ import com.gemwallet.android.ui.navigation.routes.transactionDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.walletScreen
 import com.gemwallet.android.ui.navigation.routes.walletSearchScreen
 import com.gemwallet.android.ui.navigation.routes.walletsScreen
+import com.gemwallet.android.ui.navigation.routes.walletConnectRequest
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.WalletId
 
@@ -69,12 +70,13 @@ fun WalletNavGraph(
     onAcceptTerms: () -> Unit,
     onPayment: (String) -> Unit,
     onWalletContentReady: () -> Unit = {},
+    walletConnectRequest: @Composable (String) -> Unit = {},
 ) {
     val onCancel: () -> Unit = navigator::pop
     val currentOnWalletContentReady by rememberUpdatedState(onWalletContentReady)
     val currentOnPayment by rememberUpdatedState(onPayment)
 
-    val entryProvider = remember(navigator, onboard, onAcceptTerms) {
+    val entryProvider = remember(navigator, onboard, onAcceptTerms, walletConnectRequest) {
         entryProvider<NavKey> {
             entry<WalletRootRoute> {
                 MainScreen(
@@ -316,9 +318,12 @@ fun WalletNavGraph(
                 confirmAction = ConfirmTransactionAction(navigator::openConfirm),
                 onCancel = onCancel,
                 onTransaction = navigator::openTransaction,
+                onAcquireAsset = navigator::openAcquireAsset,
             )
 
             referral(onClose = onCancel)
+
+            walletConnectRequest(content = walletConnectRequest)
         }
     }
     val entries = rememberWalletNavEntries(navigator.backStack, entryProvider)

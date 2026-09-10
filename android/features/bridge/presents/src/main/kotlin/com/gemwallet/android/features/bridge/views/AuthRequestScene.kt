@@ -27,6 +27,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ListPosition
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun AuthRequestScene(
@@ -35,6 +36,7 @@ fun AuthRequestScene(
 ) {
     val context = LocalContext.current
     val viewModel: WCAuthViewModel = hiltViewModel()
+    BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 

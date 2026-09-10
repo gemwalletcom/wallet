@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun RequestScene(
@@ -30,6 +31,7 @@ fun RequestScene(
     onError: (String) -> Unit,
 ) {
     val viewModel: WCRequestViewModel = hiltViewModel()
+    BackHandler(onBack = viewModel::onReject)
     val context = LocalContext.current
     val unknownErrorMessage = stringResource(id = R.string.errors_unknown_try_again)
     val reportError: (String) -> Unit = { message -> onError(message.ifBlank { unknownErrorMessage }) }

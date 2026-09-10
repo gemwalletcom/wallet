@@ -46,11 +46,6 @@ internal fun MainContent(
     } else {
         null
     }
-    val walletConnectOverlay: @Composable ((AcquireAssetAction, AssetId) -> Unit) -> Unit = if (walletConnectEnabled) {
-        rememberWalletConnectOverlay(activeWalletConnectRequest, onWalletConnectError)
-    } else {
-        remember { { _ -> } }
-    }
     var isWalletContentReady by remember { mutableStateOf(state.hasUnlockedApp) }
     val onWalletContentReady: () -> Unit = remember { { isWalletContentReady = true } }
     val shouldShowLockedSplash = !isWalletUnlocked || !isWalletContentReady
@@ -68,7 +63,8 @@ internal fun MainContent(
                     pendingRoutes = unlockedPendingRoutes,
                     onPendingNavigationConsumed = onPendingNavigationConsumed,
                     onContentReady = onWalletContentReady,
-                    walletConnectOverlay = walletConnectOverlay,
+                    activeWalletConnectRequest = activeWalletConnectRequest.takeIf { walletConnectEnabled },
+                    onWalletConnectError = onWalletConnectError,
                 )
             }
 

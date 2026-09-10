@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.AssetChartRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
@@ -167,6 +168,15 @@ class WalletNavigator(
     fun pop() {
         if (backStack.size > 1) {
             backStack.removeLastOrNull()
+        }
+    }
+
+    fun showWalletConnectRequest(key: String?) {
+        val route = key?.let(::WalletConnectRequestRoute)
+        if (route != null && backStack.contains(route)) return
+        backStack.removeAll { it is WalletConnectRequestRoute }
+        if (route != null) {
+            push(route)
         }
     }
 

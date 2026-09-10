@@ -25,7 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.ext.updateUrl
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
@@ -35,14 +34,16 @@ import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.theme.Spacer16
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.WalletConnectRequestContent
 
 @Composable
 fun WalletApp(
     pendingRoutes: List<NavKey> = emptyList(),
     onPendingNavigationConsumed: () -> Unit = {},
     onContentReady: () -> Unit = {},
-    walletConnectOverlay: @Composable ((AcquireAssetAction, AssetId) -> Unit) -> Unit = { _ -> },
+    activeWalletConnectRequest: ActiveWalletConnectRequest? = null,
+    onWalletConnectError: (String) -> Unit = {},
     viewModel: AppViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -73,11 +74,29 @@ fun WalletApp(
         }
     }
 
+    val walletConnectRequest = activeWalletConnectRequest?.current?.collectAsStateWithLifecycle()?.value
+    LaunchedEffect(walletConnectRequest?.key, navigator) {
+        navigator.showWalletConnectRequest(walletConnectRequest?.key)
+    }
+    val walletConnectRequestContent: @Composable (String) -> Unit = remember(activeWalletConnectRequest, navigator, onWalletConnectError) {
+        { key ->
+            activeWalletConnectRequest?.let { activeRequest ->
+                WalletConnectRequestContent(
+                    activeRequest = activeRequest,
+                    requestKey = key,
+                    onAcquireAsset = navigator::openAcquireAsset,
+                    onError = onWalletConnectError,
+                )
+            }
+        }
+    }
+
     WalletNavGraph(
         navigator = navigator,
         onWalletContentReady = onContentReady,
         onAcceptTerms = viewModel::acceptTerms,
         onPayment = viewModel::openPayment,
+        walletConnectRequest = walletConnectRequestContent,
         onboard = {
             OnboardScreen(
                 onCreateWallet = {
@@ -104,7 +123,6 @@ fun WalletApp(
         }
     }
 
-    walletConnectOverlay(navigator::openAcquireAsset)
     state.update?.let { update ->
         ShowUpdateDialog(
             version = update.version,
