@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import com.gemwallet.android.domains.transaction.format
+import uniffi.gemstone.GemAmountSign
+import uniffi.gemstone.GemSimulationBalanceChange
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetValueHeader
@@ -9,11 +12,8 @@ import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmSessionInterface
-import com.gemwallet.android.ext.toPrimitives
-import com.wallet.core.primitives.Asset
 import com.gemwallet.android.ext.requireChain
 import uniffi.gemstone.SimulationWarning
-import java.math.BigInteger
 
 data class Simulation(
     val warnings: List<SimulationWarning> = emptyList(),
@@ -21,12 +21,7 @@ data class Simulation(
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
     val header: AssetValueHeader? = null,
-    val balanceChanges: List<SimulationAssetChange> = emptyList(),
-)
-
-data class SimulationAssetChange(
-    val asset: Asset,
-    val value: BigInteger,
+    val balanceChanges: List<GemSimulationBalanceChange> = emptyList(),
 )
 
 fun GemConfirmSimulationState.toSimulation(
@@ -44,19 +39,17 @@ fun GemConfirmSimulationState.toSimulation(
         secondaryPayloadFields = details.secondaryFields
             .withExplorerLinks(chain) { chain, address -> session.addressUrl(chain.string, address) },
         header = details.header?.toAssetValueHeader(),
-        balanceChanges = details.balanceChanges.map { SimulationAssetChange(asset = it.asset.toPrimitives(), value = it.value) },
+        balanceChanges = details.balanceChanges,
     )
 }
 
-fun SimulationAssetChange.formattedValue(): String {
-    val formatted = ValueFormatter(style = ValueFormatter.Style.Full).string(value, asset.decimals, asset.symbol)
-    return if (value > BigInteger.ZERO) "+$formatted" else formatted
-}
+fun GemSimulationBalanceChange.formattedValue(): String =
+    sign.format(ValueFormatter(style = ValueFormatter.Style.Full).string(value.abs(), asset.decimals, asset.symbol))
 
-fun SimulationAssetChange.valueDirection(): ValueDirection = when {
-    value > BigInteger.ZERO -> ValueDirection.Up
-    value < BigInteger.ZERO -> ValueDirection.Down
-    else -> ValueDirection.None
+fun GemSimulationBalanceChange.valueDirection(): ValueDirection = when (sign) {
+    GemAmountSign.INCOMING -> ValueDirection.Up
+    GemAmountSign.OUTGOING -> ValueDirection.Down
+    GemAmountSign.NONE -> ValueDirection.None
 }
 
 fun List<ConfirmProperty>.reorderRequestProperties(): List<ConfirmProperty> {

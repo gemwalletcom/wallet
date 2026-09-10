@@ -9,6 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.util.Locale
+import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemConfirmSimulation
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmSession
@@ -31,8 +32,8 @@ class SimulationTest {
         val usdc = mockAssetSolanaUSDC()
         val simulation = state(
             balanceChanges = listOf(
-                GemSimulationBalanceChange(asset = solana.toGem(), value = BigInteger("-100005000")),
-                GemSimulationBalanceChange(asset = usdc.toGem(), value = BigInteger("750000")),
+                GemSimulationBalanceChange(asset = solana.toGem(), value = BigInteger("-100005000"), sign = GemAmountSign.OUTGOING),
+                GemSimulationBalanceChange(asset = usdc.toGem(), value = BigInteger("750000"), sign = GemAmountSign.INCOMING),
             ),
         ).toSimulation(confirmSession)
 

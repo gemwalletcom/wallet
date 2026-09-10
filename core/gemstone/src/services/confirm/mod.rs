@@ -171,7 +171,11 @@ impl GemConfirmService {
             .into_iter()
             .filter_map(|change| {
                 let asset = assets.iter().find(|asset| asset.id == change.asset_id)?.clone();
-                Some(GemSimulationBalanceChange { asset, value: change.value })
+                Some(GemSimulationBalanceChange {
+                    asset,
+                    sign: rules::balance_change_sign(&change.value),
+                    value: change.value,
+                })
             })
             .collect();
         Ok(GemConfirmSimulation {

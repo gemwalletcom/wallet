@@ -2,32 +2,35 @@
 
 import BigInt
 import Components
-import enum Gemstone.GemAmountSign
+import struct Gemstone.GemSimulationBalanceChange
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct ConfirmBalanceChangeViewModel {
-    private let balanceChange: SimulationAssetChange
+    private let balanceChange: GemSimulationBalanceChange
+    private let asset: Asset
 
-    init(balanceChange: SimulationAssetChange) {
+    init(balanceChange: GemSimulationBalanceChange) {
         self.balanceChange = balanceChange
+        asset = balanceChange.asset.map()
     }
 
     public var assetTitle: String {
-        balanceChange.asset.name
+        asset.name
     }
 
     public var assetImage: AssetImage {
-        AssetIdViewModel(assetId: balanceChange.asset.id).assetImage
+        AssetIdViewModel(assetId: asset.id).assetImage
     }
 
     public var amount: TextValue {
         NumericViewModel(
-            data: AssetValuePrice(asset: balanceChange.asset, value: abs(balanceChange.value), price: nil),
+            data: AssetValuePrice(asset: asset, value: abs(balanceChange.value), price: nil),
             style: AmountDisplayStyle(
-                sign: amountSign,
+                sign: balanceChange.sign,
                 formatter: .full,
                 currencyCode: "",
                 textStyle: TextStyle(font: .body, color: amountColor, fontWeight: .medium),
@@ -35,17 +38,11 @@ public struct ConfirmBalanceChangeViewModel {
         ).amount
     }
 
-    private var amountSign: GemAmountSign {
-        if balanceChange.value > BigInt.zero {
-            .incoming
-        } else if balanceChange.value < BigInt.zero {
-            .outgoing
-        } else {
-            .none
-        }
-    }
-
     private var amountColor: Color {
-        PriceChangeColor.color(for: Double(balanceChange.value.signum()))
+        switch balanceChange.sign {
+        case .incoming: Colors.green
+        case .outgoing: Colors.red
+        case .none: Colors.gray
+        }
     }
 }

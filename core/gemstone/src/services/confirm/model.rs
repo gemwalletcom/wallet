@@ -4,6 +4,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
+use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::AssetPrice;
@@ -208,6 +209,7 @@ impl GemSimulationValue {
 pub struct GemSimulationBalanceChange {
     pub asset: Asset,
     pub value: GemBigInt,
+    pub sign: GemAmountSign,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

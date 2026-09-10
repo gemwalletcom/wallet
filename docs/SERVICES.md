@@ -301,6 +301,11 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **A simulated balance change carries its sign.** `GemSimulationBalanceChange` gained
+  `sign: GemAmountSign`, set by Core from the value, so neither app reads the signum to pick a
+  prefix and a colour: iOS's `SimulationAssetChange` twin and its `amountSign`/`amountColor` rules
+  and Android's `SimulationAssetChange` twin with the sign logic in `formattedValue` and
+  `valueDirection` are gone; both apps hold the Core record and map the sign to a colour.
 - **Dead-code sweep, 2026-09-10.** `GemNodeService::node_url` leaves the FFI: its websocket twin is
   its only caller. The keystore exports the sweep flagged (`preview_import`, `create_store`,
   `export_recovery_phrase`, `export_private_key`) and `GemPaymentService::decode_url` stay: the iOS

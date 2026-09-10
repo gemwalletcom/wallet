@@ -15,10 +15,11 @@ use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransa
 use crate::services::balance::GemAssetBalance;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::collections::unique;
+use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::services::transfer::rules::TransferInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
-use num_bigint::BigInt;
+use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
 use primitives::TransactionInputType;
 
@@ -220,6 +221,14 @@ impl GemConfirmLoad {
             preload: Some(fee.preload),
             ..self
         }
+    }
+}
+
+pub fn balance_change_sign(value: &BigInt) -> GemAmountSign {
+    match value.sign() {
+        Sign::Plus => GemAmountSign::Incoming,
+        Sign::Minus => GemAmountSign::Outgoing,
+        Sign::NoSign => GemAmountSign::None,
     }
 }
 
@@ -1142,6 +1151,13 @@ mod tests {
         let asset_ids = metadata_asset_ids(&asset_id, &fee_asset_id, vec![extra.clone(), extra.clone(), asset_id.clone()]);
 
         assert_eq!(asset_ids, vec![asset_id, extra]);
+    }
+
+    #[test]
+    fn test_balance_change_sign_follows_the_value() {
+        assert_eq!(balance_change_sign(&BigInt::from(750_000)), GemAmountSign::Incoming);
+        assert_eq!(balance_change_sign(&BigInt::from(-100_005_000)), GemAmountSign::Outgoing);
+        assert_eq!(balance_change_sign(&BigInt::ZERO), GemAmountSign::None);
     }
 
     #[test]

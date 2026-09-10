@@ -121,13 +121,13 @@ struct ConfirmSubmissionTests {
                 primaryFields: [],
                 secondaryFields: [],
                 header: nil,
-                balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25")],
+                balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25", sign: .outgoing)],
                 hasCriticalWarning: false,
             ),
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
+        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.map(), value: "-25", sign: .outgoing)])
     }
 
 }
