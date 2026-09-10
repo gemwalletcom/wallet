@@ -9,13 +9,11 @@ pub enum UrlAction {
 
 impl UrlAction {
     pub fn from_url(url: &str) -> Option<Self> {
-        if let Some(link) = WalletConnectLink::from_url(url) {
-            return Some(Self::WalletConnect { link });
-        }
-        if let Some(deeplink) = Deeplink::from_url(url) {
-            return Some(Self::Deeplink { deeplink });
-        }
-        PaymentURLDecoder::decode(url).ok().map(|payment| Self::Payment { payment })
+        PaymentURLDecoder::decode(url)
+            .ok()
+            .map(|payment| Self::Payment { payment })
+            .or_else(|| WalletConnectLink::from_url(url).map(|link| Self::WalletConnect { link }))
+            .or_else(|| Deeplink::from_url(url).map(|deeplink| Self::Deeplink { deeplink }))
     }
 }
 
