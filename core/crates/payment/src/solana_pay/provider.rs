@@ -1,9 +1,10 @@
+use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{ApplicationMetadata, ApplicationMetadataSource, Chain, ChainAddress};
+use primitives::{Chain, ChainAddress, PaymentInvoice, PaymentLink, PaymentMerchant};
 
 use crate::provider::PaymentProvider;
 use crate::solana_pay::client::SolanaPayClient;
-use crate::{PaymentError, PaymentTransaction};
+use crate::{PaymentError, PaymentLoad, PaymentTransaction};
 
 #[derive(Debug)]
 pub(crate) struct SolanaPayProvider<C: Client> {
@@ -20,12 +21,17 @@ impl<C: Client> SolanaPayProvider<C> {
     }
 }
 
+#[async_trait]
 impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
+    async fn confirm(&self, _quote_id: &str, _transaction_hash: String) -> Result<(), PaymentError> {
+        Ok(())
+    }
+
     fn supported_chains(&self) -> &'static [Chain] {
         &[Chain::Solana]
     }
 
-    async fn load(&self, addresses: &[ChainAddress]) -> Result<PaymentTransaction, PaymentError> {
+    async fn load(&self, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {
         let account = addresses
             .iter()
             .find(|address| address.chain == Chain::Solana)
@@ -34,19 +40,23 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
         let (info, response) = futures::try_join!(self.client.get_info(), self.client.get_transaction(&account.address))?;
         let prepared = crate::solana_pay::transaction::prepare(&response.transaction, &account.address).map_err(|reason| PaymentError::InvalidRequest { reason })?;
 
-        Ok(PaymentTransaction {
-            merchant: ApplicationMetadata {
-                name: info.label,
-                description: String::new(),
-                url: self.url.clone(),
-                icon: info.icon,
-                source: ApplicationMetadataSource::Payment,
+        Ok(PaymentLoad::Sign {
+            transaction: PaymentTransaction {
+                invoice: PaymentInvoice {
+                    link: PaymentLink::SolanaPay { url: self.url.clone() },
+                    merchant: PaymentMerchant {
+                        name: info.label,
+                        icon: info.icon,
+                    },
+                    price: None,
+                    quotes: vec![],
+                },
+                account,
+                transaction: prepared.transaction,
+                transaction_type: prepared.transaction_type,
+                memo: prepared.memo,
+                request: prepared.request,
             },
-            account,
-            transaction: prepared.transaction,
-            transaction_type: prepared.transaction_type,
-            memo: prepared.memo,
-            request: prepared.request,
         })
     }
 }
@@ -80,10 +90,36 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_transaction_request() {
-        let transaction = provider().load(&addresses()).await.unwrap();
+    async fn test_confirm_has_nothing_to_report() {
+        assert_eq!(provider().confirm("quote", "hash".to_string()).await, Ok(()));
+    }
 
-        assert_eq!(transaction.merchant.name, "Constant K");
-        assert!(!transaction.transaction.is_empty());
+    #[tokio::test]
+    async fn test_transaction_request() {
+        let prepared = crate::solana_pay::transaction::prepare(TRANSACTION, ACCOUNT).unwrap();
+
+        assert_eq!(
+            provider().load(&addresses()).await.unwrap(),
+            PaymentLoad::Sign {
+                transaction: PaymentTransaction {
+                    invoice: PaymentInvoice {
+                        link: PaymentLink::SolanaPay {
+                            url: "https://constant-k.com/checkout".to_string()
+                        },
+                        merchant: PaymentMerchant {
+                            name: "Constant K".to_string(),
+                            icon: "https://constant-k.com/icon.png".to_string(),
+                        },
+                        price: None,
+                        quotes: vec![],
+                    },
+                    account: ChainAddress::new(Chain::Solana, ACCOUNT.to_string()),
+                    transaction: prepared.transaction,
+                    transaction_type: prepared.transaction_type,
+                    memo: prepared.memo,
+                    request: prepared.request,
+                },
+            }
+        );
     }
 }

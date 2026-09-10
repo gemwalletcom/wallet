@@ -53,6 +53,10 @@ remote:
   - PaymentRequest
   - PaymentLink
   - Payment
+  - PaymentQuote
+  - PaymentMerchant
+  - PaymentPrice
+  - PaymentInvoice
   - AssetMarket
   - AssetMetaData
   - AssetPrice

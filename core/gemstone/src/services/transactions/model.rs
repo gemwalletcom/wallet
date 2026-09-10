@@ -274,6 +274,7 @@ pub struct GemTransactionDetailRows {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionHeaderKind {
     Amount { shows_fiat: bool },
+    Payment,
     Swap,
     Nft,
     Symbol,

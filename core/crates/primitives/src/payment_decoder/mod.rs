@@ -7,7 +7,9 @@ mod error;
 mod query;
 mod solana_pay;
 mod ton_pay;
+mod wallet_connect_pay;
 mod xrp;
 
 pub use self::decoder::PaymentURLDecoder;
 pub use self::error::{PaymentDecoderError, Result};
+pub use self::wallet_connect_pay::WALLET_CONNECT_PAY_HOST;

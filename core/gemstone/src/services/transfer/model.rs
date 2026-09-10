@@ -90,6 +90,7 @@ pub enum GemConfirmTitle {
     Swap,
     Approve,
     Request,
+    Payment,
     Stake,
     Unstake,
     Redelegate,
