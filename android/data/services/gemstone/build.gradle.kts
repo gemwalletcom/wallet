@@ -52,14 +52,13 @@ android {
 
 dependencies {
     implementation(project(":data:services:store"))
-    api(project(":data:services:native-provider"))
+    api(project(":gemcore"))
+    implementation(libs.okhttp)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore)
-
-    implementation(libs.okhttp)
 
     implementation(libs.ktx.core)
     testImplementation(testFixtures(project(":data:services:store")))
