@@ -148,6 +148,12 @@ pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> Ge
 #[uniffi::export]
 impl GemConfirmData {
     pub fn fee_rate_rows(&self, selection: GemConfirmFeeSelection, fee_asset: Asset) -> GemFeeRateRows {
+        let selection = match selection {
+            GemConfirmFeeSelection::Priority { priority } if !self.fee_rates.iter().any(|rate| rate.priority == priority) => GemConfirmFeeSelection::Priority {
+                priority: self.selected_priority,
+            },
+            selection => selection,
+        };
         fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee)
     }
 }
@@ -625,6 +631,16 @@ mod tests {
             &loaded_fee(2_059_280, HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())])),
         );
         assert_eq!(fast.rows[0].fee, Some(BigInt::from(10_000) + &rent), "the rent does not shrink with the priority either");
+    }
+
+    #[test]
+    fn test_fee_rate_rows_highlight_the_priority_core_selected_when_the_asked_one_is_not_offered() {
+        let mut confirm = send_input(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock() }).confirm;
+        confirm.fee_rates = vec![rate(FeePriority::Normal, "10")];
+        confirm.selected_priority = FeePriority::Normal;
+        let rows = confirm.fee_rate_rows(GemConfirmFeeSelection::Priority { priority: FeePriority::Fast }, Asset::mock());
+
+        assert_eq!(rows.selected_total, Some(BigInt::from(10)));
     }
 
     #[test]
