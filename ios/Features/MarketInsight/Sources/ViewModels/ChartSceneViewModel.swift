@@ -87,12 +87,13 @@ public extension ChartSceneViewModel {
         }
         do {
             let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.map())
-            let charts = (chart.values + [chart.current].compactMap { $0 }).map { $0.map() }
+            let charts = chart.values.map { $0.map() } + [chart.current].compactMap { $0 }.map { ChartDateValue(date: $0.date, value: $0.value) }
             let chartValues = try ChartValues.from(charts: charts)
             let formatter = CurrencyFormatter(currencyCode: currencyCode)
             let model = ChartValuesViewModel(
                 period: selectedPeriod,
-                price: priceData?.price,
+                baseValue: chart.baseValue,
+                current: chart.current,
                 values: chartValues,
                 formatter: formatter,
             )

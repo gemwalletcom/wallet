@@ -54,12 +54,4 @@ public struct ChartValues: Sendable {
     public var lastValue: Double {
         charts.last?.value ?? 0
     }
-
-    public var firstNonZeroValue: Double? {
-        charts.first(where: { $0.value != 0 })?.value
-    }
-
-    public var baseValue: Double {
-        firstNonZeroValue ?? firstValue
-    }
 }

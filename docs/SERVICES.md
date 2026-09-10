@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The chart's base and its current point are Core's.** `GemChart` carries `base_value` (the
+  first non-zero value, the first value when every value is zero) and a `current` point that
+  holds Core's `change_percentage`: the price's 24-hour change on the day period, the change
+  against the base on every other. Both apps computed the base and the day rule themselves; iOS
+  also kept a `ChartPeriod.duration` no code read. Each app now formats the points it draws
+  against Core's base and shows Core's current point, the iOS resting header falls back to the
+  last point the way Android's does, Android's `Chart` twin and its price-info dependency on the
+  chart view model are gone, and the day-rule tests moved from Android to Core.
 - **iOS shows an amount's sign with Core's `GemAmountSign`.** `AmountDisplayStyle`, the numeric
   display factory, `TransactionInfoViewModel` and the confirm balance-change row take
   `GemAmountSign` directly; the `AmountDisplaySign` twin, its transaction-direction initializer

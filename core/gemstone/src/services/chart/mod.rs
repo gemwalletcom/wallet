@@ -3,7 +3,7 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use primitives::currency::Currency;
 use primitives::{Asset, AssetId, AssetLink, AssetMarket, ChartDateValue, ChartPeriod, PriceAlert};
 
@@ -19,7 +19,15 @@ pub use model::{GemAssetMarketRow, GemChartSection};
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
     pub values: Vec<ChartDateValue>,
-    pub current: Option<ChartDateValue>,
+    pub base_value: f64,
+    pub current: Option<GemChartCurrent>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChartCurrent {
+    pub date: DateTime<Utc>,
+    pub value: f64,
+    pub change_percentage: f64,
 }
 
 #[derive(uniffi::Object)]
@@ -85,8 +93,9 @@ impl GemChartService {
         })?;
         let latest = self.price.prices(vec![asset_id]).await?.into_iter().next();
         let values = rules::converted_values(charts.prices, rate.rate);
-        let current = rules::current_value(&values, latest, Utc::now());
-        Ok(GemChart { values, current })
+        let base_value = rules::base_value(&values);
+        let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
+        Ok(GemChart { values, base_value, current })
     }
 
     pub async fn sync_price_alerts(&self, asset_id: AssetId) -> Result<(), GemServiceError> {

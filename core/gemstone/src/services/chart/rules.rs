@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartValue, PriceAlert};
+use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, PriceAlert, PriceChangeCalculator};
 
+use super::GemChartCurrent;
 use super::model::{GemAssetMarketRow, GemChartSection};
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::displayed_price_alert_ids;
@@ -21,10 +22,25 @@ pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValu
     values
 }
 
-pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now: DateTime<Utc>) -> Option<ChartDateValue> {
+pub fn base_value(values: &[ChartDateValue]) -> f64 {
+    values.iter().find(|value| value.value != 0.0).or(values.first()).map_or(0.0, |value| value.value)
+}
+
+pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now: DateTime<Utc>, period: ChartPeriod, base_value: f64) -> Option<GemChartCurrent> {
     let latest = latest?;
     let is_newer = values.last().is_none_or(|last| latest.updated_at > last.date);
-    is_newer.then_some(ChartDateValue { date: now, value: latest.price })
+    is_newer.then(|| GemChartCurrent {
+        date: now,
+        value: latest.price,
+        change_percentage: change_percentage(period, base_value, &latest),
+    })
+}
+
+fn change_percentage(period: ChartPeriod, base_value: f64, latest: &AssetPrice) -> f64 {
+    match period {
+        ChartPeriod::Day => latest.price_change_percentage_24h,
+        ChartPeriod::Hour | ChartPeriod::Week | ChartPeriod::Month | ChartPeriod::Year | ChartPeriod::All => PriceChangeCalculator::percentage(base_value, latest.price),
+    }
 }
 
 pub fn chart_sections(
@@ -113,18 +129,43 @@ mod tests {
         let price = |seconds: i64| AssetPrice {
             asset_id: AssetId::from_chain(primitives::Chain::Bitcoin),
             price: 9.0,
-            price_change_percentage_24h: 0.0,
+            price_change_percentage_24h: 4.2,
             updated_at: DateTime::from_timestamp(seconds, 0).unwrap(),
         };
         let now = DateTime::from_timestamp(500, 0).unwrap();
 
-        let current = current_value(&[point(10), point(20)], Some(price(30)), now).expect("current");
+        let current = current_value(&[point(10), point(20)], Some(price(30)), now, ChartPeriod::Day, 1.0).expect("current");
         assert_eq!(current.value, 9.0);
         assert_eq!(current.date, now);
+        assert_eq!(current.change_percentage, 4.2);
+        assert_eq!(
+            current_value(&[point(10), point(20)], Some(price(30)), now, ChartPeriod::Week, 3.0)
+                .unwrap()
+                .change_percentage,
+            200.0
+        );
+        assert_eq!(
+            current_value(&[point(10), point(20)], Some(price(30)), now, ChartPeriod::Week, 0.0)
+                .unwrap()
+                .change_percentage,
+            0.0
+        );
 
-        assert_eq!(current_value(&[point(10), point(20)], Some(price(20)), now), None);
-        assert_eq!(current_value(&[point(10), point(20)], None, now), None);
-        assert!(current_value(&[], Some(price(20)), now).is_some());
+        assert_eq!(current_value(&[point(10), point(20)], Some(price(20)), now, ChartPeriod::Day, 1.0), None);
+        assert_eq!(current_value(&[point(10), point(20)], None, now, ChartPeriod::Day, 1.0), None);
+        assert!(current_value(&[], Some(price(20)), now, ChartPeriod::Day, 0.0).is_some());
+    }
+
+    #[test]
+    fn test_base_value_is_the_first_non_zero_value() {
+        let point = |value: f64| ChartDateValue {
+            date: DateTime::from_timestamp(0, 0).unwrap(),
+            value,
+        };
+        assert_eq!(base_value(&[point(0.0), point(100.0), point(200.0)]), 100.0);
+        assert_eq!(base_value(&[point(50.0), point(100.0)]), 50.0);
+        assert_eq!(base_value(&[point(0.0)]), 0.0);
+        assert_eq!(base_value(&[]), 0.0);
     }
 
     #[test]

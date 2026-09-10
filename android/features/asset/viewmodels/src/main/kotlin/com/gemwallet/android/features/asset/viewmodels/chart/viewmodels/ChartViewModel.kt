@@ -5,20 +5,16 @@ import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetChartState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.MinChartPoints
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
-import com.gemwallet.android.features.asset.viewmodels.chart.models.toChart
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.flatMap
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartServiceInterface
@@ -42,14 +38,10 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChartViewModel internal constructor(
-    getAssetTokenInfo: GetAssetTokenInfo,
     getCurrentCurrency: GetCurrentCurrency,
     private val chartService: GemChartServiceInterface,
     private val assetId: AssetId,
 ) : ViewModel() {
-    private val assetPriceInfo = getAssetTokenInfo(assetId)
-        .map { it?.price }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val selectedPeriod = MutableStateFlow(chartService.chartPeriod().toPrimitives())
     private val refreshController = ChartRefreshController()
 
@@ -63,7 +55,7 @@ class ChartViewModel internal constructor(
         .transformLatest { state ->
             emit(state)
             val chart = try {
-                chartService.syncCharts(assetId.toIdentifier(), state.period.toGem()).toChart()
+                chartService.syncCharts(assetId.toIdentifier(), state.period.toGem())
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 null
@@ -83,11 +75,11 @@ class ChartViewModel internal constructor(
             AssetChartState(selectedPeriod.value, Currency.USD),
         )
 
-    val chartUIState = combine(assetPriceInfo, chartPrices) { priceInfo, state ->
+    val chartUIState = chartPrices.map { state ->
         ChartUIModel.State(
             period = state.period,
             chart = state.prices.flatMap {
-                StateViewType.Data(ChartUIModel.from(it, priceInfo, state.period, state.currency))
+                StateViewType.Data(ChartUIModel.from(it, state.period, state.currency))
             },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
@@ -106,12 +98,10 @@ class ChartViewModel internal constructor(
 
     @Inject
     constructor(
-        getAssetTokenInfo: GetAssetTokenInfo,
         getCurrentCurrency: GetCurrentCurrency,
         chartService: GemChartService,
         savedStateHandle: SavedStateHandle,
     ) : this(
-        getAssetTokenInfo = getAssetTokenInfo,
         getCurrentCurrency = getCurrentCurrency,
         chartService = chartService,
         assetId = savedStateHandle.requireAssetId(),

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemChartCurrent
 import class Gemstone.PriceChangeCalculator
 import Formatters
 import Foundation
@@ -12,18 +13,18 @@ internal import Charts
 public struct ChartValuesViewModel: Sendable {
     private static let priceChangeCalculator = PriceChangeCalculator()
     public let period: ChartPeriod
-    public let price: Price?
+    public let baseValue: Double
+    public let current: GemChartCurrent?
     public let values: ChartValues
     public let lineColor: Color
     public let formatter: CurrencyFormatter
     public let type: ChartValueType
     public let headerValue: Double?
 
-    public static let defaultPeriod = ChartPeriod.day
-
     public init(
         period: ChartPeriod,
-        price: Price?,
+        baseValue: Double,
+        current: GemChartCurrent?,
         values: ChartValues,
         lineColor: Color = Colors.blue,
         formatter: CurrencyFormatter,
@@ -31,7 +32,8 @@ public struct ChartValuesViewModel: Sendable {
         headerValue: Double? = nil,
     ) {
         self.period = period
-        self.price = price
+        self.baseValue = baseValue
+        self.current = current
         self.values = values
         self.lineColor = lineColor
         self.formatter = formatter
@@ -52,16 +54,11 @@ public struct ChartValuesViewModel: Sendable {
     }
 
     var chartHeaderViewModel: ChartHeaderViewModel? {
-        guard let price else { return nil }
-        let priceChangePercentage = switch type {
-        case .priceChange:
-            price.priceChangePercentage24h
-        case .price:
-            period == Self.defaultPeriod
-                ? price.priceChangePercentage24h
-                : Self.priceChangeCalculator.percentage(from: values.baseValue, to: price.price)
+        if let current {
+            return ChartHeaderViewModel(period: period, date: nil, price: current.value, priceChangePercentage: current.changePercentage, headerValue: headerValue, formatter: formatter, type: type)
         }
-        return ChartHeaderViewModel(period: period, date: nil, price: price.price, priceChangePercentage: priceChangePercentage, headerValue: headerValue, formatter: formatter, type: type)
+        guard let last = charts.last else { return nil }
+        return headerViewModel(for: last, date: nil)
     }
 
     public static func priceChange(
@@ -73,14 +70,15 @@ public struct ChartValuesViewModel: Sendable {
         guard let values = try? ChartValues.from(charts: charts), values.hasVariation else {
             return nil
         }
-        let price = Price(
-            price: values.lastValue - values.firstValue,
-            priceChangePercentage24h: priceChangeCalculator.percentage(from: values.firstValue, to: values.lastValue),
-            updatedAt: .now,
+        let current = GemChartCurrent(
+            date: .now,
+            value: values.lastValue - values.firstValue,
+            changePercentage: priceChangeCalculator.percentage(from: values.firstValue, to: values.lastValue),
         )
         return ChartValuesViewModel(
             period: period,
-            price: price,
+            baseValue: values.firstValue,
+            current: current,
             values: values,
             formatter: formatter,
             type: .priceChange,
@@ -89,10 +87,13 @@ public struct ChartValuesViewModel: Sendable {
     }
 
     func headerViewModel(for element: ChartDateValue) -> ChartHeaderViewModel {
-        let base = type == .priceChange ? values.firstValue : values.baseValue
-        let priceChangePercentage = Self.priceChangeCalculator.percentage(from: base, to: element.value)
-        let displayPrice = type == .priceChange ? element.value - base : element.value
+        headerViewModel(for: element, date: element.date)
+    }
+
+    private func headerViewModel(for element: ChartDateValue, date: Date?) -> ChartHeaderViewModel {
+        let priceChangePercentage = Self.priceChangeCalculator.percentage(from: baseValue, to: element.value)
+        let displayPrice = type == .priceChange ? element.value - baseValue : element.value
         let elementHeaderValue = headerValue != nil ? element.value : nil
-        return ChartHeaderViewModel(period: period, date: element.date, price: displayPrice, priceChangePercentage: priceChangePercentage, headerValue: elementHeaderValue, formatter: formatter, type: type)
+        return ChartHeaderViewModel(period: period, date: date, price: displayPrice, priceChangePercentage: priceChangePercentage, headerValue: elementHeaderValue, formatter: formatter, type: type)
     }
 }

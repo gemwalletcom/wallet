@@ -1,8 +1,9 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemChart
 import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.math.getRelativeDate
-import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.gemwallet.android.ui.components.chart.ChartPoint
@@ -40,31 +41,24 @@ data class ChartUIModel(
 }
 
 internal fun ChartUIModel.Companion.from(
-    chart: Chart,
-    priceInfo: AssetPriceInfo?,
+    chart: GemChart,
     period: ChartPeriod,
     currency: Currency,
 ): ChartUIModel {
-    val basePrice = chart.values.firstOrNull { it.value != 0.0 }?.value ?: 0.0
     val currencyFormatter = CurrencyFormatter(currency = currency)
-    val priceFormatter: (Double) -> String = currencyFormatter::string
-    val historicalPoints = chart.values.map { value ->
+    val historicalPoints = chart.values.map { it.toPrimitives() }.map { value ->
         PricePoint(
             y = value.value.toFloat(),
             price = value.value,
-            priceChangePercentage = PriceChangeCalculator.percentage(from = basePrice, to = value.value),
+            priceChangePercentage = PriceChangeCalculator.percentage(from = chart.baseValue, to = value.value),
             timestamp = value.date,
         )
     }
     val currentPoint = chart.current?.let { current ->
-        val changePercent = when {
-            period == ChartPeriod.Day && priceInfo != null -> priceInfo.price.priceChangePercentage24h
-            else -> PriceChangeCalculator.percentage(from = basePrice, to = current.value)
-        }
         PricePoint(
             y = current.value.toFloat(),
             price = current.value,
-            priceChangePercentage = changePercent,
+            priceChangePercentage = current.changePercentage,
             timestamp = current.date,
         )
     }
@@ -73,7 +67,7 @@ internal fun ChartUIModel.Companion.from(
         period = period,
         currentPoint = currentPoint,
         chartPoints = historicalPoints + listOfNotNull(currentPoint),
-        priceFormatter = priceFormatter,
+        priceFormatter = currencyFormatter::string,
     )
 }
 
