@@ -308,7 +308,8 @@ intentional one-sided integration surfaces.
   and the search reuses the same row rule for a collection matched by name. Both apps had written
   the single-asset rule twice each — once for the list and once more over the search results — and
   iOS listed unverified collections unsorted, empty ones included. The `NFTSearchItem` twin and its
-  mapper are gone (the uniffi item is the type the apps hold), the `verified_collections` and
+  mapper are gone (the uniffi item is the type the apps hold), so is Android's `NftListMode` twin
+  of `GemNftList` and the mapper it needed, the `verified_collections` and
   `sorted_collections` exports are internal now, and each app keeps one item-to-poster mapping.
 - **The collectible and chart screens take their sections from Core.**
   `GemCollectibleService::details(wallet_type, asset_data, is_owned) -> GemCollectibleDetails { can_send, sections }`

@@ -34,7 +34,7 @@ class NftListViewModels @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    val mode: NftListMode = savedStateHandle.nftListMode()
+    val list: GemNftList = savedStateHandle.nftList()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
@@ -47,11 +47,11 @@ class NftListViewModels @Inject constructor(
 
     private var lastSyncedWalletId: WalletId? = null
 
-    private val nftData: StateFlow<List<NFTData>> = getNftCollections(mode.collectionId)
+    private val nftData: StateFlow<List<NFTData>> = getNftCollections(savedStateHandle.nftCollectionId())
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val collections = nftData
-        .map { data -> nftService.listItems(data.map { it.toGem() }, mode.toGem()).map { it.toUIModel() } }
+        .map { data -> nftService.listItems(data.map { it.toGem() }, list).map { it.toUIModel() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedCount = nftData
@@ -60,7 +60,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     fun syncIfNeeded() {
-        if (mode is NftListMode.Collection) return
+        if (list == GemNftList.COLLECTION) return
         val current = walletId.value ?: return
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current
@@ -88,10 +88,4 @@ class NftListViewModels @Inject constructor(
     private companion object {
         const val TAG = "NftList"
     }
-}
-
-private fun NftListMode.toGem(): GemNftList = when (this) {
-    NftListMode.Collections -> GemNftList.COLLECTIONS
-    NftListMode.Unverified -> GemNftList.UNVERIFIED
-    is NftListMode.Collection -> GemNftList.COLLECTION
 }

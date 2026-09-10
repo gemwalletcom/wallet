@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.nft.presents.components.NFTItem
-import com.gemwallet.android.features.nft.viewmodels.NftListMode
 import com.gemwallet.android.features.nft.viewmodels.NftListViewModels
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -41,6 +40,7 @@ import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemNftList
 
 @Composable
 fun NftListNavScreen(
@@ -65,7 +65,7 @@ fun NftListNavScreen(
         items = items,
         isRefreshing = isRefreshing,
         unverifiedCount = unverifiedCount,
-        mode = viewModel.mode,
+        list = viewModel.list,
         listState = listState,
         onAction = { action ->
             when (action) {
@@ -85,17 +85,17 @@ internal fun NftListScene(
     items: List<NftItemUIModel>,
     isRefreshing: Boolean,
     unverifiedCount: Int,
-    mode: NftListMode,
+    list: GemNftList,
     listState: LazyGridState = rememberLazyGridState(),
     onAction: (NftListAction) -> Unit,
 ) {
-    val showReceiveAction = mode != NftListMode.Unverified
+    val showReceiveAction = list != GemNftList.UNVERIFIED
 
     Scene(
-        title = when (mode) {
-            NftListMode.Collections,
-            is NftListMode.Collection -> stringResource(R.string.nft_collections)
-            NftListMode.Unverified -> stringResource(R.string.asset_verification_unverified)
+        title = when (list) {
+            GemNftList.COLLECTIONS,
+            GemNftList.COLLECTION -> stringResource(R.string.nft_collections)
+            GemNftList.UNVERIFIED -> stringResource(R.string.asset_verification_unverified)
         },
         actions = {
             if (showReceiveAction) {
@@ -114,7 +114,7 @@ internal fun NftListScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(NftListAction.Refresh) },
         ) {
-            val showUnverifiedRow = mode == NftListMode.Collections && unverifiedCount > 0
+            val showUnverifiedRow = list == GemNftList.COLLECTIONS && unverifiedCount > 0
 
             if (items.isEmpty() && !showUnverifiedRow) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
