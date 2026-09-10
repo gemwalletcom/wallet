@@ -57,6 +57,21 @@ struct ImageLoaderTests {
     }
 
     @Test
+    func cachedDecodesALocalFileWithoutLoading() throws {
+        let loader = ImageLoader(cache: URLCache(memoryCapacity: 0, diskCapacity: 0))
+        let file = URL.temporaryDirectory.appending(path: "\(UUID().uuidString).png")
+        let request = ImageRequest(url: file, maxPixelSize: 44, scale: 2)
+        #expect(loader.cached(request) == nil)
+
+        try png(side: 200).write(to: file)
+        defer { try? FileManager.default.removeItem(at: file) }
+
+        let image = try #require(loader.cached(request))
+        #expect(image.cgImage?.width == 44)
+        #expect(loader.cached(request) === image)
+    }
+
+    @Test
     func cacheKeyDistinguishesSizeAndScale() {
         let small = ImageRequest(url: url, maxPixelSize: 44, scale: 2)
         let large = ImageRequest(url: url, maxPixelSize: 88, scale: 2)
