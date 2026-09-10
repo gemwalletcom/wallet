@@ -70,7 +70,7 @@ struct RecipientSceneViewModelTests {
 
         #expect(model.actionButtonState == .disabled)
 
-        model.addressInputModel.nameRecordViewModel.state = .loading
+        model.addressInputModel.nameRecordViewModel.state = .loading(name: "test.eth")
         #expect(model.actionButtonState == .disabled)
 
         model.addressInputModel.text = "test.eth"

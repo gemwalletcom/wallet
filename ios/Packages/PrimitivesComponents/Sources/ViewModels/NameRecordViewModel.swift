@@ -18,7 +18,7 @@ public final class NameRecordViewModel {
     }
 
     public func getNameRecord(name: String, chain: Chain) {
-        guard name != state.result?.name else { return }
+        guard name != state.requestedName else { return }
         nameRecordTask?.cancel()
 
         guard nameService.isNameSupported(name: name) else {
@@ -26,22 +26,21 @@ public final class NameRecordViewModel {
             return
         }
 
-        state = .loading
+        state = .loading(name: name)
         nameRecordTask = Task {
             do {
                 try await Task.sleep(for: .milliseconds(nameService.nameRecordDebounceMilliseconds()))
-                if let record = try await nameService.getNameRecord(name: name, chain: chain),
-                   record.name.isNotEmpty,
-                   record.address.isNotEmpty
-                {
+                let record = try await nameService.getNameRecord(name: name, chain: chain)
+                guard state == .loading(name: name) else { return }
+
+                if let record, record.name.isNotEmpty, record.address.isNotEmpty {
                     state = .complete(record)
                 } else {
                     state = .error
                 }
             } catch {
-                if !error.isCancelled {
-                    state = .error
-                }
+                guard !error.isCancelled, state == .loading(name: name) else { return }
+                state = .error
             }
         }
     }
