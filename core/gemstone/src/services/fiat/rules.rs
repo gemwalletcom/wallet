@@ -1,9 +1,9 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{FiatProviderName, FiatQuote, FiatQuoteType};
+use primitives::{FiatProviderName, FiatQuote, FiatQuoteType, FiatTransactionStatus};
 use rand::RngExt;
 
-use super::model::{GemFiatAmountCheck, GemFiatQuoteRow};
+use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
 use crate::services::balance::GemBalanceRequirement;
 
@@ -79,6 +79,21 @@ pub fn quote_row(quote: &FiatQuote, asset_price: Option<f64>) -> GemFiatQuoteRow
     }
 }
 
+pub fn transaction_status(status: FiatTransactionStatus) -> GemFiatTransactionStatus {
+    match status {
+        FiatTransactionStatus::Complete => GemFiatTransactionStatus { badge: None, is_dimmed: false },
+        FiatTransactionStatus::Pending => GemFiatTransactionStatus {
+            badge: Some(GemFiatTransactionBadge::Pending),
+            is_dimmed: false,
+        },
+        FiatTransactionStatus::Failed => GemFiatTransactionStatus {
+            badge: Some(GemFiatTransactionBadge::Failed),
+            is_dimmed: true,
+        },
+        FiatTransactionStatus::Unknown => GemFiatTransactionStatus { badge: None, is_dimmed: true },
+    }
+}
+
 pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
     let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
     BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
@@ -86,6 +101,27 @@ pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_a_fiat_transaction_row_badges_pending_and_failed_and_dims_what_did_not_complete() {
+        let status = transaction_status;
+        assert_eq!(status(FiatTransactionStatus::Complete), GemFiatTransactionStatus { badge: None, is_dimmed: false });
+        assert_eq!(
+            status(FiatTransactionStatus::Pending),
+            GemFiatTransactionStatus {
+                badge: Some(GemFiatTransactionBadge::Pending),
+                is_dimmed: false
+            }
+        );
+        assert_eq!(
+            status(FiatTransactionStatus::Failed),
+            GemFiatTransactionStatus {
+                badge: Some(GemFiatTransactionBadge::Failed),
+                is_dimmed: true
+            }
+        );
+        assert_eq!(status(FiatTransactionStatus::Unknown), GemFiatTransactionStatus { badge: None, is_dimmed: true });
+    }
+
     use super::*;
     use crate::config::fiat_config::get_fiat_config;
     use num_bigint::BigInt;

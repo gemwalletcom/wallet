@@ -13,7 +13,7 @@ use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl, WalletId};
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 
-pub use model::GemFiatAmountCheck;
+pub use model::{GemFiatAmountCheck, GemFiatTransactionBadge, GemFiatTransactionStatus};
 pub use quote::GemFiatQuoteService;
 pub use session::{GemFiatButtonAction, GemFiatButtonState, GemFiatOperation, GemFiatQuotePhase, GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
 pub use store::GemFiatStore;

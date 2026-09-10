@@ -1,5 +1,6 @@
+use super::rules;
 use crate::services::balance::GemBalanceRequirement;
-use primitives::FiatProviderName;
+use primitives::{FiatProviderName, FiatTransactionStatus};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemFiatAmountCheck {
@@ -18,4 +19,21 @@ pub struct GemFiatQuoteRow {
     pub crypto_amount: f64,
     pub fiat_amount: f64,
     pub rate: Option<f64>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemFiatTransactionBadge {
+    Pending,
+    Failed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemFiatTransactionStatus {
+    pub badge: Option<GemFiatTransactionBadge>,
+    pub is_dimmed: bool,
+}
+
+#[uniffi::export]
+pub fn fiat_transaction_status(status: FiatTransactionStatus) -> GemFiatTransactionStatus {
+    rules::transaction_status(status)
 }

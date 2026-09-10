@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **What a fiat transaction row shows for its status is Core's answer.**
+  `fiat_transaction_status(status) -> GemFiatTransactionStatus { badge, is_dimmed }`: a pending or
+  failed order carries a badge of that kind, a failed or unknown one dims its amount, a completed
+  one shows neither. Both apps wrote those two decisions themselves; iOS also kept a
+  `FiatTransactionStatusViewModel` whose complete and unknown arms no row ever rendered. It is
+  deleted, Android's badge takes the badge kind, and the apps keep the two localized labels and
+  their colours.
 - **How a delegation's state is presented is one Core answer.** `delegation_status(delegation) ->
   GemDelegationStatus { state, tone, completion }`: the state to label (an active delegation on a
   validator that is no longer active reads as inactive), the tone its label takes (`Positive`,

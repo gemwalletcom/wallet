@@ -9,12 +9,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -31,7 +33,8 @@ import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.FiatTransactionAssetData
-import com.wallet.core.primitives.FiatTransactionStatus
+import uniffi.gemstone.GemFiatTransactionBadge
+import uniffi.gemstone.fiatTransactionStatus
 import java.math.BigInteger
 
 @Composable
@@ -53,8 +56,7 @@ fun FiatTransactionItem(
     val fiatCurrency = info.fiatCurrency.toCurrency()
     val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = fiatCurrency).string(info.fiatAmount)
 
-    val isDimmed = info.status == FiatTransactionStatus.Failed ||
-            info.status == FiatTransactionStatus.Unknown
+    val status = remember(info.status) { fiatTransactionStatus(info.status.toGem()) }
 
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
@@ -67,7 +69,7 @@ fun FiatTransactionItem(
         title = {
             ListItemTitleText(
                 text = typeTitle,
-                titleBadge = { FiatTransactionStatusBadge(info.status) }
+                titleBadge = { status.badge?.let { FiatTransactionStatusBadge(it) } }
             )
         },
         subtitle = { ListItemSupportText("${asset.name} (${info.provider.name})") },
@@ -76,7 +78,7 @@ fun FiatTransactionItem(
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(
                     text = cryptoAmount,
-                    color = if (isDimmed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
+                    color = if (status.isDimmed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer2()
                 ListItemSupportText(fiatFormatted)
@@ -86,17 +88,15 @@ fun FiatTransactionItem(
 }
 
 @Composable
-private fun FiatTransactionStatusBadge(status: FiatTransactionStatus) {
+private fun FiatTransactionStatusBadge(badge: GemFiatTransactionBadge) {
     val text: String
     val color: Color
-    when (status) {
-        FiatTransactionStatus.Complete,
-        FiatTransactionStatus.Unknown -> return
-        FiatTransactionStatus.Pending -> {
+    when (badge) {
+        GemFiatTransactionBadge.PENDING -> {
             text = stringResource(R.string.transaction_status_pending)
             color = pendingColor
         }
-        FiatTransactionStatus.Failed -> {
+        GemFiatTransactionBadge.FAILED -> {
             text = stringResource(R.string.transaction_status_failed)
             color = MaterialTheme.colorScheme.error
         }

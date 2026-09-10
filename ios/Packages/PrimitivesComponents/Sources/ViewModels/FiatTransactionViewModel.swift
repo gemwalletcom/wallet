@@ -4,6 +4,9 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import func Gemstone.fiatTransactionStatus
+import enum Gemstone.GemFiatTransactionBadge
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -20,16 +23,16 @@ public struct FiatTransactionViewModel: Sendable {
     }
 
     public var listItemModel: ListItemModel {
-        let statusModel = FiatTransactionStatusViewModel(status: info.status)
+        let status = fiatTransactionStatus(status: info.status.map())
         return ListItemModel(
             title: typeTitle,
             titleStyle: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
-            titleTag: titleTag(statusModel),
-            titleTagStyle: titleTagStyle(statusModel),
+            titleTag: status.badge.map(badgeTitle),
+            titleTagStyle: status.badge.map(badgeStyle) ?? ListItemModel.StyleDefaults.titleTagStyle,
             titleExtra: "\(info.asset.name) (\(info.provider.displayName))",
             titleStyleExtra: .footnote,
             subtitle: amount,
-            subtitleStyle: TextStyle(font: .callout, color: subtitleColor, fontWeight: .semibold),
+            subtitleStyle: TextStyle(font: .callout, color: status.isDimmed ? Colors.gray : Colors.black, fontWeight: .semibold),
             subtitleExtra: fiatValueText,
             subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
             imageStyle: .asset(assetImage: providerImage),
@@ -55,19 +58,23 @@ extension FiatTransactionViewModel {
         .image(info.provider.image)
     }
 
-    private func titleTag(_ model: FiatTransactionStatusViewModel) -> String? {
-        switch info.status {
-        case .complete, .unknown: .none
-        case .pending, .failed: model.title
+    private func badgeTitle(_ badge: GemFiatTransactionBadge) -> String {
+        switch badge {
+        case .pending: Localized.Transaction.Status.pending
+        case .failed: Localized.Transaction.Status.failed
         }
     }
 
-    private func titleTagStyle(_ model: FiatTransactionStatusViewModel) -> TextStyle {
-        TextStyle(
-            font: Font.system(.footnote, weight: .medium),
-            color: model.color,
-            background: model.background,
-        )
+    private func badgeColor(_ badge: GemFiatTransactionBadge) -> Color {
+        switch badge {
+        case .pending: Colors.orange
+        case .failed: Colors.red
+        }
+    }
+
+    private func badgeStyle(_ badge: GemFiatTransactionBadge) -> TextStyle {
+        let color = badgeColor(badge)
+        return TextStyle(font: Font.system(.footnote, weight: .medium), color: color, background: color.opacity(.light))
     }
 
     private var amount: String {
@@ -77,12 +84,5 @@ extension FiatTransactionViewModel {
 
     private var fiatValueText: String {
         CurrencyFormatter(currencyCode: info.fiatCurrency).string(info.fiatAmount)
-    }
-
-    private var subtitleColor: Color {
-        switch info.status {
-        case .failed, .unknown: Colors.gray
-        case .pending, .complete: Colors.black
-        }
     }
 }
