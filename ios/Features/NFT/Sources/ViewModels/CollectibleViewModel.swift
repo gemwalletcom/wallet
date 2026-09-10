@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Formatters
 import Foundation
-import class Gemstone.GemAddressService
-import struct Gemstone.GemCollectibleLinks
+import enum Gemstone.GemCollectibleAttributeValue
+import struct Gemstone.GemCollectibleDetails
+import enum Gemstone.GemCollectibleSection
 import protocol Gemstone.GemCollectibleServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -21,6 +23,7 @@ import SwiftUI
 public final class CollectibleViewModel {
     private let wallet: Wallet
     private let service: any GemCollectibleServiceProtocol
+    private let dateFormatter = RelativeDateFormatter(type: .date)
 
     public let query: ObservableQuery<NFTAssetRequest>
 
@@ -70,97 +73,27 @@ public final class CollectibleViewModel {
         ]
     }
 
-    var collectionField: ListItemField {
-        ListItemField(title: Localized.Nft.collection, value: assetData.collection.name)
-    }
-
     var isVerified: Bool {
         assetData.collection.status == .verified
     }
 
-    var networkField: ListItemField {
-        ListItemField(title: Localized.Transfer.network, value: assetData.asset.chain.networkName)
+    var details: GemCollectibleDetails {
+        service.details(walletType: wallet.type.map(), assetData: assetData.map(), isOwned: query.value.isOwned)
     }
 
-    var contractField: ListItemField? {
-        if contractValue.isEmpty || contractValue == assetData.asset.tokenId {
-            return .none
-        }
-        let text = GemAddressService.shared.format(address: contractValue, chain: assetData.asset.chain)
-        return ListItemField(title: Localized.Asset.contract, value: text)
-    }
-
-    var contractExplorerLink: BlockExplorerLink? {
-        links.contract.map { $0.map() }
-    }
-
-    var contractExplorerContext: ExplorerContextData? {
-        contractExplorerLink.map {
-            ExplorerContextData(copyValue: .address(value: contractValue, chain: assetData.asset.chain), explorerLink: $0)
-        }
-    }
-
-    var contractRow: CollectibleInfoRow? {
-        contractField.map {
-            CollectibleInfoRow(
-                field: $0,
-                action: contractExplorerContext.map { .explorer($0) } ?? .copy(contractValue),
-            )
-        }
-    }
-
-    var tokenIdValue: String {
-        assetData.asset.tokenId
-    }
-
-    var tokenIdField: ListItemField {
-        let text = if assetData.asset.tokenId.count > 16 {
-            GemAddressService.shared.format(address: assetData.asset.tokenId, chain: assetData.asset.chain)
-        } else {
-            "#\(assetData.asset.tokenId)"
-        }
-        return ListItemField(title: Localized.Asset.tokenId, value: text)
-    }
-
-    var tokenIdExplorerLink: BlockExplorerLink? {
-        links.token.map { $0.map() }
-    }
-
-    var tokenIdExplorerContext: ExplorerContextData? {
-        tokenIdExplorerLink.map {
-            ExplorerContextData(copyValue: .plain(tokenIdValue), explorerLink: $0)
-        }
-    }
-
-    var attributesTitle: String {
-        Localized.Nft.properties
-    }
-
-    var attributes: [NFTAttributeViewModel] {
-        assetData.asset.attributes.map { NFTAttributeViewModel(attribute: $0) }
+    var sections: [GemCollectibleSection] {
+        details.sections
     }
 
     var assetImage: AssetImage {
         NFTAssetViewModel(asset: assetData.asset).assetImage
     }
 
-    var networkAssetImage: AssetImage {
-        AssetImage(
-            imageURL: .none,
-            placeholder: ChainImage(chain: assetData.asset.chain).image,
-            chainPlaceholder: .none,
-        )
-    }
-
-    var isSendEnabled: Bool {
-        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map(), isOwned: query.value.isOwned)
-    }
-
     var headerButtons: [HeaderButton] {
         [
             HeaderButton(
                 type: .send,
-                isEnabled: isSendEnabled,
+                isEnabled: details.canSend,
             ),
             HeaderButton(
                 type: .more,
@@ -178,41 +111,25 @@ public final class CollectibleViewModel {
         ]
     }
 
-    var showAttributes: Bool {
-        attributes.isNotEmpty
-    }
-
-    var showLinks: Bool {
-        assetData.collection.links.isNotEmpty
-    }
-
-    var statusViewModel: VerificationStatusViewModel {
-        VerificationStatusViewModel(status: assetData.collection.status)
-    }
-
-    var showStatus: Bool {
-        assetData.collection.status != .verified
-    }
-
-    var socialLinksViewModel: SocialLinksViewModel {
-        SocialLinksViewModel(assetLinks: assetData.collection.links)
-    }
-
-    var tokenIdRow: CollectibleInfoRow {
-        CollectibleInfoRow(
-            field: tokenIdField,
-            action: tokenIdExplorerContext.map { .explorer($0) } ?? .copy(tokenIdValue),
+    func networkImage(chain: Chain) -> AssetImage {
+        AssetImage(
+            imageURL: .none,
+            placeholder: ChainImage(chain: chain).image,
+            chainPlaceholder: .none,
         )
+    }
+
+    func attributeText(_ value: GemCollectibleAttributeValue) -> String {
+        switch value {
+        case let .text(value): value
+        case let .date(date): dateFormatter.string(from: date)
+        }
     }
 }
 
 // MARK: - Business Logic
 
 extension CollectibleViewModel {
-    func onSelectCopyValue(_ value: CopyValue) {
-        isPresentingToast = .copied(value.displayValue)
-    }
-
     func onSelectCopyValue(_ value: String) {
         isPresentingToast = .copied(value)
     }
@@ -307,14 +224,6 @@ extension CollectibleViewModel {
 // MARK: - Private
 
 extension CollectibleViewModel {
-    private var contractValue: String {
-        assetData.collection.contractAddress
-    }
-
-    private var links: GemCollectibleLinks {
-        service.links(chain: assetData.asset.chain.rawValue, contractAddress: contractValue, tokenId: tokenIdValue)
-    }
-
     private func openSettings() {
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(settingsURL)

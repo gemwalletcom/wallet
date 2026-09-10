@@ -7,25 +7,27 @@ import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.property.toSocialLinks
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetMarketRow
-import uniffi.gemstone.GemAssetMarketRows
+import uniffi.gemstone.GemChartSection
 import java.math.BigDecimal
 import javax.inject.Inject
 
 class AssetMarketUIModelFactory @Inject constructor() {
 
-    fun create(asset: Asset, currency: Currency, rows: GemAssetMarketRows, links: List<AssetLink>): AssetMarketUIModel {
+    fun create(asset: Asset, currency: Currency, sections: List<GemChartSection>): AssetMarketUIModel {
         val mapper = RowMapper(asset, currency)
         return AssetMarketUIModel(
             chain = asset.chain,
             currency = currency,
-            marketRows = rows.market.map(mapper::row),
-            contractRows = rows.contract.map(mapper::row),
-            supplyRows = rows.supply.map(mapper::row),
-            allTimeRows = rows.allTime.map(mapper::row),
-            links = links.toSocialLinks(),
+            sections = sections.map { section ->
+                when (section) {
+                    is GemChartSection.PriceAlerts -> ChartSectionUIModel.PriceAlerts(section.count.toInt())
+                    GemChartSection.SetPriceAlert -> ChartSectionUIModel.SetPriceAlert
+                    is GemChartSection.Market -> ChartSectionUIModel.Market(section.rows.map(mapper::row))
+                    is GemChartSection.Links -> ChartSectionUIModel.Links(section.links.map { it.toPrimitives() }.toSocialLinks())
+                }
+            },
         )
     }
 

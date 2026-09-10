@@ -301,6 +301,21 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The collectible and chart screens take their sections from Core.**
+  `GemCollectibleService::details(wallet_type, asset_data, is_owned) -> GemCollectibleDetails { can_send, sections }`
+  lists status (only when the collection is not verified), the info rows (collection, network,
+  the contract when it is neither empty nor the token id itself, the token id as `#id` or as a
+  shortened address once it is address-sized), the attributes (dates already parsed) and the links,
+  omitting every empty section; `can_send` and the explorer links moved inside it, so the separate
+  `can_send` and `links` exports are gone. Android had printed the "Properties" header over an empty
+  table and showed the contract row whenever the asset had one, iOS hid both — each app now renders
+  a section kind and nothing more, and the two attribute date formatters and the duplicated token-id
+  rule are deleted. `GemChartService::sections(asset, price, market, price_alerts, links)` replaces
+  `market_rows`: it puts a `PriceAlerts { count }` or `SetPriceAlert` section first only when the
+  asset has a price, then the non-empty market, contract, supply and all-time groups, then the links.
+  Android had offered "Set price alert" for assets without a price and counted every alert where
+  iOS counted the displayed ones; both rules are Core's now, and the asset details state takes the
+  same `price` and `price_alerts` inputs instead of a `has_price` flag and a count each app computed.
 - **The push notification type no longer generates twins.** `PushNotificationTypes` was
   typeshared, but Core parses every push payload (`GemPushNotificationService::parse`) and neither
   app read the generated enum outside one Android navigation test, which now passes the payload's

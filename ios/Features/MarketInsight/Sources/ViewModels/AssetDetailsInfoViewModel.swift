@@ -5,7 +5,6 @@ import Formatters
 import Foundation
 import class Gemstone.GemAddressService
 import enum Gemstone.GemAssetMarketRow
-import struct Gemstone.GemAssetMarketRows
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -14,18 +13,12 @@ import PrimitivesComponents
 import Style
 
 struct AssetDetailsInfoViewModel {
-    private let priceData: PriceData
-    private let rows: GemAssetMarketRows
+    private let asset: Asset
     private let currencyFormatter: CurrencyFormatter
     private let allTime: AllTimeValueViewModel
 
-    init(
-        priceData: PriceData,
-        rows: GemAssetMarketRows,
-        currency: String,
-    ) {
-        self.priceData = priceData
-        self.rows = rows
+    init(asset: Asset, currency: String) {
+        self.asset = asset
         currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency)
         allTime = AllTimeValueViewModel(
             priceFormatter: CurrencyFormatter(currencyCode: currency),
@@ -33,16 +26,11 @@ struct AssetDetailsInfoViewModel {
         )
     }
 
-    var marketValues: [MarketValueViewModel] { rows.market.map(marketValue) }
-    var contractValues: [MarketValueViewModel] { rows.contract.map(marketValue) }
-    var supplyValues: [MarketValueViewModel] { rows.supply.map(marketValue) }
-    var allTimeValues: [MarketValueViewModel] { rows.allTime.map(marketValue) }
-    var showLinks: Bool { priceData.links.isNotEmpty }
-    var linksViewModel: SocialLinksViewModel { SocialLinksViewModel(assetLinks: priceData.links) }
+    func marketValues(_ rows: [GemAssetMarketRow]) -> [MarketValueViewModel] {
+        rows.map(marketValue)
+    }
 
     // MARK: - Private
-
-    private var asset: Asset { priceData.asset }
 
     private func marketValue(_ row: GemAssetMarketRow) -> MarketValueViewModel {
         switch row {

@@ -1,23 +1,22 @@
 package com.gemwallet.android.data.coordinators.nft
 
-import uniffi.gemstone.GemCollectibleServiceInterface
-import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.nft.cases.GetAssetNft
+import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
-import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.ext.toGem
-import com.wallet.core.primitives.BlockExplorerLink
+import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTAssetId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import uniffi.gemstone.GemCollectibleServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetNftAssetDetailsImpl(
@@ -26,24 +25,18 @@ class GetNftAssetDetailsImpl(
     private val nftStore: GemstoneNftStore,
     private val collectibleService: GemCollectibleServiceInterface,
 ) : GetNftAssetDetails {
-
     override fun invoke(assetId: NFTAssetId): Flow<NftAssetDetailsData?> {
         return getSession().filterNotNull()
             .flatMapLatest { session ->
                 getAssetNft.getAssetNft(assetId)
                     .combine(nftStore.observeAssetOwnership(session.wallet.id.id, assetId)) { nftData, isOwned -> nftData to isOwned }
                     .map { (nftData, isOwned) ->
-                        val nftAsset = nftData.assets.firstOrNull() ?: return@map null
-                        val chain = nftAsset.chain
-                        val account = session.wallet.getAccount(chain) ?: return@map null
-                        val links = nftAsset.contractAddress?.let { collectibleService.links(chain.string, it, nftAsset.tokenId) }
+                        val asset = nftData.assets.firstOrNull() ?: return@map null
+                        val assetData = NFTAssetData(collection = nftData.collection, asset = asset)
                         NftAssetDetailsData(
                             collection = nftData.collection,
-                            asset = nftAsset,
-                            account = account,
-                            canSend = collectibleService.canSend(session.wallet.toGem(), chain.string, isOwned),
-                            contractExplorerLink = links?.contract?.let { BlockExplorerLink(it.name, it.link) },
-                            tokenIdExplorerLink = links?.token?.let { BlockExplorerLink(it.name, it.link) },
+                            asset = asset,
+                            details = collectibleService.details(session.wallet.type.toGem(), assetData.toGem(), isOwned),
                         )
                     }
             }

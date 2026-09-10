@@ -128,8 +128,8 @@ public final class AssetSceneViewModel: Sendable {
             metadata: assetData.metadata.map(),
             balance: stakeBalance,
             bannerEvents: visibleBanners.map { $0.event.map() },
-            hasPrice: assetDataModel.isPriceAvailable,
-            priceAlertsCount: UInt32(assetData.priceAlerts.count),
+            price: assetData.price?.price,
+            priceAlerts: assetData.priceAlerts.map { $0.map() },
         )
     }
 

@@ -1,21 +1,11 @@
 package com.gemwallet.android.domains.nft
 
-import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.NFTAttribute
 import com.wallet.core.primitives.NFTCollection
+import uniffi.gemstone.GemCollectibleDetails
 
 data class NftAssetDetailsData(
     val collection: NFTCollection,
     val asset: NFTAsset,
-    val account: Account,
-    val canSend: Boolean,
-    val contractExplorerLink: BlockExplorerLink? = null,
-    val tokenIdExplorerLink: BlockExplorerLink? = null,
-) {
-    val imageUrl: String get() = asset.images.preview.url
-    val assetName: String get() = asset.name
-    val description: String? get() = asset.description
-    val attributes: List<NFTAttribute> get() = asset.attributes
-}
+    val details: GemCollectibleDetails,
+)

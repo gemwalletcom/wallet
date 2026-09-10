@@ -1,4 +1,5 @@
 pub mod collectible;
+pub mod model;
 pub mod rules;
 pub mod store;
 #[cfg(test)]
@@ -10,7 +11,8 @@ use std::sync::Arc;
 
 use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, Wallet, WalletId};
 
-pub use collectible::{GemCollectibleLinks, GemCollectibleService};
+pub use collectible::GemCollectibleService;
+pub use model::{GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection};
 pub use rules::GemNftSearchItem;
 pub use store::GemNftStore;
 

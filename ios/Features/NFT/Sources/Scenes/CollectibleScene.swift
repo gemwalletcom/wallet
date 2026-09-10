@@ -1,6 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemCollectibleIdentifier
+import enum Gemstone.GemCollectibleRow
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import Primitives
@@ -19,15 +22,27 @@ public struct CollectibleScene: View {
     public var body: some View {
         List {
             headerSectionView
-            if model.showStatus {
-                statusSectionView
-            }
-            assetInfoSectionView
-            if model.showAttributes {
-                attributesSectionView
-            }
-            if model.showLinks {
-                linksSectionView
+            ForEach(model.sections, id: \.self) { section in
+                switch section {
+                case let .status(status):
+                    Section {
+                        AssetStatusView(model: VerificationStatusViewModel(status: status.map()), action: model.onSelectStatus)
+                    }
+                case let .info(rows):
+                    Section {
+                        ForEach(rows, id: \.self, content: infoRowView)
+                    }
+                case let .attributes(attributes):
+                    Section(Localized.Nft.properties) {
+                        ForEach(attributes, id: \.self) {
+                            ListItemView(title: $0.name, subtitle: model.attributeText($0.value))
+                        }
+                    }
+                case let .links(links):
+                    Section(Localized.Social.links) {
+                        SocialLinksView(model: SocialLinksViewModel(assetLinks: links.map { $0.map() }))
+                    }
+                }
             }
         }
         .environment(\.defaultMinListHeaderHeight, 0)
@@ -81,52 +96,37 @@ extension CollectibleScene {
         .contextMenu(model.imageContextMenuItems)
     }
 
-    private var statusSectionView: some View {
-        Section {
-            AssetStatusView(model: model.statusViewModel, action: model.onSelectStatus)
-        }
-    }
-
-    private var assetInfoSectionView: some View {
-        Section {
-            ListItemView(field: model.collectionField)
-
+    @ViewBuilder
+    private func infoRowView(_ row: GemCollectibleRow) -> some View {
+        switch row {
+        case let .collection(name):
+            ListItemView(title: Localized.Nft.collection, subtitle: name)
+        case let .network(chain):
+            let chain = Primitives.Chain(core: chain)
             ListItemImageView(
-                title: model.networkField.title.text,
-                subtitle: model.networkField.value.text,
-                assetImage: model.networkAssetImage,
+                title: Localized.Transfer.network,
+                subtitle: chain.networkName,
+                assetImage: model.networkImage(chain: chain),
             )
-
-            if let contractRow = model.contractRow {
-                infoRowView(contractRow)
-            }
-            infoRowView(model.tokenIdRow)
-        }
-    }
-
-    private var attributesSectionView: some View {
-        Section(model.attributesTitle) {
-            ForEach(model.attributes) {
-                ListItemView(title: $0.name, subtitle: $0.value)
-            }
-        }
-    }
-
-    private var linksSectionView: some View {
-        Section(Localized.Social.links) {
-            SocialLinksView(model: model.socialLinksViewModel)
+        case let .contract(identifier):
+            identifierRowView(
+                title: Localized.Asset.contract,
+                identifier: identifier,
+                copyValue: .address(value: identifier.value, chain: model.assetData.asset.chain),
+            )
+        case let .tokenId(identifier):
+            identifierRowView(title: Localized.Asset.tokenId, identifier: identifier, copyValue: .plain(identifier.value))
         }
     }
 
     @ViewBuilder
-    private func infoRowView(_ row: CollectibleInfoRow) -> some View {
-        switch row.action {
-        case let .explorer(explorerContext):
-            ListItemView(field: row.field)
-                .explorerContext(explorerContext)
-        case let .copy(copyValue):
-            ListItemView(field: row.field)
-                .contextMenu(.copy(value: copyValue, onCopy: model.onSelectCopyValue))
+    private func identifierRowView(title: String, identifier: GemCollectibleIdentifier, copyValue: CopyValue) -> some View {
+        if let explorer = identifier.explorer {
+            ListItemView(title: title, subtitle: identifier.text)
+                .explorerContext(ExplorerContextData(copyValue: copyValue, explorerLink: explorer.map()))
+        } else {
+            ListItemView(title: title, subtitle: identifier.text)
+                .contextMenu(.copy(value: identifier.value, onCopy: model.onSelectCopyValue))
         }
     }
 }

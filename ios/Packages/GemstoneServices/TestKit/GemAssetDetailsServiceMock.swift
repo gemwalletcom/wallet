@@ -17,6 +17,7 @@ import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.BlockExplorerLink
 import struct Gemstone.GemSwapPairSuggestion
+import struct Gemstone.PriceAlert
 import enum Gemstone.VerificationStatus
 import enum Gemstone.WalletType
 import Primitives
@@ -56,7 +57,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         .none
     }
 
-    public func state(walletType: WalletType, chain _: Chain, metadata: AssetMetaData, balance _: GemAssetBalance, bannerEvents _: [BannerEvent], hasPrice _: Bool, priceAlertsCount _: UInt32) -> GemAssetDetailsState {
+    public func state(walletType: WalletType, chain _: Chain, metadata: AssetMetaData, balance _: GemAssetBalance, bannerEvents _: [BannerEvent], price _: Double?, priceAlerts _: [Gemstone.PriceAlert]) -> GemAssetDetailsState {
         GemAssetDetailsState(
             isViewOnly: walletType == .view,
             headerActions: walletType == .view ? .watchOnly : .buttons(buttons: []),

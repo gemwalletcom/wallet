@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartValue};
+use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartValue, PriceAlert};
 
-use super::model::{GemAssetMarketRow, GemAssetMarketRows};
+use super::model::{GemAssetMarketRow, GemChartSection};
+use crate::services::price::rules::has_price;
+use crate::services::price_alert::rules::displayed_price_alert_ids;
 
 const MARKET_CAP_RANK_BADGE_LIMIT: i32 = 1000;
 
@@ -25,13 +27,36 @@ pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now:
     is_newer.then_some(ChartDateValue { date: now, value: latest.price })
 }
 
-pub fn market_rows(asset: &Asset, market: Option<&AssetMarket>, contract_explorer: Option<BlockExplorerLink>) -> GemAssetMarketRows {
-    GemAssetMarketRows {
-        market: market.map(market_section).unwrap_or_default(),
-        contract: available_rows([contract_row(asset, contract_explorer)]),
-        supply: market.map(supply_section).unwrap_or_default(),
-        all_time: market.map(all_time_section).unwrap_or_default(),
+pub fn chart_sections(
+    asset: &Asset,
+    price: Option<f64>,
+    market: Option<&AssetMarket>,
+    price_alerts: Vec<PriceAlert>,
+    links: Vec<AssetLink>,
+    contract_explorer: Option<BlockExplorerLink>,
+) -> Vec<GemChartSection> {
+    let market_sections = [
+        market.map(market_section).unwrap_or_default(),
+        available_rows([contract_row(asset, contract_explorer)]),
+        market.map(supply_section).unwrap_or_default(),
+        market.map(all_time_section).unwrap_or_default(),
+    ]
+    .into_iter()
+    .filter(|rows| !rows.is_empty())
+    .map(|rows| GemChartSection::Market { rows });
+    price_alert_section(price, price_alerts)
+        .into_iter()
+        .chain(market_sections)
+        .chain((!links.is_empty()).then_some(GemChartSection::Links { links }))
+        .collect()
+}
+
+fn price_alert_section(price: Option<f64>, price_alerts: Vec<PriceAlert>) -> Option<GemChartSection> {
+    if !has_price(price) {
+        return None;
     }
+    let count = displayed_price_alert_ids(price_alerts).len() as u32;
+    Some(if count > 0 { GemChartSection::PriceAlerts { count } } else { GemChartSection::SetPriceAlert })
 }
 
 fn market_section(market: &AssetMarket) -> Vec<GemAssetMarketRow> {
@@ -70,7 +95,7 @@ fn available_rows<const N: usize>(rows: [Option<GemAssetMarketRow>; N]) -> Vec<G
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, ChartValuePercentage};
+    use primitives::{AssetId, ChartValuePercentage, LinkType, PriceAlertDirection, currency::Currency};
 
     #[test]
     fn test_converted_values_apply_rate_and_sort() {
@@ -103,60 +128,78 @@ mod tests {
     }
 
     #[test]
-    fn test_market_rows() {
+    fn test_chart_sections_group_the_market_rows_core_has() {
         let token = Asset::mock_ethereum_usdc();
         let market = AssetMarket::mock();
+        let links = vec![AssetLink::new("https://example.com", LinkType::Website)];
 
         assert_eq!(
-            market_rows(&token, Some(&market), Some(BlockExplorerLink::mock())),
-            GemAssetMarketRows {
-                market: vec![
-                    GemAssetMarketRow::MarketCap { value: 100.0, rank: Some(1) },
-                    GemAssetMarketRow::FullyDilutedValuation { value: 120.0 },
-                    GemAssetMarketRow::TradingVolume { value: 10.0 },
-                ],
-                contract: vec![GemAssetMarketRow::Contract {
-                    token_id: token.id.token_id.clone().unwrap(),
-                    explorer: Some(BlockExplorerLink::mock()),
-                }],
-                supply: vec![
-                    GemAssetMarketRow::CirculatingSupply { value: 50.0 },
-                    GemAssetMarketRow::TotalSupply { value: 60.0 },
-                    GemAssetMarketRow::MaxSupply { value: 21.0 },
-                ],
-                all_time: vec![
-                    GemAssetMarketRow::AllTimeHigh {
+            chart_sections(&token, Some(1.0), Some(&market), vec![], links.clone(), Some(BlockExplorerLink::mock())),
+            vec![
+                GemChartSection::SetPriceAlert,
+                GemChartSection::Market {
+                    rows: vec![
+                        GemAssetMarketRow::MarketCap { value: 100.0, rank: Some(1) },
+                        GemAssetMarketRow::FullyDilutedValuation { value: 120.0 },
+                        GemAssetMarketRow::TradingVolume { value: 10.0 },
+                    ]
+                },
+                GemChartSection::Market {
+                    rows: vec![GemAssetMarketRow::Contract {
+                        token_id: token.id.token_id.clone().unwrap(),
+                        explorer: Some(BlockExplorerLink::mock()),
+                    }]
+                },
+                GemChartSection::Market {
+                    rows: vec![
+                        GemAssetMarketRow::CirculatingSupply { value: 50.0 },
+                        GemAssetMarketRow::TotalSupply { value: 60.0 },
+                        GemAssetMarketRow::MaxSupply { value: 21.0 },
+                    ]
+                },
+                GemChartSection::Market {
+                    rows: vec![
+                        GemAssetMarketRow::AllTimeHigh {
+                            value: ChartValuePercentage::mock()
+                        },
+                        GemAssetMarketRow::AllTimeLow {
+                            value: ChartValuePercentage::mock_low()
+                        },
+                    ]
+                },
+                GemChartSection::Links { links },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_chart_sections_skip_missing_values_and_empty_sections() {
+        let sections = chart_sections(&Asset::mock(), None, Some(&AssetMarket::mock_partial()), vec![], vec![], None);
+
+        assert_eq!(
+            sections,
+            vec![
+                GemChartSection::Market {
+                    rows: vec![GemAssetMarketRow::FullyDilutedValuation { value: 120.0 }]
+                },
+                GemChartSection::Market {
+                    rows: vec![GemAssetMarketRow::CirculatingSupply { value: 50.0 }, GemAssetMarketRow::MaxSupply { value: 21.0 }]
+                },
+                GemChartSection::Market {
+                    rows: vec![GemAssetMarketRow::AllTimeHigh {
                         value: ChartValuePercentage::mock()
-                    },
-                    GemAssetMarketRow::AllTimeLow {
-                        value: ChartValuePercentage::mock_low()
-                    },
-                ],
-            }
+                    }]
+                },
+            ]
         );
     }
 
     #[test]
-    fn test_market_rows_skip_missing_values() {
-        let rows = market_rows(&Asset::mock(), Some(&AssetMarket::mock_partial()), None);
-
-        assert_eq!(rows.market, vec![GemAssetMarketRow::FullyDilutedValuation { value: 120.0 }]);
-        assert_eq!(rows.contract, Vec::new());
-        assert_eq!(
-            rows.supply,
-            vec![GemAssetMarketRow::CirculatingSupply { value: 50.0 }, GemAssetMarketRow::MaxSupply { value: 21.0 }]
-        );
-        assert_eq!(
-            rows.all_time,
-            vec![GemAssetMarketRow::AllTimeHigh {
-                value: ChartValuePercentage::mock()
-            }]
-        );
-    }
-
-    #[test]
-    fn test_market_rows_rank_badge_limit() {
-        let rank = |rank: i32| market_rows(&Asset::mock(), Some(&AssetMarket::mock_with_rank(rank)), None).market[0].clone();
+    fn test_chart_sections_rank_badge_limit() {
+        let rank = |rank: i32| match chart_sections(&Asset::mock(), None, Some(&AssetMarket::mock_with_rank(rank)), vec![], vec![], None).remove(0) {
+            GemChartSection::Market { rows } => rows[0].clone(),
+            section => panic!("expected market rows, got {section:?}"),
+        };
 
         assert_eq!(rank(MARKET_CAP_RANK_BADGE_LIMIT), GemAssetMarketRow::MarketCap { value: 100.0, rank: Some(1000) });
         assert_eq!(rank(MARKET_CAP_RANK_BADGE_LIMIT + 1), GemAssetMarketRow::MarketCap { value: 100.0, rank: None });
@@ -164,20 +207,33 @@ mod tests {
     }
 
     #[test]
-    fn test_market_rows_without_market_keep_contract() {
+    fn test_chart_sections_without_market_keep_contract() {
         let token = Asset::mock_ethereum_usdc();
 
         assert_eq!(
-            market_rows(&token, None, None),
-            GemAssetMarketRows {
-                market: Vec::new(),
-                contract: vec![GemAssetMarketRow::Contract {
+            chart_sections(&token, None, None, vec![], vec![], None),
+            vec![GemChartSection::Market {
+                rows: vec![GemAssetMarketRow::Contract {
                     token_id: token.id.token_id.clone().unwrap(),
                     explorer: None,
-                }],
-                supply: Vec::new(),
-                all_time: Vec::new(),
-            }
+                }]
+            }]
         );
+    }
+
+    #[test]
+    fn test_chart_sections_offer_price_alerts_only_with_a_price() {
+        let asset = Asset::mock();
+        let auto = PriceAlert::new_auto(asset.id.clone(), Currency::USD);
+        let mut notified = PriceAlert::new_price(asset.id.clone(), Currency::USD, 120.0, PriceAlertDirection::Up);
+        notified.last_notified_at = Some(Utc::now());
+        let section = |price: Option<f64>, alerts: Vec<PriceAlert>| chart_sections(&asset, price, None, alerts, vec![], None).into_iter().next();
+
+        assert_eq!(section(Some(1.0), vec![]), Some(GemChartSection::SetPriceAlert));
+        assert_eq!(section(Some(1.0), vec![auto.clone(), notified.clone()]), Some(GemChartSection::PriceAlerts { count: 1 }));
+        assert_eq!(section(Some(1.0), vec![notified.clone()]), Some(GemChartSection::SetPriceAlert));
+        assert_eq!(section(Some(0.0), vec![auto.clone()]), None);
+        assert_eq!(section(None, vec![auto]), None);
+        assert_eq!(section(None, vec![]), None);
     }
 }

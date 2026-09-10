@@ -1,4 +1,3 @@
-import Formatters
 import Foundation
 import class Gemstone.GemCollectibleService
 import class Gemstone.GemExplorerService
@@ -6,7 +5,6 @@ import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import NFT
 import Primitives
-import PrimitivesComponents
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
@@ -15,98 +13,47 @@ import Testing
 @MainActor
 struct CollectibleViewModelTests {
     @Test
-    func isSendEnabledOnlyWhileTheWalletHoldsTheAsset() {
+    func canSendOnlyWhileTheWalletHoldsTheAsset() {
         let assetData = NFTAssetData.mock(asset: .mock(chain: .ethereum))
         let held = CollectibleViewModel.mock(assetData: assetData)
         let viewOnly = CollectibleViewModel.mock(wallet: .mock(type: .view), assetData: assetData)
 
-        #expect(held.isSendEnabled == false)
+        #expect(held.details.canSend == false)
         held.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
-        #expect(held.isSendEnabled)
+        #expect(held.details.canSend)
         held.query.value = NFTAssetDetails(assetData: assetData, isOwned: false)
-        #expect(held.isSendEnabled == false)
+        #expect(held.details.canSend == false)
 
         viewOnly.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
-        #expect(viewOnly.isSendEnabled == false)
+        #expect(viewOnly.details.canSend == false)
     }
 
     @Test
-    func tokenIdValue() {
-        #expect(CollectibleViewModel.mock(assetData: .mock(asset: .mock(tokenId: "12345"))).tokenIdValue == "12345")
-    }
-
-    @Test
-    func tokenIdField() {
-        let shortModel = CollectibleViewModel.mock(assetData: .mock(asset: .mock(tokenId: "123")))
-        let longModel = CollectibleViewModel.mock(assetData: .mock(asset: .mock(tokenId: "1234567890123456789", chain: .ethereum)))
-
-        #expect(shortModel.tokenIdField.value.text == "#123")
-        #expect(longModel.tokenIdField.value.text == "1234567...56789")
-    }
-
-    @Test
-    func contractField() {
-        #expect(CollectibleViewModel.mock(assetData: .mock(
-            collection: .mock(contractAddress: "0x123"),
-            asset: .mock(tokenId: "456"),
-        )).contractField?.value.text == "0x123")
-        #expect(CollectibleViewModel.mock(assetData: .mock(
-            collection: .mock(contractAddress: "0x12345678910"),
-            asset: .mock(tokenId: ""),
-        )).contractField?.value.text == "0x1234...78910")
-        #expect(CollectibleViewModel.mock(assetData: .mock(
-            collection: .mock(contractAddress: ""),
-            asset: .mock(tokenId: "456"),
-        )).contractField == nil)
-    }
-
-    @Test
-    func tokenExplorerLink() {
+    func sectionsAndExplorerLinksComeFromCore() throws {
         let model = CollectibleViewModel.mock(assetData: .mock(
-            collection: .mock(contractAddress: "0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee"),
-            asset: .mock(tokenId: "11871", chain: .ethereum),
+            collection: .mock(
+                contractAddress: "0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee",
+                status: .unverified,
+                links: [AssetLink(name: "Website", url: "https://example.com")],
+            ),
+            asset: .mock(tokenId: "11871", chain: .ethereum, attributes: [NFTAttribute(name: "Color", value: "Blue", percentage: nil)]),
         ))
+        let sections = model.sections
 
-        #expect(model.tokenIdExplorerLink?.link == "https://etherscan.io/nft/0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee/11871")
+        #expect(sections.count == 4)
+        guard case let .info(rows) = sections[1], case let .tokenId(identifier) = try #require(rows.last) else {
+            Issue.record("expected the token id row to close the info section")
+            return
+        }
+        #expect(identifier.text == "#11871")
+        #expect(identifier.explorer?.link == "https://etherscan.io/nft/0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee/11871")
     }
 
     @Test
-    func showAttributes() {
-        #expect(CollectibleViewModel.mock(assetData: .mock(asset: .mock(attributes: []))).showAttributes == false)
+    func verifiedAssetWithoutExtrasOnlyListsItsInfo() {
+        let model = CollectibleViewModel.mock(assetData: .mock(collection: .mock(status: .verified, links: []), asset: .mock(attributes: [])))
 
-        let withAttributesModel = CollectibleViewModel.mock(assetData: .mock(asset: .mock(attributes: [
-            NFTAttribute(name: "Color", value: "Blue", percentage: nil),
-        ])))
-        #expect(withAttributesModel.showAttributes == true)
-    }
-
-    @Test
-    func attributeValueFormatting() throws {
-        let formatter = try RelativeDateFormatter(
-            type: .date,
-            locale: Locale(identifier: "en_US_POSIX"),
-            timeZone: #require(TimeZone(secondsFromGMT: 0)),
-        )
-
-        let date = NFTAttributeViewModel(
-            attribute: NFTAttribute(name: "Created Date", value: "1662714817", valueType: .timestamp, percentage: nil),
-            relativeDateFormatter: formatter,
-        )
-        let string = NFTAttributeViewModel(
-            attribute: NFTAttribute(name: "Length", value: "9", valueType: .string, percentage: nil),
-            relativeDateFormatter: formatter,
-        )
-
-        #expect(date.value == "Sep 9, 2022")
-        #expect(string.value == "9")
-    }
-
-    @Test
-    func showLinks() {
-        #expect(CollectibleViewModel.mock(assetData: .mock(collection: .mock(links: []))).showLinks == false)
-        #expect(CollectibleViewModel.mock(assetData: .mock(collection: .mock(links: [
-            AssetLink(name: "Website", url: "https://example.com"),
-        ]))).showLinks == true)
+        #expect(model.sections.count == 1)
     }
 }
 

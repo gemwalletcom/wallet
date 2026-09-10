@@ -1,7 +1,7 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, AssetMetaData, BannerEvent, Chain, Deeplink, VerificationStatus, WalletType};
+use primitives::{Asset, AssetId, AssetMetaData, BannerEvent, Chain, Deeplink, PriceAlert, VerificationStatus, WalletType};
 
 use crate::deeplink::GemDeeplinkService;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
@@ -167,10 +167,10 @@ impl GemAssetDetailsService {
         metadata: AssetMetaData,
         balance: GemAssetBalance,
         banner_events: Vec<BannerEvent>,
-        has_price: bool,
-        price_alerts_count: u32,
+        price: Option<f64>,
+        price_alerts: Vec<PriceAlert>,
     ) -> GemAssetDetailsState {
-        rules::details_state(wallet_type, chain, &metadata, &balance, &banner_events, has_price, price_alerts_count)
+        rules::details_state(wallet_type, chain, &metadata, &balance, &banner_events, price, price_alerts)
     }
 
     pub fn swap_pair(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {

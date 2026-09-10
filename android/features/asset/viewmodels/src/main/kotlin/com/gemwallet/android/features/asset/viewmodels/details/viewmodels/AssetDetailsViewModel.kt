@@ -28,6 +28,7 @@ import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoU
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
+import com.wallet.core.primitives.PriceAlert
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -98,16 +99,16 @@ class AssetDetailsViewModel @Inject constructor(
         .map { banners -> banners.map { it.event } }
         .onStart { emit(emptyList()) }
 
-    private val priceAlertsCount = getPriceAlerts(assetId).map { it.size }.onStart { emit(0) }
+    private val priceAlerts = getPriceAlerts(assetId).map { alerts -> alerts.map { it.priceAlert } }.onStart { emit(emptyList()) }
 
-    val uiModel = combine(model, session, bannerEvents, priceAlertsCount, ::uiModel)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, uiModel(model.value, session.value, emptyList(), 0))
+    val uiModel = combine(model, session, bannerEvents, priceAlerts, ::uiModel)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, uiModel(model.value, session.value, emptyList(), emptyList()))
 
     private fun uiModel(
         current: Model?,
         session: Session?,
         bannerEvents: List<BannerEvent>,
-        priceAlertsCount: Int,
+        priceAlerts: List<PriceAlert>,
     ): AssetInfoUIModel? {
         val wallet = session?.wallet ?: return null
         return current?.let {
@@ -132,8 +133,8 @@ class AssetDetailsViewModel @Inject constructor(
                     metadata = assetInfo.metadata.toGem(),
                     balance = assetInfo.balance.toGem(),
                     bannerEvents = bannerEvents.map { event -> event.toGem() },
-                    hasPrice = (assetInfo.price?.price?.price ?: 0.0) != 0.0,
-                    priceAlertsCount = priceAlertsCount.toUInt(),
+                    price = assetInfo.price?.price?.price,
+                    priceAlerts = priceAlerts.map { alert -> alert.toGem() },
                 ),
             )
         }

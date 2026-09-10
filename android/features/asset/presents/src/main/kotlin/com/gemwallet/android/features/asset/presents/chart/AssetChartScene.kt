@@ -45,7 +45,9 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.smallIconSize
+import androidx.annotation.StringRes
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AllTimeUIModel
+import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartSectionUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketInfoUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketRowUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.AssetChartViewModel
@@ -69,7 +71,6 @@ fun AssetChartScene(
 ) {
     val marketModel by viewModel.marketUIModel.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
-    val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
     val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(
         message = toastMessage,
@@ -93,20 +94,19 @@ fun AssetChartScene(
         ) {
             LazyColumn {
                 item { Chart(chartViewModel) }
-                item {
-                    PriceAlertsItem(
-                        assetId = viewModel.assetId,
-                        priceAlertsCount = priceAlertsCount,
-                        onPriceAlerts = onPriceAlerts,
-                        onAddPriceAlertTarget = onAddPriceAlertTarget,
-                    )
-                }
-                marketModel?.let {
-                    marketRows(it.chain, it.currency, it.marketRows)
-                    marketRows(it.chain, it.currency, it.contractRows)
-                    marketRows(it.chain, it.currency, it.supplyRows)
-                    marketRows(it.chain, it.currency, it.allTimeRows)
-                    links(it.links, uriHandler, context)
+                marketModel?.let { model ->
+                    model.sections.forEach { section ->
+                        when (section) {
+                            is ChartSectionUIModel.PriceAlerts -> item {
+                                PriceAlertsItem(R.string.settings_price_alerts_title, section.count.toString()) { onPriceAlerts(viewModel.assetId) }
+                            }
+                            ChartSectionUIModel.SetPriceAlert -> item {
+                                PriceAlertsItem(R.string.price_alerts_set_alert_title, "") { onAddPriceAlertTarget(viewModel.assetId) }
+                            }
+                            is ChartSectionUIModel.Market -> marketRows(model.chain, model.currency, section.rows)
+                            is ChartSectionUIModel.Links -> links(section.links, uriHandler, context)
+                        }
+                    }
                 }
             }
         }
@@ -114,39 +114,13 @@ fun AssetChartScene(
 }
 
 @Composable
-private fun PriceAlertsItem(
-    assetId: AssetId,
-    priceAlertsCount: Int,
-    onPriceAlerts: (AssetId) -> Unit,
-    onAddPriceAlertTarget: (AssetId) -> Unit,
-) {
-    val hasPriceAlerts = priceAlertsCount > 0
-
+private fun PriceAlertsItem(@StringRes title: Int, data: String, onClick: () -> Unit) {
     PropertyItem(
         modifier = Modifier
-            .clickable {
-                if (hasPriceAlerts) {
-                    onPriceAlerts(assetId)
-                } else {
-                    onAddPriceAlertTarget(assetId)
-                }
-            }
+            .clickable(onClick = onClick)
             .testTag("assetChart"),
-        title = {
-            PropertyTitleText(
-                if (hasPriceAlerts) {
-                    R.string.settings_price_alerts_title
-                } else {
-                    R.string.price_alerts_set_alert_title
-                }
-            )
-        },
-        data = {
-            PropertyDataText(
-                text = if (hasPriceAlerts) priceAlertsCount.toString() else "",
-                badge = { DataBadgeChevron() },
-            )
-        },
+        title = { PropertyTitleText(title) },
+        data = { PropertyDataText(text = data, badge = { DataBadgeChevron() }) },
         listPosition = ListPosition.Single,
     )
 }

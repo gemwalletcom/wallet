@@ -7,9 +7,12 @@ import com.wallet.core.primitives.Currency
 class AssetMarketUIModel(
     val chain: Chain,
     val currency: Currency,
-    val marketRows: List<MarketRowUIModel>,
-    val contractRows: List<MarketRowUIModel>,
-    val supplyRows: List<MarketRowUIModel>,
-    val allTimeRows: List<MarketRowUIModel>,
-    val links: List<SocialLinkUIModel>,
+    val sections: List<ChartSectionUIModel>,
 )
+
+sealed interface ChartSectionUIModel {
+    data class PriceAlerts(val count: Int) : ChartSectionUIModel
+    data object SetPriceAlert : ChartSectionUIModel
+    data class Market(val rows: List<MarketRowUIModel>) : ChartSectionUIModel
+    data class Links(val links: List<SocialLinkUIModel>) : ChartSectionUIModel
+}

@@ -3,7 +3,9 @@
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemAssetMarketRow
 import protocol Gemstone.GemChartServiceProtocol
+import enum Gemstone.GemChartSection
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -42,16 +44,19 @@ public final class ChartSceneViewModel: ChartListViewable {
         assetModel.name
     }
 
-    var priceAlertsViewModel: PriceAlertsViewModel {
-        PriceAlertsViewModel(priceAlerts: priceData?.priceAlerts ?? [])
+    var asset: Asset {
+        assetModel.asset
     }
 
-    var showPriceAlerts: Bool {
-        priceAlertsViewModel.hasPriceAlerts && isPriceAvailable
-    }
-
-    var isPriceAvailable: Bool {
-        PriceViewModel(price: priceData?.price, currencyCode: currencyCode).isPriceAvailable
+    var sections: [GemChartSection] {
+        guard let priceData else { return [] }
+        return service.sections(
+            asset: priceData.asset.map(),
+            price: priceData.price?.price,
+            market: priceData.market?.map(),
+            priceAlerts: priceData.priceAlerts.map { $0.map() },
+            links: priceData.links.map { $0.map() },
+        )
     }
 
     public init(
@@ -68,13 +73,8 @@ public final class ChartSceneViewModel: ChartListViewable {
         self.onSetPriceAlert = onSetPriceAlert
     }
 
-    var priceDataModel: AssetDetailsInfoViewModel? {
-        guard let priceData else { return nil }
-        return AssetDetailsInfoViewModel(
-            priceData: priceData,
-            rows: service.marketRows(asset: priceData.asset.map(), market: priceData.market?.map()),
-            currency: currencyCode,
-        )
+    func marketValues(_ rows: [GemAssetMarketRow]) -> [MarketValueViewModel] {
+        AssetDetailsInfoViewModel(asset: asset, currency: currencyCode).marketValues(rows)
     }
 }
 

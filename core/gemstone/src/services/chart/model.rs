@@ -1,4 +1,12 @@
-use primitives::{BlockExplorerLink, ChartValuePercentage};
+use primitives::{AssetLink, BlockExplorerLink, ChartValuePercentage};
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemChartSection {
+    PriceAlerts { count: u32 },
+    SetPriceAlert,
+    Market { rows: Vec<GemAssetMarketRow> },
+    Links { links: Vec<AssetLink> },
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetMarketRow {
@@ -11,12 +19,4 @@ pub enum GemAssetMarketRow {
     MaxSupply { value: f64 },
     AllTimeHigh { value: ChartValuePercentage },
     AllTimeLow { value: ChartValuePercentage },
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAssetMarketRows {
-    pub market: Vec<GemAssetMarketRow>,
-    pub contract: Vec<GemAssetMarketRow>,
-    pub supply: Vec<GemAssetMarketRow>,
-    pub all_time: Vec<GemAssetMarketRow>,
 }

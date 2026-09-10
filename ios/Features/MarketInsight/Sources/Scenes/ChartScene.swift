@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import Primitives
@@ -17,35 +18,28 @@ public struct ChartScene: View {
 
     public var body: some View {
         ChartListView(model: model) {
-            if model.showPriceAlerts, let asset = model.priceData?.asset {
-                NavigationLink(
-                    value: Scenes.AssetPriceAlert(asset: asset),
-                    label: {
-                        ListItemView(
-                            title: model.priceAlertsViewModel.priceAlertsTitle,
-                            subtitle: model.priceAlertsViewModel.priceAlertCount,
+            ForEach(model.sections, id: \.self) { section in
+                switch section {
+                case let .priceAlerts(count):
+                    Section {
+                        NavigationLink(
+                            value: Scenes.AssetPriceAlert(asset: model.asset),
+                            label: {
+                                ListItemView(title: Localized.Settings.PriceAlerts.title, subtitle: "\(count)")
+                            },
                         )
-                    },
-                )
-            } else if model.isPriceAvailable {
-                NavigationCustomLink(
-                    with: ListItemView(
-                        title: model.priceAlertsViewModel.setPriceAlertTitle,
-                    ),
-                ) {
-                    model.onSelectSetPriceAlerts()
-                }
-            }
-
-            if let priceDataModel = model.priceDataModel {
-                marketSection(priceDataModel.marketValues)
-                marketSection(priceDataModel.contractValues)
-                marketSection(priceDataModel.supplyValues)
-                marketSection(priceDataModel.allTimeValues)
-
-                if priceDataModel.showLinks {
+                    }
+                case .setPriceAlert:
+                    Section {
+                        NavigationCustomLink(with: ListItemView(title: Localized.PriceAlerts.SetAlert.title)) {
+                            model.onSelectSetPriceAlerts()
+                        }
+                    }
+                case let .market(rows):
+                    marketSection(model.marketValues(rows))
+                case let .links(links):
                     Section(Localized.Social.links) {
-                        SocialLinksView(model: priceDataModel.linksViewModel)
+                        SocialLinksView(model: SocialLinksViewModel(assetLinks: links.map { $0.map() }))
                     }
                 }
             }
@@ -58,22 +52,18 @@ public struct ChartScene: View {
     }
 
     private func marketSection(_ items: [MarketValueViewModel]) -> some View {
-        Group {
-            if !items.isEmpty {
-                Section {
-                    ForEach(items, id: \.title) { item in
-                        switch item.action {
-                        case let .explorer(explorerContext):
-                            SafariNavigationLink(url: explorerContext.explorerLink.url) {
-                                ListItemView(title: item.title, subtitle: item.subtitle)
-                            }
-                            .explorerContext(explorerContext)
-                        case let .info(type):
-                            marketItemView(item, infoAction: { model.onSelectInfoSheet(type) })
-                        case .none:
-                            marketItemView(item)
-                        }
+        Section {
+            ForEach(items, id: \.title) { item in
+                switch item.action {
+                case let .explorer(explorerContext):
+                    SafariNavigationLink(url: explorerContext.explorerLink.url) {
+                        ListItemView(title: item.title, subtitle: item.subtitle)
                     }
+                    .explorerContext(explorerContext)
+                case let .info(type):
+                    marketItemView(item, infoAction: { model.onSelectInfoSheet(type) })
+                case .none:
+                    marketItemView(item)
                 }
             }
         }

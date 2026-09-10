@@ -6,6 +6,10 @@ use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
 use super::model::GemPriceUpdate;
 
+pub fn has_price(price: Option<f64>) -> bool {
+    price.is_some_and(|price| price > 0.0)
+}
+
 pub fn rate_or_base(currency: Currency, stored: Option<FiatRate>) -> Option<FiatRate> {
     stored.or_else(|| (currency == Currency::USD).then_some(FiatRate { symbol: Currency::USD, rate: 1.0 }))
 }
@@ -60,6 +64,13 @@ pub fn observable_asset_ids(enabled: Vec<AssetId>, alerts: Vec<AssetId>, default
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_has_price_needs_a_positive_price() {
+        assert!(has_price(Some(0.5)));
+        assert!(!has_price(Some(0.0)));
+        assert!(!has_price(None));
+    }
     use chrono::Utc;
     use primitives::ChartValuePercentage;
 
