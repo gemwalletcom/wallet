@@ -38,8 +38,8 @@ final class ImageLoader: @unchecked Sendable {
         if let image = images.object(forKey: request.cacheKey) {
             return image
         }
-        guard let cached = session.configuration.urlCache?.cachedResponse(for: URLRequest(url: request.url)),
-              let image = Self.decode(cached.data, request: request)
+        guard let data = localData(for: request.url),
+              let image = Self.decode(data, request: request)
         else {
             return nil
         }
@@ -64,6 +64,13 @@ final class ImageLoader: @unchecked Sendable {
             cache?.storeCachedResponse(CachedURLResponse(response: response, data: data), for: urlRequest)
         }
         return store(image, for: request)
+    }
+
+    private func localData(for url: URL) -> Data? {
+        if url.isFileURL {
+            return try? Data(contentsOf: url)
+        }
+        return session.configuration.urlCache?.cachedResponse(for: URLRequest(url: url))?.data
     }
 
     private func store(_ image: UIImage, for request: ImageRequest) -> UIImage {
