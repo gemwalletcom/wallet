@@ -19,6 +19,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivityService, GemTransferData};
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
+use crate::payment::GemPaymentService;
 use primitives::BlockExplorerLink;
 use primitives::TransactionInputType;
 
@@ -32,6 +33,7 @@ pub struct GemConfirmTransferService {
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
+    payment: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
@@ -46,6 +48,7 @@ impl GemConfirmTransferService {
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
+        payment: Arc<GemPaymentService>,
     ) -> Self {
         Self {
             confirm,
@@ -56,6 +59,7 @@ impl GemConfirmTransferService {
             password,
             recent_activity,
             preferences,
+            payment,
         }
     }
 
@@ -121,9 +125,24 @@ impl GemConfirmTransferService {
         };
         let result = self.confirm.execute(input, self.signer.clone()).await?;
         if is_broadcast(&result) {
-            let _ = self.recent_activity.add(input_type, wallet_id).await;
+            let _ = self.recent_activity.add(input_type.clone(), wallet_id).await;
         }
-        Ok(result)
+        Ok(self.report_payment(&input_type, result).await)
+    }
+
+    pub(super) fn payment(&self) -> &GemPaymentService {
+        &self.payment
+    }
+
+    async fn report_payment(&self, input_type: &TransactionInputType, result: GemExecuteResult) -> GemExecuteResult {
+        let GemExecuteResult::Sent { hashes, transactions, .. } = result else {
+            return result;
+        };
+        let warning = match (input_type, hashes.first()) {
+            (TransactionInputType::Payment { .. }, Some(hash)) => self.payment.confirm(input_type, hash.clone()).await.err().map(|error| error.to_string()),
+            _ => None,
+        };
+        GemExecuteResult::Sent { hashes, transactions, warning }
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
@@ -153,6 +172,7 @@ impl GemConfirmTransferService {
             self.names.address_name(chain, input.transfer.recipient.address.clone()),
         );
         Ok(GemConfirmLoad {
+            transfer: input.transfer.clone(),
             sender: input.from.clone(),
             fee_asset: input_type.fee_asset(),
             metadata: metadata?,
@@ -201,6 +221,7 @@ mod tests {
         let sent = GemExecuteResult::Sent {
             hashes: vec!["0xhash".to_string()],
             transactions: vec![],
+            warning: None,
         };
         let signed = GemExecuteResult::Signed {
             data: vec!["0xsigned".to_string()],
