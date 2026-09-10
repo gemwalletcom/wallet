@@ -96,7 +96,6 @@
 		D8CFDEAA2E37FC8C00D27283 /* GemAPI in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEA92E37FC8C00D27283 /* GemAPI */; };
 		D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAD2E37FCA800D27283 /* Formatters */; };
 		D8CFDEB02E37FCB000D27283 /* Components in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAF2E37FCB000D27283 /* Components */; };
-		D8D203D32AE0818C00261CA2 /* SwiftHTTPClient in Frameworks */ = {isa = PBXBuildFile; productRef = D8D203D22AE0818C00261CA2 /* SwiftHTTPClient */; };
 		D8D5C1D12E6CAC16007628A1 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D5C1D02E6CAC16007628A1 /* Errors.swift */; };
 		D8D726BD2C7157A000A6B559 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = D8D726BC2C7157A000A6B559 /* Primitives */; };
 		D8D726C02C716DED00A6B559 /* ScreenshotsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1F8772B17F21E00B15F54 /* ScreenshotsLaunchTests.swift */; };
@@ -288,7 +287,6 @@
 				D8D83C842CECFA610083AA53 /* Swap in Frameworks */,
 				B6STREAM02F5000000000001 /* StreamService in Frameworks */,
 				839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */,
-				D8D203D32AE0818C00261CA2 /* SwiftHTTPClient in Frameworks */,
 				B60C6C352E68848900899BAC /* Support in Frameworks */,
 				C3CF3B8829AC2C0800E96586 /* Components in Frameworks */,
 				D829BF2D2CBDBC5300DEB2E8 /* Localization in Frameworks */,
@@ -729,7 +727,6 @@
 				C3A7CB7B29CA5F7000431341 /* Store */,
 				C366791C2A18623800F1D74D /* QRScanner */,
 				C35DA07B2A9C3B4B008CCEFA /* Settings */,
-				D8D203D22AE0818C00261CA2 /* SwiftHTTPClient */,
 				DF8421ED2C1526ED003F558C /* GemstonePrimitives */,
 				DF93C4ED2C969F4F00204ABD /* Gemstone */,
 				D829BF2C2CBDBC5300DEB2E8 /* Localization */,
@@ -1809,10 +1806,6 @@
 		D8CFDEAF2E37FCB000D27283 /* Components */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Components;
-		};
-		D8D203D22AE0818C00261CA2 /* SwiftHTTPClient */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SwiftHTTPClient;
 		};
 		D8D726BC2C7157A000A6B559 /* Primitives */ = {
 			isa = XCSwiftPackageProductDependency;

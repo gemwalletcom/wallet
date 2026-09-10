@@ -11,7 +11,6 @@ public protocol GemAPIAssetsService: Sendable {
 public struct GemAPIService {
     let provider: Provider<GemAPI>
 
-    public static let shared = GemAPIService()
     public static let sharedProvider = Provider<GemAPI>()
 
     public init(provider: Provider<GemAPI> = Self.sharedProvider) {
