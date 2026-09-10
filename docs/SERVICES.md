@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **iOS shows an amount's sign with Core's `GemAmountSign`.** `AmountDisplayStyle`, the numeric
+  display factory, `TransactionInfoViewModel` and the confirm balance-change row take
+  `GemAmountSign` directly; the `AmountDisplaySign` twin, its transaction-direction initializer
+  and the two mappers between the twin and the Core enum are gone. Android already used the enum.
 - **What a fiat transaction row shows for its status is Core's answer.**
   `fiat_transaction_status(status) -> GemFiatTransactionStatus { badge, is_dimmed }`: a pending or
   failed order carries a badge of that kind, a failed or unknown one dims its amount, a completed

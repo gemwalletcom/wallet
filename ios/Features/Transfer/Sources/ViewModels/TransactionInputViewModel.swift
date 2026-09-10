@@ -60,7 +60,7 @@ public struct TransactionInputViewModel: Sendable {
             feeAssetPrice: metaData?.feePrice,
             value: value,
             feeValue: fee?.fee,
-            direction: nil,
+            sign: .none,
         )
     }
 

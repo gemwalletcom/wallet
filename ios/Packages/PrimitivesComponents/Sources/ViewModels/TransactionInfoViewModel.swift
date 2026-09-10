@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemAmountSign
 import enum Gemstone.GemImage
 import GemstonePrimitives
 import Primitives
@@ -12,7 +13,7 @@ public struct TransactionInfoViewModel: Sendable {
     private let asset: Asset
     private let assetPrice: Price?
     private let value: BigInt
-    private let direction: TransactionDirection?
+    private let sign: GemAmountSign
 
     private let feeAsset: Asset
     private let feeAssetPrice: Price?
@@ -28,7 +29,7 @@ public struct TransactionInfoViewModel: Sendable {
         feeAssetPrice: Price?,
         value: BigInt,
         feeValue: BigInt?,
-        direction: TransactionDirection?,
+        sign: GemAmountSign,
     ) {
         self.currency = currency
         self.asset = asset
@@ -37,7 +38,7 @@ public struct TransactionInfoViewModel: Sendable {
         self.feeAssetPrice = feeAssetPrice
         self.value = value
         self.feeValue = feeValue
-        self.direction = direction
+        self.sign = sign
     }
 
     public var isZero: Bool {
@@ -49,7 +50,7 @@ public struct TransactionInfoViewModel: Sendable {
             asset: asset,
             price: assetPrice,
             value: value,
-            direction: direction,
+            sign: sign,
             currency: currency,
             formatter: formatter,
         )

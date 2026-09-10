@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemAmountSign
 import Primitives
 import Style
 
@@ -13,26 +14,14 @@ public protocol AmountDisplayable: Sendable {
     var assetImage: AssetImage? { get }
 }
 
-public enum AmountDisplaySign: Sendable {
-    case incoming, outgoing, none
-
-    public init(_ direction: TransactionDirection?) {
-        switch direction {
-        case .incoming: self = .incoming
-        case .outgoing: self = .outgoing
-        case .selfTransfer, .none: self = .none
-        }
-    }
-}
-
 public struct AmountDisplayStyle: Sendable {
-    public let sign: AmountDisplaySign
+    public let sign: GemAmountSign
     public let formatter: ValueFormatter
     public let currencyCode: String
     public let textStyle: TextStyle?
 
     public init(
-        sign: AmountDisplaySign = .none,
+        sign: GemAmountSign = .none,
         formatter: ValueFormatter = .auto,
         currencyCode: String,
         textStyle: TextStyle? = nil,
@@ -116,7 +105,7 @@ extension AmountDisplay {
         asset: Asset,
         price: Price? = nil,
         value: BigInt,
-        direction: TransactionDirection? = nil,
+        sign: GemAmountSign = .none,
         currency: String,
         formatter: ValueFormatter = .full,
         textStyle: TextStyle? = nil,
@@ -124,7 +113,7 @@ extension AmountDisplay {
         .numeric(
             data: AssetValuePrice(asset: asset, value: value, price: price),
             style: AmountDisplayStyle(
-                sign: .init(direction),
+                sign: sign,
                 formatter: formatter,
                 currencyCode: currency,
                 textStyle: textStyle,

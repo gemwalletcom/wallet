@@ -4,7 +4,6 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import enum Gemstone.GemAmountSign
 import struct Gemstone.GemTransactionAmount
 import enum Gemstone.GemTransactionHeader
 import enum Gemstone.GemTransactionRowValue
@@ -16,7 +15,7 @@ public extension GemTransactionAmount {
     func display(currency: String, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> AmountDisplay {
         .numeric(
             data: AssetValuePrice(asset: asset.map(), value: BigInt(value), price: price.map { $0.map().mapToPrice() }),
-            style: AmountDisplayStyle(sign: sign.displaySign, formatter: formatter, currencyCode: currency, textStyle: textStyle),
+            style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency, textStyle: textStyle),
         )
     }
 
@@ -29,16 +28,6 @@ public extension GemTransactionAmount {
             amount: display.amount.text,
             fiatAmount: display.fiat?.text,
         )
-    }
-}
-
-public extension GemAmountSign {
-    var displaySign: AmountDisplaySign {
-        switch self {
-        case .incoming: .incoming
-        case .outgoing: .outgoing
-        case .none: .none
-        }
     }
 }
 

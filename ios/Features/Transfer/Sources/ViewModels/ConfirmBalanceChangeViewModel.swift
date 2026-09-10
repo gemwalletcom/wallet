@@ -2,6 +2,7 @@
 
 import BigInt
 import Components
+import enum Gemstone.GemAmountSign
 import Primitives
 import PrimitivesComponents
 import Style
@@ -34,7 +35,7 @@ public struct ConfirmBalanceChangeViewModel {
         ).amount
     }
 
-    private var amountSign: AmountDisplaySign {
+    private var amountSign: GemAmountSign {
         if balanceChange.value > BigInt.zero {
             .incoming
         } else if balanceChange.value < BigInt.zero {

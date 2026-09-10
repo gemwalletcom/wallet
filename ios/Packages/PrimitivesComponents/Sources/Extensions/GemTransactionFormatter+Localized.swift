@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemAmountSign
 import enum Gemstone.PerpetualDirection
 import enum Gemstone.GemTransactionTitle
 import GemstonePrimitives
@@ -41,15 +40,5 @@ extension GemTransactionTitle {
     ) -> String {
         guard let direction else { return fallback }
         return directionTitle(PerpetualDirectionViewModel(direction: direction.map()).title)
-    }
-}
-
-extension GemAmountSign {
-    public var direction: Primitives.TransactionDirection? {
-        switch self {
-        case .incoming: .incoming
-        case .outgoing: .outgoing
-        case .none: .none
-        }
     }
 }
