@@ -158,10 +158,6 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 
 <sub>Reviewed 2026-09-02. Sources: [advertised chains](../core/gemstone/src/config/wallet_connect.rs), [session method list](../core/gemstone/src/services/wallet_connect/rules.rs), [method identifiers](../core/crates/primitives/src/wallet_connector.rs), [Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs), [Android approval](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_connect/WalletConnectCoordinator.kt), [Android session namespace mapping](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Session.kt), and [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift).</sub>
 
-## Provider egress
-
-Egress `headers.forward` defines shared HTTP headers. Each `routes.<group>.<service>.headers.forward` list adds headers for that service only; omitted lists inherit the global set. Header names are case-insensitive and validated when routes load. Endpoint `headers` inject configured values after forwarding, overriding matching inbound values. Provider credentials belong in endpoint headers or service forwarding lists, rather than the global list.
-
 ## Security providers
 
 Security checks cover malicious addresses, address poisoning, websites, and tokens. Staking transactions use local security checks only.

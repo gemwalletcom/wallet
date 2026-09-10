@@ -129,6 +129,35 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_trc20_blacklist_capability_is_not_malicious() {
+        let client = MockClient::new().with_get(|path| {
+            if path == format!("/api/security/account/data?address={TEST_TOKEN}") {
+                Ok(br#"{"send_ad_by_memo":false,"has_fraud_transaction":false,"fraud_token_creator":false,"is_black_list":false}"#.to_vec())
+            } else {
+                assert_eq!(path, format!("/api/security/token/data?address={TEST_TOKEN}"));
+                Ok(br#"{"token_level":"2","black_list_type":1,"increase_total_supply":1}"#.to_vec())
+            }
+        });
+        let provider = TronscanProvider::new(client, "test-key");
+        let address = provider
+            .scan_address(&AddressTarget {
+                address: TEST_TOKEN.into(),
+                chain: Chain::Tron,
+            })
+            .await
+            .unwrap();
+        let token = provider
+            .scan_token(&TokenTarget {
+                token_id: TEST_TOKEN.into(),
+                chain: Chain::Tron,
+            })
+            .await
+            .unwrap();
+        assert_eq!((address.is_malicious, address.reason), (false, None));
+        assert_eq!((token.is_malicious, token.reason), (false, None));
+    }
+
+    #[tokio::test]
     async fn test_scan_failures_are_not_successful_verdicts() {
         let address = AddressTarget {
             address: TEST_ADDRESS.into(),
