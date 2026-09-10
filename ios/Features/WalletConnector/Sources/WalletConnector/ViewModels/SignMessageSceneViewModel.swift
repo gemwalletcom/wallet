@@ -23,6 +23,7 @@ public final class SignMessageSceneViewModel {
 
     public var isPresentingUrl: URL?
     public var isPresentingPayloadDetails: Bool = false
+    public var isPresentingAlertMessage: AlertMessage?
     private var payloadAddressNames: [ChainAddress: AddressName] = [:]
 
     public init(
@@ -128,6 +129,17 @@ public final class SignMessageSceneViewModel {
     public func signMessage() async throws {
         let signature = try await service.sign(walletId: payload.wallet.id.id, message: payload.message)
         confirmTransferDelegate(.success(signature))
+    }
+
+    public func onSign(onComplete: @escaping () -> Void) {
+        Task {
+            do {
+                try await signMessage()
+                onComplete()
+            } catch {
+                isPresentingAlertMessage = AlertMessage(error: error)
+            }
+        }
     }
 }
 

@@ -50,11 +50,11 @@ internal fun AssetDetailsScene(
     priceAlertsCount: Int,
     requestNotificationPermission: (() -> Unit) -> Unit,
     isRefreshing: Boolean,
+    snackBar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (AssetDetailsAction) -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val snackBar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val isPinned = uiState.assetInfo.metadata.isPinned
     val pinToastMessage = stringResource(

@@ -6,7 +6,6 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import android.util.Log
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.requireChain
@@ -39,6 +38,7 @@ import uniffi.gemstone.GemManageContactServiceInterface
 import uniffi.gemstone.GemNameServiceInterface
 import java.util.UUID
 import javax.inject.Inject
+import com.gemwallet.android.ext.serviceMessage
 
 @HiltViewModel
 class ManageContactViewModel @Inject constructor(
@@ -80,6 +80,7 @@ class ManageContactViewModel @Inject constructor(
             page = current.page,
             isSaving = current.isSaving,
             saved = current.saved,
+            error = current.error,
             addressInput = current.form?.let { form ->
                 ContactAddressInput(
                     editingId = form.editingId,
@@ -231,13 +232,11 @@ class ManageContactViewModel @Inject constructor(
             runCatchingCancellable { service.saveContact(input) }
                 .onSuccess { state.update { it.copy(saved = true) } }
                 .onFailure { error ->
-                    Log.e(TAG, "saving contact $contactId failed", error)
-                    state.update { it.copy(isSaving = false) }
+                    state.update { it.copy(isSaving = false, error = error.serviceMessage()) }
                 }
         }
     }
 
-    private companion object {
-        const val TAG = "ManageContact"
-    }
+    fun clearError() = state.update { it.copy(error = null) }
+
 }

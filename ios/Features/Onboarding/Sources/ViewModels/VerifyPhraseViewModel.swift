@@ -93,9 +93,7 @@ extension VerifyPhraseViewModel {
             try await onComplete(words)
         } catch {
             buttonState = .normal
-            if !error.isCancelled {
-                isPresentingAlertMessage = AlertMessage(title: Localized.Errors.createWallet(""), message: error.localizedDescription)
-            }
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.createWallet(""), error: error)
         }
     }
 }

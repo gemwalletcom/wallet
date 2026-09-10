@@ -20,6 +20,7 @@ public final class ReceiveViewModel: Sendable {
 
     var presentation: ReceivePresentationType?
     var renderedImage: UIImage?
+    var isPresentingAlertMessage: AlertMessage?
 
     private let wallet: Wallet
     private let service: any GemReceiveServiceProtocol
@@ -194,7 +195,7 @@ extension ReceiveViewModel {
                 renderedImage = await generateQRCode()
                 await enableAsset()
             } catch {
-                debugLog("ReceiveViewModel onFinishNetworkSelection error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

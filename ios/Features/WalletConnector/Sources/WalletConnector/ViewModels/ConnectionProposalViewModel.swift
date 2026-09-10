@@ -130,7 +130,7 @@ public struct ConnectionProposalViewModel {
 // MARK: - Business Logic
 
 extension ConnectionProposalViewModel {
-    func accept() throws {
+    func accept() {
         guard let selectedWallet = walletSelectorModel.selectedItems.first else {
             return
         }

@@ -140,6 +140,7 @@ public struct PerpetualScene: View {
         }
         .navigationTitle(model.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .alertSheet($model.isPresentingAlertMessage)
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(type: $0)
         }

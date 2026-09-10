@@ -7,6 +7,7 @@ import Primitives
 import Store
 import SwiftUI
 import protocol Gemstone.GemWalletServiceProtocol
+import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -65,7 +66,7 @@ extension WalletsSceneViewModel {
         do {
             try service.setCurrentWalletId(walletId: walletId.id)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -118,7 +119,7 @@ extension WalletsSceneViewModel {
         do {
             try await pin(wallet)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -126,7 +127,7 @@ extension WalletsSceneViewModel {
         do {
             try await delete(wallet)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 }

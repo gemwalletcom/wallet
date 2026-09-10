@@ -31,6 +31,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAddAssetServiceInterface
+import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddAssetViewModelTest {
@@ -80,6 +81,29 @@ class AddAssetViewModelTest {
 
             coVerify(exactly = 1) { service.add(wallet.toGem(), token.id.toIdentifier()) }
             assertEquals(true, finished)
+        } finally {
+            viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun `a failed add stays on the screen and reports the Core message`() = runTest {
+        coEvery { service.add(any(), any()) } throws GemServiceException.Store("disk full")
+        val viewModel = AddAssetViewModel(getSession, service)
+        try {
+            viewModel.addressState.value = "0x1"
+            Snapshot.sendApplyNotifications()
+            viewModel.token.first { it != null }
+
+            var finished = false
+            viewModel.addAsset { finished = true }.join()
+
+            assertEquals(false, finished)
+            assertEquals("disk full", viewModel.uiState.value.error)
+            assertEquals(false, viewModel.uiState.value.isLoading)
+
+            viewModel.clearError()
+            assertEquals(null, viewModel.uiState.value.error)
         } finally {
             viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         }

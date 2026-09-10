@@ -33,6 +33,7 @@ public struct ManageContactScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .alertSheet($model.isPresentingAlertMessage)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("", systemImage: SystemImage.checkmark, action: onSave)
@@ -141,7 +142,6 @@ extension ManageContactScene {
 
     private func onSave() {
         focusedField = .none
-        model.onSave()
-        dismiss()
+        model.onSave(dismiss: dismiss)
     }
 }

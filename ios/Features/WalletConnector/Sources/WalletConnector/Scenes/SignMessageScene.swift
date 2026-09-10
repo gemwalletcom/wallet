@@ -82,6 +82,7 @@ public struct SignMessageScene: View {
             )
         }
         .navigationTitle(model.title)
+        .alertSheet($model.isPresentingAlertMessage)
         .safariSheet(url: $model.isPresentingUrl)
         .sheet(isPresented: $model.isPresentingPayloadDetails) {
             if model.payloadModel.hasFields {
@@ -102,13 +103,6 @@ public struct SignMessageScene: View {
     }
 
     func sign() {
-        Task {
-            do {
-                try await model.signMessage()
-                onComplete()
-            } catch {
-                debugLog("sign message error \(error)")
-            }
-        }
+        model.onSign(onComplete: onComplete)
     }
 }

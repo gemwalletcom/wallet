@@ -53,6 +53,7 @@ import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import uniffi.gemstone.DocsUrl
+import androidx.compose.material3.SnackbarHostState
 
 @Composable
 internal fun AddAssetScene(
@@ -63,6 +64,7 @@ internal fun AddAssetScene(
     explorerLink: BlockExplorerLink?,
     buttonState: ButtonState,
     canSelectChain: Boolean,
+    snackbar: SnackbarHostState? = null,
     onAction: (AddAssetAction) -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -70,6 +72,7 @@ internal fun AddAssetScene(
 
     Scene(
         title = stringResource(id = R.string.wallet_add_token_title),
+        snackbar = snackbar,
         actions = {
             DocsInfoButton(AppUrl.docs(DocsUrl.AddCustomToken))
         },

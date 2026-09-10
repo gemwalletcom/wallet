@@ -54,6 +54,7 @@ public final class ManageContactViewModel {
     var addresses: [ContactAddress] = []
     var isPresentingAddress: ManageContactAddressViewModel.Mode?
     var isPresentingAvatar: Bool = false
+    var isPresentingAlertMessage: AlertMessage?
 
     let emojiList: [EmojiValue] = Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) }
 
@@ -210,7 +211,7 @@ public final class ManageContactViewModel {
         addresses.remove(atOffsets: offsets)
     }
 
-    func onSave() {
+    func onSave(dismiss: DismissAction) {
         Task {
             do {
                 let contact = try await service.saveContact(
@@ -222,8 +223,9 @@ public final class ManageContactViewModel {
                     addresses: addresses,
                 )
                 avatar = Avatar(imageUrl: contact.imageUrl)
+                dismiss()
             } catch {
-                debugLog("ManageContactViewModel save error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

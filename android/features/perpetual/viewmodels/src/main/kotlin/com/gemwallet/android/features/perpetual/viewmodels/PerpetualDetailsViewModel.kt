@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import javax.inject.Inject
+import com.gemwallet.android.ext.serviceMessage
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -183,6 +184,9 @@ class PerpetualDetailsViewModel @Inject constructor(
         this.period.update { period }
     }
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     fun fetch() {
         refreshTrigger.update { it + 1 }
         viewModelScope.launch(Dispatchers.IO) {
@@ -208,7 +212,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             runCatchingCancellable { buildPerpetualParams.position(perpetualId, kind) }
                 .onSuccess { params -> params?.let(amountAction::invoke) }
-                .onFailure { Log.e(TAG, "perpetual position action failed", it) }
+                .onFailure { errorState.value = it.serviceMessage() }
         }
     }
 
@@ -217,9 +221,11 @@ class PerpetualDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             runCatchingCancellable { buildPerpetualParams.close(perpetualId) }
                 .onSuccess { input -> input?.let(confirmAction::invoke) }
-                .onFailure { Log.e(TAG, "perpetual close failed", it) }
+                .onFailure { errorState.value = it.serviceMessage() }
         }
     }
+
+    fun clearError() = errorState.update { null }
 }
 
 private fun List<ChartCandleStick>.toChartState(): StateViewType<List<ChartCandleStick>> =

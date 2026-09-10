@@ -8,6 +8,7 @@ import SwiftUI
 struct ConnectionScene: View {
     @Environment(\.dismiss) private var dismiss
     let model: ConnectionSceneViewModel
+    let onDisconnect: () -> Void
 
     var body: some View {
         List {
@@ -20,22 +21,12 @@ struct ConnectionScene: View {
             }
             Section {
                 Button(model.disconnectTitle, role: .destructive) {
-                    Task {
-                        await disconnect()
-                    }
+                    onDisconnect()
                     dismiss()
                 }
             }
         }
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
-    }
-
-    func disconnect() async {
-        do {
-            try await model.disconnect()
-        } catch {
-            debugLog("disconnect error: \(error)")
-        }
     }
 }

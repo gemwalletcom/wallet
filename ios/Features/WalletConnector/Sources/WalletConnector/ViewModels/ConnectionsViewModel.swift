@@ -77,10 +77,7 @@ public final class ConnectionsViewModel {
     }
 
     func connectionSceneModel(connection: WalletConnection) -> ConnectionSceneViewModel {
-        ConnectionSceneViewModel(
-            model: connectionViewModel(connection: connection),
-            connector: connector,
-        )
+        ConnectionSceneViewModel(model: connectionViewModel(connection: connection))
     }
 
     func pair(uri: String) async throws {

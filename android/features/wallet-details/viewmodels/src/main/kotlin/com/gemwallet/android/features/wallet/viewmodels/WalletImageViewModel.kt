@@ -15,8 +15,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import com.gemwallet.android.ext.serviceMessage
 
 @HiltViewModel
 class WalletImageViewModel @Inject constructor(
@@ -39,23 +42,25 @@ class WalletImageViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     fun setEmoji(emoji: String, backgroundColor: Int) = viewModelScope.launch(Dispatchers.IO) {
         runCatchingCancellable { avatarService.setEmoji(walletId, emoji, backgroundColor) }
-            .onFailure { Log.e(TAG, "wallet emoji update failed", it) }
+            .onFailure { errorState.value = it.serviceMessage() }
     }
 
     fun setNftImage(url: String) = viewModelScope.launch(Dispatchers.IO) {
         runCatchingCancellable { avatarService.setNftImage(walletId, url) }
-            .onFailure { Log.e(TAG, "wallet image update failed", it) }
+            .onFailure { errorState.value = it.serviceMessage() }
     }
 
     fun resetToDefault() = viewModelScope.launch(Dispatchers.IO) {
         runCatchingCancellable { avatarService.reset(walletId) }
-            .onFailure { Log.e(TAG, "wallet image reset failed", it) }
+            .onFailure { errorState.value = it.serviceMessage() }
     }
 
-    private companion object {
-        const val TAG = "WalletImage"
-    }
+    fun clearError() = errorState.update { null }
+
 
 }

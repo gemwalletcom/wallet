@@ -22,6 +22,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import com.gemwallet.android.ext.serviceMessage
 
 @HiltViewModel
 class SupportChatSceneViewModel @Inject constructor(
@@ -48,29 +53,32 @@ class SupportChatSceneViewModel @Inject constructor(
         .map { it?.name }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     fun fetch() = viewModelScope.launch(Dispatchers.IO) {
-        perform("fetch") {
+        runCatchingCancellable {
             failPendingSupportMessages()
             val fromTimestamp = messages.first()
                 .lastOrNull { it.sender is SupportMessageSender.Agent }
                 ?.let { it.createdAt.millisToSeconds() } ?: 0L
             supportService.syncMessages(fromTimestamp.toULong())
-        }
+        }.onFailure { Log.e(TAG, "fetch error", it) }
     }
 
     fun sendText(content: String) = viewModelScope.launch(Dispatchers.IO) {
-        perform("send text") { supportService.sendText(content) }
+        perform { supportService.sendText(content) }
     }
 
     fun sendImage(uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
         val attachment = imageAttachmentFactory.fromUri(uri) ?: return@launch
-        perform("send image") { supportService.sendImage(attachment.data, attachment.fileName, attachment.mimeType) }
+        perform { supportService.sendImage(attachment.data, attachment.fileName, attachment.mimeType) }
     }
 
     fun retry(message: SupportMessage) {
         if (message.images.isNotEmpty()) return
         viewModelScope.launch(Dispatchers.IO) {
-            perform("retry") { supportService.retryMessage(message.toGem()) }
+            perform { supportService.retryMessage(message.toGem()) }
         }
     }
 
@@ -79,9 +87,11 @@ class SupportChatSceneViewModel @Inject constructor(
         clearSupportTyping.clearTyping()
     }
 
-    private suspend fun perform(context: String, block: suspend () -> Unit) {
-        runCatchingCancellable(block).onFailure { Log.e(TAG, "$context error", it) }
+    private suspend fun perform(block: suspend () -> Unit) {
+        runCatchingCancellable(block).onFailure { errorState.value = it.serviceMessage() }
     }
+
+    fun clearError() = errorState.update { null }
 
     companion object {
         private const val TAG = "SupportChat"

@@ -573,6 +573,19 @@ intentional one-sided integration surfaces.
   stops deriving it from the session. The header-buttons rule (a blocked multi-signature account
   disables them) moved from iOS's `HeaderBannerEventViewModel` to
   `wallet_home::rules::header_buttons_enabled`.
+- **A user action that fails says so on both apps, and never reports success early.** The same
+  sweep found the other places where a tap could end in silence: saving a contact and adding an
+  address to one, deleting a contact, adding a custom token, setting or deleting a price alert,
+  toggling an asset's price alert, opening, changing or closing a perpetual position, changing the
+  wallet avatar, sending or retrying a support message, renaming a wallet during setup, signing a
+  WalletConnect message and disconnecting a session. Each now surfaces the failure where the user
+  is (an alert on iOS, an error snackbar on Android, a toast where the success is a toast), and
+  the flows that used to dismiss or report success before the write finished (contact save, custom
+  token add, price alert set) wait for it and stay put on failure; a cancelled system prompt still
+  says nothing. One supporting fix makes the message worth showing on Android: the Core service
+  exception maps to its message instead of the generated `msg=` text, the way the iOS app already
+  describes it through its `LocalizedError` conformances. Background work (sync, refresh, subscriptions, preference writes and
+  local pin or visibility toggles) keeps logging, as before.
 - **A wallet that fails to be created says so, and leaves nothing behind.** iOS's verify-phrase
   screen set its button spinning and handed the words to a navigation callback that swallowed
   every failure (a cancelled Face ID prompt while creating an additional wallet, any keystore or

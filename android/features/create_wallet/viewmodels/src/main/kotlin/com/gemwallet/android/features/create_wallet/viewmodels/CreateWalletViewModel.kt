@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import com.gemwallet.android.ext.serviceMessage
 
 @HiltViewModel
 class CreateWalletViewModel @Inject constructor(
@@ -35,7 +36,7 @@ class CreateWalletViewModel @Inject constructor(
             state.update { it.copy(defaultName = service.defaultWalletName(null)) }
             runCatchingCancellable { service.createWallet() }
                 .onSuccess { words -> state.update { it.copy(data = words) } }
-                .onFailure { err -> state.update { it.copy(dataError = err.message.orEmpty()) } }
+                .onFailure { err -> state.update { it.copy(dataError = err.serviceMessage()) } }
         }
     }
 
@@ -69,7 +70,7 @@ class CreateWalletViewModel @Inject constructor(
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.value.copy(loading = false, dataError = err.message.orEmpty())
+                state.value.copy(loading = false, dataError = err.serviceMessage())
             }
             state.update { newState }
         }

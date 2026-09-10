@@ -116,7 +116,7 @@ extension WalletDetailViewModel {
             do {
                 isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
             } catch {
-                isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

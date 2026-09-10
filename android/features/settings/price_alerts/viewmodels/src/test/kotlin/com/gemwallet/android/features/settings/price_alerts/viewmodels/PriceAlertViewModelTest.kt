@@ -26,6 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PriceAlertViewModelTest {
@@ -66,6 +67,22 @@ class PriceAlertViewModelTest {
             coVerify(exactly = 0) { service.setEnabled(any()) }
             coVerify(exactly = 1) { service.setAutoAlert(assetId.toIdentifier(), true) }
             coVerify(exactly = 1) { service.setAutoAlert(assetId.toIdentifier(), false) }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `a failed auto alert write surfaces the Core message until it is shown`() = runTest {
+        val service = service(enabled = false)
+        coEvery { service.setAutoAlert(any(), any()) } throws GemServiceException.Api("offline")
+        val viewModel = viewModel(service, assetId)
+        try {
+            viewModel.toggleAutoAlert(true).join()
+
+            assertEquals("offline", viewModel.error.value)
+            viewModel.clearError()
+            assertEquals(null, viewModel.error.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }

@@ -11,6 +11,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
 fun PriceAlertTargetNavScreen(
@@ -30,6 +31,8 @@ fun PriceAlertTargetNavScreen(
     val priceChangeFormatted by viewModel.priceChangeFormatted.collectAsStateWithLifecycle()
     val priceState by viewModel.priceState.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val requestNotificationPermission = rememberNotificationPermissionGate()
 
@@ -47,16 +50,12 @@ fun PriceAlertTargetNavScreen(
         assetPriceChangeFormatted = priceChangeFormatted,
         assetValueDirection = priceState,
         buttonState = buttonState,
+        snackbar = snackbar,
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,
         onConfirm = {
-            val result = viewModel.onConfirm()
-            requestNotificationPermission {
-                if (result != null) {
-                    onComplete(result.toMessage(resources))
-                } else {
-                    onCancel()
-                }
+            viewModel.onConfirm { result ->
+                requestNotificationPermission { onComplete(result.toMessage(resources)) }
             }
         },
         onCancel = onCancel,

@@ -56,6 +56,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
+import androidx.compose.material3.SnackbarHostState
 
 private val tabs = listOf(
     PriceAlertNotificationType.Price,
@@ -78,6 +79,7 @@ fun PriceAlertTargetScene(
     assetPriceChangeFormatted: String = "",
     assetValueDirection: ValueDirection = ValueDirection.None,
     buttonState: ButtonState,
+    snackbar: SnackbarHostState? = null,
     onType: (PriceAlertNotificationType) -> Unit,
     onDirection: (PriceAlertDirection) -> Unit,
     onConfirm: () -> Unit,
@@ -93,6 +95,7 @@ fun PriceAlertTargetScene(
     }
 
     Scene(
+        snackbar = snackbar,
         titleContent = {
             TabsBar(
                 tabs = tabs,

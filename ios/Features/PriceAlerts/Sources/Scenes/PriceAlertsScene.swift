@@ -44,6 +44,7 @@ public struct PriceAlertsScene: View {
             await model.load()
         }
         .navigationTitle(model.title)
+        .alertSheet($model.isPresentingAlertMessage)
     }
 }
 

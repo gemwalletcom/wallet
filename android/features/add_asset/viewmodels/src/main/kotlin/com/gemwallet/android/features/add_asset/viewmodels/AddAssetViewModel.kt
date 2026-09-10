@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
 import com.gemwallet.android.ext.toGem
-import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
@@ -35,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAddAssetServiceInterface
 import javax.inject.Inject
+import com.gemwallet.android.ext.serviceMessage
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -139,25 +139,25 @@ class AddAssetViewModel @Inject constructor(
             withContext(Dispatchers.IO) {
                 service.add(wallet.toGem(), asset.id.toIdentifier())
             }
-        }.onFailure { Log.e(TAG, "add custom token failed for ${asset.id.toIdentifier()}", it) }
-        state.update { it.copy(isImporting = false) }
+        }
+        state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.serviceMessage()) }
         if (added.isSuccess) {
             onFinish()
         }
     }
 
+    fun clearError() = state.update { it.copy(error = null) }
+
     private suspend fun searchToken(chain: Chain, address: String): TokenSearchState =
         runCatchingCancellable { TokenSearchState.Found(service.token(chain.string, address).toPrimitives()) }
             .getOrDefault(TokenSearchState.Error)
 
-    private companion object {
-        const val TAG = "AddAsset"
-    }
 
     private data class State(
         val isQrScan: Boolean = false,
         val isSelectChain: Boolean = false,
         val isImporting: Boolean = false,
+        val error: String? = null,
     ) {
         fun toUIState(): AddAssetUIState {
             return AddAssetUIState(
@@ -167,6 +167,7 @@ class AddAssetViewModel @Inject constructor(
                     else -> AddAssetUIState.Scene.Form
                 },
                 isLoading = isImporting,
+                error = error,
             )
         }
     }

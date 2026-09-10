@@ -67,11 +67,7 @@ public struct ConnectionProposalScene: View {
 
 extension ConnectionProposalScene {
     private func onAccept() {
-        do {
-            try model.accept()
-            onComplete()
-        } catch {
-            debugLog("accept proposal error \(error)")
-        }
+        model.accept()
+        onComplete()
     }
 }

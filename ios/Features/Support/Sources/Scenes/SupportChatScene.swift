@@ -68,6 +68,7 @@ public struct SupportChatScene: View {
         .onChange(of: scenePhase, model.onScenePhaseChange)
         .onDisappear { model.onDisappear() }
         .quickLookPreview($model.previewURL)
+        .alertSheet($model.isPresentingAlertMessage)
     }
 
     @ViewBuilder

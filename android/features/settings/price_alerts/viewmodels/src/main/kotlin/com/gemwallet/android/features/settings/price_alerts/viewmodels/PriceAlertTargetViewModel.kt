@@ -36,11 +36,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import android.util.Log
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.PriceAlertFormatter
 import java.math.BigDecimal
 import javax.inject.Inject
+import kotlinx.coroutines.flow.asStateFlow
+import com.gemwallet.android.ext.serviceMessage
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class PriceAlertTargetViewModel @Inject constructor(
@@ -106,9 +108,13 @@ class PriceAlertTargetViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val buttonState: StateFlow<ButtonState> = resolvedDirection
-        .map { buttonState(enabled = it != null) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = false))
+    private val isSaving = MutableStateFlow(false)
+    val buttonState: StateFlow<ButtonState> = combine(resolvedDirection, isSaving) { direction, saving ->
+        buttonState(enabled = direction != null, loading = saving)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = false))
+
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun onDirection(direction: PriceAlertDirection) {
         _direction.update { direction }
@@ -118,10 +124,10 @@ class PriceAlertTargetViewModel @Inject constructor(
         _type.update { type }
     }
 
-    fun onConfirm(): PriceAlertConfirmResult? {
-        val inputValue = numericFormatter.double(value.text.toString()) ?: return null
+    fun onConfirm(onSaved: (PriceAlertConfirmResult) -> Unit) {
+        val inputValue = numericFormatter.double(value.text.toString()) ?: return
         val type = type.value
-        val direction = resolvedDirection.value ?: return null
+        val direction = resolvedDirection.value ?: return
         val price = if (type == PriceAlertNotificationType.Price) inputValue else null
         val percentage = if (type == PriceAlertNotificationType.PricePercentChange) inputValue else null
         val priceAlert = PriceAlert(
@@ -131,14 +137,15 @@ class PriceAlertTargetViewModel @Inject constructor(
             pricePercentChange = percentage,
             priceDirection = direction,
         )
-        viewModelScope.launch(Dispatchers.IO) {
-            runCatchingCancellable { service.enablePriceAlert(priceAlert.toGem()) }
-                .onFailure { Log.e(TAG, "enabling the price alert for ${assetId.toIdentifier()} failed", it) }
+        isSaving.value = true
+        viewModelScope.launch {
+            runCatchingCancellable { withContext(Dispatchers.IO) { service.enablePriceAlert(priceAlert.toGem()) } }
+                .onSuccess { onSaved(PriceAlertConfirmResult(type, direction, type.formatAmount(inputValue, currency))) }
+                .onFailure { errorState.value = it.serviceMessage() }
+            isSaving.value = false
         }
-        return PriceAlertConfirmResult(type, direction, type.formatAmount(inputValue, currency))
     }
 
-    private companion object {
-        const val TAG = "PriceAlertTarget"
-    }
+    fun clearError() = errorState.update { null }
+
 }

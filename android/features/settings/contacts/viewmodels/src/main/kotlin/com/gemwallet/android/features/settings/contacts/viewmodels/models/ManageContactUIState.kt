@@ -22,6 +22,7 @@ data class ManageContactUIState(
     val addressInput: ContactAddressInput? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
+    val error: String? = null,
 ) {
     val isSaveEnabled: Boolean
         get() = name.trim().isNotEmpty() && !isSaving
@@ -37,6 +38,7 @@ data class ManageContactState(
     val form: ContactAddressForm? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
+    val error: String? = null,
 )
 
 data class ContactAddressForm(

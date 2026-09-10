@@ -30,6 +30,8 @@ import javax.inject.Inject
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import uniffi.gemstone.GemPriceAlertServiceInterface
+import com.gemwallet.android.ext.serviceMessage
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -67,6 +69,9 @@ class PriceAlertViewModel @Inject constructor(
 
     val isRefreshing = refreshState.asStateFlow()
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
         viewModelScope.launch(Dispatchers.IO) {
@@ -103,7 +108,7 @@ class PriceAlertViewModel @Inject constructor(
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
         val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
         runCatchingCancellable { service.deletePriceAlerts(listOf(alert.priceAlert.toGem())) }
-            .onFailure { Log.e(TAG, "deleting the price alert for ${alert.assetId.toIdentifier()} failed", it) }
+            .onFailure { errorState.value = it.serviceMessage() }
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
@@ -115,8 +120,10 @@ class PriceAlertViewModel @Inject constructor(
 
     private suspend fun setAutoAlert(assetId: AssetId, enabled: Boolean) {
         runCatchingCancellable { service.setAutoAlert(assetId.toIdentifier(), enabled) }
-            .onFailure { Log.e(TAG, "setting the auto price alert for ${assetId.toIdentifier()} failed", it) }
+            .onFailure { errorState.value = it.serviceMessage() }
     }
+
+    fun clearError() = errorState.update { null }
 
     private companion object {
         const val TAG = "PriceAlerts"

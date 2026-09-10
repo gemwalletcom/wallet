@@ -45,6 +45,7 @@ public struct AddAssetScene: View {
             }
             .listSectionSpacing(.compact)
             .navigationTitle(model.title)
+            .alertSheet($model.isPresentingAlertMessage)
             .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
                 NetworkSelectorScene(
                     model: model.networksModel,
@@ -139,9 +140,7 @@ extension AddAssetScene {
     }
 
     private func onSelectImportToken() {
-        guard case let .data(asset) = model.state else { return }
-        model.add(asset.asset)
-        onComplete?()
+        model.onSelectImportToken(onComplete: onComplete)
     }
 
     private func onSelectScan() {

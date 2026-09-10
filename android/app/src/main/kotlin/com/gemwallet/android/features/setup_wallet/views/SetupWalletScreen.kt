@@ -26,6 +26,7 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.WalletSource
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
 fun SetupWalletScreen(
@@ -34,6 +35,7 @@ fun SetupWalletScreen(
     viewModel: SetupWalletViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = uiState.error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val handleDone = { onComplete() }
 
@@ -45,6 +47,7 @@ fun SetupWalletScreen(
     Scene(
         title = title,
         backHandle = true,
+        snackbar = snackbar,
         actions = {
             IconButton(onClick = handleDone) {
                 Icon(imageVector = AppIcons.Check, contentDescription = "")

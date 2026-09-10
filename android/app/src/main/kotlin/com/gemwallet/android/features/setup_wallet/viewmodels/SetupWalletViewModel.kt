@@ -17,11 +17,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import uniffi.gemstone.GemWalletServiceInterface
 import kotlinx.coroutines.launch
+import com.gemwallet.android.ext.serviceMessage
 
 @HiltViewModel(assistedFactory = SetupWalletViewModel.Factory::class)
 class SetupWalletViewModel @AssistedInject constructor(
@@ -55,18 +55,17 @@ class SetupWalletViewModel @AssistedInject constructor(
         state.update { it.copy(walletName = name) }
         viewModelScope.launch(Dispatchers.IO) {
             runCatchingCancellable { service.rename(walletId.id, name) }
-                .onFailure { Log.e(TAG, "renaming wallet ${walletId.id} failed", it) }
+                .onFailure { error -> state.update { it.copy(error = error.serviceMessage()) } }
         }
     }
+
+    fun clearError() = state.update { it.copy(error = null) }
 
     @AssistedFactory
     interface Factory {
         fun create(walletId: WalletId): SetupWalletViewModel
     }
 
-    private companion object {
-        const val TAG = "SetupWallet"
-    }
 }
 
 data class SetupWalletViewModelState(
@@ -74,4 +73,5 @@ data class SetupWalletViewModelState(
     val walletSource: WalletSource = WalletSource.Create,
     val row: GemWalletRow? = null,
     val imageUrl: String? = null,
+    val error: String? = null,
 )

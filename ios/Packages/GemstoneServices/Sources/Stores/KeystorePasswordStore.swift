@@ -5,7 +5,7 @@ import enum Gemstone.GemKeystoreAuthentication
 import protocol Gemstone.GemKeystorePassword
 import typealias Gemstone.WalletId
 import enum Gemstone.GemServiceError
-import Keychain
+import Primitives
 
 public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sendable {
     private let keystore: any Keystore
@@ -17,7 +17,7 @@ public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sen
     public func getPassword(createIfMissing: Bool) throws -> String {
         do {
             return try keystore.keystorePassword(createIfMissing: createIfMissing)
-        } catch where error.isKeychainUserCancelled {
+        } catch where error.isAuthenticationCancelled {
             throw GemServiceError.Cancelled
         }
     }

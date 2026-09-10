@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Contact
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
 fun ContactsNavScreen(
@@ -39,11 +40,14 @@ fun ContactsNavScreen(
     viewModel: ContactsViewModel = hiltViewModel(),
 ) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
     val revealed = remember { mutableStateOf<String?>(null) }
+    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     Scene(
         title = stringResource(R.string.contacts_title),
         onClose = { onAction(ContactsAction.Cancel) },
+        snackbar = snackbar,
         actions = {
             IconButton(onClick = { onAction(ContactsAction.AddContact) }) {
                 Icon(imageVector = AppIcons.Add, contentDescription = "")

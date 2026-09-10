@@ -85,7 +85,7 @@ extension AssetPriceAlertsViewModel {
         do {
             try await service.setAutoAlert(assetId: asset.id.identifier, enabled: enabled)
         } catch {
-            debugLog("toggleAutoAlert error: \(error)")
+            isPresentingToastMessage = .error(error.localizedDescription)
         }
     }
 
@@ -93,7 +93,7 @@ extension AssetPriceAlertsViewModel {
         do {
             try await service.delete(priceAlerts: [priceAlert])
         } catch {
-            debugLog("deletePriceAlert error: \(error)")
+            isPresentingToastMessage = .error(error.localizedDescription)
         }
     }
 

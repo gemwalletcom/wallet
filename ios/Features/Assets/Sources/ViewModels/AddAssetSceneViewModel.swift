@@ -21,6 +21,7 @@ public final class AddAssetSceneViewModel {
 
     var isPresentingScanner = false
     var loadTrigger: AddAssetLoadTrigger?
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(wallet: Wallet, service: any GemAddAssetServiceProtocol) {
         self.service = service
@@ -124,12 +125,14 @@ extension AddAssetSceneViewModel {
         }
     }
 
-    func add(_ asset: Asset) {
+    func onSelectImportToken(onComplete: VoidAction) {
+        guard case let .data(asset) = state else { return }
         Task {
             do {
-                try await service.add(wallet: wallet, assetId: asset.id)
+                try await service.add(wallet: wallet, assetId: asset.asset.id)
+                onComplete?()
             } catch {
-                debugLog("AddAssetSceneViewModel add asset error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

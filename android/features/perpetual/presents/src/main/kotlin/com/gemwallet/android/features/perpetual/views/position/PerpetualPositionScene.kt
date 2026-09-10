@@ -38,6 +38,7 @@ import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionId
+import androidx.compose.material3.SnackbarHostState
 
 @Composable
 internal fun PerpetualPositionScene(
@@ -47,6 +48,7 @@ internal fun PerpetualPositionScene(
     chart: StateViewType<List<ChartCandleStick>>,
     period: ChartPeriod,
     isRefreshing: Boolean,
+    snackbar: SnackbarHostState? = null,
     onAction: (PerpetualDetailsAction) -> Unit,
 ) {
     var showModifyDialog by remember { mutableStateOf(false) }
@@ -54,6 +56,7 @@ internal fun PerpetualPositionScene(
     Scene(
         title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
         onClose = { onAction(PerpetualDetailsAction.Close) },
+        snackbar = snackbar,
     ) {
         PullToRefreshBox(
             isRefreshing = isRefreshing,

@@ -9,6 +9,7 @@ import Primitives
 import SwiftUI
 import Components
 import Localization
+import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -86,7 +87,7 @@ extension CreateWalletModel {
             try service.setCurrentWalletId(walletId: wallet.id.id)
             dismiss()
         } catch {
-            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
         }
     }
 }

@@ -9,10 +9,10 @@ import SwiftUI
 public struct ContactsScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    let model: ContactsViewModel
+    @State private var model: ContactsViewModel
 
     public init(model: ContactsViewModel) {
-        self.model = model
+        _model = State(initialValue: model)
     }
 
     public var body: some View {
@@ -24,8 +24,7 @@ public struct ContactsScene: View {
                     NavigationLink(value: Scenes.Contact(contact: contact)) { item }
                 case .select:
                     Button {
-                        model.add(to: contact)
-                        dismiss()
+                        model.onSelect(contact: contact, dismiss: dismiss)
                     } label: { item }
                         .buttonStyle(.plain)
                 }
@@ -42,5 +41,6 @@ public struct ContactsScene: View {
                 EmptyContentView(model: model.emptyContent)
             }
         }
+        .alertSheet($model.isPresentingAlertMessage)
     }
 }

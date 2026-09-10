@@ -12,6 +12,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
+import SwiftUI
 
 @Observable
 @MainActor
@@ -29,6 +30,8 @@ public final class ContactsViewModel {
     private let service: any GemContactServiceProtocol
     private let manageContact: @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel
     private let mode: Mode
+
+    var isPresentingAlertMessage: AlertMessage?
 
     public let query: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -70,7 +73,7 @@ public final class ContactsViewModel {
         }
     }
 
-    func add(to contact: ContactData) {
+    func onSelect(contact: ContactData, dismiss: DismissAction) {
         guard case let .addAddress(recipient, chain) = mode else { return }
         Task {
             do {
@@ -82,8 +85,9 @@ public final class ContactsViewModel {
                     replacingId: nil,
                 ).addAddress(contact.addresses)
                 try await service.updateContact(contact.contact, addresses: addresses)
+                dismiss()
             } catch {
-                debugLog("ContactsViewModel add error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }
@@ -111,7 +115,7 @@ public final class ContactsViewModel {
                     try await service.deleteContact(contact)
                 }
             } catch {
-                debugLog("ContactsViewModel deleteContacts error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

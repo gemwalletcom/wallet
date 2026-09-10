@@ -18,6 +18,7 @@ import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertViewModel
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun PriceAlertsNavScreen(
@@ -35,6 +36,13 @@ fun PriceAlertsNavScreen(
         iconRes = R.drawable.ic_notifications,
         onShown = onToastShown,
     )
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    LaunchedEffect(error) {
+        error?.let {
+            snackbar.showSnackbar(it, R.drawable.ic_error)
+            viewModel.clearError()
+        }
+    }
 
     var selectingAsset by remember { mutableStateOf(false) }
     val requestNotificationPermission = rememberNotificationPermissionGate()

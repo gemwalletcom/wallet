@@ -21,7 +21,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import javax.inject.Inject
-import android.util.Log
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import com.gemwallet.android.ext.serviceMessage
 
 @HiltViewModel
 class AssetPriceAlertsViewModel @Inject constructor(
@@ -47,13 +50,15 @@ class AssetPriceAlertsViewModel @Inject constructor(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     fun toggle(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         val enabled = isEnabled.value ?: return@launch
         runCatchingCancellable { service.setPriceAlert(assetId.toIdentifier(), !enabled) }
-            .onFailure { Log.e(TAG, "setting the auto price alert for ${assetId.toIdentifier()} failed", it) }
+            .onFailure { errorState.value = it.serviceMessage() }
     }
 
-    private companion object {
-        const val TAG = "AssetPriceAlerts"
-    }
+    fun clearError() = errorState.update { null }
+
 }

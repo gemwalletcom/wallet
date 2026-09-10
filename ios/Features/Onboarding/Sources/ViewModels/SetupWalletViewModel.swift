@@ -67,7 +67,7 @@ public final class SetupWalletViewModel: Sendable {
         do {
             try await service.rename(walletId: wallet.id, newName: nameInput)
         } catch {
-            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
         }
     }
 }

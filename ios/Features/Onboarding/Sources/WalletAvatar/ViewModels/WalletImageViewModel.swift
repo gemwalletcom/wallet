@@ -28,6 +28,7 @@ public final class WalletImageViewModel: Sendable {
 
     public let walletQuery: ObservableQuery<WalletRequest>
     public let nftQuery: ObservableQuery<NFTRequest>
+    var isPresentingAlertMessage: AlertMessage?
 
     public var wallet: Wallet {
         walletQuery.value
@@ -97,7 +98,7 @@ public final class WalletImageViewModel: Sendable {
         do {
             try await avatarService.setImage(url: url, for: wallet)
         } catch {
-            debugLog("Set nft image error: \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -106,7 +107,7 @@ public final class WalletImageViewModel: Sendable {
             do {
                 try await avatarService.removeImage(for: wallet)
             } catch {
-                debugLog("Setting default avatar error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }
@@ -131,7 +132,7 @@ public final class WalletImageViewModel: Sendable {
                 }
                 try await avatarService.setImage(data: data, for: wallet)
             } catch {
-                debugLog("Set image error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

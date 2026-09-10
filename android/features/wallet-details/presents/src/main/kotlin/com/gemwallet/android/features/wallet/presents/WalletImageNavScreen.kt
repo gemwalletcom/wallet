@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.wallet.viewmodels.WalletImageViewModel
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
 fun WalletImageNavScreen(
@@ -14,6 +16,8 @@ fun WalletImageNavScreen(
 ) {
     val wallet by viewModel.wallet.collectAsStateWithLifecycle()
     val nftImages by viewModel.nftImages.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     val dismissOnSelect = { if (source == WalletImageSource.Onboarding) onCancel() }
 
     WalletImageScene(
@@ -21,6 +25,7 @@ fun WalletImageNavScreen(
         emojis = viewModel.emojis,
         nftImages = nftImages,
         source = source,
+        snackbar = snackbar,
         onAction = { action ->
             when (action) {
                 is WalletImageAction.SetEmoji -> {

@@ -50,6 +50,7 @@ public final class PerpetualSceneViewModel {
     public var isPresentingInfoSheet: InfoSheetType?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: PerpetualPositionData?
+    public var isPresentingAlertMessage: AlertMessage?
 
     public init(
         wallet: Wallet,
@@ -229,7 +230,7 @@ public extension PerpetualSceneViewModel {
         do {
             onTransferData?(try service.closeTransfer(perpetual: perpetual.map(), asset: asset.map(), position: positions.first?.position.map()))
         } catch {
-            debugLog("perpetual scene: close position error \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -280,7 +281,7 @@ private extension PerpetualSceneViewModel {
             let positionAction = try service.positionAction(perpetual: perpetual.map(), asset: asset.map(), position: positions.first?.position.map(), kind: kind)
             onPerpetualPosition?(positionAction)
         } catch {
-            debugLog("perpetual scene: position action error \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 

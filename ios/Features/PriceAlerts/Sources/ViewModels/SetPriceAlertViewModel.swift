@@ -23,6 +23,8 @@ public final class SetPriceAlertViewModel {
     private let suggestionOffsetPercent: Double = 5
 
     var state: SetPriceAlertViewModelState
+    var isPresentingAlertMessage: AlertMessage?
+    private var isSaving = false
 
     public let assetQuery: ObservableQuery<AssetRequest>
     var assetData: AssetData {
@@ -95,7 +97,10 @@ public final class SetPriceAlertViewModel {
     }
 
     var confirmButtonState: ButtonState {
-        isEnabledConfirmButton ? .normal : .disabled
+        if isSaving {
+            return .loading(showProgress: true)
+        }
+        return isEnabledConfirmButton ? .normal : .disabled
     }
 
     func currencyInputConfig(for assetData: AssetData) -> any CurrencyInputConfigurable {
@@ -167,12 +172,13 @@ public final class SetPriceAlertViewModel {
 
 extension SetPriceAlertViewModel {
     func setPriceAlert() async {
-        let priceAlert = priceAlert()
-        onComplete?(completeMessage)
+        isSaving = true
         do {
-            try await service.enable(priceAlert: priceAlert)
+            try await service.enable(priceAlert: priceAlert())
+            onComplete?(completeMessage)
         } catch {
-            debugLog("Set price alert error: \(error.localizedDescription)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
+        isSaving = false
     }
 }

@@ -8,6 +8,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.contacts.viewmodels.ManageContactViewModel
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
 fun ManageContactNavScreen(
@@ -16,6 +18,7 @@ fun ManageContactNavScreen(
     viewModel: ManageContactViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = uiState.error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {
@@ -27,6 +30,7 @@ fun ManageContactNavScreen(
         when (page) {
             ManageContactPage.Form -> ManageContactScene(
                 state = uiState,
+                snackbar = snackbar,
                 onNameChange = viewModel::setName,
                 onDescriptionChange = viewModel::setDescription,
                 onAction = { action ->

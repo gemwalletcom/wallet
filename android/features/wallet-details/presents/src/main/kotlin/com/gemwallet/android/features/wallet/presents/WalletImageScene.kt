@@ -42,6 +42,7 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.secondaryFaded
+import androidx.compose.material3.SnackbarHostState
 
 private const val NFT_COLUMNS = 2
 
@@ -53,6 +54,7 @@ internal fun WalletImageScene(
     emojis: List<String>,
     nftImages: List<NftItemUIModel>,
     source: WalletImageSource,
+    snackbar: SnackbarHostState? = null,
     onAction: (WalletImageAction) -> Unit,
 ) {
     wallet ?: return
@@ -63,6 +65,7 @@ internal fun WalletImageScene(
     Scene(
         title = stringResource(id = R.string.common_avatar),
         onClose = { onAction(WalletImageAction.Close) },
+        snackbar = snackbar,
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),

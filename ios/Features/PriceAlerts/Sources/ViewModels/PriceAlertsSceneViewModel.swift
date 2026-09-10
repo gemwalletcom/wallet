@@ -7,6 +7,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
+import Components
 
 @Observable
 @MainActor
@@ -19,6 +20,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     var isPriceAlertsEnabled: Bool
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(
         service: any GemPriceAlertServiceProtocol,
@@ -76,7 +78,7 @@ extension PriceAlertsSceneViewModel {
         do {
             try await service.delete(priceAlerts: [priceAlert])
         } catch {
-            debugLog("deletePriceAlert error: \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 

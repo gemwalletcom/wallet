@@ -9,6 +9,8 @@ import Primitives
 import Store
 import GemstoneServices
 import SwiftUI
+import Components
+import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -17,6 +19,7 @@ public final class SupportChatSceneViewModel {
     private let typing: ObservableSupportTyping
     public let query: ObservableQuery<SupportMessagesRequest>
     var previewURL: URL?
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(service: any GemSupportServiceProtocol, typing: ObservableSupportTyping) {
         self.service = service
@@ -46,8 +49,10 @@ public final class SupportChatSceneViewModel {
 
     func load() async {
         let fromTimestamp = query.value.last { $0.sender.isAgent }.map { Int($0.createdAt.timeIntervalSince1970) } ?? 0
-        await perform("load") {
+        do {
             try await service.syncMessages(fromTimestamp: fromTimestamp)
+        } catch {
+            debugLog("SupportChatSceneViewModel load error: \(error)")
         }
     }
 
@@ -65,7 +70,7 @@ public final class SupportChatSceneViewModel {
 
     func sendText(_ content: String) {
         Task {
-            await perform("send text") {
+            await perform {
                 try await service.sendMessage(.text(content))
             }
         }
@@ -75,7 +80,7 @@ public final class SupportChatSceneViewModel {
         Task {
             for item in items {
                 guard let attachment = try? await item.imageAttachment() else { continue }
-                await perform("send image") {
+                await perform {
                     try await service.sendMessage(.image(attachment))
                 }
             }
@@ -84,7 +89,7 @@ public final class SupportChatSceneViewModel {
 
     func retry(_ message: SupportMessage) {
         Task {
-            await perform("retry") {
+            await perform {
                 try await service.retryMessage(message)
             }
         }
@@ -93,7 +98,7 @@ public final class SupportChatSceneViewModel {
     func openPreview(_ image: SupportMessageImage) {
         guard let url = image.url.asURL else { return }
         Task {
-            await perform("preview") {
+            await perform {
                 previewURL = URL(fileURLWithPath: try await service.imageFile(url: url.absoluteString))
             }
         }
@@ -103,11 +108,11 @@ public final class SupportChatSceneViewModel {
 // MARK: - Private
 
 private extension SupportChatSceneViewModel {
-    func perform(_ context: String, _ operation: () async throws -> Void) async {
+    func perform(_ operation: () async throws -> Void) async {
         do {
             try await operation()
         } catch {
-            debugLog("SupportChatSceneViewModel \(context) error: \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 }

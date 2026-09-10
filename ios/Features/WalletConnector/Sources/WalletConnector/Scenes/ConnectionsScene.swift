@@ -58,7 +58,10 @@ public struct ConnectionsScene: View {
             }
         }
         .navigationDestination(for: WalletConnection.self) { connection in
-            ConnectionScene(model: model.connectionSceneModel(connection: connection))
+            ConnectionScene(
+                model: model.connectionSceneModel(connection: connection),
+                onDisconnect: { model.onSelectDisconnect(connection) },
+            )
         }
         .sheet(isPresented: $model.isPresentingScanner) {
             ScanQRCodeNavigationStack(scanType: .walletConnect, action: model.onHandleScan(_:))
