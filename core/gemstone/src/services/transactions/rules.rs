@@ -8,7 +8,7 @@ use primitives::{
 };
 
 use super::model::{
-    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails, GemTransactionHeader,
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails, GemTransactionFilter, GemTransactionHeader,
     GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
     GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
@@ -17,6 +17,43 @@ use crate::config::image::GemImage;
 use crate::models::asset::wallet_default_assets;
 use crate::services::collections::unique;
 use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
+
+pub fn transaction_filters() -> Vec<GemTransactionFilter> {
+    vec![
+        GemTransactionFilter::Transfers,
+        GemTransactionFilter::Swaps,
+        GemTransactionFilter::Stake,
+        GemTransactionFilter::SmartContract,
+        GemTransactionFilter::Perpetuals,
+        GemTransactionFilter::Others,
+    ]
+}
+
+pub fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
+    match transaction_type {
+        TransactionType::Transfer | TransactionType::TransferNFT => GemTransactionFilter::Transfers,
+        TransactionType::Swap | TransactionType::TokenApproval => GemTransactionFilter::Swaps,
+        TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze
+        | TransactionType::EarnDeposit
+        | TransactionType::EarnWithdraw => GemTransactionFilter::Stake,
+        TransactionType::SmartContractCall => GemTransactionFilter::SmartContract,
+        TransactionType::PerpetualOpenPosition | TransactionType::PerpetualClosePosition | TransactionType::PerpetualModifyPosition => GemTransactionFilter::Perpetuals,
+        TransactionType::AssetActivation => GemTransactionFilter::Others,
+    }
+}
+
+pub fn filter_transaction_types(filter: GemTransactionFilter) -> Vec<TransactionType> {
+    TransactionType::all()
+        .into_iter()
+        .filter(|transaction_type| transaction_filter(transaction_type) == filter)
+        .collect()
+}
 
 pub fn pending_transactions(transactions: &[Transaction]) -> Vec<Transaction> {
     transactions.iter().filter(|transaction| !transaction.state.is_completed()).cloned().collect()
@@ -521,6 +558,21 @@ fn perpetual_direction(transaction: &Transaction) -> Option<PerpetualDirection> 
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_every_transaction_type_belongs_to_exactly_one_filter_in_list_order() {
+        let filters = transaction_filters();
+        assert_eq!(filters.len(), 6);
+        let grouped: Vec<TransactionType> = filters.iter().flat_map(|filter| filter_transaction_types(*filter)).collect();
+        assert_eq!(grouped.len(), TransactionType::all().len());
+        for transaction_type in TransactionType::all() {
+            assert!(filter_transaction_types(transaction_filter(&transaction_type)).contains(&transaction_type));
+        }
+        assert_eq!(transaction_filter(&TransactionType::TokenApproval), GemTransactionFilter::Swaps);
+        assert_eq!(transaction_filter(&TransactionType::EarnWithdraw), GemTransactionFilter::Stake);
+        assert_eq!(transaction_filter(&TransactionType::AssetActivation), GemTransactionFilter::Others);
+        assert_eq!(filter_transaction_types(GemTransactionFilter::Perpetuals).len(), 3);
+    }
+
     use super::*;
     use chrono::Utc;
     use num_bigint::BigUint;

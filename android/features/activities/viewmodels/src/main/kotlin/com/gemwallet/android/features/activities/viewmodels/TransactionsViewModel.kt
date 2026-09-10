@@ -6,7 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemTransactionFilter
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemTransactionsServiceInterface
@@ -47,7 +48,7 @@ class TransactionsViewModel @Inject constructor(
 
     val chainsFilter = MutableStateFlow<List<Chain>>(emptyList())
 
-    val typeFilter = MutableStateFlow<List<TransactionTypeFilter>>(emptyList())
+    val typeFilter = MutableStateFlow<List<GemTransactionFilter>>(emptyList())
 
     val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
@@ -69,7 +70,7 @@ class TransactionsViewModel @Inject constructor(
         buildList {
             addAll(TransactionsRequestFilter.activityDefaults(assetConfig))
             if (chains.isNotEmpty()) add(TransactionsRequestFilter.Chains(chains))
-            val allowedTypes = types.flatMap { it.types }
+            val allowedTypes = types.flatMap { filter -> filter.transactionTypes().map { type -> type.toPrimitives() } }
             if (allowedTypes.isNotEmpty()) add(TransactionsRequestFilter.Types(allowedTypes))
         }
     }
@@ -122,7 +123,7 @@ class TransactionsViewModel @Inject constructor(
         chainsFilter.update { chains }
     }
 
-    fun applyTypesFilter(types: List<TransactionTypeFilter>) {
+    fun applyTypesFilter(types: List<GemTransactionFilter>) {
         typeFilter.update { types }
     }
 

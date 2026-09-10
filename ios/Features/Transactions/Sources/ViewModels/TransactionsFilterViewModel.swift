@@ -36,7 +36,7 @@ public final class TransactionsFilterViewModel {
         self.type = type
 
         chainsFilter = ChainsFilterViewModel(chains: chains)
-        transactionTypesFilter = TransactionTypesFilterViewModel(types: TransactionType.allCases)
+        transactionTypesFilter = TransactionTypesFilterViewModel()
 
         let request = TransactionsRequest(
             walletId: wallet.id,

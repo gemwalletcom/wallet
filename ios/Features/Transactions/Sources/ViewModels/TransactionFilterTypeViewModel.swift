@@ -1,13 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemTransactionFilter
 import Localization
 import Primitives
 
 struct TransactionFilterTypeViewModel {
-    private let type: TransactionFilterType
+    private let type: GemTransactionFilter
 
-    init(type: TransactionFilterType) {
+    init(type: GemTransactionFilter) {
         self.type = type
     }
 

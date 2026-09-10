@@ -1,8 +1,30 @@
 use crate::models::custom_types::GemBigUint;
-use primitives::{AddressName, Asset, AssetId, AssetPrice, NFTAssetId, PerpetualDirection, Resource, TransactionExtended};
+use primitives::{AddressName, Asset, AssetId, AssetPrice, NFTAssetId, PerpetualDirection, Resource, TransactionExtended, TransactionType};
 
 use super::rules;
 use primitives::BlockExplorerLink;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, uniffi::Enum)]
+pub enum GemTransactionFilter {
+    Transfers,
+    Swaps,
+    Stake,
+    SmartContract,
+    Perpetuals,
+    Others,
+}
+
+#[uniffi::export]
+impl GemTransactionFilter {
+    pub fn transaction_types(&self) -> Vec<TransactionType> {
+        rules::filter_transaction_types(*self)
+    }
+}
+
+#[uniffi::export]
+pub fn transaction_filters() -> Vec<GemTransactionFilter> {
+    rules::transaction_filters()
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionTitle {

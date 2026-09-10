@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionFilter
 import Components
 import Primitives
 import PrimitivesComponents
@@ -79,7 +80,7 @@ extension TransactionsFilterScene {
         }
     }
 
-    private func onFinishSelection(value: SelectionResult<TransactionFilterType>) {
+    private func onFinishSelection(value: SelectionResult<GemTransactionFilter>) {
         model.transactionTypesFilter.selectedTypes = value.items
         if value.isConfirmed {
             dismiss()

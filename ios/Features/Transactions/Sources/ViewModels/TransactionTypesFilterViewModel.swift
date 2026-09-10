@@ -1,18 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionFilter
+import func Gemstone.transactionFilters
 import Primitives
 
 public struct TransactionTypesFilterViewModel: Equatable {
-    public let allTransactionsTypes: [TransactionFilterType]
-    public var selectedTypes: [TransactionFilterType]
+    public let allTransactionsTypes: [GemTransactionFilter]
+    public var selectedTypes: [GemTransactionFilter]
 
-    public init(types: [TransactionType]) {
-        allTransactionsTypes = types.map(\.filterType).unique().sorted()
+    public init() {
+        allTransactionsTypes = transactionFilters()
         selectedTypes = []
     }
 
     public var requestFilters: [TransactionType] {
-        selectedTypes.flatMap(\.transactionTypes)
+        selectedTypes.flatMap { $0.transactionTypes().map { $0.map() } }
     }
 
     public var typeModel: TransactionsFilterTypeViewModel {

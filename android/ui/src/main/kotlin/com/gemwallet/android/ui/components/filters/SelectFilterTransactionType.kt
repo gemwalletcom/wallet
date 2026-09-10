@@ -9,16 +9,17 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import uniffi.gemstone.GemTransactionFilter
+import uniffi.gemstone.transactionFilters
 
 fun LazyListScope.selectFilterTransactionType(
-    filter: List<TransactionTypeFilter>,
-    onFilter: (TransactionTypeFilter) -> Unit,
+    filter: List<GemTransactionFilter>,
+    onFilter: (GemTransactionFilter) -> Unit,
 ) {
     item {
         SubheaderItem(R.string.filter_types)
     }
-    itemsPositioned(TransactionTypeFilter.entries) { position, item ->
+    itemsPositioned(transactionFilters()) { position, item ->
         PropertyItem(
             modifier = Modifier.clickable { onFilter(item) },
             title = { PropertyTitleText(item.getLabel()) },
@@ -32,11 +33,11 @@ fun LazyListScope.selectFilterTransactionType(
     }
 }
 
-fun TransactionTypeFilter.getLabel() = when (this) {
-    TransactionTypeFilter.Transfer -> R.string.transfer_title
-    TransactionTypeFilter.Swap -> R.string.wallet_swap
-    TransactionTypeFilter.Stake -> R.string.wallet_stake
-    TransactionTypeFilter.SmartContract -> R.string.transfer_smart_contract_title
-    TransactionTypeFilter.Perpetuals -> R.string.perpetuals_title
-    TransactionTypeFilter.Other -> R.string.transfer_other_title
+fun GemTransactionFilter.getLabel() = when (this) {
+    GemTransactionFilter.TRANSFERS -> R.string.transfer_title
+    GemTransactionFilter.SWAPS -> R.string.wallet_swap
+    GemTransactionFilter.STAKE -> R.string.wallet_stake
+    GemTransactionFilter.SMART_CONTRACT -> R.string.transfer_smart_contract_title
+    GemTransactionFilter.PERPETUALS -> R.string.perpetuals_title
+    GemTransactionFilter.OTHERS -> R.string.transfer_other_title
 }

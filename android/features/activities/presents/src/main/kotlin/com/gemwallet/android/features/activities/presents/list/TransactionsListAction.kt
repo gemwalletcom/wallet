@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.activities.presents.list
 
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import uniffi.gemstone.GemTransactionFilter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionId
 
@@ -12,5 +12,5 @@ internal sealed interface TransactionsListAction {
     data object Receive : TransactionsListAction
     data class OpenTransaction(val transactionId: TransactionId) : TransactionsListAction
     data class ApplyChainsFilter(val chains: List<Chain>) : TransactionsListAction
-    data class ApplyTypesFilter(val types: List<TransactionTypeFilter>) : TransactionsListAction
+    data class ApplyTypesFilter(val types: List<GemTransactionFilter>) : TransactionsListAction
 }

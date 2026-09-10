@@ -31,7 +31,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import uniffi.gemstone.GemTransactionFilter
 import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Chain
 
@@ -40,10 +40,10 @@ fun TransactionsFilter(
     isVisible: Boolean,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
-    typesFilter: List<TransactionTypeFilter>,
+    typesFilter: List<GemTransactionFilter>,
     onDismissRequest: () -> Unit,
     onApplyChainsFilter: (List<Chain>) -> Unit,
-    onApplyTypesFilter: (List<TransactionTypeFilter>) -> Unit,
+    onApplyTypesFilter: (List<GemTransactionFilter>) -> Unit,
     onClearChainsFilter: () -> Unit,
     onClearTypesFilter: () -> Unit,
 ) {

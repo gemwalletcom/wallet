@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Which transaction types a filter group covers is Core's answer.** `GemTransactionFilter`
+  (`Transfers`, `Swaps`, `Stake`, `SmartContract`, `Perpetuals`, `Others`) answers
+  `transaction_types()`, and `transaction_filters()` lists the groups in the order the screen
+  shows them. Both apps kept the same enum and the same eighteen-arm grouping (iOS
+  `TransactionFilterType`, Android `TransactionTypeFilter`) with a test each that every type lands
+  in its own group; those are deleted and Core carries the one test. The apps keep the localized
+  group titles and the sheet that picks them.
 - **The stake amount screen's pick lives in Core's input.** `GemStakeAmountInput` carries the
   validator the user confirmed (`Stake`, `Redelegate` and `Rewards` gained `validator`; `Stake`
   lost the delegation it only used to preselect one) and answers `amount_type()`, `stake_type()`,

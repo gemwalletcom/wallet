@@ -27,7 +27,7 @@ import com.gemwallet.android.ui.components.list_item.transaction.transactionsLis
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import uniffi.gemstone.GemTransactionFilter
 import com.wallet.core.primitives.Chain
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +37,7 @@ internal fun TransactionsScene(
     transactions: List<TransactionDataAggregate>?,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
-    typeFilter: List<TransactionTypeFilter>,
+    typeFilter: List<GemTransactionFilter>,
     listState: LazyListState = rememberLazyListState(),
     showBuyAction: Boolean,
     showReceiveAction: Boolean,
