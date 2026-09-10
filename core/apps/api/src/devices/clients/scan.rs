@@ -23,6 +23,7 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Durati
             secret_key: settings.security.goplus.key.secret.clone(),
         },
         hashdit: settings.security.hashdit.remote_provider_config(),
+        tronscan: settings.security.tronscan.remote_provider_config(),
     };
     ScanProviderFactory::new_transaction_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }

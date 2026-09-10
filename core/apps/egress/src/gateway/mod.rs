@@ -3,13 +3,13 @@ mod endpoint;
 mod proxy;
 mod route;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::error::Error;
 use std::time::{Duration, Instant};
 
 use gem_tracing::path;
 use reqwest::Method;
-use reqwest::header::{HeaderMap, HeaderName};
+use reqwest::header::HeaderMap;
 use rocket::http::Status;
 use tokio::sync::RwLock;
 
@@ -29,7 +29,6 @@ pub(crate) struct Gateway {
     proxies: HashMap<String, OutboundProxy>,
     cooldowns: RwLock<HashMap<String, Cooldown>>,
     cooldown: Duration,
-    forward_headers: HashSet<HeaderName>,
     metrics: Metrics,
 }
 
@@ -77,16 +76,13 @@ impl Gateway {
             .map(|(group, services)| {
                 let services = services
                     .into_iter()
-                    .map(|(service, route)| Route::new(group.clone(), service.clone(), route, &retry.statuses, &direct_client, &proxies).map(|route| (service, route)))
+                    .map(|(service, route)| {
+                        Route::new(group.clone(), service.clone(), route, &retry.statuses, &headers.forward, &direct_client, &proxies).map(|route| (service, route))
+                    })
                     .collect::<Result<HashMap<_, _>, BoxError>>()?;
                 Ok((group, services))
             })
             .collect::<Result<HashMap<_, _>, BoxError>>()?;
-        let forward_headers = headers
-            .forward
-            .into_iter()
-            .map(|header| HeaderName::from_bytes(header.as_bytes()))
-            .collect::<Result<HashSet<_>, _>>()?;
         for name in proxies.keys() {
             metrics.set_proxy_available(name, false);
         }
@@ -97,7 +93,6 @@ impl Gateway {
             proxies,
             cooldowns: RwLock::new(HashMap::new()),
             cooldown: retry.cooldown,
-            forward_headers,
             metrics,
         })
     }
@@ -163,7 +158,7 @@ impl Gateway {
                 continue;
             }
             let started = Instant::now();
-            match endpoint.send(&method, target, headers, &self.forward_headers, body.clone()).await {
+            match endpoint.send(&method, target, headers, &route.forward_headers, body.clone()).await {
                 Ok((response, retry_after)) => {
                     self.metrics
                         .record_upstream_latency(caller, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
@@ -302,10 +297,43 @@ impl GatewayError {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
     use std::net::{IpAddr, Ipv4Addr};
+
+    use config::{Config, File, FileFormat};
+    use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderName};
 
     use super::*;
     use crate::config::{EndpointConfig, HeadersConfig, RequestConfig, RetryConfig, RouteConfig, Selection};
+
+    #[test]
+    fn test_route_header_inheritance() {
+        let config = Config::builder()
+            .add_source(File::from_str(include_str!("../../testdata/route_headers.yml"), FileFormat::Yaml))
+            .build()
+            .unwrap()
+            .try_deserialize::<EgressConfig>()
+            .unwrap();
+        let gateway = Gateway::new(config, Metrics::new()).unwrap();
+        let routes = &gateway.routes["security"];
+        assert_eq!(routes["tronscan"].forward_headers, HashSet::from([ACCEPT, HeaderName::from_static("tron-pro-api-key")]));
+        assert_eq!(routes["goplus"].forward_headers, HashSet::from([ACCEPT, AUTHORIZATION]));
+        assert_eq!(routes["public"].forward_headers, HashSet::from([ACCEPT]));
+    }
+
+    #[test]
+    fn test_invalid_forward_header_rejects_configuration() {
+        for name in ["TRON-PRO-API-KEY", "accept"] {
+            let input = include_str!("../../testdata/route_headers.yml").replace(name, "invalid header");
+            let config = Config::builder()
+                .add_source(File::from_str(&input, FileFormat::Yaml))
+                .build()
+                .unwrap()
+                .try_deserialize::<EgressConfig>()
+                .unwrap();
+            assert!(Gateway::new(config, Metrics::new()).is_err());
+        }
+    }
 
     fn gateway() -> Gateway {
         Gateway::new(
@@ -335,6 +363,7 @@ mod tests {
                         "blockscout".to_string(),
                         RouteConfig {
                             selection: Selection::Ordered,
+                            headers: None,
                             rate: None,
                             retry: None,
                             endpoints: ["key_1", "key_2"]

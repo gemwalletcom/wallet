@@ -199,6 +199,7 @@ fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) 
         },
         hashdit: settings.security.hashdit.remote_provider_config(),
         jupiter: settings.security.jupiter.remote_provider_config(),
+        tronscan: settings.security.tronscan.remote_provider_config(),
     };
     ScanProviderFactory::new_token_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }

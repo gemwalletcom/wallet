@@ -323,6 +323,10 @@ security:
     url: https://api.ipapi.is
     key:
       secret: ""
+  tronscan:
+    url: "https://apilist.tronscanapi.com"
+    key:
+      secret: ""
 
 support:
   url: ""

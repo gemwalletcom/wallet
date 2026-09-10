@@ -150,6 +150,7 @@ mod tests {
         let inbound = HeaderMap::from_iter([
             (AUTHORIZATION, HeaderValue::from_static("Bearer ingress")),
             (ACCEPT, HeaderValue::from_static("application/json")),
+            (HeaderName::from_static("api-secret"), HeaderValue::from_static("another-provider-secret")),
         ]);
         let endpoint = Endpoint {
             name: "key_1".to_string(),
@@ -161,9 +162,14 @@ mod tests {
             headers: HeaderMap::from_iter([(AUTHORIZATION, HeaderValue::from_static("Bearer upstream"))]),
             throttle: None,
         };
-        let result = endpoint.request_headers(&inbound, &HashSet::from([ACCEPT]));
-        assert_eq!(result.get(AUTHORIZATION).unwrap(), "Bearer upstream");
-        assert_eq!(result.get(ACCEPT).unwrap(), "application/json");
+        let result = endpoint.request_headers(&inbound, &HashSet::from([ACCEPT, AUTHORIZATION]));
+        assert_eq!(
+            result,
+            HeaderMap::from_iter([
+                (AUTHORIZATION, HeaderValue::from_static("Bearer upstream")),
+                (ACCEPT, HeaderValue::from_static("application/json")),
+            ])
+        );
     }
 
     #[test]

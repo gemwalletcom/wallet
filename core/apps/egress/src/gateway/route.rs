@@ -1,10 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use gem_crypto::compare::constant_time_eq;
 use gem_tracing::path;
 use rand::seq::SliceRandom;
 use reqwest::Client;
+use reqwest::header::HeaderName;
 use url::Url;
 
 use super::BoxError;
@@ -19,6 +20,7 @@ pub(super) struct Route {
     cursor: AtomicUsize,
     statuses: Vec<u16>,
     pub(super) endpoints: Vec<Endpoint>,
+    pub(super) forward_headers: HashSet<HeaderName>,
 }
 
 pub(super) struct RouteMatch<'a> {
@@ -41,9 +43,15 @@ impl Route {
         service: String,
         config: RouteConfig,
         default_statuses: &[u16],
+        default_headers: &[String],
         direct_client: &Client,
         proxies: &HashMap<String, OutboundProxy>,
     ) -> Result<Self, BoxError> {
+        let forward_headers = default_headers
+            .iter()
+            .chain(config.headers.iter().flat_map(|headers| &headers.forward))
+            .map(|header| HeaderName::from_bytes(header.as_bytes()))
+            .collect::<Result<HashSet<_>, _>>()?;
         let statuses = config.retry.map_or_else(|| default_statuses.to_vec(), |retry| retry.statuses);
         let rate = config.rate;
         let endpoints = config
@@ -58,6 +66,7 @@ impl Route {
             cursor: AtomicUsize::new(0),
             statuses,
             endpoints,
+            forward_headers,
         })
     }
 
@@ -127,7 +136,6 @@ pub(super) fn match_route<'a>(routes: &'a HashMap<String, HashMap<String, Route>
 mod tests {
     use super::*;
     use crate::config::EndpointConfig;
-    use std::collections::HashSet;
 
     fn route(group: &str, service: &str) -> Route {
         Route {
@@ -137,6 +145,7 @@ mod tests {
             cursor: AtomicUsize::new(0),
             statuses: vec![429, 503],
             endpoints: Vec::new(),
+            forward_headers: HashSet::new(),
         }
     }
 

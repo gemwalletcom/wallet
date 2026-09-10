@@ -158,6 +158,10 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 
 <sub>Reviewed 2026-09-02. Sources: [advertised chains](../core/gemstone/src/config/wallet_connect.rs), [session method list](../core/gemstone/src/services/wallet_connect/rules.rs), [method identifiers](../core/crates/primitives/src/wallet_connector.rs), [Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs), [Android approval](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_connect/WalletConnectCoordinator.kt), [Android session namespace mapping](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Session.kt), and [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift).</sub>
 
+## Provider egress
+
+Egress `headers.forward` defines shared HTTP headers. Each `routes.<group>.<service>.headers.forward` list adds headers for that service only; omitted lists inherit the global set. Header names are case-insensitive and validated when routes load. Endpoint `headers` inject configured values after forwarding, overriding matching inbound values. Provider credentials belong in endpoint headers or service forwarding lists, rather than the global list.
+
 ## Security providers
 
 Security checks cover malicious addresses, address poisoning, websites, and tokens. Staking transactions use local security checks only.
@@ -169,6 +173,8 @@ Security checks cover malicious addresses, address poisoning, websites, and toke
 | [Jupiter](../core/crates/security_provider/src/providers/jupiter/provider.rs) | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 Address and EVM token coverage follows each provider's mapped chains. HashDit address poisoning covers its mapped EVM chains and Tron; website security is chain-independent.
+
+[Tronscan](../core/crates/security_provider/src/providers/tronscan/provider.rs) provides Tron-only address and TRC20 token security through the existing transaction scan and asset status pipelines. Address checks flag reported memo spam, fraudulent transactions, fraudulent token creation, and stablecoin blacklisting. Token levels 3 (suspicious) and 4 (unsafe) flag risk; level 0 (unknown) and failed requests do not count as successful scans. Minting and blacklist capabilities alone do not flag tokens. An all-false address response means no reported risk, not verified safety or proof that the account exists. Sources: [account security](https://docs.tronscan.org/en/api/security-service-api/security-account) and [token security](https://docs.tronscan.org/en/api/security-service-api/security-token).
 
 <sub>Reviewed 2026-09-05. Sources: [provider factory](../core/crates/security_provider/src/factory.rs), [HashDit chain mapping](../core/crates/security_provider/src/providers/hashdit/mapper.rs), [HashDit Address Security](https://docs.hashdit.io/api-reference/endpoint/address-security-v2/supported-chains), [Address Poisoning](https://docs.hashdit.io/api-reference/endpoint/address-poisoning/supported-chains), [Domain Security](https://docs.hashdit.io/api-reference/endpoint/domain-security), and [Solana Token Security](https://docs.hashdit.io/api-reference/endpoint/solana-token-security).</sub>
 

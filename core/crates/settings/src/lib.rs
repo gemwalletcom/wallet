@@ -386,6 +386,7 @@ pub struct Security {
     pub goplus: UrlKeySettings,
     pub hashdit: ProviderSettings,
     pub jupiter: ProviderSettings,
+    pub tronscan: ProviderSettings,
     pub ipapi: UrlSecretKeySettings,
 }
 

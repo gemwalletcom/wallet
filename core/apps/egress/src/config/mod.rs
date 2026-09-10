@@ -67,6 +67,7 @@ pub(crate) struct ProxyHealthConfig {
 #[derive(Debug, Deserialize)]
 pub(crate) struct RouteConfig {
     pub selection: Selection,
+    pub headers: Option<HeadersConfig>,
     pub rate: Option<RateConfig>,
     pub retry: Option<RetryOverride>,
     pub endpoints: Vec<EndpointConfig>,

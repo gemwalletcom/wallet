@@ -13,6 +13,9 @@ sha1 = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 jupiter = { path = "../jupiter" }
 
+[features]
+security_integration_tests = []
+
 [dev-dependencies]
 gem_client = { path = "../gem_client", features = ["testkit"] }
 tokio = { workspace = true }
