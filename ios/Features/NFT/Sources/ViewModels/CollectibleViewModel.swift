@@ -186,7 +186,7 @@ extension CollectibleViewModel {
                 try await setWalletAvatar()
                 isPresentingToast = .success(Localized.Nft.setAsAvatar)
             } catch {
-                debugLog("Set nft avatar error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

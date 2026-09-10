@@ -393,7 +393,7 @@ public extension AssetSceneViewModel {
                 try await setPriceAlert(enabled: enabled)
                 isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: enabled)
             } catch {
-                debugLog("onTogglePriceAlert error \(error)")
+                isPresentingToastMessage = .error(error.localizedDescription)
             }
         }
     }
