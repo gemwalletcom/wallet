@@ -32,8 +32,10 @@ public struct CachedAsyncImage<Content: View>: View {
     }
 
     public var body: some View {
-        content(phase)
-            .task(id: request) { await load() }
+        ZStack {
+            content(phase)
+        }
+        .task(id: request) { await load() }
     }
 
     private func load() async {
