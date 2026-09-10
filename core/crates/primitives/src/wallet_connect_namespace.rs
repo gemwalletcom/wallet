@@ -1,4 +1,4 @@
-use crate::{Chain, ChainAddress, ChainType};
+use crate::{AssetId, Chain, ChainAddress, ChainType};
 use serde::Serialize;
 use std::str::FromStr;
 use strum::{AsRefStr, EnumString};
@@ -77,6 +77,10 @@ impl WalletConnectCAIP2 {
         Self::get_chain(namespace.to_string(), reference.to_string())
     }
 
+    pub fn format_account(chain: Chain, address: &str) -> Option<String> {
+        Some(format!("{}:{}:{address}", Self::get_namespace(chain)?, Self::get_reference(chain)?))
+    }
+
     pub fn parse_account(account: String) -> Option<ChainAddress> {
         let mut parts = account.split(':');
         let namespace = parts.next()?;
@@ -105,6 +109,27 @@ impl WalletConnectCAIP2 {
             return None;
         }
         Some((namespace, reference))
+    }
+}
+
+const SLIP44_NAMESPACE: &str = "slip44";
+
+pub struct WalletConnectCAIP19;
+
+impl WalletConnectCAIP19 {
+    pub fn get_asset_id(asset: &str) -> Option<AssetId> {
+        let (chain_id, asset) = match asset.split_once('/') {
+            Some((chain_id, asset)) => (chain_id, Some(asset)),
+            None => (asset, None),
+        };
+        let chain = WalletConnectCAIP2::parse_chain_id(chain_id.to_string())?;
+        let Some(asset) = asset else {
+            return Some(AssetId::from(chain, None));
+        };
+        match asset.split_once(':')? {
+            (SLIP44_NAMESPACE, _) => Some(AssetId::from(chain, None)),
+            (_, token_id) => Some(AssetId::from_token(chain, token_id)),
+        }
     }
 }
 

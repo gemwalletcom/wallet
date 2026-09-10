@@ -85,7 +85,7 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                     .await?
                 }
             },
-            TransactionInputType::Generic { extra, .. } => match extra.output_action {
+            TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => match extra.output_action {
                 TransferDataOutputAction::Send => match self
                     .estimate_fee_with_data(&input.sender_address, extra.data.as_deref(), &chain_parameters, &account_usage)
                     .await?

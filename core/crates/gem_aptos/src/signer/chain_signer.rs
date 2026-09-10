@@ -132,7 +132,7 @@ fn prepare_panora_payload(mut payload: EntryFunctionPayload) -> Result<(EntryFun
 
 fn get_generic_payload(input: &SignerInput) -> Result<(EntryFunctionPayload, u64), SignerError> {
     let data = match &input.input_type {
-        TransactionInputType::Generic { extra, .. } => extra.data.as_ref(),
+        TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => extra.data.as_ref(),
         _ => return Err(SignerError::InvalidInput("Expected Aptos generic input".to_string())),
     };
 

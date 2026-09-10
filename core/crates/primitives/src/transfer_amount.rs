@@ -99,7 +99,7 @@ pub struct TransferAmountInput {
 impl TransactionInputType {
     pub fn spends_balance(&self) -> bool {
         match self {
-            Self::Transfer { .. } | Self::Withdrawal { .. } | Self::Deposit { .. } | Self::Swap { .. } | Self::Generic { .. } => true,
+            Self::Transfer { .. } | Self::Withdrawal { .. } | Self::Deposit { .. } | Self::Swap { .. } | Self::Generic { .. } | Self::Payment { .. } => true,
             Self::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) | StakeType::Freeze(_) => true,
                 StakeType::Unstake(_) | StakeType::Unfreeze(_) | StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) => false,

@@ -6026,16 +6026,20 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 name = "payment"
 version = "2.114.21"
 dependencies = [
+ "async-trait",
  "futures",
  "gem_client",
  "gem_encoding",
  "gem_jsonrpc",
  "gem_solana",
+ "num-bigint 0.5.1",
+ "number_formatter",
  "primitives",
  "serde",
  "serde_json",
  "solana-primitives",
  "tokio",
+ "url",
 ]
 
 [[package]]

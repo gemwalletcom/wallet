@@ -1,35 +1,44 @@
 use std::sync::Arc;
 
-use gem_jsonrpc::alien::{RpcClient, RpcProvider};
-use primitives::{Chain, ChainAddress, PaymentLink};
+use gem_jsonrpc::alien::RpcProvider;
+use primitives::{AssetId, Chain, ChainAddress, PaymentLink};
 
-use crate::PaymentTransaction;
+use crate::PaymentLoad;
 use crate::error::PaymentError;
 use crate::provider::PaymentProvider;
-use crate::solana_pay::SolanaPayProvider;
+use crate::provider_factory::PaymentProviderFactory;
+use crate::wallet_connect_pay::WalletConnectPayAuth;
 
 pub struct PaymentService {
-    provider: Arc<dyn RpcProvider>,
+    providers: PaymentProviderFactory,
 }
 
 impl PaymentService {
-    pub fn new(provider: Arc<dyn RpcProvider>) -> Self {
-        Self { provider }
-    }
-
-    pub async fn load(&self, link: &PaymentLink, addresses: &[ChainAddress]) -> Result<PaymentTransaction, PaymentError> {
-        match link {
-            PaymentLink::SolanaPay { url } => {
-                let provider = SolanaPayProvider::new(RpcClient::new(url.clone(), self.provider.clone()), url.clone());
-                Self::load_provider(&provider, addresses).await
-            }
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>, wallet_connect_pay_auth: WalletConnectPayAuth) -> Self {
+        Self {
+            providers: PaymentProviderFactory::new(rpc_provider, wallet_connect_pay_auth),
         }
     }
 
-    async fn load_provider(provider: &impl PaymentProvider, addresses: &[ChainAddress]) -> Result<PaymentTransaction, PaymentError> {
-        let transaction = provider.load(addresses).await?;
-        Self::validate_account(provider.supported_chains(), &transaction.account, addresses)?;
-        Ok(transaction)
+    pub async fn load(&self, link: &PaymentLink, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {
+        let provider = self.providers.get_provider(link);
+        Self::validate(provider.as_ref(), provider.load(addresses).await?, addresses)
+    }
+
+    pub async fn select_asset(&self, link: &PaymentLink, addresses: &[ChainAddress], asset_id: AssetId) -> Result<PaymentLoad, PaymentError> {
+        let provider = self.providers.get_provider(link);
+        Self::validate(provider.as_ref(), provider.select_asset(addresses, asset_id).await?, addresses)
+    }
+
+    pub async fn confirm(&self, link: &PaymentLink, quote_id: &str, transaction_hash: String) -> Result<(), PaymentError> {
+        self.providers.get_provider(link).confirm(quote_id, transaction_hash).await
+    }
+
+    fn validate(provider: &dyn PaymentProvider, load: PaymentLoad, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {
+        if let Some(account) = load.account() {
+            Self::validate_account(provider.supported_chains(), account, addresses)?;
+        }
+        Ok(load)
     }
 
     fn validate_account(supported_chains: &[Chain], account: &ChainAddress, addresses: &[ChainAddress]) -> Result<(), PaymentError> {
