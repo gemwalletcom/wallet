@@ -5,10 +5,11 @@ use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeade
 use serde_json::Value;
 
 use crate::models::{SimulateTransactionResult, TokenBalance};
+use crate::program;
 
 pub fn map_simulation_result(account_keys: &[String], signer_addresses: &HashSet<String>, simulation: SimulateTransactionResult) -> SimulationResult {
     if let Some(err) = simulation.err {
-        return SimulationResult::new(vec![simulation_error_warning(err)], vec![]);
+        return SimulationResult::new(vec![simulation_error_warning(err, simulation.logs.as_deref().unwrap_or_default())], vec![]);
     }
 
     let balance_changes = map_balance_changes(
@@ -46,7 +47,11 @@ fn outgoing_token_header(balance_changes: &[SimulationBalanceChange]) -> Option<
     })
 }
 
-fn simulation_error_warning(error: Value) -> SimulationWarning {
+fn simulation_error_warning(error: Value, logs: &[String]) -> SimulationWarning {
+    if let Some(message) = program::error_message(&error, logs) {
+        return SimulationWarning::execution_error(message.to_string());
+    }
+
     let message = match error {
         Value::String(message) => message,
         error => error.to_string(),
@@ -120,6 +125,8 @@ mod tests {
     use primitives::asset_constants::{SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID};
     use primitives::{SimulationSeverity, SimulationWarningType};
 
+    use crate::TOKEN_PROGRAM;
+
     fn signers(addresses: &[&str]) -> HashSet<String> {
         addresses.iter().map(|address| address.to_string()).collect()
     }
@@ -150,6 +157,7 @@ mod tests {
             &signers(&["wallet"]),
             SimulateTransactionResult {
                 err: None,
+                logs: None,
                 pre_balances: vec![1_000_000_000],
                 post_balances: vec![999_995_000],
                 pre_token_balances: Some(vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 20_000_000)]),
@@ -274,6 +282,7 @@ mod tests {
             &HashSet::new(),
             SimulateTransactionResult {
                 err: Some(serde_json::json!({"InstructionError":[1, "InvalidArgument"]})),
+                logs: None,
                 pre_balances: vec![],
                 post_balances: vec![],
                 pre_token_balances: None,
@@ -290,5 +299,31 @@ mod tests {
             )]
         );
         assert_eq!(result.balance_changes, vec![]);
+    }
+
+    #[test]
+    fn test_map_simulation_result_insufficient_funds() {
+        let simulation = serde_json::from_str(include_str!("../../testdata/simulate_transaction_insufficient_funds.json")).unwrap();
+        let result = map_simulation_result(&[], &HashSet::new(), simulation);
+
+        assert_eq!(
+            result,
+            SimulationResult::new(vec![SimulationWarning::execution_error("Insufficient funds".to_string())], vec![])
+        );
+    }
+
+    #[test]
+    fn test_simulation_error_warning_fallback() {
+        for raw in [
+            r#""BlockhashNotFound""#,
+            r#"{"InstructionError":[1,{"Custom":999}]}"#,
+            r#"{"InstructionError":[1,"InvalidArgument"]}"#,
+        ] {
+            let error: Value = serde_json::from_str(raw).unwrap();
+            let expected = error.as_str().map(str::to_string).unwrap_or_else(|| error.to_string());
+            let logs = vec![format!("Program {TOKEN_PROGRAM} failed: custom program error: 0x3e7")];
+
+            assert_eq!(simulation_error_warning(error, &logs), SimulationWarning::execution_error(expected));
+        }
     }
 }

@@ -1,0 +1,17 @@
+{
+  "err": { "InstructionError": [1, { "Custom": 1 }] },
+  "logs": [
+    "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL invoke [1]",
+    "Program log: CreateIdempotent",
+    "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 4437 of 600000 compute units",
+    "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL success",
+    "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]",
+    "Program log: Error: insufficient funds",
+    "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 192 of 595563 compute units",
+    "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: custom program error: 0x1"
+  ],
+  "preBalances": [],
+  "postBalances": [],
+  "preTokenBalances": [],
+  "postTokenBalances": []
+}
