@@ -38,7 +38,14 @@ mod tests {
                 } },
             })
         );
+        assert_eq!(
+            url_action("https://pay.walletconnect.com/?pid=pay_123"),
+            Some(UrlAction::Payment {
+                payment: Payment::Link { link: PaymentLink::WalletConnectPay {
+                    payment_id: "pay_123".to_string(),
+                } },
+            })
+        );
         assert_eq!(url_action("https://example.com"), None);
-        assert_eq!(url_action("https://pay.walletconnect.com/?pid=pay_123"), None);
     }
 }

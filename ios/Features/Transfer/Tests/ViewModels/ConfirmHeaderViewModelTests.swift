@@ -55,7 +55,7 @@ struct ConfirmHeaderViewModelTests {
     @Test
     func simulationHeaderDataResolvesAssetValue() {
         let model = ConfirmHeaderViewModel(
-            request: .mock(),
+            transfer: .mock(),
             state: .mock(simulation: .mock(headerData: AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(BigInt(1_000_000))))),
             currency: .usd,
         )
@@ -73,7 +73,7 @@ struct ConfirmHeaderViewModelTests {
     @Test
     func tokenApproveResolvesAssetHeader() {
         let model = ConfirmHeaderViewModel(
-            request: .mock(data: .mock(type: .tokenApprove(.mock(), .mock()))),
+            transfer: .mock(type: .tokenApprove(.mock(), .mock())),
             state: .mock(),
             currency: .usd,
         )

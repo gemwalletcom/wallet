@@ -2,10 +2,11 @@
 
 import Foundation
 import Gemstone
-import class Gemstone.GemPaymentService
+import protocol Gemstone.GemPaymentServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
+import PrimitivesComponents
 
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
@@ -16,7 +17,7 @@ public enum PaymentDestinationBuilder {
     public static func transfer(
         payment: Gemstone.PaymentRequest,
         asset: Primitives.Asset,
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment, asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
@@ -31,9 +32,9 @@ public enum PaymentDestinationBuilder {
     public static func build(
         payment: Gemstone.PaymentRequest,
         assets: [AssetData],
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) throws -> PaymentDestination {
-        switch paymentService.destination(request: payment, assets: assets.map { $0.asset.paymentWalletAsset }) {
+        switch paymentService.destination(request: payment, assets: assets.map(\.asset.paymentWalletAsset)) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
@@ -55,14 +56,6 @@ public enum PaymentDestinationBuilder {
         case .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
-    }
-
-    public static func build(
-        transaction: GemPaymentTransaction,
-        asset: Primitives.Asset,
-        paymentService: GemPaymentService,
-    ) -> PaymentDestination {
-        .confirm(paymentService.transactionTransferData(transaction: transaction, asset: asset.map()))
     }
 
     private static func assetData(for assetId: String, in assets: [AssetData]) -> AssetData? {

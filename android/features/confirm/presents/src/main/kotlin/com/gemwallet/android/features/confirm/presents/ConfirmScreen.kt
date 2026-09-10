@@ -66,7 +66,6 @@ import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -128,7 +127,7 @@ fun ConfirmScreen(
     val assetPrice by viewModel.assetPrice.collectAsStateWithLifecycle()
     val applicationMetadata = input?.inputType?.applicationMetadata
     val isExternalRequest = applicationMetadata != null
-    val isPayment = applicationMetadata?.source == ApplicationMetadataSource.Payment
+    val isPayment = input?.inputType is TransactionInputType.Payment
     val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
@@ -475,6 +474,7 @@ private fun confirmTitle(title: GemConfirmTitle): String = when (title) {
     GemConfirmTitle.Swap -> stringResource(R.string.wallet_swap)
     GemConfirmTitle.Approve -> stringResource(R.string.transfer_approve_title)
     GemConfirmTitle.Request -> stringResource(R.string.transfer_review_request)
+    GemConfirmTitle.Payment -> stringResource(R.string.transfer_payment_title)
     GemConfirmTitle.Stake -> stringResource(R.string.transfer_stake_title)
     GemConfirmTitle.Unstake -> stringResource(R.string.transfer_unstake_title)
     GemConfirmTitle.Redelegate -> stringResource(R.string.transfer_redelegate_title)

@@ -135,7 +135,7 @@ impl GemConfirmService {
             .map_err(error::load_error)?;
 
         let mut fee = load.fee;
-        if let Some(fee_asset_id) = options.fee_asset_id {
+        if let Some(fee_asset_id) = options.fee_asset_id.filter(|fee_asset_id| fee_asset_id.chain == chain) {
             fee.fee_asset = fee_asset_id;
         }
 
@@ -218,6 +218,7 @@ impl GemConfirmService {
                 Ok(GemExecuteResult::Sent {
                     hashes: result.hashes,
                     transactions: result.transactions,
+                    warning: None,
                 })
             }
         }

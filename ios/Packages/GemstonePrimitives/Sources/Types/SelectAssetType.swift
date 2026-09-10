@@ -10,6 +10,7 @@ public enum SelectAssetType: Identifiable, Hashable, Sendable {
     case receive(ReceiveAssetType)
     case buy
     case swap(SelectAssetSwapType)
+    case payment([AssetId])
     case manage
     case priceAlert
     case deposit
@@ -21,6 +22,7 @@ public enum SelectAssetType: Identifiable, Hashable, Sendable {
         case let .receive(type): "receive_\(type.id)"
         case .buy: "buy"
         case let .swap(type): "swap_\(type.id)"
+        case .payment: "payment"
         case .manage: "manage"
         case .priceAlert: "priceAlert"
         case .deposit: "perps"
@@ -38,6 +40,7 @@ public extension SelectAssetType {
         case .buy: .buy
         case .swap(.pay): .swapPay
         case let .swap(.receive(payAssetId)): .swapReceive(payAssetId: payAssetId?.identifier)
+        case let .payment(assetIds): .payment(assetIds: assetIds.map(\.identifier))
         case .manage: .manage
         case .priceAlert: .priceAlert
         case .deposit: .deposit

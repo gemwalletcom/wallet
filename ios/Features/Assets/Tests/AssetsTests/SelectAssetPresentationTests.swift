@@ -17,6 +17,7 @@ struct SelectAssetPresentationTests {
         #expect(SelectAssetType.buy.flowType == .buy)
         #expect(SelectAssetType.swap(.pay).flowType == .swapPay)
         #expect(SelectAssetType.swap(.receive(payAssetId: AssetId(chain: .ethereum))).flowType == .swapReceive(payAssetId: "ethereum"))
+        #expect(SelectAssetType.payment([AssetId(chain: .ethereum)]).flowType == .payment(assetIds: ["ethereum"]))
         #expect(SelectAssetType.manage.flowType == .manage)
         #expect(SelectAssetType.priceAlert.flowType == .priceAlert)
         #expect(SelectAssetType.deposit.flowType == .deposit)

@@ -143,6 +143,7 @@ public extension GemTransferAmount {
 
 public extension GemConfirmLoad {
     static func mock(
+        transfer: GemTransferData = .mock(),
         sender: Primitives.Account = .mock(),
         feeAsset: Primitives.Asset = .mockEthereum(),
         metadata: GemConfirmMetadata = .mock(),
@@ -153,6 +154,7 @@ public extension GemConfirmLoad {
         preload: GemConfirmPreload? = .mock(),
     ) -> GemConfirmLoad {
         GemConfirmLoad(
+            transfer: transfer,
             sender: sender.map(),
             feeAsset: feeAsset.map(),
             metadata: metadata,

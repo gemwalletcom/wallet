@@ -126,7 +126,7 @@ pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
 pub mod payment;
-pub use self::payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest};
+pub use self::payment::{Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus};
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
@@ -202,7 +202,7 @@ pub use self::transaction_metadata_types::{
     TransactionWalletConnectMetadata,
 };
 pub mod wallet_connect_namespace;
-pub use self::wallet_connect_namespace::WalletConnectCAIP2;
+pub use self::wallet_connect_namespace::{WalletConnectCAIP2, WalletConnectCAIP19};
 pub mod wallet_connect;
 pub use self::wallet_connect::{WCEthereumTransaction, WalletConnectLink, WalletConnectRequest};
 pub mod account;

@@ -12,7 +12,7 @@ pub(crate) const USD_CURRENCY: &str = "USD";
 const FEE_SCALE: u64 = 1_000_000_000_000;
 
 pub(crate) fn decode_set_user_fee_token(input_type: &TransactionInputType) -> Option<Address> {
-    let TransactionInputType::Generic { extra, .. } = input_type else {
+    let (TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. }) = input_type else {
         return None;
     };
     if ethereum_address_checksum(&extra.to).ok().as_deref() != Some(FEE_MANAGER_ADDRESS) {

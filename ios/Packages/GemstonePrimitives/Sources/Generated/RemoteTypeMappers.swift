@@ -69,7 +69,6 @@ public extension Gemstone.ApplicationMetadataSource {
     func map() -> Primitives.ApplicationMetadataSource {
         switch self {
         case .walletConnect: .walletConnect
-        case .payment: .payment
         }
     }
 }
@@ -78,7 +77,6 @@ public extension Primitives.ApplicationMetadataSource {
     func map() -> Gemstone.ApplicationMetadataSource {
         switch self {
         case .walletConnect: .walletConnect
-        case .payment: .payment
         }
     }
 }

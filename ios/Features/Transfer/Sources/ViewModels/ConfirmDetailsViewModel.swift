@@ -68,6 +68,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
              .stake,
              .account,
              .generic,
+             .payment,
              .earn:
             return .empty
         }

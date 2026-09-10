@@ -20,7 +20,7 @@ struct TransactionHeaderViewModel {
 
     var showClearHeader: Bool {
         switch headerType {
-        case .amount, .nft, .asset, .assetValue: true
+        case .amount, .payment, .nft, .asset, .assetValue: true
         case .swap: false
         }
     }

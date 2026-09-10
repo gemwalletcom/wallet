@@ -108,6 +108,12 @@ pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError 
     }
 }
 
+impl From<crate::payment::GemPaymentError> for GemConfirmError {
+    fn from(error: crate::payment::GemPaymentError) -> Self {
+        Self::Load { msg: error.to_string() }
+    }
+}
+
 impl From<GemServiceError> for GemConfirmError {
     fn from(error: GemServiceError) -> Self {
         match error {

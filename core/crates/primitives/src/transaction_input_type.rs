@@ -4,7 +4,7 @@ use crate::stake_type::StakeType;
 use crate::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
-use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset, perpetual::AccountDataType};
+use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PaymentInvoice, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset, perpetual::AccountDataType};
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
@@ -41,6 +41,11 @@ pub enum TransactionInputType {
         metadata: ApplicationMetadata,
         extra: TransferDataExtra,
     },
+    Payment {
+        asset: Asset,
+        invoice: PaymentInvoice,
+        extra: TransferDataExtra,
+    },
     TransferNft {
         asset: Asset,
         nft_asset: NFTAsset,
@@ -68,7 +73,7 @@ impl TransactionInputType {
             TransactionInputType::Swap { from_asset: asset, .. } => asset,
             TransactionInputType::Stake { asset, .. } => asset,
             TransactionInputType::TokenApprove { asset, .. } => asset,
-            TransactionInputType::Generic { asset, .. } => asset,
+            TransactionInputType::Generic { asset, .. } | TransactionInputType::Payment { asset, .. } => asset,
             TransactionInputType::TransferNft { asset, .. } => asset,
             TransactionInputType::Account { asset, .. } => asset,
             TransactionInputType::Perpetual { asset, .. } => asset,
@@ -85,7 +90,7 @@ impl TransactionInputType {
 
     pub fn get_generic_data(&self) -> Result<&TransferDataExtra, &'static str> {
         match self {
-            TransactionInputType::Generic { extra, .. } => Ok(extra),
+            TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => Ok(extra),
             _ => Err("expected generic transaction"),
         }
     }
@@ -146,7 +151,7 @@ impl TransactionInputType {
             TransactionInputType::Swap { to_asset: asset, .. } => asset,
             TransactionInputType::Stake { asset, .. } => asset,
             TransactionInputType::TokenApprove { asset, .. } => asset,
-            TransactionInputType::Generic { asset, .. } => asset,
+            TransactionInputType::Generic { asset, .. } | TransactionInputType::Payment { asset, .. } => asset,
             TransactionInputType::TransferNft { asset, .. } => asset,
             TransactionInputType::Account { asset, .. } => asset,
             TransactionInputType::Perpetual { asset, .. } => asset,
@@ -168,7 +173,7 @@ impl TransactionInputType {
                 StakeType::Unfreeze(_) => TransactionType::StakeUnfreeze,
             },
             TransactionInputType::TokenApprove { .. } => TransactionType::TokenApproval,
-            TransactionInputType::Generic { extra, .. } => extra.transaction_type.clone(),
+            TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => extra.transaction_type.clone(),
             TransactionInputType::TransferNft { .. } => TransactionType::TransferNFT,
             TransactionInputType::Account { .. } => TransactionType::AssetActivation,
             TransactionInputType::Perpetual { perpetual_type, .. } => match perpetual_type {

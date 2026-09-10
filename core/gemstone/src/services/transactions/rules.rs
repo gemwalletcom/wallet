@@ -210,6 +210,7 @@ fn header(extended: &TransactionExtended) -> GemTransactionHeader {
     };
     match header_kind(transaction) {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
+        GemTransactionHeaderKind::Payment => amount(true),
         GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From, GemAmountSign::None), swap_leg(extended, SwapLeg::To, GemAmountSign::None)) {
             (Some(from), Some(to)) => GemTransactionHeader::Swap { from, to },
             _ => amount(true),

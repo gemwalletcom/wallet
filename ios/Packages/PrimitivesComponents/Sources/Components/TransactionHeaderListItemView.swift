@@ -47,7 +47,7 @@ public struct TransactionHeaderListItemView: View {
         case .swap:
             // Swap row has two distinct tap regions; SwapAmountView wires Buttons internally.
             TransactionHeaderView(type: headerType, action: action)
-        case .amount, .nft, .asset, .assetValue:
+        case .amount, .payment, .nft, .asset, .assetValue:
             if let action {
                 Button { action(.header) } label: {
                     TransactionHeaderView(type: headerType)

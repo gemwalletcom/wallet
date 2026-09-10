@@ -99,7 +99,7 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
             encode_erc20_approve_max_value(&approval.spender)?,
             BigInt::from(0),
         )),
-        TransactionInputType::Generic { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
+        TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
         TransactionInputType::Stake { .. } => Err("Unsupported chain for staking".into()),
         TransactionInputType::Earn { data: earn_data, .. } => {
             if let Some(approval) = &earn_data.approval {

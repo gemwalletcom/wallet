@@ -6,7 +6,6 @@ use typeshare::typeshare;
 #[serde(rename_all = "camelCase")]
 pub enum ApplicationMetadataSource {
     WalletConnect,
-    Payment,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

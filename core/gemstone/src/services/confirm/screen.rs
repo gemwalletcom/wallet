@@ -106,6 +106,7 @@ mod tests {
     use primitives::{Account, Asset, Chain, SimulationResult, SimulationWarning, TransactionInputType};
 
     use super::super::model::{GemConfirmMetadata, GemConfirmPreload, GemConfirmSimulationState};
+    use crate::services::transfer::{GemRecipient, GemTransferData};
     use super::super::testkit::confirm_data;
     use super::*;
     use crate::services::balance::GemAssetBalance;
@@ -219,6 +220,12 @@ mod tests {
     fn load_without_preload() -> GemConfirmLoad {
         let eth = Asset::mock_eth();
         GemConfirmLoad {
+            transfer: GemTransferData {
+                input_type: TransactionInputType::Transfer { asset: eth.clone() },
+                recipient: GemRecipient::address("recipient".into()),
+                value: 1.into(),
+                use_max_amount: false,
+            },
             sender: Account::mock(Chain::Ethereum, "sender"),
             fee_asset: eth.clone(),
             metadata: GemConfirmMetadata {

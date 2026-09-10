@@ -2,10 +2,11 @@ use std::sync::Arc;
 
 use futures::lock::Mutex;
 use primitives::currency::Currency;
-use primitives::{BlockExplorerLink, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet};
+use primitives::{AssetId, BlockExplorerLink, Chain, ChainAddress, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
 
 use super::rules::preload_simulation;
 use super::{GemAcquireAssetFlow, GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmScreen, GemConfirmTransferService, GemExecuteResult, GemTransferAmountResult};
+use crate::payment::GemPaymentLoad;
 use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::transfer::GemTransferData;
 use crate::services::wallet::GemKeystoreAuthentication;
@@ -14,7 +15,7 @@ use crate::services::wallet::GemKeystoreAuthentication;
 pub struct GemConfirmSession {
     service: Arc<GemConfirmTransferService>,
     wallet: Wallet,
-    transfer: GemTransferData,
+    transfer: Mutex<GemTransferData>,
     simulation: Option<SimulationResult>,
     screen: Mutex<Option<GemConfirmLoad>>,
 }
@@ -24,7 +25,7 @@ impl GemConfirmSession {
         Self {
             service,
             wallet,
-            transfer,
+            transfer: Mutex::new(transfer),
             simulation,
             screen: Mutex::new(None),
         }
@@ -80,15 +81,19 @@ impl GemConfirmSession {
         if let Some(screen) = self.screen.lock().await.clone() {
             return Ok(screen);
         }
-        let input = self.service.confirm_input(self.wallet.clone(), self.transfer.clone())?;
+        let input = self.service.confirm_input(self.wallet.clone(), self.transfer.lock().await.clone())?;
         let screen = self.service.state(self.wallet.id.clone(), &input, self.simulation.clone()).await?;
         *self.screen.lock().await = Some(screen.clone());
         Ok(screen)
     }
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
-        let input = self.service.confirm_input(self.wallet.clone(), self.transfer.clone())?;
-        let input_type = self.transfer.input_type.clone();
+        if let Some(asset_id) = options.asset_id.clone() {
+            self.select_asset(asset_id).await?;
+        }
+        let transfer = self.transfer.lock().await.clone();
+        let input = self.service.confirm_input(self.wallet.clone(), transfer.clone())?;
+        let input_type = transfer.input_type;
         let requested = async {
             match self.simulation.clone() {
                 Some(simulation) => Some(self.service.simulation_state(input_type.clone(), Some(simulation)).await),
@@ -104,6 +109,32 @@ impl GemConfirmSession {
         let screen = screen?.with_fee(fee, simulation);
         *self.screen.lock().await = Some(screen.clone());
         Ok(screen)
+    }
+}
+
+impl GemConfirmSession {
+    async fn select_asset(&self, asset_id: AssetId) -> Result<(), GemConfirmError> {
+        let transfer = self.transfer.lock().await.clone();
+        if transfer.input_type.get_asset().id == asset_id {
+            return Ok(());
+        }
+        let TransactionInputType::Payment { invoice, .. } = transfer.input_type else {
+            return Err(GemConfirmError::Load {
+                msg: "Transfer is not a payment".to_string(),
+            });
+        };
+        let addresses = self.wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
+        let transfer = match self.service.payment().select_asset(invoice, addresses, asset_id).await? {
+            GemPaymentLoad::Sign { transfer } => transfer,
+            GemPaymentLoad::Verify { .. } => {
+                return Err(GemConfirmError::Load {
+                    msg: "Payment needs verification".to_string(),
+                });
+            }
+        };
+        *self.transfer.lock().await = transfer;
+        *self.screen.lock().await = None;
+        Ok(())
     }
 }
 
@@ -147,6 +178,7 @@ mod tests {
             let options = GemConfirmLoadOptions {
                 fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
                 fee_asset_id: None,
+                asset_id: None,
             };
             assert!(session.load(options).await.is_err());
             assert_eq!(*testkit.balances.requests.lock().unwrap(), vec![wallet.id.clone(), wallet.id]);
@@ -201,6 +233,51 @@ mod tests {
             assert_eq!(state.simulation.warnings.len(), 1);
             assert!(state.simulation.simulation.is_none());
             assert!(state.simulation.address_names.is_empty());
+        });
+    }
+
+    #[test]
+    fn test_load_switches_the_asset_only_for_a_payment() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x0000000000000000000000000000000000000001")]);
+            let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+            let options = |asset_id: Option<primitives::AssetId>| GemConfirmLoadOptions {
+                fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
+                fee_asset_id: None,
+                asset_id,
+            };
+            let transfer = |input_type| GemTransferData {
+                input_type,
+                recipient: GemRecipient::address(String::new()),
+                value: 0.into(),
+                use_max_amount: false,
+            };
+            let other = primitives::AssetId::from_chain(Chain::SmartChain);
+
+            let sent = testkit.service.clone().session(
+                wallet.clone(),
+                transfer(TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Ethereum),
+                }),
+                None,
+            );
+            let GemConfirmError::Load { msg } = sent.load(options(Some(other.clone()))).await.unwrap_err() else {
+                panic!("expected a load error");
+            };
+            assert_eq!(msg, "Transfer is not a payment");
+
+            let paid = testkit.service.clone().session(
+                wallet,
+                transfer(TransactionInputType::Payment {
+                    asset: Asset::from_chain(Chain::Ethereum),
+                    invoice: primitives::PaymentInvoice::mock(),
+                    extra: primitives::TransferDataExtra::mock(),
+                }),
+                None,
+            );
+            let same = paid.load(options(Some(primitives::AssetId::from_chain(Chain::Ethereum)))).await.unwrap_err();
+            assert!(!same.to_string().contains("payment"), "the asset already paid with must not be re-selected: {same}");
+            assert!(paid.load(options(Some(other))).await.is_err());
         });
     }
 }

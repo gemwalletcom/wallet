@@ -73,6 +73,10 @@ public struct TransactionInfoViewModel: Sendable {
         case let .amount(showFiat): .amount(
                 amountDisplay().fiatVisibility(showFiat),
             )
+        case let .payment(price): .payment(
+                price: PaymentPriceViewModel(price: price).text,
+                amount: amountDisplay(formatter: .auto),
+            )
         case let .nft(name, id): .nft(
                 name: name,
                 image: AssetImage(

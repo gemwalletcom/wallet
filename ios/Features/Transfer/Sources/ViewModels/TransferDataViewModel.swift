@@ -49,6 +49,7 @@ struct TransferDataViewModel {
         case .swap: Localized.Wallet.swap
         case .approve: Localized.Transfer.Approve.title
         case .request: Localized.Transfer.reviewRequest
+        case .payment: Localized.Transfer.paymentTitle
         case .stake: Localized.Transfer.Stake.title
         case .unstake: Localized.Transfer.Unstake.title
         case .redelegate: Localized.Transfer.Redelegate.title
@@ -75,7 +76,8 @@ struct TransferDataViewModel {
              .stake,
              .account,
              .perpetual,
-             .earn: .none
+             .earn,
+             .payment: .none
         case let .generic(_, metadata, _):
             URL(string: metadata.map().url)
         }

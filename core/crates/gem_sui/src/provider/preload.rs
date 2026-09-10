@@ -62,7 +62,7 @@ impl ChainTransactionLoad for SuiProvider {
 
 fn estimated_gas_budget(input_type: &TransactionInputType, fee: &TransactionFee) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
     match input_type {
-        TransactionInputType::Swap { .. } | TransactionInputType::Generic { .. } => Ok(None),
+        TransactionInputType::Swap { .. } | TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok(None),
         _ => Ok(Some(fee.gas_limit()?)),
     }
 }
@@ -88,6 +88,11 @@ impl SuiClient {
             } if extra.data.as_deref().is_some_and(is_transaction_json) => TransactionInputType::Generic {
                 asset,
                 metadata: app_metadata,
+                extra: self.finish_transaction_json_extra(&sender_address, extra).await?,
+            },
+            TransactionInputType::Payment { asset, invoice, extra } if extra.data.as_deref().is_some_and(is_transaction_json) => TransactionInputType::Payment {
+                asset,
+                invoice,
                 extra: self.finish_transaction_json_extra(&sender_address, extra).await?,
             },
             other => other,
@@ -153,7 +158,7 @@ impl SuiClient {
                 }
             },
             TransactionInputType::Swap { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
-            TransactionInputType::Generic { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
+            TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
             TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } => Err("Unsupported transaction type for Sui".into()),
             _ => Err("Unsupported transaction type for Sui".into()),
         }
