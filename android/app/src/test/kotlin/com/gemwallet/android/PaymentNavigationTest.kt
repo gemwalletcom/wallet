@@ -1,191 +1,108 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.domains.confirm.applicationMetadata
-import com.gemwallet.android.domains.confirm.asset
-import uniffi.gemstone.TransactionInputType
-import com.wallet.core.primitives.TransferDataOutputAction
-import com.wallet.core.primitives.TransferDataOutputType
-import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.domains.confirm.unpackTransferData
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAccount
-import com.wallet.core.primitives.Chain
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
-import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransferDataOutputAction
+import com.wallet.core.primitives.TransferDataOutputType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.GemPaymentTransaction
 import uniffi.gemstone.AlienProvider
-import com.gemwallet.android.ext.toGem
-import com.wallet.core.primitives.Asset
-import uniffi.gemstone.GemAssetsServiceInterface
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.Payment
-import uniffi.gemstone.PaymentAmount
+import uniffi.gemstone.PaymentInvoice
 import uniffi.gemstone.PaymentLink
-import uniffi.gemstone.PaymentRequest
+import uniffi.gemstone.PaymentMerchant
+import uniffi.gemstone.TransactionInputType
+import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
-import com.gemwallet.android.domains.confirm.unpackTransferData
 
 class PaymentNavigationTest {
 
-
     @Test
-    fun routes_paymentLink_loadsTransactionForExistingAccount() = runTest {
-        val assetInfo = mockAssetInfo(
-            asset = mockAssetSolanaUSDC(),
-            owner = mockAccount(chain = Chain.Solana, address = SOLANA_ADDRESS),
-        )
-        val getWalletAssets = mockk<GetWalletAssets>()
-        val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
-        val account = requireNotNull(assetInfo.owner)
-        val request = PaymentRequest(
-            address = account.address,
-            amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
-            memo = "payment-memo",
-            label = null,
-            references = null,
-            assetId = assetInfo.asset.id.toIdentifier(),
-        )
-        every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
-        coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
-            account = account,
-            memo = "payment-memo",
-            request = request,
-        )
-        val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
-
-        val routes = navigation.routes(
-            Payment.Link(PaymentLink.SolanaPay("https://example.com/pay"))
-        )
-
-        val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(unpackTransferData(route.params))
-        val assetId = transfer.asset.id
-        val metadataSource = transfer.inputType.applicationMetadata?.source
-        val generic = transfer.inputType as TransactionInputType.Generic
-        assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
-        assertEquals("payment-memo", transfer.recipient.memo)
-        assertEquals(assetInfo.asset.id, assetId)
-        assertEquals(account.address, transfer.recipient.address)
-        assertEquals(BigInteger("19000000"), transfer.value)
-        assertEquals(ApplicationMetadataSource.Payment, metadataSource)
-        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.toPrimitives())
-        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.toPrimitives())
-    }
-
-    @Test
-    fun routes_paymentLink_confirmsDecodedTransferWithoutMemo() = runTest {
-        val assetInfo = mockAssetInfo(asset = mockAssetSolanaUSDC())
-        val getWalletAssets = mockk<GetWalletAssets>()
-        val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
-        val account = requireNotNull(assetInfo.owner)
-        val recipient = SOLANA_ADDRESS
-        val request = PaymentRequest(
-            address = recipient,
-            amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
-            memo = null,
-            references = null,
-            label = null,
-            assetId = assetInfo.asset.id.toIdentifier(),
-        )
-        every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
-        coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
-            account = account,
-            memo = null,
-            request = request,
-        )
-        val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
-
-        val routes = navigation.routes(
-            Payment.Link(PaymentLink.SolanaPay("https://example.com/pay"))
-        )
-
-        val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(unpackTransferData(route.params))
-        val assetId = transfer.asset.id
-        val generic = transfer.inputType as TransactionInputType.Generic
-        assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
-        assertEquals(null, transfer.recipient.memo)
-        assertEquals(assetInfo.asset.id, assetId)
-        assertEquals(recipient, transfer.recipient.address)
-        assertEquals(BigInteger("19000000"), transfer.value)
-    }
-
-    @Test
-    fun routes_paymentLink_asksCoreForTheRequestAssetInsteadOfTheEnabledList() = runTest {
+    fun routes_paymentLink_confirmsTheLoadedTransfer() = runTest {
         val assetInfo = mockAssetInfo(
             asset = mockAssetSolana(),
             owner = mockAccount(chain = Chain.Solana, address = SOLANA_ADDRESS),
         )
         val getWalletAssets = mockk<GetWalletAssets>()
-        val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
-        val account = requireNotNull(assetInfo.owner)
-        val requestedAsset = mockAssetSolanaUSDC()
+        val paymentService = spyk(GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>()))
         every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
-        coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
-            account = account,
-            memo = "payment-memo",
-            request = PaymentRequest(
-                address = account.address,
-                amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
-                memo = "payment-memo",
-                references = null,
-                label = null,
-                assetId = requestedAsset.id.toIdentifier(),
-            ),
-        )
-        val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(requestedAsset))
+        coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Sign(paymentTransfer())
+        val navigation = PaymentNavigation(getWalletAssets, paymentService)
 
-        val routes = navigation.routes(
-            Payment.Link(PaymentLink.SolanaPay("https://example.com/pay"))
-        )
+        val routes = navigation.routes(Payment.Link(PaymentLink.SolanaPay(PAYMENT_URL)))
 
         val route = routes.single() as ConfirmRoute
         val transfer = requireNotNull(unpackTransferData(route.params))
-        assertEquals(requestedAsset.id, transfer.asset.id)
+        val payment = transfer.inputType as TransactionInputType.Payment
+        assertEquals(mockAssetSolana().id, transfer.asset.id)
+        assertEquals(SOLANA_ADDRESS, transfer.recipient.address)
         assertEquals(BigInteger("19000000"), transfer.value)
+        assertEquals(paymentInvoice(), payment.invoice)
     }
 
-    private fun assetsService(asset: Asset) = mockk<GemAssetsServiceInterface> {
-        coEvery { ensureTokenAsset(asset.id.toIdentifier()) } returns asset.toGem()
+    @Test
+    fun routes_paymentLink_verificationHasNoRoute() = runTest {
+        val getWalletAssets = mockk<GetWalletAssets>()
+        val paymentService = spyk(GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>()))
+        every { getWalletAssets() } returns MutableStateFlow(listOf(mockAssetInfo(asset = mockAssetSolana())))
+        coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Verify(
+            invoice = paymentInvoice(),
+            assetId = mockAssetSolana().id.toGem(),
+            url = "https://walletconnect.com/verify",
+        )
+        val navigation = PaymentNavigation(getWalletAssets, paymentService)
+
+        assertTrue(navigation.routes(Payment.Link(PaymentLink.SolanaPay(PAYMENT_URL))).isEmpty())
     }
 
-    private fun paymentTransaction(
-        account: Account,
-        memo: String?,
-        request: PaymentRequest?,
-    ) = GemPaymentTransaction(
-        merchant = ApplicationMetadata(
-            name = "Merchant",
-            description = "Payment",
-            url = "https://example.com",
-            icon = "https://example.com/icon.png",
-            source = ApplicationMetadataSource.Payment,
-        ).toGem(),
-        account = ChainAddress(account.chain, account.address).toGem(),
-        transaction = "encoded-transaction",
-        transactionType = TransactionType.Transfer.toGem(),
-        memo = memo,
-        request = request,
+    private fun paymentTransfer() = GemTransferData(
+        inputType = TransactionInputType.Payment(
+            asset = mockAssetSolana().toGem(),
+            invoice = paymentInvoice(),
+            extra = TransferDataExtra(
+                to = SOLANA_ADDRESS,
+                gasLimit = null,
+                gasPrice = null,
+                data = "encoded-transaction".toByteArray(),
+                outputType = TransferDataOutputType.EncodedTransaction.toGem(),
+                outputAction = TransferDataOutputAction.Send.toGem(),
+                transactionType = TransactionType.Transfer.toGem(),
+                approval = null,
+            ),
+        ),
+        recipient = GemRecipient(address = SOLANA_ADDRESS, name = null, memo = null, references = emptyList()),
+        value = BigInteger("19000000"),
+        useMaxAmount = false,
+    )
+
+    private fun paymentInvoice() = PaymentInvoice(
+        link = PaymentLink.SolanaPay(PAYMENT_URL),
+        merchant = PaymentMerchant(name = "Merchant", icon = "https://example.com/icon.png"),
+        price = null,
+        quotes = emptyList(),
     )
 
     private companion object {
+        const val PAYMENT_URL = "https://example.com/pay"
         const val SOLANA_ADDRESS = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
     }
 }
