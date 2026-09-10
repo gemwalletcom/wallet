@@ -2,6 +2,7 @@ package com.gemwallet.android.features.recipient.presents
 
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemRecipientType
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
@@ -37,7 +38,7 @@ import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.components.keyboardAsState
+import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -124,7 +125,7 @@ internal fun RecipientScreen(
     buttonState: ButtonState,
     onAction: (RecipientAction) -> Unit,
 ) {
-    val isKeyBoardOpen by keyboardAsState()
+    val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
     val isSmallScreen = with(density) {
         LocalWindowInfo.current.containerSize.height.toDp() < 680.dp

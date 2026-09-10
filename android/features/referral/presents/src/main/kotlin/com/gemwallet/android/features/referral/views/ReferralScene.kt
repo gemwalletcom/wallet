@@ -198,17 +198,17 @@ fun ReferralScene(
         }
     }
 
-    if (getStartedDialogShow) {
-        GetStartedDialog(onUsername) {
-            getStartedDialogShow = false
-        }
+    GetStartedDialog(isVisible = getStartedDialogShow, onUsername = onUsername) {
+        getStartedDialogShow = false
     }
 
-    if (codeDialogShow) {
-        ReferralCodeDialog(referralCode = referralCode, onCode = onCode) {
-            codeDialogShow = false
-            onCancelCode()
-        }
+    ReferralCodeDialog(
+        isVisible = codeDialogShow,
+        referralCode = referralCode,
+        onCode = onCode,
+    ) {
+        codeDialogShow = false
+        onCancelCode()
     }
 }
 

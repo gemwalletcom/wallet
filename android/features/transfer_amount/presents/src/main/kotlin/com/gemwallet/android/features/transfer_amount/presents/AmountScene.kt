@@ -3,6 +3,7 @@ package com.gemwallet.android.features.transfer_amount.presents
 import androidx.compose.ui.text.input.KeyboardType
 import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +36,7 @@ import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.AmountField
-import com.gemwallet.android.ui.components.keyboardAsState
+import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
 import com.gemwallet.android.ui.components.screen.Scene
@@ -69,7 +70,7 @@ internal fun AmountScene(
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val isKeyBoardOpen by keyboardAsState()
+    val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
     val isSmallScreen = with(density) {
         LocalWindowInfo.current.containerSize.height.toDp() < 680.dp

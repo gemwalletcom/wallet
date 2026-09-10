@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.perpetual
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
@@ -47,13 +48,12 @@ fun PerpetualDetailsBottomSheet(
     model: PerpetualConfirmDetailsUIModel?,
     onDismiss: () -> Unit,
 ) {
-    if (model == null) return
     ModalBottomSheet(
-        isVisible = isVisible,
+        item = model.takeIf { isVisible },
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
-        title = stringResource(R.string.common_details),
-    ) {
+        expansion = SheetExpansion.Full,
+        title = { stringResource(R.string.common_details) },
+    ) { model ->
         Column {
             PropertyItem(
                 title = stringResource(R.string.perpetual_position),

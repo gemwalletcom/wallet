@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
@@ -87,20 +88,18 @@ fun SwapDetailsBottomSheet(
     model: SwapDetailsUIModel?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    skipPartiallyExpanded: Boolean = false,
+    expansion: SheetExpansion = SheetExpansion.Partial,
     showProviderSectionHeader: Boolean = false,
     onProviderSelect: ((SwapProvider) -> Unit)? = null,
 ) {
-    if (model == null) return
-
     ModalBottomSheet(
-        isVisible = isVisible,
+        item = model.takeIf { isVisible },
         onDismissRequest = onDismiss,
         modifier = modifier,
-        skipPartiallyExpanded = skipPartiallyExpanded,
-        title = stringResource(R.string.common_details),
+        expansion = expansion,
+        title = { stringResource(R.string.common_details) },
         dismissType = DialogBarDismissType.Confirm,
-    ) {
+    ) { model ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 CircularProgressIndicator20(modifier = Modifier.align(Alignment.Center))

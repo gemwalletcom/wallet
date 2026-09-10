@@ -31,6 +31,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
 internal fun GetStartedDialog(
+    isVisible: Boolean,
     onUsername: (String, (Exception?) -> Unit) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -39,9 +40,6 @@ internal fun GetStartedDialog(
     var showProgress by remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
 
     val dismissDialog: () -> Unit = {
         onDismiss()
@@ -72,10 +70,14 @@ internal fun GetStartedDialog(
     }
 
     FormDialog(
+        isVisible = isVisible,
         title = stringResource(R.string.rewards_create_referral_code_title),
         onDismiss = dismissDialog,
         doneAction = done,
     ) {
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
         GemTextField(
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             label = stringResource(id = R.string.rewards_username),

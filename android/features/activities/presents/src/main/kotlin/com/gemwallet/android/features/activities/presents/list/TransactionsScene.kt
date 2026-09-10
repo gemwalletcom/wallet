@@ -92,18 +92,17 @@ internal fun TransactionsScene(
             }
         }
     }
-    if (showFilters) {
-        TransactionsFilter(
-            availableChains = availableChains,
-            chainsFilter = chainsFilter,
-            typesFilter = typeFilter,
-            onDismissRequest = { showFilters = false },
-            onApplyChainsFilter = { onAction(TransactionsListAction.ApplyChainsFilter(it)) },
-            onApplyTypesFilter = { onAction(TransactionsListAction.ApplyTypesFilter(it)) },
-            onClearChainsFilter = { onAction(TransactionsListAction.ClearChainsFilter) },
-            onClearTypesFilter = { onAction(TransactionsListAction.ClearTypesFilter) },
-        )
-    }
+    TransactionsFilter(
+        isVisible = showFilters,
+        availableChains = availableChains,
+        chainsFilter = chainsFilter,
+        typesFilter = typeFilter,
+        onDismissRequest = { showFilters = false },
+        onApplyChainsFilter = { onAction(TransactionsListAction.ApplyChainsFilter(it)) },
+        onApplyTypesFilter = { onAction(TransactionsListAction.ApplyTypesFilter(it)) },
+        onClearChainsFilter = { onAction(TransactionsListAction.ClearChainsFilter) },
+        onClearTypesFilter = { onAction(TransactionsListAction.ClearTypesFilter) },
+    )
 }
 
 private fun transactionsEmptyContentType(
