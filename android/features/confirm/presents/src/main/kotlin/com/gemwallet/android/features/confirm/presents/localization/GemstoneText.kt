@@ -39,6 +39,7 @@ internal fun GemConfirmTitle.string(): String = when (this) {
     GemConfirmTitle.Swap -> stringResource(R.string.wallet_swap)
     GemConfirmTitle.Approve -> stringResource(R.string.transfer_approve_title)
     GemConfirmTitle.Request -> stringResource(R.string.transfer_review_request)
+    GemConfirmTitle.Payment -> stringResource(R.string.transfer_payment_title)
     GemConfirmTitle.Stake -> stringResource(R.string.transfer_stake_title)
     GemConfirmTitle.Unstake -> stringResource(R.string.transfer_unstake_title)
     GemConfirmTitle.Redelegate -> stringResource(R.string.transfer_redelegate_title)
