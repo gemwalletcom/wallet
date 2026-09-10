@@ -105,6 +105,7 @@ pub struct GemAssetRow {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSelectAssetTitle {
     Send,
+    PayWith,
     Receive,
     ReceiveCollection,
     Buy,

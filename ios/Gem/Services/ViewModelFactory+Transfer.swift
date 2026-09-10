@@ -56,11 +56,20 @@ extension ViewModelFactory {
             ),
             wallet: wallet,
             confirmation: confirmTransferService().confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
-            onComplete: { [toastPresenter] in
-                Task { toastPresenter.present(.transfer(for: data.inputType)) }
+            onComplete: { [toastPresenter] result in
+                Task { toastPresenter.present(.transfer(result, for: data.inputType)) }
                 onComplete?()
             },
         )
+    }
+
+    @MainActor
+    public func paymentVerificationScene(
+        verification: PaymentVerification,
+        wallet: Wallet,
+        onComplete: @escaping (PaymentDestination) -> Void,
+    ) -> PaymentVerificationViewModel {
+        PaymentVerificationViewModel(verification: verification, wallet: wallet, service: paymentService, onComplete: onComplete)
     }
 
     private func confirmTransferService() -> GemConfirmTransferService {
@@ -73,6 +82,7 @@ extension ViewModelFactory {
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,
             preferences: preferencesService,
+            payment: paymentService,
         )
     }
 

@@ -17,6 +17,7 @@ import Primitives
 import PrimitivesComponents
 
 struct ConfirmTransferState {
+    var transfer: GemTransferData
     var feeAsset: Asset
     var load: GemConfirmLoad?
     var simulation: ConfirmSimulationState
@@ -31,6 +32,7 @@ struct ConfirmTransferState {
 extension ConfirmTransferState {
     init(transfer: GemTransferData, simulation: ConfirmSimulationState, screen: GemConfirmScreen) {
         self.init(
+            transfer: transfer,
             feeAsset: transfer.feeAsset().toPrimitives(),
             load: nil,
             simulation: simulation,
@@ -40,6 +42,7 @@ extension ConfirmTransferState {
 
     init(_ load: GemConfirmLoad, screen: GemConfirmScreen) throws {
         self.init(
+            transfer: load.transfer,
             feeAsset: load.feeAsset.toPrimitives(),
             load: load,
             simulation: try ConfirmSimulationState(load.simulation),

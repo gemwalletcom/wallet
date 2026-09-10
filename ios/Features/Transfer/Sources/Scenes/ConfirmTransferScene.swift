@@ -27,7 +27,7 @@ public struct ConfirmTransferScene: View {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .task(id: model.preloadSelection) {
+        .task(id: model.selection) {
             await model.load()
         }
         .navigationTitle(model.title)
@@ -61,6 +61,12 @@ extension ConfirmTransferScene {
             AddressListItemView(model: model)
         case let .network(model):
             ListItemImageView(model: model)
+        case let .paymentAsset(model, selection, selectable):
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                isEnabled: selectable,
+                action: { self.model.onSelectPaymentAsset(selection) },
+            )
         case let .memo(model):
             ListItemView(model: model)
                 .contextMenu(model.subtitle.map { [.copy(value: $0)] } ?? [])
@@ -79,14 +85,11 @@ extension ConfirmTransferScene {
                 ListItemView(model: listItemModel)
             }
         case let .networkFee(model, selectable):
-            if selectable {
-                NavigationCustomLink(
-                    with: ListItemView(model: model),
-                    action: self.model.onSelectFeePicker,
-                )
-            } else {
-                ListItemView(model: model)
-            }
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                isEnabled: selectable,
+                action: self.model.onSelectFeePicker,
+            )
         case let .warnings(models):
             SimulationWarningsContent(models: models)
         case let .balanceChange(model):

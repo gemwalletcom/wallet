@@ -191,6 +191,7 @@ fn select_asset_title(select_type: &GemSelectAssetType) -> GemSelectAssetTitle {
         GemSelectAssetType::Buy => GemSelectAssetTitle::Buy,
         GemSelectAssetType::SwapPay => GemSelectAssetTitle::SwapPay,
         GemSelectAssetType::SwapReceive { .. } => GemSelectAssetTitle::SwapReceive,
+        GemSelectAssetType::Payment { .. } => GemSelectAssetTitle::PayWith,
         GemSelectAssetType::Manage => GemSelectAssetTitle::ManageTokenList,
         GemSelectAssetType::PriceAlert => GemSelectAssetTitle::SelectAsset,
         GemSelectAssetType::Deposit => GemSelectAssetTitle::Deposit,

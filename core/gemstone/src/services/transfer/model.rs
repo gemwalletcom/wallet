@@ -113,6 +113,7 @@ pub enum GemConfirmRow {
     Network,
     Memo,
     Details,
+    PaymentAsset,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
