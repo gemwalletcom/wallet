@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.presents
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
@@ -313,7 +314,7 @@ fun ConfirmScreen(
         ModalBottomSheet(
             isVisible = showSimulationDetails,
             onDismissRequest = { showSimulationDetails = false },
-            skipPartiallyExpanded = true,
+            expansion = SheetExpansion.Full,
             title = stringResource(R.string.common_details),
         ) {
             LazyColumn {
@@ -377,25 +378,18 @@ private fun ConfirmDetailElementBottomSheet(
     item: ConfirmDetailElement?,
     onDismiss: () -> Unit,
 ) {
-    when (item) {
-        is ConfirmDetailElement.SwapDetails -> SwapDetailsBottomSheet(
-            isVisible = true,
-            isLoading = false,
-            model = item.model,
-            onDismiss = onDismiss,
-            showProviderSectionHeader = true,
-        )
-
-        is ConfirmDetailElement.PerpetualDetails -> PerpetualDetailsBottomSheet(
-            isVisible = true,
-            model = item.model,
-            onDismiss = onDismiss,
-        )
-
-        is ConfirmDetailElement.PerpetualModifyAutoclose -> Unit
-
-        null -> Unit
-    }
+    SwapDetailsBottomSheet(
+        isVisible = item is ConfirmDetailElement.SwapDetails,
+        isLoading = false,
+        model = (item as? ConfirmDetailElement.SwapDetails)?.model,
+        onDismiss = onDismiss,
+        showProviderSectionHeader = true,
+    )
+    PerpetualDetailsBottomSheet(
+        isVisible = item is ConfirmDetailElement.PerpetualDetails,
+        model = (item as? ConfirmDetailElement.PerpetualDetails)?.model,
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable

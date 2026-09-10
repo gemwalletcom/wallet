@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -31,17 +32,17 @@ import com.wallet.core.primitives.Asset
 
 @Composable
 internal fun GetAssetBottomSheet(
-    asset: Asset,
+    asset: Asset?,
     buyAmount: Int?,
     onDismiss: () -> Unit,
     onAction: (AcquireAssetAction) -> Unit,
 ) {
     ModalBottomSheet(
-        isVisible = true,
+        item = asset,
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
-        title = stringResource(R.string.asset_get_asset, asset.symbol),
-    ) {
+        expansion = SheetExpansion.Full,
+        title = { stringResource(R.string.asset_get_asset, it.symbol) },
+    ) { shownAsset ->
         Column(modifier = Modifier.padding(bottom = paddingDefault)) {
             GetAssetItem(
                 title = stringResource(R.string.wallet_buy),

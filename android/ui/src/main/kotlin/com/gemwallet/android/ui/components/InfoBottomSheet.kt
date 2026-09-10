@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.annotation.StringRes
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -323,16 +324,12 @@ fun InfoBottomSheet(
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-    var displayItem by remember { mutableStateOf(item) }
-    if (item != null) displayItem = item
-    val shownItem = displayItem ?: return
-
     ModalBottomSheet(
-        isVisible = item != null,
-        skipPartiallyExpanded = true,
+        item = item,
+        expansion = SheetExpansion.Full,
         containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = onClose,
-    ) {
+    ) { shownItem ->
         Column(
             modifier = Modifier
                 .fillMaxWidth()

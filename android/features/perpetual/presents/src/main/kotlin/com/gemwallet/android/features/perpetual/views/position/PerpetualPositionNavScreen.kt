@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetual.views.position
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -68,7 +69,7 @@ fun PerpetualPositionNavScreen(
     ModalBottomSheet(
         isVisible = showAutoclose,
         onDismissRequest = { showAutoclose = false },
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = null,
         dragHandle = null,
     ) {

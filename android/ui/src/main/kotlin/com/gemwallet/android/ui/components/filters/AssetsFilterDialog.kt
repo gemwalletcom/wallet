@@ -15,6 +15,7 @@ import com.wallet.core.primitives.Chain
 
 @Composable
 fun AssetsFilter(
+    isVisible: Boolean,
     availableChains: List<Chain>,
     chainFilter: List<Chain>,
     balanceFilter: Boolean,
@@ -28,6 +29,7 @@ fun AssetsFilter(
     val chainService = LocalChainService.current
 
     FormDialog(
+        isVisible = isVisible,
         title = stringResource(R.string.filter_title),
         onDismiss = onDismissRequest,
         onClear = onClearFilters,

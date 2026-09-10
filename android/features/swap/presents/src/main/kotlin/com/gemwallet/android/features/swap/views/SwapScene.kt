@@ -2,11 +2,9 @@ package com.gemwallet.android.features.swap.views
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
@@ -23,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.IndicatorButton
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
@@ -43,7 +42,6 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SwapScene(
     swapState: SwapUiState,
@@ -61,7 +59,7 @@ internal fun SwapScene(
     fun clearAmountFocus() {
         focusManager.clearFocus(force = true)
     }
-    val isKeyboardVisible = WindowInsets.isImeVisible
+    val isKeyboardVisible = WindowInsets.isKeyboardVisible
     val isPercentBarVisible = isKeyboardVisible && pay != null && swapState.isInputEmpty
 
     Scene(

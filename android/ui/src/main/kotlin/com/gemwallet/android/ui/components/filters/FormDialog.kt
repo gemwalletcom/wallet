@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,23 +20,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.theme.normalPadding
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormDialog(
+    isVisible: Boolean,
     title: String,
-    fullScreen: Boolean = false,
+    expansion: SheetExpansion = SheetExpansion.Partial,
     onDismiss: () -> Unit,
     onClear: (() -> Unit)? = null,
     doneAction: @Composable (() -> Unit)? = null,
     bottomAction: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = fullScreen)
-
     ModalBottomSheet(
-        sheetState = sheetState,
+        isVisible = isVisible,
+        expansion = expansion,
         onDismissRequest = onDismiss,
         dragHandle = {
             Row (

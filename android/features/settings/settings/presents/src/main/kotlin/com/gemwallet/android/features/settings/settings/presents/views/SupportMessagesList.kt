@@ -1,12 +1,10 @@
 package com.gemwallet.android.features.settings.settings.presents.views
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatDay
 import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatGroup
+import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.SupportMessage
@@ -39,7 +38,6 @@ private sealed interface ChatRow {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SupportMessagesList(
     days: List<SupportChatDay>,
@@ -65,7 +63,7 @@ internal fun SupportMessagesList(
         }
     }
 
-    val imeVisible = WindowInsets.isImeVisible
+    val imeVisible = WindowInsets.isKeyboardVisible
     LaunchedEffect(imeVisible) {
         if (imeVisible && rows.isNotEmpty()) {
             listState.animateScrollToItem(0)

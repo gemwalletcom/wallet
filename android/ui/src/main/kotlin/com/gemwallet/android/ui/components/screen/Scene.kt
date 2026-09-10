@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
+import com.gemwallet.android.ui.components.keyboard
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
@@ -143,7 +146,10 @@ fun Scene(
         bottomBar = {
             Column(
                 modifier = Modifier.windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .union(WindowInsets.keyboard)
+                        .only(WindowInsetsSides.Bottom)
                 ),
             ) {
                 ConnectionStatusBannerHost()

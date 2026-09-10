@@ -85,17 +85,15 @@ internal fun ConfirmErrorInfo(
         }
     }
 
-    if (isShowGetAssetSheet && requiredAsset != null) {
-        GetAssetBottomSheet(
-            asset = requiredAsset,
-            buyAmount = buyAmount,
-            onDismiss = { isShowGetAssetSheet = false },
-            onAction = {
-                isShowGetAssetSheet = false
-                onAcquireAsset(it, requiredAsset.id)
-            },
-        )
-    }
+    GetAssetBottomSheet(
+        asset = requiredAsset?.takeIf { isShowGetAssetSheet },
+        buyAmount = buyAmount,
+        onDismiss = { isShowGetAssetSheet = false },
+        onAction = { action ->
+            isShowGetAssetSheet = false
+            requiredAsset?.let { onAcquireAsset(action, it.id) }
+        },
+    )
 }
 
 @Composable

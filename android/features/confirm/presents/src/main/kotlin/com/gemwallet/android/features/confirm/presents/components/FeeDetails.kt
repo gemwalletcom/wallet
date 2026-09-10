@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ext.toGem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -116,7 +117,7 @@ fun FeeDetails(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onCancel,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = null,
         dragHandle = {},
     ) {

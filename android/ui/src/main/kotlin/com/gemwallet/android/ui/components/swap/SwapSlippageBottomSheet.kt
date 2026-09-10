@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.swap
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,7 +55,7 @@ fun SwapSlippageBottomSheet(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = stringResource(R.string.swap_slippage),
     ) {
         var isAuto by remember(currentBps) { mutableStateOf(currentBps == null) }

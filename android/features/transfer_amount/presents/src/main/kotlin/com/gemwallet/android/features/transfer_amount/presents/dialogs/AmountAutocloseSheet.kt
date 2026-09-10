@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents.dialogs
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -100,7 +101,7 @@ internal fun AmountAutocloseSheet(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = stringResource(R.string.perpetual_auto_close),
     ) {
         Column(

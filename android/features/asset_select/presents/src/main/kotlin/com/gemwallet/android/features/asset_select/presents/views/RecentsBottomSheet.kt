@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,7 +47,7 @@ fun RecentsBottomSheet(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
     ) {
         Column(
             modifier = Modifier

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.main.views
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,7 +35,7 @@ fun ScanReceiveModal(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         shape = RectangleShape,
         dragHandle = null,
     ) {
@@ -74,7 +75,7 @@ fun ScanReceiveModal(
         ModalBottomSheet(
             isVisible = isReceivePresented,
             onDismissRequest = { isReceivePresented = false },
-            skipPartiallyExpanded = true,
+            expansion = SheetExpansion.Full,
         ) {
             receiveAssetId?.toAssetId()?.let { assetId ->
                 Box(modifier = Modifier.fillMaxHeight(SheetSizing.heightFraction)) {

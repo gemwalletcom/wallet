@@ -99,24 +99,19 @@ internal fun WalletConnectReviewScene(
         }
     }
 
-    when (sheetType) {
-        WalletConnectReviewSheetType.Details -> {
-            WalletConnectPayloadDetailsSheet(
-                primaryFields = model.primaryPayloadFields,
-                secondaryFields = model.secondaryPayloadFields,
-                addressNames = model.addressNames,
-                onViewFullMessage = { sheetType = WalletConnectReviewSheetType.FullMessage },
-                onDismissRequest = { sheetType = null },
-            )
-        }
-        WalletConnectReviewSheetType.FullMessage -> {
-            WalletConnectFullMessageSheet(
-                message = model.message,
-                onDismissRequest = { sheetType = null },
-            )
-        }
-        null -> Unit
-    }
+    WalletConnectPayloadDetailsSheet(
+        isVisible = sheetType == WalletConnectReviewSheetType.Details,
+        primaryFields = model.primaryPayloadFields,
+        secondaryFields = model.secondaryPayloadFields,
+        addressNames = model.addressNames,
+        onViewFullMessage = { sheetType = WalletConnectReviewSheetType.FullMessage },
+        onDismissRequest = { sheetType = null },
+    )
+    WalletConnectFullMessageSheet(
+        isVisible = sheetType == WalletConnectReviewSheetType.FullMessage,
+        message = model.message,
+        onDismissRequest = { sheetType = null },
+    )
 }
 
 private enum class WalletConnectReviewSheetType {

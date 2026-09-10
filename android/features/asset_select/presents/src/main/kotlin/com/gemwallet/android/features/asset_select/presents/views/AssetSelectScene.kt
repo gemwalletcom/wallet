@@ -261,18 +261,17 @@ fun AssetSelectScene(
         }
     }
 
-    if (showSelectNetworks) {
-        AssetsFilter(
-            availableChains = availableChains,
-            chainFilter = chainsFilter,
-            balanceFilter = balanceFilter,
-            showBalanceFilter = showBalanceFilter,
-            onDismissRequest = { showSelectNetworks = false },
-            onChainFilter = { onAction(AssetSelectAction.ChainFilter(it)) },
-            onBalanceFilter = { onAction(AssetSelectAction.BalanceFilter(it)) },
-            onClearFilters = { onAction(AssetSelectAction.ClearFilters) }
-        )
-    }
+    AssetsFilter(
+        isVisible = showSelectNetworks,
+        availableChains = availableChains,
+        chainFilter = chainsFilter,
+        balanceFilter = balanceFilter,
+        showBalanceFilter = showBalanceFilter,
+        onDismissRequest = { showSelectNetworks = false },
+        onChainFilter = { onAction(AssetSelectAction.ChainFilter(it)) },
+        onBalanceFilter = { onAction(AssetSelectAction.BalanceFilter(it)) },
+        onClearFilters = { onAction(AssetSelectAction.ClearFilters) }
+    )
 }
 
 private fun LazyListScope.assets(
