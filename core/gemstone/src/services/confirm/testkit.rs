@@ -96,6 +96,7 @@ impl ConfirmTestkit {
             stake,
             nft,
         ));
+        let payment = Arc::new(crate::payment::GemPaymentService::new(provider.clone(), assets.clone()));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
             Arc::new(GemSimulationService::new(provider, Arc::new(EmptyPreferences))),
@@ -115,6 +116,7 @@ impl ConfirmTestkit {
             Arc::new(MemoryKeystorePassword::default()),
             Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),
             preferences,
+            payment,
         ));
         Self { service, confirm, balances }
     }
