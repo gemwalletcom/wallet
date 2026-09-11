@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **iOS test kits no longer duplicate mock factories.** `Perpetual.mock` and
+  `PerpetualPosition.mock` existed in both `PrimitivesTestKit` and `PerpetualsTestKit` with
+  different defaults, and `Transaction.mock` in both `PrimitivesTestKit` and `StoreTestKit`. One factory per type
+  remains in `PrimitivesTestKit`, with the store's `id`/`fee` parameters merged in.
 - **Two Android aggregate tests use the shared fixtures.** `PriceAlertDataAggregateImplTest`
   rebuilt `mockPriceAlert`/`mockAssetPriceInfo` locally and `TransactionDataAggregateImplTest`
   copied the `Transaction` constructor; both now call the gemcore test fixtures.

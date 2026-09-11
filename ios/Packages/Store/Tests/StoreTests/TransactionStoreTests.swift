@@ -19,7 +19,7 @@ struct TransactionStoreTests {
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .robinhood, hash: "hash")
         try store.addTransactions(walletId: walletId, transactions: [
-            .mock(transactionId: transactionId, state: .pending, assetId: Chain.robinhood.assetId),
+            .mock(id: transactionId, state: .pending, assetId: Chain.robinhood.assetId),
         ])
 
         let transactions = try store.getTransactions(states: [.pending])
@@ -49,7 +49,7 @@ struct TransactionStoreTests {
         let transactionId = TransactionId(chain: .ethereum, hash: "1")
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                transactionId: transactionId,
+                id: transactionId,
                 type: .swap,
                 assetId: btc,
                 metadata: .encode(TransactionSwapMetadata(
@@ -60,7 +60,7 @@ struct TransactionStoreTests {
 
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                transactionId: transactionId,
+                id: transactionId,
                 type: .swap,
                 assetId: btc,
                 metadata: .encode(TransactionSwapMetadata(
@@ -87,18 +87,18 @@ struct TransactionStoreTests {
         let sourceId = TransactionId(chain: .ethereum, hash: "pending")
         let targetId = TransactionId(chain: .ethereum, hash: "confirmed")
         let source = Transaction.mock(
-            transactionId: sourceId,
+            id: sourceId,
             type: .swap,
             state: .pending,
             assetId: ethereum,
             metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200", provider: nil)),
         )
         let target = Transaction.mock(
-            transactionId: targetId,
+            id: targetId,
             type: .swap,
             assetId: ethereum,
-            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300", provider: nil)),
             fee: "42",
+            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300", provider: nil)),
         )
         try store.addTransactions(walletId: walletId, transactions: [source, target])
         try store.addTransactions(walletId: otherWalletId, transactions: [source, target])

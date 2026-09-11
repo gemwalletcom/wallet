@@ -4,6 +4,7 @@ import Formatters
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
+import PrimitivesTestKit
 import Testing
 
 struct CandlestickChartViewModelTests {

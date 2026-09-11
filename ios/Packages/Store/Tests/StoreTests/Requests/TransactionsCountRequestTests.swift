@@ -17,10 +17,10 @@ struct TransactionsCountRequestTests {
         let store = TransactionStore(db: db)
 
         try store.addTransactions(walletId: walletId, transactions: [
-            .mock(transactionId: TransactionId(chain: .bitcoin, hash: "1"), state: .pending),
-            .mock(transactionId: TransactionId(chain: .bitcoin, hash: "2"), state: .inTransit),
-            .mock(transactionId: TransactionId(chain: .bitcoin, hash: "3"), state: .confirmed),
-            .mock(transactionId: TransactionId(chain: .smartChain, hash: "4"), state: .pending, assetId: AssetId(chain: .smartChain)),
+            .mock(id: TransactionId(chain: .bitcoin, hash: "1"), state: .pending),
+            .mock(id: TransactionId(chain: .bitcoin, hash: "2"), state: .inTransit),
+            .mock(id: TransactionId(chain: .bitcoin, hash: "3"), state: .confirmed),
+            .mock(id: TransactionId(chain: .smartChain, hash: "4"), state: .pending, assetId: AssetId(chain: .smartChain)),
         ])
 
         let filters: [TransactionsRequestFilter] = [.assetRankGreaterThan(15)]
