@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemSwapProgressStep
 import Style
 import SwiftUI
 
@@ -69,7 +70,7 @@ struct TransactionSwapProgressView: View {
             .frame(width: 1.5, height: Sizing.list.settings)
     }
 
-    private func marker(for status: TransactionSwapProgressItemModel.Step.Status) -> some View {
+    private func marker(for status: GemSwapProgressStep) -> some View {
         ZStack {
             Circle()
                 .stroke(status.color, lineWidth: .space1)
@@ -109,7 +110,7 @@ struct TransactionSwapProgressView: View {
     }
 
     @ViewBuilder
-    private func statusTag(for status: TransactionSwapProgressItemModel.Step.Status) -> some View {
+    private func statusTag(for status: GemSwapProgressStep) -> some View {
         if let tagTitle = status.tagTitle {
             Text(tagTitle)
                 .font(.app.footnote)

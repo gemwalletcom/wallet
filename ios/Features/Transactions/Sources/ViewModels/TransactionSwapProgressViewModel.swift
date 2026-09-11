@@ -4,7 +4,6 @@ import BigInt
 import Components
 import Formatters
 import struct Gemstone.GemSwapProgress
-import enum Gemstone.GemSwapProgressStep
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -30,27 +29,14 @@ extension TransactionSwapProgressViewModel: ItemModelProvidable {
             transfer: .init(
                 title: Localized.Transfer.title,
                 subtitle: "\(amount) (\(fromAsset.id.chain.networkName))",
-                status: progress.transfer.status,
+                status: progress.transfer,
             ),
             swap: .init(
                 title: Localized.Wallet.swap,
                 subtitle: progress.providerName,
-                status: progress.swap.status,
+                status: progress.swap,
             ),
             estimatedTime: progress.etaSeconds.map { EstimatedConfirmationFormatter().string(seconds: $0) },
         ))
-    }
-}
-
-private extension GemSwapProgressStep {
-    var status: TransactionSwapProgressItemModel.Step.Status {
-        switch self {
-        case .pending: .pending
-        case .waiting: .waiting
-        case .completed: .completed
-        case .failed: .failed
-        case .reverted: .reverted
-        case .refunded: .refunded
-        }
     }
 }

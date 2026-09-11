@@ -1,28 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemSwapProgressStep
 import Localization
 import Style
 import SwiftUI
 
 public struct TransactionSwapProgressItemModel: Equatable {
     public struct Step: Equatable {
-        public enum Status: Equatable {
-            case completed
-            case pending
-            case waiting
-            case failed
-            case reverted
-            case refunded
-        }
-
         public let title: String
         public let subtitle: String
-        public let status: Status
+        public let status: GemSwapProgressStep
 
         public init(
             title: String,
             subtitle: String,
-            status: Status,
+            status: GemSwapProgressStep,
         ) {
             self.title = title
             self.subtitle = subtitle
@@ -45,7 +37,7 @@ public struct TransactionSwapProgressItemModel: Equatable {
     }
 }
 
-extension TransactionSwapProgressItemModel.Step.Status {
+extension GemSwapProgressStep {
     var tagTitle: String? {
         switch self {
         case .completed: Localized.Transaction.Status.completed

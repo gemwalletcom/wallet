@@ -3,7 +3,6 @@ package com.gemwallet.android.domains.asset
 import uniffi.gemstone.GemSwapValue
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.toAssetPriceValue
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Chain
@@ -25,11 +24,6 @@ val AssetInfo.stakeChain: StakeChain? // TODO: Out to StakeExt
 
 val AssetInfo.chain: Chain
     get() = asset.chain
-
-val AssetInfo.availableBalance: String  // TODO: Out to BalanceExt
-    get() = Crypto(balance.balance.available)
-        .value(asset.decimals)
-        .stripTrailingZeros().toPlainString()
 
 val AssetInfo.availableBalanceFormatted: String // TODO: Out to BalanceExt
     get() = ValueFormatter(style = ValueFormatter.Style.Auto)

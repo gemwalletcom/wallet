@@ -301,6 +301,11 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Swap progress steps are the Core enum on both apps.** iOS's
+  `TransactionSwapProgressItemModel.Step.Status` and Android's `SwapProgressStatus` were
+  case-for-case twins of `GemSwapProgressStep` with a mapping switch each; the item model, the
+  timeline view and the Compose markers now read `GemSwapProgressStep` directly and keep only the
+  per-step label and colour. Android's dead `AssetInfo.availableBalance` is deleted with it.
 - **Core computes the swap rate.** `GemSwapRate` is now `{ direct, inverse }` of
   `GemAssetRate { base_symbol, quote_symbol, value }`, built by `swap::rules::swap_rate` from the
   two assets and atomic amounts (none when either amount is zero). `swap_quote_summary` and
