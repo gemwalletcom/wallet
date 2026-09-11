@@ -14,15 +14,3 @@ data class AssetList (
 	val count: UInt
 )
 
-@Serializable
-enum class SearchItemType(val string: String) {
-	@SerialName("asset")
-	Asset("asset"),
-	@SerialName("perpetual")
-	Perpetual("perpetual"),
-	@SerialName("nft")
-	Nft("nft"),
-	@SerialName("list")
-	List("list"),
-}
-

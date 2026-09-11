@@ -15,10 +15,3 @@ public struct AssetList: Codable, Equatable, Hashable, Identifiable, Sendable {
 		self.count = count
 	}
 }
-
-public enum SearchItemType: String, Codable, Sendable {
-	case asset
-	case perpetual
-	case nft
-	case list
-}

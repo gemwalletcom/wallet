@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
-use crate::{Asset, AssetId, Device, Price, currency::Currency};
+use crate::{AssetId, Device, currency::Currency};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
@@ -99,15 +99,6 @@ impl PriceAlert {
         .collect::<Vec<_>>()
         .join("_")
     }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[serde(rename_all = "camelCase")]
-pub struct PriceAlertData {
-    pub asset: Asset,
-    pub price: Option<Price>,
-    pub price_alert: PriceAlert,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, AsRefStr, EnumString, PartialEq)]

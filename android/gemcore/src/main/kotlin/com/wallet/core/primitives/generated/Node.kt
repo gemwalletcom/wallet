@@ -22,15 +22,3 @@ data class Node (
 	val priority: Int
 )
 
-@Serializable
-data class ChainNode (
-	val chain: String,
-	val node: Node
-)
-
-@Serializable
-data class ChainNodes (
-	val chain: String,
-	val nodes: List<Node>
-)
-

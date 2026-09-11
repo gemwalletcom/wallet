@@ -20,23 +20,3 @@ public struct Node: Codable, Sendable {
 		self.priority = priority
 	}
 }
-
-public struct ChainNode: Codable, Sendable {
-	public let chain: String
-	public let node: Node
-
-	public init(chain: String, node: Node) {
-		self.chain = chain
-		self.node = node
-	}
-}
-
-public struct ChainNodes: Codable, Sendable {
-	public let chain: String
-	public let nodes: [Node]
-
-	public init(chain: String, nodes: [Node]) {
-		self.chain = chain
-		self.nodes = nodes
-	}
-}

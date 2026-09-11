@@ -8,27 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-enum class PerpetualDirection(val string: String) {
-	@SerialName("short")
-	Short("short"),
-	@SerialName("long")
-	Long("long"),
-}
-
-@Serializable
-data class AutocloseOpenData (
-	val assetId: AssetId,
-	val symbol: String,
-	val direction: PerpetualDirection,
-	val marketPrice: Double,
-	val leverage: UByte,
-	val size: Double,
-	val assetDecimals: Int,
-	val takeProfit: String? = null,
-	val stopLoss: String? = null
-)
-
-@Serializable
 data class Perpetual (
 	val id: PerpetualId,
 	val name: String,
@@ -111,5 +90,13 @@ enum class PerpetualAccountMode(val string: String) {
 	Standard("standard"),
 	@SerialName("unified")
 	Unified("unified"),
+}
+
+@Serializable
+enum class PerpetualDirection(val string: String) {
+	@SerialName("short")
+	Short("short"),
+	@SerialName("long")
+	Long("long"),
 }
 

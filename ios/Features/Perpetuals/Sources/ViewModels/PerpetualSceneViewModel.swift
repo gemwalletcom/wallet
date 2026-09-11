@@ -101,10 +101,6 @@ public final class PerpetualSceneViewModel {
         Localized.Common.info
     }
 
-    public var transactionsSectionTitle: String {
-        Localized.Activity.title
-    }
-
     public var closePositionTitle: String {
         Localized.Perpetual.closePosition
     }

@@ -27,18 +27,6 @@ public struct PriceAlert: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct PriceAlertData: Codable, Equatable, Hashable, Sendable {
-	public let asset: Asset
-	public let price: Price?
-	public let priceAlert: PriceAlert
-
-	public init(asset: Asset, price: Price?, priceAlert: PriceAlert) {
-		self.asset = asset
-		self.price = price
-		self.priceAlert = priceAlert
-	}
-}
-
 public enum PriceAlertNotificationType: String, Codable, Equatable, Hashable, Sendable {
 	case auto
 	case price

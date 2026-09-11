@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **iOS-only models leave Core.** `PriceAlertData`, `AutocloseOpenData`, `ChainNode`, `ChainNodes`
+  and `SearchItemType` were typeshare types with no reader in Core and none on Android (each an
+  unused generated Kotlin twin); they are iOS store and screen models, so they now live as
+  hand-written types in the iOS `Primitives` package and the Rust sources and both generated
+  twins are gone. Two unread iOS members (`CopyValue.displayValue`,
+  `PerpetualSceneViewModel.transactionsSectionTitle`) are deleted with them.
 - **Which lines a position chart draws is Core's.** `perpetual_chart_lines(position)` returns the
   entry, take-profit, stop-loss and liquidation lines a position has (a zero liquidation price
   draws none), as `GemPerpetualChartLine { kind, price }`. iOS's `PerpetualSceneViewModel` and

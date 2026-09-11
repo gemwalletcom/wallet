@@ -18,13 +18,3 @@ pub struct SearchResponse {
     pub nfts: Vec<NFTCollection>,
     pub lists: Vec<AssetList>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Codable, Sendable")]
-#[serde(rename_all = "lowercase")]
-pub enum SearchItemType {
-    Asset,
-    Perpetual,
-    Nft,
-    List,
-}
