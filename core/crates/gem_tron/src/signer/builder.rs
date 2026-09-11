@@ -1,13 +1,10 @@
-use gem_encoding::protobuf::MessageEncode;
+use gem_encoding::protobuf::{MessageEncode, proto_encode};
 use gem_hash::sha2::sha256;
-use primitives::{Address as _, SignerError, SignerInput, TransactionLoadMetadata, hex::decode_hex_array};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use serde_serializers::hex_bytes;
+use primitives::{Address as _, SignerError, SignerInput, TransactionLoadMetadata, TronVote, hex::decode_hex_array};
+use serde::Serialize;
 
-use super::{TronContract, TronContractJson, protobuf};
 use crate::address::TronAddress;
-use crate::models::TronContractType;
+use crate::transaction::{TronContract, TronContractVote, protobuf};
 
 const EXPIRATION_DURATION_MS: u64 = 10 * 60 * 60 * 1000;
 const BLOCK_HASH_LEN: usize = 32;
@@ -40,7 +37,7 @@ impl TronRawData {
         let transaction_tree_root = decode_hex_array::<BLOCK_HASH_LEN>(transaction_tree_root)?;
         let parent_hash = decode_hex_array::<BLOCK_HASH_LEN>(parent_hash)?;
 
-        let header = protobuf::BlockHeaderRaw {
+        let header = BlockHeaderRaw {
             timestamp: (*block_timestamp > 0).then_some(*block_timestamp),
             tx_trie_root: Some(transaction_tree_root.to_vec()),
             parent_hash: Some(parent_hash.to_vec()),
@@ -82,9 +79,9 @@ impl TronRawData {
         .encode()
     }
 
-    pub(crate) fn json(&self) -> TronRawDataJson {
+    pub(crate) fn json(&self) -> TronRawDataJson<'_> {
         TronRawDataJson {
-            contract: vec![self.contract.json()],
+            contract: vec![&self.contract],
             expiration: self.expiration,
             fee_limit: (self.fee_limit > 0).then_some(self.fee_limit),
             ref_block_bytes: hex::encode(&self.ref_block_bytes),
@@ -96,8 +93,8 @@ impl TronRawData {
 }
 
 #[derive(Debug, Serialize)]
-pub(crate) struct TronRawDataJson {
-    contract: Vec<TronContractJson>,
+pub(crate) struct TronRawDataJson<'a> {
+    contract: Vec<&'a TronContract>,
     expiration: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     fee_limit: Option<u64>,
@@ -109,16 +106,16 @@ pub(crate) struct TronRawDataJson {
 }
 
 #[derive(Serialize)]
-pub(crate) struct SignedTransactionJson {
-    raw_data: TronRawDataJson,
+pub(crate) struct SignedTransactionJson<'a> {
+    raw_data: TronRawDataJson<'a>,
     raw_data_hex: String,
     signature: Vec<String>,
     #[serde(rename = "txID")]
     transaction_id: String,
 }
 
-impl SignedTransactionJson {
-    pub(crate) fn new(raw_data: TronRawDataJson, raw_data_bytes: &[u8], transaction_id: &[u8], signature: String) -> Self {
+impl<'a> SignedTransactionJson<'a> {
+    pub(crate) fn new(raw_data: TronRawDataJson<'a>, raw_data_bytes: &[u8], transaction_id: &[u8], signature: String) -> Self {
         Self {
             raw_data,
             raw_data_hex: hex::encode(raw_data_bytes),
@@ -128,49 +125,42 @@ impl SignedTransactionJson {
     }
 }
 
-#[derive(Deserialize)]
-pub(crate) struct RawDataJson {
-    contract: Vec<RawContractJson>,
-    expiration: u64,
-    #[serde(with = "hex_bytes")]
-    ref_block_bytes: Vec<u8>,
-    #[serde(with = "hex_bytes")]
-    ref_block_hash: Vec<u8>,
-    timestamp: u64,
-    fee_limit: Option<u64>,
-    #[serde(default, with = "hex_bytes::option")]
-    data: Option<Vec<u8>>,
+#[derive(Clone, Debug, Default)]
+struct BlockHeaderRaw {
+    timestamp: Option<u64>,
+    tx_trie_root: Option<Vec<u8>>,
+    parent_hash: Option<Vec<u8>>,
+    number: Option<u64>,
+    witness_address: Option<Vec<u8>>,
+    version: Option<u64>,
 }
 
-impl RawDataJson {
-    pub(crate) fn encode(self) -> Result<Vec<u8>, SignerError> {
-        let contracts = self
-            .contract
-            .into_iter()
-            .map(|contract| TronContract::from_json_value(contract.contract_type, contract.parameter.value).map(|contract| protobuf::ContractEnvelope::from(&contract)))
-            .collect::<Result<Vec<_>, SignerError>>()?;
+proto_encode!(BlockHeaderRaw {
+    1 => timestamp: optional_varint_u64,
+    2 => tx_trie_root: optional_bytes,
+    3 => parent_hash: optional_bytes,
+    7 => number: optional_varint_u64,
+    9 => witness_address: optional_bytes,
+    10 => version: optional_varint_u64,
+});
 
-        Ok(protobuf::RawData {
-            ref_block_bytes: Some(self.ref_block_bytes),
-            ref_block_hash: Some(self.ref_block_hash),
-            expiration: (self.expiration > 0).then_some(self.expiration),
-            data: self.data,
-            contracts,
-            timestamp: (self.timestamp > 0).then_some(self.timestamp),
-            fee_limit: self.fee_limit.filter(|value| *value > 0),
-        }
-        .encode())
+impl TronContract {
+    pub(crate) fn vote_witness(owner: TronAddress, votes: &[TronVote]) -> Result<Self, SignerError> {
+        Ok(Self::VoteWitness {
+            owner,
+            votes: votes.iter().map(TronContractVote::try_from).collect::<Result<Vec<_>, _>>()?,
+            support: true,
+        })
     }
 }
 
-#[derive(Deserialize)]
-struct RawContractJson {
-    #[serde(rename = "type")]
-    contract_type: TronContractType,
-    parameter: RawParameterJson,
-}
+impl TryFrom<&TronVote> for TronContractVote {
+    type Error = SignerError;
 
-#[derive(Deserialize)]
-struct RawParameterJson {
-    value: Value,
+    fn try_from(vote: &TronVote) -> Result<Self, Self::Error> {
+        Ok(Self {
+            address: TronAddress::parse(&vote.validator)?,
+            count: vote.count,
+        })
+    }
 }

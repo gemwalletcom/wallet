@@ -4028,6 +4028,7 @@ dependencies = [
 name = "gem_tron"
 version = "2.114.22"
 dependencies = [
+ "alloy-sol-types",
  "async-trait",
  "bs58",
  "chain_primitives",

@@ -25,25 +25,6 @@ proto_encode!(RawData {
 });
 
 #[derive(Clone, Debug, Default)]
-pub(crate) struct BlockHeaderRaw {
-    pub(crate) timestamp: Option<u64>,
-    pub(crate) tx_trie_root: Option<Vec<u8>>,
-    pub(crate) parent_hash: Option<Vec<u8>>,
-    pub(crate) number: Option<u64>,
-    pub(crate) witness_address: Option<Vec<u8>>,
-    pub(crate) version: Option<u64>,
-}
-
-proto_encode!(BlockHeaderRaw {
-    1 => timestamp: optional_varint_u64,
-    2 => tx_trie_root: optional_bytes,
-    3 => parent_hash: optional_bytes,
-    7 => number: optional_varint_u64,
-    9 => witness_address: optional_bytes,
-    10 => version: optional_varint_u64,
-});
-
-#[derive(Clone, Debug, Default)]
 pub(crate) struct ContractEnvelope {
     contract_type: Option<u64>,
     parameter: Option<AnyParameter>,

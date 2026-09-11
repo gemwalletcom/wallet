@@ -4,6 +4,7 @@ use std::str::FromStr;
 use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
+use gem_tron::decode_wallet_connect_approval;
 use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
 use primitives::{
@@ -274,9 +275,22 @@ pub fn transfer_data(
             encoded_extra(data.transaction, output_type, output_action, TransactionType::SmartContractCall),
             BigInt::ZERO,
         ),
-        WalletConnectTransaction::Ton { data, output_type } | WalletConnectTransaction::Tron { data, output_type } => {
-            (encoded_extra(data, output_type, output_action, TransactionType::SmartContractCall), BigInt::ZERO)
+        WalletConnectTransaction::Tron { data, output_type } => {
+            let approval = decode_wallet_connect_approval(&data).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
+            let transaction_type = if approval.is_some() {
+                TransactionType::TokenApproval
+            } else {
+                TransactionType::SmartContractCall
+            };
+            let to = approval.as_ref().map(|decoded| decoded.contract.clone()).unwrap_or_default();
+            let extra = TransferDataExtra {
+                to,
+                approval: approval.map(|decoded| decoded.approval),
+                ..encoded_extra(data, output_type, output_action, transaction_type)
+            };
+            (extra, BigInt::ZERO)
         }
+        WalletConnectTransaction::Ton { data, output_type } => (encoded_extra(data, output_type, output_action, TransactionType::SmartContractCall), BigInt::ZERO),
     };
     Ok(GemTransferData {
         recipient: GemRecipient {
@@ -493,6 +507,37 @@ mod tests {
             validate_transaction_sender(&evm("0xother"), &account).is_err(),
             "a dapp cannot simulate for one account and sign with another"
         );
+    }
+
+    #[test]
+    fn test_transfer_data_maps_tron_approval() {
+        let data = include_str!("../../../../crates/gem_wallet_connect/testdata/tron_send_transaction.json");
+        for action in [GemWalletConnectTransactionAction::Sign, GemWalletConnectTransactionAction::Send] {
+            let transfer = transfer_data(
+                Chain::Tron,
+                application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]),
+                WalletConnectTransaction::Tron {
+                    data: data.to_string(),
+                    output_type: TransferDataOutputType::EncodedTransaction,
+                },
+                action,
+            )
+            .unwrap();
+            assert_eq!(transfer.recipient.address, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
+            assert_eq!(transfer.value, BigInt::ZERO);
+            let extra = transfer.input_type.get_generic_data().unwrap();
+            assert_eq!(extra.transaction_type, TransactionType::TokenApproval);
+            assert_eq!(extra.approval, decode_wallet_connect_approval(data).unwrap().map(|decoded| decoded.approval));
+            assert_eq!(extra.data.as_deref(), Some(data.as_bytes()));
+            assert_eq!(extra.output_type, TransferDataOutputType::EncodedTransaction);
+            assert_eq!(
+                extra.output_action,
+                match action {
+                    GemWalletConnectTransactionAction::Sign => TransferDataOutputAction::Sign,
+                    GemWalletConnectTransactionAction::Send => TransferDataOutputAction::Send,
+                }
+            );
+        }
     }
 
     #[test]

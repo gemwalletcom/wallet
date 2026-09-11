@@ -6,8 +6,10 @@ use primitives::{
 };
 use signer::{SignatureScheme, Signer};
 
+use super::builder::{SignedTransactionJson, TronRawData};
+use super::wallet_connect::WalletConnectPayload;
 use crate::address::TronAddress;
-use crate::models::{SignedTransactionJson, TronContract, TronRawData, TronResource, WalletConnectPayload};
+use crate::transaction::{TronContract, contract::TronResource};
 use crate::trc20;
 
 struct ContractPayload {

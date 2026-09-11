@@ -1,11 +1,29 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
+use chrono::Utc;
 use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
-use primitives::{WalletConnection, WalletConnectionSession, WalletConnectionVerificationStatus};
+use primitives::{ApplicationMetadata, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionVerificationStatus};
 
-use super::{GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnectSessionRequest, GemWalletConnectSigner, GemWalletConnectTransactionRequest};
+use super::rules;
+use super::{
+    GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnectService, GemWalletConnectSessionRequest, GemWalletConnectSigner, GemWalletConnectTransactionRequest,
+};
+use crate::alien::AlienProvider;
+use crate::api::GemApiClient;
+use crate::gateway::{EmptyPreferences, GemGateway};
+use crate::services::assets::GemAssetsService;
+use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::error::GemServiceError;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::preferences::testkit::MemoryPreferencesStore;
+use crate::services::price::GemPriceService;
+use crate::services::price::testkit::MemoryPriceStore;
+use crate::services::simulation::GemSimulationService;
+use crate::services::wallet::testkit::MemoryWalletStore;
+use crate::services::wallet_session::GemWalletSessionService;
+use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
+use crate::testkit::TestAlienProvider;
 
 #[derive(Default)]
 pub struct MemoryConnectionStore {
@@ -39,6 +57,7 @@ impl GemConnectionStore for MemoryConnectionStore {
 
 pub struct TestWalletConnectSigner {
     pub result: Result<String, GemServiceError>,
+    pub transactions: Mutex<Vec<GemWalletConnectTransactionRequest>>,
 }
 
 #[async_trait]
@@ -46,7 +65,8 @@ impl GemWalletConnectSigner for TestWalletConnectSigner {
     async fn sign_message(&self, _request: GemWalletConnectMessageRequest) -> Result<String, GemServiceError> {
         self.result.clone()
     }
-    async fn sign_transaction(&self, _request: GemWalletConnectTransactionRequest) -> Result<String, GemServiceError> {
+    async fn sign_transaction(&self, request: GemWalletConnectTransactionRequest) -> Result<String, GemServiceError> {
+        self.transactions.lock().unwrap().push(request);
         self.result.clone()
     }
 }
@@ -65,4 +85,35 @@ impl GemWalletConnectSessionRequest {
             validation: WalletConnectionVerificationStatus::Verified,
         }
     }
+}
+
+pub(super) async fn make_service(signer: Result<String, GemServiceError>, wallet: Wallet) -> GemWalletConnectService {
+    let store = Arc::new(MemoryConnectionStore::default());
+    let chains = wallet.accounts.iter().map(|account| account.chain).collect();
+    let session = rules::session("topic".to_string(), chains, Utc::now(), ApplicationMetadata::mock());
+    store.add_connection(WalletConnection { session, wallet }).await.unwrap();
+    let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(200));
+    let api = Arc::new(GemApiClient::new(provider.clone()));
+    let wallet_session = Arc::new(GemWalletSessionService::new(
+        Arc::new(MemoryWalletSessionStore::default()),
+        Arc::new(MemoryWalletStore::default()),
+    ));
+    let assets = Arc::new(GemAssetsService::new(
+        api.clone(),
+        Arc::new(GemGateway::new(provider.clone(), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences))),
+        Arc::new(MemoryAssetStore::default()),
+        Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
+        Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
+        wallet_session.clone(),
+    ));
+    GemWalletConnectService::new(
+        Arc::new(GemSimulationService::new(provider, Arc::new(EmptyPreferences))),
+        store,
+        Arc::new(TestWalletConnectSigner {
+            result: signer,
+            transactions: Mutex::new(Vec::new()),
+        }),
+        wallet_session,
+        assets,
+    )
 }
