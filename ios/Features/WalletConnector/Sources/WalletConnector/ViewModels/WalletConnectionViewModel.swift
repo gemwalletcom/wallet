@@ -17,7 +17,8 @@ public struct WalletConnectionViewModel: Sendable {
     }
 
     var hostText: String? {
-        url?.cleanHost()
+        let host = connection.session.metadata.host
+        return host.isEmpty ? nil : host
     }
 
     var url: URL? {

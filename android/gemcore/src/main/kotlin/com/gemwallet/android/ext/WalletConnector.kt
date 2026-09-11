@@ -8,3 +8,6 @@ val ApplicationMetadata.shortName: String
 
 val ApplicationMetadata.iconUrl: String?
     get() = GemApplicationMetadataService().use { it.iconUrl(toGem()) }
+
+val ApplicationMetadata.host: String
+    get() = GemApplicationMetadataService().use { it.host(toGem()) }

@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::str::FromStr;
 
+use crate::application::url_host;
 use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
@@ -132,7 +133,7 @@ pub fn application_metadata(name: String, description: String, url: String, icon
         .or_else(|| icons.first())
         .cloned()
         .unwrap_or_default();
-    let name = if name.trim().is_empty() { short_url(&url) } else { name };
+    let name = if name.trim().is_empty() { url_host(&url) } else { name };
     ApplicationMetadata {
         name,
         description,
@@ -190,13 +191,6 @@ pub fn session_events() -> Vec<String> {
 
 fn serde_name<T: serde::Serialize>(value: &T) -> Option<String> {
     serde_json::to_value(value).ok().and_then(|value| value.as_str().map(String::from))
-}
-
-fn short_url(url: &str) -> String {
-    url::Url::parse(url)
-        .ok()
-        .and_then(|url| url.host_str().map(|host| host.trim_start_matches("www.").to_string()))
-        .unwrap_or_else(|| url.trim().to_string())
 }
 
 fn parse_chain(chain_id: &str) -> Option<Chain> {

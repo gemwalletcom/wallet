@@ -21,7 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.getShortUrl
+import com.gemwallet.android.ext.host
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
@@ -154,7 +154,7 @@ fun ConnectionItem(
             )
         },
         title = { ListItemTitleText(connection.session.metadata.shortName) },
-        subtitle = { ListItemSupportText(connection.session.metadata.url.getShortUrl() ?: connection.session.metadata.url) },
+        subtitle = { ListItemSupportText(connection.session.metadata.host) },
         listPosition = listPosition
     )
 }

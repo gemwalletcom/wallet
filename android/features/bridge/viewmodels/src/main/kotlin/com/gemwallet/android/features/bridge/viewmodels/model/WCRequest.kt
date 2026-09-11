@@ -2,7 +2,7 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 
 import com.gemwallet.android.ext.iconUrl
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
-import com.gemwallet.android.ext.getShortUrl
+import com.gemwallet.android.ext.host
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.shortName
@@ -35,7 +35,7 @@ sealed class WCRequest(
     val icon: String? get() = appMetadata.iconUrl
     val description: String get() = appMetadata.description
     val url: String get() = appMetadata.url
-    val uri: String get() = url.getShortUrl() ?: url
+    val uri: String get() = appMetadata.host
     val chain: Chain get() = pending.chain
 
     fun approve(result: String) = pending.approve(result)

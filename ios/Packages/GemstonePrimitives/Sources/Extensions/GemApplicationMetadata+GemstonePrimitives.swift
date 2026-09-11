@@ -12,4 +12,8 @@ public extension Primitives.ApplicationMetadata {
     var shortName: String {
         GemApplicationMetadataService.shared.shortName(metadata: map())
     }
+
+    var host: String {
+        GemApplicationMetadataService.shared.host(metadata: map())
+    }
 }

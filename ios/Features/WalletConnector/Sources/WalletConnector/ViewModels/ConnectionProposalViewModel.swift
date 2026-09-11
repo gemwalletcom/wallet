@@ -56,10 +56,8 @@ public struct ConnectionProposalViewModel {
     }
 
     var websiteText: String? {
-        guard let url = URL(string: payload.metadata.url), let host = url.host(percentEncoded: true) else {
-            return .none
-        }
-        return host
+        let host = payload.metadata.host
+        return host.isEmpty ? nil : host
     }
 
     var appText: String {

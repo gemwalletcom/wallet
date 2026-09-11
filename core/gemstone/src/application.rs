@@ -19,6 +19,10 @@ impl GemApplicationMetadataService {
         metadata.short_name()
     }
 
+    pub fn host(&self, metadata: ApplicationMetadata) -> String {
+        url_host(&metadata.url)
+    }
+
     pub fn icon_url(&self, metadata: ApplicationMetadata) -> Option<String> {
         let source = Url::parse(&metadata.url).ok()?;
         if source.scheme() != "https" || !source.username().is_empty() || source.password().is_some() || source.port().is_some() {
@@ -32,9 +36,34 @@ impl GemApplicationMetadataService {
     }
 }
 
+pub fn url_host(url: &str) -> String {
+    let url = url.trim();
+    let host = match Url::parse(url) {
+        Ok(parsed) => parsed.host_str().map(str::to_string).unwrap_or_else(|| url.to_string()),
+        Err(_) => url.rsplit("://").next().unwrap_or(url).split(['/', '?', '#']).next().unwrap_or_default().to_string(),
+    };
+    host.trim_start_matches("www.").to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_host_drops_the_scheme_path_and_www_prefix() {
+        let host = |url: &str| {
+            GemApplicationMetadataService::new().host(ApplicationMetadata {
+                url: url.into(),
+                ..ApplicationMetadata::mock()
+            })
+        };
+
+        assert_eq!(host("https://www.venice.ai/path?query=1#fragment"), "venice.ai");
+        assert_eq!(host("http://www.venice.ai"), "venice.ai");
+        assert_eq!(host("www.venice.ai/path"), "venice.ai");
+        assert_eq!(host("app.uniswap.org"), "app.uniswap.org");
+        assert_eq!(host(" "), "");
+    }
 
     #[test]
     fn test_icon_url_uses_website_origin() {
