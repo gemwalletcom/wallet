@@ -11,19 +11,14 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
 
-interface DelegationInfoUIModel {
-
-    val iconUrl: String
-}
-
 @Stable
 class HeadDelegationInfo(
     private val delegation: Delegation,
     private val assetInfo: AssetInfo,
     override val currency: Currency,
-) : DelegationInfoUIModel, CryptoFormattedUIModel, FiatFormattedUIModel {
+) : CryptoFormattedUIModel, FiatFormattedUIModel {
 
-    override val iconUrl: String
+    val iconUrl: String
         get() = delegation.validator.getIconUrl()
 
     override val cryptoAmount: Double by lazy {

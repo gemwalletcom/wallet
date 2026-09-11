@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Four Android marker interfaces are gone.** `UIModel` (empty), `CryptoAmountUIModel` and
+  `AssetUIModel` (each only a supertype of `CryptoFormattedUIModel`) and `DelegationInfoUIModel`
+  (one implementer) were never used as a type; `CryptoFormattedUIModel` now declares the asset and
+  amount itself and `HeadDelegationInfo` owns its icon URL.
 - **Eight over-built iOS protocols are gone.** A sweep for protocols with a single conformer and
   no test mock found `PushNotificationEnabler` and `SilentValidatable` (never used as a type or
   checked), `SecurityReminderViewModel`, `QRScannerResources` and `ChartStreamable` (an

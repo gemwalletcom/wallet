@@ -13,7 +13,7 @@ open class BalanceInfoUIModel(
     balance: BigInteger,
     val price: Double?,
     override val currency: Currency
-) : AssetUIModel, CryptoFormattedUIModel, FiatFormattedUIModel {
+) : CryptoFormattedUIModel, FiatFormattedUIModel {
 
     override val cryptoAmount: Double by lazy { Crypto(balance).value(asset.decimals).toDouble() }
 
