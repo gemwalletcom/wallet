@@ -12,6 +12,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.model.AmountParams
 import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
@@ -71,7 +72,7 @@ class DelegationViewModel @Inject constructor(
         val validatorUrl = stakeService.validatorUrl(delegation.validator.toGem())?.link
         val status = delegationStatus(delegation.toGem())
         listOfNotNull(
-            DelegationProperty.Name(delegation.validator.name, validatorUrl),
+            DelegationProperty.Name(delegation.validator.displayName(), validatorUrl),
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },
             DelegationProperty.TransactionStatus(status),
             status.completion

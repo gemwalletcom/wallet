@@ -61,6 +61,7 @@ fun DelegationScene(
                         amount = info.cryptoFormatted,
                         equivalent = info.fiatFormatted,
                         icon = info.iconUrl,
+                        iconPlaceholder = info.iconPlaceholder,
                     )
                 }
             }

@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.formatApr
 import com.gemwallet.android.ui.models.ListPosition
@@ -35,11 +36,11 @@ fun PropertyValidatorItem(
             ) {
                 IconWithBadge(
                     icon = validator.getIconUrl(),
-                    placeholder = validator.name.firstOrNull()?.toString() ?: validator.id.firstOrNull()?.toString() ?: "V",
+                    placeholder = validator.displayName().firstOrNull()?.toString() ?: "V",
                 )
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = validator.name,
+                    text = validator.displayName(),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyLarge,

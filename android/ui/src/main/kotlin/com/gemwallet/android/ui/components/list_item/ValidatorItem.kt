@@ -13,6 +13,7 @@ import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.duration.formatAvailableIn
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
@@ -36,7 +37,7 @@ fun ValidatorItem(
         },
         title = {
             Text(
-                text = data.name,
+                text = data.displayName(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
@@ -76,7 +77,7 @@ fun DelegationValidator.formatApr(): String {
 }
 
 private val DelegationValidator.placeholder: String
-    get() = name.firstOrNull()?.toString() ?: id.firstOrNull()?.toString() ?: "V"
+    get() = displayName().firstOrNull()?.toString() ?: "V"
 
 fun availableIn(delegation: Delegation?): String {
     val remaining = availableInDurationMillis(delegation) ?: return ""

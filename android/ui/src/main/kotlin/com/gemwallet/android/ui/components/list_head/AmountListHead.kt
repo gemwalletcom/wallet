@@ -92,6 +92,7 @@ fun AmountListHead(
     hideToggle: HideToggle? = null,
     equivalent: String? = null,
     icon: Any? = null,
+    iconPlaceholder: String? = null,
     changedValue: String? = null,
     changedPercentages: String? = null,
     changeState: ValueDirection = ValueDirection.None,
@@ -116,6 +117,7 @@ fun AmountListHead(
                 HeaderIcon(it)
             } ?: IconWithBadge(
                 icon = icon,
+                placeholder = iconPlaceholder,
                 size = headerIconSize,
                 badgeBackgroundColor = MaterialTheme.colorScheme.surface,
             )

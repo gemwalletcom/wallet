@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import class Gemstone.GemAddressService
+import func Gemstone.validatorDisplayName
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -18,15 +18,7 @@ public struct ValidatorViewModel {
     }
 
     public var name: String {
-        switch validator.providerType {
-        case .stake:
-            if validator.name.isEmpty {
-                return GemAddressService.shared.format(address: validator.id, chain: validator.chain)
-            }
-            return validator.name
-        case .earn:
-            return validator.name
-        }
+        validatorDisplayName(validator: validator.map())
     }
 
     public var aprModel: AprViewModel {

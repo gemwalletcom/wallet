@@ -5,8 +5,8 @@ use crate::services::collections::{stale, unique};
 use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
 use primitives::{
-    AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
-    VerificationStatus, WalletType,
+    AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, RedelegateData, Resource, StakeChain,
+    StakeProviderType, StakeType, VerificationStatus, WalletType,
 };
 use rand::seq::IndexedRandom;
 
@@ -65,6 +65,13 @@ pub fn can_claim_rewards(wallet_type: WalletType, delegation: &Delegation) -> bo
         return false;
     };
     wallet_type != WalletType::View && config.can_claim_rewards && shows_rewards(&delegation.base)
+}
+
+pub fn validator_display_name(validator: &DelegationValidator) -> String {
+    if validator.name.is_empty() {
+        return AddressFormatter::format(&validator.id, Some(validator.chain), AddressFormatStyle::Short);
+    }
+    validator.name.clone()
 }
 
 pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<String> {
@@ -429,6 +436,7 @@ pub fn stale_validator_ids(existing: Vec<DelegationValidator>, incoming: &[Deleg
 pub fn validator_address_names(validators: &[DelegationValidator]) -> Vec<AddressName> {
     validators
         .iter()
+        .filter(|validator| !validator.name.is_empty())
         .map(|validator| AddressName {
             chain: validator.chain,
             address: validator.id.clone(),
@@ -448,6 +456,40 @@ pub fn earn_validators(providers: Vec<DelegationValidator>, apr: f64) -> Vec<Del
 mod tests {
     use super::*;
     use primitives::{AssetId, Resource};
+
+    fn solana_validator(name: &str) -> DelegationValidator {
+        DelegationValidator {
+            chain: Chain::Solana,
+            id: "8GbwASqdpw4dVcwbWUxbHXMrjyQx2aKkoBR5H1GJF8iD".to_string(),
+            name: name.to_string(),
+            ..DelegationValidator::mock()
+        }
+    }
+
+    #[test]
+    fn test_validator_display_name() {
+        assert_eq!(validator_display_name(&DelegationValidator::mock()), "Test Validator");
+        assert_eq!(validator_display_name(&solana_validator("")), "8GbwA...JF8iD");
+
+        let earn = DelegationValidator {
+            id: "yo".to_string(),
+            name: String::new(),
+            provider_type: StakeProviderType::Earn,
+            ..DelegationValidator::mock()
+        };
+        assert_eq!(validator_display_name(&earn), "yo");
+    }
+
+    #[test]
+    fn test_validator_address_names() {
+        let named = solana_validator("Everstake");
+
+        let names = validator_address_names(&[named.clone(), solana_validator("")]);
+
+        assert_eq!(names.len(), 1);
+        assert_eq!(names[0].name, "Everstake");
+        assert_eq!(names[0].address, named.id);
+    }
 
     #[test]
     fn test_a_chain_without_staking_answers_instead_of_failing() {
