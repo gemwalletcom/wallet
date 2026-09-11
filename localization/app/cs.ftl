@@ -631,7 +631,6 @@ networks_state_empty_search_title = Nenalezeny žádné sítě
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Dostanete tajnou frázi – je to jediný způsob, jak se dostat ke své peněžence.
-onboarding_security_create_wallet_confirm_title = Rozumím a chci pokračovat
 onboarding_security_create_wallet_do_not_share_title = S nikým to nesdílejte
 onboarding_security_create_wallet_do_not_share_subtitle = Každý, kdo získá vaši tajnou frázi, může převzít plnou kontrolu nad vaší peněženkou.
 onboarding_security_create_wallet_keep_safe_subtitle = Tajná fráze je jediný způsob, jak se dostat do vaší peněženky.

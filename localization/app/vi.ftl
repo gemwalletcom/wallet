@@ -631,7 +631,6 @@ networks_state_empty_search_title = Không tìm thấy mạng lưới nào
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Bạn sẽ nhận được Cụm từ bí mật — đây là cách duy nhất để truy cập vào ví của bạn.
-onboarding_security_create_wallet_confirm_title = Tôi hiểu và muốn tiếp tục
 onboarding_security_create_wallet_do_not_share_title = Không Chia Sẻ Với Bất Kỳ Ai
 onboarding_security_create_wallet_do_not_share_subtitle = Bất kỳ ai có được cụm từ bí mật của bạn đều có thể kiểm soát hoàn toàn ví của bạn.
 onboarding_security_create_wallet_keep_safe_subtitle = Cụm từ bí mật là cách duy nhất để truy cập vào ví của bạn.

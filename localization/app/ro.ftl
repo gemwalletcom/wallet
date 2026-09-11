@@ -631,7 +631,6 @@ networks_state_empty_search_title = Nu s-au găsit rețele
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Vei primi o Frază Secretă — este singura modalitate de a accesa portofelul tău.
-onboarding_security_create_wallet_confirm_title = Înțeleg și vreau să continui
 onboarding_security_create_wallet_do_not_share_title = Nu-l împărtăși cu nimeni
 onboarding_security_create_wallet_do_not_share_subtitle = Oricine primește fraza ta secretă poate prelua controlul total asupra portofelului tău.
 onboarding_security_create_wallet_keep_safe_subtitle = Fraza secretă este singura modalitate de a vă accesa portofelul.

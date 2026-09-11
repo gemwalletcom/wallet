@@ -631,7 +631,6 @@ networks_state_empty_search_title = ネットワークが見つかりません
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = リカバリーフレーズが作成されます。ウォレットにアクセスする唯一の手段です。
-onboarding_security_create_wallet_confirm_title = 理解して続行する
 onboarding_security_create_wallet_do_not_share_title = 誰とも共有しないでください
 onboarding_security_create_wallet_do_not_share_subtitle = リカバリーフレーズを知った人は誰でも、このウォレットを完全に操作できます。
 onboarding_security_create_wallet_keep_safe_subtitle = リカバリーフレーズは、ウォレットにアクセスする唯一の手段です。

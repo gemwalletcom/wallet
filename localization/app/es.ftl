@@ -631,7 +631,6 @@ networks_state_empty_search_title = No se encontraron redes
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Recibirás una frase secreta: es la única forma de acceder a tu billetera.
-onboarding_security_create_wallet_confirm_title = Entiendo y quiero continuar.
 onboarding_security_create_wallet_do_not_share_title = No lo compartas con nadie
 onboarding_security_create_wallet_do_not_share_subtitle = Cualquiera que obtenga tu frase secreta podrá tomar control total de tu billetera.
 onboarding_security_create_wallet_keep_safe_subtitle = La frase secreta es la única forma de acceder a tu billetera.

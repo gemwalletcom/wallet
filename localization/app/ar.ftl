@@ -631,7 +631,6 @@ networks_state_empty_search_title = لم يتم العثور على شبكات
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = ستحصل على عبارة سرية - إنها الطريقة الوحيدة للوصول إلى محفظتك.
-onboarding_security_create_wallet_confirm_title = أنا أفهم وأريد الاستمرار
 onboarding_security_create_wallet_do_not_share_title = لا تشاركها مع أي شخص
 onboarding_security_create_wallet_do_not_share_subtitle = يمكن لأي شخص يحصل على عبارتك السرية أن يتولى السيطرة الكاملة على محفظتك.
 onboarding_security_create_wallet_keep_safe_subtitle = العبارة السرية هي الطريقة الوحيدة للوصول إلى محفظتك.

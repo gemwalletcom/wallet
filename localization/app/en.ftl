@@ -1150,8 +1150,6 @@ networks_state_empty_search_title = No networks found
 
 # Used in onboarding and terms acceptance screens for the security create wallet intro title.
 onboarding_security_create_wallet_intro_title = You will get a Secret Phrase — it's the only way to access your wallet.
-# Used in onboarding and terms acceptance screens for the security create wallet confirm title.
-onboarding_security_create_wallet_confirm_title = I understand and want to continue
 # Used in onboarding and terms acceptance screens for the security create wallet do not share title.
 onboarding_security_create_wallet_do_not_share_title = Do Not Share It With Anyone
 # Used in onboarding and terms acceptance screens for the security create wallet do not share subtitle.

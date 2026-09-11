@@ -631,7 +631,6 @@ networks_state_empty_search_title = Nenhuma rede encontrada
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Você receberá uma Frase Secreta — é a única maneira de acessar sua carteira.
-onboarding_security_create_wallet_confirm_title = Eu entendo e quero continuar
 onboarding_security_create_wallet_do_not_share_title = Não compartilhe com ninguém
 onboarding_security_create_wallet_do_not_share_subtitle = Qualquer um que descobrir sua frase secreta poderá assumir o controle total da sua carteira.
 onboarding_security_create_wallet_keep_safe_subtitle = A frase secreta é a única maneira de acessar sua carteira.

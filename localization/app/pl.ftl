@@ -631,7 +631,6 @@ networks_state_empty_search_title = Nie znaleziono sieci
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Otrzymasz tajną frazę — to jedyny sposób na uzyskanie dostępu do portfela.
-onboarding_security_create_wallet_confirm_title = Rozumiem i chcę kontynuować
 onboarding_security_create_wallet_do_not_share_title = Nie udostępniaj tego nikomu
 onboarding_security_create_wallet_do_not_share_subtitle = Każda osoba, która pozna Twoją tajną frazę, będzie mogła przejąć pełną kontrolę nad Twoim portfelem.
 onboarding_security_create_wallet_keep_safe_subtitle = Tajna fraza to jedyny sposób dostępu do Twojego portfela.

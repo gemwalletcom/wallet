@@ -631,7 +631,6 @@ networks_state_empty_search_title = Ingen netværk fundet
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Du får en hemmelig sætning – det er den eneste måde at få adgang til din tegnebog på.
-onboarding_security_create_wallet_confirm_title = Jeg forstår og vil gerne fortsætte
 onboarding_security_create_wallet_do_not_share_title = Del det ikke med nogen
 onboarding_security_create_wallet_do_not_share_subtitle = Enhver, der får din hemmelige sætning, kan tage fuld kontrol over din pung.
 onboarding_security_create_wallet_keep_safe_subtitle = Den hemmelige sætning er den eneste måde at få adgang til din tegnebog.

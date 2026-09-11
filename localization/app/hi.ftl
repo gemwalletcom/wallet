@@ -631,7 +631,6 @@ networks_state_empty_search_title = कोई नेटवर्क नहीं
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = आपको एक गुप्त वाक्यांश मिलेगा - यह आपके वॉलेट तक पहुंचने का एकमात्र तरीका है।
-onboarding_security_create_wallet_confirm_title = मैं समझता हूं और जारी रखना चाहता हूं
 onboarding_security_create_wallet_do_not_share_title = इसे किसी के साथ साझा न करें
 onboarding_security_create_wallet_do_not_share_subtitle = आपका गुप्त वाक्यांश प्राप्त करने वाला कोई भी व्यक्ति आपके बटुए पर पूर्ण नियंत्रण कर सकता है।
 onboarding_security_create_wallet_keep_safe_subtitle = गुप्त वाक्यांश आपके बटुए तक पहुंचने का एकमात्र तरीका है।

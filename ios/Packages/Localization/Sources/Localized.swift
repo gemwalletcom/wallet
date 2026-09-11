@@ -863,10 +863,6 @@ public enum Localized {
     }
     public enum Security {
       public enum CreateWallet {
-        public enum Confirm {
-          /// I understand and want to continue
-          public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.confirm.title", fallback: "I understand and want to continue")
-        }
         public enum DoNotShare {
           /// Anyone who gets your secret phrase can take full control of your wallet.
           public static let subtitle = Localized.tr("Localizable", "onboarding.security.create_wallet.do_not_share.subtitle", fallback: "Anyone who gets your secret phrase can take full control of your wallet.")

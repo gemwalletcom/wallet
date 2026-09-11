@@ -631,7 +631,6 @@ networks_state_empty_search_title = Сети не найдены
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Вы получите Секретную фразу — это единственный способ получить доступ к вашему кошельку.
-onboarding_security_create_wallet_confirm_title = Я понимаю и хочу продолжить
 onboarding_security_create_wallet_do_not_share_title = Не делитесь этим ни с кем
 onboarding_security_create_wallet_do_not_share_subtitle = Любой, кто узнает вашу секретную фразу, может получить полный контроль над вашим кошельком.
 onboarding_security_create_wallet_keep_safe_subtitle = Секретная фраза – это единственный способ получить доступ к своему кошельку.
