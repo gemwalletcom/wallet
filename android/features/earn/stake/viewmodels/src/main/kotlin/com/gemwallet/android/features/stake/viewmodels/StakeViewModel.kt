@@ -3,6 +3,7 @@ package com.gemwallet.android.features.stake.viewmodels
 import uniffi.gemstone.GemClaimRewardsDestination
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemStakeServiceInterface
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +16,7 @@ import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
@@ -134,7 +136,8 @@ class StakeViewModel @Inject constructor(
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
                 emit(true)
-                syncStakeDelegations.sync(assetInfo.asset.id.chain)
+                runCatchingCancellable { syncStakeDelegations.sync(assetInfo.asset.id.chain) }
+                    .onFailure { Log.e(TAG, "stake delegations sync failed", it) }
                 emit(false)
                 sync.update { false }
             }
@@ -165,5 +168,9 @@ class StakeViewModel @Inject constructor(
             is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer)
             is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id))
         }
+    }
+
+    private companion object {
+        const val TAG = "Stake"
     }
 }
