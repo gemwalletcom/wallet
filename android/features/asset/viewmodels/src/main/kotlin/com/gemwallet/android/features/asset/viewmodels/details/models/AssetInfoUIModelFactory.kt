@@ -15,31 +15,19 @@ import com.gemwallet.android.model.toGem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.VerificationStatus
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemAssetDetailsState
+import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBalanceRow
-import uniffi.gemstone.GemSwapPairSuggestion
 import javax.inject.Inject
 import java.math.BigInteger
 
 class AssetInfoUIModelFactory @Inject constructor() {
 
-    fun create(
-        chainAssetInfo: ChainAssetInfo,
-        swapPair: GemSwapPairSuggestion,
-        explorerName: String,
-        explorerAddressUrl: String?,
-        explorerTokenUrl: String?,
-        verificationStatus: VerificationStatus?,
-        networkDestination: GemAssetNetworkDestination?,
-        shareUrl: String,
-        detailsState: GemAssetDetailsState,
-    ): AssetInfoUIModel {
+    fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
         val asset = assetInfo.asset
@@ -59,15 +47,15 @@ class AssetInfoUIModelFactory @Inject constructor() {
             tokenType = asset.type,
             isBuyEnabled = assetInfo.metadata.isBuyEnabled,
             isSwapEnabled = assetInfo.metadata.isSwapEnabled,
-            swapPayAssetId = swapPair.payAssetId.toAssetId(),
-            swapReceiveAssetId = swapPair.receiveAssetId?.toAssetId(),
-            explorerName = explorerName,
-            explorerAddressUrl = explorerAddressUrl,
-            explorerTokenUrl = explorerTokenUrl,
-            verificationStatus = verificationStatus,
-            networkDestination = networkDestination?.let(::networkDestination),
-            shareUrl = shareUrl,
-            detailsState = detailsState,
+            swapPayAssetId = details.swapPair.payAssetId.toAssetId(),
+            swapReceiveAssetId = details.swapPair.receiveAssetId?.toAssetId(),
+            explorerName = details.explorerName,
+            explorerAddressUrl = details.addressLink?.link,
+            explorerTokenUrl = details.tokenLink?.link,
+            verificationStatus = details.verificationStatus?.toPrimitives(),
+            networkDestination = details.networkDestination?.let(::networkDestination),
+            shareUrl = details.shareUrl,
+            detailsState = details.state,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
                 totalFiat = fiatTotal,

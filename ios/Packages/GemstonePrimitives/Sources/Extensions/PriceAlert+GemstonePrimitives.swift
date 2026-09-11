@@ -37,9 +37,3 @@ public extension [PriceAlertData] {
             .compactMap { id in first { $0.priceAlert.id == id } }
     }
 }
-
-public extension AssetData {
-    var isPriceAlertsEnabled: Bool {
-        priceAlerts.contains { $0.type == .auto }
-    }
-}

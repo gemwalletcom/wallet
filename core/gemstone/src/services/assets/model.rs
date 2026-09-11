@@ -1,4 +1,7 @@
-use primitives::{Asset, AssetId, AssetType, Chain, RecentActivityType};
+use primitives::{Asset, AssetId, AssetMetaData, AssetType, BannerEvent, BlockExplorerLink, Chain, PriceAlert, RecentActivityType, VerificationStatus, WalletType};
+
+use crate::services::balance::GemAssetBalance;
+use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
 use swapper::AssetList as SwapAssetList;
 
@@ -261,6 +264,32 @@ pub struct GemAssetDetailsState {
     pub shows_manage: bool,
     pub shows_resources: bool,
     pub shows_price_alerts: bool,
+    pub price_alerts_count: u32,
+    pub price_alert_enabled: bool,
     pub shows_earn: bool,
     pub empty_transactions_action: Option<GemAssetEmptyAction>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemAssetDetailsInput {
+    pub wallet_type: WalletType,
+    pub asset: Asset,
+    pub owner_address: Option<String>,
+    pub metadata: AssetMetaData,
+    pub balance: GemAssetBalance,
+    pub price: Option<f64>,
+    pub banner_events: Vec<BannerEvent>,
+    pub price_alerts: Vec<PriceAlert>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemAssetDetails {
+    pub state: GemAssetDetailsState,
+    pub explorer_name: String,
+    pub address_link: Option<BlockExplorerLink>,
+    pub token_link: Option<BlockExplorerLink>,
+    pub verification_status: Option<VerificationStatus>,
+    pub network_destination: Option<GemAssetNetworkDestination>,
+    pub share_url: String,
+    pub swap_pair: GemSwapPairSuggestion,
 }

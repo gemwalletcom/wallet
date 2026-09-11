@@ -46,8 +46,6 @@ import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoU
 internal fun AssetDetailsScene(
     uiState: AssetInfoUIModel,
     transactions: List<TransactionDataAggregate>,
-    priceAlertEnabled: Boolean,
-    priceAlertsCount: Int,
     requestNotificationPermission: (() -> Unit) -> Unit,
     isRefreshing: Boolean,
     snackBar: SnackbarHostState = remember { SnackbarHostState() },
@@ -86,7 +84,7 @@ internal fun AssetDetailsScene(
         actions = {
             AssetDetailsMenu(
                 uiState = uiState,
-                priceAlertEnabled = priceAlertEnabled,
+                priceAlertEnabled = detailsState.priceAlertEnabled,
                 snackBar = snackBar,
                 requestNotificationPermission = requestNotificationPermission,
                 onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },
@@ -139,7 +137,7 @@ internal fun AssetDetailsScene(
                     },
                 )
                 uiState.verificationStatus?.let { verificationStatusItem(it) }
-                price(uiState, priceAlertsCount, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
+                price(uiState, detailsState.priceAlertsCount.toInt(), onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
                 network(uiState, onAction)
                 balancesHeader(uiState.accountInfoUIModel)
                 itemsPositioned(uiState.accountInfoUIModel.balances) { position, item ->

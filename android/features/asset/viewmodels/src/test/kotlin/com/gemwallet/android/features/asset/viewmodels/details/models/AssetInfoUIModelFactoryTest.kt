@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemAssetDetailsState
 import uniffi.gemstone.GemHeaderActions
 import io.mockk.every
@@ -94,22 +95,26 @@ class AssetInfoUIModelFactoryTest {
         val assetInfo = mockAssetInfo(asset = asset, owner = null, balance = balance, metadata = metadata)
         return AssetInfoUIModelFactory().create(
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
-            swapPair = GemSwapPairSuggestion(asset.id.toIdentifier(), null),
-            explorerName = "Explorer",
-            explorerAddressUrl = null,
-            explorerTokenUrl = null,
-            verificationStatus = null,
-            networkDestination = null,
-            shareUrl = "",
-            detailsState = GemAssetDetailsState(
-                isViewOnly = false,
-                headerActions = GemHeaderActions.Buttons(emptyList()),
-                showsBanners = true,
-                showsManage = false,
-                showsResources = false,
-                showsPriceAlerts = false,
-                showsEarn = false,
-                emptyTransactionsAction = null,
+            GemAssetDetails(
+                state = GemAssetDetailsState(
+                    isViewOnly = false,
+                    headerActions = GemHeaderActions.Buttons(emptyList()),
+                    showsBanners = true,
+                    showsManage = false,
+                    showsResources = false,
+                    showsPriceAlerts = false,
+                    priceAlertsCount = 0u,
+                    priceAlertEnabled = false,
+                    showsEarn = false,
+                    emptyTransactionsAction = null,
+                ),
+                explorerName = "Explorer",
+                addressLink = null,
+                tokenLink = null,
+                verificationStatus = null,
+                networkDestination = null,
+                shareUrl = "",
+                swapPair = GemSwapPairSuggestion(asset.id.toIdentifier(), null),
             ),
         )
     }

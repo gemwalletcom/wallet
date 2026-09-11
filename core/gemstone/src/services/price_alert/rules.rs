@@ -43,6 +43,10 @@ pub fn displayed_price_alert_ids(alerts: Vec<PriceAlert>) -> Vec<String> {
         .collect()
 }
 
+pub fn price_alert_enabled(alerts: &[PriceAlert]) -> bool {
+    alerts.iter().any(|alert| alert.notification_type() == PriceAlertNotificationType::Auto)
+}
+
 pub fn price_alert_row(alert: &PriceAlert, current_price: Option<f64>, price_change_percentage_24h: Option<f64>) -> GemPriceAlertRow {
     GemPriceAlertRow {
         kind: alert_kind(alert),

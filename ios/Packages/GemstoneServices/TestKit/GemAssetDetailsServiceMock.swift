@@ -3,22 +3,18 @@
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
-import struct Gemstone.AssetMetaData
 import typealias Gemstone.BannerEvent
-import typealias Gemstone.Chain
 import typealias Gemstone.Deeplink
-import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import struct Gemstone.GemAssetDetails
+import struct Gemstone.GemAssetDetailsInput
 import struct Gemstone.GemAssetDetailsState
-import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemAssetRefreshFailure
 import enum Gemstone.GemBannerAction
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.BlockExplorerLink
 import struct Gemstone.GemSwapPairSuggestion
-import struct Gemstone.PriceAlert
-import enum Gemstone.VerificationStatus
 import enum Gemstone.WalletType
 import Primitives
 
@@ -49,41 +45,28 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
 
     public func applyBannerAction(key _: GemBannerKey, action _: GemBannerAction) async throws {}
 
-    public func networkDestination(assetId _: AssetId) -> GemAssetNetworkDestination? {
-        .none
-    }
-
-    public func verificationStatus(asset _: Asset, rank _: Int32) -> Gemstone.VerificationStatus? {
-        .none
-    }
-
-    public func state(walletType: WalletType, chain _: Chain, metadata: AssetMetaData, balance _: GemAssetBalance, bannerEvents _: [BannerEvent], price _: Double?, priceAlerts _: [Gemstone.PriceAlert]) -> GemAssetDetailsState {
-        GemAssetDetailsState(
-            isViewOnly: walletType == .view,
-            headerActions: walletType == .view ? .watchOnly : .buttons(buttons: []),
-            showsBanners: walletType != .view,
-            showsManage: !metadata.isBalanceEnabled,
-            showsResources: false,
-            showsPriceAlerts: false,
-            showsEarn: false,
-            emptyTransactionsAction: nil,
+    public func details(input: GemAssetDetailsInput) -> GemAssetDetails {
+        GemAssetDetails(
+            state: GemAssetDetailsState(
+                isViewOnly: input.walletType == .view,
+                headerActions: input.walletType == .view ? .watchOnly : .buttons(buttons: []),
+                showsBanners: input.walletType != .view,
+                showsManage: !input.metadata.isBalanceEnabled,
+                showsResources: false,
+                showsPriceAlerts: false,
+                priceAlertsCount: 0,
+                priceAlertEnabled: false,
+                showsEarn: false,
+                emptyTransactionsAction: nil,
+            ),
+            explorerName: "Explorer",
+            addressLink: input.ownerAddress.map { Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\($0)") },
+            tokenLink: .none,
+            verificationStatus: .none,
+            networkDestination: .none,
+            shareUrl: "https://gemwallet.com",
+            swapPair: assetPair ?? GemSwapPairSuggestion(payAssetId: input.asset.id, receiveAssetId: nil),
         )
-    }
-
-    public func swapPair(assetId: AssetId, hasBalance _: Bool) -> GemSwapPairSuggestion {
-        assetPair ?? GemSwapPairSuggestion(payAssetId: assetId, receiveAssetId: nil)
-    }
-
-    public func explorerName(chain _: Chain) -> String {
-        "Explorer"
-    }
-
-    public func addressUrl(chain _: Chain, address: String) -> Gemstone.BlockExplorerLink {
-        Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(address)")
-    }
-
-    public func tokenUrl(chain _: Chain, address _: String) -> Gemstone.BlockExplorerLink? {
-        .none
     }
 
     public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}

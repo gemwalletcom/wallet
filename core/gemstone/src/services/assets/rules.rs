@@ -17,7 +17,7 @@ use crate::perpetual::GemPerpetual;
 use crate::services::balance::GemAssetBalance;
 use crate::services::nft::rules::nft_chains;
 use crate::services::price::rules::has_price;
-use crate::services::price_alert::rules::displayed_price_alert_ids;
+use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert_enabled};
 use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
@@ -277,6 +277,7 @@ pub fn details_state(
     let buttons_enabled = !banner_events
         .iter()
         .any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature));
+    let displayed_alerts = displayed_price_alert_ids(price_alerts.clone()).len() as u32;
     let button = |kind: GemHeaderButtonKind, shows: bool| {
         shows.then_some(GemHeaderButton {
             kind,
@@ -303,7 +304,9 @@ pub fn details_state(
         shows_banners: !banner_events.is_empty(),
         shows_manage: !metadata.is_balance_enabled,
         shows_resources: StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze()),
-        shows_price_alerts: has_price(price) && !displayed_price_alert_ids(price_alerts).is_empty(),
+        shows_price_alerts: has_price(price) && displayed_alerts > 0,
+        price_alerts_count: displayed_alerts,
+        price_alert_enabled: price_alert_enabled(&price_alerts),
         shows_earn: metadata.is_earn_enabled && !is_view_only && balance.earn == GemBigUint::ZERO,
         empty_transactions_action: if metadata.is_buy_enabled {
             Some(GemAssetEmptyAction::Buy)
@@ -789,6 +792,22 @@ mod tests {
         assert!(!shows(Some(0.0), vec![auto.clone()]));
         assert!(!shows(None, vec![auto]));
         assert!(!shows(Some(1.0), vec![]));
+    }
+
+    #[test]
+    fn test_details_state_counts_displayed_alerts_and_reports_the_auto_alert() {
+        let plain = metadata(true, false, false, false);
+        let balance = GemAssetBalance::mock();
+        let auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Ethereum), Currency::USD);
+        let manual = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 120.0, PriceAlertDirection::Up);
+        let mut notified = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 140.0, PriceAlertDirection::Up);
+        notified.last_notified_at = Some(Utc::now());
+        let state = |alerts: Vec<PriceAlert>| details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], Some(1.0), alerts);
+
+        assert_eq!(state(vec![auto.clone(), manual.clone(), notified]).price_alerts_count, 2);
+        assert!(state(vec![auto, manual.clone()]).price_alert_enabled);
+        assert!(!state(vec![manual]).price_alert_enabled);
+        assert_eq!(state(vec![]).price_alerts_count, 0);
     }
 
     #[test]

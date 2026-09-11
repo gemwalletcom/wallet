@@ -1,23 +1,23 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, AssetMetaData, BannerEvent, Chain, Deeplink, PriceAlert, VerificationStatus, WalletType};
+use primitives::{Asset, AssetId, BannerEvent, Deeplink};
 
 use crate::deeplink::GemDeeplinkService;
-use crate::services::balance::{GemAssetBalance, GemBalanceService};
+use crate::models::custom_types::GemBigUint;
+use crate::services::balance::GemBalanceService;
 use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::stream::GemStreamSubscriptionService;
-use crate::services::swap::{GemSwapPairSuggestion, GemSwapService};
+use crate::services::swap::GemSwapService;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_session::GemWalletSessionService;
-use primitives::BlockExplorerLink;
 
 use crate::services::failures::{StepFailure, record};
 
-use super::{GemAssetDetailsState, GemAssetNetworkDestination, GemAssetsService, rules};
+use super::{GemAssetDetails, GemAssetDetailsInput, GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetRefreshStep {
@@ -152,41 +152,29 @@ impl GemAssetDetailsService {
         self.banners.apply_action(key, action).await
     }
 
-    pub fn network_destination(&self, asset_id: AssetId) -> Option<GemAssetNetworkDestination> {
-        rules::network_destination(&asset_id)
-    }
-
-    pub fn verification_status(&self, asset: Asset, rank: i32) -> Option<VerificationStatus> {
-        rules::verification_status(&asset, rank)
-    }
-
-    pub fn state(
-        &self,
-        wallet_type: WalletType,
-        chain: Chain,
-        metadata: AssetMetaData,
-        balance: GemAssetBalance,
-        banner_events: Vec<BannerEvent>,
-        price: Option<f64>,
-        price_alerts: Vec<PriceAlert>,
-    ) -> GemAssetDetailsState {
-        rules::details_state(wallet_type, chain, &metadata, &balance, &banner_events, price, price_alerts)
-    }
-
-    pub fn swap_pair(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
-        self.swap.pair_for_asset(asset_id, has_balance)
-    }
-
-    pub fn explorer_name(&self, chain: Chain) -> String {
-        self.explorer.get_explorer_name(chain)
-    }
-
-    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
-        self.explorer.get_address_url(chain, address)
-    }
-
-    pub fn token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
-        self.explorer.get_token_url(chain, address)
+    pub fn details(&self, input: GemAssetDetailsInput) -> GemAssetDetails {
+        let GemAssetDetailsInput {
+            wallet_type,
+            asset,
+            owner_address,
+            metadata,
+            balance,
+            price,
+            banner_events,
+            price_alerts,
+        } = input;
+        let chain = asset.chain();
+        let has_balance = balance.available > GemBigUint::ZERO;
+        GemAssetDetails {
+            state: rules::details_state(wallet_type, chain, &metadata, &balance, &banner_events, price, price_alerts),
+            explorer_name: self.explorer.get_explorer_name(chain),
+            address_link: owner_address.map(|address| self.explorer.get_address_url(chain, address)),
+            token_link: asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(chain, token_id)),
+            verification_status: rules::verification_status(&asset, metadata.rank_score),
+            network_destination: rules::network_destination(&asset.id),
+            share_url: self.deeplinks.build_url(Deeplink::Asset { asset_id: asset.id.clone() }),
+            swap_pair: self.swap.pair_for_asset(asset.id, has_balance),
+        }
     }
 
     pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {

@@ -18,7 +18,8 @@ public struct AssetScene: View {
     @Environment(\.connectionStatus) private var connectionStatus
 
     public var body: some View {
-        List {
+        let details = model.details
+        return List {
             Section {} header: {
                 ValueHeaderView(
                     model: model.assetHeaderModel,
@@ -32,7 +33,7 @@ public struct AssetScene: View {
             }
             .cleanListRow()
 
-            if model.detailsState.showsBanners, let banner = model.visibleBanners.first {
+            if details.state.showsBanners, let banner = model.visibleBanners.first {
                 Section {
                     BannerView(
                         banner: banner,
@@ -49,7 +50,7 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.detailsState.showsManage {
+            if details.state.showsManage {
                 Section(Localized.Common.manage) {
                     NavigationCustomLink(with:
                         ListItemView(
@@ -75,19 +76,19 @@ public struct AssetScene: View {
                 )
                 .accessibilityIdentifier("price")
 
-                if model.detailsState.showsPriceAlerts {
+                if details.state.showsPriceAlerts {
                     NavigationLink(
                         value: Scenes.AssetPriceAlert(asset: model.assetData.asset),
                         label: {
                             ListItemView(
-                                title: model.priceAlertsViewModel.priceAlertsTitle,
-                                subtitle: model.priceAlertsViewModel.priceAlertCount,
+                                title: model.priceAlertsTitle,
+                                subtitle: String(details.state.priceAlertsCount),
                             )
                         },
                     )
                 }
 
-                switch model.networkDestination {
+                switch details.networkDestination {
                 case let .asset(asset):
                     NavigationLink(
                         value: Scenes.Asset(asset: asset.map()),
@@ -172,7 +173,7 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.detailsState.showsResources {
+            if details.state.showsResources {
                 Section(model.resourcesTitle) {
                     ListItemView(field: model.energyField)
                     ListItemView(field: model.bandwidthField)
