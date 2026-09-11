@@ -9,24 +9,44 @@ use super::rules;
 use primitives::TransactionInputType;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetRate {
+    pub base_symbol: String,
+    pub quote_symbol: String,
+    pub value: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapRate {
+    pub direct: GemAssetRate,
+    pub inverse: GemAssetRate,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapQuoteSummary {
     pub quote: SwapQuote,
     pub min_receive_value: GemBigUint,
     pub eta_minutes: Option<u32>,
+    pub rate: Option<GemSwapRate>,
 }
 
 #[uniffi::export]
-pub fn swap_quote_summary(quote: SwapQuote) -> GemSwapQuoteSummary {
+pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset) -> GemSwapQuoteSummary {
     GemSwapQuoteSummary {
         min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
         eta_minutes: quote.eta_in_seconds.and_then(rules::eta_minutes),
+        rate: rules::swap_rate(&from_asset, &quote.from_value, &to_asset, &quote.to_value),
         quote,
     }
 }
 
 #[uniffi::export]
-pub fn swapper_quote_summary(quote: Quote) -> GemSwapQuoteSummary {
-    swap_quote_summary(rules::swap_quote(&quote))
+pub fn swapper_quote_summary(quote: Quote, from_asset: Asset, to_asset: Asset) -> GemSwapQuoteSummary {
+    swap_quote_summary(rules::swap_quote(&quote), from_asset, to_asset)
+}
+
+#[uniffi::export]
+pub fn swap_quote(quote: Quote) -> SwapQuote {
+    rules::swap_quote(&quote)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

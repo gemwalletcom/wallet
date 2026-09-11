@@ -35,9 +35,9 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
     public var itemModel: ConfirmTransferItemModel {
         switch type {
         case let .swap(fromAsset, toAsset, swapData):
-            let toAsset = toAsset.map()
             let quote = swapData.quote
-            let summary = swapQuoteSummary(quote: quote)
+            let summary = swapQuoteSummary(quote: quote, fromAsset: fromAsset, toAsset: toAsset)
+            let toAsset = toAsset.map()
             let fromAssetPrice = AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice)
             let toAssetPrice = AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id])
             return .swapDetails(
@@ -46,6 +46,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     toAssetPrice: toAssetPrice,
                     selectedQuote: quote,
                     slippage: .manual(bps: quote.slippageBps),
+                    rate: summary.rate,
                     currency: session.currency.rawValue,
                     swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
                         .priceImpact(receive: toAssetPrice.swapValue(quote.toValue))

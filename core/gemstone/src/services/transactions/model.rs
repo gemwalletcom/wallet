@@ -1,4 +1,5 @@
 use crate::models::custom_types::GemBigUint;
+use crate::services::swap::model::GemSwapRate;
 use primitives::{AddressName, Asset, AssetId, AssetPrice, NFTAssetId, PerpetualDirection, Resource, TransactionExtended, TransactionType};
 
 use super::rules;
@@ -171,12 +172,6 @@ pub enum GemTransactionHeaderAction {
     Nft { asset_id: NFTAssetId },
     Swap { from_asset_id: AssetId, to_asset_id: AssetId },
     Perpetual { asset_id: AssetId },
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemSwapRate {
-    pub from: GemTransactionAmount,
-    pub to: GemTransactionAmount,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

@@ -28,7 +28,7 @@ public final class TransactionSceneViewModel {
     }
 
     var isPresentingTransactionSheet: TransactionSheetType?
-    private var rateDirection: AssetRateFormatter.Direction = .direct
+    private var isRateInverse = false
 
     public init(
         transaction: TransactionExtended,
@@ -80,7 +80,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
             )
         case .memo: TransactionMemoViewModel(transaction: transactionExtended.transaction)
         case .resource: TransactionResourceViewModel(resource: rows.resource)
-        case .rate: TransactionRateViewModel(rate: rows.rate, direction: rateDirection)
+        case .rate: TransactionRateViewModel(rate: rows.rate, isInverse: isRateInverse)
         case .network: TransactionNetworkViewModel(chain: transactionExtended.asset.chain)
         case .pnl: TransactionPnlViewModel(pnl: rows.pnl)
         case .price: TransactionPriceViewModel(price: rows.price)
@@ -112,10 +112,7 @@ extension TransactionSceneViewModel {
     }
 
     func switchRateDirection() {
-        switch rateDirection {
-        case .direct: rateDirection = .inverse
-        case .inverse: rateDirection = .direct
-        }
+        isRateInverse.toggle()
     }
 
     func onSelectShare() {

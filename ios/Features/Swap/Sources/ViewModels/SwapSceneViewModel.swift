@@ -117,7 +117,7 @@ public final class SwapSceneViewModel {
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
         guard let selectedSwapQuote, let fromAsset, let toAsset else { return nil }
-        let summary = swapperQuoteSummary(quote: selectedSwapQuote)
+        let summary = swapperQuoteSummary(quote: selectedSwapQuote, fromAsset: fromAsset.asset.map(), toAsset: toAsset.asset.map())
         let selectedQuote = summary.quote
         let fromAssetPrice = AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price)
         let toAssetPrice = AssetPriceValue(asset: toAsset.asset, price: toAsset.price)
@@ -127,6 +127,7 @@ public final class SwapSceneViewModel {
             toAssetPrice: toAssetPrice,
             selectedQuote: selectedQuote,
             slippage: selectedSlippage,
+            rate: summary.rate,
             currency: service.currency.rawValue,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)

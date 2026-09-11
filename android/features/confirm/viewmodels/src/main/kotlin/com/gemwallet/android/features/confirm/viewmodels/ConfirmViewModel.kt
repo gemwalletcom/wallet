@@ -359,7 +359,7 @@ class ConfirmViewModel @Inject constructor(
         content ?: return null
         val fromAsset = content.assetPrice(transfer.asset)
         val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
-        val summary = swapQuoteSummary(swapData.quote)
+        val summary = swapQuoteSummary(swapData.quote, fromAsset.asset.toGem(), toAsset.asset.toGem())
 
         val provider = SwapProviderUIModelFactory.create(
             providerId = swapData.quote.providerData.provider,
@@ -371,8 +371,7 @@ class ConfirmViewModel @Inject constructor(
             SwapDetailsUIModelInput(
                 payAsset = fromAsset,
                 receiveAsset = toAsset,
-                fromValue = transfer.value,
-                toValue = swapData.quote.toValue,
+                rate = summary.rate,
                 provider = provider,
                 slippageBps = swapData.quote.slippageBps,
                 selectedSlippage = swapData.quote.slippageBps,

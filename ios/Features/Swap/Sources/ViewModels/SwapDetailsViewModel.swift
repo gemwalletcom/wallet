@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemSwapRate
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapQuote
 import Localization
@@ -20,7 +21,6 @@ public final class SwapDetailsViewModel {
     }()
 
     private let valueFormatter = ValueFormatter(style: .auto)
-    private let rateFormatter = AssetRateFormatter()
     private let percentSignLessFormatter = PercentFormatter.unsigned
 
     let state: StateViewType<[SwapProviderItem]>
@@ -29,7 +29,8 @@ public final class SwapDetailsViewModel {
     private let providerViewModel: SwapProviderViewModel
     private let selectedQuote: Gemstone.SwapQuote
     private let slippage: SwapSlippage
-    private var rateDirection: AssetRateFormatter.Direction = .direct
+    private let rate: GemSwapRate?
+    private var isRateInverse = false
     private let priceViewModel: PriceViewModel
     private let isProviderSelectionEnabled: Bool
     private let swapPriceImpact: Primitives.SwapPriceImpact?
@@ -43,6 +44,7 @@ public final class SwapDetailsViewModel {
         toAssetPrice: AssetPriceValue,
         selectedQuote: Gemstone.SwapQuote,
         slippage: SwapSlippage,
+        rate: GemSwapRate?,
         currency: String,
         isProviderSelectionEnabled: Bool = true,
         swapPriceImpact: Primitives.SwapPriceImpact?,
@@ -56,6 +58,7 @@ public final class SwapDetailsViewModel {
         providerViewModel = SwapProviderViewModel(providerData: selectedQuote.providerData)
         self.selectedQuote = selectedQuote
         self.slippage = slippage
+        self.rate = rate
         priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.isProviderSelectionEnabled = isProviderSelectionEnabled
         self.swapPriceImpact = swapPriceImpact
@@ -111,13 +114,7 @@ public final class SwapDetailsViewModel {
     }
 
     var rateText: String? {
-        try? rateFormatter.rate(
-            fromAsset: fromAssetPrice.asset,
-            toAsset: toAssetPrice.asset,
-            fromValue: BigInt(selectedQuote.fromValue),
-            toValue: BigInt(selectedQuote.toValue),
-            direction: rateDirection,
-        )
+        rate.map { AssetRateViewModel(rate: $0).text(isInverse: isRateInverse) }
     }
 
     // MARK: - Price Impact
@@ -170,10 +167,7 @@ public final class SwapDetailsViewModel {
 
 extension SwapDetailsViewModel {
     func switchRateDirection() {
-        switch rateDirection {
-        case .direct: rateDirection = .inverse
-        case .inverse: rateDirection = .direct
-        }
+        isRateInverse.toggle()
     }
 
     func onFinishSwapProviderSelection(item: [SwapProviderItem]) {

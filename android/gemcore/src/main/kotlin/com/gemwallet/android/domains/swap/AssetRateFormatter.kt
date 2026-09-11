@@ -1,51 +1,24 @@
 package com.gemwallet.android.domains.swap
 
-import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetRate
+import uniffi.gemstone.GemSwapRate
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
 
+data class AssetRatePair(
+    val forward: String,
+    val reverse: String,
+)
+
 class AssetRateFormatter(
     private val locale: Locale = Locale.getDefault(),
 ) {
-    enum class Direction {
-        Direct,
-        Inverse,
-    }
+    fun format(rate: GemSwapRate): AssetRatePair = AssetRatePair(forward = format(rate.direct), reverse = format(rate.inverse))
 
-    fun format(
-        fromAsset: Asset,
-        toAsset: Asset,
-        fromAmount: BigDecimal,
-        toAmount: BigDecimal,
-        direction: Direction = Direction.Direct,
-    ): String {
-        val baseAsset: Asset
-        val quoteAsset: Asset
-        val baseValue: BigDecimal
-        val quoteValue: BigDecimal
-
-        when (direction) {
-            Direction.Direct -> {
-                baseAsset = fromAsset
-                quoteAsset = toAsset
-                baseValue = fromAmount
-                quoteValue = toAmount
-            }
-
-            Direction.Inverse -> {
-                baseAsset = toAsset
-                quoteAsset = fromAsset
-                baseValue = toAmount
-                quoteValue = fromAmount
-            }
-        }
-
-        val rateValue = quoteValue.divide(baseValue, MathContext.DECIMAL128)
-        return "1 ${baseAsset.symbol} ≈ ${formatAmount(rateValue, quoteAsset.symbol)}"
-    }
+    fun format(rate: GemAssetRate): String = "1 ${rate.baseSymbol} ≈ ${formatAmount(BigDecimal.valueOf(rate.value), rate.quoteSymbol)}"
 
     private fun formatAmount(value: BigDecimal, symbol: String): String {
         val formatter = NumberFormat.getNumberInstance(locale).apply {

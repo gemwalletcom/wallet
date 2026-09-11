@@ -8,7 +8,7 @@ import typealias Gemstone.Chain
 import typealias Gemstone.Currency
 import enum Gemstone.GemSlippageCheck
 import struct Gemstone.GemSwapQuoteSummary
-import func Gemstone.swapperQuoteSummary
+import func Gemstone.swapQuote
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapSession
@@ -116,7 +116,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
         GemSwapTransfer(
-            quote: swapperQuoteSummary(quote: quote).quote,
+            quote: Gemstone.swapQuote(quote: quote),
             data: quoteData,
             recipient: quote.request.destinationAddress,
             value: quote.request.value,

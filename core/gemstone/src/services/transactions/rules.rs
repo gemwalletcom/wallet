@@ -8,14 +8,17 @@ use primitives::{
 };
 
 use super::model::{
-    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemSwapRate, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails, GemTransactionFilter, GemTransactionHeader,
-    GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
-    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection,
+    GemTransactionDetails, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant,
+    GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle,
+    GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
 use crate::models::asset::wallet_default_assets;
 use crate::services::collections::unique;
+use crate::services::swap::model::GemSwapRate;
+use crate::services::swap::rules as swap_rules;
 use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
 
 pub fn transaction_filters() -> Vec<GemTransactionFilter> {
@@ -260,7 +263,7 @@ fn header_action(transaction: &Transaction) -> Option<GemTransactionHeaderAction
 fn swap_rate(extended: &TransactionExtended) -> Option<GemSwapRate> {
     let from = swap_leg(extended, SwapLeg::From, GemAmountSign::None)?;
     let to = swap_leg(extended, SwapLeg::To, GemAmountSign::None)?;
-    (from.value != 0u32.into() && to.value != 0u32.into()).then_some(GemSwapRate { from, to })
+    swap_rules::swap_rate(&from.asset, &from.value, &to.asset, &to.value)
 }
 
 enum SwapLeg {

@@ -5,7 +5,6 @@ import Components
 import Formatters
 import struct Gemstone.GemSwapQuoteSummary
 import func Gemstone.swapQuoteSummary
-import func Gemstone.swapperQuoteSummary
 import GemstonePrimitives
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapQuote
@@ -47,12 +46,13 @@ struct SwapDetailsViewModelTests {
 
 extension SwapDetailsViewModel {
     static func mock(selectedQuote: Gemstone.SwapQuote = SwapperQuote.mock().swapQuote) -> SwapDetailsViewModel {
-        let summary = swapQuoteSummary(quote: selectedQuote)
+        let summary = swapQuoteSummary(quote: selectedQuote, fromAsset: Asset.mockEthereum().map(), toAsset: Asset.mockEthereumUSDT().map())
         return SwapDetailsViewModel(
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
             selectedQuote: selectedQuote,
             slippage: .auto,
+            rate: summary.rate,
             currency: Currency.usd.rawValue,
             swapPriceImpact: nil,
             minReceiveValue: BigInt(summary.minReceiveValue),

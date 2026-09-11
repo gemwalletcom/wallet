@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.models.swap
 
 import uniffi.gemstone.swapQuoteSummary
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -96,12 +97,13 @@ class SwapDetailsUIModelFactoryTest {
 
     @Test
     fun `rate handles cross decimal assets`() {
+        val eth = assetInfo(symbol = "ETH", decimals = 18)
+        val usdc = assetInfo(symbol = "USDC", decimals = 6)
         val result = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
-                payAsset = assetInfo(symbol = "ETH", decimals = 18),
-                receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
-                fromValue = BigInteger("1000000000000000000"),
-                toValue = BigInteger("2000000000"),
+                payAsset = eth,
+                receiveAsset = usdc,
+                rate = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc).rate,
                 provider = provider(
                     toValue = "2000000000",
                     receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
@@ -171,26 +173,37 @@ class SwapDetailsUIModelFactoryTest {
         etaInSeconds: UInt? = null,
         isProviderSelectable: Boolean = false,
         priceImpact: SwapPriceImpact? = null,
-    ) = SwapDetailsUIModelFactory.create(
-        SwapDetailsUIModelInput(
-            payAsset = payAsset,
-            receiveAsset = receiveAsset,
-            fromValue = BigInteger(fromValue),
-            toValue = BigInteger(toValue),
-            provider = provider,
-            providers = providers,
-            slippageBps = slippageBps,
-            selectedSlippage = slippageBps,
-            etaInSeconds = etaInSeconds,
-            isProviderSelectable = isProviderSelectable,
-            priceImpact = priceImpact,
-            minReceiveValue = summary(toValue, slippageBps, etaInSeconds).minReceiveValue,
-            etaMinutes = summary(toValue, slippageBps, etaInSeconds).etaMinutes,
-        ),
-    )
+    ): SwapDetailsUIModel? {
+        val summary = summary(fromValue, toValue, slippageBps, etaInSeconds, payAsset, receiveAsset)
+        return SwapDetailsUIModelFactory.create(
+            SwapDetailsUIModelInput(
+                payAsset = payAsset,
+                receiveAsset = receiveAsset,
+                rate = summary.rate,
+                provider = provider,
+                providers = providers,
+                slippageBps = slippageBps,
+                selectedSlippage = slippageBps,
+                etaInSeconds = etaInSeconds,
+                isProviderSelectable = isProviderSelectable,
+                priceImpact = priceImpact,
+                minReceiveValue = summary.minReceiveValue,
+                etaMinutes = summary.etaMinutes,
+            ),
+        )
+    }
 
-    private fun summary(toValue: String, slippageBps: UInt, etaInSeconds: UInt?) = swapQuoteSummary(
-        mockSwapQuote(toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
+    private fun summary(
+        fromValue: String,
+        toValue: String,
+        slippageBps: UInt,
+        etaInSeconds: UInt?,
+        payAsset: AssetPriceValue,
+        receiveAsset: AssetPriceValue,
+    ) = swapQuoteSummary(
+        mockSwapQuote(fromAmount = fromValue.toBigInteger(), toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
+        payAsset.asset.toGem(),
+        receiveAsset.asset.toGem(),
     )
 
     private fun provider(

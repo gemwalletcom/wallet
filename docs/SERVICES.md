@@ -301,6 +301,15 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Core computes the swap rate.** `GemSwapRate` is now `{ direct, inverse }` of
+  `GemAssetRate { base_symbol, quote_symbol, value }`, built by `swap::rules::swap_rate` from the
+  two assets and atomic amounts (none when either amount is zero). `swap_quote_summary` and
+  `swapper_quote_summary` take the two assets and carry the `rate`, the transaction detail rows
+  reuse the same rule, and `swap_quote(quote)` is exported for the plain quote conversion. iOS's
+  `AssetRateFormatter` (direction enum, decimals-to-double division, zero guard) and Android's
+  `AssetRateFormatter.format(from, to, amounts, direction)` + `buildAssetRatePair` are gone; the
+  apps keep only the number formatting and the "1 X ≈ Y" template (`AssetRateViewModel` on iOS,
+  `AssetRateFormatter.format(rate)` on Android) and a single inverse flag per screen.
 - **A simulated balance change carries its sign.** `GemSimulationBalanceChange` gained
   `sign: GemAmountSign`, set by Core from the value, so neither app reads the signum to pick a
   prefix and a colour: iOS's `SimulationAssetChange` twin and its `amountSign`/`amountColor` rules
@@ -1627,7 +1636,7 @@ either side; it needs the wire text and one owner of the format. The generator i
   `GemTransactionDetailsService::detail_rows(extended)` returns the whole details screen
   (`GemTransactionDetailRows`: header as amount-with-fiat-flag / swap legs / NFT / symbol / asset
   image, header tap action, participant with name and `can_add_contact`, provider, memo, resource,
-  swap rate with both legs, pnl, price, fee with its price, explorer link). Each app used to
+  swap rate in both directions, pnl, price, fee with its price, explorer link). Each app used to
   re-derive all of it — resolving swap legs against the transaction's asset list, deciding when a
   swap has a rate, filtering empty memos, deriving the perpetual notional in collateral decimals,
   mapping the header kind back to metadata, and choosing the header action by transaction type —

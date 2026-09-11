@@ -1,5 +1,6 @@
 use num_bigint::BigInt;
 use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
 use primitives::swap::{SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
@@ -7,7 +8,7 @@ use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, S
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
 use crate::models::swap::GemSlippageCheck;
-use crate::services::swap::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
+use crate::services::swap::model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapRate, GemSwapTransfer};
 use std::collections::HashMap;
 
 pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: BigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
@@ -82,6 +83,27 @@ pub fn quote_refresh_interval_milliseconds() -> u64 {
 
 pub fn quote_debounce_milliseconds() -> u64 {
     QUOTE_DEBOUNCE_MILLISECONDS
+}
+
+pub fn swap_rate(from_asset: &Asset, from_value: &BigUint, to_asset: &Asset, to_value: &BigUint) -> Option<GemSwapRate> {
+    let from_amount = amount(from_value, from_asset.decimals)?;
+    let to_amount = amount(to_value, to_asset.decimals)?;
+    (from_amount > 0.0 && to_amount > 0.0).then(|| GemSwapRate {
+        direct: asset_rate(from_asset, to_asset, to_amount / from_amount),
+        inverse: asset_rate(to_asset, from_asset, from_amount / to_amount),
+    })
+}
+
+fn amount(value: &BigUint, decimals: i32) -> Option<f64> {
+    BigNumberFormatter::value_as_f64(&value.to_string(), u32::try_from(decimals).ok()?).ok()
+}
+
+fn asset_rate(base: &Asset, quote: &Asset, value: f64) -> GemAssetRate {
+    GemAssetRate {
+        base_symbol: base.symbol.clone(),
+        quote_symbol: quote.symbol.clone(),
+        value,
+    }
 }
 
 pub fn swap_quote(quote: &Quote) -> SwapQuote {
@@ -259,6 +281,27 @@ mod tests {
         assert_eq!(selected_quote(&quotes, Some(SwapperProvider::Thorchain)).unwrap().data.provider.id, SwapperProvider::Okx);
         assert_eq!(selected_quote(&quotes, None).unwrap().data.provider.id, SwapperProvider::Okx);
         assert!(selected_quote(&[], Some(SwapperProvider::Jupiter)).is_none());
+    }
+
+    #[test]
+    fn test_swap_rate_pairs_each_direction_and_needs_both_amounts() {
+        let eth = Asset::mock_eth();
+        let usdc = Asset::mock_ethereum_usdc();
+        let one_eth = BigUint::from(1_000_000_000_000_000_000u128);
+        let two_thousand_usdc = BigUint::from(2_000_000_000u64);
+
+        let rate = swap_rate(&eth, &one_eth, &usdc, &two_thousand_usdc).unwrap();
+        assert_eq!(
+            (rate.direct.base_symbol.as_str(), rate.direct.quote_symbol.as_str(), rate.direct.value),
+            ("ETH", "USDC", 2000.0)
+        );
+        assert_eq!(
+            (rate.inverse.base_symbol.as_str(), rate.inverse.quote_symbol.as_str(), rate.inverse.value),
+            ("USDC", "ETH", 0.0005)
+        );
+
+        assert!(swap_rate(&eth, &BigUint::from(0u32), &usdc, &two_thousand_usdc).is_none());
+        assert!(swap_rate(&eth, &one_eth, &usdc, &BigUint::from(0u32)).is_none());
     }
 
     #[test]

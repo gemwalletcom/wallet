@@ -186,7 +186,7 @@ class SwapViewModel @Inject constructor(
             if (quote == null) {
                 return@combine null
             }
-            val summary = swapperQuoteSummary(quote.quote)
+            val summary = swapperQuoteSummary(quote.quote, quote.pay.asset.toGem(), quote.receive.asset.toGem())
 
             val provider = providers.firstOrNull { item ->
                 item.id == quote.quote.data.provider.id &&
@@ -201,8 +201,7 @@ class SwapViewModel @Inject constructor(
                 SwapDetailsUIModelInput(
                     payAsset = quote.pay.toAssetPriceValue(),
                     receiveAsset = quote.receive.toAssetPriceValue(),
-                    fromValue = quote.quote.fromValue,
-                    toValue = quote.quote.toValue,
+                    rate = summary.rate,
                     provider = provider,
                     providers = providers,
                     slippageBps = quote.quote.data.slippageBps,

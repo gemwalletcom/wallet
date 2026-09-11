@@ -5,7 +5,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.domains.price.toValueDirection
-import com.gemwallet.android.domains.swap.buildAssetRatePair
+import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.format
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
@@ -71,6 +71,7 @@ class TransactionDetailsAggregateImpl(
 
     private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
     private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
+    private val rateFormatter = AssetRateFormatter()
 
     override val id: String = data.transaction.id.identifier
 
@@ -140,14 +141,7 @@ class TransactionDetailsAggregateImpl(
         )
     }
 
-    val rate: TransactionDetailsValue.Rate? = rows.rate?.let { rate ->
-        buildAssetRatePair(
-            fromAsset = rate.from.asset.toPrimitives(),
-            toAsset = rate.to.asset.toPrimitives(),
-            fromValue = rate.from.value,
-            toValue = rate.to.value,
-        )?.let { TransactionDetailsValue.Rate(it) }
-    }
+    val rate: TransactionDetailsValue.Rate? = rows.rate?.let { TransactionDetailsValue.Rate(rateFormatter.format(it)) }
 
     val swapAgain: TransactionDetailsValue.SwapAgain? = rows.swapAgain
         ?.let { TransactionDetailsValue.SwapAgain(fromAssetId = AssetId(it.fromAssetId), toAssetId = AssetId(it.toAssetId)) }

@@ -3,12 +3,11 @@ package com.gemwallet.android.ui.models.swap
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
-import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.model.AssetPriceValue
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.swap.SwapPriceImpact
 import java.math.BigInteger
+import uniffi.gemstone.GemSwapRate
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperProviderType
 
@@ -48,8 +47,7 @@ object SwapProviderUIModelFactory {
 data class SwapDetailsUIModelInput(
     val payAsset: AssetPriceValue,
     val receiveAsset: AssetPriceValue,
-    val fromValue: BigInteger,
-    val toValue: BigInteger,
+    val rate: GemSwapRate?,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val slippageBps: UInt,
@@ -65,13 +63,7 @@ object SwapDetailsUIModelFactory {
     private val rateFormatter = AssetRateFormatter()
 
     fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
-        val rate = buildAssetRatePair(
-            fromAsset = input.payAsset.asset,
-            toAsset = input.receiveAsset.asset,
-            fromValue = input.fromValue,
-            toValue = input.toValue,
-            formatter = rateFormatter,
-        ) ?: return null
+        val rate = input.rate?.let(rateFormatter::format) ?: return null
 
         val slippagePercent = input.slippageBps.toDouble() / 100.0
         val priceImpact = input.priceImpact?.let {
@@ -83,7 +75,6 @@ object SwapDetailsUIModelFactory {
             )
         }
 
-        val toAmount = Crypto(input.toValue)
         val minReceiveAtomic = input.minReceiveValue
 
         return SwapDetailsUIModel(
