@@ -15,10 +15,10 @@ final class QRScannerSceneViewModel {
     var isPresentingToastMessage: ToastMessage?
     var isScannerReady: Bool = false
 
-    let resources: QRScannerResources
+    let resources: QRScanResources
     let scanType: QRScanType
 
-    init(resources: QRScannerResources, scanType: QRScanType) {
+    init(resources: QRScanResources, scanType: QRScanType) {
         self.resources = resources
         self.scanType = scanType
     }

@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Eight over-built iOS protocols are gone.** A sweep for protocols with a single conformer and
+  no test mock found `PushNotificationEnabler` and `SilentValidatable` (never used as a type or
+  checked), `SecurityReminderViewModel`, `QRScannerResources` and `ChartStreamable` (an
+  existential over one concrete type), `FormattedValidator` and `JsonCodable` (a default
+  implementation for one conformer) and `RequestInterceptable` (only the empty interceptor
+  existed). Each now uses the one concrete type. `BindableQuery` (a heterogeneous array),
+  `WalletConnectorInteractable` (a package boundary), `GemAPIAssetsService` (widget injection)
+  and `ConnectionComponentMonitoring` (a monitor list) stay.
 - **Social link rows are Core's.** iOS `AssetLink.linkType` and Android `ext/AssetLink.kt` (with
   a `"twitter"` alias) each parsed a link name into `LinkType`, dropped unknown names and derived
   the website host after Core had only sorted the links. `social_links(links)` and

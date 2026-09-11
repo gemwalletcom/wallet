@@ -14,7 +14,7 @@ public struct QRScannerScene: View {
 
     private let action: (String) -> Void
 
-    public init(resources: QRScannerResources, scanType: QRScanType, action: @escaping (String) -> Void) {
+    public init(resources: QRScanResources, scanType: QRScanType, action: @escaping (String) -> Void) {
         self.action = action
         _model = State(initialValue: QRScannerSceneViewModel(resources: resources, scanType: scanType))
     }

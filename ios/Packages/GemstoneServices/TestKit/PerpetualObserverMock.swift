@@ -5,7 +5,7 @@ import enum Gemstone.GemPerpetualSubscription
 import Primitives
 
 public actor PerpetualObserverMock: PerpetualObservable {
-    public let chartService: any ChartStreamable = ChartObserverService()
+    public let chartService = ChartObserverService()
 
     public private(set) var isConnected: Bool = false
 

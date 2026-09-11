@@ -18,13 +18,13 @@ public actor HyperliquidObserverService: PerpetualObservable {
     private var observeTask: Task<Void, Never>?
     private var currentWallet: Wallet?
 
-    public let chartService: any ChartStreamable
+    public let chartService: ChartObserverService
 
     public init(
         webSocket: any WebSocketConnectable,
         perpetualService: any GemPerpetualServiceProtocol,
         streamService: any GemPerpetualStreamServiceProtocol,
-        chartService: any ChartStreamable = ChartObserverService(),
+        chartService: ChartObserverService = ChartObserverService(),
     ) {
         self.webSocket = webSocket
         self.perpetualService = perpetualService

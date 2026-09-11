@@ -15,7 +15,7 @@ public extension TextValidator {
 
 // MARK: - Silent
 
-private struct SilentTextValidator<V: TextValidator>: TextValidator, SilentValidatable {
+private struct SilentTextValidator<V: TextValidator>: TextValidator {
     let validator: V
 
     func validate(_ text: String) throws {

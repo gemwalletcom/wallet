@@ -16,7 +16,7 @@ public extension ValueValidator {
 
 // MARK: - Silent
 
-private struct SilentValueValidator<V: ValueValidator>: ValueValidator, SilentValidatable {
+private struct SilentValueValidator<V: ValueValidator>: ValueValidator {
     typealias Formatted = V.Formatted
 
     let validator: V

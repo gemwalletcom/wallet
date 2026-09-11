@@ -17,12 +17,14 @@ struct AmountValidatorTests {
 
     @Test
     func assetAmountConverts() throws {
+        let recorder = RecordingAmountValidator()
         let validator = AmountValidator.assetAmount(
             formatter: formatter,
             decimals: decimals,
-            validators: [],
+            validators: [recorder],
         )
-        #expect(try validator.format("123.456") == BigInt(123_456_000))
+        try validator.validate("123.456")
+        #expect(recorder.value == BigInt(123_456_000))
     }
 
     @Test
@@ -44,4 +46,14 @@ private struct InvalidAmountValidator: ValueValidator {
     }
 
     var id: String { "invalidAmount" }
+}
+
+private final class RecordingAmountValidator: ValueValidator, @unchecked Sendable {
+    var value: BigInt?
+
+    func validate(_ value: BigInt) throws {
+        self.value = value
+    }
+
+    var id: String { "recording" }
 }

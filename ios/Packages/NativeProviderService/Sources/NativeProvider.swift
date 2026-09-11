@@ -9,19 +9,16 @@ import Primitives
 
 public actor NativeProvider {
     private let session: URLSession
-    private let requestInterceptor: any RequestInterceptable
 
-    public init(session: URLSession = .shared, requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor()) {
+    public init(session: URLSession = .shared) {
         self.session = session
-        self.requestInterceptor = requestInterceptor
     }
 }
 
 extension NativeProvider: AlienProvider {
     public func request(target: AlienTarget) async throws -> AlienResponse {
         do {
-            var request = try target.asRequest()
-            requestInterceptor.intercept(request: &request)
+            let request = try target.asRequest()
             let (data, response) = try await session.data(for: request)
             let statusCode = (response as? HTTPURLResponse)?.statusCode
 

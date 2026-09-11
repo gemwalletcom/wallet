@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-private enum JsonCodableEncoder {
+private enum AnyCodableValueEncoder {
     static let standard: JSONEncoder = {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -11,9 +11,7 @@ private enum JsonCodableEncoder {
     }()
 }
 
-public protocol JsonCodable: Codable {}
-
-public extension JsonCodable {
+public extension AnyCodableValue {
     init(_ json: String) throws {
         self = try JSONDateDecoder.standard.decode(Self.self, from: Data(json.utf8))
     }
@@ -27,12 +25,10 @@ public extension JsonCodable {
     }
 
     func json() -> String {
-        guard let data = try? JsonCodableEncoder.standard.encode(self) else {
+        guard let data = try? AnyCodableValueEncoder.standard.encode(self) else {
             assertionFailure("failed to serialize \(Self.self)")
             return ""
         }
         return String(decoding: data, as: UTF8.self)
     }
 }
-
-extension AnyCodableValue: JsonCodable {}

@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-public actor ChartObserverService: ChartStreamable {
+public actor ChartObserverService {
     private var continuation: AsyncStream<ChartCandleUpdate>.Continuation?
 
     public init() {}

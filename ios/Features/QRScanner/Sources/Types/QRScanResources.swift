@@ -4,7 +4,7 @@ import Foundation
 import Localization
 import Style
 
-public struct QRScanResources: QRScannerResources {
+public struct QRScanResources {
     public init() {}
 
     public var selectFromPhotos: String {

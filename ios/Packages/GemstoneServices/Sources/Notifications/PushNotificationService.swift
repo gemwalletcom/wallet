@@ -4,14 +4,14 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import Foundation
 import UIKit
 
-public struct PushNotificationEnablerService: PushNotificationEnabler {
+public struct PushNotificationEnablerService: Sendable {
     private let preferencesService: any GemPreferencesServiceProtocol
 
     public init(preferencesService: any GemPreferencesServiceProtocol) {
         self.preferencesService = preferencesService
     }
 
-    public func requestPermissions() async throws -> Bool {
+    private func requestPermissions() async throws -> Bool {
         if !preferencesService.isPushNotificationsEnabled() {
             let enabled = try await requestAuthorizationPermissions()
             try preferencesService.setPushNotificationsEnabled(enabled: enabled)

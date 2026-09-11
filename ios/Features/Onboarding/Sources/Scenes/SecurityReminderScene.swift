@@ -46,7 +46,7 @@ struct SecurityReminderScene: View {
 
 #Preview {
     SecurityReminderScene(
-        model: SecurityReminderViewModelDefault(
+        model: SecurityReminderViewModel(
             title: Localized.Wallet.New.title,
             onNext: {},
         ),
