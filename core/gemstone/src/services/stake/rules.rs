@@ -68,7 +68,7 @@ pub fn can_claim_rewards(wallet_type: WalletType, delegation: &Delegation) -> bo
 }
 
 pub fn validator_display_name(validator: &DelegationValidator) -> String {
-    if validator.name.trim().is_empty() {
+    if validator.name.is_empty() {
         return AddressFormatter::format(&validator.id, Some(validator.chain), AddressFormatStyle::Short);
     }
     validator.name.clone()
@@ -436,7 +436,7 @@ pub fn stale_validator_ids(existing: Vec<DelegationValidator>, incoming: &[Deleg
 pub fn validator_address_names(validators: &[DelegationValidator]) -> Vec<AddressName> {
     validators
         .iter()
-        .filter(|validator| !validator.name.trim().is_empty())
+        .filter(|validator| !validator.name.is_empty())
         .map(|validator| AddressName {
             chain: validator.chain,
             address: validator.id.clone(),
@@ -458,27 +458,33 @@ mod tests {
     use primitives::{AssetId, Resource};
 
     fn solana_validator(name: &str) -> DelegationValidator {
-        DelegationValidator::stake(Chain::Solana, "8GbwASqdpw4dVcwbWUxbHXMrjyQx2aKkoBR5H1GJF8iD".to_string(), name.to_string(), true, 0.0, 5.0)
+        DelegationValidator {
+            chain: Chain::Solana,
+            id: "8GbwASqdpw4dVcwbWUxbHXMrjyQx2aKkoBR5H1GJF8iD".to_string(),
+            name: name.to_string(),
+            ..DelegationValidator::mock()
+        }
     }
 
     #[test]
     fn test_validator_display_name() {
-        assert_eq!(validator_display_name(&solana_validator("Everstake")), "Everstake");
+        assert_eq!(validator_display_name(&DelegationValidator::mock()), "Test Validator");
         assert_eq!(validator_display_name(&solana_validator("")), "8GbwA...JF8iD");
-        assert_eq!(validator_display_name(&solana_validator("   ")), "8GbwA...JF8iD");
 
-        let mut earn = solana_validator("");
-        earn.provider_type = StakeProviderType::Earn;
-        earn.id = "yo".to_string();
+        let earn = DelegationValidator {
+            id: "yo".to_string(),
+            name: String::new(),
+            provider_type: StakeProviderType::Earn,
+            ..DelegationValidator::mock()
+        };
         assert_eq!(validator_display_name(&earn), "yo");
     }
 
     #[test]
     fn test_validator_address_names() {
         let named = solana_validator("Everstake");
-        let unnamed = solana_validator("");
 
-        let names = validator_address_names(&[named.clone(), unnamed]);
+        let names = validator_address_names(&[named.clone(), solana_validator("")]);
 
         assert_eq!(names.len(), 1);
         assert_eq!(names[0].name, "Everstake");

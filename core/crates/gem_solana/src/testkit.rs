@@ -1,6 +1,7 @@
 use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
 use solana_primitives::{CompiledInstruction, LegacyMessage, MessageHeader, Pubkey, VersionedTransaction};
 
+use crate::models::EpochInfo;
 use crate::siws::SiwsMessage;
 
 pub(crate) fn mock_transaction(programs: &[(&str, Vec<u8>)]) -> VersionedTransaction {
@@ -43,4 +44,14 @@ impl SiwsMessage {
 
 pub(crate) fn mock_siws_message(body: &str) -> String {
     format!("example.com wants you to sign in with your Solana account:\n{TEST_PRIVATE_KEY_SOLANA_ADDRESS}{body}")
+}
+
+impl EpochInfo {
+    pub fn mock(slot_index: u64) -> Self {
+        EpochInfo {
+            epoch: 200,
+            slot_index,
+            slots_in_epoch: 432000,
+        }
+    }
 }
