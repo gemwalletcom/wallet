@@ -8,16 +8,13 @@ import PrimitivesComponents
 public struct SelectAssetPresentation: Sendable {
     public let title: String
     public let assetsSectionTitle: String
-    public let listType: AssetListType
 
     init(
         title: String,
         assetsSectionTitle: String = Localized.Assets.title,
-        listType: AssetListType,
     ) {
         self.title = title
         self.assetsSectionTitle = assetsSectionTitle
-        self.listType = listType
     }
 }
 
@@ -27,35 +24,34 @@ public extension SelectAssetType {
     func presentation() -> SelectAssetPresentation {
         switch self {
         case .send:
-            SelectAssetPresentation(title: Localized.Wallet.send, listType: .view)
+            SelectAssetPresentation(title: Localized.Wallet.send)
         case let .receive(type):
             switch type {
             case .asset:
-                SelectAssetPresentation(title: Localized.Wallet.receive, listType: .copy(.asset))
+                SelectAssetPresentation(title: Localized.Wallet.receive)
             case .collection:
                 SelectAssetPresentation(
                     title: Localized.Wallet.receiveCollection,
                     assetsSectionTitle: Localized.Settings.Networks.title,
-                    listType: .copy(.collection),
                 )
             }
         case .buy:
-            SelectAssetPresentation(title: Localized.Wallet.buy, listType: .view)
+            SelectAssetPresentation(title: Localized.Wallet.buy)
         case let .swap(type):
             switch type {
             case .pay:
-                SelectAssetPresentation(title: Localized.Swap.youPay, listType: .view)
+                SelectAssetPresentation(title: Localized.Swap.youPay)
             case .receive:
-                SelectAssetPresentation(title: Localized.Swap.youReceive, listType: .view)
+                SelectAssetPresentation(title: Localized.Swap.youReceive)
             }
         case .manage:
-            SelectAssetPresentation(title: Localized.Wallet.manageTokenList, listType: .manage)
+            SelectAssetPresentation(title: Localized.Wallet.manageTokenList)
         case .priceAlert:
-            SelectAssetPresentation(title: Localized.Assets.selectAsset, listType: .price)
+            SelectAssetPresentation(title: Localized.Assets.selectAsset)
         case .deposit:
-            SelectAssetPresentation(title: Localized.Wallet.deposit, listType: .view)
+            SelectAssetPresentation(title: Localized.Wallet.deposit)
         case .withdraw:
-            SelectAssetPresentation(title: Localized.Wallet.withdraw, listType: .view)
+            SelectAssetPresentation(title: Localized.Wallet.withdraw)
         }
     }
 }

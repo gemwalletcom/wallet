@@ -121,7 +121,7 @@ public final class SetPriceAlertViewModel {
                 formatter: .short,
                 currencyCode: currencyFormatter.currencyCode,
             ),
-            type: .price,
+            row: GemSelectAssetType.priceAlert.flow().row,
         )
     }
 

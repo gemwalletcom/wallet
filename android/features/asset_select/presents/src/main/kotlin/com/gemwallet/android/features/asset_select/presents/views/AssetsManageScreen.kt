@@ -2,7 +2,6 @@ package com.gemwallet.android.features.asset_select.presents.views
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,7 +30,6 @@ fun AssetsManageScreen(
 
     AssetSelectScreen(
         title = stringResource(id = R.string.wallet_manage_token_list),
-        titleBadge = ::getAssetBadge,
         onCancel = onCancel,
         onAddAsset = onAddAsset,
         actions = {
@@ -40,12 +38,6 @@ fun AssetsManageScreen(
                     Icon(imageVector = AppIcons.Add, contentDescription = "")
                 }
             }
-        },
-        itemTrailing = { asset ->
-            Switch(
-                checked = asset.balanceEnabled,
-                onCheckedChange = { viewModel.onChangeVisibility(asset.asset.id, it) },
-            )
         },
         viewModel = viewModel,
     )

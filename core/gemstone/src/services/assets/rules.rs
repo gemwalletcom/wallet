@@ -7,8 +7,9 @@ use primitives::{
 };
 
 use super::model::{
-    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
-    GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetType, GemSelectRowAction, GemWalletSearchLimits,
+    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemAssetRow, GemAssetRowSubtitle, GemAssetRowTitle,
+    GemAssetRowTrailing, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetType, GemSelectRowAction,
+    GemWalletSearchLimits,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::models::custom_types::GemBigUint;
@@ -135,7 +136,14 @@ fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> 
 }
 
 pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: Option<SwapAssetList>) -> GemSelectAssetFlow {
+    let row = |shows_symbol: bool, subtitle: GemAssetRowSubtitle, trailing: GemAssetRowTrailing| GemAssetRow {
+        title: GemAssetRowTitle::Asset,
+        shows_symbol,
+        subtitle,
+        trailing,
+    };
     let flow = |row_action: GemSelectRowAction, action: Option<GemAssetAction>| GemSelectAssetFlow {
+        row: row(false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Balance),
         row_action,
         action,
         scope: GemSelectAssetScope::Wallet,
@@ -156,6 +164,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Send))
         },
         GemSelectAssetType::Receive => GemSelectAssetFlow {
+            row: row(true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy),
             network_search: true,
             chain_filter: true,
             recents: true,
@@ -163,6 +172,10 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         },
         GemSelectAssetType::ReceiveCollection => with_filter(
             GemSelectAssetFlow {
+                row: GemAssetRow {
+                    title: GemAssetRowTitle::Network,
+                    ..row(false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy)
+                },
                 network_search: true,
                 recents: true,
                 ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
@@ -192,6 +205,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         ),
         GemSelectAssetType::Manage => with_filter(
             GemSelectAssetFlow {
+                row: row(true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Toggle),
                 network_search: true,
                 chain_filter: true,
                 balance_filter: true,
@@ -202,6 +216,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         ),
         GemSelectAssetType::PriceAlert => with_filter(
             GemSelectAssetFlow {
+                row: row(true, GemAssetRowSubtitle::Price, GemAssetRowTrailing::None),
                 enables_price_alert: true,
                 network_search: true,
                 chain_filter: true,
@@ -223,11 +238,15 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             Some(GemAssetFilter::asset_ids(vec![HYPERCORE_PERPETUAL_USDC.id.clone()])),
         ),
         GemSelectAssetType::WalletSearch => GemSelectAssetFlow {
+            row: row(false, GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance),
             network_search: true,
             recents: true,
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
         },
-        GemSelectAssetType::WalletSearchResults => flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open)),
+        GemSelectAssetType::WalletSearchResults => GemSelectAssetFlow {
+            row: row(false, GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance),
+            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
+        },
     }
 }
 
@@ -318,6 +337,44 @@ mod tests {
         assert_eq!(row(GemSelectAssetType::Withdraw), (GemSelectRowAction::Navigate, None));
         assert_eq!(row(GemSelectAssetType::WalletSearch), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
         assert_eq!(row(GemSelectAssetType::WalletSearchResults), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
+    }
+
+    #[test]
+    fn test_each_select_flow_shows_the_row_both_apps_draw() {
+        let row = |select_type: GemSelectAssetType| {
+            let row = select_type.flow().row;
+            (row.title, row.shows_symbol, row.subtitle, row.trailing)
+        };
+        let balance = (GemAssetRowTitle::Asset, false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Balance);
+        for select_type in [
+            GemSelectAssetType::Send,
+            GemSelectAssetType::Buy,
+            GemSelectAssetType::SwapPay,
+            GemSelectAssetType::SwapReceive { pay_asset_id: None },
+            GemSelectAssetType::Deposit,
+            GemSelectAssetType::Withdraw,
+        ] {
+            assert_eq!(row(select_type), balance);
+        }
+        assert_eq!(
+            row(GemSelectAssetType::Receive),
+            (GemAssetRowTitle::Asset, true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy)
+        );
+        assert_eq!(
+            row(GemSelectAssetType::ReceiveCollection),
+            (GemAssetRowTitle::Network, false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy)
+        );
+        assert_eq!(
+            row(GemSelectAssetType::Manage),
+            (GemAssetRowTitle::Asset, true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Toggle)
+        );
+        assert_eq!(
+            row(GemSelectAssetType::PriceAlert),
+            (GemAssetRowTitle::Asset, true, GemAssetRowSubtitle::Price, GemAssetRowTrailing::None)
+        );
+        let search = (GemAssetRowTitle::Asset, false, GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance);
+        assert_eq!(row(GemSelectAssetType::WalletSearch), search);
+        assert_eq!(row(GemSelectAssetType::WalletSearchResults), search);
     }
 
     #[test]

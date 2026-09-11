@@ -101,7 +101,7 @@ public struct SelectAssetScene: View {
             let itemView = ListAssetItemSelectionView(
                 assetData: model.displayAssetData(assetData),
                 currencyCode: model.currencyCode,
-                type: model.presentation.listType,
+                row: model.flow.row,
                 action: model.onAssetAction,
             )
             switch model.flow.rowAction {

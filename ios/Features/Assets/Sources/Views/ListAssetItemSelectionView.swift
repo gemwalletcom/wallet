@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -8,18 +9,18 @@ import SwiftUI
 struct ListAssetItemSelectionView: View {
     private let assetData: AssetData
     private let currencyCode: String
-    private let type: AssetListType
+    private let row: GemAssetRow
     private let action: (ListAssetItemAction, AssetData) -> Void
 
     init(
         assetData: AssetData,
         currencyCode: String,
-        type: AssetListType,
+        row: GemAssetRow,
         action: @escaping (ListAssetItemAction, AssetData) -> Void,
     ) {
         self.assetData = assetData
         self.currencyCode = currencyCode
-        self.type = type
+        self.row = row
         self.action = action
     }
 
@@ -32,7 +33,7 @@ struct ListAssetItemSelectionView: View {
                     formatter: .short,
                     currencyCode: currencyCode,
                 ),
-                type: type,
+                row: row,
                 action: {
                     action($0, assetData)
                 },

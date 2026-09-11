@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **What a select-asset row shows is on the flow.** `GemSelectAssetFlow.row` is a `GemAssetRow`
+  (title: asset or network name, whether the symbol badge shows, subtitle: network or price,
+  trailing: balance, toggle, copy or nothing), decided per `GemSelectAssetType` next to the row
+  action. iOS's `AssetListType` enum and the `listType` half of `SelectAssetPresentation` are gone
+  and `ListAssetItemViewModel` reads the row (the wallet tab passes `GemAssetRow.wallet`); Android's
+  send, buy, swap, manage, receive and price-alert select screens no longer each pass their own
+  badge, support and trailing lambdas, `AssetSelectScreen` derives them from the row. The search
+  result screens on both apps still pick their row themselves (see the decisions table).
 - **Android lists the lock periods Core defines.** `lock_periods()` and
   `lock_period_from_minutes(minutes)` are exported (they were private rules with a test that both
   platforms carry the same minutes; the second answers the default for a missing or unknown stored
@@ -861,6 +869,7 @@ Each is one question. Nothing below is blocked on investigation.
 
 | Item | Question | Recommendation |
 |---|---|---|
+| Search result rows | Android's wallet search, search results and network assets screens show the symbol badge next to the name; iOS shows the name only, as on the wallet tab. Core's `WalletSearch`/`WalletSearchResults` rows currently say no symbol. | Pick one; then route both apps' search screens through `flow.row` like the select screens. |
 | Native fee-rate rows | On chains whose fee unit is the native asset, a fee-rate row shows the rate (`unit_value`) on iOS and the resulting fee (`fee`, falling back to the rate) on Android; `GemFeeRateRows` carries both. | Pick the resulting fee (what the row's fiat line already prices) and let `GemFeeRateRow` carry a `display_value` so neither app chooses. |
 | S3 biometric gate | iOS gates at the Keychain ACL so every secret read prompts; Android calls a UI prompt at each call site and `PasswordStore` itself is unauthenticated, so any new caller bypasses it. | Core should mark which operations require authentication, and the adapter enforces it. |
 | N1 notification permission | Core owns "granted / denied / never asked", but Android's adapter holds an application `Context` and cannot tell "never asked" from "denied", so it opens Settings for a first-time user. | Core owns the three-state decision; Android needs an activity-scoped requester. |
