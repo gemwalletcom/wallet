@@ -36,7 +36,7 @@ extension TransactionSwapProgressViewModel: ItemModelProvidable {
                 subtitle: progress.providerName,
                 status: progress.swap,
             ),
-            estimatedTime: progress.etaSeconds.map { EstimatedConfirmationFormatter().string(seconds: $0) },
+            estimatedTime: progress.etaMinutes.map { EstimatedConfirmationFormatter().string(minutes: $0) },
         ))
     }
 }

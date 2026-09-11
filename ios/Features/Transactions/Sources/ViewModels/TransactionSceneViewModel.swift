@@ -71,7 +71,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .swapAgain: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
         case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
         case .status: TransactionStatusViewModel(status: rows.status, state: transactionExtended.transaction.state, onInfoAction: onSelectStatusInfo)
-        case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: rows.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
+        case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(minutes: rows.estimatedConfirmationMinutes, onInfoAction: onSelectEstimatedConfirmationInfo)
         case .participant: TransactionParticipantViewModel(
                 participant: rows.participant,
                 chain: transactionExtended.transaction.assetId.chain,

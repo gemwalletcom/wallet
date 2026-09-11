@@ -212,7 +212,7 @@ pub struct GemTransactionDetailRows {
     pub header_action: Option<GemTransactionHeaderAction>,
     pub swap_progress: Option<GemSwapProgress>,
     pub swap_again: Option<GemSwapAgain>,
-    pub estimated_confirmation_seconds: Option<u32>,
+    pub estimated_confirmation_minutes: Option<u32>,
     pub participant: Option<GemTransactionParticipant>,
     pub provider_name: Option<String>,
     pub memo: Option<String>,
@@ -238,7 +238,7 @@ pub struct GemTransactionDetails {
     pub swap_progress: Option<GemSwapProgress>,
     pub swap_again: Option<GemSwapAgain>,
     pub provider_name: Option<String>,
-    pub estimated_confirmation_seconds: Option<u32>,
+    pub estimated_confirmation_minutes: Option<u32>,
     pub pnl: Option<f64>,
     pub price: Option<f64>,
 }
@@ -250,7 +250,7 @@ pub struct GemSwapProgress {
     pub provider_name: String,
     pub transfer: GemSwapProgressStep,
     pub swap: GemSwapProgressStep,
-    pub eta_seconds: Option<u32>,
+    pub eta_minutes: Option<u32>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

@@ -88,7 +88,7 @@ sealed interface TransactionDetailsValue {
 
     class Status(val data: TransactionState, val status: GemTransactionStatus) : TransactionDetailsValue
 
-    class EstimatedConfirmation(val seconds: UInt) : TransactionDetailsValue
+    class EstimatedConfirmation(val minutes: UInt) : TransactionDetailsValue
 
     class Rate(val rate: AssetRatePair) : TransactionDetailsValue
 
@@ -98,7 +98,7 @@ sealed interface TransactionDetailsValue {
         val providerName: String,
         val transfer: GemSwapProgressStep,
         val swap: GemSwapProgressStep,
-        val etaInSeconds: UInt?,
+        val etaInMinutes: UInt?,
     ) : TransactionDetailsValue
 
     class SwapAgain(

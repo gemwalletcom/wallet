@@ -8,13 +8,8 @@ struct EstimatedConfirmationFormatterTests {
     private let formatter = EstimatedConfirmationFormatter(locale: Locale(identifier: "en_US"))
 
     @Test
-    func roundedMinutes() {
-        #expect(formatter.string(seconds: 720) == "≈ 12 min")
-        #expect(formatter.string(seconds: 750) == "≈ 13 min")
-    }
-
-    @Test
-    func minimumOneMinute() {
-        #expect(formatter.string(seconds: 1) == "≈ 1 min")
+    func minutesReadWithTheLocaleUnit() {
+        #expect(formatter.string(minutes: 12) == "≈ 12 min")
+        #expect(formatter.string(minutes: 1) == "≈ 1 min")
     }
 }

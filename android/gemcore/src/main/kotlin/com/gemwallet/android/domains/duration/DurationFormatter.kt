@@ -4,7 +4,6 @@ import android.icu.text.MeasureFormat
 import android.icu.util.Measure
 import android.icu.util.MeasureUnit
 import java.util.Locale
-import kotlin.math.roundToInt
 
 fun formatDuration(vararg measures: Measure, locale: Locale = Locale.getDefault()): String =
     MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.WIDE).formatMeasures(*measures)
@@ -14,9 +13,10 @@ fun formatAvailableIn(millis: Long, locale: Locale = Locale.getDefault()): Strin
     return if (measures.isEmpty()) "" else formatDuration(*measures.toTypedArray(), locale = locale)
 }
 
-fun formatEstimatedConfirmation(seconds: UInt): String {
-    val minutes = (seconds.toDouble() / 60).roundToInt().coerceAtLeast(1)
-    return "≈ $minutes min"
+fun formatEstimatedConfirmation(minutes: UInt, locale: Locale = Locale.getDefault()): String {
+    val unit = MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.SHORT)
+        .formatMeasures(Measure(minutes.toInt(), MeasureUnit.MINUTE))
+    return "≈ $unit"
 }
 
 private val DurationUnit.measureUnit: MeasureUnit

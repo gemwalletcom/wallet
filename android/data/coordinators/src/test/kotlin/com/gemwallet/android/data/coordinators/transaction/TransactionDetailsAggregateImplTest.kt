@@ -248,7 +248,7 @@ class TransactionDetailsAggregateImplTest {
                     providerName = "NEAR Intents",
                     transfer = GemSwapProgressStep.PENDING,
                     swap = GemSwapProgressStep.WAITING,
-                    etaSeconds = 720u,
+                    etaMinutes = 12u,
                 ),
             ),
         )
@@ -258,7 +258,7 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals("NEAR Intents", swapProgress?.providerName)
         Assert.assertEquals(GemSwapProgressStep.PENDING, swapProgress?.transfer)
         Assert.assertEquals(GemSwapProgressStep.WAITING, swapProgress?.swap)
-        Assert.assertEquals(720u, swapProgress?.etaInSeconds)
+        Assert.assertEquals(12u, swapProgress?.etaInMinutes)
 
         val again = createAggregate(
             rows = mockGemTransactionDetailRows(swapAgain = GemSwapAgain(fromAssetId = ethAsset.id.toIdentifier(), toAssetId = btcAsset.id.toIdentifier())),
@@ -277,7 +277,7 @@ class TransactionDetailsAggregateImplTest {
             aggregate.sections.flatMap { section -> section.rows.map(aggregate::value) },
         )
 
-        Assert.assertEquals(720u, createAggregate(rows = mockGemTransactionDetailRows(estimatedConfirmationSeconds = 720u)).estimatedConfirmation?.seconds)
+        Assert.assertEquals(12u, createAggregate(rows = mockGemTransactionDetailRows(estimatedConfirmationMinutes = 12u)).estimatedConfirmation?.minutes)
         Assert.assertNull(aggregate.estimatedConfirmation)
     }
 
