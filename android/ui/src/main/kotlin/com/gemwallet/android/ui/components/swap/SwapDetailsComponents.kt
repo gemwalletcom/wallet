@@ -39,7 +39,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
-import com.wallet.core.primitives.swap.SwapPriceImpactType
+import uniffi.gemstone.SwapPriceImpactType
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.listItemIconSize
@@ -272,9 +272,9 @@ private fun PriceImpactPropertyItem(
 
 @Composable
 private fun SwapPriceImpactUIModel?.getColor() = when (this?.type) {
-    SwapPriceImpactType.Positive -> MaterialTheme.colorScheme.tertiary
-    SwapPriceImpactType.Medium -> pendingColor
-    SwapPriceImpactType.High -> MaterialTheme.colorScheme.error
-    SwapPriceImpactType.Low,
+    SwapPriceImpactType.POSITIVE -> MaterialTheme.colorScheme.tertiary
+    SwapPriceImpactType.MEDIUM -> pendingColor
+    SwapPriceImpactType.HIGH -> MaterialTheme.colorScheme.error
+    SwapPriceImpactType.LOW,
     null -> MaterialTheme.colorScheme.secondary
 }

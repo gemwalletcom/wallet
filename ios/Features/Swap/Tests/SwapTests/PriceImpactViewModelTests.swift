@@ -61,8 +61,7 @@ extension PriceImpactViewModel {
         return PriceImpactViewModel(
             fromAssetPrice: assetPrice,
             swapPriceImpact: assetPrice.swapValue(fromValue)
-                .priceImpact(receive: assetPrice.swapValue(toValue))
-                .map { $0.map() },
+                .priceImpact(receive: assetPrice.swapValue(toValue)),
         )
     }
 }

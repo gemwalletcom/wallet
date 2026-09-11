@@ -209,8 +209,7 @@ class SwapViewModel @Inject constructor(
                     etaInSeconds = quote.quote.etaInSeconds,
                     isProviderSelectable = providers.size > 1,
                     priceImpact = quote.pay.swapValue(quote.quote.fromValue)
-                        .priceImpact(quote.receive.swapValue(quote.quote.toValue))
-                        ?.toPrimitives(),
+                        .priceImpact(quote.receive.swapValue(quote.quote.toValue)),
                     minReceiveValue = summary.minReceiveValue,
                     etaMinutes = summary.etaMinutes,
                 ),

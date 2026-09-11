@@ -6,6 +6,7 @@ import Formatters
 import Foundation
 import struct Gemstone.GemSwapRate
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapPriceImpact
 import struct Gemstone.SwapQuote
 import Localization
 import Primitives
@@ -33,7 +34,7 @@ public final class SwapDetailsViewModel {
     private var isRateInverse = false
     private let priceViewModel: PriceViewModel
     private let isProviderSelectionEnabled: Bool
-    private let swapPriceImpact: Primitives.SwapPriceImpact?
+    private let swapPriceImpact: SwapPriceImpact?
     private let minReceiveValue: BigInt
     private let etaMinutes: UInt32?
     private let swapProviderSelectAction: ((SwapperQuote) -> Void)?
@@ -47,7 +48,7 @@ public final class SwapDetailsViewModel {
         rate: GemSwapRate?,
         currency: String,
         isProviderSelectionEnabled: Bool = true,
-        swapPriceImpact: Primitives.SwapPriceImpact?,
+        swapPriceImpact: SwapPriceImpact?,
         minReceiveValue: BigInt,
         etaMinutes: UInt32?,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
@@ -128,10 +129,7 @@ public final class SwapDetailsViewModel {
     }
 
     var shouldShowPriceImpactInDetails: Bool {
-        switch priceImpactModel.value?.type {
-        case .low, .positive, nil: false
-        case .medium, .high: true
-        }
+        priceImpactModel.showsInSummary
     }
 
     var priceImpactValue: String? {

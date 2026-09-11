@@ -49,8 +49,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     rate: summary.rate,
                     currency: session.currency.rawValue,
                     swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
-                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue))
-                        .map { $0.map() },
+                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue)),
                     minReceiveValue: BigInt(summary.minReceiveValue),
                     etaMinutes: summary.etaMinutes,
                 ),

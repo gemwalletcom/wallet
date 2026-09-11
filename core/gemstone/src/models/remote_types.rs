@@ -1722,6 +1722,7 @@ pub struct SwapPriceImpact {
     pub percentage: f64,
     pub impact_type: SwapPriceImpactType,
     pub is_high: bool,
+    pub shows_in_summary: bool,
 }
 
 #[uniffi::remote(Record)]

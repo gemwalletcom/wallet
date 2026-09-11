@@ -725,20 +725,6 @@ fun com.wallet.core.primitives.SupportTypingStatus.toGem(): uniffi.gemstone.Supp
     com.wallet.core.primitives.SupportTypingStatus.Off -> uniffi.gemstone.SupportTypingStatus.OFF
 }
 
-fun uniffi.gemstone.SwapPriceImpactType.toPrimitives(): com.wallet.core.primitives.swap.SwapPriceImpactType = when (this) {
-    uniffi.gemstone.SwapPriceImpactType.POSITIVE -> com.wallet.core.primitives.swap.SwapPriceImpactType.Positive
-    uniffi.gemstone.SwapPriceImpactType.LOW -> com.wallet.core.primitives.swap.SwapPriceImpactType.Low
-    uniffi.gemstone.SwapPriceImpactType.MEDIUM -> com.wallet.core.primitives.swap.SwapPriceImpactType.Medium
-    uniffi.gemstone.SwapPriceImpactType.HIGH -> com.wallet.core.primitives.swap.SwapPriceImpactType.High
-}
-
-fun com.wallet.core.primitives.swap.SwapPriceImpactType.toGem(): uniffi.gemstone.SwapPriceImpactType = when (this) {
-    com.wallet.core.primitives.swap.SwapPriceImpactType.Positive -> uniffi.gemstone.SwapPriceImpactType.POSITIVE
-    com.wallet.core.primitives.swap.SwapPriceImpactType.Low -> uniffi.gemstone.SwapPriceImpactType.LOW
-    com.wallet.core.primitives.swap.SwapPriceImpactType.Medium -> uniffi.gemstone.SwapPriceImpactType.MEDIUM
-    com.wallet.core.primitives.swap.SwapPriceImpactType.High -> uniffi.gemstone.SwapPriceImpactType.HIGH
-}
-
 fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.SwapProvider = when (this) {
     uniffi.gemstone.SwapProvider.UNISWAP_V3 -> com.wallet.core.primitives.SwapProvider.UniswapV3
     uniffi.gemstone.SwapProvider.UNISWAP_V4 -> com.wallet.core.primitives.SwapProvider.UniswapV4
@@ -1990,18 +1976,6 @@ fun uniffi.gemstone.SupportTyping.toPrimitives(): com.wallet.core.primitives.Sup
 fun com.wallet.core.primitives.SupportTyping.toGem(): uniffi.gemstone.SupportTyping = uniffi.gemstone.SupportTyping(
     status = status.toGem(),
     agent = agent.toGem(),
-)
-
-fun uniffi.gemstone.SwapPriceImpact.toPrimitives(): com.wallet.core.primitives.swap.SwapPriceImpact = com.wallet.core.primitives.swap.SwapPriceImpact(
-    percentage = percentage,
-    impactType = impactType.toPrimitives(),
-    isHigh = isHigh,
-)
-
-fun com.wallet.core.primitives.swap.SwapPriceImpact.toGem(): uniffi.gemstone.SwapPriceImpact = uniffi.gemstone.SwapPriceImpact(
-    percentage = percentage,
-    impactType = impactType.toGem(),
-    isHigh = isHigh,
 )
 
 fun uniffi.gemstone.TotalFiatValue.toPrimitives(): com.wallet.core.primitives.TotalFiatValue = com.wallet.core.primitives.TotalFiatValue(

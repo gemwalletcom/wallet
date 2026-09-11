@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Swap price impact is a Core record on both apps.** `SwapPriceImpact` and
+  `SwapPriceImpactType` lose their typeshare twins (they were FFI-only: `GemSwapValue.price_impact`
+  returned the record and each app mapped it to its twin at once), and the record gains
+  `shows_in_summary` (medium or high impact), so iOS's `shouldShowPriceImpactInDetails` switch
+  and Android's `summaryPriceImpactText` switch read one Core flag. The generated Swift/Kotlin
+  twins and their mappers are removed by hand to match what the generator emits for a plain
+  remote type. The dead iOS `StakeType.validatorId` extension goes with it.
 - **Core lists the community links.** `community_links()` returns the About screen's social
   links as sorted `AssetLink`s, replacing the exported `SocialUrl` enum and its `url()`: iOS's
   nine-arm `SocialUrl.linkType` twin mapping, its `AppUrl.social` and the hardcoded `[SocialUrl]`

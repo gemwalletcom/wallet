@@ -5,7 +5,7 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.ValueFormatter
-import com.wallet.core.primitives.swap.SwapPriceImpact
+import uniffi.gemstone.SwapPriceImpact
 import java.math.BigInteger
 import uniffi.gemstone.GemSwapRate
 import uniffi.gemstone.SwapProvider
@@ -72,6 +72,7 @@ object SwapDetailsUIModelFactory {
                 displayText = it.percentage.formatAsPercentage(),
                 warningText = it.percentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
                 isHigh = it.isHigh,
+                showsInSummary = it.showsInSummary,
             )
         }
 

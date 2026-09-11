@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import struct Gemstone.SwapPriceImpact
 import Localization
 import Primitives
 import Style
@@ -8,12 +9,16 @@ import SwiftUI
 
 struct PriceImpactViewModel {
     let fromAssetPrice: AssetPriceValue
-    let swapPriceImpact: Primitives.SwapPriceImpact?
+    let swapPriceImpact: SwapPriceImpact?
 
     private let percentFormatter = PercentFormatter.signed
 
     var showPriceImpactWarning: Bool {
         swapPriceImpact?.isHigh == true
+    }
+
+    var showsInSummary: Bool {
+        swapPriceImpact?.showsInSummary == true
     }
 
     var highImpactWarningTitle: String {

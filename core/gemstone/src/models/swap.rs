@@ -63,6 +63,7 @@ fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> 
         percentage,
         impact_type,
         is_high: rounded_percentage.abs() >= get_swap_config().high_price_impact_percent as f64,
+        shows_in_summary: matches!(impact_type, SwapPriceImpactType::Medium | SwapPriceImpactType::High),
     })
 }
 
@@ -97,11 +98,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: 0.5,
                 impact_type: SwapPriceImpactType::Positive,
                 is_high: false,
+                shows_in_summary: false,
             })
         );
 
@@ -110,11 +113,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: -1.0,
                 impact_type: SwapPriceImpactType::Low,
                 is_high: false,
+                shows_in_summary: false,
             })
         );
 
@@ -123,11 +128,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: -5.0,
                 impact_type: SwapPriceImpactType::Medium,
                 is_high: false,
+                shows_in_summary: true,
             })
         );
 
@@ -136,11 +143,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: -11.0,
                 impact_type: SwapPriceImpactType::High,
                 is_high: true,
+                shows_in_summary: true,
             })
         );
     }

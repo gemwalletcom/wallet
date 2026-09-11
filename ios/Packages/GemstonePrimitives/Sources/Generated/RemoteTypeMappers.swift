@@ -1111,28 +1111,6 @@ public extension Primitives.SupportTypingStatus {
     }
 }
 
-public extension Gemstone.SwapPriceImpactType {
-    func map() -> Primitives.SwapPriceImpactType {
-        switch self {
-        case .positive: .positive
-        case .low: .low
-        case .medium: .medium
-        case .high: .high
-        }
-    }
-}
-
-public extension Primitives.SwapPriceImpactType {
-    func map() -> Gemstone.SwapPriceImpactType {
-        switch self {
-        case .positive: .positive
-        case .low: .low
-        case .medium: .medium
-        case .high: .high
-        }
-    }
-}
-
 public extension Gemstone.SwapProvider {
     func map() -> Primitives.SwapProvider {
         switch self {
@@ -3022,26 +3000,6 @@ public extension Primitives.SupportTyping {
         Gemstone.SupportTyping(
             status: status.map(),
             agent: agent.map(),
-        )
-    }
-}
-
-public extension Gemstone.SwapPriceImpact {
-    func map() -> Primitives.SwapPriceImpact {
-        Primitives.SwapPriceImpact(
-            percentage: percentage,
-            impactType: impactType.map(),
-            isHigh: isHigh,
-        )
-    }
-}
-
-public extension Primitives.SwapPriceImpact {
-    func map() -> Gemstone.SwapPriceImpact {
-        Gemstone.SwapPriceImpact(
-            percentage: percentage,
-            impactType: impactType.map(),
-            isHigh: isHigh,
         )
     }
 }

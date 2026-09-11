@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
+import enum Gemstone.SwapPriceImpactType
 
 public struct PriceImpactValue: Equatable, Sendable {
     let type: SwapPriceImpactType

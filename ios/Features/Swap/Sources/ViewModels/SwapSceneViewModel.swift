@@ -131,8 +131,7 @@ public final class SwapSceneViewModel {
             currency: service.currency.rawValue,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
-                .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue))
-                .map { $0.map() },
+                .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue)),
             minReceiveValue: BigInt(summary.minReceiveValue),
             etaMinutes: summary.etaMinutes,
             swapProviderSelectAction: { [weak self] quote in

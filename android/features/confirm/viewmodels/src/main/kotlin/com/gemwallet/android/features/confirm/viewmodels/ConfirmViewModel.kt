@@ -378,8 +378,7 @@ class ConfirmViewModel @Inject constructor(
                 etaInSeconds = swapData.quote.etaInSeconds,
                 isProviderSelectable = false,
                 priceImpact = fromAsset.swapValue(transfer.value)
-                    .priceImpact(toAsset.swapValue(swapData.quote.toValue))
-                    ?.toPrimitives(),
+                    .priceImpact(toAsset.swapValue(swapData.quote.toValue)),
                 minReceiveValue = summary.minReceiveValue,
                 etaMinutes = summary.etaMinutes,
             ),

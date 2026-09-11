@@ -33,7 +33,7 @@ import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.swap.SwapPriceImpactType
+import uniffi.gemstone.SwapPriceImpactType
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import uniffi.gemstone.GemSwapPairSuggestion
@@ -591,10 +591,11 @@ class SwapViewModelTest {
             ),
             rate = AssetRatePair(forward = "1 SOL = 2.5 USDC", reverse = "1 USDC = 0.4 SOL"),
             priceImpact = SwapPriceImpactUIModel(
-                type = SwapPriceImpactType.High,
+                type = SwapPriceImpactType.HIGH,
                 displayText = "-15%",
                 warningText = "High price impact",
                 isHigh = true,
+                showsInSummary = true,
             ),
             minimumReceive = "2.1 USDC",
             slippageText = "0.5%",
