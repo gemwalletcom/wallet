@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Unread Android test fixtures are gone.** The same sweep over gemcore's `testFixtures` found
+  thirteen functions with no caller (`gemstoneTestAccount`, `mockAssetFull` with the
+  `mockAssetProperties` only it read, `mockPrice`, `mockChartValuePercentage`, `mockAssetMonad`,
+  `mockAssetHyperCoreHype`, `mockPerpetualReduceData`, `mockPerpetualModifyConfirmData`,
+  `mockTpslOrder`, `mockCancel`, `mockChartValue`, `mockMulticoinWalletId`,
+  `mockSwapTransferData`); all deleted with their now-unused imports.
 - **Unread iOS test kit factories are gone.** A sweep of every `static func mock*` in the test
   kits against the tests found eleven with no caller (`AddressStore.mockAddresses`,
   `AmountDisplay.mockSymbol`, `Asset.mockHypercoreSpotUSDC`, `AutocloseType.mockModify`,

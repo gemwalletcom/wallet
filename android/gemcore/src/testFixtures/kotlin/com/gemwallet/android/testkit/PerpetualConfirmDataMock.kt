@@ -5,15 +5,10 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
-import uniffi.gemstone.CancelOrderData
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsAction
 import uniffi.gemstone.GemPerpetualTransferData
 import uniffi.gemstone.PerpetualConfirmData
-import uniffi.gemstone.PerpetualModifyConfirmData
-import uniffi.gemstone.PerpetualModifyPositionType
-import uniffi.gemstone.PerpetualReduceData
-import uniffi.gemstone.TpslOrderData
 
 fun mockPerpetualConfirmData(
     direction: PerpetualDirection = PerpetualDirection.Long,
@@ -57,46 +52,6 @@ fun mockPerpetualDetails(
     action = action,
     direction = direction.toGem(),
     data = data,
-)
-
-fun mockPerpetualReduceData(
-    data: PerpetualConfirmData = mockPerpetualConfirmData(),
-    positionDirection: PerpetualDirection = PerpetualDirection.Long,
-) = PerpetualReduceData(
-    data = data,
-    positionDirection = positionDirection.toGem(),
-)
-
-fun mockPerpetualModifyConfirmData(
-    modifyTypes: List<PerpetualModifyPositionType> = emptyList(),
-    baseAsset: Asset = mockAssetHyperCoreUSDC(),
-    assetIndex: Int = 0,
-    takeProfitOrderId: ULong? = null,
-    stopLossOrderId: ULong? = null,
-) = PerpetualModifyConfirmData(
-    baseAsset = baseAsset.toGem(),
-    assetIndex = assetIndex,
-    modifyTypes = modifyTypes,
-    takeProfitOrderId = takeProfitOrderId,
-    stopLossOrderId = stopLossOrderId,
-)
-
-fun mockTpslOrder(
-    direction: PerpetualDirection = PerpetualDirection.Long,
-    takeProfit: String? = null,
-    stopLoss: String? = null,
-    size: String = "1.0",
-) = PerpetualModifyPositionType.Tpsl(
-    TpslOrderData(
-        direction = direction.toGem(),
-        takeProfit = takeProfit,
-        stopLoss = stopLoss,
-        size = size,
-    ),
-)
-
-fun mockCancel(orderIds: List<ULong>, assetIndex: Int = 0) = PerpetualModifyPositionType.Cancel(
-    orderIds.map { CancelOrderData(assetIndex = assetIndex, orderId = it) },
 )
 
 fun mockGemPerpetualTransferData(
