@@ -853,8 +853,10 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
 public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecked Sendable {
     public private(set) var setCurrencies: [Gemstone.Currency] = []
     private let error: Error?
+    private let flag: String
 
-    public init(error: Error? = nil) {
+    public init(flag: String = "🇺🇸", error: Error? = nil) {
+        self.flag = flag
         self.error = error
     }
 
@@ -867,12 +869,9 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
         setCurrencies.append(currency)
     }
 
-    public func recommendedCurrencies(locale _: Gemstone.Currency?) -> [Gemstone.Currency] {
-        [getCurrency()]
-    }
-
-    public func otherCurrencies(locale _: Gemstone.Currency?) -> [Gemstone.Currency] {
-        []
+    public func currencies(locale _: Gemstone.Currency?) -> GemCurrencies {
+        let selected = GemCurrencyRow(currency: getCurrency(), flag: flag)
+        return GemCurrencies(selected: selected, recommended: [selected], other: [])
     }
 }
 

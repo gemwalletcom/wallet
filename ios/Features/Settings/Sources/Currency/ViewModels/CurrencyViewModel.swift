@@ -1,24 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemCurrencyRow
+import GemstonePrimitives
 import Primitives
-import Style
 
 struct CurrencyViewModel {
     let currency: Currency
+    let flag: String
 
-    var flag: String? {
-        Emoji.Flags.flagsByIdentifier[id]
+    init(row: GemCurrencyRow) {
+        currency = Currency(core: row.currency)
+        flag = row.flag
     }
 
     var title: String {
         let localizedName = Locale.current.localizedString(forCurrencyCode: id) ?? .empty
-
-        if let flag {
-            return "\(flag) \(id) - \(localizedName)"
-        } else {
-            return "\(id) - \(localizedName)"
-        }
+        return "\(flag) \(id) - \(localizedName)"
     }
 }
 

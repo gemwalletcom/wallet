@@ -1,21 +1,50 @@
 use primitives::Currency;
 use strum::IntoEnumIterator;
 
+use super::model::{GemCurrencies, GemCurrencyRow};
 use crate::services::collections::unique;
 
 const DEFAULT_CURRENCIES: [Currency; 7] = [Currency::USD, Currency::EUR, Currency::GBP, Currency::CNY, Currency::JPY, Currency::INR, Currency::RUB];
 
-pub fn recommended_currencies(current: Currency, locale: Option<Currency>) -> Vec<Currency> {
+pub fn currencies(current: Currency, locale: Option<Currency>) -> GemCurrencies {
+    let recommended = recommended_currencies(current.clone(), locale);
+    let other = other_currencies(&recommended);
+    GemCurrencies {
+        selected: row(current),
+        recommended: recommended.into_iter().map(row).collect(),
+        other: other.into_iter().map(row).collect(),
+    }
+}
+
+fn row(currency: Currency) -> GemCurrencyRow {
+    GemCurrencyRow {
+        flag: currency.flag().to_string(),
+        currency,
+    }
+}
+
+fn recommended_currencies(current: Currency, locale: Option<Currency>) -> Vec<Currency> {
     unique([current].into_iter().chain(locale).chain(DEFAULT_CURRENCIES))
 }
 
-pub fn other_currencies(recommended: &[Currency]) -> Vec<Currency> {
+fn other_currencies(recommended: &[Currency]) -> Vec<Currency> {
     Currency::iter().filter(|currency| !recommended.contains(currency)).collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_currencies_flag_every_row_and_name_the_selected_one() {
+        let currencies = currencies(Currency::GBP, Some(Currency::EUR));
+
+        assert_eq!(currencies.selected, row(Currency::GBP));
+        assert_eq!(currencies.selected.flag, "🇬🇧");
+        assert_eq!(currencies.recommended[1].flag, "🇪🇺");
+        assert_eq!(currencies.recommended.len() + currencies.other.len(), Currency::iter().count());
+        assert!(currencies.recommended.iter().chain(&currencies.other).all(|row| !row.flag.is_empty()));
+    }
 
     #[test]
     fn test_recommended_currencies_lead_with_the_current_and_locale_currency_once() {

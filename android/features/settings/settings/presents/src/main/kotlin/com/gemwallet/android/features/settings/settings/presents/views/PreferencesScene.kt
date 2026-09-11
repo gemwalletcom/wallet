@@ -38,7 +38,6 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
-import com.gemwallet.android.features.settings.currency.presents.components.emojiFlags
 import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewModel
 import com.wallet.core.primitives.Appearance
 import java.util.Locale
@@ -73,7 +72,7 @@ fun PreferencesScene(
                     listPosition = ListPosition.First,
                     trailingContent = {
                         PropertyDataText(
-                            text = "${emojiFlags[uiState.currency.string]}  ${uiState.currency.string}",
+                            text = "${uiState.currency.flag}  ${uiState.currency.currency}",
                             badge = { DataBadgeChevron() },
                         )
                     },

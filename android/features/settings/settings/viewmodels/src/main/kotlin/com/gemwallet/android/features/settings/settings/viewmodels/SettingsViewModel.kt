@@ -6,12 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.Appearance
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import uniffi.gemstone.GemWalletSessionServiceInterface
@@ -26,13 +24,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import uniffi.gemstone.GemCurrencyRow
+import uniffi.gemstone.GemCurrencyServiceInterface
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val getWallets: GetWallets,
     private val getSession: GetSession,
-    private val getCurrentCurrency: GetCurrentCurrency,
+    private val currencyService: GemCurrencyServiceInterface,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
@@ -41,7 +41,7 @@ class SettingsViewModel @Inject constructor(
 
     private val session = getSession()
     private val wallets = getWallets()
-    private val state = MutableStateFlow(SettingsViewModelState(currency = getCurrentCurrency.getCurrency().value))
+    private val state = MutableStateFlow(SettingsViewModelState(currency = currencyService.currencies(null).selected))
     val uiState = state.asStateFlow()
 
     val isRewardsAvailable = wallets
@@ -105,7 +105,7 @@ class SettingsViewModel @Inject constructor(
     private fun refresh() = viewModelScope.launch(Dispatchers.IO) {
         state.update {
             it.copy(
-                currency = getCurrentCurrency.getCurrency().value,
+                currency = currencyService.currencies(null).selected,
                 developEnabled = userConfig.developEnabled(),
             )
         }
@@ -133,6 +133,6 @@ class SettingsViewModel @Inject constructor(
 }
 
 data class SettingsViewModelState(
-    val currency: Currency,
+    val currency: GemCurrencyRow,
     val developEnabled: Boolean = false,
 )

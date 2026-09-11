@@ -1,8 +1,11 @@
+pub mod model;
 mod rules;
 
 use std::sync::Arc;
 
 use primitives::Currency;
+
+pub use model::{GemCurrencies, GemCurrencyRow};
 
 use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
@@ -27,12 +30,8 @@ impl GemCurrencyService {
         self.preferences.get_currency()
     }
 
-    pub fn recommended_currencies(&self, locale: Option<Currency>) -> Vec<Currency> {
-        rules::recommended_currencies(self.get_currency(), locale)
-    }
-
-    pub fn other_currencies(&self, locale: Option<Currency>) -> Vec<Currency> {
-        rules::other_currencies(&self.recommended_currencies(locale))
+    pub fn currencies(&self, locale: Option<Currency>) -> GemCurrencies {
+        rules::currencies(self.get_currency(), locale)
     }
 
     pub async fn set_currency(&self, currency: Currency) -> Result<(), GemServiceError> {

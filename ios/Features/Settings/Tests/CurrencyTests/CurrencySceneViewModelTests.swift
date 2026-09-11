@@ -30,7 +30,7 @@ struct CurrencySceneViewModelTests {
     @Test
     func gBPCurrencyValue() {
         let gbpCurrencyStorage = MockCurrencyStorage(currency: .gbp)
-        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, service: GemCurrencyServiceMock())
+        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, service: GemCurrencyServiceMock(flag: "🇬🇧"))
         #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
     }
 
