@@ -18,7 +18,6 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
-import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.ButtonState
@@ -49,7 +48,6 @@ import uniffi.gemstone.MessageType
 class WCAuthViewModel @Inject constructor(
     private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val prepareSessionProposal: PrepareSessionProposal,
-    private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val chainService: GemChainServiceInterface,
@@ -74,7 +72,7 @@ class WCAuthViewModel @Inject constructor(
         authRequest = request
         hasResponded = false
         _state.update { AuthSceneState.Loading }
-        if (originVerifier.isRejected(request.metadata?.url, verifyContext)) {
+        if (walletConnectService.isOriginRejected(request.metadata?.url.orEmpty(), verifyContext.origin, verifyContext.map())) {
             onNotify(BridgeRequestError.MaliciousSession)
             hasResponded = true
             approveWalletConnectAuthentication.rejectAuthentication(request)
