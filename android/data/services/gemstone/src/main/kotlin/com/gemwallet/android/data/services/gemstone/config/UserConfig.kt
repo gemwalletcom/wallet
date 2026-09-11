@@ -15,6 +15,7 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSecureStore
+import uniffi.gemstone.lockPeriodFromMinutes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,7 +65,7 @@ class UserConfig(
     private val termsAcceptedState = MutableStateFlow(preferencesService.isAcceptTermsCompleted())
     private val askNotificationsState = MutableStateFlow(preferencesService.shouldAskNotifications())
     private val lockIntervalState = MutableStateFlow(
-        secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: LOCK_INTERVAL_DEFAULT
+        secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: lockPeriodFromMinutes(null).minutes().toInt()
     )
 
     fun isHideBalances(): Flow<Boolean> = hideBalancesState
@@ -135,7 +136,7 @@ class UserConfig(
         if (secureStore.get(SecureKey.LockInterval.string) != null) {
             return
         }
-        setLockInterval(read(Key.LockInterval, LOCK_INTERVAL_DEFAULT).first())
+        setLockInterval(read(Key.LockInterval, lockPeriodFromMinutes(null).minutes().toInt()).first())
     }
 
     fun isTermsAccepted(): Flow<Boolean> = termsAcceptedState
@@ -168,10 +169,6 @@ class UserConfig(
         Auth("auth_required"),
         LockInterval("lock_interval"),
         ;
-    }
-
-    private companion object {
-        const val LOCK_INTERVAL_DEFAULT = 1
     }
 
     private object Key {

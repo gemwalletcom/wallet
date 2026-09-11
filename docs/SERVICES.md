@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Android lists the lock periods Core defines.** `lock_periods()` and
+  `lock_period_from_minutes(minutes)` are exported (they were private rules with a test that both
+  platforms carry the same minutes; the second answers the default for a missing or unknown stored
+  value), so the Android security screen no longer hardcodes the six minute values and their order,
+  and `UserConfig` and the security view model take the default from Core instead of a local
+  constant. iOS keeps its persisted `LockPeriod` twin: it is the keychain format, and its option list
+  already maps onto the Core enum.
 - **Which name a confirm recipient row shows is one Core rule.** `GemConfirmDestination::with_address_name`
   swaps the typed recipient name for the loaded address-book name (contact, name record) when there is
   one, and leaves every other destination alone. iOS already preferred the address-book name inside

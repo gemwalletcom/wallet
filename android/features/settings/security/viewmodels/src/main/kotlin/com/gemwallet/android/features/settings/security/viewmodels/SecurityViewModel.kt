@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.lockPeriodFromMinutes
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,7 +20,7 @@ class SecurityViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val lockInterval = userConfig.getLockInterval()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 1)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, lockPeriodFromMinutes(null).minutes().toInt())
 
     fun authRequired(): Boolean {
         return userConfig.authRequired()
