@@ -29,6 +29,7 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import kotlinx.coroutines.launch
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ext.serviceMessage
 
 @Composable
 fun ReferralNavScreen(
@@ -102,7 +103,7 @@ fun ReferralNavScreen(
     if (showErrorDialog != null) {
         val message = when (showErrorDialog) {
             is ReferralError.InsufficientPoints -> stringResource(R.string.rewards_insufficient_points)
-            else -> showErrorDialog?.message ?: stringResource(R.string.transaction_status_failed)
+            else -> showErrorDialog?.serviceMessage() ?: stringResource(R.string.transaction_status_failed)
         }
         AlertDialog(
             containerColor = MaterialTheme.colorScheme.background,

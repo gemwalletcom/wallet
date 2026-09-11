@@ -63,6 +63,7 @@ import uniffi.gemstone.ReferralAllowance
 import uniffi.gemstone.ReferralQuota
 import uniffi.gemstone.RewardStatus
 import uniffi.gemstone.Rewards
+import com.gemwallet.android.ext.serviceMessage
 
 @Composable
 fun ReferralScene(
@@ -94,7 +95,6 @@ fun ReferralScene(
     var referralCode by remember(referralCode) { mutableStateOf(referralCode) }
 
     val successStr = stringResource(R.string.common_done)
-    val errorStr = stringResource(R.string.errors_error_occurred)
     val scope = rememberCoroutineScope()
 
     val onShare = fun () {
@@ -184,7 +184,7 @@ fun ReferralScene(
                                 if (error == null) {
                                     snackbar.showSnackbar(successStr, R.drawable.ic_check_circle)
                                 } else {
-                                    snackbar.showSnackbar(error.message ?: errorStr, R.drawable.ic_error)
+                                    snackbar.showSnackbar(error.serviceMessage(), R.drawable.ic_error)
                                 }
                             }
                             onRefresh()
