@@ -1,4 +1,4 @@
-use primitives::{AssetType, BitcoinChain, Chain, ChainType, EVMChain, FeeUnitType, chain_transaction_timeout};
+use primitives::{Asset, AssetType, BitcoinChain, Chain, ChainType, EVMChain, FeeUnitType, chain_transaction_timeout};
 
 #[derive(uniffi::Record, Debug, Clone, PartialEq)]
 pub struct ChainConfig {
@@ -61,11 +61,11 @@ pub fn icon_chain(chain: Chain) -> Chain {
 }
 
 pub(crate) fn badge_chain(chain: Chain) -> Option<Chain> {
-    is_ethereum_layer2(chain).then_some(chain)
+    is_ether_layer2(chain).then_some(chain)
 }
 
-pub(crate) fn is_ethereum_layer2(chain: Chain) -> bool {
-    EVMChain::from_chain(chain).is_some_and(|chain| chain.is_ethereum_layer2())
+pub(crate) fn is_ether_layer2(chain: Chain) -> bool {
+    EVMChain::from_chain(chain).is_some_and(|chain| chain.is_ethereum_layer2()) && Asset::from_chain(chain).symbol == Asset::from_chain(Chain::Ethereum).symbol
 }
 
 pub fn supports_nft_transfer(chain: Chain) -> bool {
@@ -132,6 +132,9 @@ mod tests {
         assert_eq!(icon_chain(Chain::Ethereum), Chain::Ethereum);
 
         assert_eq!(badge_chain(Chain::Base), Some(Chain::Base));
+        assert_eq!(badge_chain(Chain::Celo), None);
+        assert_eq!(badge_chain(Chain::Mantle), None);
+        assert_eq!(badge_chain(Chain::XLayer), None);
         assert_eq!(badge_chain(Chain::OpBNB), None);
         assert_eq!(badge_chain(Chain::Bitcoin), None);
         assert_eq!(badge_chain(Chain::Ethereum), None);

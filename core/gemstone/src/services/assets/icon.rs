@@ -1,7 +1,7 @@
 use primitives::known_assets::{USDC_ASSETS, USDT_ASSETS};
 use primitives::{Asset, AssetId, Chain};
 
-use crate::config::chain::{badge_chain, icon_chain, is_ethereum_layer2};
+use crate::config::chain::{badge_chain, icon_chain, is_ether_layer2};
 use crate::config::image::GemImage;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -51,7 +51,7 @@ fn icon_asset_id(asset_id: &AssetId) -> AssetId {
             .map(AssetId::from_chain)
             .unwrap_or_else(|| asset_id.clone());
     }
-    if asset_id.is_native() && is_ethereum_layer2(asset_id.chain) {
+    if asset_id.is_native() && is_ether_layer2(asset_id.chain) {
         return AssetId::from_chain(Chain::Ethereum);
     }
     asset_id.clone()
@@ -75,6 +75,7 @@ fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::EVMChain;
 
     fn local(chain: Chain) -> GemAssetIconImage {
         GemAssetIconImage::Local { chain }
@@ -127,6 +128,37 @@ mod tests {
                 badge: None
             }
         );
+    }
+
+    #[test]
+    fn test_layer2_coins_that_are_not_ether_draw_their_own_logo_without_a_badge() {
+        for chain in [Chain::Celo, Chain::Mantle, Chain::XLayer] {
+            assert_eq!(
+                asset_icon(&AssetId::from_chain(chain)),
+                GemAssetIcon {
+                    image: local(chain),
+                    badge: None
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn test_every_ethereum_layer2_draws_ether_exactly_when_its_native_coin_is_ether() {
+        let ether = Asset::from_chain(Chain::Ethereum).symbol;
+        for chain in Chain::all().into_iter().filter(|chain| EVMChain::from_chain(*chain).is_some_and(|chain| chain.is_ethereum_layer2())) {
+            let icon = asset_icon(&AssetId::from_chain(chain));
+            match Asset::from_chain(chain).symbol == ether {
+                true => assert_eq!(icon, GemAssetIcon { image: local(Chain::Ethereum), badge: Some(chain) }, "{chain}"),
+                false => assert_eq!(icon, GemAssetIcon { image: local(chain), badge: None }, "{chain}"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_tokens_on_a_layer2_with_its_own_coin_keep_their_chain_badge() {
+        let celo_usdt = AssetId::from_token(Chain::Celo, "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e");
+        assert_eq!(asset_icon(&celo_usdt).badge, Some(Chain::Celo));
     }
 
     #[test]
