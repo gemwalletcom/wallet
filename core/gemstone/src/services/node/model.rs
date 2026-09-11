@@ -1,12 +1,21 @@
 use primitives::Latency;
 
+use super::rules;
 use crate::gateway::GatewayError;
+use crate::service_status::GemLatencyStatus;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemNodeStatusState {
     Loading,
     Error,
     Result { latest_block_number: u64, latency: Latency },
+}
+
+#[uniffi::export]
+impl GemNodeStatusState {
+    pub fn latency_status(&self) -> GemLatencyStatus {
+        rules::latency_status(self)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

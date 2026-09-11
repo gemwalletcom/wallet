@@ -42,10 +42,7 @@ internal fun NodeItem(
                 ListItemTitleText(
                     text = model.title(),
                     titleBadge = {
-                        LatencyStatusBadge(
-                            latency = model.statusState.latency,
-                            isLoading = model.statusState is GemNodeStatusState.Loading,
-                        )
+                        LatencyStatusBadge(status = model.statusState.latencyStatus())
                     },
                 )
             },
@@ -101,9 +98,6 @@ private fun NodeRowUiModel.latestBlockText(): String {
 
     return "${stringResource(R.string.nodes_import_node_latest_block)}: $blockValue"
 }
-
-private val GemNodeStatusState.latency: Latency?
-    get() = (this as? GemNodeStatusState.Result)?.latency
 
 @Preview
 @Composable

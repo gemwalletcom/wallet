@@ -19,18 +19,19 @@ import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
-import uniffi.gemstone.Latency
+import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.LatencyType
 
 @Composable
-internal fun LatencyStatusBadge(
-    latency: Latency?,
-    isLoading: Boolean,
-) {
-    if (isLoading) {
-        Spacer6()
-        CircularProgressIndicator14()
-        return
+internal fun LatencyStatusBadge(status: GemLatencyStatus) {
+    val latency = when (status) {
+        GemLatencyStatus.Loading -> {
+            Spacer6()
+            CircularProgressIndicator14()
+            return
+        }
+        GemLatencyStatus.Error -> null
+        is GemLatencyStatus.Result -> status.latency
     }
 
     val color = latency?.latencyType?.color() ?: MaterialTheme.colorScheme.error

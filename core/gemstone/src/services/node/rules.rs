@@ -1,4 +1,5 @@
-use super::model::GemNodeSelection;
+use super::model::{GemNodeSelection, GemNodeStatusState};
+use crate::service_status::GemLatencyStatus;
 use crate::services::collections::unique_by;
 use primitives::Chain;
 use primitives::node::{Node, NodeState};
@@ -116,6 +117,14 @@ pub fn websocket_url(url: &str) -> String {
     }
 }
 
+pub fn latency_status(state: &GemNodeStatusState) -> GemLatencyStatus {
+    match state {
+        GemNodeStatusState::Loading => GemLatencyStatus::Loading,
+        GemNodeStatusState::Error => GemLatencyStatus::Error,
+        GemNodeStatusState::Result { latency, .. } => GemLatencyStatus::Result { latency: latency.clone() },
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,6 +135,18 @@ mod tests {
             status: NodeState::Active,
             priority,
         }
+    }
+
+    #[test]
+    fn test_latency_status_keeps_the_latency_and_drops_the_block_number() {
+        let latency = primitives::Latency::from_milliseconds(440);
+        let result = GemNodeStatusState::Result {
+            latest_block_number: 12,
+            latency: latency.clone(),
+        };
+        assert_eq!(latency_status(&result), GemLatencyStatus::Result { latency });
+        assert_eq!(latency_status(&GemNodeStatusState::Loading), GemLatencyStatus::Loading);
+        assert_eq!(latency_status(&GemNodeStatusState::Error), GemLatencyStatus::Error);
     }
 
     #[test]

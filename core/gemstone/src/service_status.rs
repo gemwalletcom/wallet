@@ -37,6 +37,13 @@ impl GemServiceEndpoint {
     }
 }
 
+#[derive(uniffi::Enum, Clone, Debug, PartialEq)]
+pub enum GemLatencyStatus {
+    Loading,
+    Error,
+    Result { latency: Latency },
+}
+
 #[derive(uniffi::Object)]
 pub struct GemServiceStatus {
     provider: Arc<dyn AlienProvider>,
@@ -60,7 +67,16 @@ impl GemServiceStatus {
             .collect()
     }
 
-    pub async fn get_endpoint_latency(&self, url: String) -> Result<Latency, GemstoneError> {
+    pub async fn get_endpoint_status(&self, url: String) -> GemLatencyStatus {
+        match self.get_endpoint_latency(url).await {
+            Ok(latency) => GemLatencyStatus::Result { latency },
+            Err(_) => GemLatencyStatus::Error,
+        }
+    }
+}
+
+impl GemServiceStatus {
+    async fn get_endpoint_latency(&self, url: String) -> Result<Latency, GemstoneError> {
         let target = AlienTarget {
             url,
             method: AlienHttpMethod::Get,
@@ -71,5 +87,37 @@ impl GemServiceStatus {
         self.provider.request(target).await?;
 
         Ok(Latency::from_milliseconds(start_time.elapsed().as_millis() as u64))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::alien::{AlienError, AlienResponse};
+    use crate::testkit::TestAlienProvider;
+    use async_trait::async_trait;
+    use futures::executor::block_on;
+    use primitives::LatencyType;
+
+    #[derive(Debug)]
+    struct OfflineProvider;
+
+    #[async_trait]
+    impl AlienProvider for OfflineProvider {
+        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
+            Err(AlienError::Offline)
+        }
+    }
+
+    #[test]
+    fn test_endpoint_status_measures_a_reachable_endpoint_and_reports_an_unreachable_one() {
+        let reachable = GemServiceStatus::new(Arc::new(TestAlienProvider::with_status(200)));
+        match block_on(reachable.get_endpoint_status("https://api.gemwallet.com".to_string())) {
+            GemLatencyStatus::Result { latency } => assert_eq!(latency.latency_type, LatencyType::Fast),
+            other => panic!("a reachable endpoint reports its latency, got {other:?}"),
+        }
+
+        let unreachable = GemServiceStatus::new(Arc::new(OfflineProvider));
+        assert_eq!(block_on(unreachable.get_endpoint_status("https://api.gemwallet.com".to_string())), GemLatencyStatus::Error);
     }
 }

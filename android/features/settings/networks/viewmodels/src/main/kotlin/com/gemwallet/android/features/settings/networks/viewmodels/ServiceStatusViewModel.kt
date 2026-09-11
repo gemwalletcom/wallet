@@ -4,16 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusRowUiModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusUIState
-import com.gemwallet.android.ext.toPrimitives
-import com.wallet.core.primitives.ServiceStatusState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemServiceEndpoint
 import uniffi.gemstone.GemServiceStatus
 import javax.inject.Inject
@@ -37,7 +35,7 @@ class ServiceStatusViewModel @Inject constructor(
             supervisorScope {
                 endpoints.forEach { endpoint ->
                     launch {
-                        val statusState = status(endpoint)
+                        val statusState = serviceStatus.getEndpointStatus(endpoint.url)
                         _uiState.update { current ->
                             current.copy(
                                 rows = current.rows.map {
@@ -57,21 +55,11 @@ class ServiceStatusViewModel @Inject constructor(
     }
 
     private fun loadingRows(): List<ServiceStatusRowUiModel> {
-        return endpoints.map { it.toRow(ServiceStatusState.Loading) }
-    }
-
-    private suspend fun status(endpoint: GemServiceEndpoint): ServiceStatusState {
-        return try {
-            ServiceStatusState.Result(serviceStatus.getEndpointLatency(endpoint.url).toPrimitives())
-        } catch (error: CancellationException) {
-            throw error
-        } catch (_: Throwable) {
-            ServiceStatusState.Error
-        }
+        return endpoints.map { it.toRow(GemLatencyStatus.Loading) }
     }
 }
 
-private fun GemServiceEndpoint.toRow(statusState: ServiceStatusState): ServiceStatusRowUiModel {
+private fun GemServiceEndpoint.toRow(statusState: GemLatencyStatus): ServiceStatusRowUiModel {
     return ServiceStatusRowUiModel(
         id = url,
         type = endpointType,

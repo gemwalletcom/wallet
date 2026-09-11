@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemLatencyStatus
 import struct Gemstone.GemServiceEndpoint
 import Localization
-import Primitives
 import Style
 
 struct ServiceStatusItemViewModel: Identifiable {
     private let endpoint: GemServiceEndpoint
-    private let statusState: ServiceStatusState
+    private let status: GemLatencyStatus
 
     init(
         endpoint: GemServiceEndpoint,
-        statusState: ServiceStatusState,
+        status: GemLatencyStatus,
     ) {
         self.endpoint = endpoint
-        self.statusState = statusState
+        self.status = status
     }
 
     var id: String { endpoint.url }
@@ -33,6 +33,6 @@ struct ServiceStatusItemViewModel: Identifiable {
     }
 
     private var statusTag: LatencyStatusViewModel {
-        LatencyStatusViewModel(serviceStatus: statusState)
+        LatencyStatusViewModel(status: status)
     }
 }

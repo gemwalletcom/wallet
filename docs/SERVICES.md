@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Core owns the endpoint latency status.** `GemServiceStatus::get_endpoint_status(url)` returns
+  `GemLatencyStatus { Loading, Error, Result { latency } }` and `GemNodeStatusState::latency_status()`
+  projects a node check into the same enum, so the settings latency badge on both apps reads one Core
+  type. The typeshare `ServiceStatusState` (defined in primitives, never produced by Core) and its
+  generated twins are gone, and with them the try/catch-to-state wrappers in both service status view
+  models, iOS's third `LatencyStatusViewModel.State` twin with its two mapping inits, and Android's
+  per-screen `latency` extension properties; `get_endpoint_latency` leaves the FFI.
 - **Swap progress steps are the Core enum on both apps.** iOS's
   `TransactionSwapProgressItemModel.Step.Status` and Android's `SwapProgressStatus` were
   case-for-case twins of `GemSwapProgressStep` with a mapping switch each; the item model, the

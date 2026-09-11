@@ -36,6 +36,6 @@ struct AddNodeResultViewModel {
     }
 
     var latencyField: ListItemField {
-        ListItemField(title: Localized.Nodes.ImportNode.latency, value: LatencyViewModel(latency: result.latency.map()).title)
+        ListItemField(title: Localized.Nodes.ImportNode.latency, value: LatencyViewModel(latency: result.latency).title)
     }
 }

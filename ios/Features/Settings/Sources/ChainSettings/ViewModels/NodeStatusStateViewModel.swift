@@ -31,6 +31,6 @@ struct NodeStatusStateViewModel {
     }
 
     private var statusTag: LatencyStatusViewModel {
-        LatencyStatusViewModel(nodeStatus: nodeStatus)
+        LatencyStatusViewModel(status: nodeStatus.latencyStatus())
     }
 }

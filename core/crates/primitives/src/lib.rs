@@ -51,8 +51,6 @@ pub mod node_sync_status;
 pub use self::node_sync_status::{NodeStatusState, NodeSyncStatus};
 pub mod latency_type;
 pub use self::latency_type::{Latency, LatencyType};
-pub mod service_status;
-pub use self::service_status::ServiceStatusState;
 pub mod price;
 pub use self::price::Price;
 pub mod price_change;

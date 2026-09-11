@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.Latency
 import Localization
-import Primitives
 import Style
 import SwiftUI
 
