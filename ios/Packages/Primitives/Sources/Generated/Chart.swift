@@ -43,20 +43,3 @@ public struct ChartDateValue: Codable, Equatable, Hashable, Sendable {
 		self.value = value
 	}
 }
-
-public enum ChartLineType: String, Codable, Equatable, Sendable {
-	case takeProfit
-	case stopLoss
-	case entry
-	case liquidation
-}
-
-public struct ChartLine: Codable, Equatable, Sendable {
-	public let type: ChartLineType
-	public let price: Double
-
-	public init(type: ChartLineType, price: Double) {
-		self.type = type
-		self.price = price
-	}
-}

@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import struct Gemstone.GemPerpetualChartLine
 import Localization
-import Primitives
 import Style
 import SwiftUI
 
 struct ChartLineViewModel: Identifiable {
-    let line: ChartLine
+    let line: GemPerpetualChartLine
     let formatter: NumericFormatter
 
     var id: String {
-        "\(line.type)_\(line.price)"
+        "\(line.kind)_\(line.price)"
     }
 
     var price: Double {
@@ -19,7 +19,7 @@ struct ChartLineViewModel: Identifiable {
     }
 
     var label: String {
-        let typeLabel: String = switch line.type {
+        let typeLabel: String = switch line.kind {
         case .takeProfit: Localized.Perpetual.takeProfit
         case .stopLoss: Localized.Perpetual.stopLoss
         case .entry: Localized.Charts.entry
@@ -30,7 +30,7 @@ struct ChartLineViewModel: Identifiable {
     }
 
     var color: Color {
-        switch line.type {
+        switch line.kind {
         case .takeProfit: Colors.green
         case .stopLoss: Colors.orange
         case .entry: Colors.gray

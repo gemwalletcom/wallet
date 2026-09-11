@@ -26,13 +26,14 @@ import com.gemwallet.android.ui.components.chart.GemCandlestickChart
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
-import com.gemwallet.android.ui.models.chart.ChartReferenceLineRole
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
+import uniffi.gemstone.GemPerpetualChartLine
+import uniffi.gemstone.GemPerpetualChartLineKind
 import com.wallet.core.primitives.Currency
 
 private val TooltipRightSafeArea = 96.dp
@@ -41,10 +42,7 @@ private val TooltipRightSafeArea = 96.dp
 internal fun PerpetualChartSection(
     state: StateViewType<List<ChartCandleStick>>,
     period: ChartPeriod,
-    entry: Double? = null,
-    liquidation: Double? = null,
-    stopLoss: Double? = null,
-    takeProfit: Double? = null,
+    lines: List<GemPerpetualChartLine>,
     onPeriodSelect: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -67,13 +65,16 @@ internal fun PerpetualChartSection(
     val liquidationLabel = stringResource(R.string.perpetual_liquidation)
     val stopLossLabel = stringResource(R.string.perpetual_stop_loss)
     val takeProfitLabel = stringResource(R.string.perpetual_take_profit)
-    val referenceLines = remember(entry, liquidation, stopLoss, takeProfit, entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel, numericString) {
-        listOfNotNull(
-            entry?.let { ChartReferenceLineUIModel(it, "$entryLabel | ${numericString(it)}", ChartReferenceLineRole.Entry) },
-            liquidation?.let { ChartReferenceLineUIModel(it, "$liquidationLabel | ${numericString(it)}", ChartReferenceLineRole.Liquidation) },
-            stopLoss?.let { ChartReferenceLineUIModel(it, "$stopLossLabel | ${numericString(it)}", ChartReferenceLineRole.StopLoss) },
-            takeProfit?.let { ChartReferenceLineUIModel(it, "$takeProfitLabel | ${numericString(it)}", ChartReferenceLineRole.TakeProfit) },
-        )
+    val referenceLines = remember(lines, entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel, numericString) {
+        lines.map { line ->
+            val label = when (line.kind) {
+                GemPerpetualChartLineKind.ENTRY -> entryLabel
+                GemPerpetualChartLineKind.LIQUIDATION -> liquidationLabel
+                GemPerpetualChartLineKind.STOP_LOSS -> stopLossLabel
+                GemPerpetualChartLineKind.TAKE_PROFIT -> takeProfitLabel
+            }
+            ChartReferenceLineUIModel(line.price, "$label | ${numericString(line.price)}", line.kind)
+        }
     }
 
     val chartUIModel = remember(data, referenceLines, numericString) {

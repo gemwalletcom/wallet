@@ -5,6 +5,7 @@ import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemPerpetualChartLineKind
 
 class CandlestickChartUIModelTest {
 
@@ -28,8 +29,8 @@ class CandlestickChartUIModelTest {
     @Test
     fun yRangeIncludesInRangeReferencesAndExpandsAccordingly() {
         val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 14.0, label = "TP", role = ChartReferenceLineRole.TakeProfit),
-            ChartReferenceLineUIModel(price = 8.0, label = "SL", role = ChartReferenceLineRole.StopLoss),
+            ChartReferenceLineUIModel(price = 14.0, label = "TP", role = GemPerpetualChartLineKind.TAKE_PROFIT),
+            ChartReferenceLineUIModel(price = 8.0, label = "SL", role = GemPerpetualChartLineKind.STOP_LOSS),
         )
         val model = CandlestickChartUIModel.from(
             candles = candles,
@@ -44,9 +45,9 @@ class CandlestickChartUIModelTest {
     @Test
     fun referenceLinesFarOutsideCandleRangeAreFiltered() {
         val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 100.0, label = "TP", role = ChartReferenceLineRole.TakeProfit),
-            ChartReferenceLineUIModel(price = 1.0, label = "SL", role = ChartReferenceLineRole.StopLoss),
-            ChartReferenceLineUIModel(price = 10.5, label = "Entry", role = ChartReferenceLineRole.Entry),
+            ChartReferenceLineUIModel(price = 100.0, label = "TP", role = GemPerpetualChartLineKind.TAKE_PROFIT),
+            ChartReferenceLineUIModel(price = 1.0, label = "SL", role = GemPerpetualChartLineKind.STOP_LOSS),
+            ChartReferenceLineUIModel(price = 10.5, label = "Entry", role = GemPerpetualChartLineKind.ENTRY),
         )
         val model = CandlestickChartUIModel.from(
             candles = candles,
@@ -59,9 +60,9 @@ class CandlestickChartUIModelTest {
     @Test
     fun closeReferencesGetSequentialOverlapLevels() {
         val references = listOf(
-            ChartReferenceLineUIModel(price = 10.0, label = "A", role = ChartReferenceLineRole.Entry),
-            ChartReferenceLineUIModel(price = 10.1, label = "B", role = ChartReferenceLineRole.StopLoss),
-            ChartReferenceLineUIModel(price = 12.5, label = "C", role = ChartReferenceLineRole.TakeProfit),
+            ChartReferenceLineUIModel(price = 10.0, label = "A", role = GemPerpetualChartLineKind.ENTRY),
+            ChartReferenceLineUIModel(price = 10.1, label = "B", role = GemPerpetualChartLineKind.STOP_LOSS),
+            ChartReferenceLineUIModel(price = 12.5, label = "C", role = GemPerpetualChartLineKind.TAKE_PROFIT),
         )
         val model = CandlestickChartUIModel.from(
             candles = candles,
@@ -77,9 +78,9 @@ class CandlestickChartUIModelTest {
     @Test
     fun visibleReferencesAreSortedByPriceAscending() {
         val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 12.0, label = "B", role = ChartReferenceLineRole.TakeProfit),
-            ChartReferenceLineUIModel(price = 9.5, label = "A", role = ChartReferenceLineRole.StopLoss),
-            ChartReferenceLineUIModel(price = 11.0, label = "C", role = ChartReferenceLineRole.Entry),
+            ChartReferenceLineUIModel(price = 12.0, label = "B", role = GemPerpetualChartLineKind.TAKE_PROFIT),
+            ChartReferenceLineUIModel(price = 9.5, label = "A", role = GemPerpetualChartLineKind.STOP_LOSS),
+            ChartReferenceLineUIModel(price = 11.0, label = "C", role = GemPerpetualChartLineKind.ENTRY),
         )
         val model = CandlestickChartUIModel.from(
             candles = candles,

@@ -2,10 +2,13 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.testkit.mockAsset
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualPositionData
@@ -14,9 +17,10 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemPerpetualChartLine
+import uniffi.gemstone.GemPerpetualChartLineKind
 import java.util.Locale
 
 class PerpetualPositionDetailsDataAggregateImplTest {
@@ -82,7 +86,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         val aggregate = aggregate(liquidationPrice = 0.003597)
 
         assertEquals("\$0.003597", aggregate.liquidationPrice)
-        assertEquals(0.003597, aggregate.liquidationValue ?: 0.0, 0.0)
+        assertEquals(listOf(GemPerpetualChartLineKind.ENTRY, GemPerpetualChartLineKind.LIQUIDATION), aggregate.chartLines.map { it.kind })
     }
 
     @Test
@@ -90,7 +94,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         val aggregate = aggregate(liquidationPrice = 0.0)
 
         assertEquals("", aggregate.liquidationPrice)
-        assertNull(aggregate.liquidationValue)
+        assertEquals(listOf(GemPerpetualChartLineKind.ENTRY), aggregate.chartLines.map { it.kind })
     }
 
     @Test
@@ -99,6 +103,10 @@ class PerpetualPositionDetailsDataAggregateImplTest {
 
         assertEquals(2.57, aggregate.takeProfit ?: 0.0, 0.0)
         assertEquals(1.23, aggregate.stopLoss ?: 0.0, 0.0)
+        assertEquals(
+            listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.TAKE_PROFIT, 2.57), GemPerpetualChartLine(GemPerpetualChartLineKind.STOP_LOSS, 1.23)),
+            aggregate.chartLines.filter { it.kind != GemPerpetualChartLineKind.ENTRY },
+        )
     }
 
     @Test
@@ -151,6 +159,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         }
         val position = mockk<PerpetualPosition> {
             every { id } returns "pos-ton"
+            every { assetId } returns AssetId(Chain.HyperCore)
             every { perpetualId } returns PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "TON")
             every { size } returns 0.0
             every { this@mockk.sizeValue } returns sizeValue
@@ -172,9 +181,6 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         }
     }
 
-    private fun triggerOrder(price: Double): PerpetualTriggerOrder {
-        return mockk {
-            every { this@mockk.price } returns price
-        }
-    }
+    private fun triggerOrder(price: Double): PerpetualTriggerOrder =
+        PerpetualTriggerOrder(price = price, order_type = PerpetualOrderType.Limit, order_id = "order-$price")
 }

@@ -32,12 +32,12 @@ import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.models.chart.CandleUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.ChartAxisTick
-import com.gemwallet.android.ui.models.chart.ChartReferenceLineRole
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
+import uniffi.gemstone.GemPerpetualChartLineKind
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
@@ -217,17 +217,17 @@ fun GemCandlestickChart(
 }
 
 @Composable
-private fun referenceColors(): (ChartReferenceLineRole) -> Color {
+private fun referenceColors(): (GemPerpetualChartLineKind) -> Color {
     val entryColor = MaterialTheme.colorScheme.outline
     val liquidationColor = MaterialTheme.colorScheme.error
     val stopLossColor = pendingColor
     val takeProfitColor = MaterialTheme.colorScheme.tertiary
     return { role ->
         when (role) {
-            ChartReferenceLineRole.Entry -> entryColor
-            ChartReferenceLineRole.Liquidation -> liquidationColor
-            ChartReferenceLineRole.StopLoss -> stopLossColor
-            ChartReferenceLineRole.TakeProfit -> takeProfitColor
+            GemPerpetualChartLineKind.ENTRY -> entryColor
+            GemPerpetualChartLineKind.LIQUIDATION -> liquidationColor
+            GemPerpetualChartLineKind.STOP_LOSS -> stopLossColor
+            GemPerpetualChartLineKind.TAKE_PROFIT -> takeProfitColor
         }
     }
 }
@@ -321,7 +321,7 @@ private fun DrawScope.drawCandles(
 
 private fun DrawScope.drawReferenceLines(
     referenceLines: List<ChartReferenceLineUIModel>,
-    referenceColorByRole: (ChartReferenceLineRole) -> Color,
+    referenceColorByRole: (GemPerpetualChartLineKind) -> Color,
     valueToY: (Double) -> Float,
     plotLeft: Float,
     plotRight: Float,

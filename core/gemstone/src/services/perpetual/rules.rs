@@ -6,8 +6,8 @@ use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType};
 
 use super::model::{
-    GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualOrderAction, GemPerpetualOrderInput,
-    GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualTransferData,
+    GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction,
+    GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualTransferData,
 };
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
@@ -97,6 +97,18 @@ pub fn autoclose_summary(data: &PerpetualModifyConfirmData) -> Option<GemAutoclo
         take_profit_cleared,
         stop_loss_cleared,
     })
+}
+
+pub fn chart_lines(position: &PerpetualPosition) -> Vec<GemPerpetualChartLine> {
+    [
+        (GemPerpetualChartLineKind::Entry, Some(position.entry_price)),
+        (GemPerpetualChartLineKind::TakeProfit, position.take_profit.as_ref().map(|order| order.price)),
+        (GemPerpetualChartLineKind::StopLoss, position.stop_loss.as_ref().map(|order| order.price)),
+        (GemPerpetualChartLineKind::Liquidation, position.liquidation_price.filter(|price| *price > 0.0)),
+    ]
+    .into_iter()
+    .filter_map(|(kind, price)| price.map(|price| GemPerpetualChartLine { kind, price }))
+    .collect()
 }
 
 pub fn funding_apr(funding: f64) -> f64 {
@@ -484,6 +496,34 @@ mod tests {
     fn test_perpetual_collateral_counts_only_in_standard_mode() {
         assert!(includes_perpetual_collateral(PerpetualAccountMode::Standard));
         assert!(!includes_perpetual_collateral(PerpetualAccountMode::Unified));
+    }
+
+    #[test]
+    fn test_chart_lines_show_the_prices_a_position_has() {
+        let order = |price: f64| primitives::PerpetualTriggerOrder {
+            price,
+            order_type: primitives::PerpetualOrderType::Limit,
+            order_id: "order".into(),
+        };
+        let mut open = position("p1");
+        open.entry_price = 100.0;
+        open.take_profit = Some(order(120.0));
+        open.stop_loss = Some(order(90.0));
+        open.liquidation_price = Some(80.0);
+        let kinds: Vec<(GemPerpetualChartLineKind, f64)> = chart_lines(&open).into_iter().map(|line| (line.kind, line.price)).collect();
+        assert_eq!(
+            kinds,
+            vec![
+                (GemPerpetualChartLineKind::Entry, 100.0),
+                (GemPerpetualChartLineKind::TakeProfit, 120.0),
+                (GemPerpetualChartLineKind::StopLoss, 90.0),
+                (GemPerpetualChartLineKind::Liquidation, 80.0),
+            ]
+        );
+
+        let mut bare = position("p2");
+        bare.liquidation_price = Some(0.0);
+        assert_eq!(chart_lines(&bare).len(), 1, "a zero liquidation price and missing orders draw only the entry line");
     }
 
     #[test]

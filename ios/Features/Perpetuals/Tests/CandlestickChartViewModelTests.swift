@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import struct Gemstone.GemPerpetualChartLine
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
@@ -12,9 +13,9 @@ struct CandlestickChartViewModelTests {
         let model = CandlestickChartViewModel(
             candles: [.mock(high: 200, low: 100)],
             lines: [
-                ChartLineViewModel(line: ChartLine(type: .liquidation, price: 120), formatter: NumericFormatter()),
-                ChartLineViewModel(line: ChartLine(type: .entry, price: 121), formatter: NumericFormatter()),
-                ChartLineViewModel(line: ChartLine(type: .takeProfit, price: 180), formatter: NumericFormatter()),
+                ChartLineViewModel(line: GemPerpetualChartLine(kind: .liquidation, price: 120), formatter: NumericFormatter()),
+                ChartLineViewModel(line: GemPerpetualChartLine(kind: .entry, price: 121), formatter: NumericFormatter()),
+                ChartLineViewModel(line: GemPerpetualChartLine(kind: .takeProfit, price: 180), formatter: NumericFormatter()),
             ],
             formatter: CurrencyFormatter(currencyCode: "USD"),
         )

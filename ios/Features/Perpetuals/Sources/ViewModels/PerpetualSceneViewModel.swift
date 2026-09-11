@@ -6,6 +6,7 @@ import enum Gemstone.GemPerpetualPositionKind
 import Components
 import Formatters
 import Foundation
+import func Gemstone.perpetualChartLines
 import func Gemstone.transactionsListLimit
 import GemstonePrimitives
 import InfoSheet
@@ -141,21 +142,9 @@ public final class PerpetualSceneViewModel {
     }
 
     var chartLineModels: [ChartLineViewModel] {
-        guard let positionData = positions.first else { return [] }
-        let position = positionData.position
-        let prices: [(ChartLineType, Double?)] = [
-            (.entry, position.entryPrice),
-            (.takeProfit, position.takeProfit?.price),
-            (.stopLoss, position.stopLoss?.price),
-            (.liquidation, position.liquidationPrice),
-        ]
-        return prices.compactMap { type, price in
-            price.map {
-                ChartLineViewModel(
-                    line: ChartLine(type: type, price: $0),
-                    formatter: NumericFormatter(),
-                )
-            }
+        guard let position = positions.first?.position else { return [] }
+        return perpetualChartLines(position: position.map()).map {
+            ChartLineViewModel(line: $0, formatter: NumericFormatter())
         }
     }
 }

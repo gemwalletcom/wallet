@@ -30,22 +30,3 @@ pub struct ChartDateValue {
     pub date: DateTime<Utc>,
     pub value: f64,
 }
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable")]
-#[serde(rename_all = "camelCase")]
-pub enum ChartLineType {
-    TakeProfit,
-    StopLoss,
-    Entry,
-    Liquidation,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable")]
-#[serde(rename_all = "camelCase")]
-pub struct ChartLine {
-    #[serde(rename = "type")]
-    pub line_type: ChartLineType,
-    pub price: f64,
-}

@@ -301,6 +301,14 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Which lines a position chart draws is Core's.** `perpetual_chart_lines(position)` returns the
+  entry, take-profit, stop-loss and liquidation lines a position has (a zero liquidation price
+  draws none), as `GemPerpetualChartLine { kind, price }`. iOS's `PerpetualSceneViewModel` and
+  Android's `PerpetualChartSection` each assembled that list from the position, in different
+  orders and with the zero-liquidation guard on Android only. The typeshare `ChartLine` and
+  `ChartLineType`, which only iOS read, are deleted with their generated twins; Android's
+  `ChartReferenceLineRole` twin is replaced by the Core kind, and the position aggregate carries
+  the lines next to the trigger prices the properties rows still show.
 - **What a select-asset row shows is on the flow.** `GemSelectAssetFlow.row` is a `GemAssetRow`
   (title: asset or network name, whether the symbol badge shows, subtitle: network or price,
   trailing: balance, toggle, copy or nothing), decided per `GemSelectAssetType` next to the row

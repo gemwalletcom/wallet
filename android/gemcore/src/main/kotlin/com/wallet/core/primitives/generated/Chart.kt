@@ -30,21 +30,3 @@ data class ChartDateValue (
 	val value: Double
 )
 
-@Serializable
-enum class ChartLineType(val string: String) {
-	@SerialName("takeProfit")
-	TakeProfit("takeProfit"),
-	@SerialName("stopLoss")
-	StopLoss("stopLoss"),
-	@SerialName("entry")
-	Entry("entry"),
-	@SerialName("liquidation")
-	Liquidation("liquidation"),
-}
-
-@Serializable
-data class ChartLine (
-	val type: ChartLineType,
-	val price: Double
-)
-

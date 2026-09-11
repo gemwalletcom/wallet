@@ -12,6 +12,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
+import uniffi.gemstone.GemPerpetualChartLine
+import uniffi.gemstone.GemPerpetualChartLineKind
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
@@ -69,10 +71,7 @@ internal fun PerpetualPositionScene(
                     PerpetualChartSection(
                         state = chart,
                         period = period,
-                        entry = position?.entryValue,
-                        liquidation = position?.liquidationValue,
-                        stopLoss = position?.stopLoss,
-                        takeProfit = position?.takeProfit,
+                        lines = position?.chartLines.orEmpty(),
                         onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
                     )
                 }
@@ -155,14 +154,18 @@ private fun PerpetualPositionScenePreview() {
         override val pnlState: ValueDirection = ValueDirection.Up
         override val size: String = "$47,250.00"
         override val entryPrice: String = "$94,500.00"
-        override val entryValue: Double = 94500.00
         override val liquidationPrice: String = "$85,050.00"
-        override val liquidationValue: Double = 85050.00
         override val marginType: PerpetualMarginType = PerpetualMarginType.Cross
         override val fundingPayments: String = "+$12.50"
         override val fundingPaymentsDirection: ValueDirection = ValueDirection.Up
         override val stopLoss: Double = 90050.00
         override val takeProfit: Double = 95000.00
+        override val chartLines: List<GemPerpetualChartLine> = listOf(
+            GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, 94500.00),
+            GemPerpetualChartLine(GemPerpetualChartLineKind.TAKE_PROFIT, 95000.00),
+            GemPerpetualChartLine(GemPerpetualChartLineKind.STOP_LOSS, 90050.00),
+            GemPerpetualChartLine(GemPerpetualChartLineKind.LIQUIDATION, 85050.00),
+        )
     }
 
     val now = System.currentTimeMillis()

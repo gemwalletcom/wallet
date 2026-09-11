@@ -2,6 +2,7 @@ package com.gemwallet.android.domains.perpetual.aggregates
 
 import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.PerpetualMarginType
+import uniffi.gemstone.GemPerpetualChartLine
 
 interface PerpetualPositionDetailsDataAggregate : PerpetualPositionDataAggregate {
     val size: String
@@ -10,8 +11,7 @@ interface PerpetualPositionDetailsDataAggregate : PerpetualPositionDataAggregate
     val marginType: PerpetualMarginType
     val fundingPayments: String
     val fundingPaymentsDirection: ValueDirection
-    val entryValue: Double?
-    val liquidationValue: Double?
     val stopLoss: Double?
     val takeProfit: Double?
+    val chartLines: List<GemPerpetualChartLine>
 }

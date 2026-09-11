@@ -90,6 +90,25 @@ pub fn perpetual_details(perpetual_type: PerpetualType) -> Option<GemPerpetualDe
     rules::details(&perpetual_type)
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualChartLineKind {
+    Entry,
+    TakeProfit,
+    StopLoss,
+    Liquidation,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+pub struct GemPerpetualChartLine {
+    pub kind: GemPerpetualChartLineKind,
+    pub price: f64,
+}
+
+#[uniffi::export]
+pub fn perpetual_chart_lines(position: PerpetualPosition) -> Vec<GemPerpetualChartLine> {
+    rules::chart_lines(&position)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
 pub enum GemMarketsRefreshTrigger {
     Scheduled,

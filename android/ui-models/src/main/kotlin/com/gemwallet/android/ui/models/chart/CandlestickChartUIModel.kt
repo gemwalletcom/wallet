@@ -2,14 +2,13 @@ package com.gemwallet.android.ui.models.chart
 
 import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.ChartCandleStick
+import uniffi.gemstone.GemPerpetualChartLineKind
 import kotlin.math.max
-
-enum class ChartReferenceLineRole { Entry, Liquidation, StopLoss, TakeProfit }
 
 data class ChartReferenceLineUIModel(
     val price: Double,
     val label: String,
-    val role: ChartReferenceLineRole,
+    val role: GemPerpetualChartLineKind,
     val overlapLevel: Int = 0,
 )
 
