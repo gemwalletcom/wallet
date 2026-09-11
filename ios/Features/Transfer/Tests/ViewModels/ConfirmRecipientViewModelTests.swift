@@ -28,12 +28,6 @@ struct ConfirmRecipientViewModelTests {
     }
 
     @Test
-    func addressNameWinsOverRecipientName() throws {
-        let item = try #require(model(.recipient(name: "wallet name", address: "0x1"), addressName: .mock(name: "Vitalik.eth")).recipientItem)
-        #expect(item.account.name == "Vitalik.eth")
-    }
-
-    @Test
     func contactImage() throws {
         let withImage = try #require(model(.recipient(name: nil, address: "0x1"), addressName: .mock(type: .contact, imageUrl: "avatar.png")).recipientItem)
         let withoutImage = try #require(model(.recipient(name: nil, address: "0x1"), addressName: .mock(type: .contact, imageUrl: nil)).recipientItem)

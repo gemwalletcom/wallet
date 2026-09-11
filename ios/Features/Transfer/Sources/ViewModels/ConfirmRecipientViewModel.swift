@@ -36,7 +36,7 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
         guard let destination else { return .empty }
         let (title, name, address): (String, String?, String) = switch destination {
-        case let .recipient(name, address): (Localized.Transfer.Recipient.title, addressName?.name ?? name, address)
+        case let .recipient(name, address): (Localized.Transfer.Recipient.title, name, address)
         case let .contract(address): (Localized.Asset.contract, addressName?.name, address)
         case let .validator(name, address): (Localized.Stake.validator, name, address)
         case let .resource(resource): (Localized.Stake.resource, ResourceViewModel(resource: resource.map()).title, "")

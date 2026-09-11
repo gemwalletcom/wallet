@@ -32,7 +32,7 @@ class BuildConfirmPropertiesImpl(
                 add(ConfirmProperty.Source(wallet.name, walletRow(wallet.toGem()), wallet.imageUrl))
                 (transfer.inputType as? TransactionInputType.Generic)?.let { add(ConfirmProperty.Destination.Generic(it.metadata.name)) }
                 add(
-                    when (val destination = ConfirmProperty.Destination.map(transfer.destination(), chain, addressName)) {
+                    when (val destination = ConfirmProperty.Destination.map(transfer.destination()?.withAddressName(addressName?.toGem()), chain, addressName)) {
                         is ConfirmProperty.Destination.Transfer -> ConfirmProperty.Destination.Transfer(
                             domain = destination.domain,
                             address = destination.address,

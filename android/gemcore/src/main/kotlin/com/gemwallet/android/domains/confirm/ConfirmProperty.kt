@@ -37,7 +37,7 @@ sealed interface ConfirmProperty {
             fun map(destination: GemConfirmDestination?, chain: Chain, addressName: AddressName? = null): Destination? = when (destination) {
                 null -> null
                 is GemConfirmDestination.Recipient -> Transfer(
-                    domain = destination.name ?: addressName?.name,
+                    domain = destination.name,
                     address = destination.address,
                     chain = chain,
                     addressType = addressName?.type,

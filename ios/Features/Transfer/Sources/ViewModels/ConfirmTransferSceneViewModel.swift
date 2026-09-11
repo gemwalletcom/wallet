@@ -195,7 +195,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmNetworkViewModel(transfer: request.data)
         case .recipient:
             ConfirmRecipientViewModel(
-                destination: request.data.destination(),
+                destination: request.data.destination()?.withAddressName(addressName: state.addressName?.map()),
                 chain: dataModel.chain,
                 memo: dataModel.recipient.memo,
                 addressName: state.addressName,

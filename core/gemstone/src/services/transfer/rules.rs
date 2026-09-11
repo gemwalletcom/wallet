@@ -4,9 +4,10 @@ use primitives::SwapProvider;
 use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
 use primitives::{
-    AccountDataType, ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType, RecentActivityType, StakeType,
-    Transaction, TransactionDirection, TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState,
-    TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
+    AccountDataType, AddressName, ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType,
+    RecentActivityType, StakeType, Transaction, TransactionDirection, TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata,
+    TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction,
+    TransferDataOutputType,
 };
 
 use super::model::{GemConfirmDestination, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
@@ -336,6 +337,19 @@ pub(crate) fn unfreeze_available(resource: &primitives::Resource, balance: &GemA
     match resource {
         primitives::Resource::Bandwidth => BigInt::from(balance.frozen.clone()),
         primitives::Resource::Energy => BigInt::from(balance.locked.clone()),
+    }
+}
+
+#[uniffi::export]
+impl GemConfirmDestination {
+    pub fn with_address_name(&self, address_name: Option<AddressName>) -> GemConfirmDestination {
+        match (self, address_name) {
+            (Self::Recipient { address, .. }, Some(address_name)) if !address_name.name.is_empty() => Self::Recipient {
+                name: Some(address_name.name),
+                address: address.clone(),
+            },
+            _ => self.clone(),
+        }
     }
 }
 
@@ -813,6 +827,31 @@ mod tests {
         assert_eq!(nft.fee_asset().id, AssetId::from_chain(Chain::Ethereum));
         let spl = TransactionInputType::Transfer { asset: Asset::mock_spl_token() };
         assert_eq!(spl.fee_asset().id, AssetId::from_chain(Chain::Solana));
+    }
+
+    #[test]
+    fn test_a_known_address_name_replaces_the_recipient_name_only() {
+        use primitives::{AddressType, VerificationStatus};
+        let recipient = GemConfirmDestination::Recipient {
+            name: Some("typed.eth".into()),
+            address: "0x1".into(),
+        };
+        let known = AddressName::mock("0x1", "Vitalik", AddressType::Contact, VerificationStatus::Verified);
+        let unnamed = AddressName::mock("0x1", "", AddressType::Address, VerificationStatus::Verified);
+        assert_eq!(
+            recipient.with_address_name(Some(known.clone())),
+            GemConfirmDestination::Recipient {
+                name: Some("Vitalik".into()),
+                address: "0x1".into()
+            }
+        );
+        assert_eq!(recipient.with_address_name(Some(unnamed)), recipient);
+        assert_eq!(recipient.with_address_name(None), recipient);
+        let validator = GemConfirmDestination::Validator {
+            name: "Allnodes".into(),
+            address: "validator1".into(),
+        };
+        assert_eq!(validator.with_address_name(Some(known)), validator);
     }
 
     #[test]

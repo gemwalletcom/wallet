@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Which name a confirm recipient row shows is one Core rule.** `GemConfirmDestination::with_address_name`
+  swaps the typed recipient name for the loaded address-book name (contact, name record) when there is
+  one, and leaves every other destination alone. iOS already preferred the address-book name inside
+  `ConfirmRecipientViewModel`; Android's `ConfirmProperty.Destination.map` preferred the typed name,
+  so the same transfer showed different names on the two apps. Both now hand the loaded address name
+  to Core and read the destination's name; the iOS test over the precedence moved to Core.
 - **The orphaned `TransactionWallet` source is gone.** `core/crates/primitives/src/transaction_wallet.rs`
   was a private struct outside the module tree with no reader, but its `#[typeshare]` made every
   generator run re-emit an untracked `TransactionWallet.swift` after the twins were deleted. The
