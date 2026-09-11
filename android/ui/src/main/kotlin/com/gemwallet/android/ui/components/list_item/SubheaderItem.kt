@@ -27,6 +27,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space4
 
 @Composable
 fun SubheaderItem(@StringRes title: Int, vararg formatArgs: Any) {
@@ -92,7 +93,7 @@ object ChevronIconDefaults {
     val horizontalPaddingTrim: Dp = 2.dp
     val horizontalNudge: Dp = 4.dp
     val leadingSpacing: Dp = 0.dp
-    val size: Dp = compactIconSize + 4.dp
+    val size: Dp = compactIconSize + space4
 }
 
 @Composable

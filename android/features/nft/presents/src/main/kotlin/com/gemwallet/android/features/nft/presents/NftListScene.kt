@@ -42,6 +42,8 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemNftList
 
+private val collectibleCellMinSize = 150.dp
+
 @Composable
 fun NftListNavScreen(
     cancelAction: CancelAction,
@@ -137,7 +139,7 @@ internal fun NftListScene(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
-                        columns = GridCells.Adaptive(minSize = 150.dp),
+                        columns = GridCells.Adaptive(minSize = collectibleCellMinSize),
                         state = listState,
                         contentPadding = PaddingValues(
                             start = paddingSmall,

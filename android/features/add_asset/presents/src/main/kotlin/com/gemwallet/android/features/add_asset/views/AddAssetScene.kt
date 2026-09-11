@@ -55,6 +55,8 @@ import com.wallet.core.primitives.BlockExplorerLink
 import uniffi.gemstone.DocsUrl
 import androidx.compose.material3.SnackbarHostState
 
+private val networkItemHeight = 64.dp
+
 @Composable
 internal fun AddAssetScene(
     searchState: TokenSearchState,
@@ -88,7 +90,7 @@ internal fun AddAssetScene(
         SubheaderItem(R.string.transfer_network)
         if (network != null) {
             ChainItem(
-                modifier = Modifier.height(64.dp),
+                modifier = Modifier.height(networkItemHeight),
                 title = network.name,
                 icon = network.chain,
                 onClick = if (canSelectChain) {

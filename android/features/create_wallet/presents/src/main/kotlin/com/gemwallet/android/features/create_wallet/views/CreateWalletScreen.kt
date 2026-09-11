@@ -49,6 +49,8 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.WalletId
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
+private val loadingDialogSize = 100.dp
+
 @Composable
 fun CreateWalletScreen(
     onCancel: () -> Unit,
@@ -95,7 +97,7 @@ fun CreateWalletScreen(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(loadingDialogSize)
                     .background(
                         MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(paddingSmall)

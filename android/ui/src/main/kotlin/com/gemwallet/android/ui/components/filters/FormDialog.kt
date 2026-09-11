@@ -25,6 +25,9 @@ import com.gemwallet.android.ui.theme.normalPadding
 
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
+
+private val dragHandleWidth = 32.dp
+private val dragHandleHeight = 4.dp
 @Composable
 fun FormDialog(
     isVisible: Boolean,
@@ -72,7 +75,7 @@ fun FormDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
                         shape = MaterialTheme.shapes.extraLarge
                     ) {
-                        Box(Modifier.size(width = 32.dp, height = 4.dp))
+                        Box(Modifier.size(width = dragHandleWidth, height = dragHandleHeight))
                     }
                     Text(
                         text = title,

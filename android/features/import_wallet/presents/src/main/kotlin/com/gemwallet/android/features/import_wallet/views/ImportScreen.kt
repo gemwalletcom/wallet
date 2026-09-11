@@ -74,6 +74,8 @@ import androidx.compose.ui.window.DialogProperties
 import uniffi.gemstone.DocsUrl
 import com.gemwallet.android.ext.serviceMessage
 
+private val loadingDialogSize = 100.dp
+
 internal sealed interface ImportSceneTitle {
     data class Resource(val resId: Int) : ImportSceneTitle
     data class Text(val value: String) : ImportSceneTitle
@@ -133,7 +135,7 @@ fun ImportScreen(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(loadingDialogSize)
                     .background(
                         MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(paddingSmall)

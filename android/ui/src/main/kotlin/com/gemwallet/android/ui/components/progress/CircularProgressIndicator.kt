@@ -13,6 +13,8 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.tinyIconSize
 
+private val progressSize14 = 14.dp
+
 @Composable
 fun CircularProgressIndicator10(
     modifier: Modifier = Modifier,
@@ -31,7 +33,7 @@ fun CircularProgressIndicator14(
     color: Color = ProgressIndicatorDefaults.circularColor,
 ) {
     CircularProgressIndicator(
-        modifier = modifier.size(size = 14.dp),
+        modifier = modifier.size(size = progressSize14),
         strokeWidth = space1,
         color = color,
     )

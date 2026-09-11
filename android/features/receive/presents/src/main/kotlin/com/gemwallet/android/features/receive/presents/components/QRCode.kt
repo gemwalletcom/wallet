@@ -18,10 +18,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.gemwallet.android.ui.theme.space0
 
+private val defaultQrCodeSize = 150.dp
+
 @Composable
 fun rememberQRCodePainter(
     content: String,
-    size: Dp = 150.dp,
+    size: Dp = defaultQrCodeSize,
     padding: Dp = space0,
 ): BitmapPainter? {
     val density = LocalDensity.current

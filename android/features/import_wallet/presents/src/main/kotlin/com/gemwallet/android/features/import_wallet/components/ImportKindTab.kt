@@ -20,6 +20,8 @@ import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space2
 import uniffi.gemstone.GemWalletImportKind
 
+private val tabHeight = 32.dp
+
 internal fun importTypeTabIndex(kind: GemWalletImportKind, tabs: List<GemWalletImportKind>): Int {
     return tabs.indexOf(kind).takeIf { it >= 0 } ?: 0
 }
@@ -34,7 +36,7 @@ internal fun ImportKindTab(
     Tab(
         modifier = Modifier
             .padding(horizontal = if (isSelected) space2 else space0, vertical = space2)
-            .height(32.dp)
+            .height(tabHeight)
             .clip(RoundedCornerShape(paddingHalfSmall))
             .background(
                 if (isSelected) {

@@ -65,6 +65,8 @@ import uniffi.gemstone.RewardStatus
 import uniffi.gemstone.Rewards
 import com.gemwallet.android.ext.serviceMessage
 
+private val referralCodeMaxWidth = 250.dp
+
 @Composable
 fun ReferralScene(
     inSync: SyncType,
@@ -108,7 +110,7 @@ fun ReferralScene(
             if (isAvailableWalletSelect) {
                 Row(
                     modifier = Modifier
-                        .widthIn(max = 250.dp)
+                        .widthIn(max = referralCodeMaxWidth)
                         .padding(horizontal = sceneContentPadding())
                         .clip(RoundedCornerShape(paddingDefault))
                         .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(paddingDefault))

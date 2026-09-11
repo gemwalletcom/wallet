@@ -56,6 +56,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
+private val priceRowHeight = 72.dp
+
 private data class WidgetAsset(val info: AssetInfo, val icon: Bitmap?)
 
 class PricesWidget : GlanceAppWidget() {
@@ -135,7 +137,7 @@ private fun AssetItem(item: WidgetAsset) {
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(priceRowHeight)
             .padding(horizontal = paddingDefault, vertical = paddingSmall),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,

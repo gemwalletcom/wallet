@@ -28,7 +28,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorString
 import com.gemwallet.android.ui.R
@@ -49,6 +48,7 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
+import com.gemwallet.android.ui.theme.SceneSizing
 
 @Composable
 internal fun AmountScene(
@@ -73,7 +73,7 @@ internal fun AmountScene(
     val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
     val isSmallScreen = with(density) {
-        LocalWindowInfo.current.containerSize.height.toDp() < 680.dp
+        LocalWindowInfo.current.containerSize.height.toDp() < SceneSizing.compactContentHeight
     }
 
     Scene(

@@ -34,6 +34,8 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space10
 
 import com.gemwallet.android.ui.theme.space0
+
+private val minInputHeight = 36.dp
 private const val FloatingLabelScale = 0.8f
 
 @Composable
@@ -65,7 +67,7 @@ fun GemTextField(
         verticalArrangement = Arrangement.Center,
     ) {
         Row(
-            modifier = Modifier.heightIn(min = 36.dp),
+            modifier = Modifier.heightIn(min = minInputHeight),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BasicTextField(

@@ -66,6 +66,8 @@ import uniffi.gemstone.SupportMessageLink
 import uniffi.gemstone.parseSupportMessageDisplayContent
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
+private val progressStrokeWidth = 1.5.dp
+
 private val messageBubbleCornerRadius = 18.dp
 private val messageBubbleMaxWidth = 300.dp
 private val attachmentImageWidth = 240.dp
@@ -307,7 +309,7 @@ private fun MessageMeta(
         when (message.status) {
             SupportMessageStatus.Sending -> CircularProgressIndicator(
                 modifier = Modifier.size(space10),
-                strokeWidth = 1.5.dp,
+                strokeWidth = progressStrokeWidth,
                 color = color,
             )
             SupportMessageStatus.Failed -> if (message.sender is SupportMessageSender.User && message.images.isEmpty()) {

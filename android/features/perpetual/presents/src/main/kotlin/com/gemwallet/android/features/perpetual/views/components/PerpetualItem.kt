@@ -33,6 +33,8 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 
+private val trailingMinWidth = 40.dp
+
 @Composable
 fun PerpetualItem(
     item: PerpetualDataAggregate,
@@ -96,7 +98,7 @@ fun PerpetualItem(
         },
         trailing = {
             Column(
-                modifier = Modifier.defaultMinSize(40.dp),
+                modifier = Modifier.defaultMinSize(trailingMinWidth),
                 horizontalAlignment = Alignment.End
             ) {
                 ListItemTitleText(item.volume, color = MaterialTheme.colorScheme.onSurface)

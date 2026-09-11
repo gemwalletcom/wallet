@@ -36,7 +36,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.presents.list.TransactionsNavScreen
@@ -62,6 +61,7 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import kotlinx.coroutines.launch
+import com.gemwallet.android.ui.theme.hairlineThickness
 
 @Composable
 fun MainScreen(
@@ -127,7 +127,7 @@ fun MainScreen(
         containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {
             Column {
-                HorizontalDivider(thickness = 0.5.dp)
+                HorizontalDivider(thickness = hairlineThickness)
                 ConnectionStatusBannerHost()
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,

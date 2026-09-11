@@ -57,6 +57,9 @@ import com.wallet.core.primitives.FiatQuoteType
 import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatQuotePhase
 
+private val loadingIndicatorSize = 30.dp
+private val errorTextPadding = 20.dp
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BuyScene(
@@ -147,7 +150,7 @@ fun BuyScene(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .size(30.dp)
+                            .size(loadingIndicatorSize)
                             .align(Alignment.Center),
                         strokeWidth = space1,
                     )
@@ -158,7 +161,7 @@ fun BuyScene(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
+                        .padding(errorTextPadding),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.error,
                     text = errorText,

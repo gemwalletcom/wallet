@@ -34,6 +34,8 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 
+private val trailingMinWidth = 40.dp
+
 @Composable
 fun PerpetualPositionItem(
     data: PerpetualPositionDataAggregate,
@@ -51,7 +53,7 @@ fun PerpetualPositionItem(
         subtitle = { ListItemSupportText(data.direction.text(data.leverage), color = data.direction.color()) },
         trailing = {
             Column(
-                modifier = Modifier.defaultMinSize(40.dp),
+                modifier = Modifier.defaultMinSize(trailingMinWidth),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
             ) {

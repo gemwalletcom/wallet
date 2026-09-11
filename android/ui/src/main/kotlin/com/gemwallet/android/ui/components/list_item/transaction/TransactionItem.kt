@@ -50,6 +50,8 @@ import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
 
+private val badgeStartPadding = 5.dp
+
 @Composable
 fun TransactionItem(
     data: TransactionDataAggregate,
@@ -129,7 +131,7 @@ private fun TransactionStatusBadge(data: TransactionDataAggregate) {
     }
     Row(
         Modifier
-            .padding(start = 5.dp)
+            .padding(start = badgeStartPadding)
             .background(
                 color = color.copy(alpha = alpha10),
                 shape = RoundedCornerShape(space6)
@@ -138,7 +140,7 @@ private fun TransactionStatusBadge(data: TransactionDataAggregate) {
     ) {
         Text(
             modifier = Modifier.padding(
-                start = 5.dp,
+                start = badgeStartPadding,
                 top = space2,
                 end = paddingHalfSmall,
                 bottom = space2

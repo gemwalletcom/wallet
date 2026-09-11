@@ -33,6 +33,10 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.space10
 
+private val searchBarHeight = 42.dp
+private val inputStartPadding = 42.dp
+private val inputEndPadding = 40.dp
+
 @Composable
 fun SearchBar(
     query: TextFieldState,
@@ -49,13 +53,13 @@ fun SearchBar(
         }
     }
 
-    Row(modifier = modifier.fillMaxWidth().height(42.dp)) {
+    Row(modifier = modifier.fillMaxWidth().height(searchBarHeight)) {
         Box(modifier = Modifier.fillMaxWidth()) {
             BasicTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
-                    .padding(start = 42.dp, top = space10, end = 40.dp, bottom = space10)
+                    .padding(start = inputStartPadding, top = space10, end = inputEndPadding, bottom = space10)
                 ,
                 textStyle = TextStyle.Default.copy(
                     fontSize = 18.sp,
@@ -70,7 +74,7 @@ fun SearchBar(
                 Text(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .padding(start = 42.dp, end = paddingLarge),
+                        .padding(start = inputStartPadding, end = paddingLarge),
                     maxLines = 1,
                     text = stringResource(id = android.R.string.search_go),
                     color = MaterialTheme.colorScheme.secondary,

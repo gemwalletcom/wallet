@@ -71,6 +71,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
+private val qrCardElevation = 3.dp
+
 private val qrSize = 300.dp
 private val qrSizeCompact = 220.dp
 private val qrMinSize = 100.dp
@@ -191,7 +193,7 @@ private fun ReceiveScene(
             )
             ElevatedCard(
                 modifier = Modifier.width(imageSize),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = qrCardElevation),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White,
                     contentColor = Color.White,

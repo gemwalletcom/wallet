@@ -49,6 +49,8 @@ import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.space24
 import uniffi.gemstone.GemSwapProgressStep
 
+private val connectorWidth = 1.5.dp
+
 @Composable
 internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
     val chainName = progress.fromAsset.chain.networkName()
@@ -171,7 +173,7 @@ private fun Timeline(
 private fun Connector(color: Color) {
     Box(
         modifier = Modifier
-            .width(1.5.dp)
+            .width(connectorWidth)
             .height(space24)
             .background(color),
     )

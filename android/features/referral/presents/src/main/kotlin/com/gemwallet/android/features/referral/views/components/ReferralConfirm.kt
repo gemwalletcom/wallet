@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -32,6 +31,7 @@ import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.GemRewardsState
 import com.gemwallet.android.features.referral.views.previewRewards
 import uniffi.gemstone.Rewards
+import com.gemwallet.android.ui.theme.hairlineThickness
 
 internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: GemRewardsState, onConfirm: (String) -> Unit) {
     if (!uiState.hasPendingReferral) return
@@ -62,7 +62,7 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: GemRew
                     stringResource(R.string.rewards_pending_description, getRelativeDate(pendingDate))
                 }
             )
-            HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = 0.5.dp)
+            HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = hairlineThickness)
             MainActionButton(
                 title = stringResource(R.string.transfer_confirm),
                 state = buttonState(enabled = uiState.canActivatePendingReferral)
