@@ -8,6 +8,7 @@ use crate::{
 };
 
 const STAKE_ACCOUNT_CREATION_FEE: u64 = 2_282_880;
+const PRIORITY_FEE_DIVISOR: i64 = 2;
 
 pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_type: &GasPriceType, recipient_token_address: Option<String>) -> TransactionFee {
     let mut options = HashMap::new();
@@ -31,22 +32,6 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_ty
         options,
         AssetId::from_chain(Chain::Solana),
     )
-}
-
-pub fn calculate_priority_fee(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> BigInt {
-    let mut fees: Vec<i64> = prioritization_fees.iter().map(|f| f.prioritization_fee).collect();
-    fees.sort_by(|a, b| b.cmp(a));
-    fees.truncate(5);
-
-    let multiple_of = get_multiple_of(input_type);
-
-    if fees.is_empty() {
-        BigInt::from(multiple_of)
-    } else {
-        let average = fees.iter().sum::<i64>() / fees.len() as i64;
-        let rounded = round_to_nearest(average, multiple_of, true);
-        BigInt::from(std::cmp::max(rounded, multiple_of))
-    }
 }
 
 fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
@@ -82,20 +67,16 @@ fn get_multiple_of(input_type: &TransactionInputType) -> i64 {
         | TransactionInputType::Generic { asset, .. }
         | TransactionInputType::Perpetual { asset, .. }
         | TransactionInputType::Earn { asset, .. } => match &asset.id.token_subtype() {
-            AssetSubtype::NATIVE => 25_000,
-            AssetSubtype::TOKEN => 50_000,
+            AssetSubtype::NATIVE => 12_500,
+            AssetSubtype::TOKEN => 25_000,
         },
-        TransactionInputType::Stake { .. } => 25_000,
-        TransactionInputType::Swap { .. } => 100_000,
+        TransactionInputType::Stake { .. } => 12_500,
+        TransactionInputType::Swap { .. } => 50_000,
     }
 }
 
-fn round_to_nearest(value: i64, multiple: i64, round_up: bool) -> i64 {
-    if round_up {
-        ((value + multiple - 1) / multiple) * multiple
-    } else {
-        (value / multiple) * multiple
-    }
+fn round_up_to_multiple(value: i64, multiple: i64) -> i64 {
+    ((value + multiple - 1) / multiple) * multiple
 }
 
 pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> Vec<FeeRate> {
@@ -109,9 +90,8 @@ pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fee
     let total_priority_base = if fees.is_empty() {
         BigInt::from(multiple_of)
     } else {
-        let average = fees.iter().sum::<i64>() / fees.len() as i64;
-        let rounded = round_to_nearest(average, multiple_of, true);
-        BigInt::from(std::cmp::max(rounded, multiple_of))
+        let average = fees.iter().sum::<i64>() / fees.len() as i64 / PRIORITY_FEE_DIVISOR;
+        BigInt::from(std::cmp::max(round_up_to_multiple(average, multiple_of), multiple_of))
     };
 
     let gas_limit = get_gas_limit(input_type);
@@ -210,23 +190,6 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_priority_fee() {
-        let fees = vec![SolanaPrioritizationFee { prioritization_fee: 150_000 }];
-        let input_type = TransactionInputType::Transfer {
-            asset: Asset {
-                id: AssetId::from_chain(Chain::Solana),
-                name: "SOL".to_string(),
-                symbol: "SOL".to_string(),
-                decimals: 9,
-                asset_type: AssetType::NATIVE,
-            },
-        };
-
-        let priority_fee = calculate_priority_fee(&input_type, &fees);
-        assert_eq!(priority_fee, BigInt::from(150_000));
-    }
-
-    #[test]
     fn test_calculate_fee_rates() {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 25_000 }];
         let input_type = TransactionInputType::Transfer {
@@ -248,12 +211,12 @@ mod tests {
         }
 
         assert_eq!(rates[0].priority, FeePriority::Normal);
-        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(2_500));
-        assert_eq!(rates[0].gas_price_type.unit_price(), BigInt::from(25_000));
+        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(1_250));
+        assert_eq!(rates[0].gas_price_type.unit_price(), BigInt::from(12_500));
 
         assert_eq!(rates[1].priority, FeePriority::Fast);
-        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(7_500));
-        assert_eq!(rates[1].gas_price_type.unit_price(), BigInt::from(75_000));
+        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(3_750));
+        assert_eq!(rates[1].gas_price_type.unit_price(), BigInt::from(37_500));
     }
 
     #[test]
@@ -272,8 +235,8 @@ mod tests {
         let rates = calculate_fee_rates(&input_type, &fees);
 
         assert_eq!(rates.len(), 2);
-        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(2_500u64));
-        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(7_500u64));
+        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(1_250u64));
+        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(3_750u64));
     }
 
     #[test]
@@ -292,8 +255,8 @@ mod tests {
         let rates = calculate_fee_rates(&input_type, &fees);
         assert_eq!(rates.len(), 2);
 
-        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(10_000u64));
-        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(30_000u64));
+        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(5_000u64));
+        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(15_000u64));
     }
 
     #[test]
@@ -308,8 +271,8 @@ mod tests {
         let rates = calculate_fee_rates(&input_type, &fees);
         assert_eq!(rates.len(), 2);
 
-        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(84_000u64));
-        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(252_000u64));
+        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(42_000u64));
+        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(126_000u64));
     }
 
     #[test]
@@ -335,12 +298,12 @@ mod tests {
         let rates = calculate_fee_rates(&input_type, &fees);
         assert_eq!(rates.len(), 2);
 
-        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(17_500u64));
-        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(52_500u64));
+        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(8_750u64));
+        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(26_250u64));
     }
 
     #[test]
-    fn test_fee_calculation_matches_swift() {
+    fn test_native_transfer_fee_rates_halve_the_sampled_priority() {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 150_000 }];
         let input_type = TransactionInputType::Transfer {
             asset: Asset {
@@ -354,8 +317,8 @@ mod tests {
 
         let rates = calculate_fee_rates(&input_type, &fees);
 
-        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(15_000));
-        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(45_000));
+        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(7_500));
+        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(22_500));
     }
 
     #[test]
