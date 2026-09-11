@@ -33,5 +33,6 @@ class WalletDetailsAggregateImplTest {
 
         assertEquals(Chain.Ethereum, aggregate.accounts.single().chain)
         assertEquals("0x403BC00000000000000000000000000000051bDa", aggregate.accounts.single().address)
+        assertEquals(listOf(Chain.Ethereum), aggregate.privateKeyChains)
     }
 }

@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Ekran Görüntüsü Algılandı
 secret_phrase_screenshot_detected_description = Ekran görüntüleri diğer uygulamalar tarafından erişilebilir olabilir, bu şekilde kaydedilirse gizli ifadeniz riske girebilir.
 secret_phrase_content_hidden_description = Ekran kaydı sırasında içerik gizlendi
 
+# Private Key
+
+private_key_reveal_intro = %@ hesabınızın özel anahtarını görüntülemek üzeresiniz.
+private_key_do_not_share_title = Özel Anahtarınızı paylaşmayın!
+private_key_do_not_share_description = Bu özel anahtarı ele geçiren herkes %@ hesabınızın tam kontrolünü alabilir.
+private_key_one_chain_title = Yalnızca Tek Bir Zinciri Açar
+private_key_one_chain_description = Bu anahtar yalnızca %@ hesabını kontrol eder.
+private_key_shared_chains_title = Birden Fazla Zinciri Açar
+private_key_shared_chains_description = Bu anahtar %@ üzerindeki hesaplarınızı kontrol eder.
+private_key_scope_evm = tüm EVM zincirleri
+private_key_scope_cosmos = tüm Cosmos zincirleri
+
 # Social
 
 social_x = X (eski adıyla Twitter)

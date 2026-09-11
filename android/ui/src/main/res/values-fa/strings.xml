@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">تصویر صفحه شناسایی شد</string>
   <string name="secret_phrase_screenshot_detected_description">اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند رمز عبور شما را در معرض خطر قرار دهند.</string>
   <string name="secret_phrase_content_hidden_description">محتوای پنهان شده هنگام ضبط صفحه نمایش</string>
+  <string name="private_key_reveal_intro">شما در حال نمایش کلید خصوصی حساب %1$s خود هستید.</string>
+  <string name="private_key_do_not_share_title">کلید خصوصی خود را با کسی به اشتراک نگذارید.</string>
+  <string name="private_key_do_not_share_description">هر کسی که این کلید خصوصی را به دست آورد می‌تواند کنترل کامل حساب %1$s شما را در دست بگیرد.</string>
+  <string name="private_key_one_chain_title">فقط یک زنجیره را باز می‌کند</string>
+  <string name="private_key_one_chain_description">این کلید فقط حساب %1$s را کنترل می‌کند.</string>
+  <string name="private_key_shared_chains_title">چند زنجیره را باز می‌کند</string>
+  <string name="private_key_shared_chains_description">این کلید حساب‌های شما در %1$s را کنترل می‌کند.</string>
+  <string name="private_key_scope_evm">همه زنجیره‌های EVM</string>
+  <string name="private_key_scope_cosmos">همه زنجیره‌های Cosmos</string>
   <string name="social_x">X (توییتر سابق)</string>
   <string name="social_discord">دیسکورد</string>
   <string name="social_reddit">ردیت</string>

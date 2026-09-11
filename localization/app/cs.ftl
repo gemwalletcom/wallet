@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Detekován snímek obrazovky
 secret_phrase_screenshot_detected_description = Snímky obrazovky mohou být přístupné jiným aplikacím, pokud se uloží tímto způsobem, mohou ohrozit vaši tajnou frázi.
 secret_phrase_content_hidden_description = Obsah skrytý během nahrávání obrazovky
 
+# Private Key
+
+private_key_reveal_intro = Chystáte se zobrazit soukromý klíč svého účtu %@.
+private_key_do_not_share_title = Nesdílejte svůj soukromý klíč!
+private_key_do_not_share_description = Kdokoli získá tento soukromý klíč, může plně ovládat váš účet %@.
+private_key_one_chain_title = Odemyká pouze jeden řetězec
+private_key_one_chain_description = Tento klíč ovládá pouze účet %@.
+private_key_shared_chains_title = Odemyká několik řetězců
+private_key_shared_chains_description = Tento klíč ovládá vaše účty na %@.
+private_key_scope_evm = všech řetězcích EVM
+private_key_scope_cosmos = všech řetězcích Cosmos
+
 # Social
 
 social_x = X (formerly Twitter)

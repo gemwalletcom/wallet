@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Tangkapan Layar Terdeteksi
 secret_phrase_screenshot_detected_description = Tangkapan layar mungkin dapat diakses oleh aplikasi lain, namun hal itu dapat membahayakan frasa rahasia Anda jika disimpan dengan cara ini.
 secret_phrase_content_hidden_description = Konten tersembunyi selama perekaman layar
 
+# Private Key
+
+private_key_reveal_intro = Anda akan menampilkan kunci privat akun %@ Anda.
+private_key_do_not_share_title = Jangan sebarkan Kunci Privat Anda!
+private_key_do_not_share_description = Siapa pun yang mendapatkan kunci privat ini dapat mengambil kendali penuh atas akun %@ Anda.
+private_key_one_chain_title = Hanya Membuka Satu Chain
+private_key_one_chain_description = Kunci ini hanya mengendalikan akun %@.
+private_key_shared_chains_title = Membuka Beberapa Chain
+private_key_shared_chains_description = Kunci ini mengendalikan akun Anda di %@.
+private_key_scope_evm = semua chain EVM
+private_key_scope_cosmos = semua chain Cosmos
+
 # Social
 
 social_x = X (sebelumnya Twitter)

@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">اسکرین شاٹ کا پتہ چلا</string>
   <string name="secret_phrase_screenshot_detected_description">اسکرین شاٹس دیگر ایپس کے لیے قابل رسائی ہو سکتے ہیں، اگر اس طرح محفوظ کیا جائے تو وہ آپ کے خفیہ جملے کو خطرے میں ڈال سکتے ہیں۔</string>
   <string name="secret_phrase_content_hidden_description">اسکرین ریکارڈنگ کے دوران چھپا ہوا مواد</string>
+  <string name="private_key_reveal_intro">آپ اپنے %1$s اکاؤنٹ کی نجی کلید ظاہر کرنے والے ہیں۔</string>
+  <string name="private_key_do_not_share_title">اپنی نجی کلید کا اشتراک نہ کریں!</string>
+  <string name="private_key_do_not_share_description">جسے بھی یہ نجی کلید ملے گی وہ آپ کے %1$s اکاؤنٹ پر مکمل کنٹرول حاصل کر سکتا ہے۔</string>
+  <string name="private_key_one_chain_title">یہ صرف ایک چین کھولتی ہے</string>
+  <string name="private_key_one_chain_description">یہ کلید صرف %1$s اکاؤنٹ کو کنٹرول کرتی ہے۔</string>
+  <string name="private_key_shared_chains_title">یہ کئی چینز کھولتی ہے</string>
+  <string name="private_key_shared_chains_description">یہ کلید %1$s پر آپ کے اکاؤنٹس کو کنٹرول کرتی ہے۔</string>
+  <string name="private_key_scope_evm">تمام EVM چینز</string>
+  <string name="private_key_scope_cosmos">تمام Cosmos چینز</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

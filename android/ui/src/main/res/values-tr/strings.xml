@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Ekran Görüntüsü Algılandı</string>
   <string name="secret_phrase_screenshot_detected_description">Ekran görüntüleri diğer uygulamalar tarafından erişilebilir olabilir, bu şekilde kaydedilirse gizli ifadeniz riske girebilir.</string>
   <string name="secret_phrase_content_hidden_description">Ekran kaydı sırasında içerik gizlendi</string>
+  <string name="private_key_reveal_intro">%1$s hesabınızın özel anahtarını görüntülemek üzeresiniz.</string>
+  <string name="private_key_do_not_share_title">Özel Anahtarınızı paylaşmayın!</string>
+  <string name="private_key_do_not_share_description">Bu özel anahtarı ele geçiren herkes %1$s hesabınızın tam kontrolünü alabilir.</string>
+  <string name="private_key_one_chain_title">Yalnızca Tek Bir Zinciri Açar</string>
+  <string name="private_key_one_chain_description">Bu anahtar yalnızca %1$s hesabını kontrol eder.</string>
+  <string name="private_key_shared_chains_title">Birden Fazla Zinciri Açar</string>
+  <string name="private_key_shared_chains_description">Bu anahtar %1$s üzerindeki hesaplarınızı kontrol eder.</string>
+  <string name="private_key_scope_evm">tüm EVM zincirleri</string>
+  <string name="private_key_scope_cosmos">tüm Cosmos zincirleri</string>
   <string name="social_x">X (eski adıyla Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

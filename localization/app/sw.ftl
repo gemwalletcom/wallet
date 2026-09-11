@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Picha ya skrini imegunduliwa
 secret_phrase_screenshot_detected_description = Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka maneno yako ya siri hatarini ikiwa yamehifadhiwa kwa njia hii.
 secret_phrase_content_hidden_description = Maudhui yaliyofichwa wakati wa kurekodi skrini
 
+# Private Key
+
+private_key_reveal_intro = Unakaribia kuonyesha ufunguo wa kibinafsi wa akaunti yako ya %@.
+private_key_do_not_share_title = Usishiriki Ufunguo wako wa Kibinafsi!
+private_key_do_not_share_description = Yeyote atakayepata ufunguo huu wa kibinafsi anaweza kudhibiti kikamilifu akaunti yako ya %@.
+private_key_one_chain_title = Unafungua Mnyororo Mmoja Tu
+private_key_one_chain_description = Ufunguo huu unadhibiti akaunti ya %@ pekee.
+private_key_shared_chains_title = Unafungua Minyororo Kadhaa
+private_key_shared_chains_description = Ufunguo huu unadhibiti akaunti zako kwenye %@.
+private_key_scope_evm = minyororo yote ya EVM
+private_key_scope_cosmos = minyororo yote ya Cosmos
+
 # Social
 
 social_x = X (formerly Twitter)

@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Captura de tela detectada</string>
   <string name="secret_phrase_screenshot_detected_description">Capturas de tela podem ser acessíveis a outros aplicativos e, se salvas dessa forma, podem colocar sua frase secreta em risco.</string>
   <string name="secret_phrase_content_hidden_description">Conteúdo oculto durante a gravação de tela</string>
+  <string name="private_key_reveal_intro">Você está prestes a revelar a chave privada da sua conta %1$s.</string>
+  <string name="private_key_do_not_share_title">Não compartilhe sua chave privada!</string>
+  <string name="private_key_do_not_share_description">Qualquer pessoa que obtiver esta chave privada pode assumir o controle total da sua conta %1$s.</string>
+  <string name="private_key_one_chain_title">Desbloqueia apenas uma rede</string>
+  <string name="private_key_one_chain_description">Esta chave controla apenas a conta %1$s.</string>
+  <string name="private_key_shared_chains_title">Desbloqueia várias redes</string>
+  <string name="private_key_shared_chains_description">Esta chave controla suas contas em %1$s.</string>
+  <string name="private_key_scope_evm">todas as redes EVM</string>
+  <string name="private_key_scope_cosmos">todas as redes Cosmos</string>
   <string name="social_x">X (ex-Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

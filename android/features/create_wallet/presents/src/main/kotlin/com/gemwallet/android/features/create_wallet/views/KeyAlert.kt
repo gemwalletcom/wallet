@@ -4,22 +4,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.WalletTheme
-import uniffi.gemstone.phraseSecurityReminder
+import com.wallet.core.primitives.Chain
+import uniffi.gemstone.privateKeySecurityReminder
 
 @Composable
-fun PhraseAlertDialog(
-    title: String = stringResource(R.string.wallet_new_title),
+fun KeyAlertDialog(
+    chain: Chain,
     onAccept: () -> Unit,
     onCancel: CancelAction,
 ) {
-    val reminder = remember { phraseSecurityReminder() }
+    val reminder = remember(chain) { privateKeySecurityReminder(chain.string) }
+    val chainName = chain.networkName()
     SecurityReminderScene(
-        title = title,
-        intro = stringResource(R.string.onboarding_security_create_wallet_intro_title),
-        items = reminder.items(),
+        title = stringResource(R.string.common_private_key),
+        intro = stringResource(R.string.private_key_reveal_intro, chainName),
+        items = reminder.items(privateKeyChain = chainName),
         docsUrl = reminder.docsUrl,
         onAccept = onAccept,
         onCancel = onCancel,
@@ -28,8 +31,8 @@ fun PhraseAlertDialog(
 
 @Preview
 @Composable
-fun PreviewPhraseAlertDialog() {
+fun PreviewKeyAlertDialog() {
     WalletTheme {
-        PhraseAlertDialog(onAccept = {}, onCancel = {})
+        KeyAlertDialog(chain = Chain.Ethereum, onAccept = {}, onCancel = {})
     }
 }

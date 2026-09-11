@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Đã phát hiện ảnh chụp màn hình</string>
   <string name="secret_phrase_screenshot_detected_description">Ảnh chụp màn hình có thể được các ứng dụng khác truy cập, nhưng chúng có thể khiến cụm từ bí mật của bạn gặp rủi ro nếu được lưu theo cách này.</string>
   <string name="secret_phrase_content_hidden_description">Nội dung bị ẩn trong quá trình ghi màn hình</string>
+  <string name="private_key_reveal_intro">Bạn sắp hiển thị khóa riêng của tài khoản %1$s.</string>
+  <string name="private_key_do_not_share_title">Đừng chia sẻ Khóa riêng của bạn!</string>
+  <string name="private_key_do_not_share_description">Bất kỳ ai có được khóa riêng này đều có thể kiểm soát hoàn toàn tài khoản %1$s của bạn.</string>
+  <string name="private_key_one_chain_title">Chỉ Mở Khóa Một Chuỗi</string>
+  <string name="private_key_one_chain_description">Khóa này chỉ kiểm soát tài khoản %1$s.</string>
+  <string name="private_key_shared_chains_title">Mở Khóa Nhiều Chuỗi</string>
+  <string name="private_key_shared_chains_description">Khóa này kiểm soát các tài khoản của bạn trên %1$s.</string>
+  <string name="private_key_scope_evm">tất cả các chuỗi EVM</string>
+  <string name="private_key_scope_cosmos">tất cả các chuỗi Cosmos</string>
   <string name="social_x">X (trước đây là Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
 import com.gemwallet.android.features.wallet.presents.components.ShowSecretDataProperty
 import com.gemwallet.android.features.wallet.presents.components.WalletAddress
+import uniffi.gemstone.GemWalletSecretKind
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
@@ -74,11 +75,18 @@ internal fun WalletScene(
                 },
                 singleLine = true,
             )
-            ShowSecretDataProperty(
-                walletId = wallet.id,
-                secretKind = wallet.secretKind,
-                onClick = { walletId, secretKind -> onAction(WalletAction.ShowPhrase(walletId, secretKind)) },
-            )
+            if (wallet.secretKind == GemWalletSecretKind.PHRASE) {
+                ShowSecretDataProperty(
+                    label = stringResource(R.string.common_secret_phrase),
+                    onClick = { onAction(WalletAction.ShowPhrase(wallet.id, GemWalletSecretKind.PHRASE)) },
+                )
+            }
+            if (wallet.privateKeyChains.isNotEmpty()) {
+                ShowSecretDataProperty(
+                    label = stringResource(R.string.common_private_key),
+                    onClick = { onAction(WalletAction.ShowPrivateKey(wallet.id, wallet.privateKeyChains)) },
+                )
+            }
             WalletAddress(wallet.accounts)
 
             Spacer16()

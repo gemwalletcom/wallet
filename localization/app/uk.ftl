@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Виявлено знімок екра
 secret_phrase_screenshot_detected_description = Знімки екрана можуть бути доступні іншим програмам, і якщо їх зберегти таким чином, ваша секретна фраза може бути під загрозою.
 secret_phrase_content_hidden_description = Вміст прихований під час запису екрана
 
+# Private Key
+
+private_key_reveal_intro = Ви збираєтеся показати приватний ключ свого облікового запису %@.
+private_key_do_not_share_title = Не діліться своїм приватним ключем!
+private_key_do_not_share_description = Будь-хто, хто отримає цей приватний ключ, зможе повністю керувати вашим обліковим записом %@.
+private_key_one_chain_title = Відкриває лише одну мережу
+private_key_one_chain_description = Цей ключ керує лише обліковим записом %@.
+private_key_shared_chains_title = Відкриває кілька мереж
+private_key_shared_chains_description = Цей ключ керує вашими обліковими записами в %@.
+private_key_scope_evm = усіх мережах EVM
+private_key_scope_cosmos = усіх мережах Cosmos
+
 # Social
 
 social_x = X (раніше Twitter)

@@ -45,7 +45,10 @@ use crate::services::wallet_session::GemWalletSessionService;
 use primitives::BlockExplorerLink;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportKind, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
+pub use model::{
+    GemPrivateKeyScope, GemSecurityReminder, GemSecurityReminderItem, GemWalletDefaultName, GemWalletDeletion, GemWalletImportKind, GemWalletImportResult, GemWalletImportType,
+    GemWalletSecret,
+};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -226,12 +229,26 @@ impl GemWalletService {
                 words: self.keystore.export_recovery_phrase(keystore_id, password)?,
             }),
             rules::SecretExport::PrivateKey(chain) => Ok(GemWalletSecret::PrivateKey {
+                chain,
                 key: self.keystore.export_private_key(keystore_id, chain, password)?,
             }),
             rules::SecretExport::None => Err(GemServiceError::Core {
                 msg: format!("wallet {} keeps no secret", wallet.id.id()),
             }),
         }
+    }
+
+    pub async fn export_private_key(&self, wallet_id: WalletId, chain: Chain) -> Result<String, GemServiceError> {
+        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })?;
+        if !rules::private_key_chains(&wallet).contains(&chain) {
+            return Err(GemServiceError::Core {
+                msg: format!("wallet {} has no {chain} private key to export", wallet.id.id()),
+            });
+        }
+        let password = decode_password(&self.password.get_password(false)?);
+        Ok(self.keystore.export_private_key(keystore_id_for_wallet(wallet.id.id()), chain, password)?)
     }
 
     pub async fn setup_chains(&self, chains: Vec<Chain>) -> Result<Vec<Wallet>, GemServiceError> {
@@ -548,8 +565,32 @@ mod tests {
                     words: PHRASE.iter().map(|word| word.to_string()).collect()
                 }
             );
-            assert_eq!(context.service.export_secret(private.id.clone()).await.unwrap(), GemWalletSecret::PrivateKey { key });
+            assert_eq!(
+                context.service.export_secret(private.id.clone()).await.unwrap(),
+                GemWalletSecret::PrivateKey { chain: Chain::Ethereum, key }
+            );
             assert!(context.service.export_secret(view.id.clone()).await.is_err());
+        });
+    }
+
+    #[test]
+    fn test_export_private_key_matches_the_phrase_account() {
+        block_on(async {
+            let context = TestContext::new();
+            let phrase = context.import("Phrase", PHRASE).await;
+            let key = context.service.export_private_key(phrase.id.clone(), Chain::Ethereum).await.unwrap();
+
+            let import = GemWalletImportType::PrivateKey {
+                value: key.clone(),
+                chain: Chain::Ethereum,
+            };
+            let GemWalletImportResult::New { wallet: private } = context.service.import_wallet("Key".to_string(), import, WalletSource::Import).await.unwrap() else {
+                panic!("expected a new wallet");
+            };
+            assert_eq!(private.accounts[0].address, phrase.accounts[0].address);
+
+            assert!(context.service.export_private_key(phrase.id.clone(), Chain::Bitcoin).await.is_err());
+            assert_eq!(context.service.export_private_key(private.id.clone(), Chain::Ethereum).await.unwrap(), key);
         });
     }
 

@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Tangkapan Skrin Dikesan
 secret_phrase_screenshot_detected_description = Tangkapan skrin mungkin boleh diakses oleh apl lain, ia boleh meletakkan frasa rahsia anda pada risiko jika disimpan dengan cara ini.
 secret_phrase_content_hidden_description = Kandungan tersembunyi semasa rakaman skrin
 
+# Private Key
+
+private_key_reveal_intro = Anda akan mendedahkan kunci peribadi akaun %@ anda.
+private_key_do_not_share_title = Jangan kongsi Kunci Peribadi anda!
+private_key_do_not_share_description = Sesiapa yang mendapat kunci peribadi ini boleh mengawal sepenuhnya akaun %@ anda.
+private_key_one_chain_title = Hanya Membuka Satu Rantaian
+private_key_one_chain_description = Kunci ini hanya mengawal akaun %@.
+private_key_shared_chains_title = Membuka Beberapa Rantaian
+private_key_shared_chains_description = Kunci ini mengawal akaun anda di %@.
+private_key_scope_evm = semua rantaian EVM
+private_key_scope_cosmos = semua rantaian Cosmos
+
 # Social
 
 social_x = X (formerly Twitter)

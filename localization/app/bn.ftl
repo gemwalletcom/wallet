@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = স্ক্রিনশট সনা�
 secret_phrase_screenshot_detected_description = স্ক্রিনশটগুলি অন্যান্য অ্যাপের কাছে অ্যাক্সেসযোগ্য হতে পারে, যদি এইভাবে সংরক্ষণ করা হয় তবে এগুলি আপনার গোপন বাক্যাংশকে ঝুঁকির মধ্যে ফেলতে পারে।
 secret_phrase_content_hidden_description = স্ক্রিন রেকর্ডিংয়ের সময় লুকানো কন্টেন্ট
 
+# Private Key
+
+private_key_reveal_intro = আপনি আপনার %@ অ্যাকাউন্টের ব্যক্তিগত কী প্রকাশ করতে চলেছেন।
+private_key_do_not_share_title = আপনার ব্যক্তিগত কী শেয়ার করবেন না!
+private_key_do_not_share_description = যে কেউ এই ব্যক্তিগত কী পেলে আপনার %@ অ্যাকাউন্টের সম্পূর্ণ নিয়ন্ত্রণ নিতে পারে।
+private_key_one_chain_title = এটি শুধুমাত্র একটি চেইন আনলক করে
+private_key_one_chain_description = এই কী শুধুমাত্র %@ অ্যাকাউন্ট নিয়ন্ত্রণ করে।
+private_key_shared_chains_title = এটি একাধিক চেইন আনলক করে
+private_key_shared_chains_description = এই কী %@-এ আপনার অ্যাকাউন্টগুলি নিয়ন্ত্রণ করে।
+private_key_scope_evm = সমস্ত EVM চেইন
+private_key_scope_cosmos = সমস্ত Cosmos চেইন
+
 # Social
 
 social_x = X (formerly Twitter)

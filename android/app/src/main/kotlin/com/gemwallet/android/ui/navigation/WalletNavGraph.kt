@@ -210,6 +210,7 @@ fun WalletNavGraph(
                 onCancel = onCancel,
                 onBoard = navigator::resetToOnboarding,
                 onSelectImage = { navigator.openWalletImage(it) },
+                onPrivateKeyChains = navigator::openWalletPrivateKeyChains,
                 onSecurityReminder = navigator::openWalletSecurityReminder,
                 onSecurityReminderAccepted = navigator::finishWalletSecurityReminder,
             )

@@ -1,9 +1,14 @@
+use gem_derivation::default_derivation_path;
 use gem_keystore::Mnemonic;
-use primitives::{Account, AddressName, AddressType, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, Chain, ChainType, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
+use super::model::{
+    GemPrivateKeyScope, GemSecurityReminder, GemSecurityReminderItem, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind,
+    GemWalletSubtitle,
+};
 use crate::address::{checksum_address, validate_address};
+use crate::config::docs::DocsUrl;
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
 
@@ -113,6 +118,42 @@ pub fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
         SecretExport::Words => Some(GemWalletSecretKind::Phrase),
         SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),
         SecretExport::None => None,
+    }
+}
+
+pub fn phrase_security_reminder() -> GemSecurityReminder {
+    GemSecurityReminder {
+        docs_url: DocsUrl::WhatIsSecretPhrase,
+        items: vec![GemSecurityReminderItem::KeepSafe, GemSecurityReminderItem::DoNotShare, GemSecurityReminderItem::NoRecovery],
+    }
+}
+
+pub fn private_key_security_reminder(chain: Chain) -> GemSecurityReminder {
+    GemSecurityReminder {
+        docs_url: DocsUrl::WhatIsPrivateKey,
+        items: vec![
+            GemSecurityReminderItem::KeepSafe,
+            GemSecurityReminderItem::DoNotShare,
+            GemSecurityReminderItem::KeyScope { scope: private_key_scope(chain) },
+        ],
+    }
+}
+
+fn private_key_scope(chain: Chain) -> GemPrivateKeyScope {
+    let path = default_derivation_path(chain);
+    let family: Vec<Chain> = Chain::all().into_iter().filter(|other| default_derivation_path(*other) == path).collect();
+    match family.first().map(Chain::chain_type) {
+        Some(ChainType::Ethereum) if family.len() > 1 => GemPrivateKeyScope::EvmChains,
+        Some(ChainType::Cosmos) if family.len() > 1 => GemPrivateKeyScope::CosmosChains,
+        _ => GemPrivateKeyScope::OneChain,
+    }
+}
+
+pub fn private_key_chains(wallet: &Wallet) -> Vec<Chain> {
+    match wallet.wallet_type {
+        WalletType::Multicoin | WalletType::Single => wallet.accounts.iter().map(|account| account.chain).filter(signer::supports_private_key_import).collect(),
+        WalletType::PrivateKey => wallet.accounts.iter().map(|account| account.chain).collect(),
+        WalletType::View => Vec::new(),
     }
 }
 
@@ -380,6 +421,54 @@ mod tests {
         assert_eq!(secret_kind(&phrase), Some(GemWalletSecretKind::Phrase));
         assert_eq!(secret_kind(&private_key), Some(GemWalletSecretKind::PrivateKey));
         assert_eq!(secret_kind(&view), None);
+    }
+
+    #[test]
+    fn test_security_reminder_says_which_chains_a_key_unlocks() {
+        let phrase = phrase_security_reminder();
+        assert_eq!(phrase.docs_url, DocsUrl::WhatIsSecretPhrase);
+        assert_eq!(
+            phrase.items,
+            vec![GemSecurityReminderItem::KeepSafe, GemSecurityReminderItem::DoNotShare, GemSecurityReminderItem::NoRecovery]
+        );
+
+        let ethereum = private_key_security_reminder(Chain::Ethereum);
+        assert_eq!(ethereum.docs_url, DocsUrl::WhatIsPrivateKey);
+        assert_eq!(
+            ethereum.items,
+            vec![
+                GemSecurityReminderItem::KeepSafe,
+                GemSecurityReminderItem::DoNotShare,
+                GemSecurityReminderItem::KeyScope {
+                    scope: GemPrivateKeyScope::EvmChains
+                }
+            ]
+        );
+        assert_eq!(private_key_scope(Chain::SmartChain), GemPrivateKeyScope::EvmChains);
+        assert_eq!(private_key_scope(Chain::Injective), GemPrivateKeyScope::EvmChains);
+        assert_eq!(private_key_scope(Chain::Osmosis), GemPrivateKeyScope::CosmosChains);
+        assert_eq!(private_key_scope(Chain::Mayachain), GemPrivateKeyScope::CosmosChains);
+        assert_eq!(private_key_scope(Chain::Solana), GemPrivateKeyScope::OneChain);
+        for chain in Chain::all() {
+            let shared = Chain::all()
+                .into_iter()
+                .any(|other| other != chain && default_derivation_path(other) == default_derivation_path(chain));
+            assert_eq!(private_key_scope(chain) != GemPrivateKeyScope::OneChain, shared, "{chain}");
+        }
+    }
+
+    #[test]
+    fn test_private_key_chains_keep_importable_phrase_accounts() {
+        let chains = [Chain::Ethereum, Chain::Bitcoin, Chain::Solana, Chain::Cardano];
+        let multicoin = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &chains);
+        let single = wallet(WalletId::Single(Chain::Solana, "0x2".to_string()), WalletType::Single, &[Chain::Solana]);
+        let private_key = wallet(WalletId::PrivateKey(Chain::Ethereum, "0x3".to_string()), WalletType::PrivateKey, &[Chain::Ethereum]);
+        let view = wallet(WalletId::View(Chain::Ethereum, "0x4".to_string()), WalletType::View, &[Chain::Ethereum]);
+
+        assert_eq!(private_key_chains(&multicoin), vec![Chain::Ethereum, Chain::Solana]);
+        assert_eq!(private_key_chains(&single), vec![Chain::Solana]);
+        assert_eq!(private_key_chains(&private_key), vec![Chain::Ethereum]);
+        assert!(private_key_chains(&view).is_empty());
     }
 
     #[test]

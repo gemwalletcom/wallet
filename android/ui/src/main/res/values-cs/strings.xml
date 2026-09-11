@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Detekován snímek obrazovky</string>
   <string name="secret_phrase_screenshot_detected_description">Snímky obrazovky mohou být přístupné jiným aplikacím, pokud se uloží tímto způsobem, mohou ohrozit vaši tajnou frázi.</string>
   <string name="secret_phrase_content_hidden_description">Obsah skrytý během nahrávání obrazovky</string>
+  <string name="private_key_reveal_intro">Chystáte se zobrazit soukromý klíč svého účtu %1$s.</string>
+  <string name="private_key_do_not_share_title">Nesdílejte svůj soukromý klíč!</string>
+  <string name="private_key_do_not_share_description">Kdokoli získá tento soukromý klíč, může plně ovládat váš účet %1$s.</string>
+  <string name="private_key_one_chain_title">Odemyká pouze jeden řetězec</string>
+  <string name="private_key_one_chain_description">Tento klíč ovládá pouze účet %1$s.</string>
+  <string name="private_key_shared_chains_title">Odemyká několik řetězců</string>
+  <string name="private_key_shared_chains_description">Tento klíč ovládá vaše účty na %1$s.</string>
+  <string name="private_key_scope_evm">všech řetězcích EVM</string>
+  <string name="private_key_scope_cosmos">všech řetězcích Cosmos</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

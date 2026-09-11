@@ -7,8 +7,8 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import enum Gemstone.GemWalletSecret
 import enum Gemstone.GemWalletSecretKind
+import func Gemstone.walletPrivateKeyChains
 import func Gemstone.walletRow
 import func Gemstone.walletSecretKind
 import protocol Gemstone.GemWalletServiceProtocol
@@ -24,7 +24,7 @@ public final class WalletDetailViewModel {
     var nameInput: String
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingDeleteConfirmation: Bool?
-    var isPresentingExportWallet: GemWalletSecret?
+    var isPresentingExportWallet: ExportWalletFlow?
 
     public let walletQuery: ObservableQuery<WalletRequest>
     public var wallet: Wallet {
@@ -59,6 +59,10 @@ public final class WalletDetailViewModel {
         walletSecretKind(wallet: wallet.map())
     }
 
+    var privateKeyChains: [Chain] {
+        walletPrivateKeyChains(wallet: wallet.map()).map { Chain(core: $0) }
+    }
+
     var address: WalletDetailAddress? {
         switch walletRow(wallet: wallet.map()).subtitle {
         case .multicoin: .none
@@ -88,6 +92,10 @@ extension WalletDetailViewModel {
         try await service.rename(walletId: wallet.id, newName: name)
     }
 
+    func exportPrivateKey(chain: Chain) async throws -> String {
+        try await service.exportPrivateKey(walletId: wallet.id.id, chain: chain.rawValue)
+    }
+
     func delete() async throws {
         switch try await service.delete(wallet) {
         case .walletsRemaining: break
@@ -114,11 +122,18 @@ extension WalletDetailViewModel {
     func onShowSecret() {
         Task {
             do {
-                isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
+                isPresentingExportWallet = switch try await service.exportSecret(walletId: wallet.id.id) {
+                case let .words(words): .words(words)
+                case let .privateKey(chain, key): .privateKey(chain: Chain(core: chain), key: key)
+                }
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
+    }
+
+    func onShowPrivateKey() {
+        isPresentingExportWallet = .privateKeyChains(wallet: wallet)
     }
 
     func onSelectDelete() {

@@ -807,6 +807,27 @@ secret_phrase_screenshot_detected_description = Screenshots may be accessible to
 # Used in secret UI for the phrase content hidden description.
 secret_phrase_content_hidden_description = Content hidden during screen recording
 
+# Private Key
+
+# Used in the private key export reminder header. Contains 1 string placeholder for the chain name.
+private_key_reveal_intro = You are about to reveal the private key for your %@ account.
+# Used as the warning title on the private key reveal screen.
+private_key_do_not_share_title = Do not share your Private Key!
+# Used in the private key export reminder for the do not share item description. Contains 1 string placeholder for the chain name.
+private_key_do_not_share_description = Anyone who gets this private key can take full control of your %@ account.
+# Used in the private key export reminder for the one chain item title.
+private_key_one_chain_title = It Unlocks One Chain Only
+# Used in the private key export reminder for the one chain item description. Contains 1 string placeholder for the chain name.
+private_key_one_chain_description = This key controls only the %@ account.
+# Used in the private key export reminder for the shared chains item title, shown when the key also controls other accounts of the wallet.
+private_key_shared_chains_title = It Unlocks Several Chains
+# Used in the private key export reminder for the shared chains item description. Contains 1 string placeholder for one of the private_key_scope_* values.
+private_key_shared_chains_description = This key controls your accounts on %@.
+# Used as the chains placeholder in private_key_shared_chains_description for a key that every EVM chain shares.
+private_key_scope_evm = all EVM chains
+# Used as the chains placeholder in private_key_shared_chains_description for a key that the Cosmos chains share.
+private_key_scope_cosmos = all Cosmos chains
+
 # Social
 
 # Used in external social link list for the x label.

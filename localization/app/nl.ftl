@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Schermafbeelding gedetecteerd
 secret_phrase_screenshot_detected_description = Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps, maar ze kunnen uw geheime zin in gevaar brengen als u ze op deze manier opslaat.
 secret_phrase_content_hidden_description = Inhoud verborgen tijdens schermopname
 
+# Private Key
+
+private_key_reveal_intro = Je staat op het punt de privésleutel van je %@-account te tonen.
+private_key_do_not_share_title = Deel uw privésleutel niet!
+private_key_do_not_share_description = Iedereen die deze privésleutel bemachtigt, kan volledige controle over je %@-account krijgen.
+private_key_one_chain_title = Hij ontgrendelt maar één chain
+private_key_one_chain_description = Deze sleutel beheert alleen het %@-account.
+private_key_shared_chains_title = Hij ontgrendelt meerdere chains
+private_key_shared_chains_description = Deze sleutel beheert je accounts op %@.
+private_key_scope_evm = alle EVM-chains
+private_key_scope_cosmos = alle Cosmos-chains
+
 # Social
 
 social_x = X (voorheen Twitter)

@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = スクリーンショットが検出�
 secret_phrase_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でリカバリーフレーズを保存すると、漏えいするおそれがあります。
 secret_phrase_content_hidden_description = 画面録画中はコンテンツが非表示になります
 
+# Private Key
+
+private_key_reveal_intro = %@ アカウントのプライベートキーを表示しようとしています。
+private_key_do_not_share_title = プライベートキーを共有しないでください。
+private_key_do_not_share_description = このプライベートキーを入手した人は、あなたの %@ アカウントを完全に操作できます。
+private_key_one_chain_title = 1つのチェーンのみに使えます
+private_key_one_chain_description = このキーは %@ アカウントのみを操作します。
+private_key_shared_chains_title = 複数のチェーンに使えます
+private_key_shared_chains_description = このキーは %@ のアカウントを操作します。
+private_key_scope_evm = すべての EVM チェーン
+private_key_scope_cosmos = すべての Cosmos チェーン
+
 # Social
 
 social_x = エックス（旧ツイッター）

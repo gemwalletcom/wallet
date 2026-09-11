@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Скриншот обнаружен
 secret_phrase_screenshot_detected_description = Скриншоты могут быть доступны другим приложениям, и если сохранить их таким образом, они могут поставить под угрозу вашу секретную фразу.
 secret_phrase_content_hidden_description = Контент, скрытый во время записи экрана
 
+# Private Key
+
+private_key_reveal_intro = Вы собираетесь показать приватный ключ своего аккаунта %@.
+private_key_do_not_share_title = Не делитесь своим приватным ключом!
+private_key_do_not_share_description = Любой, кто получит этот приватный ключ, сможет полностью управлять вашим аккаунтом %@.
+private_key_one_chain_title = Открывает только одну сеть
+private_key_one_chain_description = Этот ключ управляет только аккаунтом %@.
+private_key_shared_chains_title = Открывает несколько сетей
+private_key_shared_chains_description = Этот ключ управляет вашими аккаунтами в %@.
+private_key_scope_evm = всех сетях EVM
+private_key_scope_cosmos = всех сетях Cosmos
+
 # Social
 
 social_x = X (бывший Twitter)

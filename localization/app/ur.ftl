@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = اسکرین شاٹ کا پتہ چلا
 secret_phrase_screenshot_detected_description = اسکرین شاٹس دیگر ایپس کے لیے قابل رسائی ہو سکتے ہیں، اگر اس طرح محفوظ کیا جائے تو وہ آپ کے خفیہ جملے کو خطرے میں ڈال سکتے ہیں۔
 secret_phrase_content_hidden_description = اسکرین ریکارڈنگ کے دوران چھپا ہوا مواد
 
+# Private Key
+
+private_key_reveal_intro = آپ اپنے %@ اکاؤنٹ کی نجی کلید ظاہر کرنے والے ہیں۔
+private_key_do_not_share_title = اپنی نجی کلید کا اشتراک نہ کریں!
+private_key_do_not_share_description = جسے بھی یہ نجی کلید ملے گی وہ آپ کے %@ اکاؤنٹ پر مکمل کنٹرول حاصل کر سکتا ہے۔
+private_key_one_chain_title = یہ صرف ایک چین کھولتی ہے
+private_key_one_chain_description = یہ کلید صرف %@ اکاؤنٹ کو کنٹرول کرتی ہے۔
+private_key_shared_chains_title = یہ کئی چینز کھولتی ہے
+private_key_shared_chains_description = یہ کلید %@ پر آپ کے اکاؤنٹس کو کنٹرول کرتی ہے۔
+private_key_scope_evm = تمام EVM چینز
+private_key_scope_cosmos = تمام Cosmos چینز
+
 # Social
 
 social_x = X (formerly Twitter)

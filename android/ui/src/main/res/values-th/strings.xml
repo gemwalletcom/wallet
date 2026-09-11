@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">ตรวจพบภาพหน้าจอ</string>
   <string name="secret_phrase_screenshot_detected_description">ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น แต่หากบันทึกในลักษณะนี้ อาจทำให้รหัสผ่านของคุณตกอยู่ในความเสี่ยง</string>
   <string name="secret_phrase_content_hidden_description">เนื้อหาที่ซ่อนอยู่ระหว่างการบันทึกหน้าจอ</string>
+  <string name="private_key_reveal_intro">คุณกำลังจะแสดงคีย์ส่วนตัวของบัญชี %1$s ของคุณ</string>
+  <string name="private_key_do_not_share_title">อย่าเปิดเผยคีย์ส่วนตัวของคุณ!</string>
+  <string name="private_key_do_not_share_description">ใครก็ตามที่ได้คีย์ส่วนตัวนี้จะสามารถควบคุมบัญชี %1$s ของคุณได้ทั้งหมด</string>
+  <string name="private_key_one_chain_title">ปลดล็อกได้เพียงเชนเดียว</string>
+  <string name="private_key_one_chain_description">คีย์นี้ควบคุมเฉพาะบัญชี %1$s เท่านั้น</string>
+  <string name="private_key_shared_chains_title">ปลดล็อกได้หลายเชน</string>
+  <string name="private_key_shared_chains_description">คีย์นี้ควบคุมบัญชีของคุณบน %1$s</string>
+  <string name="private_key_scope_evm">ทุกเชน EVM</string>
+  <string name="private_key_scope_cosmos">ทุกเชน Cosmos</string>
   <string name="social_x">X (เดิมคือ Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

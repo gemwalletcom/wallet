@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Picha ya skrini imegunduliwa</string>
   <string name="secret_phrase_screenshot_detected_description">Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka maneno yako ya siri hatarini ikiwa yamehifadhiwa kwa njia hii.</string>
   <string name="secret_phrase_content_hidden_description">Maudhui yaliyofichwa wakati wa kurekodi skrini</string>
+  <string name="private_key_reveal_intro">Unakaribia kuonyesha ufunguo wa kibinafsi wa akaunti yako ya %1$s.</string>
+  <string name="private_key_do_not_share_title">Usishiriki Ufunguo wako wa Kibinafsi!</string>
+  <string name="private_key_do_not_share_description">Yeyote atakayepata ufunguo huu wa kibinafsi anaweza kudhibiti kikamilifu akaunti yako ya %1$s.</string>
+  <string name="private_key_one_chain_title">Unafungua Mnyororo Mmoja Tu</string>
+  <string name="private_key_one_chain_description">Ufunguo huu unadhibiti akaunti ya %1$s pekee.</string>
+  <string name="private_key_shared_chains_title">Unafungua Minyororo Kadhaa</string>
+  <string name="private_key_shared_chains_description">Ufunguo huu unadhibiti akaunti zako kwenye %1$s.</string>
+  <string name="private_key_scope_evm">minyororo yote ya EVM</string>
+  <string name="private_key_scope_cosmos">minyororo yote ya Cosmos</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

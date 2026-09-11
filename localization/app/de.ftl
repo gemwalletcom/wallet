@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Screenshot erkannt
 secret_phrase_screenshot_detected_description = Screenshots können von anderen Apps eingesehen werden und gefährden so Ihre geheime Phrase.
 secret_phrase_content_hidden_description = Inhalte, die während der Bildschirmaufnahme ausgeblendet wurden.
 
+# Private Key
+
+private_key_reveal_intro = Sie sind dabei, den privaten Schlüssel Ihres %@-Kontos anzuzeigen.
+private_key_do_not_share_title = Geben Sie Ihren privaten Schlüssel nicht weiter!
+private_key_do_not_share_description = Jeder, der diesen privaten Schlüssel erhält, kann die volle Kontrolle über Ihr %@-Konto übernehmen.
+private_key_one_chain_title = Er entsperrt nur eine Chain
+private_key_one_chain_description = Dieser Schlüssel steuert nur das %@-Konto.
+private_key_shared_chains_title = Er entsperrt mehrere Chains
+private_key_shared_chains_description = Dieser Schlüssel steuert Ihre Konten auf %@.
+private_key_scope_evm = allen EVM-Chains
+private_key_scope_cosmos = allen Cosmos-Chains
+
 # Social
 
 social_x = X (ehemals Twitter)

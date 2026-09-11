@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">偵測到螢幕截圖</string>
   <string name="secret_phrase_screenshot_detected_description">螢幕截圖可能會被其他應用程式存取；以此方式儲存助記詞會帶來外洩風險。</string>
   <string name="secret_phrase_content_hidden_description">螢幕錄製過程中隱藏的內容</string>
+  <string name="private_key_reveal_intro">您即將顯示 %1$s 帳戶的私鑰。</string>
+  <string name="private_key_do_not_share_title">切勿洩漏私鑰！</string>
+  <string name="private_key_do_not_share_description">任何取得此私鑰的人都可以完全控制您的 %1$s 帳戶。</string>
+  <string name="private_key_one_chain_title">僅解鎖一條鏈</string>
+  <string name="private_key_one_chain_description">此私鑰僅控制 %1$s 帳戶。</string>
+  <string name="private_key_shared_chains_title">解鎖多條鏈</string>
+  <string name="private_key_shared_chains_description">此私鑰控制您在 %1$s 上的帳戶。</string>
+  <string name="private_key_scope_evm">所有 EVM 鏈</string>
+  <string name="private_key_scope_cosmos">所有 Cosmos 鏈</string>
   <string name="social_x">X（前Twitter）</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

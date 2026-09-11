@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Tangkapan Skrin Dikesan</string>
   <string name="secret_phrase_screenshot_detected_description">Tangkapan skrin mungkin boleh diakses oleh apl lain, ia boleh meletakkan frasa rahsia anda pada risiko jika disimpan dengan cara ini.</string>
   <string name="secret_phrase_content_hidden_description">Kandungan tersembunyi semasa rakaman skrin</string>
+  <string name="private_key_reveal_intro">Anda akan mendedahkan kunci peribadi akaun %1$s anda.</string>
+  <string name="private_key_do_not_share_title">Jangan kongsi Kunci Peribadi anda!</string>
+  <string name="private_key_do_not_share_description">Sesiapa yang mendapat kunci peribadi ini boleh mengawal sepenuhnya akaun %1$s anda.</string>
+  <string name="private_key_one_chain_title">Hanya Membuka Satu Rantaian</string>
+  <string name="private_key_one_chain_description">Kunci ini hanya mengawal akaun %1$s.</string>
+  <string name="private_key_shared_chains_title">Membuka Beberapa Rantaian</string>
+  <string name="private_key_shared_chains_description">Kunci ini mengawal akaun anda di %1$s.</string>
+  <string name="private_key_scope_evm">semua rantaian EVM</string>
+  <string name="private_key_scope_cosmos">semua rantaian Cosmos</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

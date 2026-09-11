@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Capture d'écran détectée
 secret_phrase_screenshot_detected_description = Les captures d'écran peuvent être accessibles à d'autres applications ; si elles sont enregistrées de cette manière, votre phrase secrète peut être compromise.
 secret_phrase_content_hidden_description = Contenu masqué pendant l'enregistrement d'écran
 
+# Private Key
+
+private_key_reveal_intro = Vous êtes sur le point d'afficher la clé privée de votre compte %@.
+private_key_do_not_share_title = Ne partagez pas votre clé privée !
+private_key_do_not_share_description = Quiconque obtient cette clé privée peut prendre le contrôle total de votre compte %@.
+private_key_one_chain_title = Elle ne déverrouille qu'une seule chaîne
+private_key_one_chain_description = Cette clé contrôle uniquement le compte %@.
+private_key_shared_chains_title = Elle déverrouille plusieurs chaînes
+private_key_shared_chains_description = Cette clé contrôle vos comptes sur %@.
+private_key_scope_evm = toutes les chaînes EVM
+private_key_scope_cosmos = toutes les chaînes Cosmos
+
 # Social
 
 social_x = X (anciennement Twitter)

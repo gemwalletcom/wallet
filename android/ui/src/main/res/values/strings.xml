@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Screenshot Detected</string>
   <string name="secret_phrase_screenshot_detected_description">Screenshots may be accessible to other apps, they can put your secret phrase at risk if saved this way.</string>
   <string name="secret_phrase_content_hidden_description">Content hidden during screen recording</string>
+  <string name="private_key_reveal_intro">You are about to reveal the private key for your %1$s account.</string>
+  <string name="private_key_do_not_share_title">Do not share your Private Key!</string>
+  <string name="private_key_do_not_share_description">Anyone who gets this private key can take full control of your %1$s account.</string>
+  <string name="private_key_one_chain_title">It Unlocks One Chain Only</string>
+  <string name="private_key_one_chain_description">This key controls only the %1$s account.</string>
+  <string name="private_key_shared_chains_title">It Unlocks Several Chains</string>
+  <string name="private_key_shared_chains_description">This key controls your accounts on %1$s.</string>
+  <string name="private_key_scope_evm">all EVM chains</string>
+  <string name="private_key_scope_cosmos">all Cosmos chains</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

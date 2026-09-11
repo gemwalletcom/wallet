@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Natukoy ang screenshot
 secret_phrase_screenshot_detected_description = Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong sikretong parirala kung ise-save sa ganitong paraan.
 secret_phrase_content_hidden_description = Nakatago ang content habang nagre-record ng screen
 
+# Private Key
+
+private_key_reveal_intro = Malapit mo nang ipakita ang pribadong susi ng iyong %@ account.
+private_key_do_not_share_title = Huwag ibahagi ang iyong Pribadong Susi!
+private_key_do_not_share_description = Sinumang makakuha ng pribadong susing ito ay maaaring ganap na kontrolin ang iyong %@ account.
+private_key_one_chain_title = Isang Chain Lang ang Binubuksan Nito
+private_key_one_chain_description = Kinokontrol lang ng susing ito ang %@ account.
+private_key_shared_chains_title = Ilang Chain ang Binubuksan Nito
+private_key_shared_chains_description = Kinokontrol ng susing ito ang iyong mga account sa %@.
+private_key_scope_evm = lahat ng EVM chain
+private_key_scope_cosmos = lahat ng Cosmos chain
+
 # Social
 
 social_x = X (formerly Twitter)

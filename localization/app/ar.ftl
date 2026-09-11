@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = تم اكتشاف لقطة شاشة
 secret_phrase_screenshot_detected_description = قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، ولكنها قد تعرض عبارة المرور الخاصة بك للخطر إذا تم حفظها بهذه الطريقة.
 secret_phrase_content_hidden_description = المحتوى المخفي أثناء تسجيل الشاشة
 
+# Private Key
+
+private_key_reveal_intro = أنت على وشك الكشف عن المفتاح الخاص لحساب %@ الخاص بك.
+private_key_do_not_share_title = لا تشارك مفتاحك الخاص!
+private_key_do_not_share_description = أي شخص يحصل على هذا المفتاح الخاص يمكنه السيطرة الكاملة على حساب %@ الخاص بك.
+private_key_one_chain_title = يفتح سلسلة واحدة فقط
+private_key_one_chain_description = يتحكم هذا المفتاح في حساب %@ فقط.
+private_key_shared_chains_title = يفتح عدة سلاسل
+private_key_shared_chains_description = يتحكم هذا المفتاح في حساباتك على %@.
+private_key_scope_evm = جميع سلاسل EVM
+private_key_scope_cosmos = جميع سلاسل Cosmos
+
 # Social
 
 social_x = X (تويتر سابقًا)

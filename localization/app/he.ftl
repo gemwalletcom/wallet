@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = זוהה צילום מסך
 secret_phrase_screenshot_detected_description = צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את משפט הסוד שלך אם יישמרו בדרך זו.
 secret_phrase_content_hidden_description = תוכן מוסתר במהלך הקלטת מסך
 
+# Private Key
+
+private_key_reveal_intro = אתה עומד לחשוף את המפתח הפרטי של חשבון %@ שלך.
+private_key_do_not_share_title = אל תשתף את המפתח הפרטי שלך!
+private_key_do_not_share_description = כל מי שמשיג את המפתח הפרטי הזה יכול להשתלט לחלוטין על חשבון %@ שלך.
+private_key_one_chain_title = הוא פותח שרשרת אחת בלבד
+private_key_one_chain_description = מפתח זה שולט רק בחשבון %@.
+private_key_shared_chains_title = הוא פותח כמה שרשראות
+private_key_shared_chains_description = מפתח זה שולט בחשבונות שלך ב-%@.
+private_key_scope_evm = כל שרשראות EVM
+private_key_scope_cosmos = כל שרשראות Cosmos
+
 # Social
 
 social_x = X (לשעבר Twitter)

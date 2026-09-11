@@ -2,16 +2,18 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 
 struct ShowPrivateKeyViewModel: SecretPhraseViewableModel {
+    let chain: Chain
     let text: String
     let continueAction: VoidAction = nil
 
     var calloutViewStyle: CalloutViewStyle? {
-        .secretDataWarning()
+        .privateKeyWarning(chainName: chain.networkName)
     }
 
     var title: String {

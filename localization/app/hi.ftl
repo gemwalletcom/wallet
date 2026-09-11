@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = स्क्रीनशॉट का 
 secret_phrase_screenshot_detected_description = स्क्रीनशॉट अन्य ऐप्स के लिए सुलभ हो सकते हैं, यदि वे इस तरह से सहेजे गए तो वे आपके गुप्त वाक्यांश को खतरे में डाल सकते हैं।
 secret_phrase_content_hidden_description = स्क्रीन रिकॉर्डिंग के दौरान सामग्री छिपाई गई
 
+# Private Key
+
+private_key_reveal_intro = आप अपने %@ खाते की निजी कुंजी दिखाने वाले हैं।
+private_key_do_not_share_title = अपनी निजी कुंजी साझा न करें!
+private_key_do_not_share_description = जिसे भी यह निजी कुंजी मिलेगी, वह आपके %@ खाते पर पूरा नियंत्रण ले सकता है।
+private_key_one_chain_title = यह केवल एक चेन खोलती है
+private_key_one_chain_description = यह कुंजी केवल %@ खाते को नियंत्रित करती है।
+private_key_shared_chains_title = यह कई चेन खोलती है
+private_key_shared_chains_description = यह कुंजी %@ पर आपके खातों को नियंत्रित करती है।
+private_key_scope_evm = सभी EVM चेन
+private_key_scope_cosmos = सभी Cosmos चेन
+
 # Social
 
 social_x = X (formerly Twitter)

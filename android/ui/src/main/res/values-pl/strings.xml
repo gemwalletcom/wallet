@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Wykryto zrzut ekranu</string>
   <string name="secret_phrase_screenshot_detected_description">Zrzuty ekranu mogą być dostępne dla innych aplikacji, a zapisanie ich w ten sposób może narazić Twoją tajną frazę na ryzyko.</string>
   <string name="secret_phrase_content_hidden_description">Zawartość ukryta podczas nagrywania ekranu</string>
+  <string name="private_key_reveal_intro">Zaraz wyświetlisz klucz prywatny swojego konta %1$s.</string>
+  <string name="private_key_do_not_share_title">Nie udostępniaj swojego klucza prywatnego!</string>
+  <string name="private_key_do_not_share_description">Każdy, kto zdobędzie ten klucz prywatny, może przejąć pełną kontrolę nad Twoim kontem %1$s.</string>
+  <string name="private_key_one_chain_title">Odblokowuje tylko jeden łańcuch</string>
+  <string name="private_key_one_chain_description">Ten klucz kontroluje tylko konto %1$s.</string>
+  <string name="private_key_shared_chains_title">Odblokowuje kilka łańcuchów</string>
+  <string name="private_key_shared_chains_description">Ten klucz kontroluje Twoje konta w %1$s.</string>
+  <string name="private_key_scope_evm">wszystkich sieciach EVM</string>
+  <string name="private_key_scope_cosmos">wszystkich sieciach Cosmos</string>
   <string name="social_x">X (dawniej Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

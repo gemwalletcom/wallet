@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Скриншот обнаружен</string>
   <string name="secret_phrase_screenshot_detected_description">Скриншоты могут быть доступны другим приложениям, и если сохранить их таким образом, они могут поставить под угрозу вашу секретную фразу.</string>
   <string name="secret_phrase_content_hidden_description">Контент, скрытый во время записи экрана</string>
+  <string name="private_key_reveal_intro">Вы собираетесь показать приватный ключ своего аккаунта %1$s.</string>
+  <string name="private_key_do_not_share_title">Не делитесь своим приватным ключом!</string>
+  <string name="private_key_do_not_share_description">Любой, кто получит этот приватный ключ, сможет полностью управлять вашим аккаунтом %1$s.</string>
+  <string name="private_key_one_chain_title">Открывает только одну сеть</string>
+  <string name="private_key_one_chain_description">Этот ключ управляет только аккаунтом %1$s.</string>
+  <string name="private_key_shared_chains_title">Открывает несколько сетей</string>
+  <string name="private_key_shared_chains_description">Этот ключ управляет вашими аккаунтами в %1$s.</string>
+  <string name="private_key_scope_evm">всех сетях EVM</string>
+  <string name="private_key_scope_cosmos">всех сетях Cosmos</string>
   <string name="social_x">X (бывший Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

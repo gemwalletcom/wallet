@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">זוהה צילום מסך</string>
   <string name="secret_phrase_screenshot_detected_description">צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את משפט הסוד שלך אם יישמרו בדרך זו.</string>
   <string name="secret_phrase_content_hidden_description">תוכן מוסתר במהלך הקלטת מסך</string>
+  <string name="private_key_reveal_intro">אתה עומד לחשוף את המפתח הפרטי של חשבון %1$s שלך.</string>
+  <string name="private_key_do_not_share_title">אל תשתף את המפתח הפרטי שלך!</string>
+  <string name="private_key_do_not_share_description">כל מי שמשיג את המפתח הפרטי הזה יכול להשתלט לחלוטין על חשבון %1$s שלך.</string>
+  <string name="private_key_one_chain_title">הוא פותח שרשרת אחת בלבד</string>
+  <string name="private_key_one_chain_description">מפתח זה שולט רק בחשבון %1$s.</string>
+  <string name="private_key_shared_chains_title">הוא פותח כמה שרשראות</string>
+  <string name="private_key_shared_chains_description">מפתח זה שולט בחשבונות שלך ב-%1$s.</string>
+  <string name="private_key_scope_evm">כל שרשראות EVM</string>
+  <string name="private_key_scope_cosmos">כל שרשראות Cosmos</string>
   <string name="social_x">X (לשעבר Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

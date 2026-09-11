@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Screenshot rilevato</string>
   <string name="secret_phrase_screenshot_detected_description">Gli screenshot potrebbero essere accessibili ad altre app e, se salvati in questo modo, potrebbero mettere a rischio la tua frase segreta.</string>
   <string name="secret_phrase_content_hidden_description">Contenuto nascosto durante la registrazione dello schermo</string>
+  <string name="private_key_reveal_intro">Stai per mostrare la chiave privata del tuo account %1$s.</string>
+  <string name="private_key_do_not_share_title">Non condividere la tua chiave privata!</string>
+  <string name="private_key_do_not_share_description">Chiunque ottenga questa chiave privata può assumere il pieno controllo del tuo account %1$s.</string>
+  <string name="private_key_one_chain_title">Sblocca una sola chain</string>
+  <string name="private_key_one_chain_description">Questa chiave controlla solo l\'account %1$s.</string>
+  <string name="private_key_shared_chains_title">Sblocca più chain</string>
+  <string name="private_key_shared_chains_description">Questa chiave controlla i tuoi account su %1$s.</string>
+  <string name="private_key_scope_evm">tutte le chain EVM</string>
+  <string name="private_key_scope_cosmos">tutte le chain Cosmos</string>
   <string name="social_x">X (ex Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

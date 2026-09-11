@@ -36,6 +36,8 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
+import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.components.list_item.titleRes
 import uniffi.gemstone.DocsUrl
 import uniffi.gemstone.GemWalletSecret
@@ -93,16 +95,22 @@ fun WalletSecretDataNavScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(space8)
             ) {
+                val (warningTitle, warningDescription) = when (secret) {
+                    is GemWalletSecret.PrivateKey -> stringResource(R.string.private_key_do_not_share_title) to
+                        stringResource(R.string.private_key_do_not_share_description, secret.chain.requireChain().networkName())
+                    is GemWalletSecret.Words -> stringResource(R.string.secret_phrase_do_not_share_title) to
+                        stringResource(R.string.secret_phrase_do_not_share_description)
+                }
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.secret_phrase_do_not_share_title),
+                    text = warningTitle,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.secret_phrase_do_not_share_description),
+                    text = warningDescription,
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                 )

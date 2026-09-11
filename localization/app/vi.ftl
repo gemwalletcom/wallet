@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Đã phát hiện ảnh chụp màn h�
 secret_phrase_screenshot_detected_description = Ảnh chụp màn hình có thể được các ứng dụng khác truy cập, nhưng chúng có thể khiến cụm từ bí mật của bạn gặp rủi ro nếu được lưu theo cách này.
 secret_phrase_content_hidden_description = Nội dung bị ẩn trong quá trình ghi màn hình
 
+# Private Key
+
+private_key_reveal_intro = Bạn sắp hiển thị khóa riêng của tài khoản %@.
+private_key_do_not_share_title = Đừng chia sẻ Khóa riêng của bạn!
+private_key_do_not_share_description = Bất kỳ ai có được khóa riêng này đều có thể kiểm soát hoàn toàn tài khoản %@ của bạn.
+private_key_one_chain_title = Chỉ Mở Khóa Một Chuỗi
+private_key_one_chain_description = Khóa này chỉ kiểm soát tài khoản %@.
+private_key_shared_chains_title = Mở Khóa Nhiều Chuỗi
+private_key_shared_chains_description = Khóa này kiểm soát các tài khoản của bạn trên %@.
+private_key_scope_evm = tất cả các chuỗi EVM
+private_key_scope_cosmos = tất cả các chuỗi Cosmos
+
 # Social
 
 social_x = X (trước đây là Twitter)

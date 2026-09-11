@@ -18,13 +18,19 @@ class WalletSecretDataViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val secretKind = savedStateHandle.requireSecretKind()
+    val chain = savedStateHandle.chain()
 
     val secret = MutableStateFlow<Result<GemWalletSecret>?>(null)
 
     init {
         val walletId = savedStateHandle.requireWalletId()
         viewModelScope.launch(Dispatchers.IO) {
-            secret.value = runCatchingCancellable { service.exportSecret(walletId.id) }
+            secret.value = runCatchingCancellable {
+                when (chain) {
+                    null -> service.exportSecret(walletId.id)
+                    else -> GemWalletSecret.PrivateKey(chain.string, service.exportPrivateKey(walletId.id, chain.string))
+                }
+            }
         }
     }
 }

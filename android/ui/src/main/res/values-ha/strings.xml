@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">An Gano Hoton Hoton</string>
   <string name="secret_phrase_screenshot_detected_description">Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa\'idodi, za su iya sanya kalmar sirrin ku cikin haɗari idan an ajiye su ta wannan hanyar.</string>
   <string name="secret_phrase_content_hidden_description">Abubuwan da ke ɓoye yayin rikodin allo</string>
+  <string name="private_key_reveal_intro">Kana gab da bayyana keɓaɓɓen maɓallin asusun %1$s naka.</string>
+  <string name="private_key_do_not_share_title">Kada ku raba Keɓaɓɓen Maɓallinku!</string>
+  <string name="private_key_do_not_share_description">Duk wanda ya sami wannan keɓaɓɓen maɓalli zai iya sarrafa asusun %1$s naka gaba ɗaya.</string>
+  <string name="private_key_one_chain_title">Yana Buɗe Sarka Ɗaya Kawai</string>
+  <string name="private_key_one_chain_description">Wannan maɓalli yana sarrafa asusun %1$s kawai.</string>
+  <string name="private_key_shared_chains_title">Yana Buɗe Sarkoki Da Yawa</string>
+  <string name="private_key_shared_chains_description">Wannan maɓalli yana sarrafa asusunka a kan %1$s.</string>
+  <string name="private_key_scope_evm">dukkan sarkokin EVM</string>
+  <string name="private_key_scope_cosmos">dukkan sarkokin Cosmos</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

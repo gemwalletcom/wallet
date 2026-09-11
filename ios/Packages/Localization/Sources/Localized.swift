@@ -1048,6 +1048,42 @@ public enum Localized {
       }
     }
   }
+  public enum PrivateKey {
+    /// You are about to reveal the private key for your %@ account.
+    public static func revealIntro(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "private_key.reveal_intro", String(describing: p1), fallback: "You are about to reveal the private key for your %@ account.")
+    }
+    public enum DoNotShare {
+      /// Anyone who gets this private key can take full control of your %@ account.
+      public static func description(_ p1: Any) -> String {
+        return Localized.tr("Localizable", "private_key.do_not_share.description", String(describing: p1), fallback: "Anyone who gets this private key can take full control of your %@ account.")
+      }
+      /// Do not share your Private Key!
+      public static let title = Localized.tr("Localizable", "private_key.do_not_share.title", fallback: "Do not share your Private Key!")
+    }
+    public enum OneChain {
+      /// This key controls only the %@ account.
+      public static func description(_ p1: Any) -> String {
+        return Localized.tr("Localizable", "private_key.one_chain.description", String(describing: p1), fallback: "This key controls only the %@ account.")
+      }
+      /// It Unlocks One Chain Only
+      public static let title = Localized.tr("Localizable", "private_key.one_chain.title", fallback: "It Unlocks One Chain Only")
+    }
+    public enum Scope {
+      /// all Cosmos chains
+      public static let cosmos = Localized.tr("Localizable", "private_key.scope.cosmos", fallback: "all Cosmos chains")
+      /// all EVM chains
+      public static let evm = Localized.tr("Localizable", "private_key.scope.evm", fallback: "all EVM chains")
+    }
+    public enum SharedChains {
+      /// This key controls your accounts on %@.
+      public static func description(_ p1: Any) -> String {
+        return Localized.tr("Localizable", "private_key.shared_chains.description", String(describing: p1), fallback: "This key controls your accounts on %@.")
+      }
+      /// It Unlocks Several Chains
+      public static let title = Localized.tr("Localizable", "private_key.shared_chains.title", fallback: "It Unlocks Several Chains")
+    }
+  }
   public enum Receive {
     /// Receive %@
     public static func title(_ p1: Any) -> String {

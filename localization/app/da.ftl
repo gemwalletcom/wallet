@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Skærmbillede fundet
 secret_phrase_screenshot_detected_description = Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din hemmelige frase i fare, hvis de gemmes på denne måde.
 secret_phrase_content_hidden_description = Indhold skjult under skærmoptagelse
 
+# Private Key
+
+private_key_reveal_intro = Du er ved at vise den private nøgle til din %@-konto.
+private_key_do_not_share_title = Del ikke din private nøgle!
+private_key_do_not_share_description = Enhver, der får denne private nøgle, kan tage fuld kontrol over din %@-konto.
+private_key_one_chain_title = Den låser kun én kæde op
+private_key_one_chain_description = Denne nøgle styrer kun %@-kontoen.
+private_key_shared_chains_title = Den låser flere kæder op
+private_key_shared_chains_description = Denne nøgle styrer dine konti på %@.
+private_key_scope_evm = alle EVM-kæder
+private_key_scope_cosmos = alle Cosmos-kæder
+
 # Social
 
 social_x = X (formerly Twitter)

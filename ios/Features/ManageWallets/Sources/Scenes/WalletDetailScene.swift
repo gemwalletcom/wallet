@@ -45,23 +45,12 @@ public struct WalletDetailScene: View {
                 }
                 switch model.secretKind {
                 case .phrase:
-                    Section {
-                        NavigationCustomLink(
-                            with: ListItemView(title: Localized.Common.show(Localized.Common.secretPhrase)),
-                            action: model.onShowSecret,
-                        )
-                    } header: {
-                        Text(Localized.Common.secretPhrase)
+                    secretSection(Localized.Common.secretPhrase, action: model.onShowSecret)
+                    if !model.privateKeyChains.isEmpty {
+                        secretSection(Localized.Common.privateKey, action: model.onShowPrivateKey)
                     }
                 case .privateKey:
-                    Section {
-                        NavigationCustomLink(
-                            with: ListItemView(title: Localized.Common.show(Localized.Common.privateKey)),
-                            action: model.onShowSecret,
-                        )
-                    } header: {
-                        Text(Localized.Common.privateKey)
-                    }
+                    secretSection(Localized.Common.privateKey, action: model.onShowSecret)
                 case nil:
                     EmptyView()
                 }
@@ -118,7 +107,18 @@ public struct WalletDetailScene: View {
         )
         .alertSheet($model.isPresentingAlertMessage)
         .sheet(item: $model.isPresentingExportWallet) {
-            ExportWalletNavigationStack(flow: $0)
+            ExportWalletNavigationStack(flow: $0, onExportPrivateKey: model.exportPrivateKey(chain:))
+        }
+    }
+
+    private func secretSection(_ title: String, action: @escaping () -> Void) -> some View {
+        Section {
+            NavigationCustomLink(
+                with: ListItemView(title: Localized.Common.show(title)),
+                action: action,
+            )
+        } header: {
+            Text(title)
         }
     }
 }

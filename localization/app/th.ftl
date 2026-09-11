@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = ตรวจพบภาพหน้�
 secret_phrase_screenshot_detected_description = ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น แต่หากบันทึกในลักษณะนี้ อาจทำให้รหัสผ่านของคุณตกอยู่ในความเสี่ยง
 secret_phrase_content_hidden_description = เนื้อหาที่ซ่อนอยู่ระหว่างการบันทึกหน้าจอ
 
+# Private Key
+
+private_key_reveal_intro = คุณกำลังจะแสดงคีย์ส่วนตัวของบัญชี %@ ของคุณ
+private_key_do_not_share_title = อย่าเปิดเผยคีย์ส่วนตัวของคุณ!
+private_key_do_not_share_description = ใครก็ตามที่ได้คีย์ส่วนตัวนี้จะสามารถควบคุมบัญชี %@ ของคุณได้ทั้งหมด
+private_key_one_chain_title = ปลดล็อกได้เพียงเชนเดียว
+private_key_one_chain_description = คีย์นี้ควบคุมเฉพาะบัญชี %@ เท่านั้น
+private_key_shared_chains_title = ปลดล็อกได้หลายเชน
+private_key_shared_chains_description = คีย์นี้ควบคุมบัญชีของคุณบน %@
+private_key_scope_evm = ทุกเชน EVM
+private_key_scope_cosmos = ทุกเชน Cosmos
+
 # Social
 
 social_x = X (เดิมคือ Twitter)

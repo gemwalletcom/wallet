@@ -49,6 +49,7 @@ import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
+import com.gemwallet.android.ui.navigation.routes.WalletPrivateKeyChainRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
@@ -212,6 +213,26 @@ class WalletNavigatorTest {
     }
 
     @Test
+    fun finishWalletSecurityReminder_keepsThePrivateKeyChain() {
+        val walletId = mockWalletId("wallet-1")
+        val navigator = navigatorWith(WalletRootRoute, WalletDetailsRoute(walletId))
+
+        navigator.openWalletPrivateKeyChains(walletId, listOf(Chain.Ethereum, Chain.Solana))
+        navigator.openWalletSecurityReminder(walletId, GemWalletSecretKind.PRIVATE_KEY, Chain.Solana)
+        navigator.finishWalletSecurityReminder(walletId, GemWalletSecretKind.PRIVATE_KEY, Chain.Solana)
+
+        assertEquals(
+            listOf(
+                WalletRootRoute,
+                WalletDetailsRoute(walletId),
+                WalletPrivateKeyChainRoute(walletId, listOf(Chain.Ethereum, Chain.Solana)),
+                WalletPhraseRoute(walletId, GemWalletSecretKind.PRIVATE_KEY, Chain.Solana),
+            ),
+            navigator.backStack.toList(),
+        )
+    }
+
+    @Test
     fun confirmedPendingNavigation_resetsActiveFlow() {
         val navigator = navigatorWith(
             WalletRootRoute,
@@ -233,6 +254,7 @@ class WalletNavigatorTest {
         val restored = listOf<NavKey>(
             WalletRootRoute,
             AssetRoute(assetId),
+            WalletPrivateKeyChainRoute(walletId, listOf(Chain.Ethereum)),
             WalletSecurityReminderRoute(walletId, GemWalletSecretKind.PHRASE),
             WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
             RecipientInputRoute(assetId, nftAssetId = null),

@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = Captură de ecran detectată
 secret_phrase_screenshot_detected_description = Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol fraza ta secretă dacă sunt salvate în acest fel.
 secret_phrase_content_hidden_description = Conținut ascuns în timpul înregistrării ecranului
 
+# Private Key
+
+private_key_reveal_intro = Urmează să afișați cheia privată a contului dvs. %@.
+private_key_do_not_share_title = Nu împărtășiți cheia dvs. privată!
+private_key_do_not_share_description = Oricine obține această cheie privată poate prelua controlul total asupra contului dvs. %@.
+private_key_one_chain_title = Deblochează un singur lanț
+private_key_one_chain_description = Această cheie controlează doar contul %@.
+private_key_shared_chains_title = Deblochează mai multe lanțuri
+private_key_shared_chains_description = Această cheie controlează conturile dvs. de pe %@.
+private_key_scope_evm = toate lanțurile EVM
+private_key_scope_cosmos = toate lanțurile Cosmos
+
 # Social
 
 social_x = X (fost Twitter)

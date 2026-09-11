@@ -80,6 +80,7 @@ import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
 import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
+import com.gemwallet.android.ui.navigation.routes.WalletPrivateKeyChainRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
@@ -231,8 +232,9 @@ class WalletNavigator(
     }
     fun openWallet(walletId: WalletId) = push(WalletDetailsRoute(walletId))
     fun openWalletImage(walletId: WalletId, source: WalletImageSource = WalletImageSource.Wallet) = push(WalletImageRoute(walletId, source))
-    fun openWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = push(WalletSecurityReminderRoute(walletId, secretKind))
-    fun finishWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = replaceTop(WalletPhraseRoute(walletId, secretKind))
+    fun openWalletPrivateKeyChains(walletId: WalletId, chains: List<Chain>) = push(WalletPrivateKeyChainRoute(walletId, chains))
+    fun openWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind, chain: Chain? = null) = push(WalletSecurityReminderRoute(walletId, secretKind, chain))
+    fun finishWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind, chain: Chain? = null) = replaceTop(WalletPhraseRoute(walletId, secretKind, chain))
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
@@ -390,6 +392,7 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
 
 internal fun NavKey.isPendingNavigationProtectedRoute(): Boolean {
     return isConfirmFlowSegmentRoute() ||
+        this is WalletPrivateKeyChainRoute ||
         this is WalletSecurityReminderRoute ||
         this is WalletPhraseRoute
 }

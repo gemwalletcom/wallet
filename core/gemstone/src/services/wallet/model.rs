@@ -1,5 +1,7 @@
 use primitives::{Chain, Wallet};
 
+use crate::config::docs::DocsUrl;
+
 use super::rules;
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -53,7 +55,7 @@ pub enum GemWalletDeletion {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemWalletSecret {
     Words { words: Vec<String> },
-    PrivateKey { key: String },
+    PrivateKey { chain: Chain, key: String },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -89,4 +91,40 @@ pub enum GemWalletSecretKind {
 #[uniffi::export]
 pub fn wallet_secret_kind(wallet: Wallet) -> Option<GemWalletSecretKind> {
     rules::secret_kind(&wallet)
+}
+
+#[uniffi::export]
+pub fn wallet_private_key_chains(wallet: Wallet) -> Vec<Chain> {
+    rules::private_key_chains(&wallet)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPrivateKeyScope {
+    OneChain,
+    EvmChains,
+    CosmosChains,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSecurityReminderItem {
+    KeepSafe,
+    DoNotShare,
+    NoRecovery,
+    KeyScope { scope: GemPrivateKeyScope },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSecurityReminder {
+    pub docs_url: DocsUrl,
+    pub items: Vec<GemSecurityReminderItem>,
+}
+
+#[uniffi::export]
+pub fn phrase_security_reminder() -> GemSecurityReminder {
+    rules::phrase_security_reminder()
+}
+
+#[uniffi::export]
+pub fn private_key_security_reminder(chain: Chain) -> GemSecurityReminder {
+    rules::private_key_security_reminder(chain)
 }

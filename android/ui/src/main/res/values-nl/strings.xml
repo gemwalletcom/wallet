@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">Schermafbeelding gedetecteerd</string>
   <string name="secret_phrase_screenshot_detected_description">Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps, maar ze kunnen uw geheime zin in gevaar brengen als u ze op deze manier opslaat.</string>
   <string name="secret_phrase_content_hidden_description">Inhoud verborgen tijdens schermopname</string>
+  <string name="private_key_reveal_intro">Je staat op het punt de privésleutel van je %1$s-account te tonen.</string>
+  <string name="private_key_do_not_share_title">Deel uw privésleutel niet!</string>
+  <string name="private_key_do_not_share_description">Iedereen die deze privésleutel bemachtigt, kan volledige controle over je %1$s-account krijgen.</string>
+  <string name="private_key_one_chain_title">Hij ontgrendelt maar één chain</string>
+  <string name="private_key_one_chain_description">Deze sleutel beheert alleen het %1$s-account.</string>
+  <string name="private_key_shared_chains_title">Hij ontgrendelt meerdere chains</string>
+  <string name="private_key_shared_chains_description">Deze sleutel beheert je accounts op %1$s.</string>
+  <string name="private_key_scope_evm">alle EVM-chains</string>
+  <string name="private_key_scope_cosmos">alle Cosmos-chains</string>
   <string name="social_x">X (voorheen Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

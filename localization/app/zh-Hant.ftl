@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = 偵測到螢幕截圖
 secret_phrase_screenshot_detected_description = 螢幕截圖可能會被其他應用程式存取；以此方式儲存助記詞會帶來外洩風險。
 secret_phrase_content_hidden_description = 螢幕錄製過程中隱藏的內容
 
+# Private Key
+
+private_key_reveal_intro = 您即將顯示 %@ 帳戶的私鑰。
+private_key_do_not_share_title = 切勿洩漏私鑰！
+private_key_do_not_share_description = 任何取得此私鑰的人都可以完全控制您的 %@ 帳戶。
+private_key_one_chain_title = 僅解鎖一條鏈
+private_key_one_chain_description = 此私鑰僅控制 %@ 帳戶。
+private_key_shared_chains_title = 解鎖多條鏈
+private_key_shared_chains_description = 此私鑰控制您在 %@ 上的帳戶。
+private_key_scope_evm = 所有 EVM 鏈
+private_key_scope_cosmos = 所有 Cosmos 鏈
+
 # Social
 
 social_x = X（前Twitter）

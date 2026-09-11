@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">स्क्रीनशॉट का पता चला</string>
   <string name="secret_phrase_screenshot_detected_description">स्क्रीनशॉट अन्य ऐप्स के लिए सुलभ हो सकते हैं, यदि वे इस तरह से सहेजे गए तो वे आपके गुप्त वाक्यांश को खतरे में डाल सकते हैं।</string>
   <string name="secret_phrase_content_hidden_description">स्क्रीन रिकॉर्डिंग के दौरान सामग्री छिपाई गई</string>
+  <string name="private_key_reveal_intro">आप अपने %1$s खाते की निजी कुंजी दिखाने वाले हैं।</string>
+  <string name="private_key_do_not_share_title">अपनी निजी कुंजी साझा न करें!</string>
+  <string name="private_key_do_not_share_description">जिसे भी यह निजी कुंजी मिलेगी, वह आपके %1$s खाते पर पूरा नियंत्रण ले सकता है।</string>
+  <string name="private_key_one_chain_title">यह केवल एक चेन खोलती है</string>
+  <string name="private_key_one_chain_description">यह कुंजी केवल %1$s खाते को नियंत्रित करती है।</string>
+  <string name="private_key_shared_chains_title">यह कई चेन खोलती है</string>
+  <string name="private_key_shared_chains_description">यह कुंजी %1$s पर आपके खातों को नियंत्रित करती है।</string>
+  <string name="private_key_scope_evm">सभी EVM चेन</string>
+  <string name="private_key_scope_cosmos">सभी Cosmos चेन</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

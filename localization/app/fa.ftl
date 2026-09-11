@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = تصویر صفحه شناسایی ش�
 secret_phrase_screenshot_detected_description = اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند رمز عبور شما را در معرض خطر قرار دهند.
 secret_phrase_content_hidden_description = محتوای پنهان شده هنگام ضبط صفحه نمایش
 
+# Private Key
+
+private_key_reveal_intro = شما در حال نمایش کلید خصوصی حساب %@ خود هستید.
+private_key_do_not_share_title = کلید خصوصی خود را با کسی به اشتراک نگذارید.
+private_key_do_not_share_description = هر کسی که این کلید خصوصی را به دست آورد می‌تواند کنترل کامل حساب %@ شما را در دست بگیرد.
+private_key_one_chain_title = فقط یک زنجیره را باز می‌کند
+private_key_one_chain_description = این کلید فقط حساب %@ را کنترل می‌کند.
+private_key_shared_chains_title = چند زنجیره را باز می‌کند
+private_key_shared_chains_description = این کلید حساب‌های شما در %@ را کنترل می‌کند.
+private_key_scope_evm = همه زنجیره‌های EVM
+private_key_scope_cosmos = همه زنجیره‌های Cosmos
+
 # Social
 
 social_x = X (توییتر سابق)

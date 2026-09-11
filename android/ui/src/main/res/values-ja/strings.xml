@@ -364,6 +364,15 @@
   <string name="secret_phrase_screenshot_detected_title">スクリーンショットが検出されました</string>
   <string name="secret_phrase_screenshot_detected_description">スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でリカバリーフレーズを保存すると、漏えいするおそれがあります。</string>
   <string name="secret_phrase_content_hidden_description">画面録画中はコンテンツが非表示になります</string>
+  <string name="private_key_reveal_intro">%1$s アカウントのプライベートキーを表示しようとしています。</string>
+  <string name="private_key_do_not_share_title">プライベートキーを共有しないでください。</string>
+  <string name="private_key_do_not_share_description">このプライベートキーを入手した人は、あなたの %1$s アカウントを完全に操作できます。</string>
+  <string name="private_key_one_chain_title">1つのチェーンのみに使えます</string>
+  <string name="private_key_one_chain_description">このキーは %1$s アカウントのみを操作します。</string>
+  <string name="private_key_shared_chains_title">複数のチェーンに使えます</string>
+  <string name="private_key_shared_chains_description">このキーは %1$s のアカウントを操作します。</string>
+  <string name="private_key_scope_evm">すべての EVM チェーン</string>
+  <string name="private_key_scope_cosmos">すべての Cosmos チェーン</string>
   <string name="social_x">エックス（旧ツイッター）</string>
   <string name="social_discord">ディスコード</string>
   <string name="social_reddit">レディット</string>

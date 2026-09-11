@@ -23,7 +23,7 @@ struct SecurityReminderScene: View {
                 Section {
                     ListItemView(
                         title: TextValue(text: item.title, style: .headline, lineLimit: 2),
-                        titleExtra: TextValue(text: item.subtitle, style: .bodySecondary),
+                        titleExtra: item.subtitle.map { TextValue(text: $0, style: .bodySecondary) },
                         imageStyle: item.image,
                     )
                     .listRowInsets(.assetListRowInsets)

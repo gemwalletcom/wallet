@@ -16,7 +16,7 @@ struct ShowSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     var calloutViewStyle: CalloutViewStyle? {
-        .secretDataWarning()
+        .secretPhraseWarning()
     }
 
     var title: String {

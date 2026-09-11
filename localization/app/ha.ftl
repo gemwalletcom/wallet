@@ -431,6 +431,18 @@ secret_phrase_screenshot_detected_title = An Gano Hoton Hoton
 secret_phrase_screenshot_detected_description = Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa'idodi, za su iya sanya kalmar sirrin ku cikin haɗari idan an ajiye su ta wannan hanyar.
 secret_phrase_content_hidden_description = Abubuwan da ke ɓoye yayin rikodin allo
 
+# Private Key
+
+private_key_reveal_intro = Kana gab da bayyana keɓaɓɓen maɓallin asusun %@ naka.
+private_key_do_not_share_title = Kada ku raba Keɓaɓɓen Maɓallinku!
+private_key_do_not_share_description = Duk wanda ya sami wannan keɓaɓɓen maɓalli zai iya sarrafa asusun %@ naka gaba ɗaya.
+private_key_one_chain_title = Yana Buɗe Sarka Ɗaya Kawai
+private_key_one_chain_description = Wannan maɓalli yana sarrafa asusun %@ kawai.
+private_key_shared_chains_title = Yana Buɗe Sarkoki Da Yawa
+private_key_shared_chains_description = Wannan maɓalli yana sarrafa asusunka a kan %@.
+private_key_scope_evm = dukkan sarkokin EVM
+private_key_scope_cosmos = dukkan sarkokin Cosmos
+
 # Social
 
 social_x = X (formerly Twitter)
