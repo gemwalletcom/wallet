@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.PriceChangeCalculator
-import struct Gemstone.GemPerpetualChartLayout
-import func Gemstone.perpetualChartLayout
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemChartHeader
+import struct Gemstone.GemPerpetualChartLayout
+import func Gemstone.perpetualChartLayout
+import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -34,7 +35,7 @@ struct CandlestickChartViewModel {
         numericFormatter: NumericFormatter = NumericFormatter(),
     ) {
         self.candles = candles
-        self.layout = perpetualChartLayout(candles: candles.map { $0.map() }, position: position?.map())
+        layout = perpetualChartLayout(candles: candles.map { $0.map() }, position: position?.map())
         self.period = period
         self.formatter = formatter
         self.numericFormatter = numericFormatter
@@ -74,11 +75,11 @@ struct CandlestickChartViewModel {
 
     func headerModel(for selectedCandle: ChartCandleStick?) -> ChartHeaderViewModel? {
         guard let target = selectedCandle ?? candles.last, let base = candles.first?.close else { return nil }
+        let changePercentage = priceChangeCalculator.percentage(from: base, to: target.close)
         return ChartHeaderViewModel(
             period: period,
             date: selectedCandle?.date,
-            price: target.close,
-            priceChangePercentage: priceChangeCalculator.percentage(from: base, to: target.close),
+            header: GemChartHeader(value: target.close, secondaryValue: nil, changePercentage: target.close == 0 ? nil : changePercentage),
             formatter: formatter,
         )
     }

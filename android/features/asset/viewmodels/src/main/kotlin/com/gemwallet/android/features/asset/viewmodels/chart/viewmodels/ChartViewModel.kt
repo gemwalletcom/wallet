@@ -8,9 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetChartState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.MinChartPoints
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
-import com.gemwallet.android.features.asset.viewmodels.chart.models.from
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.flatMap
 import com.gemwallet.android.ui.models.navigation.requireAssetId
@@ -18,6 +17,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartServiceInterface
+import uniffi.gemstone.priceChartData
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,12 +61,7 @@ class ChartViewModel internal constructor(
                 null
             }
             refreshController.stopRefreshing()
-            val chartPrices = when {
-                chart == null -> StateViewType.Error
-                chart.values.size < MinChartPoints -> StateViewType.NoData
-                else -> StateViewType.Data(chart)
-            }
-            emit(state.copy(prices = chartPrices))
+            emit(state.copy(prices = chart?.let { StateViewType.Data(it) } ?: StateViewType.Error))
         }
         .flowOn(Dispatchers.IO)
         .stateIn(
@@ -76,13 +71,18 @@ class ChartViewModel internal constructor(
         )
 
     val chartUIState = chartPrices.map { state ->
+        val currencyFormatter = CurrencyFormatter(currency = state.currency)
         ChartUIModel.State(
             period = state.period,
-            chart = state.prices.flatMap {
-                StateViewType.Data(ChartUIModel.from(it, state.period, state.currency))
+            chart = state.prices.flatMap { chart ->
+                priceChartData(chart)
+                    ?.let { StateViewType.Data(ChartUIModel(it, currencyFormatter::string)) }
+                    ?: StateViewType.NoData
             },
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
     fun setPeriod(period: ChartPeriod) {
         if (period == selectedPeriod.value) {

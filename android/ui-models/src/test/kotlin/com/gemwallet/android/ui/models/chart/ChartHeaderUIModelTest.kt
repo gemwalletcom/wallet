@@ -9,6 +9,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemChartHeader
+import uniffi.gemstone.GemChartValueType
 import java.util.Locale
 
 class ChartHeaderUIModelTest {
@@ -23,10 +25,9 @@ class ChartHeaderUIModelTest {
         PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD, locale = Locale.US))::string
 
     @Test
-    fun buildPopulatesFromRawValues() {
+    fun buildPopulatesFromTheCoreHeader() {
         val model = ChartHeaderUIModel.build(
-            price = 110.0,
-            priceChangePercentage = 10.0,
+            header = GemChartHeader(value = 110.0, secondaryValue = null, changePercentage = 10.0),
             timestamp = 5_000L,
             priceFormatter = formatter,
             dateFormatter = { "@$it" },
@@ -40,8 +41,7 @@ class ChartHeaderUIModelTest {
     @Test
     fun buildOmitsDateWhenTimestampNull() {
         val model = ChartHeaderUIModel.build(
-            price = 50.0,
-            priceChangePercentage = -5.0,
+            header = GemChartHeader(value = 50.0, secondaryValue = null, changePercentage = -5.0),
             priceFormatter = formatter,
         )
         assertEquals("$50.00", model.priceText)
@@ -50,47 +50,43 @@ class ChartHeaderUIModelTest {
     }
 
     @Test
-    fun buildFormatsHeaderValueWithPriceFormatter() {
+    fun buildFormatsSecondaryValueWithPriceFormatter() {
         val model = ChartHeaderUIModel.build(
-            price = 50.0,
-            priceChangePercentage = 0.0,
-            headerValue = 1500.0,
+            header = GemChartHeader(value = 50.0, secondaryValue = 1500.0, changePercentage = null),
             priceFormatter = formatter,
         )
         assertEquals("$1500.00", model.headerValueText)
+        assertNull(model.changeText)
         assertEquals(ValueDirection.None, model.direction)
     }
 
     @Test
     fun buildPriceChangeShowsSignedAmountValueAndParenthesizedPercent() {
         val model = ChartHeaderUIModel.build(
-            price = 90.0,
-            priceChangePercentage = 12.0,
-            type = ChartValueType.PriceChange,
-            headerValue = 190.0,
+            header = GemChartHeader(value = 90.0, secondaryValue = 190.0, changePercentage = 12.0),
+            type = GemChartValueType.PRICE_CHANGE,
             priceFormatter = formatter,
             priceChangeFormatter = changeFormatter,
         )
         assertEquals("+$90.00", model.priceText)
         assertEquals("$190.00", model.headerValueText)
-        assertEquals(ChartValueType.PriceChange, model.type)
+        assertEquals(GemChartValueType.PRICE_CHANGE, model.type)
         assertEquals(ValueDirection.Up, model.direction)
         assertTrue(model.changeText!!.startsWith("(") && model.changeText!!.endsWith(")"))
     }
 
     @Test
-    fun buildPriceChangeOmitsPercentWhenNoHeaderValue() {
+    fun buildPriceChangeOmitsPercentWhenCoreWithholdsIt() {
         val model = ChartHeaderUIModel.build(
-            price = -40.0,
-            priceChangePercentage = -8.0,
-            type = ChartValueType.PriceChange,
+            header = GemChartHeader(value = -40.0, secondaryValue = null, changePercentage = null),
+            type = GemChartValueType.PRICE_CHANGE,
             priceFormatter = formatter,
             priceChangeFormatter = changeFormatter,
         )
         assertEquals("-$40.00", model.priceText)
         assertNull(model.changeText)
         assertNull(model.headerValueText)
-        assertEquals(ChartValueType.PriceChange, model.type)
+        assertEquals(GemChartValueType.PRICE_CHANGE, model.type)
         assertEquals(ValueDirection.Down, model.direction)
     }
 }

@@ -10,9 +10,8 @@ import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWa
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
-import com.gemwallet.android.features.asset.viewmodels.chart.models.chartValues
-import com.gemwallet.android.features.asset.viewmodels.chart.models.from
-import com.gemwallet.android.features.asset.viewmodels.chart.models.hasVariation
+import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.PriceChangeFormatter
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.models.flatMap
@@ -24,6 +23,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import uniffi.gemstone.GemPortfolioServiceInterface
 import uniffi.gemstone.PortfolioChartType
 import uniffi.gemstone.PortfolioData
+import uniffi.gemstone.portfolioChartData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -94,25 +94,26 @@ class PortfolioChartViewModel internal constructor(
         )
 
     val chartUIState = combine(portfolio, selectedChartType) { state, chartType ->
+        val currencyFormatter = CurrencyFormatter(currency = state.displayCurrency())
         ChartUIModel.State(
             period = state.period,
             chart = state.data.flatMap { data ->
-                val values = data.chartValues(chartType)
-                if (values.hasVariation()) {
-                    StateViewType.Data(
-                        ChartUIModel.from(
-                            values = values,
-                            period = state.period,
-                            currency = state.displayCurrency(),
-                            showHeaderValue = state.type == PortfolioType.Wallet || chartType == PortfolioChartType.VALUE,
-                        ),
-                    )
-                } else {
-                    StateViewType.NoData
-                }
+                portfolioChartData(data, state.type.toGem(), chartType)
+                    ?.let {
+                        StateViewType.Data(
+                            ChartUIModel(
+                                chart = it,
+                                priceFormatter = currencyFormatter::string,
+                                priceChangeFormatter = PriceChangeFormatter(currencyFormatter)::string,
+                            ),
+                        )
+                    }
+                    ?: StateViewType.NoData
             },
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
     val statistics = portfolio
         .map { it.data.dataOrNull?.statistics.orEmpty() }

@@ -42,16 +42,4 @@ public struct ChartValues: Sendable {
         let padding = last.timeIntervalSince(first) * 0.02
         return [first, last.addingTimeInterval(padding)]
     }
-
-    public var hasVariation: Bool {
-        lowerBoundValue != upperBoundValue
-    }
-
-    public var firstValue: Double {
-        charts.first?.value ?? 0
-    }
-
-    public var lastValue: Double {
-        charts.last?.value ?? 0
-    }
 }

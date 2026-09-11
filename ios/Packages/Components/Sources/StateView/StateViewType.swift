@@ -37,10 +37,14 @@ public enum StateViewType<T: Sendable>: Sendable {
     }
 
     public func map<U: Sendable>(_ transform: (T) -> U) -> StateViewType<U> {
+        flatMap { .data(transform($0)) }
+    }
+
+    public func flatMap<U: Sendable>(_ transform: (T) -> StateViewType<U>) -> StateViewType<U> {
         switch self {
         case .noData: .noData
         case .loading: .loading
-        case let .data(value): .data(transform(value))
+        case let .data(value): transform(value)
         case let .error(error): .error(error)
         }
     }

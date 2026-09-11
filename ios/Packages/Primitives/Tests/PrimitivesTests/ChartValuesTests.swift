@@ -13,11 +13,7 @@ struct ChartValuesTests {
         #expect(values.lowerBoundValue == 80)
         #expect(values.upperBoundValue == 150)
         #expect(values.yScale == [76.5, 153.5])
-        #expect(values.hasVariation == true)
-        #expect(values.firstValue == 100)
-        #expect(values.lastValue == 120)
 
         #expect(throws: Error.self) { _ = try ChartValues.from(charts: []) }
-        #expect(ChartValues.mock(values: [100, 100]).hasVariation == false)
     }
 }

@@ -2,6 +2,8 @@
 
 import Formatters
 import Foundation
+import struct Gemstone.GemChartHeader
+import enum Gemstone.GemChartValueType
 import Primitives
 @testable import PrimitivesComponents
 
@@ -9,19 +11,25 @@ public extension ChartHeaderViewModel {
     static func mock(
         period: ChartPeriod = .day,
         date: Date? = nil,
-        price: Double = 100,
-        priceChangePercentage: Double = 5,
-        headerValue: Double? = nil,
-        type: ChartValueType = .price,
+        header: GemChartHeader = .mock(),
+        valueType: GemChartValueType = .price,
     ) -> ChartHeaderViewModel {
         ChartHeaderViewModel(
             period: period,
             date: date,
-            price: price,
-            priceChangePercentage: priceChangePercentage,
-            headerValue: headerValue,
+            header: header,
+            valueType: valueType,
             formatter: CurrencyFormatter(type: .currency, currencyCode: "USD"),
-            type: type,
         )
+    }
+}
+
+public extension GemChartHeader {
+    static func mock(
+        value: Double = 100,
+        secondaryValue: Double? = nil,
+        changePercentage: Double? = 5,
+    ) -> GemChartHeader {
+        GemChartHeader(value: value, secondaryValue: secondaryValue, changePercentage: changePercentage)
     }
 }

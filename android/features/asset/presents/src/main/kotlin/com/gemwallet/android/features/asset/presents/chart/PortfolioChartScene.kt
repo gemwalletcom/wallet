@@ -21,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.asset.viewmodels.chart.models.portfolioChartHeader
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.PortfolioChartViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
@@ -123,7 +122,7 @@ private fun PortfolioChart(viewModel: PortfolioChartViewModel) {
         state = state,
         onPeriodSelect = viewModel::setPeriod,
         periods = periods,
-    ) { uiModel, selectedPoint -> portfolioChartHeader(uiModel, selectedPoint) }
+    )
 }
 
 private fun PortfolioType.titleRes(): Int = when (this) {

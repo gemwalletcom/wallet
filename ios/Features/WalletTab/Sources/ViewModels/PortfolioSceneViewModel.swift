@@ -4,12 +4,13 @@ import Components
 import Formatters
 import Foundation
 import protocol Gemstone.GemPortfolioServiceProtocol
-import GemstonePrimitives
-import Localization
-import GemstoneServices
+import func Gemstone.portfolioChartData
 import struct Gemstone.PortfolioData
 import struct Gemstone.PortfolioMarginUsage
 import enum Gemstone.PortfolioStatistic
+import GemstonePrimitives
+import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -64,12 +65,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     }
 
     public var chartState: StateViewType<ChartValuesViewModel> {
-        switch selectedState {
-        case .loading: .loading
-        case .noData: .noData
-        case let .error(error): .error(error)
-        case let .data(data): chartViewModel(from: data).map { .data($0) } ?? .noData
-        }
+        selectedState.flatMap { chartViewModel(from: $0).map { .data($0) } ?? .noData }
     }
 
     public var periods: [ChartPeriod] {
@@ -152,15 +148,10 @@ extension PortfolioSceneViewModel {
 
 extension PortfolioSceneViewModel {
     private func chartViewModel(from data: PortfolioData) -> ChartValuesViewModel? {
-        let charts = data.charts.first(where: { $0.chartType.map() == state.selectedChartType })?.values
-            ?? data.charts.first?.values
-            ?? []
-        return .priceChange(
-            charts: charts.map { $0.map() },
-            period: selectedPeriod,
-            formatter: chartFormatter,
-            showHeaderValue: state.selectedType == .wallet || state.selectedChartType == .value,
-        )
+        guard let chartData = portfolioChartData(data: data, portfolioType: state.selectedType.map(), chartType: state.selectedChartType.map()) else {
+            return nil
+        }
+        return ChartValuesViewModel(period: selectedPeriod, chartData: chartData, formatter: chartFormatter)
     }
 
     private func allTimeModel(title: String, chartValue: ChartValuePercentage) -> ListItemModel {
