@@ -102,7 +102,7 @@ pub fn detail_rows(extended: &TransactionExtended, participant: Option<GemTransa
         header_action: header_action(transaction),
         swap_progress: details.swap_progress,
         swap_again: details.swap_again,
-        estimated_confirmation_minutes: details.estimated_confirmation_minutes,
+        estimated_confirmation_seconds: details.estimated_confirmation_seconds,
         participant,
         provider_name: details.provider_name,
         memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
@@ -120,16 +120,12 @@ pub fn detail_rows(extended: &TransactionExtended, participant: Option<GemTransa
     }
 }
 
-fn confirmation_minutes(seconds: u32) -> u32 {
-    ((f64::from(seconds) / 60.0).round() as u32).max(1)
-}
-
 pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDetailSection> {
     use GemTransactionDetailRow::*;
     let details = [
         Some(Date),
         Some(Status),
-        rows.estimated_confirmation_minutes.is_some().then_some(EstimatedConfirmation),
+        rows.estimated_confirmation_seconds.is_some().then_some(EstimatedConfirmation),
         rows.participant.is_some().then_some(Participant),
         rows.memo.is_some().then_some(Memo),
         rows.resource.is_some().then_some(Resource),
@@ -506,10 +502,9 @@ pub fn details(extended: &TransactionExtended) -> GemTransactionDetails {
     let swap_progress = swap_progress(extended, swap_metadata.as_ref(), provider.as_ref());
     let perpetual = perpetual_metadata(transaction);
     GemTransactionDetails {
-        estimated_confirmation_minutes: extended
+        estimated_confirmation_seconds: extended
             .confirmation_eta_seconds
-            .filter(|seconds| *seconds > 0 && transaction.state == TransactionState::Pending && swap_progress.is_none())
-            .map(confirmation_minutes),
+            .filter(|seconds| *seconds > 0 && transaction.state == TransactionState::Pending && swap_progress.is_none()),
         swap_again: swap_metadata
             .as_ref()
             .filter(|_| transaction.state == TransactionState::Confirmed)
@@ -544,10 +539,9 @@ fn swap_progress(extended: &TransactionExtended, metadata: Option<&TransactionSw
         provider_name: provider.name.clone(),
         transfer,
         swap,
-        eta_minutes: extended
+        eta_seconds: extended
             .confirmation_eta_seconds
-            .filter(|seconds| *seconds > 0 && !extended.transaction.state.is_completed())
-            .map(confirmation_minutes),
+            .filter(|seconds| *seconds > 0 && !extended.transaction.state.is_completed()),
     })
 }
 
@@ -1051,15 +1045,6 @@ mod tests {
     }
 
     #[test]
-    fn test_confirmation_minutes_round_up_from_half_a_minute_and_never_reach_zero() {
-        assert_eq!(confirmation_minutes(1), 1);
-        assert_eq!(confirmation_minutes(29), 1);
-        assert_eq!(confirmation_minutes(90), 2);
-        assert_eq!(confirmation_minutes(719), 12);
-        assert_eq!(confirmation_minutes(750), 13);
-    }
-
-    #[test]
     fn test_detail_sections_list_only_the_rows_the_transaction_has_in_one_order() {
         use GemTransactionDetailRow::*;
         let link = |address: &str| BlockExplorerLink {
@@ -1133,19 +1118,19 @@ mod tests {
         let pending = details(&swap(TransactionState::Pending, Some("thorchain"), Some(90)));
         let progress = pending.swap_progress.unwrap();
         assert_eq!(
-            (progress.transfer, progress.swap, progress.eta_minutes),
-            (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting, Some(2))
+            (progress.transfer, progress.swap, progress.eta_seconds),
+            (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting, Some(90))
         );
         assert_eq!(progress.from_value, 5u32.into());
         assert_eq!(pending.provider_name.as_deref(), Some(progress.provider_name.as_str()));
-        assert_eq!(pending.estimated_confirmation_minutes, None, "the progress steps carry the eta");
+        assert_eq!(pending.estimated_confirmation_seconds, None, "the progress steps carry the eta");
         assert!(pending.swap_again.is_none());
 
         let in_transit = details(&swap(TransactionState::InTransit, Some("thorchain"), None)).swap_progress.unwrap();
         assert_eq!((in_transit.transfer, in_transit.swap), (GemSwapProgressStep::Completed, GemSwapProgressStep::Pending));
         let failed = details(&swap(TransactionState::Failed, Some("thorchain"), Some(90))).swap_progress.unwrap();
         assert_eq!(
-            (failed.transfer, failed.swap, failed.eta_minutes),
+            (failed.transfer, failed.swap, failed.eta_seconds),
             (GemSwapProgressStep::Completed, GemSwapProgressStep::Failed, None)
         );
         let reverted = details(&swap(TransactionState::Reverted, Some("thorchain"), None)).swap_progress.unwrap();
@@ -1165,7 +1150,7 @@ mod tests {
 
         let on_chain = details(&swap(TransactionState::Pending, Some("uniswap_v3"), Some(90)));
         assert!(on_chain.swap_progress.is_none());
-        assert_eq!(on_chain.estimated_confirmation_minutes, Some(2));
+        assert_eq!(on_chain.estimated_confirmation_seconds, Some(90));
         assert_eq!(
             details(&swap(TransactionState::Pending, Some("unknown"), None)).provider_name.as_deref(),
             Some("unknown"),
@@ -1179,12 +1164,12 @@ mod tests {
         let mut transfer = TransactionExtended::mock();
         transfer.transaction.state = TransactionState::Pending;
         transfer.confirmation_eta_seconds = Some(30);
-        assert_eq!(details(&transfer).estimated_confirmation_minutes, Some(1), "half a minute still reads as one");
+        assert_eq!(details(&transfer).estimated_confirmation_seconds, Some(30));
         transfer.transaction.state = TransactionState::Confirmed;
-        assert_eq!(details(&transfer).estimated_confirmation_minutes, None);
+        assert_eq!(details(&transfer).estimated_confirmation_seconds, None);
         transfer.transaction.state = TransactionState::Pending;
         transfer.confirmation_eta_seconds = Some(0);
-        assert_eq!(details(&transfer).estimated_confirmation_minutes, None);
+        assert_eq!(details(&transfer).estimated_confirmation_seconds, None);
 
         let mut close = TransactionExtended::mock();
         close.transaction.transaction_type = TransactionType::PerpetualClosePosition;

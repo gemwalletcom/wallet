@@ -13,10 +13,11 @@ fun formatAvailableIn(millis: Long, locale: Locale = Locale.getDefault()): Strin
     return if (measures.isEmpty()) "" else formatDuration(*measures.toTypedArray(), locale = locale)
 }
 
-fun formatEstimatedConfirmation(minutes: UInt, locale: Locale = Locale.getDefault()): String {
-    val unit = MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.SHORT)
-        .formatMeasures(Measure(minutes.toInt(), MeasureUnit.MINUTE))
-    return "≈ $unit"
+fun formatEstimatedConfirmation(seconds: UInt, locale: Locale = Locale.getDefault()): String {
+    val measures = estimatedConfirmationParts(seconds.toLong()).map { Measure(it.first, it.second.measureUnit) }
+    if (measures.isEmpty()) return ""
+    val duration = MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.SHORT).formatMeasures(*measures.toTypedArray())
+    return "≈ $duration"
 }
 
 private val DurationUnit.measureUnit: MeasureUnit
@@ -24,4 +25,5 @@ private val DurationUnit.measureUnit: MeasureUnit
         DurationUnit.DAY -> MeasureUnit.DAY
         DurationUnit.HOUR -> MeasureUnit.HOUR
         DurationUnit.MINUTE -> MeasureUnit.MINUTE
+        DurationUnit.SECOND -> MeasureUnit.SECOND
     }

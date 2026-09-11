@@ -11,12 +11,15 @@ public struct EstimatedConfirmationFormatter {
         self.calendar = calendar
     }
 
-    public func string(minutes: UInt32) -> String {
+    public func string(seconds: UInt32) -> String {
         let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.minute]
+        formatter.allowedUnits = [.minute, .second]
+        formatter.zeroFormattingBehavior = .dropAll
         formatter.unitsStyle = .short
         formatter.calendar = calendar
-        let duration = formatter.string(from: TimeInterval(minutes) * 60) ?? "\(minutes) min"
+        guard let duration = formatter.string(from: TimeInterval(seconds)) else {
+            return .empty
+        }
         return "≈ \(duration)"
     }
 }

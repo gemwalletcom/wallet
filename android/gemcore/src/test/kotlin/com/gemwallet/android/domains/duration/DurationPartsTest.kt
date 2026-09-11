@@ -42,4 +42,12 @@ class DurationPartsTest {
     fun negative_isEmpty() {
         assertEquals(emptyList<Pair<Long, DurationUnit>>(), availableInParts(-1L))
     }
+
+    @Test
+    fun estimatedConfirmation_keepsTheSecondsUnderTheMinute() {
+        assertEquals(listOf(1L to DurationUnit.MINUTE, 30L to DurationUnit.SECOND), estimatedConfirmationParts(90))
+        assertEquals(listOf(12L to DurationUnit.MINUTE), estimatedConfirmationParts(720))
+        assertEquals(listOf(45L to DurationUnit.SECOND), estimatedConfirmationParts(45))
+        assertEquals(emptyList<Pair<Long, DurationUnit>>(), estimatedConfirmationParts(0))
+    }
 }

@@ -109,7 +109,7 @@ class TransactionDetailsAggregateImpl(
 
     val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state, rows.status)
 
-    val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = rows.estimatedConfirmationMinutes
+    val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = rows.estimatedConfirmationSeconds
         ?.let { TransactionDetailsValue.EstimatedConfirmation(it) }
 
     val memo: TransactionDetailsValue.Memo? = rows.memo?.let { TransactionDetailsValue.Memo(it) }
@@ -137,7 +137,7 @@ class TransactionDetailsAggregateImpl(
             providerName = progress.providerName,
             transfer = progress.transfer,
             swap = progress.swap,
-            etaInMinutes = progress.etaMinutes,
+            etaInSeconds = progress.etaSeconds,
         )
     }
 

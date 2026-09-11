@@ -6,23 +6,23 @@ import Localization
 import Primitives
 
 struct TransactionEstimatedConfirmationViewModel {
-    private let minutes: UInt32?
+    private let seconds: UInt32?
     private let onInfoAction: VoidAction
 
-    init(minutes: UInt32?, onInfoAction: VoidAction) {
-        self.minutes = minutes
+    init(seconds: UInt32?, onInfoAction: VoidAction) {
+        self.seconds = seconds
         self.onInfoAction = onInfoAction
     }
 }
 
 extension TransactionEstimatedConfirmationViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        guard let minutes else {
+        guard let seconds else {
             return .empty
         }
         return .listItem(ListItemModel(
             title: Localized.Transaction.estimatedConfirmation,
-            subtitle: EstimatedConfirmationFormatter().string(minutes: minutes),
+            subtitle: EstimatedConfirmationFormatter().string(seconds: seconds),
             infoAction: onInfoAction,
         ))
     }

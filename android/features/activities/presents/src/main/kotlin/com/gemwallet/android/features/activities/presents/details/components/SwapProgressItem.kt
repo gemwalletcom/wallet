@@ -59,7 +59,7 @@ internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
 
     val transferStatus = progress.transfer
     val swapStatus = progress.swap
-    val estimatedTime = progress.etaInMinutes?.let { formatEstimatedConfirmation(it) }
+    val estimatedTime = progress.etaInSeconds?.let(::formatEstimatedConfirmation)
 
     Row(
         modifier = Modifier

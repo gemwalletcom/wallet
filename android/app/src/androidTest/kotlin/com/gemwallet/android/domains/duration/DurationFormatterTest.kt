@@ -10,9 +10,10 @@ import java.util.Locale
 class DurationFormatterTest {
 
     @Test
-    fun estimatedConfirmation_readsMinutesWithTheLocaleUnit() {
-        assertEquals("≈ 12 min", formatEstimatedConfirmation(12u, Locale.US))
-        assertEquals("≈ 1 min", formatEstimatedConfirmation(1u, Locale.US))
-        assertEquals("≈ 12 Min.", formatEstimatedConfirmation(12u, Locale.GERMANY))
+    fun estimatedConfirmation_readsThePartsWithTheLocaleUnits() {
+        assertEquals("≈ 12 min", formatEstimatedConfirmation(720u, Locale.US))
+        assertEquals("≈ 1 min, 30 sec", formatEstimatedConfirmation(90u, Locale.US))
+        assertEquals("≈ 45 sec", formatEstimatedConfirmation(45u, Locale.US))
+        assertEquals("≈ 1 Min., 30 Sek.", formatEstimatedConfirmation(90u, Locale.GERMANY))
     }
 }

@@ -101,7 +101,7 @@ internal fun TransactionDetailsScene(
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
                         is TransactionDetailsValue.EstimatedConfirmation -> PropertyItem(
                             title = R.string.transaction_estimated_confirmation,
-                            data = formatEstimatedConfirmation(item.minutes),
+                            data = formatEstimatedConfirmation(item.seconds),
                             info = InfoSheetEntity.EstimatedConfirmationInfo(data.asset.chain),
                             listPosition = position,
                         )
