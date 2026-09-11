@@ -4,8 +4,8 @@ import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
-
-enum class ChartValueType { Price, PriceChange }
+import uniffi.gemstone.GemChartHeader
+import uniffi.gemstone.GemChartValueType
 
 data class ChartHeaderUIModel(
     val priceText: String,
@@ -13,35 +13,30 @@ data class ChartHeaderUIModel(
     val direction: ValueDirection,
     val dateText: String?,
     val headerValueText: String? = null,
-    val type: ChartValueType = ChartValueType.Price,
+    val type: GemChartValueType = GemChartValueType.PRICE,
 ) {
     companion object {
         fun build(
-            price: Double,
-            priceChangePercentage: Double,
-            type: ChartValueType = ChartValueType.Price,
+            header: GemChartHeader,
+            type: GemChartValueType = GemChartValueType.PRICE,
             timestamp: Long? = null,
-            headerValue: Double? = null,
             priceFormatter: (Double) -> String,
             priceChangeFormatter: (Double) -> String = priceFormatter,
             dateFormatter: (Long) -> String = { "" },
         ): ChartHeaderUIModel = ChartHeaderUIModel(
             priceText = when (type) {
-                ChartValueType.Price -> priceFormatter(price)
-                ChartValueType.PriceChange -> priceChangeFormatter(price)
+                GemChartValueType.PRICE -> priceFormatter(header.value)
+                GemChartValueType.PRICE_CHANGE -> priceChangeFormatter(header.value)
             },
-            changeText = when (type) {
-                ChartValueType.Price -> priceChangePercentage.formatAsPercentage()
-                ChartValueType.PriceChange ->
-                    if (headerValue != null && priceChangePercentage != 0.0) {
-                        "(${priceChangePercentage.formatAsPercentage(PercentageFormatterStyle.PercentSignLess)})"
-                    } else {
-                        null
-                    }
+            changeText = header.changePercentage?.let { percentage ->
+                when (type) {
+                    GemChartValueType.PRICE -> percentage.formatAsPercentage()
+                    GemChartValueType.PRICE_CHANGE -> "(${percentage.formatAsPercentage(PercentageFormatterStyle.PercentSignLess)})"
+                }
             },
-            direction = (if (type == ChartValueType.PriceChange) price else priceChangePercentage).toValueDirection(),
+            direction = (if (type == GemChartValueType.PRICE_CHANGE) header.value else header.changePercentage ?: 0.0).toValueDirection(),
             dateText = timestamp?.let(dateFormatter),
-            headerValueText = headerValue?.let(priceFormatter),
+            headerValueText = header.secondaryValue?.let(priceFormatter),
             type = type,
         )
     }

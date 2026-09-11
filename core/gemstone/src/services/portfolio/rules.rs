@@ -1,10 +1,11 @@
 use primitives::{
     ChartPeriod, ChartValuePercentage, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData,
-    PortfolioMarginUsage, PortfolioStatistic,
+    PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
 };
 
 use super::model::GemPortfolioValues;
-use crate::services::chart::rules::converted_values;
+use crate::services::chart::GemChartData;
+use crate::services::chart::rules::{change_chart_data, converted_values};
 
 pub fn converted_portfolio(portfolio: PortfolioAssets, rate: f64) -> GemPortfolioValues {
     GemPortfolioValues {
@@ -24,6 +25,12 @@ fn converted_percentage(value: ChartValuePercentage, rate: f64) -> ChartValuePer
 
 fn wallet_periods() -> Vec<ChartPeriod> {
     vec![ChartPeriod::Day, ChartPeriod::Week, ChartPeriod::Month, ChartPeriod::Year, ChartPeriod::All]
+}
+
+pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType) -> Option<GemChartData> {
+    let chart = data.charts.iter().find(|chart| chart.chart_type == chart_type).or(data.charts.first())?;
+    let shows_value = portfolio_type == PortfolioType::Wallet || chart_type == PortfolioChartType::Value;
+    change_chart_data(chart.values.clone(), shows_value)
 }
 
 pub fn wallet_portfolio_data(values: GemPortfolioValues) -> PortfolioData {
@@ -64,10 +71,12 @@ pub fn perpetual_portfolio_data(portfolio: PerpetualPortfolio, period: ChartPeri
     if let Some(summary) = &portfolio.account_summary {
         statistics.push(PortfolioStatistic::UnrealizedPnl { value: summary.unrealized_pnl });
         statistics.push(PortfolioStatistic::AccountLeverage { value: summary.account_leverage });
-        statistics.push(PortfolioStatistic::MarginUsage { value: PortfolioMarginUsage {
-            account_value: summary.account_value,
-            usage: summary.margin_usage,
-        } });
+        statistics.push(PortfolioStatistic::MarginUsage {
+            value: PortfolioMarginUsage {
+                account_value: summary.account_value,
+                usage: summary.margin_usage,
+            },
+        });
     }
     if let Some(all_time) = &portfolio.all_time {
         if let Some(last) = all_time.pnl_history.last() {
@@ -107,10 +116,50 @@ fn timeframe_data(portfolio: &PerpetualPortfolio, period: ChartPeriod) -> Option
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
+    use chrono::{DateTime, Utc};
     use primitives::{ChartDateValue, ChartValue, PerpetualAccountSummary};
 
     use super::*;
+
+    #[test]
+    fn test_portfolio_chart_data_picks_the_chart_the_screen_asked_for() {
+        let point = |seconds: i64, value: f64| ChartDateValue {
+            date: DateTime::from_timestamp(seconds, 0).unwrap(),
+            value,
+        };
+        let data = PortfolioData {
+            charts: vec![
+                PortfolioChartData {
+                    chart_type: PortfolioChartType::Pnl,
+                    values: vec![point(1, 1.0), point(2, 3.0)],
+                },
+                PortfolioChartData {
+                    chart_type: PortfolioChartType::Value,
+                    values: vec![point(1, 10.0), point(2, 12.0)],
+                },
+            ],
+            statistics: vec![],
+            available_periods: wallet_periods(),
+        };
+
+        let pnl = portfolio_chart_data(data.clone(), PortfolioType::Perpetuals, PortfolioChartType::Pnl).expect("series");
+        assert_eq!(pnl.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![1.0, 3.0]);
+        assert!(!pnl.shows_secondary_value);
+
+        let value = portfolio_chart_data(data, PortfolioType::Perpetuals, PortfolioChartType::Value).expect("series");
+        assert_eq!(value.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![10.0, 12.0]);
+        assert_eq!(value.header.unwrap().secondary_value, Some(12.0));
+    }
+
+    #[test]
+    fn test_portfolio_chart_data_without_a_chart_has_no_series() {
+        let data = PortfolioData {
+            charts: vec![],
+            statistics: vec![],
+            available_periods: wallet_periods(),
+        };
+        assert_eq!(portfolio_chart_data(data, PortfolioType::Wallet, PortfolioChartType::Value), None);
+    }
 
     #[test]
     fn test_converted_portfolio_applies_rate_to_values_and_extremes() {
@@ -156,7 +205,9 @@ mod tests {
             vec![
                 PortfolioStatistic::UnrealizedPnl { value: 7.0 },
                 PortfolioStatistic::AccountLeverage { value: 2.0 },
-                PortfolioStatistic::MarginUsage { value: PortfolioMarginUsage { account_value: 100.0, usage: 0.5 } },
+                PortfolioStatistic::MarginUsage {
+                    value: PortfolioMarginUsage { account_value: 100.0, usage: 0.5 }
+                },
                 PortfolioStatistic::AllTimePnl { value: 50.0 },
                 PortfolioStatistic::Volume { value: 5000.0 },
             ]

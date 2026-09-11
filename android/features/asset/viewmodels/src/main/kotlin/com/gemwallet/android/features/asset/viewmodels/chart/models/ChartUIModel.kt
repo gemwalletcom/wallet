@@ -1,123 +1,45 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
-import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemChart
-import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.math.getRelativeDate
-import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.PriceChangeFormatter
 import com.gemwallet.android.ui.components.chart.ChartPoint
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
-import com.gemwallet.android.ui.models.chart.ChartValueType
 import com.wallet.core.primitives.ChartPeriod
-import uniffi.gemstone.ChartDateValue
-import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemChartData
+import uniffi.gemstone.chartHeader
 
-internal const val MinChartPoints = 2
 internal const val StopTimeoutMillis = 5_000L
 
 data class ChartUIModel(
-    val period: ChartPeriod = ChartPeriod.Day,
-    val currentPoint: PricePoint? = null,
-    val chartPoints: List<PricePoint> = emptyList(),
-    internal val priceFormatter: (Double) -> String = { "" },
-    internal val priceChangeFormatter: (Double) -> String = { "" },
-    internal val showHeaderValue: Boolean = true,
+    val chart: GemChartData,
+    internal val priceFormatter: (Double) -> String,
+    internal val priceChangeFormatter: (Double) -> String = priceFormatter,
 ) {
     val renderPoints: List<ChartPoint> by lazy {
-        chartPoints.mapIndexed { index, point -> ChartPoint(x = index.toFloat(), y = point.y) }
+        chart.values.mapIndexed { index, value -> ChartPoint(x = index.toFloat(), y = value.value.toFloat()) }
     }
 
-    val minLabel: String? by lazy { chartPoints.minByOrNull { it.y }?.price?.let(priceFormatter) }
-    val maxLabel: String? by lazy { chartPoints.maxByOrNull { it.y }?.price?.let(priceFormatter) }
+    val minLabel: String? by lazy { chart.values.minByOrNull { it.value }?.value?.let(priceFormatter) }
+    val maxLabel: String? by lazy { chart.values.maxByOrNull { it.value }?.value?.let(priceFormatter) }
 
-    companion object {}
+    fun header(selectedIndex: Int?): ChartHeaderUIModel? {
+        val selected = selectedIndex?.let { chart.values.getOrNull(it) }
+        val header = selected
+            ?.let { chartHeader(chart.valueType, chart.base, it.value, chart.showsSecondaryValue) }
+            ?: chart.header
+            ?: return null
+        return ChartHeaderUIModel.build(
+            header = header,
+            type = chart.valueType,
+            timestamp = selected?.date,
+            priceFormatter = priceFormatter,
+            priceChangeFormatter = priceChangeFormatter,
+            dateFormatter = ::getRelativeDate,
+        )
+    }
 
     data class State(
         val period: ChartPeriod = ChartPeriod.Day,
         val chart: StateViewType<ChartUIModel> = StateViewType.Loading,
-    )
-}
-
-internal fun ChartUIModel.Companion.from(
-    chart: GemChart,
-    period: ChartPeriod,
-    currency: Currency,
-): ChartUIModel {
-    val currencyFormatter = CurrencyFormatter(currency = currency)
-    val historicalPoints = chart.values.map { it.toPrimitives() }.map { value ->
-        PricePoint(
-            y = value.value.toFloat(),
-            price = value.value,
-            priceChangePercentage = PriceChangeCalculator.percentage(from = chart.baseValue, to = value.value),
-            timestamp = value.date,
-        )
-    }
-    val currentPoint = chart.current?.let { current ->
-        PricePoint(
-            y = current.value.toFloat(),
-            price = current.value,
-            priceChangePercentage = current.changePercentage,
-            timestamp = current.date,
-        )
-    }
-
-    return ChartUIModel(
-        period = period,
-        currentPoint = currentPoint,
-        chartPoints = historicalPoints + listOfNotNull(currentPoint),
-        priceFormatter = currencyFormatter::string,
-    )
-}
-
-internal fun ChartUIModel.Companion.from(
-    values: List<ChartDateValue>,
-    period: ChartPeriod,
-    currency: Currency,
-    showHeaderValue: Boolean,
-): ChartUIModel {
-    val basePrice = values.firstOrNull()?.value ?: 0.0
-    val currencyFormatter = CurrencyFormatter(currency = currency)
-    val points = values.map { value ->
-        PricePoint(
-            y = value.value.toFloat(),
-            price = value.value,
-            priceChangePercentage = PriceChangeCalculator.percentage(from = basePrice, to = value.value),
-            timestamp = value.date,
-        )
-    }
-    return ChartUIModel(
-        period = period,
-        chartPoints = points,
-        priceFormatter = currencyFormatter::string,
-        priceChangeFormatter = PriceChangeFormatter(currencyFormatter)::string,
-        showHeaderValue = showHeaderValue,
-    )
-}
-
-fun chartHeader(uiModel: ChartUIModel, selectedPoint: PricePoint?): ChartHeaderUIModel? {
-    val target = selectedPoint ?: uiModel.chartPoints.lastOrNull() ?: return null
-    return ChartHeaderUIModel.build(
-        price = target.price,
-        priceChangePercentage = target.priceChangePercentage,
-        timestamp = selectedPoint?.timestamp,
-        priceFormatter = uiModel.priceFormatter,
-        dateFormatter = ::getRelativeDate,
-    )
-}
-
-fun portfolioChartHeader(uiModel: ChartUIModel, selectedPoint: PricePoint?): ChartHeaderUIModel? {
-    val target = selectedPoint ?: uiModel.chartPoints.lastOrNull() ?: return null
-    val base = uiModel.chartPoints.firstOrNull()?.price ?: 0.0
-    return ChartHeaderUIModel.build(
-        price = target.price - base,
-        priceChangePercentage = target.priceChangePercentage,
-        type = ChartValueType.PriceChange,
-        timestamp = selectedPoint?.timestamp,
-        headerValue = if (uiModel.showHeaderValue) target.price else null,
-        priceFormatter = uiModel.priceFormatter,
-        priceChangeFormatter = uiModel.priceChangeFormatter,
-        dateFormatter = ::getRelativeDate,
     )
 }

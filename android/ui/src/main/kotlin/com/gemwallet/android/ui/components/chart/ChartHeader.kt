@@ -16,9 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
-import com.gemwallet.android.ui.models.chart.ChartValueType
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemChartValueType
 
 @Composable
 fun ChartHeader(
@@ -46,8 +46,8 @@ fun ChartHeader(
                 text = model.priceText,
                 style = changeStyle,
                 color = when (model.type) {
-                    ChartValueType.Price -> MaterialTheme.colorScheme.onSurface
-                    ChartValueType.PriceChange -> model.direction.color()
+                    GemChartValueType.PRICE -> MaterialTheme.colorScheme.onSurface
+                    GemChartValueType.PRICE_CHANGE -> model.direction.color()
                 },
             )
             model.changeText?.let { change ->

@@ -82,9 +82,9 @@ class PortfolioChartViewModelTest {
         stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, portfolioData(listOf(10f, 12f, 14f)))
 
         val viewModel = createViewModel()
-        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
+        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 3 }
 
-        assertEquals(3, state.chart.dataOrNull?.chartPoints?.size)
+        assertEquals(3, state.chart.dataOrNull?.chart?.values?.size)
     }
 
     @Test
@@ -92,7 +92,7 @@ class PortfolioChartViewModelTest {
         stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, portfolioData(listOf(1f, 2f)))
 
         val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 2 }
+        viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 2 }
 
         assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.chart != StateViewType.Loading }.period)
         coVerify(exactly = 1) { service.portfolioData(session.wallet.toGem(), PortfolioType.Wallet.toGem(), ChartPeriod.All.toGem()) }
@@ -106,7 +106,7 @@ class PortfolioChartViewModelTest {
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
         viewModel.setPeriod(ChartPeriod.Month)
-        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
+        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 3 }
 
         assertEquals(ChartPeriod.Month, state.period)
         coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Month.toGem()) }
@@ -120,7 +120,7 @@ class PortfolioChartViewModelTest {
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
-        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
+        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 3 }
 
         assertEquals(ChartPeriod.Day, state.period)
         coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Day.toGem()) }
@@ -132,7 +132,7 @@ class PortfolioChartViewModelTest {
         val viewModel = createViewModel(initialType = PortfolioType.Perpetuals)
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
-        viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 2 }
+        viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 2 }
 
         assertEquals(PortfolioType.Perpetuals, viewModel.selectedType.value)
         coVerify(exactly = 0) { service.portfolioData(any(), PortfolioType.Wallet.toGem(), any()) }

@@ -1,4 +1,4 @@
-use primitives::{AssetLink, BlockExplorerLink, ChartValuePercentage};
+use primitives::{AssetLink, BlockExplorerLink, ChartDateValue, ChartValuePercentage};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemChartSection {
@@ -19,4 +19,26 @@ pub enum GemAssetMarketRow {
     MaxSupply { value: f64 },
     AllTimeHigh { value: ChartValuePercentage },
     AllTimeLow { value: ChartValuePercentage },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemChartValueType {
+    Price,
+    PriceChange,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChartHeader {
+    pub value: f64,
+    pub secondary_value: Option<f64>,
+    pub change_percentage: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChartData {
+    pub value_type: GemChartValueType,
+    pub base: f64,
+    pub shows_secondary_value: bool,
+    pub values: Vec<ChartDateValue>,
+    pub header: Option<GemChartHeader>,
 }

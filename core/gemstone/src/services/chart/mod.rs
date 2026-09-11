@@ -14,7 +14,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
 
-pub use model::{GemAssetMarketRow, GemChartSection};
+pub use model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
@@ -28,6 +28,16 @@ pub struct GemChartCurrent {
     pub date: DateTime<Utc>,
     pub value: f64,
     pub change_percentage: f64,
+}
+
+#[uniffi::export]
+pub fn price_chart_data(chart: GemChart) -> Option<GemChartData> {
+    rules::price_chart_data(chart)
+}
+
+#[uniffi::export]
+pub fn chart_header(value_type: GemChartValueType, base: f64, value: f64, shows_secondary_value: bool) -> GemChartHeader {
+    rules::header(value_type, base, value, None, shows_secondary_value)
 }
 
 #[derive(uniffi::Object)]

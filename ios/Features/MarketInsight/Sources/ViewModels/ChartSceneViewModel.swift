@@ -4,12 +4,14 @@ import Components
 import Formatters
 import Foundation
 import enum Gemstone.GemAssetMarketRow
-import protocol Gemstone.GemChartServiceProtocol
+import struct Gemstone.GemChart
 import enum Gemstone.GemChartSection
+import protocol Gemstone.GemChartServiceProtocol
+import func Gemstone.priceChartData
 import GemstonePrimitives
+import GemstoneServices
 import InfoSheet
 import Localization
-import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store
@@ -27,7 +29,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     let walletId: WalletId
     let assetModel: AssetViewModel
 
-    public var chartState: StateViewType<ChartValuesViewModel> = .loading
+    private var chart: StateViewType<GemChart> = .loading
     public var selectedPeriod: ChartPeriod {
         didSet { try? service.setChartPeriod(period: selectedPeriod.map()) }
     }
@@ -46,6 +48,10 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     var asset: Asset {
         assetModel.asset
+    }
+
+    public var chartState: StateViewType<ChartValuesViewModel> {
+        chart.flatMap { chartValuesViewModel(from: $0).map { .data($0) } ?? .noData }
     }
 
     var sections: [GemChartSection] {
@@ -76,28 +82,24 @@ public final class ChartSceneViewModel: ChartListViewable {
     func marketValues(_ rows: [GemAssetMarketRow]) -> [MarketValueViewModel] {
         AssetDetailsInfoViewModel(asset: asset, currency: currencyCode).marketValues(rows)
     }
+
+    private func chartValuesViewModel(from chart: GemChart) -> ChartValuesViewModel? {
+        guard let chartData = priceChartData(chart: chart) else {
+            return nil
+        }
+        return ChartValuesViewModel(period: selectedPeriod, chartData: chartData, formatter: CurrencyFormatter(currencyCode: currencyCode))
+    }
 }
 
 // MARK: - Business Logic
 
 public extension ChartSceneViewModel {
     func load() async {
-        if chartState.value == nil {
-            chartState = .loading
+        if chart.value == nil {
+            chart = .loading
         }
         do {
-            let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.map())
-            let charts = chart.values.map { $0.map() } + [chart.current].compactMap { $0 }.map { ChartDateValue(date: $0.date, value: $0.value) }
-            let chartValues = try ChartValues.from(charts: charts)
-            let formatter = CurrencyFormatter(currencyCode: currencyCode)
-            let model = ChartValuesViewModel(
-                period: selectedPeriod,
-                baseValue: chart.baseValue,
-                current: chart.current,
-                values: chartValues,
-                formatter: formatter,
-            )
-            chartState = .data(model)
+            chart = try await .data(service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.map()))
             if priceData?.priceAlerts.isNotEmpty == true {
                 Task {
                     do {
@@ -108,7 +110,7 @@ public extension ChartSceneViewModel {
                 }
             }
         } catch {
-            chartState.setError(error)
+            chart.setError(error)
         }
     }
 

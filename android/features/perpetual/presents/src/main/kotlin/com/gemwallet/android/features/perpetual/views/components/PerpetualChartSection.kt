@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.StateViewType
+import uniffi.gemstone.GemChartHeader
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartCandleStick
@@ -92,8 +93,11 @@ internal fun PerpetualChartSection(
         val target = selectedCandle ?: lastCandle ?: return@remember null
         val base = baseCandle ?: return@remember null
         ChartHeaderUIModel.build(
-            price = target.close,
-            priceChangePercentage = PriceChangeCalculator.percentage(from = base.close, to = target.close),
+            header = GemChartHeader(
+                value = target.close,
+                secondaryValue = null,
+                changePercentage = PriceChangeCalculator.percentage(from = base.close, to = target.close).takeIf { target.close != 0.0 },
+            ),
             timestamp = selectedCandle?.date,
             priceFormatter = currencyString,
             dateFormatter = ::getRelativeDate,
