@@ -74,7 +74,7 @@ struct RecipientSceneViewModelTests {
         #expect(model.actionButtonState == .disabled)
 
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(NameRecord.mock())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock().map())
         #expect(model.actionButtonState == .normal)
     }
 
@@ -92,7 +92,7 @@ struct RecipientSceneViewModelTests {
 
         recipientData = nil
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(.mock(address: address))
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).map())
         model.onContinue()
 
         #expect(recipientData?.recipient.address == checksummed)

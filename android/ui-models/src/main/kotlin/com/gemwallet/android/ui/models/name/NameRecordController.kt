@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
 
 class NameRecordController(
@@ -18,15 +19,15 @@ class NameRecordController(
     private val scope: CoroutineScope,
 ) {
     private var job: Job? = null
-    private val _state = MutableStateFlow<NameRecordState>(NameRecordState.None)
-    val state: StateFlow<NameRecordState> = _state.asStateFlow()
+    private val _state = MutableStateFlow<GemNameRecordState>(GemNameRecordState.None)
+    val state: StateFlow<GemNameRecordState> = _state.asStateFlow()
 
     fun getNameRecord(value: String, chain: Chain?) {
         if (value.isEmpty()) {
             reset()
             return
         }
-        if (value == _state.value.nameRecord?.name) {
+        if (value == _state.value.requestedName()) {
             return
         }
         loadNameRecord(value, chain)
@@ -34,32 +35,27 @@ class NameRecordController(
 
     private fun loadNameRecord(input: String, chain: Chain?) {
         job?.cancel()
-        _state.value = NameRecordState.None
+        _state.value = GemNameRecordState.None
         if (chain == null || !nameService.isNameSupported(input)) {
             return
         }
-        _state.value = NameRecordState.Loading
+        _state.value = GemNameRecordState.Loading(input)
         job = scope.launch {
             delay(nameService.nameRecordDebounceMilliseconds().toLong())
-            val record = try {
+            val resolved = try {
                 nameService.getNameRecord(input, chain)
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Throwable) {
-                null
+                GemNameRecordState.Error
             }
             ensureActive()
-            val nameRecord = record?.takeIf { it.address.isNotEmpty() && it.name.isNotEmpty() }
-            _state.value = when {
-                nameRecord != null -> NameRecordState.Complete(nameRecord)
-                input.isNotEmpty() -> NameRecordState.Error
-                else -> NameRecordState.None
-            }
+            _state.value = resolved
         }
     }
 
     fun reset() {
         job?.cancel()
-        _state.value = NameRecordState.None
+        _state.value = GemNameRecordState.None
     }
 }

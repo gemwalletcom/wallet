@@ -171,7 +171,7 @@ extension RecipientSceneViewModel {
             let validated = try service.recipient(
                 chain: asset.chain.rawValue,
                 input: recipient.address,
-                nameRecord: nil,
+                state: .none,
                 memo: recipient.memo,
                 references: [],
             )

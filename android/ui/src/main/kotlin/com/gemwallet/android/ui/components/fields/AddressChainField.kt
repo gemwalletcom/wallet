@@ -19,7 +19,7 @@ import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -32,7 +32,7 @@ fun ColumnScope.AddressChainField(
     value: String,
     label: String,
     onValueChange: (String) -> Unit,
-    state: NameRecordState = NameRecordState.None,
+    state: GemNameRecordState = GemNameRecordState.None,
     error: String = "",
     editable: Boolean = true,
     onPaste: ((String) -> Unit)? = null,

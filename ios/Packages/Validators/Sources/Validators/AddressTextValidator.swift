@@ -14,7 +14,7 @@ public struct AddressTextValidator: TextValidator {
     }
 
     public func validate(_ text: String) throws {
-        guard nameService.validateRecipient(chain: asset.chain.rawValue, input: text, nameRecord: nil).isValid else {
+        guard nameService.validateRecipient(chain: asset.chain.rawValue, input: text, state: .none).isValid else {
             throw TransferError.invalidAddress(asset: asset)
         }
     }

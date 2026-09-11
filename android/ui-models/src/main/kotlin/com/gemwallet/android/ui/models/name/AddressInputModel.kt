@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.models.name
 
 import com.gemwallet.android.ext.validateRecipient
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.NameRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -10,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientValidation
 
@@ -26,17 +26,17 @@ class AddressInputModel(
     val chain: Chain? get() = _chain.value
 
     val text: StateFlow<String> = _text.asStateFlow()
-    val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
+    val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
     val showError: StateFlow<Boolean> = _showError.asStateFlow()
 
     val isValid: StateFlow<Boolean> = combine(_text, nameRecordController.state, _chain) { text, resolve, chain ->
         isValid(text, resolve, chain)
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
-    val nameRecord get() = nameRecordController.state.value.nameRecord
+    val nameRecordState: GemNameRecordState get() = nameRecordController.state.value
 
     val resolvedAddress: String
-        get() = chain?.let { validation(_text.value, nameRecord, it).address } ?: _text.value
+        get() = chain?.let { validation(_text.value, nameRecordState, it).address } ?: _text.value
 
     fun onTextChange(value: String) {
         _text.value = value
@@ -63,7 +63,7 @@ class AddressInputModel(
         val chain = _chain.value
         val resolve = nameRecordController.state.value
         val valid = isValid(text, resolve, chain)
-        _showError.value = if (chain == null) text.isNotBlank() else validation(text, resolve.nameRecord, chain).showsError
+        _showError.value = if (chain == null) text.isNotBlank() else validation(text, resolve, chain).showsError
         return valid
     }
 
@@ -77,11 +77,9 @@ class AddressInputModel(
         _showError.value = false
     }
 
-    private fun isValid(text: String, resolve: NameRecordState, chain: Chain?): Boolean = when (resolve) {
-        NameRecordState.Loading, NameRecordState.Error -> false
-        is NameRecordState.Complete, NameRecordState.None -> chain != null && validation(text, resolve.nameRecord, chain).isValid
-    }
+    private fun isValid(text: String, resolve: GemNameRecordState, chain: Chain?): Boolean =
+        chain != null && validation(text, resolve, chain).isValid
 
-    private fun validation(text: String, nameRecord: NameRecord?, chain: Chain): GemRecipientValidation =
-        nameService.validateRecipient(chain, text, nameRecord)
+    private fun validation(text: String, state: GemNameRecordState, chain: Chain): GemRecipientValidation =
+        nameService.validateRecipient(chain, text, state)
 }

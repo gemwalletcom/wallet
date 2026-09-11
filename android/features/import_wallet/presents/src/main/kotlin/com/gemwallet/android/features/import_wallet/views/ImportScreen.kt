@@ -64,7 +64,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.Chain
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemWalletImportKind
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -167,7 +167,7 @@ private fun ImportScene(
     tabs: List<GemWalletImportKind>,
     defaultWalletName: String,
     chainName: String,
-    nameResolveState: NameRecordState,
+    nameResolveState: GemNameRecordState,
     dataError: Throwable?,
     buttonState: ButtonState,
     onImport: (generatedName: String, value: String) -> Unit,
@@ -240,7 +240,7 @@ private fun ImportScene(
 private fun DataInput(
     importType: ImportType,
     inputState: MutableState<TextFieldValue>,
-    nameResolveState: NameRecordState,
+    nameResolveState: GemNameRecordState,
     invalidWords: (String) -> Set<String>,
     phraseSuggestions: (String) -> List<String>,
     onInput: (String) -> Unit,
@@ -369,7 +369,7 @@ fun PreviewImportAddress() {
                 tabs = listOf(GemWalletImportKind.PHRASE, GemWalletImportKind.ADDRESS),
                 defaultWalletName = "Wallet #1",
                 chainName = "Ethereum",
-                nameResolveState = NameRecordState.None,
+                nameResolveState = GemNameRecordState.None,
                 dataError = null,
                 buttonState = ButtonState.Enabled,
                 onImport = {_, _ -> },

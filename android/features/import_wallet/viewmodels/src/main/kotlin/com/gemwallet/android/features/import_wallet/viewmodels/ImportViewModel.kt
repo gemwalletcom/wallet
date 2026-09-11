@@ -15,7 +15,7 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.WalletSource
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.models.name.NameRecordController
 import uniffi.gemstone.GemWalletImportKind
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,7 +46,7 @@ class ImportViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
 
     private val nameRecordController = NameRecordController(nameService, viewModelScope)
-    val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
+    val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
 
     fun importKind(kind: GemWalletImportKind) {
         nameRecordController.reset()
@@ -91,14 +91,14 @@ class ImportViewModel @Inject constructor(
         if (state.value.loading) {
             return
         }
-        val nameRecord = nameRecordController.state.value.nameRecord
+        val nameRecord = nameRecordController.state.value.record()
         state.update { it.copy(loading = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val importType = state.value.importType
-                val import = service.importRequest(importType.kind, importType.chain?.string, data, nameRecord?.toGem())
-                val walletName = service.importName(nameRecord?.toGem(), generatedName)
+                val import = service.importRequest(importType.kind, importType.chain?.string, data, nameRecord)
+                val walletName = service.importName(nameRecord, generatedName)
                 val result = when (val imported = service.importWallet(walletName, import, WalletSource.Import.toGem())) {
                     is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.toPrimitives())
                     is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.toPrimitives())

@@ -6,7 +6,7 @@ import io.mockk.coEvery
 import uniffi.gemstone.GemNameServiceInterface
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
@@ -38,7 +38,7 @@ class ImportViewModelTest {
         provider = NameProvider.Ens,
     )
 
-    private class NameRequests(private val result: NameRecord?) {
+    private class NameRequests(private val result: NameRecord) {
         val requests = mutableListOf<Pair<String, Chain>>()
 
         fun service(): GemNameServiceInterface = mockk(relaxed = true) {
@@ -46,7 +46,7 @@ class ImportViewModelTest {
             every { nameRecordDebounceMilliseconds() } returns 500u
             coEvery { getNameRecord(any(), any()) } answers {
                 requests.add(firstArg<String>() to Chain.entries.first { it.string == secondArg<String>() })
-                result?.toGem()
+                GemNameRecordState.Complete(result.toGem())
             }
         }
     }
@@ -81,7 +81,7 @@ class ImportViewModelTest {
         advanceUntilIdle()
 
         assertEquals(emptyList<Pair<String, Chain>>(), addressInput.requests)
-        assertEquals(NameRecordState.None, viewModel.nameResolveState.value)
+        assertEquals(GemNameRecordState.None, viewModel.nameResolveState.value)
     }
 
     @Test
@@ -96,6 +96,6 @@ class ImportViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf("vitalik.eth" to chain), addressInput.requests)
-        assertEquals(NameRecordState.Complete(record), viewModel.nameResolveState.value)
+        assertEquals(GemNameRecordState.Complete(record.toGem()), viewModel.nameResolveState.value)
     }
 }

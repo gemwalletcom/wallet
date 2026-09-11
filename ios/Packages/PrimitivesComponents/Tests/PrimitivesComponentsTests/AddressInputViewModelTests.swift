@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
@@ -24,18 +25,18 @@ struct AddressInputViewModelTests {
         model.nameRecordViewModel.state = .error
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(.mock())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().map())
         #expect(model.validate())
 
-        model.nameRecordViewModel.state = .complete(.mock(name: "other.eth"))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "other.eth").map())
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(.mock(address: "test.eth"))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: "test.eth").map())
         #expect(model.validate() == false)
 
         model.chain = .near
         model.inputModel.text = "h3rman.near"
-        model.nameRecordViewModel.state = .complete(.mock(name: "h3rman.near", chain: .near, address: "h3rman.near", provider: .near))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "h3rman.near", chain: .near, address: "h3rman.near", provider: .near).map())
         #expect(model.validate())
     }
 
@@ -44,7 +45,7 @@ struct AddressInputViewModelTests {
         let model = AddressInputViewModel.mock()
 
         model.inputModel.text = "sometext"
-        model.nameRecordViewModel.state = .complete(.mock())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().map())
         model.chain = .bitcoin
 
         #expect(model.nameResolveState == .none)
@@ -60,7 +61,7 @@ struct AddressInputViewModelTests {
         model.inputModel.text = " \n\(address)\r "
         #expect(model.resolvedAddress == checksummed)
 
-        model.nameRecordViewModel.state = .complete(.mock(address: address))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).map())
         #expect(model.resolvedAddress == checksummed)
     }
 }

@@ -1,5 +1,7 @@
 use primitives::ChainAddress;
+use primitives::name::NameRecord;
 
+use super::model::GemNameRecordState;
 use crate::services::collections::unique_by;
 
 const NAME_RECORD_DEBOUNCE_MILLISECONDS: u64 = 250;
@@ -13,6 +15,13 @@ pub fn is_name_supported(name: &str) -> bool {
     parts.len() >= 2 && parts.last().is_some_and(|suffix| !suffix.is_empty())
 }
 
+pub fn resolved(record: Option<NameRecord>) -> GemNameRecordState {
+    match record {
+        Some(record) if !record.name.is_empty() && !record.address.is_empty() => GemNameRecordState::Complete { record },
+        Some(_) | None => GemNameRecordState::Error,
+    }
+}
+
 pub fn unique_requests(requests: Vec<ChainAddress>) -> Vec<ChainAddress> {
     unique_by(requests.into_iter().filter(|request| !request.address.is_empty()), |request| {
         (request.chain, request.address.clone())
@@ -23,6 +32,25 @@ pub fn unique_requests(requests: Vec<ChainAddress>) -> Vec<ChainAddress> {
 mod tests {
     use super::*;
     use primitives::Chain;
+
+    #[test]
+    fn test_resolved_completes_only_with_a_name_and_an_address() {
+        let record = |name: &str, address: &str| NameRecord {
+            name: name.into(),
+            chain: Chain::Ethereum,
+            address: address.into(),
+            provider: primitives::name::NameProvider::Ens,
+        };
+        let complete = resolved(Some(record("vitalik.eth", "0x1")));
+
+        assert_eq!(complete.requested_name().as_deref(), Some("vitalik.eth"));
+        assert!(complete.record().is_some());
+        assert_eq!(resolved(Some(record("vitalik.eth", ""))), GemNameRecordState::Error);
+        assert_eq!(resolved(Some(record("", "0x1"))), GemNameRecordState::Error);
+        assert_eq!(resolved(None), GemNameRecordState::Error);
+        assert_eq!(GemNameRecordState::Loading { name: "vitalik.eth".into() }.requested_name().as_deref(), Some("vitalik.eth"));
+        assert_eq!(GemNameRecordState::None.requested_name(), None);
+    }
 
     #[test]
     fn test_is_name_supported() {

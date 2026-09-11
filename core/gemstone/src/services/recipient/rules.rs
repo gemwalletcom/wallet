@@ -5,12 +5,14 @@ use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRec
 use crate::address::{checksum_address, validate_address};
 use crate::models::custom_types::GemBigInt;
 use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentRecipient};
+use crate::services::name::GemNameRecordState;
 use crate::services::name::rules::is_name_supported;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
-pub fn validation(chain: Chain, input: &str, name_record: Option<&NameRecord>) -> GemRecipientValidation {
-    let is_valid = is_valid(chain, input, name_record);
+pub fn validation(chain: Chain, input: &str, state: &GemNameRecordState) -> GemRecipientValidation {
+    let name_record = state.record_ref();
+    let is_valid = state.can_validate_recipient() && is_valid(chain, input, name_record);
     GemRecipientValidation {
         is_valid,
         address: address(chain, input, name_record),
@@ -18,11 +20,12 @@ pub fn validation(chain: Chain, input: &str, name_record: Option<&NameRecord>) -
     }
 }
 
-pub fn recipient(chain: Chain, input: &str, name_record: Option<&NameRecord>, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
+pub fn recipient(chain: Chain, input: &str, state: &GemNameRecordState, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
+    let name_record = state.record_ref();
     if name_record.is_some_and(|record| !matches_input(record, chain, input)) {
         return Err(GemRecipientError::NameRecordMismatch);
     }
-    if !is_valid(chain, input, name_record) {
+    if !state.can_validate_recipient() || !is_valid(chain, input, name_record) {
         return Err(GemRecipientError::InvalidAddress);
     }
     Ok(GemRecipient {
@@ -110,105 +113,130 @@ mod tests {
         }
     }
 
+    fn complete(record: NameRecord) -> GemNameRecordState {
+        GemNameRecordState::Complete { record }
+    }
+
+    #[test]
+    fn test_a_pending_or_failed_name_lookup_is_never_a_valid_recipient() {
+        let loading = GemNameRecordState::Loading { name: "h3rman.near".into() };
+        let pending = validation(Chain::Near, "h3rman.near", &loading);
+        assert!(!pending.is_valid);
+        assert!(!pending.shows_error);
+        assert_eq!(pending.address, "h3rman.near");
+        assert!(!validation(Chain::Near, "h3rman.near", &GemNameRecordState::Error).is_valid);
+        assert!(validation(Chain::Near, "h3rman.near", &GemNameRecordState::None).is_valid);
+        assert_eq!(recipient(Chain::Near, "h3rman.near", &loading, None, vec![]), Err(GemRecipientError::InvalidAddress));
+    }
+
     #[test]
     fn test_address_input_is_checksummed_and_validated() {
-        let valid = validation(Chain::Ethereum, ADDRESS, None);
+        let valid = validation(Chain::Ethereum, ADDRESS, &GemNameRecordState::None);
         assert!(valid.is_valid);
         assert_eq!(valid.address, CHECKSUMMED);
         assert!(!valid.shows_error);
 
-        let invalid = validation(Chain::Ethereum, "0xinvalid", None);
+        let invalid = validation(Chain::Ethereum, "0xinvalid", &GemNameRecordState::None);
         assert!(!invalid.is_valid);
         assert!(invalid.shows_error);
-        assert!(!validation(Chain::Ethereum, "", None).shows_error);
-        assert!(!validation(Chain::Ethereum, "vitalik.eth", None).shows_error);
+        assert!(!validation(Chain::Ethereum, "", &GemNameRecordState::None).shows_error);
+        assert!(!validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::None).shows_error);
     }
 
     #[test]
     fn test_name_record_must_match_input_and_chain() {
         let ens = record("vitalik.eth", ADDRESS, Chain::Ethereum);
-        let valid = validation(Chain::Ethereum, "vitalik.eth", Some(&ens));
+        let valid = validation(Chain::Ethereum, "vitalik.eth", &complete(ens.clone()));
         assert!(valid.is_valid);
         assert_eq!(valid.address, CHECKSUMMED);
 
-        assert!(!validation(Chain::Ethereum, "other.eth", Some(&ens)).is_valid);
-        assert!(!validation(Chain::Polygon, "vitalik.eth", Some(&ens)).is_valid);
-        assert!(!validation(Chain::Ethereum, "vitalik.eth", Some(&record("vitalik.eth", "0xbad", Chain::Ethereum))).is_valid);
+        assert!(!validation(Chain::Ethereum, "other.eth", &complete(ens.clone())).is_valid);
+        assert!(!validation(Chain::Polygon, "vitalik.eth", &complete(ens.clone())).is_valid);
+        assert!(!validation(Chain::Ethereum, "vitalik.eth", &complete(record("vitalik.eth", "0xbad", Chain::Ethereum))).is_valid);
     }
 
     #[test]
     fn test_recipient_builds_from_record_or_address() {
         let ens = record("vitalik.eth", ADDRESS, Chain::Ethereum);
-        let named = recipient(Chain::Ethereum, "vitalik.eth", Some(&ens), Some("memo".into()), vec!["ref".into()]).unwrap();
+        let named = recipient(Chain::Ethereum, "vitalik.eth", &complete(ens.clone()), Some("memo".into()), vec!["ref".into()]).unwrap();
         assert_eq!(named.address, CHECKSUMMED);
         assert_eq!(named.name.as_deref(), Some("vitalik.eth"));
         assert_eq!(named.memo.as_deref(), Some("memo"));
         assert_eq!(named.references, vec!["ref".to_string()]);
 
-        let plain = recipient(Chain::Ethereum, ADDRESS, None, None, vec![]).unwrap();
+        let plain = recipient(Chain::Ethereum, ADDRESS, &GemNameRecordState::None, None, vec![]).unwrap();
         assert_eq!(plain.address, CHECKSUMMED);
         assert_eq!(plain.name, None);
         assert_eq!(
-            recipient(Chain::Ethereum, "other.eth", Some(&ens), None, vec![]),
+            recipient(Chain::Ethereum, "other.eth", &complete(ens.clone()), None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
-        assert_eq!(recipient(Chain::Ethereum, "0xinvalid", None, None, vec![]), Err(GemRecipientError::InvalidAddress));
+        assert_eq!(
+            recipient(Chain::Ethereum, "0xinvalid", &GemNameRecordState::None, None, vec![]),
+            Err(GemRecipientError::InvalidAddress)
+        );
     }
 
     #[test]
     fn test_input_is_trimmed_and_prefix_is_case_sensitive() {
         let padded = format!("  {ADDRESS} \n");
-        assert!(validation(Chain::Ethereum, &padded, None).is_valid);
-        assert_eq!(recipient(Chain::Ethereum, &padded, None, None, vec![]).unwrap().address, CHECKSUMMED);
+        assert!(validation(Chain::Ethereum, &padded, &GemNameRecordState::None).is_valid);
+        assert_eq!(recipient(Chain::Ethereum, &padded, &GemNameRecordState::None, None, vec![]).unwrap().address, CHECKSUMMED);
 
         let upper_prefix = ADDRESS.replacen("0x", "0X", 1);
-        assert!(!validation(Chain::Ethereum, &upper_prefix, None).is_valid);
-        assert_eq!(recipient(Chain::Ethereum, &upper_prefix, None, None, vec![]), Err(GemRecipientError::InvalidAddress));
+        assert!(!validation(Chain::Ethereum, &upper_prefix, &GemNameRecordState::None).is_valid);
+        assert_eq!(
+            recipient(Chain::Ethereum, &upper_prefix, &GemNameRecordState::None, None, vec![]),
+            Err(GemRecipientError::InvalidAddress)
+        );
     }
 
     #[test]
     fn test_name_record_matching_is_exact() {
         let ens = record("vitalik.eth", ADDRESS, Chain::Ethereum);
-        assert!(!validation(Chain::Ethereum, "Vitalik.eth", Some(&ens)).is_valid);
+        assert!(!validation(Chain::Ethereum, "Vitalik.eth", &complete(ens.clone())).is_valid);
         assert_eq!(
-            recipient(Chain::Ethereum, "Vitalik.eth", Some(&ens), None, vec![]),
+            recipient(Chain::Ethereum, "Vitalik.eth", &complete(ens.clone()), None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
         assert_eq!(
-            recipient(Chain::Ethereum, " vitalik.eth", Some(&ens), None, vec![]),
+            recipient(Chain::Ethereum, " vitalik.eth", &complete(ens.clone()), None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
         assert_eq!(
-            recipient(Chain::Polygon, "vitalik.eth", Some(&ens), None, vec![]),
+            recipient(Chain::Polygon, "vitalik.eth", &complete(ens.clone()), None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
 
         let empty = record("vitalik.eth", "", Chain::Ethereum);
         assert_eq!(
-            recipient(Chain::Ethereum, "vitalik.eth", Some(&empty), None, vec![]),
+            recipient(Chain::Ethereum, "vitalik.eth", &complete(empty.clone()), None, vec![]),
             Err(GemRecipientError::InvalidAddress)
         );
-        let fallback = validation(Chain::Ethereum, "vitalik.eth", Some(&empty));
+        let fallback = validation(Chain::Ethereum, "vitalik.eth", &complete(empty.clone()));
         assert!(!fallback.is_valid);
         assert_eq!(fallback.address, "vitalik.eth");
     }
 
     #[test]
     fn test_non_evm_addresses_keep_their_case() {
-        let near = recipient(Chain::Near, "h3rman.near", None, None, vec![]).unwrap();
+        let near = recipient(Chain::Near, "h3rman.near", &GemNameRecordState::None, None, vec![]).unwrap();
         assert_eq!(near.address, "h3rman.near");
         assert_eq!(near.name, None);
 
         let solana = "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2";
-        assert_eq!(validation(Chain::Solana, solana, None).address, solana);
-        assert!(validation(Chain::Solana, solana, None).is_valid);
+        assert_eq!(validation(Chain::Solana, solana, &GemNameRecordState::None).address, solana);
+        assert!(validation(Chain::Solana, solana, &GemNameRecordState::None).is_valid);
 
         let tron = "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC";
-        let tron_recipient = recipient(Chain::Tron, tron, None, Some("  memo ".into()), vec!["a".into(), "b".into()]).unwrap();
+        let tron_recipient = recipient(Chain::Tron, tron, &GemNameRecordState::None, Some("  memo ".into()), vec!["a".into(), "b".into()]).unwrap();
         assert_eq!(tron_recipient.address, tron);
         assert_eq!(tron_recipient.memo.as_deref(), Some("  memo "));
         assert_eq!(tron_recipient.references, vec!["a".to_string(), "b".to_string()]);
-        assert_eq!(recipient(Chain::Tron, &tron.to_lowercase(), None, None, vec![]), Err(GemRecipientError::InvalidAddress));
+        assert_eq!(
+            recipient(Chain::Tron, &tron.to_lowercase(), &GemNameRecordState::None, None, vec![]),
+            Err(GemRecipientError::InvalidAddress)
+        );
     }
 
     fn confirm_transfer(address: &str) -> GemPaymentConfirmTransfer {

@@ -493,10 +493,10 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         self.error = error
     }
 
-    public func getNameRecord(name: String, chain _: String) async throws -> Gemstone.NameRecord? {
+    public func getNameRecord(name: String, chain _: String) async throws -> GemNameRecordState {
         requestedNames.append(name)
         if let error { throw error }
-        return nameRecord?.map()
+        return nameRecord.map { .complete(record: $0.map()) } ?? .error
     }
 
     public func isNameSupported(name: String) -> Bool {
@@ -507,12 +507,12 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         0
     }
 
-    public func validateRecipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?) -> GemRecipientValidation {
-        rules.validateRecipient(chain: chain, input: input, nameRecord: nameRecord)
+    public func validateRecipient(chain: Gemstone.Chain, input: String, state: GemNameRecordState) -> GemRecipientValidation {
+        rules.validateRecipient(chain: chain, input: input, state: state)
     }
 
-    public func recipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?, memo: String?, references: [String]) throws -> GemRecipient {
-        try rules.recipient(chain: chain, input: input, nameRecord: nameRecord, memo: memo, references: references)
+    public func recipient(chain: Gemstone.Chain, input: String, state: GemNameRecordState, memo: String?, references: [String]) throws -> GemRecipient {
+        try rules.recipient(chain: chain, input: input, state: state, memo: memo, references: references)
     }
 }
 

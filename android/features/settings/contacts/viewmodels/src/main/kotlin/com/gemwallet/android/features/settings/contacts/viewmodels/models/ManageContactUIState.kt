@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels.models
 
 import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
 
@@ -52,7 +52,7 @@ data class ContactAddressInput(
     val chain: Chain,
     val address: String = "",
     val memo: String = "",
-    val nameResolveState: NameRecordState = NameRecordState.None,
+    val nameResolveState: GemNameRecordState = GemNameRecordState.None,
     val isAddressValid: Boolean = false,
     val showAddressError: Boolean = false,
 ) {
@@ -60,5 +60,5 @@ data class ContactAddressInput(
         get() = chain.isMemoSupport()
 
     val isConfirmEnabled: Boolean
-        get() = nameResolveState !is NameRecordState.Loading && isAddressValid
+        get() = isAddressValid
 }

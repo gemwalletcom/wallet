@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemNameRecordState
 import Primitives
 import Style
 import SwiftUI

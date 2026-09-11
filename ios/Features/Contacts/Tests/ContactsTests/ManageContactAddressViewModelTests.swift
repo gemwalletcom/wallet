@@ -2,6 +2,7 @@
 
 import GemstonePrimitivesTestKit
 @testable import Contacts
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -52,7 +53,7 @@ struct ManageContactAddressViewModelTests {
         model.addressInputModel.nameRecordViewModel.state = .error
         #expect(model.buttonState == .disabled)
 
-        model.addressInputModel.nameRecordViewModel.state = .complete(.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"))
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh").map())
         #expect(model.buttonState == .normal)
 
         model.onSelectChain(.bitcoin)

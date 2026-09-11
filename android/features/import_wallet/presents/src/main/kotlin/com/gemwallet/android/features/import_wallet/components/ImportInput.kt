@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
 import uniffi.gemstone.GemWalletImportKind
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
@@ -50,7 +50,7 @@ import com.gemwallet.android.ui.components.clipboard.clipboardManager
 internal fun ImportInput(
     inputState: TextFieldValue,
     importType: ImportType,
-    uiState: NameRecordState,
+    uiState: GemNameRecordState,
     onValueChange: (TextFieldValue) -> Unit,
     invalidWords: (String) -> Set<String>,
 ) {
@@ -107,7 +107,7 @@ internal fun ImportInput(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 NameResolveIndicator(uiState)
-                if (uiState != NameRecordState.None) {
+                if (uiState != GemNameRecordState.None) {
                     Spacer(modifier = Modifier.size(8.dp))
                 }
             }

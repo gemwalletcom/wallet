@@ -1,16 +1,17 @@
+pub mod model;
 pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::name::NameRecord;
 use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::recipient::{GemRecipientError, GemRecipientValidation, rules as recipient_rules};
 use crate::services::transfer::GemRecipient;
 
+pub use model::GemNameRecordState;
 pub use store::GemAddressStore;
 
 #[derive(uniffi::Object)]
@@ -26,19 +27,12 @@ impl GemNameService {
         Self { api, store }
     }
 
-    pub fn validate_recipient(&self, chain: Chain, input: String, name_record: Option<NameRecord>) -> GemRecipientValidation {
-        recipient_rules::validation(chain, &input, name_record.as_ref())
+    pub fn validate_recipient(&self, chain: Chain, input: String, state: GemNameRecordState) -> GemRecipientValidation {
+        recipient_rules::validation(chain, &input, &state)
     }
 
-    pub fn recipient(
-        &self,
-        chain: Chain,
-        input: String,
-        name_record: Option<NameRecord>,
-        memo: Option<String>,
-        references: Vec<String>,
-    ) -> Result<GemRecipient, GemRecipientError> {
-        recipient_rules::recipient(chain, &input, name_record.as_ref(), memo, references)
+    pub fn recipient(&self, chain: Chain, input: String, state: GemNameRecordState, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
+        recipient_rules::recipient(chain, &input, &state, memo, references)
     }
 
     pub fn is_name_supported(&self, name: String) -> bool {
@@ -49,8 +43,9 @@ impl GemNameService {
         rules::name_record_debounce_milliseconds()
     }
 
-    pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
-        Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
+    pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<GemNameRecordState, GemServiceError> {
+        let record = self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?;
+        Ok(rules::resolved(record))
     }
 }
 

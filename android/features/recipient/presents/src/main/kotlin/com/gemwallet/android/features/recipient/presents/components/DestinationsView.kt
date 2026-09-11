@@ -8,14 +8,14 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.gemwallet.android.ui.components.fields.MemoTextField
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 
 fun LazyListScope.destinationView(
     hasMemo: Boolean,
     assetName: String,
     address: String,
     addressError: Boolean,
-    nameResolveState: NameRecordState,
+    nameResolveState: GemNameRecordState,
     memo: String,
     memoError: RecipientError,
     onAddress: (String) -> Unit,

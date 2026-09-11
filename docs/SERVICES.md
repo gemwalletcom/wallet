@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Name record state lives in Core.** iOS `NameRecordState` and Android `NameRecordState` were
+  the same four-state enum; both apps dropped a resolved record with an empty name or address,
+  and both derived address-input validity from the state with the same switch. Core now owns
+  `GemNameRecordState { None, Loading { name }, Error, Complete { record } }` with
+  `record()`/`requested_name()`, `GemNameService::get_name_record` returns it, and
+  `validate_recipient`/`recipient` take the state, so a pending or failed lookup is never a
+  valid recipient. The apps keep only the debounce-and-fetch task.
 - **Support chat groups come from Core.** iOS `SupportChatDayBuilder` and Android
   `buildSupportChatDays` chunked consecutive messages by a `"agent-<name>"` string key and then
   re-derived the sender from the first message. `support_chat_groups(messages)` returns

@@ -167,7 +167,7 @@ extension ImportWalletSceneViewModel {
 
 extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
-        let nameRecord = nameRecordViewModel?.state.result?.map()
+        let nameRecord = nameRecordViewModel?.state.record()
         let defaultName = try await service.defaultWalletName(chain: chain?.map()).name
         try await importWallet(
             name: service.importName(nameRecord: nameRecord, defaultName: defaultName),

@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use primitives::name::NameRecord;
 use primitives::{Chain, Wallet};
 
 use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientType};
@@ -8,7 +7,7 @@ use super::rules::{next_step, scan_route};
 use crate::GemstoneError;
 use crate::models::payment::GemPayment;
 use crate::payment::{GemPaymentDestination, GemPaymentRecipient, GemPaymentService, GemPaymentWalletAsset};
-use crate::services::name::GemNameService;
+use crate::services::name::{GemNameRecordState, GemNameService};
 use crate::services::transfer::model::GemRecipient;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -26,15 +25,8 @@ impl GemRecipientService {
         Self { names, payments, session }
     }
 
-    pub fn recipient(
-        &self,
-        chain: Chain,
-        input: String,
-        name_record: Option<NameRecord>,
-        memo: Option<String>,
-        references: Vec<String>,
-    ) -> Result<GemRecipient, GemRecipientError> {
-        self.names.recipient(chain, input, name_record, memo, references)
+    pub fn recipient(&self, chain: Chain, input: String, state: GemNameRecordState, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
+        self.names.recipient(chain, input, state, memo, references)
     }
 
     pub fn recipient_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {

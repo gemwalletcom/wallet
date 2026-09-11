@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemNameRecordState
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Primitives
@@ -11,14 +12,14 @@ public final class NameRecordViewModel {
     private let nameService: any GemNameServiceProtocol
     private(set) var nameRecordTask: Task<Void, Never>?
 
-    public var state: NameRecordState = .none
+    public var state: GemNameRecordState = .none
 
     public init(nameService: any GemNameServiceProtocol) {
         self.nameService = nameService
     }
 
     public func getNameRecord(name: String, chain: Chain) {
-        guard name != state.requestedName else { return }
+        guard name != state.requestedName() else { return }
         nameRecordTask?.cancel()
 
         guard nameService.isNameSupported(name: name) else {
@@ -30,14 +31,9 @@ public final class NameRecordViewModel {
         nameRecordTask = Task {
             do {
                 try await Task.sleep(for: .milliseconds(nameService.nameRecordDebounceMilliseconds()))
-                let record = try await nameService.getNameRecord(name: name, chain: chain)
+                let resolved = try await nameService.getNameRecord(name: name, chain: chain)
                 guard state == .loading(name: name) else { return }
-
-                if let record, record.name.isNotEmpty, record.address.isNotEmpty {
-                    state = .complete(record)
-                } else {
-                    state = .error
-                }
+                state = resolved
             } catch {
                 guard !error.isCancelled, state == .loading(name: name) else { return }
                 state = .error

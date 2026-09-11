@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemNameRecordState
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import Components
@@ -45,16 +46,12 @@ public final class AddressInputViewModel {
         set { inputModel.text = newValue }
     }
 
-    public var nameResolveState: NameRecordState {
+    public var nameResolveState: GemNameRecordState {
         nameRecordViewModel.state
     }
 
     public var isValid: Bool {
-        switch nameResolveState {
-        case .none: inputModel.isValid && validation.isValid
-        case .loading, .error: false
-        case .complete: validation.isValid
-        }
+        validation.isValid
     }
 
     public var resolvedAddress: String {
@@ -65,14 +62,14 @@ public final class AddressInputViewModel {
         try nameService.recipient(
             chain: chain.rawValue,
             input: text,
-            nameRecord: nameResolveState.result?.map(),
+            state: nameResolveState,
             memo: memo,
             references: references,
         )
     }
 
     private var validation: GemRecipientValidation {
-        nameService.validateRecipient(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.map())
+        nameService.validateRecipient(chain: chain.rawValue, input: text, state: nameResolveState)
     }
 
     @discardableResult
@@ -113,8 +110,8 @@ extension AddressInputViewModel {
         nameRecordViewModel.getNameRecord(name: newText, chain: chain)
     }
 
-    func onNameResolveStateChange(_: NameRecordState, newState: NameRecordState) {
-        if newState.result != nil {
+    func onNameResolveStateChange(_: GemNameRecordState, newState: GemNameRecordState) {
+        if newState.record() != nil {
             update(error: nil)
         }
     }

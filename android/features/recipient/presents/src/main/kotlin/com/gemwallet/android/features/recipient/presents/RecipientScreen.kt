@@ -27,7 +27,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.recipient.presents.components.RecipientHead
 import com.gemwallet.android.features.recipient.presents.components.contactsDestination
 import com.gemwallet.android.features.recipient.presents.components.destinationView
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.features.recipient.presents.components.walletsDestination
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
@@ -118,7 +118,7 @@ internal fun RecipientScreen(
     address: String,
     memo: String,
     addressError: Boolean,
-    nameResolveState: NameRecordState,
+    nameResolveState: GemNameRecordState,
     memoError: RecipientError,
     wallets: List<Wallet>,
     contacts: List<ContactRecipient>,
