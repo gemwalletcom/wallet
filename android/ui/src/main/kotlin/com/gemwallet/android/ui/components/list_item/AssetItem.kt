@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.price.values.PriceValue
 import com.gemwallet.android.domains.price.ValueDirection
@@ -32,6 +31,7 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -223,7 +223,7 @@ fun PriceInfo(
     color: Color = MaterialTheme.colorScheme.secondary,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     isHighlightPercentage: Boolean = false,
-    internalPadding: Dp = 16.dp,
+    internalPadding: Dp = paddingDefault,
 ) {
     val highlightColor = state.color()
     Row(
@@ -241,7 +241,7 @@ fun PriceInfo(
                 Modifier.background(highlightColor.copy(alpha = alpha10), MaterialTheme.shapes.small)
             } else {
                 Modifier
-            }.padding(4.dp),
+            }.padding(paddingHalfSmall),
             text = changedPercentages,
             color = highlightColor,
             style = style,

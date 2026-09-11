@@ -33,6 +33,7 @@ import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space10
 
+import com.gemwallet.android.ui.theme.space0
 private const val FloatingLabelScale = 0.8f
 
 @Composable
@@ -95,14 +96,14 @@ fun GemTextField(
                                         scaleY = if (hasFloatingLabel) FloatingLabelScale else 1f
                                         transformOrigin = TransformOrigin(0f, 0f)
                                     }
-                                    .offset(y = if (hasFloatingLabel) -space10 else 0.dp),
+                                    .offset(y = if (hasFloatingLabel) -space10 else space0),
                                 text = label,
                                 color = MaterialTheme.colorScheme.secondary,
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
                         Box(
-                            modifier = Modifier.offset(y = if (hasFloatingLabel) space10 else 0.dp),
+                            modifier = Modifier.offset(y = if (hasFloatingLabel) space10 else space0),
                         ) {
                             innerTextField()
                         }

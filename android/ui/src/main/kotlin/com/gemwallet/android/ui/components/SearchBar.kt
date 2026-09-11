@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.paddingLarge
+import com.gemwallet.android.ui.theme.space10
 
 @Composable
 fun SearchBar(
@@ -53,7 +55,7 @@ fun SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
-                    .padding(start = 42.dp, top = 10.dp, end = 40.dp, bottom = 10.dp)
+                    .padding(start = 42.dp, top = space10, end = 40.dp, bottom = space10)
                 ,
                 textStyle = TextStyle.Default.copy(
                     fontSize = 18.sp,
@@ -68,7 +70,7 @@ fun SearchBar(
                 Text(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .padding(start = 42.dp, end = 32.dp),
+                        .padding(start = 42.dp, end = paddingLarge),
                     maxLines = 1,
                     text = stringResource(id = android.R.string.search_go),
                     color = MaterialTheme.colorScheme.secondary,

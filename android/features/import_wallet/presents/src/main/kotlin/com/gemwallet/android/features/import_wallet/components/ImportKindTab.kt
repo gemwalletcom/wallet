@@ -15,6 +15,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space2
 import uniffi.gemstone.GemWalletImportKind
 
 internal fun importTypeTabIndex(kind: GemWalletImportKind, tabs: List<GemWalletImportKind>): Int {
@@ -30,9 +33,9 @@ internal fun ImportKindTab(
     val isSelected = type == selectedType
     Tab(
         modifier = Modifier
-            .padding(horizontal = if (isSelected) 2.dp else 0.dp, vertical = 2.dp)
+            .padding(horizontal = if (isSelected) space2 else space0, vertical = space2)
             .height(32.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(paddingHalfSmall))
             .background(
                 if (isSelected) {
                     MaterialTheme.colorScheme.secondary.copy(alpha = alpha10)

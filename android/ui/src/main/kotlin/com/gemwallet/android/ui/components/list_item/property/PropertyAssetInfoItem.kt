@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -20,6 +19,7 @@ import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.models.BalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -40,7 +40,7 @@ fun PropertyAssetInfoItem(
                     containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(space0)
             ) {
                 Text(text = stringResource(id = R.string.transfer_max))
             }

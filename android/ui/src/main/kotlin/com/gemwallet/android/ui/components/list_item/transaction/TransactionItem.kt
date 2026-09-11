@@ -34,6 +34,8 @@ import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -130,16 +132,16 @@ private fun TransactionStatusBadge(data: TransactionDataAggregate) {
             .padding(start = 5.dp)
             .background(
                 color = color.copy(alpha = alpha10),
-                shape = RoundedCornerShape(6.dp)
+                shape = RoundedCornerShape(space6)
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             modifier = Modifier.padding(
                 start = 5.dp,
-                top = 2.dp,
+                top = space2,
                 end = paddingHalfSmall,
-                bottom = 2.dp
+                bottom = space2
             ),
             text = text,
             color = color,

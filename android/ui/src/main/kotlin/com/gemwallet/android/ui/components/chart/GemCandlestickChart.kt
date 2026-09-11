@@ -92,7 +92,7 @@ fun GemCandlestickChart(
     val referenceColorByRole = referenceColors()
 
     val gridDashEffect = remember(density) {
-        val dashPx = with(density) { 4.dp.toPx() }
+        val dashPx = with(density) { space4.toPx() }
         PathEffect.dashPathEffect(floatArrayOf(dashPx, dashPx))
     }
     val axisLabelStyle = remember(axisLabelColor) {

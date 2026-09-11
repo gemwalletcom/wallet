@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
@@ -54,6 +53,7 @@ import com.gemwallet.android.ui.components.screen.SnackbarHost
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.AssetId
 
 private const val AssetsHeadItemKey = "assets_head"
@@ -165,11 +165,11 @@ fun AssetsScreen(
                             CircularWavyProgressIndicator(
                                 modifier = Modifier.size(paddingDefault),
                                 stroke = Stroke(
-                                    width = with(LocalDensity.current) { 2.dp.toPx() },
+                                    width = with(LocalDensity.current) { space2.toPx() },
                                     cap = StrokeCap.Round,
                                 ),
                                 trackStroke = Stroke(
-                                    width = with(LocalDensity.current) { 2.dp.toPx() },
+                                    width = with(LocalDensity.current) { space2.toPx() },
                                     cap = StrokeCap.Round,
                                 )
                             )

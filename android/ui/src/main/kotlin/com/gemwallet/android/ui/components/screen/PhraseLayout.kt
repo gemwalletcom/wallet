@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -25,6 +24,7 @@ import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.space10
 
+import com.gemwallet.android.ui.theme.space1
 @Composable
 fun PhraseLayout(
     words: List<String>,
@@ -66,7 +66,7 @@ fun RowScope.PhraseWordItem(
 
     Surface(
         modifier = Modifier.weight(0.5f),
-        shadowElevation = 1.dp,
+        shadowElevation = space1,
         shape = RoundedCornerShape(space10),
         color = MaterialTheme.colorScheme.background,
         border = if (isNextToEnter) BorderStroke(space2, MaterialTheme.colorScheme.primary) else null

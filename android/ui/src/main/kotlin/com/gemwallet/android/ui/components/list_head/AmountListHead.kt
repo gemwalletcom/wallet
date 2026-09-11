@@ -280,7 +280,7 @@ private fun AssetWatchOnly() {
             .testTag("watchWalletBanner"),
         onClick = openWatchWalletInfo,
         enabled = true,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(paddingDefault),
         colors = ButtonDefaults
             .buttonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,

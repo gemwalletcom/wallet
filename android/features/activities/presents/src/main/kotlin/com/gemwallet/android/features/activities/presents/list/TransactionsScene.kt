@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -29,6 +28,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import uniffi.gemstone.GemTransactionFilter
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ui.theme.space0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +47,7 @@ internal fun TransactionsScene(
 
     Scene(
         title = stringResource(id = R.string.activity_title),
-        mainActionPadding = PaddingValues(0.dp),
+        mainActionPadding = PaddingValues(space0),
         actions = {
             IconButton(onClick = { showFilters = !showFilters }) {
                 Icon(

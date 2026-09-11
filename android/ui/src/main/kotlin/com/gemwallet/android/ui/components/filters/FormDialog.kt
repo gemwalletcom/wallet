@@ -23,6 +23,8 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.theme.normalPadding
 
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space0
 @Composable
 fun FormDialog(
     isVisible: Boolean,
@@ -63,10 +65,10 @@ fun FormDialog(
                 }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                    verticalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.CenterVertically),
                 ) {
                     Surface(
-                        modifier = Modifier.padding(vertical = 0.dp),
+                        modifier = Modifier.padding(vertical = space0),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
                         shape = MaterialTheme.shapes.extraLarge
                     ) {

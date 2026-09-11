@@ -45,6 +45,7 @@ import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.WalletId
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
@@ -97,7 +98,7 @@ fun CreateWalletScreen(
                     .size(100.dp)
                     .background(
                         MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(paddingSmall)
                     )
             ) {
                 CircularProgressIndicator()

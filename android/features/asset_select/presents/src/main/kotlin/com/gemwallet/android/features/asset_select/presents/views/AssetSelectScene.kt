@@ -39,7 +39,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.filters.AssetsFilter
@@ -400,7 +399,7 @@ private fun LazyListScope.recent(
             items(items) { asset ->
                 Row(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(paddingDefault))
                         .background(MaterialTheme.colorScheme.background)
                         .clickable(onClick = { onSelect?.invoke(asset) })
                         .padding(paddingSmall),

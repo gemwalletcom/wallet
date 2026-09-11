@@ -37,6 +37,7 @@ import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import com.gemwallet.android.ui.theme.space1
 
 data class ChartPoint(
     val x: Float,
@@ -201,7 +202,7 @@ private fun DrawScope.drawSelectionIndicator(
         color.copy(Alpha.SELECTION_LINE * alpha),
         Offset(point.x, 0f),
         Offset(point.x, canvasHeight),
-        1.dp.toPx(),
+        space1.toPx(),
         pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength, dashLength)),
     )
     val glowRadius = dotRadius + glowExtra

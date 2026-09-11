@@ -530,7 +530,7 @@ Three gotchas if you repeat the sweep:
 - **Node screens**: `AddNodeViewModel` and `NetworksViewModel` hold `GemChainSettingsService` alone and keep no node rule of their own; the legacy `cases/<area>/` tree is gone — the Hyperliquid socket reads `GemNodeServiceInterface` directly, and `NativeProvider` is transport only.
 - `UserConfig`: delete the `ConfigStore` fallback for `auth` once enough installs have written the secure value.
 - Consistency: `*Service` classes live inside the coordinators module. (`toChain()` is gone — every chain string the app converts comes from Core, whose `Chain` and the typeshare enum are generated from one source, so `requireChain()` is the only conversion and a mismatch fails loudly instead of dropping the row.)
-- Localization: 59 hardcoded `dp` values (worst: `SupportMessageBubble`, `ReceiveScreen`, `ImportScreen`, `WalletTypeTab`, `FiatScene`).
+- Hardcoded `dp`: every literal whose value has a theme constant reads it now; 30 remain with no constant to name (search bar insets 40/42, the 100 logo and 150 QR sizes, the 680 compact-height breakpoint on the recipient and amount screens, 0.5/1.5 hairlines, and one-offs 3, 5, 14, 20, 30, 36, 64, 72, 250). Each needs a named constant in `ui/theme` or a design call, not a mechanical swap.
 
 ### 8. iOS
 

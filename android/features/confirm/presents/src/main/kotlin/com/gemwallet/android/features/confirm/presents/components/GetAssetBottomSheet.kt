@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -28,6 +27,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.actionIconGlyphSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space12
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -92,7 +92,7 @@ private fun GetAssetIcon(icon: ImageVector) {
     Box(
         modifier = Modifier
             .size(listItemIconSize)
-            .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp)),
+            .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(space12)),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

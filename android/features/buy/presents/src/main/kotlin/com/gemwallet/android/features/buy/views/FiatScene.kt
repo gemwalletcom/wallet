@@ -48,6 +48,8 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space1
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProviderName
@@ -141,13 +143,13 @@ fun BuyScene(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(paddingDefault)
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .size(30.dp)
                             .align(Alignment.Center),
-                        strokeWidth = 1.dp,
+                        strokeWidth = space1,
                     )
                 }
             }

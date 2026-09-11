@@ -16,12 +16,13 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.gemwallet.android.ui.theme.space0
 
 @Composable
 fun rememberQRCodePainter(
     content: String,
     size: Dp = 150.dp,
-    padding: Dp = 0.dp,
+    padding: Dp = space0,
 ): BitmapPainter? {
     val density = LocalDensity.current
     val sizePx = with(density) { size.roundToPx() }

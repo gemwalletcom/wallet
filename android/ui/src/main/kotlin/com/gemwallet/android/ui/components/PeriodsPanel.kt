@@ -19,11 +19,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space6
+import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.ChartPeriod
 
 @Composable
@@ -34,7 +34,7 @@ fun PeriodsPanel(
 ) {
     Row(
         modifier = Modifier.padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
-        horizontalArrangement = Arrangement.spacedBy(0.dp),
+        horizontalArrangement = Arrangement.spacedBy(space0),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         periods.forEach {

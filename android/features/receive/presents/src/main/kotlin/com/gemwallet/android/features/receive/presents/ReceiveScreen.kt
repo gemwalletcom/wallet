@@ -65,6 +65,7 @@ import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -155,7 +156,7 @@ private fun ReceiveScene(
                         icon = assetInfo.asset.id.chain,
                         subtitle = assetInfo.asset.type.string,
                         listPosition = ListPosition.Single,
-                        paddingHorizontal = 0.dp,
+                        paddingHorizontal = space0,
                         trailing = { DataBadgeChevron() },
                         onClick = it,
                     )
@@ -185,7 +186,7 @@ private fun ReceiveScene(
             CenteredListHead(
                 title = assetInfo.asset.name,
                 subtitle = assetInfo.asset.subtitleSymbol,
-                bottomPadding = 0.dp,
+                bottomPadding = space0,
                 leading = { HeaderIcon(assetInfo.asset) },
             )
             ElevatedCard(

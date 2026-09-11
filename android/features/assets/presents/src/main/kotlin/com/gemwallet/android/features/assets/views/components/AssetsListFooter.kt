@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -35,7 +34,7 @@ internal fun AssetsListFooter(
         Row(
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(16.dp)
+                .padding(paddingDefault)
         ) {
             Icon(
                 imageVector = AppIcons.Tune,

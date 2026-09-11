@@ -58,6 +58,9 @@ import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.gemwallet.android.ui.navigation.routes.transactionsRoute
 import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space6
 import kotlinx.coroutines.launch
 
 @Composable
@@ -142,7 +145,7 @@ fun MainScreen(
                                 }
                             },
                             icon = {
-                                val modifier = Modifier.size(24.dp)
+                                val modifier = Modifier.size(smallIconSize)
                                 if (item.route == assetsRoute) {
                                     Icon(
                                         modifier = modifier,
@@ -154,7 +157,7 @@ fun MainScreen(
                                         badge = {
                                             if (!item.badge.isNullOrEmpty()) {
                                                 Badge(
-                                                    modifier = Modifier.offset(x = 6.dp, y = 0.dp)
+                                                    modifier = Modifier.offset(x = space6, y = space0)
                                                 ) {
                                                     Text(text = item.badge)
                                                 }

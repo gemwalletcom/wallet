@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -89,7 +90,7 @@ fun PerpetualItem(
                     changes = item.price.changePercentageFormatted,
                     state = item.price.state,
                     style = MaterialTheme.typography.bodyMedium,
-                    internalPadding = 4.dp
+                    internalPadding = paddingHalfSmall
                 )
             }
         },

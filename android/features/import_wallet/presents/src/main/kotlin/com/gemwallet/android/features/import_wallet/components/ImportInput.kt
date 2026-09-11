@@ -31,7 +31,6 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
@@ -43,6 +42,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
 import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.space8
 import uniffi.gemstone.GemWalletImportKind
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
@@ -108,7 +108,7 @@ internal fun ImportInput(
             ) {
                 NameResolveIndicator(uiState)
                 if (uiState != GemNameRecordState.None) {
-                    Spacer(modifier = Modifier.size(8.dp))
+                    Spacer(modifier = Modifier.size(space8))
                 }
             }
         }

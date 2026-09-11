@@ -14,6 +14,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingSmall
 
+import com.gemwallet.android.ui.theme.space0
 private val normalTopPadding = 8.dp
 private val normalBottomPadding = 8.dp
 
@@ -35,7 +36,7 @@ private fun ListPosition.topPadding(paddingVertical: Dp?) = when (this) {
 private fun ListPosition.bottomPadding(paddingVertical: Dp?) = when (this) {
     ListPosition.Single -> paddingVertical ?: normalBottomPadding
     ListPosition.Last -> normalBottomPadding
-    else -> 0.dp
+    else -> space0
 }
 
 private fun ListPosition.shape() = when (this) {

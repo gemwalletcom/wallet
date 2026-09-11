@@ -63,6 +63,9 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemWalletImportKind
@@ -133,7 +136,7 @@ fun ImportScreen(
                     .size(100.dp)
                     .background(
                         MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(paddingSmall)
                     )
             ) {
                 CircularProgressIndicator()
@@ -206,8 +209,8 @@ private fun ImportScene(
                         .fillMaxWidth()
                         .listItem(ListPosition.Single)
                         .padding(sceneContentPadding())
-                        .padding(bottom = 0.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                        .padding(bottom = space0),
+                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
                 ) {
                     TypeSelection(importType, tabs) { walletType ->
                         onTypeChange(walletType)
@@ -280,7 +283,7 @@ private fun DataInput(
 
     if (suggestions.isNotEmpty() && importType.kind.supportsPhraseSuggestions()) {
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall)
         ) {
             items(suggestions) { word ->
                 SuggestionChip(
@@ -308,7 +311,7 @@ private fun TypeSelection(
         return
     }
     PrimaryTabRow(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(paddingHalfSmall)),
         selectedTabIndex = importTypeTabIndex(importType.kind, tabs),
         indicator = { Box {} },
         containerColor = Color.Transparent,

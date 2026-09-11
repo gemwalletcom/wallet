@@ -110,8 +110,8 @@ fun ReferralScene(
                     modifier = Modifier
                         .widthIn(max = 250.dp)
                         .padding(horizontal = sceneContentPadding())
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(paddingDefault))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(paddingDefault))
                         .clickable(onWallet)
                         .padding(start = paddingDefault, end = paddingSmall)
                         .padding(vertical = paddingSmall)
