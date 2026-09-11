@@ -301,6 +301,9 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Two Android aggregate tests use the shared fixtures.** `PriceAlertDataAggregateImplTest`
+  rebuilt `mockPriceAlert`/`mockAssetPriceInfo` locally and `TransactionDataAggregateImplTest`
+  copied the `Transaction` constructor; both now call the gemcore test fixtures.
 - **Four Android marker interfaces are gone.** `UIModel` (empty), `CryptoAmountUIModel` and
   `AssetUIModel` (each only a supertype of `CryptoFormattedUIModel`) and `DelegationInfoUIModel`
   (one implementer) were never used as a type; `CryptoFormattedUIModel` now declares the asset and

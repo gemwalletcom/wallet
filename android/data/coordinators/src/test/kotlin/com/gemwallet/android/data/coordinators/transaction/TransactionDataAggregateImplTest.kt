@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.testkit.mockTransaction
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
@@ -96,25 +97,16 @@ class TransactionDataAggregateImplTest {
         direction: TransactionDirection = TransactionDirection.Outgoing,
         value: String = "100000000",
         metadata: String? = null,
-    ) = Transaction(
-        id = TransactionId(assetId.chain, id),
+    ) = mockTransaction(
         assetId = assetId,
+        id = TransactionId(assetId.chain, id),
         from = from,
         to = to,
-        contract = null,
         type = type,
         state = state,
-        blockNumber = "123456",
-        sequence = null,
-        fee = "1000",
-        feeAssetId = assetId,
         value = value,
-        memo = null,
         direction = direction,
-        utxoInputs = null,
-        utxoOutputs = null,
         metadata = metadata,
-        createdAt = System.currentTimeMillis(),
     )
 
     private fun createTransactionExtended(
