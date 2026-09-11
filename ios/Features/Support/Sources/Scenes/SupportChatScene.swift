@@ -73,11 +73,11 @@ public struct SupportChatScene: View {
 
     @ViewBuilder
     private func groupView(_ group: SupportChatGroup) -> some View {
-        switch group.kind {
-        case let .agent(_, messages):
-            SupportAgentMessageGroup(messages: messages)
-        case let .user(messages):
-            SupportUserMessageGroup(messages: messages)
+        switch group.sender {
+        case .agent:
+            SupportAgentMessageGroup(messages: group.messages)
+        case .user:
+            SupportUserMessageGroup(messages: group.messages)
         }
     }
 }

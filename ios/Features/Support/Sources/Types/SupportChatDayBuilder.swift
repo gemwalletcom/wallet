@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
+import func Gemstone.supportChatGroups
 
 struct SupportChatDayBuilder {
     let messages: [SupportMessage]
@@ -21,42 +23,11 @@ struct SupportChatDayBuilder {
 
 private extension SupportChatDayBuilder {
     func groups(from messages: [SupportMessage]) -> [SupportChatGroup] {
-        messages.chunked(on: senderKey)
-            .compactMap(kind(from:))
-            .map { SupportChatGroup(kind: $0) }
-    }
-
-    func kind(from messages: [SupportMessage]) -> SupportChatGroup.Kind? {
-        guard let sender = messages.first?.sender else { return nil }
-        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction, imageAction: imageAction) }
-        switch sender {
-        case .user: return .user(messages: bubbles)
-        case let .agent(agent): return .agent(name: agent.name, messages: bubbles)
+        supportChatGroups(messages: messages.map { $0.map() }).map { group in
+            SupportChatGroup(
+                sender: group.sender.map(),
+                messages: group.messages.map { SupportMessageBubbleViewModel(message: $0.map(), retryAction: retryAction, imageAction: imageAction) },
+            )
         }
-    }
-
-    func senderKey(_ message: SupportMessage) -> String {
-        switch message.sender {
-        case .user: "user"
-        case let .agent(agent): "agent-\(agent.name)"
-        }
-    }
-}
-
-private extension Array {
-    func chunked(on key: (Element) -> some Equatable) -> [[Element]] {
-        var chunks: [[Element]] = []
-        var currentChunk: [Element] = []
-        for element in self {
-            if let last = currentChunk.last, key(last) != key(element) {
-                chunks.append(currentChunk)
-                currentChunk = []
-            }
-            currentChunk.append(element)
-        }
-        if currentChunk.isNotEmpty {
-            chunks.append(currentChunk)
-        }
-        return chunks
     }
 }

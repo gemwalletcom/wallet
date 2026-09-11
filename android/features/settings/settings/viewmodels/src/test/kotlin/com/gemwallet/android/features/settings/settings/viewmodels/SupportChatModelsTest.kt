@@ -5,7 +5,6 @@ import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportMessageStatus
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SupportChatModelsTest {
@@ -41,44 +40,16 @@ class SupportChatModelsTest {
     }
 
     @Test
-    fun consecutiveSameSenderMergesIntoOneGroup() {
-        val days = buildSupportChatDays(
-            listOf(message("a", user, day1), message("b", user, day1 + 3_600_000L)),
-        )
-
-        assertEquals(1, days[0].groups.size)
-        assertEquals(listOf("a", "b"), days[0].groups[0].messages.map { it.id })
-    }
-
-    @Test
-    fun senderChangeAndAgentNameStartNewGroups() {
+    fun groupsCarryTheSenderAndTheMessages() {
         val days = buildSupportChatDays(
             listOf(
                 message("a", user, day1),
                 message("b", agent("Ann"), day1 + 1_000L),
-                message("c", agent("Bob"), day1 + 2_000L),
-            ),
-        )
-
-        assertEquals(3, days[0].groups.size)
-        assertTrue(days[0].groups[0] is SupportChatGroup.User)
-        assertEquals("Ann", (days[0].groups[1] as SupportChatGroup.Agent).name)
-        assertEquals("Bob", (days[0].groups[2] as SupportChatGroup.Agent).name)
-    }
-
-    @Test
-    fun nonConsecutiveSameAgentProducesSeparateGroups() {
-        val days = buildSupportChatDays(
-            listOf(
-                message("a", agent("Ann"), day1),
-                message("b", user, day1 + 1_000L),
                 message("c", agent("Ann"), day1 + 2_000L),
             ),
         )
 
-        assertEquals(3, days[0].groups.size)
-        assertEquals(listOf("a"), days[0].groups[0].messages.map { it.id })
-        assertEquals(listOf("b"), days[0].groups[1].messages.map { it.id })
-        assertEquals(listOf("c"), days[0].groups[2].messages.map { it.id })
+        assertEquals(listOf(user, agent("Ann")), days[0].groups.map { it.sender })
+        assertEquals(listOf(listOf("a"), listOf("b", "c")), days[0].groups.map { group -> group.messages.map { it.id } })
     }
 }

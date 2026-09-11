@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 
 struct SupportChatDay: Identifiable {
     let date: Date
@@ -10,17 +11,10 @@ struct SupportChatDay: Identifiable {
 }
 
 struct SupportChatGroup: Identifiable {
-    enum Kind {
-        case user(messages: [SupportMessageBubbleViewModel])
-        case agent(name: String, messages: [SupportMessageBubbleViewModel])
-    }
-
-    let kind: Kind
+    let sender: SupportMessageSender
+    let messages: [SupportMessageBubbleViewModel]
 
     var id: String {
-        switch kind {
-        case let .user(messages), let .agent(_, messages):
-            messages.first?.id ?? ""
-        }
+        messages.first?.id ?? ""
     }
 }

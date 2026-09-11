@@ -34,47 +34,15 @@ struct SupportChatDayBuilderTests {
     }
 
     @Test
-    func chunksByConsecutiveSender() {
+    func groupsCarryTheSenderAndTheBubbles() {
         let groups = build([
             message("a", .user, day: 1),
-            message("b", .user, day: 1),
-            message("c", agent("Gemma"), day: 1),
-            message("d", .user, day: 1),
-        ])[0].groups
-
-        #expect(groups.count == 3)
-        #expect(groups[0].isUser)
-        #expect(groups[0].bubbleIds == ["a", "b"])
-        #expect(groups[1].agentName == "Gemma")
-        #expect(groups[2].isUser)
-        #expect(groups[2].bubbleIds == ["d"])
-    }
-
-    @Test
-    func splitsAgentGroupWhenNameChanges() {
-        let groups = build([
-            message("a", agent("Gemma"), day: 1),
-            message("b", agent("Radmir"), day: 1),
-            message("c", agent("Radmir"), day: 1),
-        ])[0].groups
-
-        #expect(groups.count == 2)
-        #expect(groups[0].agentName == "Gemma")
-        #expect(groups[0].bubbleIds == ["a"])
-        #expect(groups[1].agentName == "Radmir")
-        #expect(groups[1].bubbleIds == ["b", "c"])
-    }
-
-    @Test
-    func doesNotMergeNonConsecutiveSameAgent() {
-        let groups = build([
-            message("a", agent("Gemma"), day: 1),
-            message("b", .user, day: 1),
+            message("b", agent("Gemma"), day: 1),
             message("c", agent("Gemma"), day: 1),
         ])[0].groups
 
-        #expect(groups.count == 3)
-        #expect(groups.map(\.agentName) == ["Gemma", nil, "Gemma"])
+        #expect(groups.map(\.sender) == [.user, agent("Gemma")])
+        #expect(groups.map(\.bubbleIds) == [["a"], ["b", "c"]])
     }
 
     @Test
@@ -104,18 +72,7 @@ private extension SupportChatDayBuilderTests {
 }
 
 private extension SupportChatGroup {
-    var isUser: Bool {
-        if case .user = kind { true } else { false }
-    }
-
-    var agentName: String? {
-        if case let .agent(name, _) = kind { name } else { nil }
-    }
-
     var bubbleIds: [String] {
-        switch kind {
-        case let .user(messages): messages.map(\.id)
-        case let .agent(_, messages): messages.map(\.id)
-        }
+        messages.map(\.id)
     }
 }

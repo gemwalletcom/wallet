@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 pub mod store;
 
@@ -13,6 +14,7 @@ use crate::alien::AlienProvider;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::file::{GemFileStore, download};
 
+pub use model::GemSupportChatGroup;
 pub use store::GemSupportStore;
 
 #[derive(uniffi::Object)]

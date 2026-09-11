@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Support chat groups come from Core.** iOS `SupportChatDayBuilder` and Android
+  `buildSupportChatDays` chunked consecutive messages by a `"agent-<name>"` string key and then
+  re-derived the sender from the first message. `support_chat_groups(messages)` returns
+  `GemSupportChatGroup { sender, messages }`; the apps keep only the local-calendar day split
+  (Core has no time-zone rules, and a single UTC offset would misplace messages across a DST
+  change).
 - **Perpetual chart layout comes from Core.** Both apps padded the price range, hid reference
   lines far from the candles, spaced four ticks and levelled overlapping labels with the same
   constants, and drifted on the floor guard and the flat-series span. `perpetual_chart_layout`
