@@ -8,9 +8,11 @@ use gem_client::Client;
 use primitives::{Asset, AssetId, Chain, SimulationHeader, SimulationInput, SimulationResult};
 
 use crate::address::TronAddress;
+use crate::decode_wallet_connect_approval;
 use crate::models::TriggerSmartContractData;
-use crate::provider::simulation_mapper::map_simulation_result;
+use crate::provider::simulation_mapper::{map_approval_simulation, map_simulation_result};
 use crate::rpc::TronProvider;
+use crate::trc20::TRC20_APPROVE_SELECTOR;
 
 #[async_trait]
 impl<C: Client> ChainSimulation for TronProvider<C> {
@@ -19,6 +21,12 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
         let Some(contract_data) = TriggerSmartContractData::from_payload(Some(input.encoded_transaction.as_bytes()), signer_address)? else {
             return Ok(SimulationResult::default());
         };
+
+        if hex::decode(&contract_data.data)?.starts_with(&TRC20_APPROVE_SELECTOR)
+            && let Some(approval) = decode_wallet_connect_approval(&input.encoded_transaction)?
+        {
+            return Ok(map_approval_simulation(approval));
+        }
 
         let owner = TronAddress::from_hex_or_base58(&contract_data.owner_address).ok_or("invalid owner address")?;
         let call_value = contract_data.call_value.filter(|value| *value > 0);
@@ -67,6 +75,30 @@ mod tests {
     use gem_client::testkit::MockClient;
     use num_bigint::BigInt;
     use primitives::{Address as _, SimulationBalanceChange};
+
+    #[tokio::test]
+    async fn test_simulate_transaction_decodes_approval() {
+        let client = TronProvider::new_rpc_only(TronClient::new(MockClient::new()));
+        let data = include_str!("../../../gem_wallet_connect/testdata/tron_send_transaction.json");
+        let result = client.simulate_transaction(SimulationInput::new(data)).await.unwrap();
+        assert_eq!(
+            result.header,
+            Some(SimulationHeader {
+                asset_id: AssetId::from_token(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+                value: Some(BigUint::from(0u32)),
+                is_unlimited: false,
+            })
+        );
+        assert_eq!(result.payload[0].value, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
+    }
+
+    #[tokio::test]
+    async fn test_simulate_transaction_rejects_approval_payload_mismatch() {
+        let mock = MockClient::new().with_post(|_, _| Ok(br#"{"result":{"result":true},"constant_result":[],"energy_used":100}"#.to_vec()));
+        let client = TronProvider::new_rpc_only(TronClient::new(mock));
+        let data = include_str!("../../../gem_wallet_connect/testdata/tron_send_transaction.json").replacen("095ea7b3", "095ea7b3ff", 1);
+        assert!(client.simulate_transaction(SimulationInput::new(data)).await.is_err());
+    }
 
     #[tokio::test]
     async fn test_simulate_transaction_surfaces_call_value_as_header() {

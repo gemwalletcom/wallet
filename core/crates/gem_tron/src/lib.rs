@@ -3,10 +3,11 @@ pub mod address;
 mod constants;
 pub mod models;
 
-#[cfg(any(feature = "rpc", feature = "signer"))]
-pub(crate) mod trc20;
+pub(crate) mod transaction;
+pub mod trc20;
 
 pub use address::validate_address;
+pub use transaction::decode_wallet_connect_approval;
 
 #[cfg(feature = "signer")]
 pub mod signer;

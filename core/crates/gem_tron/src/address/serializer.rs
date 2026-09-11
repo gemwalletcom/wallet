@@ -29,7 +29,6 @@ pub mod optional {
     }
 }
 
-#[cfg(feature = "signer")]
 pub(crate) mod hex_or_base58 {
     use super::*;
     use serde::de::Error as _;

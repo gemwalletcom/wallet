@@ -1,5 +1,5 @@
-use primitives::{Resource, SignerError, TronVote};
-use serde::{Deserialize, Serialize};
+use primitives::{Resource, SignerError};
+use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
@@ -88,14 +88,6 @@ pub(crate) enum TronContract {
 }
 
 impl TronContract {
-    pub(crate) fn vote_witness(owner: TronAddress, votes: &[TronVote]) -> Result<Self, SignerError> {
-        Ok(Self::VoteWitness {
-            owner,
-            votes: votes.iter().map(TronContractVote::try_from).collect::<Result<Vec<_>, _>>()?,
-            support: true,
-        })
-    }
-
     pub(crate) fn kind(&self) -> TronContractType {
         match self {
             Self::Transfer { .. } => TronContractType::Transfer,
@@ -406,13 +398,11 @@ impl From<VoteValue> for TronContractVote {
     }
 }
 
-impl TryFrom<&TronVote> for TronContractVote {
-    type Error = SignerError;
-
-    fn try_from(vote: &TronVote) -> Result<Self, Self::Error> {
-        Ok(Self {
-            address: TronAddress::parse(&vote.validator)?,
-            count: vote.count,
-        })
+impl Serialize for TronContract {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.json().serialize(serializer)
     }
 }
