@@ -631,7 +631,6 @@ networks_state_empty_search_title = Мереж не знайдено
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Ви отримаєте секретну фразу — це єдиний спосіб отримати доступ до вашого гаманця.
-onboarding_security_create_wallet_confirm_title = Я розумію і хочу продовжувати
 onboarding_security_create_wallet_do_not_share_title = Нікому не діліться
 onboarding_security_create_wallet_do_not_share_subtitle = Кожен, хто дізнається вашу секретну фразу, може повністю контролювати ваш гаманець.
 onboarding_security_create_wallet_keep_safe_subtitle = Секретна фраза - це єдиний спосіб отримати доступ до вашого гаманця.

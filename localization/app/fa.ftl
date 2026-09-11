@@ -631,7 +631,6 @@ networks_state_empty_search_title = هیچ شبکه‌ای یافت نشد
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = شما یک عبارت مخفی دریافت خواهید کرد - این تنها راه برای دسترسی به کیف پول شما است.
-onboarding_security_create_wallet_confirm_title = می فهمم و می خواهم ادامه دهم
 onboarding_security_create_wallet_do_not_share_title = آن را با کسی به اشتراک نگذارید
 onboarding_security_create_wallet_do_not_share_subtitle = هر کسی که عبارت مخفی شما را دریافت کند می تواند کنترل کامل کیف پول شما را در دست بگیرد.
 onboarding_security_create_wallet_keep_safe_subtitle = عبارت مخفی تنها راه دسترسی به کیف پول شماست.

@@ -631,7 +631,6 @@ networks_state_empty_search_title = Keine Netzwerke gefunden
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Sie erhalten eine geheime Phrase – nur so können Sie auf Ihr Wallet zugreifen.
-onboarding_security_create_wallet_confirm_title = Ich verstehe und möchte fortfahren
 onboarding_security_create_wallet_do_not_share_title = Geben Sie es an niemanden weiter
 onboarding_security_create_wallet_do_not_share_subtitle = Jeder, der Ihre geheime Phrase erhält, kann die vollständige Kontrolle über Ihre Wallet übernehmen.
 onboarding_security_create_wallet_keep_safe_subtitle = Der geheime Satz ist die einzige Möglichkeit, auf Ihr Wallet zuzugreifen.

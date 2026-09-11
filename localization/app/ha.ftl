@@ -631,7 +631,6 @@ networks_state_empty_search_title = Babu cibiyoyin sadarwa da aka samu
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Za ku sami kalmar sirri - ita ce kawai hanyar samun damar walat ɗin ku.
-onboarding_security_create_wallet_confirm_title = Na fahimta kuma ina so in ci gaba
 onboarding_security_create_wallet_do_not_share_title = Kada Ku Raba Ga Kowa
 onboarding_security_create_wallet_do_not_share_subtitle = Duk wanda ya sami kalmar sirrin ku na iya ɗaukar cikakken iko da walat ɗin ku.
 onboarding_security_create_wallet_keep_safe_subtitle = Kalmar sirrin hanya ce kawai don samun damar walat ɗin ku.

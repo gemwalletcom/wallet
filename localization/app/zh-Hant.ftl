@@ -631,7 +631,6 @@ networks_state_empty_search_title = 未找到任何網路
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = 您將取得一組助記詞，請務必妥善備份。
-onboarding_security_create_wallet_confirm_title = 我已了解，繼續
 onboarding_security_create_wallet_do_not_share_title = 切勿洩漏助記詞
 onboarding_security_create_wallet_do_not_share_subtitle = 任何人取得助記詞，都能控制錢包並轉走資產。
 onboarding_security_create_wallet_keep_safe_subtitle = 請抄寫助記詞，並保存在只有您能取用的安全位置。

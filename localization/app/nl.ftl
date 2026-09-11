@@ -631,7 +631,6 @@ networks_state_empty_search_title = Geen netwerken gevonden
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = U ontvangt een geheime zin. Dit is de enige manier om toegang te krijgen tot uw portemonnee.
-onboarding_security_create_wallet_confirm_title = Ik begrijp het en wil doorgaan
 onboarding_security_create_wallet_do_not_share_title = Deel het met niemand
 onboarding_security_create_wallet_do_not_share_subtitle = Iedereen die uw geheime zin te pakken krijgt, kan de volledige controle over uw portemonnee overnemen.
 onboarding_security_create_wallet_keep_safe_subtitle = De geheime zin is de enige manier om toegang te krijgen tot uw portemonnee.

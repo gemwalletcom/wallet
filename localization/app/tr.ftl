@@ -631,7 +631,6 @@ networks_state_empty_search_title = Hiçbir ağ bulunamadı
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Gizli bir İfade alacaksınız; bu, cüzdanınıza erişmenin tek yoludur.
-onboarding_security_create_wallet_confirm_title = Anlıyorum ve devam etmek istiyorum
 onboarding_security_create_wallet_do_not_share_title = Kimseyle Paylaşmayın
 onboarding_security_create_wallet_do_not_share_subtitle = Gizli cümlenizi ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir.
 onboarding_security_create_wallet_keep_safe_subtitle = Cüzdanınıza erişmenin tek yolu gizli ifadedir.

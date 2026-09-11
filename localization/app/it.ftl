@@ -631,7 +631,6 @@ networks_state_empty_search_title = Nessuna rete trovata
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Riceverai una frase segreta: è l'unico modo per accedere al tuo portafoglio.
-onboarding_security_create_wallet_confirm_title = Ho capito e voglio continuare
 onboarding_security_create_wallet_do_not_share_title = Non condividerlo con nessuno
 onboarding_security_create_wallet_do_not_share_subtitle = Chiunque scopra la tua frase segreta può assumere il controllo totale del tuo portafoglio.
 onboarding_security_create_wallet_keep_safe_subtitle = La frase segreta è l'unico modo per accedere al tuo portafoglio.

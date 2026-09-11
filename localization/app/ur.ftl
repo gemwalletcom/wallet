@@ -631,7 +631,6 @@ networks_state_empty_search_title = کوئی نیٹ ورک نہیں ملا
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = آپ کو ایک خفیہ جملہ ملے گا - یہ آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔
-onboarding_security_create_wallet_confirm_title = میں سمجھتا ہوں اور جاری رکھنا چاہتا ہوں۔
 onboarding_security_create_wallet_do_not_share_title = اسے کسی کے ساتھ شیئر نہ کریں۔
 onboarding_security_create_wallet_do_not_share_subtitle = جو کوئی بھی آپ کا خفیہ جملہ حاصل کرتا ہے وہ آپ کے بٹوے کا مکمل کنٹرول لے سکتا ہے۔
 onboarding_security_create_wallet_keep_safe_subtitle = خفیہ جملہ آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔

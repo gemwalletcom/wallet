@@ -631,7 +631,6 @@ networks_state_empty_search_title = לא נמצאו רשתות
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = תקבל ביטוי סודי - זו הדרך היחידה לגשת לארנק שלך.
-onboarding_security_create_wallet_confirm_title = אני מבין ורוצה להמשיך
 onboarding_security_create_wallet_do_not_share_title = אל תשתף את זה עם אף אחד
 onboarding_security_create_wallet_do_not_share_subtitle = כל מי שמקבל את הביטוי הסודי שלך יכול להשתלט על הארנק שלך.
 onboarding_security_create_wallet_keep_safe_subtitle = הביטוי הסודי הוא הדרך היחידה לגשת לארנק שלך.

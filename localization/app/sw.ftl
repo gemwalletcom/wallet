@@ -631,7 +631,6 @@ networks_state_empty_search_title = Hakuna mitandao iliyopatikana
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Utapata Maneno ya Siri - ndiyo njia pekee ya kufikia pochi yako.
-onboarding_security_create_wallet_confirm_title = Ninaelewa na ninataka kuendelea
 onboarding_security_create_wallet_do_not_share_title = Usimshirikishe Mtu Yeyote
 onboarding_security_create_wallet_do_not_share_subtitle = Mtu yeyote anayepata maneno yako ya siri anaweza kuchukua udhibiti kamili wa pochi yako.
 onboarding_security_create_wallet_keep_safe_subtitle = Maneno ya siri ndiyo njia pekee ya kufikia mkoba wako.

@@ -631,7 +631,6 @@ networks_state_empty_search_title = Aucun réseau trouvé
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Vous recevrez une phrase secrète : c'est le seul moyen d'accéder à votre portefeuille.
-onboarding_security_create_wallet_confirm_title = Je comprends et je veux continuer
 onboarding_security_create_wallet_do_not_share_title = Ne le partagez avec personne
 onboarding_security_create_wallet_do_not_share_subtitle = Quiconque obtient votre phrase secrète peut prendre le contrôle total de votre portefeuille.
 onboarding_security_create_wallet_keep_safe_subtitle = La phrase secrète est le seul moyen d'accéder à votre portefeuille.

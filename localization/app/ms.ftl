@@ -631,7 +631,6 @@ networks_state_empty_search_title = Tiada rangkaian ditemui
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Anda akan mendapat Frasa Rahsia — ia adalah satu-satunya cara untuk mengakses dompet anda.
-onboarding_security_create_wallet_confirm_title = Saya faham dan mahu teruskan
 onboarding_security_create_wallet_do_not_share_title = Jangan Kongsi Dengan Sesiapapun
 onboarding_security_create_wallet_do_not_share_subtitle = Sesiapa sahaja yang mendapat frasa rahsia anda boleh mengawal sepenuhnya dompet anda.
 onboarding_security_create_wallet_keep_safe_subtitle = Frasa rahsia adalah satu-satunya cara untuk mengakses dompet anda.

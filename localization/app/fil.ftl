@@ -631,7 +631,6 @@ networks_state_empty_search_title = Walang nakitang mga network
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Makakakuha ka ng Secret Phrase — ito lang ang paraan para ma-access ang iyong wallet.
-onboarding_security_create_wallet_confirm_title = Naiintindihan ko at gusto kong magpatuloy
 onboarding_security_create_wallet_do_not_share_title = Huwag Ibahagi Ito Kaninuman
 onboarding_security_create_wallet_do_not_share_subtitle = Ang sinumang makakakuha ng iyong sikretong parirala ay maaaring ganap na makontrol ang iyong pitaka.
 onboarding_security_create_wallet_keep_safe_subtitle = Ang lihim na parirala ay tanging paraan upang ma-access ang iyong pitaka.

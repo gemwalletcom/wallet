@@ -20,19 +20,16 @@ public struct ExportWalletNavigationStack: View {
 
     public var body: some View {
         NavigationStack(path: $navigationPath) {
-            Group {
-                switch flow {
-                case .words:
-                    SecurityReminderScene(
-                        model: SecurityReminderViewModel(
-                            title: Localized.Common.secretPhrase,
-                            onNext: onNext,
-                        ),
-                    )
-                case let .privateKey(key):
-                    ShowSecretDataScene(model: ShowPrivateKeyViewModel(text: key))
-                }
+            let title = switch flow {
+            case .words: Localized.Common.secretPhrase
+            case .privateKey: Localized.Common.privateKey
             }
+            SecurityReminderScene(
+                model: SecurityReminderViewModel(
+                    title: title,
+                    onNext: onNext,
+                ),
+            )
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: ExportWalletDestination.self) {

@@ -505,7 +505,6 @@
   <string name="search_state_empty_description">Перевірте орфографію або спробуйте новий пошук.</string>
   <string name="networks_state_empty_search_title">Мереж не знайдено</string>
   <string name="onboarding_security_create_wallet_intro_title">Ви отримаєте секретну фразу — це єдиний спосіб отримати доступ до вашого гаманця.</string>
-  <string name="onboarding_security_create_wallet_confirm_title">Я розумію і хочу продовжувати</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">Нікому не діліться</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">Кожен, хто дізнається вашу секретну фразу, може повністю контролювати ваш гаманець.</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">Секретна фраза - це єдиний спосіб отримати доступ до вашого гаманця.</string>

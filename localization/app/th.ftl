@@ -631,7 +631,6 @@ networks_state_empty_search_title = ไม่พบเครือข่าย
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = คุณจะได้รับวลีลับซึ่งเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ
-onboarding_security_create_wallet_confirm_title = ฉันเข้าใจและต้องการดำเนินการต่อ
 onboarding_security_create_wallet_do_not_share_title = อย่าแบ่งปันกับใคร
 onboarding_security_create_wallet_do_not_share_subtitle = ใครก็ตามที่รู้วลีลับของคุณ สามารถควบคุมกระเป๋าเงินของคุณได้อย่างสมบูรณ์
 onboarding_security_create_wallet_keep_safe_subtitle = วลีลับเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ
