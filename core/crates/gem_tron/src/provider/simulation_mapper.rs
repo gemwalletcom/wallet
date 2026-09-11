@@ -1,10 +1,11 @@
 use num_bigint::BigInt;
 use num_traits::Zero;
 use primitives::{
-    ApprovalData, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind,
-    SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType,
+    AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType,
 };
 
+use crate::TransactionApproval;
 use crate::address::TronAddress;
 use crate::models::TriggerConstantContractResponse;
 use crate::provider::balance_diff::token_balance_deltas;
@@ -21,10 +22,11 @@ pub fn map_simulation_result(owner: &TronAddress, response: &TriggerConstantCont
     }
 }
 
-pub(crate) fn map_approval_simulation(approval: ApprovalData) -> SimulationResult {
+pub(crate) fn map_approval_simulation(decoded: TransactionApproval) -> SimulationResult {
+    let TransactionApproval { approval, contract, expiration } = decoded;
     let asset_id = AssetId::from_token(Chain::Tron, &approval.token);
     let value = (!approval.is_unlimited).then_some(approval.value);
-    SimulationResult {
+    let mut result = SimulationResult {
         header: Some(SimulationHeader {
             asset_id: asset_id.clone(),
             value: value.clone(),
@@ -47,7 +49,7 @@ pub(crate) fn map_approval_simulation(approval: ApprovalData) -> SimulationResul
             ),
             SimulationPayloadField::standard(
                 SimulationPayloadFieldKind::Contract,
-                approval.token,
+                contract,
                 SimulationPayloadFieldType::Address,
                 SimulationPayloadFieldDisplay::Secondary,
             ),
@@ -59,7 +61,16 @@ pub(crate) fn map_approval_simulation(approval: ApprovalData) -> SimulationResul
             ),
         ],
         balance_changes: vec![],
+    };
+    if let Some(expiration) = expiration {
+        result.payload.push(SimulationPayloadField::standard(
+            SimulationPayloadFieldKind::Expiration,
+            expiration.to_string(),
+            SimulationPayloadFieldType::Timestamp,
+            SimulationPayloadFieldDisplay::Primary,
+        ));
     }
+    result
 }
 
 fn map_balance_changes(owner: &TronAddress, response: &TriggerConstantContractResponse, call_value: Option<u64>) -> Vec<SimulationBalanceChange> {
@@ -83,16 +94,20 @@ fn map_balance_changes(owner: &TronAddress, response: &TriggerConstantContractRe
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::Address as _;
+    use primitives::{Address as _, ApprovalData};
 
     #[test]
     fn test_map_approval_simulation() {
         for (value, is_unlimited) in [(BigUint::from(100u32), false), (BigUint::from_bytes_be(&[0xff; 32]), true)] {
-            let result = map_approval_simulation(ApprovalData {
-                token: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
-                spender: "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM".to_string(),
-                value: value.clone(),
-                is_unlimited,
+            let result = map_approval_simulation(TransactionApproval {
+                contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                expiration: None,
+                approval: ApprovalData {
+                    token: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                    spender: "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM".to_string(),
+                    value: value.clone(),
+                    is_unlimited,
+                },
             });
             assert_eq!(
                 result.header,

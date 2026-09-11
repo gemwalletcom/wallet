@@ -282,10 +282,10 @@ pub fn transfer_data(
             } else {
                 TransactionType::SmartContractCall
             };
-            let to = approval.as_ref().map(|approval| approval.token.clone()).unwrap_or_default();
+            let to = approval.as_ref().map(|decoded| decoded.contract.clone()).unwrap_or_default();
             let extra = TransferDataExtra {
                 to,
-                approval,
+                approval: approval.map(|decoded| decoded.approval),
                 ..encoded_extra(data, output_type, output_action, transaction_type)
             };
             (extra, BigInt::ZERO)
@@ -527,7 +527,7 @@ mod tests {
             assert_eq!(transfer.value, BigInt::ZERO);
             let extra = transfer.input_type.get_generic_data().unwrap();
             assert_eq!(extra.transaction_type, TransactionType::TokenApproval);
-            assert_eq!(extra.approval, decode_wallet_connect_approval(data).unwrap());
+            assert_eq!(extra.approval, decode_wallet_connect_approval(data).unwrap().map(|decoded| decoded.approval));
             assert_eq!(extra.data.as_deref(), Some(data.as_bytes()));
             assert_eq!(extra.output_type, TransferDataOutputType::EncodedTransaction);
             assert_eq!(

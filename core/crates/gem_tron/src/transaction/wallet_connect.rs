@@ -1,10 +1,10 @@
 use gem_hash::sha2::sha256;
-use primitives::{ApprovalData, SignerError};
+use primitives::SignerError;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use serde_serializers::hex_bytes;
 
-use super::RawDataJson;
+use super::{RawDataJson, TransactionApproval};
 
 #[derive(Deserialize)]
 pub(crate) struct WalletConnectRequest {
@@ -49,7 +49,7 @@ impl WalletConnectTransaction {
     }
 }
 
-pub fn decode_wallet_connect_approval(data: &str) -> Result<Option<ApprovalData>, SignerError> {
+pub fn decode_wallet_connect_approval(data: &str) -> Result<Option<TransactionApproval>, SignerError> {
     let payload: WalletConnectRequest = serde_json::from_str(data)?;
     let (_, raw_data) = payload.transaction.validate()?;
     raw_data.approval()
@@ -58,12 +58,17 @@ pub fn decode_wallet_connect_approval(data: &str) -> Result<Option<ApprovalData>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloy_sol_types::SolCall;
+    use gem_evm::permit2::IAllowanceTransfer;
     use num_bigint::BigUint;
+    use primitives::ApprovalData;
 
     const PAYLOAD: &str = include_str!("../../../gem_wallet_connect/testdata/tron_send_transaction.json");
+    const PERMIT2_PAYLOAD: &str = include_str!("../../testdata/wallet_connect_permit2_approval.json");
+    const ABI_WORD_BYTES: usize = 32;
 
-    fn payload_with_calldata(data: &str) -> String {
-        let mut payload: Value = serde_json::from_str(PAYLOAD).unwrap();
+    fn payload_with_calldata(payload: &str, data: &str) -> String {
+        let mut payload: Value = serde_json::from_str(payload).unwrap();
         payload["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["data"] = Value::String(data.to_string());
         encode_payload(payload)
     }
@@ -79,9 +84,9 @@ mod tests {
     fn test_decode_wallet_connect_approval() {
         let selector_and_spender = "095ea7b300000000000000000000000060e00625a95cbc180f290e2611c826f90eeba56f";
         for (amount, is_unlimited) in [(BigUint::from(0u32), false), (BigUint::from(100u32), false), (BigUint::from_bytes_be(&[0xff; 32]), true)] {
-            let payload = payload_with_calldata(&format!("{selector_and_spender}{amount:064x}"));
+            let payload = payload_with_calldata(PAYLOAD, &format!("{selector_and_spender}{amount:064x}"));
             assert_eq!(
-                decode_wallet_connect_approval(&payload).unwrap(),
+                decode_wallet_connect_approval(&payload).unwrap().map(|decoded| decoded.approval),
                 Some(ApprovalData {
                     token: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
                     spender: "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM".to_string(),
@@ -91,9 +96,71 @@ mod tests {
             );
         }
         assert!(decode_wallet_connect_approval(PAYLOAD).unwrap().is_some());
-        assert_eq!(decode_wallet_connect_approval(&payload_with_calldata("deadbeef")).unwrap(), None);
-        assert!(decode_wallet_connect_approval(&payload_with_calldata("095ea7b3abcd")).is_err());
-        assert!(decode_wallet_connect_approval(&payload_with_calldata(&format!("095ea7b3{}{}", "ff".repeat(32), "00".repeat(32)))).is_err());
+        assert_eq!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "deadbeef")).unwrap(), None);
+        assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "095ea7b3abcd")).is_err());
+        assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, &format!("095ea7b3{}{}", "ff".repeat(32), "00".repeat(32)))).is_err());
+    }
+
+    #[test]
+    fn test_decode_wallet_connect_permit2_approval() {
+        let expected = TransactionApproval {
+            approval: ApprovalData {
+                token: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                spender: "TQqgNg13s2DjvXhW1ky4v6TsR8wZGvb7Y4".to_string(),
+                value: BigUint::from_bytes_be(&[0xff; 20]),
+                is_unlimited: true,
+            },
+            contract: "TTJxU3P8rHycAyFY4kVtGNfmnMH4ezcuM9".to_string(),
+            expiration: Some(1791689320),
+        };
+        assert_eq!(decode_wallet_connect_approval(PERMIT2_PAYLOAD).unwrap(), Some(expected.clone()));
+        let payload: Value = serde_json::from_str(PERMIT2_PAYLOAD).unwrap();
+        let data = payload["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["data"].as_str().unwrap();
+        let mut approval = IAllowanceTransfer::approveCall::abi_decode_validate(&hex::decode(data).unwrap()).unwrap();
+        for amount in [0u64, 100] {
+            approval.amount = amount.try_into().unwrap();
+            let data = hex::encode(approval.abi_encode());
+            assert_eq!(
+                decode_wallet_connect_approval(&payload_with_calldata(PERMIT2_PAYLOAD, &data)).unwrap(),
+                Some(TransactionApproval {
+                    approval: ApprovalData {
+                        value: BigUint::from(amount),
+                        is_unlimited: false,
+                        ..expected.approval.clone()
+                    },
+                    ..expected.clone()
+                })
+            );
+        }
+    }
+
+    #[test]
+    fn test_decode_wallet_connect_permit2_approval_validation() {
+        let payload: Value = serde_json::from_str(PERMIT2_PAYLOAD).unwrap();
+        let data = payload["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["data"].as_str().unwrap();
+        let malformed = [data[..data.len() - 2].to_string(), format!("{data}00")];
+        for (argument_index, argument) in ["token", "spender", "amount", "expiration"].into_iter().enumerate() {
+            let mut data = hex::decode(data).unwrap();
+            let word_start = IAllowanceTransfer::approveCall::SELECTOR.len() + argument_index * ABI_WORD_BYTES;
+            data[word_start] = 1;
+            assert!(
+                decode_wallet_connect_approval(&payload_with_calldata(PERMIT2_PAYLOAD, &hex::encode(data))).is_err(),
+                "{argument}"
+            );
+        }
+        for data in malformed {
+            assert!(decode_wallet_connect_approval(&payload_with_calldata(PERMIT2_PAYLOAD, &data)).is_err());
+        }
+        let mut unknown_contract = payload.clone();
+        unknown_contract["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["contract_address"] =
+            Value::String("41a614f803b6fd780986a42c78ec9c7f77e6ded13c".to_string());
+        assert_eq!(decode_wallet_connect_approval(&encode_payload(unknown_contract)).unwrap(), None);
+        for field in ["call_value", "call_token_value"] {
+            let mut payload = payload.clone();
+            payload["transaction"]["raw_data"]["contract"][0]["parameter"]["value"][field] = Value::from(1);
+            assert!(decode_wallet_connect_approval(&encode_payload(payload)).is_err());
+        }
+        assert!(decode_wallet_connect_approval(&PERMIT2_PAYLOAD.replacen("87517c45", "87517c44", 1)).is_err());
     }
 
     #[test]

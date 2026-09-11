@@ -1,13 +1,11 @@
 use gem_encoding::protobuf::MessageEncode;
-use num_bigint::BigUint;
-use primitives::{Address as _, ApprovalData, SignerError};
+use primitives::SignerError;
 use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
-use super::{TronContract, protobuf};
+use super::{TransactionApproval, TronContract, protobuf};
 use crate::models::TronContractType;
-use crate::trc20;
 
 #[derive(Deserialize)]
 pub(crate) struct RawDataJson {
@@ -24,7 +22,7 @@ pub(crate) struct RawDataJson {
 }
 
 impl RawDataJson {
-    pub(crate) fn approval(&self) -> Result<Option<ApprovalData>, SignerError> {
+    pub(crate) fn approval(&self) -> Result<Option<TransactionApproval>, SignerError> {
         let [contract] = self.contract.as_slice() else {
             return Ok(None);
         };
@@ -36,19 +34,13 @@ impl RawDataJson {
                 call_token_value,
                 ..
             } => {
-                if !data.starts_with(&trc20::TRC20_APPROVE_SELECTOR) {
+                let Some(approval) = TransactionApproval::decode(contract, &data)? else {
                     return Ok(None);
-                }
-                let approval = trc20::decode_approval(&data).ok_or_else(|| SignerError::invalid_input("Invalid TRC20 approval calldata"))?;
+                };
                 if call_value.is_some_and(|value| value != 0) || call_token_value.is_some_and(|value| value != 0) {
-                    return SignerError::invalid_input_err("TRC20 approval must not transfer native tokens");
+                    return SignerError::invalid_input_err("Approval must not transfer native tokens");
                 }
-                Ok(Some(ApprovalData {
-                    token: contract.encode(),
-                    spender: approval.spender.encode(),
-                    is_unlimited: approval.value == BigUint::from_bytes_be(&[0xff; 32]),
-                    value: approval.value,
-                }))
+                Ok(Some(approval))
             }
             TronContract::Transfer { .. }
             | TronContract::VoteWitness { .. }

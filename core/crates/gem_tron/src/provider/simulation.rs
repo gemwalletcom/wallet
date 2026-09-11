@@ -12,6 +12,7 @@ use crate::decode_wallet_connect_approval;
 use crate::models::TriggerSmartContractData;
 use crate::provider::simulation_mapper::{map_approval_simulation, map_simulation_result};
 use crate::rpc::TronProvider;
+use crate::transaction::approval::PERMIT2_APPROVE_SELECTOR;
 use crate::trc20::TRC20_APPROVE_SELECTOR;
 
 #[async_trait]
@@ -22,7 +23,8 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
             return Ok(SimulationResult::default());
         };
 
-        if hex::decode(&contract_data.data)?.starts_with(&TRC20_APPROVE_SELECTOR)
+        let data = hex::decode(&contract_data.data)?;
+        if (data.starts_with(&TRC20_APPROVE_SELECTOR) || data.starts_with(&PERMIT2_APPROVE_SELECTOR))
             && let Some(approval) = decode_wallet_connect_approval(&input.encoded_transaction)?
         {
             return Ok(map_approval_simulation(approval));
@@ -90,6 +92,25 @@ mod tests {
             })
         );
         assert_eq!(result.payload[0].value, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
+    }
+
+    #[tokio::test]
+    async fn test_simulate_transaction_decodes_permit2_approval() {
+        let client = TronProvider::new_rpc_only(TronClient::new(MockClient::new()));
+        let data = include_str!("../../testdata/wallet_connect_permit2_approval.json");
+        let result = client.simulate_transaction(SimulationInput::new(data)).await.unwrap();
+        assert_eq!(
+            result.header,
+            Some(SimulationHeader {
+                asset_id: AssetId::from_token(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+                value: None,
+                is_unlimited: true,
+            })
+        );
+        assert_eq!(result.payload[0].value, "TQqgNg13s2DjvXhW1ky4v6TsR8wZGvb7Y4");
+        assert_eq!(result.payload[1].value, "TTJxU3P8rHycAyFY4kVtGNfmnMH4ezcuM9");
+        assert_eq!(result.payload[3].value, "1791689320");
+        assert_eq!(result.warnings.len(), 1);
     }
 
     #[tokio::test]
