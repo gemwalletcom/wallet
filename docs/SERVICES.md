@@ -301,6 +301,10 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **The orphaned `TransactionWallet` source is gone.** `core/crates/primitives/src/transaction_wallet.rs`
+  was a private struct outside the module tree with no reader, but its `#[typeshare]` made every
+  generator run re-emit an untracked `TransactionWallet.swift` after the twins were deleted. The
+  Rust file is deleted, so the generated file no longer reappears.
 - **iOS takes the search key from Core.** `GemAssetSelectionService::search_key(query, scope)`
   (the `tag:<list>` key for an empty list query) was already what Android stores and looks up;
   iOS re-derived it in `WalletSearchTag.searchKey(query:)` / `apiTag` inside the Store request.
