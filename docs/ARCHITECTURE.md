@@ -40,10 +40,7 @@ Only the files the feature needs. A feature with no persistence has no `store.rs
 
 ## 1. Rules are pure and have a test that flips
 
-A rule is a function or receiver method that takes values and returns an answer. It performs no
-I/O, holds no service dependency and does not read the clock. Pass time in as a value when it is
-part of the decision. Pure does not mean publicly exported: use the narrowest Rust visibility and
-shape the FFI-facing API according to § 6.
+A rule is a function or receiver method that takes values and returns an answer. It performs no I/O, holds no service dependency and does not read the clock. Pass time in as a value when it is part of the decision. Pure does not mean publicly exported: use the narrowest Rust visibility and shape the FFI-facing API according to § 6.
 
 ```rust
 // services/confirm/rules.rs
@@ -62,8 +59,7 @@ pub(super) fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBa
 }
 ```
 
-Its test follows Core's `test_<function_name>` convention, covers the meaningful cases together,
-and fails if the rule flips:
+Its test follows Core's `test_<function_name>` convention, covers the meaningful cases together, and fails if the rule flips:
 
 ```rust
 #[test]
@@ -85,15 +81,9 @@ Verify changed domain rules using the shared [test-intent rule](../skills/engine
 
 ## 2. The service orchestrates; it owns its store and depends on services
 
-A service composes rules with I/O. It may hold its own feature store and narrow platform ports.
-For another domain, it depends on that domain's service, never its store — a store belongs to one
-owner, and reaching around that owner creates a second read path it cannot see.
+A service composes rules with I/O. It may hold its own feature store and narrow platform ports. For another domain, it depends on that domain's service, never its store — a store belongs to one owner, and reaching around that owner creates a second read path it cannot see.
 
-Inspect the dependency graph before replacing a foreign-domain store with its service. Never
-introduce an `Arc` cycle to satisfy this rule; split out a narrow query service, invert the
-dependency, or redesign the ownership boundary first. `GemWalletService` already depends on
-`GemWalletSessionService`, so making the session service depend back on the wallet service would
-be worse than the store debt it replaces.
+Inspect the dependency graph before replacing a foreign-domain store with its service. Never introduce an `Arc` cycle to satisfy this rule; split out a narrow query service, invert the dependency, or redesign the ownership boundary first. `GemWalletService` already depends on `GemWalletSessionService`, so making the session service depend back on the wallet service would be worse than the store debt it replaces.
 
 ```rust
 // services/confirm/mod.rs
@@ -120,17 +110,11 @@ impl GemConfirmService {
 }
 ```
 
-`GemConfirmError` implements `From<GemServiceError>` once in `error.rs`, so the three reads use
-`?` without repeating the same `Load` conversion.
+`GemConfirmError` implements `From<GemServiceError>` once in `error.rs`, so the three reads use `?` without repeating the same `Load` conversion.
 
-The method is thin: gather inputs, call the rule, return. Product or domain-decision branching
-belongs in `rules.rs`; I/O sequencing, error propagation and empty-work short circuits may remain
-in the service.
+The method is thin: gather inputs, call the rule, return. Product or domain-decision branching belongs in `rules.rs`; I/O sequencing, error propagation and empty-work short circuits may remain in the service.
 
-**Point reads should be synchronous.** `GemWalletStore.get_wallet` is a sync trait method, so
-`GemWalletSessionService` answers a session lookup without `await`. Do the same for any single-row
-read — an `async` point read pushes the caller back to the store, which is how the confirm screen
-ended up reading `AssetStore` directly for two years.
+**Point reads should be synchronous.** `GemWalletStore.get_wallet` is a sync trait method, so `GemWalletSessionService` answers a session lookup without `await`. Do the same for any single-row read — an `async` point read pushes the caller back to the store, which is how the confirm screen ended up reading `AssetStore` directly for two years.
 
 ## 3. Return one record that answers the whole question
 
@@ -158,9 +142,7 @@ pub enum GemTransferAmountResult {
 }
 ```
 
-The error is the same `GemConfirmError` every other confirm failure uses, carrying the `Asset`
-it names and the required/available values, so the app renders it the same way whether it came
-from the preload or the send.
+The error is the same `GemConfirmError` every other confirm failure uses, carrying the `Asset` it names and the required/available values, so the app renders it the same way whether it came from the preload or the send.
 
 **State that travels together is one type.** An approval is either an exact amount or unlimited — never a string plus a boolean the caller has to reassemble:
 
@@ -180,9 +162,7 @@ pub enum GemApprovalValue {
 
 ## 4. The store trait is the app's only persistence obligation
 
-Core declares what it needs; each app implements it over its own database. Nothing else about the
-app's storage crosses the boundary. Apps may also implement narrow foreign ports for OS-only
-capabilities such as secure storage, notifications and sockets.
+Core declares what it needs; each app implements it over its own database. Nothing else about the app's storage crosses the boundary. Apps may also implement narrow foreign ports for OS-only capabilities such as secure storage, notifications and sockets.
 
 ```rust
 // services/<feature>/store.rs
@@ -194,9 +174,7 @@ pub trait GemPerpetualStore: Send + Sync {
 }
 ```
 
-An adapter maps reads and writes and nothing more — **no rules or mapping implementation inline**.
-Calling a named mapper or standard boundary conversion is expected; non-trivial mapping lives in a
-mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
+An adapter maps reads and writes and nothing more — **no rules or mapping implementation inline**. Calling a named mapper or standard boundary conversion is expected; non-trivial mapping lives in a mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
 
 **Stores only write rows whose values differ.** A blanket write churns observers and hides real changes.
 
@@ -204,8 +182,7 @@ mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
 
 ### iOS
 
-There is no app-side service wrapping a Core service. The view model holds its screen's Core
-service and calls it; each call is one line in, one mapping out.
+There is no app-side service wrapping a Core service. The view model holds its screen's Core service and calls it; each call is one line in, one mapping out.
 
 ```swift
 func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
@@ -242,13 +219,9 @@ The store is the change trigger. Core is the decider. Core has no observation pr
 
 ### Never call Core from the main thread
 
-The `flowOn` above is not decoration. A synchronous Core call such as
-`transactionDetailsService.detailRows` can read store callbacks that block on Room, and UniFFI
-polls the Rust future on the calling thread — so without it the read lands on main, where Room
-throws before any work happens.
+The `flowOn` above is not decoration. A synchronous Core call such as `transactionDetailsService.detailRows` can read store callbacks that block on Room, and UniFFI polls the Rust future on the calling thread — so without it the read lands on main, where Room throws before any work happens.
 
-The coordinator dispatches; it does not leave that to its caller. Whether a Core method touches a
-store is Core's business and can change without the call site noticing.
+The coordinator dispatches; it does not leave that to its caller. Whether a Core method touches a store is Core's business and can change without the call site noticing.
 
 ```kotlin
 // suspend: move the call
@@ -264,9 +237,7 @@ override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAg
 
 ## 6. Where derived domain answers live
 
-The app uses Core's types. It does not declare a parallel record or enum of the same shape — that
-is two definitions of one thing, and every crossing pays for a two-way mapper. `TransferDataType`
-was that copy: eleven restated cases and 138 lines of mapping. It is deleted.
+The app uses Core's types. It does not declare a parallel record or enum of the same shape — that is two definitions of one thing, and every crossing pays for a two-way mapper. `TransferDataType` was that copy: eleven restated cases and 138 lines of mapping. It is deleted.
 
 Choose the home from ownership first, then decide how it crosses FFI:
 
@@ -278,101 +249,31 @@ Choose the home from ownership first, then decide how it crosses FFI:
 | The answer requires I/O, stored dependencies or platform ports | method on the service that owns the flow | `confirmService.preload(...)` |
 | An app value must be encoded into a Core case | app mapping extension | `.stake(asset, stakeType)` |
 
-**Never add a free exported function or a service wrapper — stateless or not — for an answer
-already owned by one local Core type.** `transaction_input_asset(input_type)` and
-`transferService.asset(inputType:)` both hide the natural receiver; use
-`inputType.transactionAsset()`. A method that ignores `self` is the same mistake even on a
-service with real dependencies: `confirmTransferService.simulationAssetIds(simulation:)` is a
-property of `SimulationResult`, not of an eight-dependency orchestrator. Keep the owning service
-when the rule performs I/O, holds real dependencies, or combines inputs without a single honest
-receiver. A request record is an honest receiver when it contains the complete instruction:
-`GemContactAddressInput.add_address(addresses)` owns its replacement identifier and new address;
-`GemManageContactService.add_address(addresses, input)` would ignore every service dependency.
+**Never add a free exported function or a service wrapper — stateless or not — for an answer already owned by one local Core type.** `transaction_input_asset(input_type)` and `transferService.asset(inputType:)` both hide the natural receiver; use `inputType.transactionAsset()`. A method that ignores `self` is the same mistake even on a service with real dependencies: `confirmTransferService.simulationAssetIds(simulation:)` is a property of `SimulationResult`, not of an eight-dependency orchestrator. Keep the owning service when the rule performs I/O, holds real dependencies, or combines inputs without a single honest receiver. A request record is an honest receiver when it contains the complete instruction: `GemContactAddressInput.add_address(addresses)` owns its replacement identifier and new address; `GemManageContactService.add_address(addresses, input)` would ignore every service dependency.
 
-Do not manufacture a receiver by choosing the first parameter. The type is honest only when the
-answer is part of that type's meaning, the method uses `self`, and extra arguments are plain input
-values rather than stores, clients or services. For a repository-owned Rust type, prefer an
-inherent `impl Type`; do not create a one-method `TypeExt` trait to imitate Swift or Kotlin.
-Intrinsic structure belongs in the defining crate (`SimulationResult.asset_ids()`), while
-feature or product policy remains in Gemstone even when it consumes a primitives type.
+Do not manufacture a receiver by choosing the first parameter. The type is honest only when the answer is part of that type's meaning, the method uses `self`, and extra arguments are plain input values rather than stores, clients or services. For a repository-owned Rust type, prefer an inherent `impl Type`; do not create a one-method `TypeExt` trait to imitate Swift or Kotlin. Intrinsic structure belongs in the defining crate (`SimulationResult.asset_ids()`), while feature or product policy remains in Gemstone even when it consumes a primitives type.
 
 ### Ownership is not transport
 
-A receiver method on a Gemstone-local UniFFI record or enum can cross FFI. Export it only when an
-app calls it. A TypeShare type defined in a repository-owned Core crate can own canonical inherent
-Rust behavior there, but TypeShare does not generate that method in Swift or Kotlin. A type merely
-declared through `#[uniffi::remote]` is defined elsewhere, so Gemstone cannot add an inherent
-receiver; use a private rule or adapter rather than inventing one. A thin app extension may expose
-a structural field projection when transport omits it, but it must not copy product policy.
+A receiver method on a Gemstone-local UniFFI record or enum can cross FFI. Export it only when an app calls it. A TypeShare type defined in a repository-owned Core crate can own canonical inherent Rust behavior there, but TypeShare does not generate that method in Swift or Kotlin. A type merely declared through `#[uniffi::remote]` is defined elsewhere, so Gemstone cannot add an inherent receiver; use a private rule or adapter rather than inventing one. A thin app extension may expose a structural field projection when transport omits it, but it must not copy product policy.
 
-When mobile needs behavior that cannot cross on its honest receiver, prefer folding the answer
-into an existing aggregate operation. If the UI genuinely needs a standalone pure projection,
-add it to an existing cohesive FFI adapter such as `GemSimulationFormatter`; do not put it on an
-I/O service whose dependencies it ignores and do not create a one-method object. This is how a
-TypeShare-only `SimulationResult.asset_ids()` should reach mobile without duplicating the rule.
+When mobile needs behavior that cannot cross on its honest receiver, prefer folding the answer into an existing aggregate operation. If the UI genuinely needs a standalone pure projection, add it to an existing cohesive FFI adapter such as `GemSimulationFormatter`; do not put it on an I/O service whose dependencies it ignores and do not create a one-method object. This is how a TypeShare-only `SimulationResult.asset_ids()` should reach mobile without duplicating the rule.
 
-A rule that answers for one value is a constructor on that value, not a method on an object with
-nothing in it: `GemSwapQuoteSummary::new(quote)` carries the minimum receive and the ETA of a
-quote, `GemSwapValue::price_impact(receive)` compares two priced amounts, `GemCustomFee::estimate`
-and `GemTransactionRow::new` do the same for fees and rows. The apps and their tests construct
-the value; nothing has to be mocked to reach a rule. `GemSwapQuoteService` carried those rules as
-a `new()` with no fields until it became the swap screen's real service — swap, balances,
-preferences and the price stream behind one object — and the rules moved onto their values.
+A rule that answers for one value is a constructor on that value, not a method on an object with nothing in it: `GemSwapQuoteSummary::new(quote)` carries the minimum receive and the ETA of a quote, `GemSwapValue::price_impact(receive)` compares two priced amounts, `GemCustomFee::estimate` and `GemTransactionRow::new` do the same for fees and rows. The apps and their tests construct the value; nothing has to be mocked to reach a rule. `GemSwapQuoteService` carried those rules as a `new()` with no fields until it became the swap screen's real service — swap, balances, preferences and the price stream behind one object — and the rules moved onto their values.
 
-A stateless exported object is acceptable only as a cohesive FFI codec or formatter when UniFFI
-cannot express an honest receiver or the operation spans several transport types. Name that role
-explicitly, give it no I/O dependencies, and delegate intrinsic behavior or feature policy to the
-owning receiver or private rule where possible. `GemSimulationFormatter` and
-`PriceAlertFormatter` are the current transport adapters. A one-call forwarding object is still a
-wrapper and should be removed.
+A stateless exported object is acceptable only as a cohesive FFI codec or formatter when UniFFI cannot express an honest receiver or the operation spans several transport types. Name that role explicitly, give it no I/O dependencies, and delegate intrinsic behavior or feature policy to the owning receiver or private rule where possible. `GemSimulationFormatter` and `PriceAlertFormatter` are the current transport adapters. A one-call forwarding object is still a wrapper and should be removed.
 
-`#[uniffi::export]` on an `impl` processes every function in that block regardless of Rust
-visibility. `pub(crate)` does not remove a method from generated bindings. Put only intended FFI
-methods in the exported block; move helpers to a separate unannotated `impl` and give them the
-narrowest Rust visibility. Derive `uniffi::Record`/`uniffi::Enum` only for types that actually cross
-FFI. After changing an exported member or type, regenerate bindings and build both apps — one
-platform may never have called the method the other still needs.
+`#[uniffi::export]` on an `impl` processes every function in that block regardless of Rust visibility. `pub(crate)` does not remove a method from generated bindings. Put only intended FFI methods in the exported block; move helpers to a separate unannotated `impl` and give them the narrowest Rust visibility. Derive `uniffi::Record`/`uniffi::Enum` only for types that actually cross FFI. After changing an exported member or type, regenerate bindings and build both apps — one platform may never have called the method the other still needs.
 
-Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remote_types.yml`
-lists what `just generate-models` maps: `remote` types get `#[uniffi::remote]` and structural
-mappers on both apps; `codes` are string-backed enums that cross as their code and get
-`Primitives.X(core:)` / `.rawValue` on iOS and `toX()` / `toGem()` on Android; `identifiers` are
-hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier` on iOS,
-the `X(identifier)` constructor / `toIdentifier()` on Android). Before adding a `remote` type,
-verify that the generator can represent its full shape and inspect both generated mappers. It
-handles fieldless enums and records whose fields are scalars, `DateTime<Utc>`, other remote
-types, codes or identifiers, plain or wrapped in `Option` / `Vec`, whatever subdirectory of
-`primitives/src` declares them; a `#[typeshare(skip)]` field
-travels Core → app only and is filled with its empty value on the way back (scalars, `Option`,
-`Vec` and `String` have one; anything else fails generation). A data-carrying enum maps too when it
-keeps a twin, as long as each variant carries at most one unnamed payload — a twin renders a named
-or multi-field variant as a type of its own, which the generator will not invent. A type an app
-never looks inside does not need a model on either side: pass the wire text and let Core own the
-format. Never add a second app-side model or copy policy to avoid a gap in the generator; close the
-gap.
+Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remote_types.yml` lists what `just generate-models` maps: `remote` types get `#[uniffi::remote]` and structural mappers on both apps; `codes` are string-backed enums that cross as their code and get `Primitives.X(core:)` / `.rawValue` on iOS and `toX()` / `toGem()` on Android; `identifiers` are hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier` on iOS, the `X(identifier)` constructor / `toIdentifier()` on Android). Before adding a `remote` type, verify that the generator can represent its full shape and inspect both generated mappers. It handles fieldless enums and records whose fields are scalars, `DateTime<Utc>`, other remote types, codes or identifiers, plain or wrapped in `Option` / `Vec`, whatever subdirectory of `primitives/src` declares them; a `#[typeshare(skip)]` field travels Core → app only and is filled with its empty value on the way back (scalars, `Option`, `Vec` and `String` have one; anything else fails generation). A data-carrying enum maps too when it keeps a twin, as long as each variant carries at most one unnamed payload — a twin renders a named or multi-field variant as a type of its own, which the generator will not invent. A type an app never looks inside does not need a model on either side: pass the wire text and let Core own the format. Never add a second app-side model or copy policy to avoid a gap in the generator; close the gap.
 
 ## 7. At most one Core service on iOS; narrow cases on Android
 
-An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**;
-a model that does not need Core holds none. Reuse the owning domain service when it already answers
-the screen. Add a screen-level service only when it genuinely composes collaborators or returns a
-cohesive screen result — never to satisfy a field-count rule. An Android view model holds the
-same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the
-observed reads the screen watches as narrow application cases (a Room `Flow` behind
-`GetPriceAlerts`, `GetRecentAssets`, `SelectSearch`) and `GetSession`. A case that only forwards a
-Core call (`SetPriceAlertsEnabled` over `set_enabled`, `SearchCustomToken` over
-`ensure_token_asset`) is migration debt: delete it and call the service. A non-private service on
-iOS usually means the view is reaching through the model for a dependency.
+An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the observed reads the screen watches as narrow application cases (a Room `Flow` behind `GetPriceAlerts`, `GetRecentAssets`, `SelectSearch`) and `GetSession`. A case that only forwards a Core call (`SetPriceAlertsEnabled` over `set_enabled`, `SearchCustomToken` over `ensure_token_asset`) is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency.
 
-This limit does not count explicit platform ports such as a signer, keystore, observation source
-or navigation builder. Those remain narrow injected dependencies; they do not decide shared
-product behavior.
+This limit does not count explicit platform ports such as a signer, keystore, observation source or navigation builder. Those remain narrow injected dependencies; they do not decide shared product behavior.
 
-When a real screen-level service is needed, name it for the screen it backs, not for the layer:
-`GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. A
-`GemContactsService` that only forwarded calls to `GemContactService` was wrapper debt, not the
-pattern, and is deleted: the list screen holds the owning `GemContactService`. When a screen needs
-a cohesive answer from several Core owners, Core composes them:
+When a real screen-level service is needed, name it for the screen it backs, not for the layer: `GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. A `GemContactsService` that only forwarded calls to `GemContactService` was wrapper debt, not the pattern, and is deleted: the list screen holds the owning `GemContactService`. When a screen needs a cohesive answer from several Core owners, Core composes them:
 
 ```rust
 #[derive(uniffi::Object)]
@@ -394,47 +295,21 @@ impl GemManageContactService {
 }
 ```
 
-The pure address-list transformation stays on its request value:
-`input.add_address(addresses)`. It does not belong on this service because it uses none of the
-service's dependencies.
+The pure address-list transformation stays on its request value: `input.add_address(addresses)`. It does not belong on this service because it uses none of the service's dependencies.
 
 A sheet belongs to the screen that presents it and shares that screen's service. A screen you navigate *to* is a different screen with its own.
 
 ### Composition services are reached through the screen service
 
-`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`,
-`GemPriceService` are *composition* services: screen services hold them, and a screen reads their
-answers through its own service — the chart's token link is `GemChartService::token_url`, the
-confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset scene's share
-link is `GemAssetDetailsService::deeplink_url`, its swap pair `swap_pair`, the confirm sheet's
-acquire flow `acquire_asset_flow`. A composition service's method is exported only while an app
-still calls it; once every screen reads it through its screen service, move the method to a plain
-`impl` block (the constructor stays exported because the composition root builds the object).
-The September 2026 sweep found the same answer reached three ways — iOS through the screen
-service, Android through the composition service from a Hilt-injected coordinator, and Android's
-Compose layer through a `CompositionLocal` — and each pair disagreed somewhere (the slippage
-default, the acquire-flow title). One route per answer, and it is the screen service's.
+`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`, `GemPriceService` are *composition* services: screen services hold them, and a screen reads their answers through its own service — the chart's token link is `GemChartService::token_url`, the confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset scene's share link is `GemAssetDetailsService::deeplink_url`, its swap pair `swap_pair`, the confirm sheet's acquire flow `acquire_asset_flow`. A composition service's method is exported only while an app still calls it; once every screen reads it through its screen service, move the method to a plain `impl` block (the constructor stays exported because the composition root builds the object). The September 2026 sweep found the same answer reached three ways — iOS through the screen service, Android through the composition service from a Hilt-injected coordinator, and Android's Compose layer through a `CompositionLocal` — and each pair disagreed somewhere (the slippage default, the acquire-flow title). One route per answer, and it is the screen service's.
 
-On Android the Hilt module binds both the concrete class and the generated interface
-(`fun provideGemFooServiceInterface(service: GemFooService): GemFooServiceInterface = service`):
-Core constructors need the concrete type to compose, view models and coordinators take the
-interface.
+On Android the Hilt module binds both the concrete class and the generated interface (`fun provideGemFooServiceInterface(service: GemFooService): GemFooServiceInterface = service`): Core constructors need the concrete type to compose, view models and coordinators take the interface.
 
 ### A service never hands out another service
 
-`service.manageContact()` is the same reach-through as `model.nameService`, one level down: the
-caller now depends on something it was not given. Every service is constructed in the composition
-root and injected. Returning `Arc<GemFooService>` from an exported service is migration debt, not
-an exception to this rule.
+`service.manageContact()` is the same reach-through as `model.nameService`, one level down: the caller now depends on something it was not given. Every service is constructed in the composition root and injected. Returning `Arc<GemFooService>` from an exported service is migration debt, not an exception to this rule.
 
-A **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` — takes the Core
-service it needs by its own protocol: `AddressInputViewModel` and `NameRecordViewModel` take
-`any GemNameServiceProtocol` (`GemNameServiceInterface` on Android), and the parent view model
-receives that `nameService` as a plain constructor dependency beside its `service` and passes it
-down. The screen service does not forward name methods and the client does not declare a
-protocol intersection (`any GemFooServiceProtocol & AddressInputResolving`) or a builder closure
-to reach the component's dependency — both hide a second dependency inside the first.
-`NetworkSelectorViewModel` needs only the dependency-free `GemChainService` and builds it itself.
+A **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` — takes the Core service it needs by its own protocol: `AddressInputViewModel` and `NameRecordViewModel` take `any GemNameServiceProtocol` (`GemNameServiceInterface` on Android), and the parent view model receives that `nameService` as a plain constructor dependency beside its `service` and passes it down. The screen service does not forward name methods and the client does not declare a protocol intersection (`any GemFooServiceProtocol & AddressInputResolving`) or a builder closure to reach the component's dependency — both hide a second dependency inside the first. `NetworkSelectorViewModel` needs only the dependency-free `GemChainService` and builds it itself.
 
 ### The parent vends the child model, the view never reaches in
 
@@ -465,11 +340,7 @@ The same applies to state: a view switching on the model's `mode` forces `mode` 
 
 ### Depend on the generated abstraction, not the concrete object
 
-On iOS, UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists;
-importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be
-substituted without relying on UniFFI's fragile no-handle test path. On Android the same holds
-for the generated `GemFooServiceInterface`: bind it in the Hilt module
-(`): GemReceiveServiceInterface = GemReceiveService(...)`) and inject the interface.
+On iOS, UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists; importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be substituted without relying on UniFFI's fragile no-handle test path. On Android the same holds for the generated `GemFooServiceInterface`: bind it in the Hilt module (`): GemReceiveServiceInterface = GemReceiveService(...)`) and inject the interface.
 
 - **iOS consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
 - **Android consumers** take the generated interface, or the observed-read case, used by their layer.
@@ -479,34 +350,17 @@ for the generated `GemFooServiceInterface`: bind it in the Hilt module
 
 A `GemFooService()` in a field initialiser or at file scope is a second instance the graph does not know about, and it is where an app-side variant creeps back in.
 
-- **iOS** — an owner (a service with a store, a client, a stream, or anything the app needs from
-  launch) is registered in `ServicesFactory`, exposed through an `@Entry` in
-  `ios/Gem/Types/Environment.swift`, and passed into the view model. A screen service — one that
-  only composes owners for a single screen (`GemAssetDetailsService`, `GemChartService`,
-  `GemTransactionDetailsService`, `GemWalletHomeService`) — is built in the `ViewModelFactory.xxxScene(...)` that builds
-  its view model, from the owners the factory already holds. It is never a field of
-  `AppResolver.Services` and never an `@Entry`: that constructs it on every launch of an app that
-  may never open the screen, and hands views a composition detail.
+- **iOS** — an owner (a service with a store, a client, a stream, or anything the app needs from launch) is registered in `ServicesFactory`, exposed through an `@Entry` in `ios/Gem/Types/Environment.swift`, and passed into the view model. A screen service — one that only composes owners for a single screen (`GemAssetDetailsService`, `GemChartService`, `GemTransactionDetailsService`, `GemWalletHomeService`) — is built in the `ViewModelFactory.xxxScene(...)` that builds its view model, from the owners the factory already holds. It is never a field of `AppResolver.Services` and never an `@Entry`: that constructs it on every launch of an app that may never open the screen, and hands views a composition detail.
 - **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`) only for the dependency-free config services; a screen's Core answers come from its view model's service, never from a `CompositionLocal` inside a feature composable (`LocalDeeplinkService` building the share link and `LocalAssetConfigService.acquireFlow` deciding the confirm button were reach-throughs and are gone). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. A screen service is a `@Provides` like any other — Hilt builds it when its view model first asks, so nothing is built at launch — and is never read from a `CompositionLocal`.
-- **A value type or a namespace of statics** takes the service as a method parameter only when the
-  answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on
-  the receiver according to § 6.
+- **A value type or a namespace of statics** takes the service as a method parameter only when the answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on the receiver according to § 6.
 
-Dependency-free FFI transport adapters are the exception: `GemSimulationFormatter` and
-`PriceAlertFormatter` may be constructed locally because they have no state to substitute. Do not
-extend that exception to a service, store, client or a type whose behavior can cross on its honest
-receiver.
+Dependency-free FFI transport adapters are the exception: `GemSimulationFormatter` and `PriceAlertFormatter` may be constructed locally because they have no state to substitute. Do not extend that exception to a service, store, client or a type whose behavior can cross on its honest receiver.
 
-Prefer the platform abstraction (`GemConfirmServiceProtocol` on iOS,
-`GemConfirmServiceInterface` or a case on Android) wherever a test needs substitution. Mocking the
-concrete UniFFI object is fragile: any unstubbed generated method can reach a native handle the
-mock does not have.
+Prefer the platform abstraction (`GemConfirmServiceProtocol` on iOS, `GemConfirmServiceInterface` or a case on Android) wherever a test needs substitution. Mocking the concrete UniFFI object is fragile: any unstubbed generated method can reach a native handle the mock does not have.
 
 ## 9. Errors
 
-Use the shared `GemServiceError` for ordinary API, store and service failures. Add a feature error
-enum in `error.rs` only when the app needs structured domain data to render or branch without
-parsing a message:
+Use the shared `GemServiceError` for ordinary API, store and service failures. Add a feature error enum in `error.rs` only when the app needs structured domain data to render or branch without parsing a message:
 
 ```rust
 pub enum GemConfirmError {
@@ -516,8 +370,7 @@ pub enum GemConfirmError {
 }
 ```
 
-When a lower-level error has a canonical feature-level mapping, implement `From` once in
-`error.rs` and use `?`:
+When a lower-level error has a canonical feature-level mapping, implement `From` once in `error.rs` and use `?`:
 
 ```rust
 impl From<GemServiceError> for GemConfirmError {
@@ -527,8 +380,7 @@ impl From<GemServiceError> for GemConfirmError {
 }
 ```
 
-Use `map_err` only when the call site adds context or deliberately selects a non-default category,
-such as `Record`, or when a named mapper preserves structured `Offline`/`Network` gateway cases.
+Use `map_err` only when the call site adds context or deliberately selects a non-default category, such as `Record`, or when a named mapper preserves structured `Offline`/`Network` gateway cases.
 
 The app **localizes Core's error directly** — it does not translate it into a parallel app-side enum first:
 
@@ -555,19 +407,9 @@ A duplicate taxonomy costs a mapping function, re-derives data Core already carr
 
 Neither app tests a rule that lives in Core. If an app test would fail when a Core rule flips, the rule is in the wrong place or the test is asserting the mock.
 
-A Core test double for a store or a port lives in the owning folder's `testkit.rs`
-(`#[cfg(test)] pub(crate) mod testkit;`), named after the trait it implements —
-`MemoryPreferencesStore`, `MemoryWalletStore`, `MemoryConnectionStore`, `TestWalletConnectSigner`
-— so a service test composes the doubles of every folder it depends on instead of writing one
-struct that implements six traits. Cross-cutting doubles (`TestAlienProvider`) live in
-`gemstone/src/testkit.rs`. A double that exists to probe one behavior of one test (a store that
-counts writes or delays a read) stays inline with that test.
+A Core test double for a store or a port lives in the owning folder's `testkit.rs` (`#[cfg(test)] pub(crate) mod testkit;`), named after the trait it implements — `MemoryPreferencesStore`, `MemoryWalletStore`, `MemoryConnectionStore`, `TestWalletConnectSigner` — so a service test composes the doubles of every folder it depends on instead of writing one struct that implements six traits. Cross-cutting doubles (`TestAlienProvider`) live in `gemstone/src/testkit.rs`. A double that exists to probe one behavior of one test (a store that counts writes or delays a read) stays inline with that test.
 
-**A test never hand-rolls a double a testkit already ships.** A `struct` in a test module that
-implements `Client`, `Target` or a store trait is a stand-in nobody else uses: it drifts the moment
-the real trait grows a method, and it asserts the stand-in rather than the path the app takes. Take
-the double from the owning crate's `testkit` — enabled through that crate's `testkit` feature under
-`[dev-dependencies]`, never copied — and drive the real request through it:
+**A test never hand-rolls a double a testkit already ships.** A `struct` in a test module that implements `Client`, `Target` or a store trait is a stand-in nobody else uses: it drifts the moment the real trait grows a method, and it asserts the stand-in rather than the path the app takes. Take the double from the owning crate's `testkit` — enabled through that crate's `testkit` feature under `[dev-dependencies]`, never copied — and drive the real request through it:
 
 ```rust
 let client = AlgorandClient::new(MockClient::new().with_post_with_headers(|path, body, headers| {
@@ -578,15 +420,7 @@ let client = AlgorandClient::new(MockClient::new().with_post_with_headers(|path,
 }));
 ```
 
-`MockClient` encodes the body exactly as `ReqwestClient` and `RpcClient` do, so a handler that
-asserts bytes and headers is asserting the wire. References:
-[`gem_client::testkit`](../core/crates/gem_client/src/testkit.rs) and `mock_jsonrpc_client` for HTTP,
-[`gem_hypercore/src/testkit.rs`](../core/crates/gem_hypercore/src/testkit.rs) for a chain client,
-[`primitives/src/testkit/asset_mock.rs`](../core/crates/primitives/src/testkit/asset_mock.rs) and
-[`storage/src/testkit/scan_address_mock.rs`](../core/crates/storage/src/testkit/scan_address_mock.rs)
-for fixtures; call sites in
-[`gem_algorand/src/rpc/client.rs`](../core/crates/gem_algorand/src/rpc/client.rs) and
-[`gem_stellar/src/rpc/client.rs`](../core/crates/gem_stellar/src/rpc/client.rs).
+`MockClient` encodes the body exactly as `ReqwestClient` and `RpcClient` do, so a handler that asserts bytes and headers is asserting the wire. References: [`gem_client::testkit`](../core/crates/gem_client/src/testkit.rs) and `mock_jsonrpc_client` for HTTP, [`gem_hypercore/src/testkit.rs`](../core/crates/gem_hypercore/src/testkit.rs) for a chain client, [`primitives/src/testkit/asset_mock.rs`](../core/crates/primitives/src/testkit/asset_mock.rs) and [`storage/src/testkit/scan_address_mock.rs`](../core/crates/storage/src/testkit/scan_address_mock.rs) for fixtures; call sites in [`gem_algorand/src/rpc/client.rs`](../core/crates/gem_algorand/src/rpc/client.rs) and [`gem_stellar/src/rpc/client.rs`](../core/crates/gem_stellar/src/rpc/client.rs).
 
 ### Do not test the same rule twice through a thicker stack
 
@@ -604,10 +438,7 @@ try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, ev
 #expect(try store.getBanner(id: id)?.state == .active)
 ```
 
-- **Never mock a dependency-free constructible service** (`GemChainService`,
-  `GemAssetConfigService`, …). Construct the real one. An app test may substitute an I/O screen
-  service to test mapping or state; the returned Core answer is then a stated premise, not a rule
-  assertion.
+- **Never mock a dependency-free constructible service** (`GemChainService`, `GemAssetConfigService`, …). Construct the real one. An app test may substitute an I/O screen service to test mapping or state; the returned Core answer is then a stated premise, not a rule assertion.
 - **Never fabricate I/O to reach a rule.** An offline provider, in-memory stores and empty rows stood up so a test can touch rules that use none of them is always the wrong answer. Pass the answer in from the caller, or mock the service and state the premise.
 
 A mock's defaults should be the *usual* case. A mock that fails by default becomes a trap the moment another method starts depending on it.
@@ -615,18 +446,12 @@ A mock's defaults should be the *usual* case. A mock that fails by default becom
 ## 11. Landing a change
 
 1. Implement in Core with the rule test.
-2. If a UniFFI signature, TypeShare model, `remote_types.yml` entry or mobile integration boundary
-   changed, run `just generate` from the repo root. Internal Core changes that preserve those
-   contracts do not require regeneration. Never generate against half-edited Core.
+2. If a UniFFI signature, TypeShare model, `remote_types.yml` entry or mobile integration boundary changed, run `just generate` from the repo root. Internal Core changes that preserve those contracts do not require regeneration. Never generate against half-edited Core.
 3. Wire both platforms.
-4. **Delete the old path it replaces:** free function or wrapper, app call sites, obsolete mocks,
-   duplicate tests and unused imports. A migration that leaves both paths has not migrated anything.
-5. Build both apps when their generated interface or integration changed, then verify the affected
-   suites (see `SERVICES.md` § Verification).
-6. Search for the old symbol and review the diff for unused public API, redundant conversions and
-   stale generated files.
-7. If the change completes an item tracked in `SERVICES.md`, remove that item with the change.
-   Commit and publish only when authorized under [Task Workflow](../skills/task-workflow.md).
+4. **Delete the old path it replaces:** free function or wrapper, app call sites, obsolete mocks, duplicate tests and unused imports. A migration that leaves both paths has not migrated anything.
+5. Build both apps when their generated interface or integration changed, then verify the affected suites (see `SERVICES.md` § Verification).
+6. Search for the old symbol and review the diff for unused public API, redundant conversions and stale generated files.
+7. If the change completes an item tracked in `SERVICES.md`, remove that item with the change. Commit and publish only when authorized under [Task Workflow](../skills/task-workflow.md).
 
 ### When the platforms disagree
 
@@ -636,22 +461,11 @@ Check the documented contract, callers, and tests: a difference may be intention
 
 **REST clients own a request target; JSON-RPC clients own a request enum.** Keep paths and request-specific metadata in the target. Credentials, transport, envelope handling, and pagination belong in the client. The deliberate exceptions are listed below.
 
-The enum is a § 1 rule for a request: inputs in, wire format out, no transport, no secret, no
-clock. The two references are
-[`TronGridTarget`](../core/crates/gem_tron/src/rpc/trongrid/target.rs) for REST (`FooTarget` in
-`rpc/target.rs`) and [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for JSON-RPC
-(`FooRpc` in `jsonrpc.rs`, method constants in `method.rs`). For a direct GET/POST without shared client work, use [`AptosClient`](../core/crates/gem_aptos/src/rpc/client.rs); do not add a forwarding `send` helper.
+The enum is a § 1 rule for a request: inputs in, wire format out, no transport, no secret, no clock. The two references are [`TronGridTarget`](../core/crates/gem_tron/src/rpc/trongrid/target.rs) for REST (`FooTarget` in `rpc/target.rs`) and [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for JSON-RPC (`FooRpc` in `jsonrpc.rs`, method constants in `method.rs`). For a direct GET/POST without shared client work, use [`AptosClient`](../core/crates/gem_aptos/src/rpc/client.rs); do not add a forwarding `send` helper.
 
 Inspect the [target](../core/crates/gem_tron/src/rpc/trongrid/target.rs) and [client](../core/crates/gem_tron/src/rpc/trongrid/client.rs) together; keep examples linked to their implementation instead of maintaining a second code sample here.
 
-Variant fields are named: `GetAccount(String)` does not say what the string is. No path or query string is a `const`; `path()` builds every one. The target implements
-`gem_client::Target` (`path()`, `headers()` when a request carries one, and `content_type()` when a
-body is not JSON); the client owns the
-transport, the credentials, the clock, the signature, the envelope and the pagination loop. A
-method is `self.client.get(target).await` or `self.client.post(target, &body).await`. For `gem_client::Target`, do not add a body enum or a second dispatch over GET/POST variants to unify these calls; the device client's `gem_jsonrpc::Target` has a separate contract below. A private helper exists only for shared work: credentials
-(`TronGridClient::send`), a 404 that is a value (`StellarClient::get_or_not_found`), an envelope
-(TON). A GET-only host needs only `path()`; `GemDeviceApiTarget` is the full shape with
-`method()`, `body()` and a signed header.
+Variant fields are named: `GetAccount(String)` does not say what the string is. No path or query string is a `const`; `path()` builds every one. The target implements `gem_client::Target` (`path()`, `headers()` when a request carries one, and `content_type()` when a body is not JSON); the client owns the transport, the credentials, the clock, the signature, the envelope and the pagination loop. A method is `self.client.get(target).await` or `self.client.post(target, &body).await`. For `gem_client::Target`, do not add a body enum or a second dispatch over GET/POST variants to unify these calls; the device client's `gem_jsonrpc::Target` has a separate contract below. A private helper exists only for shared work: credentials (`TronGridClient::send`), a 404 that is a value (`StellarClient::get_or_not_found`), an envelope (TON). A GET-only host needs only `path()`; `GemDeviceApiTarget` is the full shape with `method()`, `body()` and a signed header.
 
 | Case | Shape | Reference |
 |---|---|---|
@@ -668,16 +482,9 @@ method is `self.client.get(target).await` or `self.client.post(target, &body).aw
 | JSON-RPC | `ToJsonRpcRequest` with constants from `method.rs` and typed parameter enums beside it; `batch_request` then `take_all`; the same enum posted to a path when a REST host has an RPC route | `SolanaRpc`, `EthereumRpc`, Chainflip broker |
 | Construction | `new(client, key)` with `C: Client` already pointed at the host. Never `ReqwestClient::request` from a client: it bypasses `Client` and never works on the apps | `TronGridClient` |
 
-**Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire
-shape does not show: an envelope's failure branch, the paths a pagination loop produced, the
-body and content type of a broadcast, a merged credential header. Do not test `path()` by
-copying its implementation into the expectation. A wire-contract regression test uses an independently specified request and exercises the real client through its mock transport.
+**Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire shape does not show: an envelope's failure branch, the paths a pagination loop produced, the body and content type of a broadcast, a merged credential header. Do not test `path()` by copying its implementation into the expectation. A wire-contract regression test uses an independently specified request and exercises the real client through its mock transport.
 
-**Deliberate exceptions.** Three things stay on raw `reqwest` because they are not REST clients:
-the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap with redirects
-off), the image downloader (binary bodies), and the egress node health probe (only the status
-matters). The OKX client sends the string it signed rather than a target, and the alien reqwest
-provider is the transport itself.
+**Deliberate exceptions.** Three things stay on raw `reqwest` because they are not REST clients: the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap with redirects off), the image downloader (binary bodies), and the egress node health probe (only the status matters). The OKX client sends the string it signed rather than a target, and the alien reqwest provider is the transport itself.
 
 ## 13. Shapes that were tried and reverted
 

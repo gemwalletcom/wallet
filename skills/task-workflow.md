@@ -2,6 +2,8 @@
 
 Use for every task. Follow the requested scope, ground changes in existing code, and verify the result.
 
+Do not hard-wrap prose at 80 columns in docs, skills, commit messages, PR bodies, or other written output. GUIs, editors, and terminals wrap to the reader's width; keep one paragraph per block and one list item per line. Fenced code, tables, and headings stay as they are.
+
 ## 1. Establish the Task Contract
 
 - Classify the request: investigate, review, implement, or publish. Investigation and review are read-only unless fixes are requested. Publication follows [Release Process](release-process.md#publication-boundaries); authorization already given in the session remains valid.
