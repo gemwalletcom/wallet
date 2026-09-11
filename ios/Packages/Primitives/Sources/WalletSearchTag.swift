@@ -21,15 +21,4 @@ public extension WalletSearchTag {
         case .list: false
         }
     }
-
-    func searchKey(query: String) -> String {
-        apiTag.map { query.isEmpty ? "tag:\($0)" : query } ?? query
-    }
-
-    var apiTag: String? {
-        switch self {
-        case .all: nil
-        case let .list(value): value
-        }
-    }
 }

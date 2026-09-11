@@ -301,6 +301,11 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **iOS takes the search key from Core.** `GemAssetSelectionService::search_key(query, scope)`
+  (the `tag:<list>` key for an empty list query) was already what Android stores and looks up;
+  iOS re-derived it in `WalletSearchTag.searchKey(query:)` / `apiTag` inside the Store request.
+  `WalletSearchRequest` now carries the Core-computed `searchKey` next to the query, set by the
+  two wallet-search view models, and the iOS rule and its tests are gone.
 - **Swap price impact is a Core record on both apps.** `SwapPriceImpact` and
   `SwapPriceImpactType` lose their typeshare twins (they were FFI-only: `GemSwapValue.price_impact`
   returned the record and each app mapped it to its twin at once), and the record gains

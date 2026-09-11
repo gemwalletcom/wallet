@@ -25,8 +25,8 @@ struct WalletSearchRequestTests {
         let searchStore = SearchStore(db: db)
 
         try db.dbQueue.read { db in
-            let btc = try WalletSearchRequest(walletId: .mock(), searchBy: "btc").fetch(db)
-            let tokenId = try WalletSearchRequest(walletId: .mock(), searchBy: "0xdAC17F958D2ee523a2206206994597C13D831ec7").fetch(db)
+            let btc = try WalletSearchRequest(walletId: .mock(), searchBy: "btc", searchKey: "btc").fetch(db)
+            let tokenId = try WalletSearchRequest(walletId: .mock(), searchBy: "0xdAC17F958D2ee523a2206206994597C13D831ec7", searchKey: "0xdAC17F958D2ee523a2206206994597C13D831ec7").fetch(db)
 
             #expect(btc.assets.first?.asset.symbol == "BTC")
             #expect(tokenId.assets.first?.asset.symbol == "USDT")
@@ -40,7 +40,7 @@ struct WalletSearchRequestTests {
         try searchStore.add(type: .asset, query: query, ids: expectedOrder)
 
         try db.dbQueue.read { db in
-            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, limit: 10).fetch(db)
+            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, searchKey: query, limit: 10).fetch(db)
             #expect(result.assets.map(\.asset.id.identifier) == expectedOrder)
         }
     }
@@ -74,7 +74,7 @@ struct WalletSearchRequestTests {
         try store.upsertPerpetuals([ethPerpetual, btcPerpetual])
 
         try db.dbQueue.read { db in
-            let result = try WalletSearchRequest(walletId: .mock(), searchBy: "ETH").fetch(db)
+            let result = try WalletSearchRequest(walletId: .mock(), searchBy: "ETH", searchKey: "ETH").fetch(db)
             #expect(result.perpetuals.first?.perpetual.name == "ETH-USD")
         }
 
@@ -83,16 +83,16 @@ struct WalletSearchRequestTests {
         try searchStore.add(type: .perpetual, query: "tag:stocks", ids: [ethPerpetual.id.identifier])
 
         try db.dbQueue.read { db in
-            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query).fetch(db)
+            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, searchKey: query).fetch(db)
             #expect(result.perpetuals.first?.perpetual.id == btcPerpetual.id)
 
             let defaultView = try WalletSearchRequest(walletId: .mock(), searchBy: "").fetch(db)
             #expect(defaultView.perpetuals.isNotEmpty)
 
-            let listWithPerp = try WalletSearchRequest(walletId: .mock(), searchBy: "", scope: .list("stocks")).fetch(db)
+            let listWithPerp = try WalletSearchRequest(walletId: .mock(), searchBy: "", searchKey: "tag:stocks", scope: .list("stocks")).fetch(db)
             #expect(listWithPerp.perpetuals.first?.perpetual.name == "ETH-USD")
 
-            let listWithoutPerp = try WalletSearchRequest(walletId: .mock(), searchBy: "", scope: .list("stocks_ai")).fetch(db)
+            let listWithoutPerp = try WalletSearchRequest(walletId: .mock(), searchBy: "", searchKey: "tag:stocks_ai", scope: .list("stocks_ai")).fetch(db)
             #expect(listWithoutPerp.perpetuals.isEmpty)
         }
     }
@@ -111,13 +111,13 @@ struct WalletSearchRequestTests {
         try searchStore.add(type: .list, query: query, ids: lists.map(\.id))
 
         try db.dbQueue.read { db in
-            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, types: [.list]).fetch(db)
+            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, searchKey: query, types: [.list]).fetch(db)
             #expect(result.lists == lists)
 
-            let withList = try WalletSearchRequest(walletId: .mock(), searchBy: query, scope: .list("stocks"), types: [.list]).fetch(db)
+            let withList = try WalletSearchRequest(walletId: .mock(), searchBy: query, searchKey: query, scope: .list("stocks"), types: [.list]).fetch(db)
             #expect(withList.lists.isEmpty)
 
-            let withoutListType = try WalletSearchRequest(walletId: .mock(), searchBy: query).fetch(db)
+            let withoutListType = try WalletSearchRequest(walletId: .mock(), searchBy: query, searchKey: query).fetch(db)
             #expect(withoutListType.lists.isEmpty)
         }
     }

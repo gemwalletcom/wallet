@@ -40,6 +40,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         self.service = service
         self.title = title
         var request = request
+        request.searchKey = service.searchKey(query: request.searchBy, scope: request.scope.gemScope)
         request.limit = Int(service.walletSearchLimits(query: request.searchBy).results)
         searchQuery = ObservableQuery(request, initialValue: .empty)
         onSelectAssetAction = onSelectAsset
