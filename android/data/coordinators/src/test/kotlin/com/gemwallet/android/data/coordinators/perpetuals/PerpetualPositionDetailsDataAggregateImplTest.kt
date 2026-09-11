@@ -19,8 +19,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemPerpetualChartLine
-import uniffi.gemstone.GemPerpetualChartLineKind
 import java.util.Locale
 
 class PerpetualPositionDetailsDataAggregateImplTest {
@@ -86,7 +84,6 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         val aggregate = aggregate(liquidationPrice = 0.003597)
 
         assertEquals("\$0.003597", aggregate.liquidationPrice)
-        assertEquals(listOf(GemPerpetualChartLineKind.ENTRY, GemPerpetualChartLineKind.LIQUIDATION), aggregate.chartLines.map { it.kind })
     }
 
     @Test
@@ -94,7 +91,6 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         val aggregate = aggregate(liquidationPrice = 0.0)
 
         assertEquals("", aggregate.liquidationPrice)
-        assertEquals(listOf(GemPerpetualChartLineKind.ENTRY), aggregate.chartLines.map { it.kind })
     }
 
     @Test
@@ -103,10 +99,6 @@ class PerpetualPositionDetailsDataAggregateImplTest {
 
         assertEquals(2.57, aggregate.takeProfit ?: 0.0, 0.0)
         assertEquals(1.23, aggregate.stopLoss ?: 0.0, 0.0)
-        assertEquals(
-            listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.TAKE_PROFIT, 2.57), GemPerpetualChartLine(GemPerpetualChartLineKind.STOP_LOSS, 1.23)),
-            aggregate.chartLines.filter { it.kind != GemPerpetualChartLineKind.ENTRY },
-        )
     }
 
     @Test

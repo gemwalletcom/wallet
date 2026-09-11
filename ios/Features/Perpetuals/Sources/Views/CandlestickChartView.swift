@@ -135,13 +135,13 @@ struct CandlestickChartView: View {
 
     @ChartContentBuilder
     private var linesMarks: some ChartContent {
-        ForEach(model.visibleLines) { line in
+        ForEach(model.lines) { line in
             RuleMark(y: .value(ChartKey.price, line.price))
                 .foregroundStyle(line.color.opacity(.semiStrong))
                 .lineStyle(line.lineStyle)
         }
 
-        ForEach(Array(model.visibleLines.enumerated()), id: \.element.id) { index, line in
+        ForEach(Array(model.lines.enumerated()), id: \.element.id) { index, line in
             RuleMark(y: .value(ChartKey.price, line.price))
                 .foregroundStyle(.clear)
                 .annotation(position: .overlay, alignment: .leading, spacing: 0) {

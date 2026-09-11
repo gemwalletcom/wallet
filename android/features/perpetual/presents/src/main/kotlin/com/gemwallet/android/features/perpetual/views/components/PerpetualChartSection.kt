@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.price.PriceChangeCalculator
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
@@ -26,15 +27,16 @@ import com.gemwallet.android.ui.components.chart.GemCandlestickChart
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
-import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualPosition
 import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
-import com.wallet.core.primitives.Currency
+import uniffi.gemstone.perpetualChartLayout
 
 private val TooltipRightSafeArea = 96.dp
 
@@ -42,7 +44,7 @@ private val TooltipRightSafeArea = 96.dp
 internal fun PerpetualChartSection(
     state: StateViewType<List<ChartCandleStick>>,
     period: ChartPeriod,
-    lines: List<GemPerpetualChartLine>,
+    position: PerpetualPosition?,
     onPeriodSelect: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -65,24 +67,25 @@ internal fun PerpetualChartSection(
     val liquidationLabel = stringResource(R.string.perpetual_liquidation)
     val stopLossLabel = stringResource(R.string.perpetual_stop_loss)
     val takeProfitLabel = stringResource(R.string.perpetual_take_profit)
-    val referenceLines = remember(lines, entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel, numericString) {
-        lines.map { line ->
+    val lineLabel: (GemPerpetualChartLine) -> String = remember(entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel, numericString) {
+        { line ->
             val label = when (line.kind) {
                 GemPerpetualChartLineKind.ENTRY -> entryLabel
                 GemPerpetualChartLineKind.LIQUIDATION -> liquidationLabel
                 GemPerpetualChartLineKind.STOP_LOSS -> stopLossLabel
                 GemPerpetualChartLineKind.TAKE_PROFIT -> takeProfitLabel
             }
-            ChartReferenceLineUIModel(line.price, "$label | ${numericString(line.price)}", line.kind)
+            "$label | ${numericString(line.price)}"
         }
     }
 
-    val chartUIModel = remember(data, referenceLines, numericString) {
+    val chartUIModel = remember(data, position, lineLabel, numericString) {
         if (data.isEmpty()) null
         else CandlestickChartUIModel.from(
             candles = data,
+            layout = perpetualChartLayout(data.map { it.toGem() }, position?.toGem()),
             yTickFormatter = numericString,
-            referenceLines = referenceLines,
+            lineLabel = lineLabel,
         )
     }
     val headerUIModel = remember(selectedCandle, baseCandle, lastCandle, currencyString) {

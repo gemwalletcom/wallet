@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
-import struct Gemstone.GemPerpetualChartLine
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
@@ -9,29 +8,19 @@ import Testing
 
 struct CandlestickChartViewModelTests {
     @Test
-    func labelOffsetReturnsToTheEdgeAfterAGap() {
+    func labelOffsetsFollowTheOverlapLevels() {
         let model = CandlestickChartViewModel(
             candles: [.mock(high: 200, low: 100)],
-            lines: [
-                ChartLineViewModel(line: GemPerpetualChartLine(kind: .liquidation, price: 120), formatter: NumericFormatter()),
-                ChartLineViewModel(line: GemPerpetualChartLine(kind: .entry, price: 121), formatter: NumericFormatter()),
-                ChartLineViewModel(line: GemPerpetualChartLine(kind: .takeProfit, price: 180), formatter: NumericFormatter()),
-            ],
+            position: .mock(
+                entryPrice: 121,
+                liquidationPrice: 120,
+                takeProfit: PerpetualTriggerOrder(price: 180, order_type: .limit, order_id: "tp"),
+            ),
             formatter: CurrencyFormatter(currencyCode: "USD"),
         )
 
-        #expect(model.lineLabelOffsets.first == 0)
-        #expect(model.lineLabelOffsets.dropFirst().first == CandlestickChartViewModel.Constants.labelOverlapSpacing)
-        #expect(model.lineLabelOffsets.last == 0)
-    }
-
-    @Test
-    func flatSeriesKeepsAMeasurableRange() {
-        let model = CandlestickChartViewModel(
-            candles: [.mock(open: 100, high: 100, low: 100, close: 100)],
-            formatter: CurrencyFormatter(currencyCode: "USD"),
-        )
-
-        #expect(model.yAxisRange.lowerBound < model.yAxisRange.upperBound)
+        #expect(model.lines.map(\.price) == [120, 121, 180])
+        #expect(model.lineLabelOffsets == [0, CandlestickChartViewModel.Constants.labelOverlapSpacing, 0])
+        #expect(model.yAxisRange.contains(100) && model.yAxisRange.contains(200))
     }
 }

@@ -1,8 +1,5 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemPerpetualChartLine
-import uniffi.gemstone.perpetualChartLines
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
@@ -15,6 +12,7 @@ import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
@@ -62,5 +60,5 @@ class PerpetualPositionDetailsDataAggregateImpl(
 
     override val takeProfit: Double? = data.position.takeProfit?.price
 
-    override val chartLines: List<GemPerpetualChartLine> = perpetualChartLines(data.position.toGem())
+    override val position: PerpetualPosition = data.position
 }

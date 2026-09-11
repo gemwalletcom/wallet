@@ -338,12 +338,12 @@ private fun DrawScope.drawReferenceLines(
     textMeasurer: TextMeasurer,
 ) {
     val visible = referenceLines.mapNotNull { line ->
-        val y = valueToY(line.price)
+        val y = valueToY(line.line.price)
         if (y < plotTop || y > plotBottom) null else line to y
     }
     visible.forEach { (line, y) ->
         drawLine(
-            color = referenceColorByRole(line.role),
+            color = referenceColorByRole(line.line.kind),
             start = Offset(plotLeft, y),
             end = Offset(plotRight, y),
             strokeWidth = lineThicknessPx,
@@ -354,13 +354,13 @@ private fun DrawScope.drawReferenceLines(
     visible.forEach { (line, y) ->
         val measured = textMeasurer.measure(line.label, labelStyle)
         val badgeWidth = measured.size.width + 2f * badgeHorizontalPaddingPx
-        val anchorX = if (line.overlapLevel == 0) plotLeft + labelPaddingPx
+        val anchorX = if (line.line.overlapLevel == 0u) plotLeft + labelPaddingPx
                       else lastBadgeEndX + labelHorizontalGapPx
         drawBadgeLabel(
             textMeasurer = textMeasurer,
             text = line.label,
             textStyle = labelStyle,
-            backgroundColor = referenceColorByRole(line.role),
+            backgroundColor = referenceColorByRole(line.line.kind),
             anchorX = anchorX,
             anchorY = y,
             horizontalPaddingPx = badgeHorizontalPaddingPx,

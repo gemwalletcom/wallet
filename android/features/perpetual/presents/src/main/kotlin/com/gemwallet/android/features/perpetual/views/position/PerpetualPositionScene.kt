@@ -12,8 +12,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import uniffi.gemstone.GemPerpetualChartLine
-import uniffi.gemstone.GemPerpetualChartLineKind
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
@@ -38,7 +36,10 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualOrderType
+import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.TransactionId
 import androidx.compose.material3.SnackbarHostState
 
@@ -71,7 +72,7 @@ internal fun PerpetualPositionScene(
                     PerpetualChartSection(
                         state = chart,
                         period = period,
-                        lines = position?.chartLines.orEmpty(),
+                        position = position?.position,
                         onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
                     )
                 }
@@ -160,11 +161,21 @@ private fun PerpetualPositionScenePreview() {
         override val fundingPaymentsDirection: ValueDirection = ValueDirection.Up
         override val stopLoss: Double = 90050.00
         override val takeProfit: Double = 95000.00
-        override val chartLines: List<GemPerpetualChartLine> = listOf(
-            GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, 94500.00),
-            GemPerpetualChartLine(GemPerpetualChartLineKind.TAKE_PROFIT, 95000.00),
-            GemPerpetualChartLine(GemPerpetualChartLineKind.STOP_LOSS, 90050.00),
-            GemPerpetualChartLine(GemPerpetualChartLineKind.LIQUIDATION, 85050.00),
+        override val position: PerpetualPosition = PerpetualPosition(
+            id = "position",
+            perpetualId = perpetualId,
+            assetId = sampleAsset.id,
+            size = 0.5,
+            sizeValue = 47250.00,
+            leverage = 10u,
+            entryPrice = 94500.00,
+            liquidationPrice = 85050.00,
+            marginType = marginType,
+            direction = direction,
+            marginAmount = 4771.03,
+            takeProfit = PerpetualTriggerOrder(95000.00, PerpetualOrderType.Limit, "tp"),
+            stopLoss = PerpetualTriggerOrder(90050.00, PerpetualOrderType.Limit, "sl"),
+            pnl = 460.25,
         )
     }
 

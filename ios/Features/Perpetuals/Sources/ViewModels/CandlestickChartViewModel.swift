@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.PriceChangeCalculator
+import struct Gemstone.GemPerpetualChartLayout
+import func Gemstone.perpetualChartLayout
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -12,16 +15,13 @@ import SwiftUI
 struct CandlestickChartViewModel {
     private let priceChangeCalculator = PriceChangeCalculator()
     enum Constants {
-        static let labelOverlapPriceFraction = 0.06
         static let labelOverlapSpacing: CGFloat = 115
         static let xAxisTickCount = 6
-        static let yAxisTickCount = 4
-        static let minimumSpanFraction = 0.001
     }
 
     let candles: [ChartCandleStick]
 
-    private let lines: [ChartLineViewModel]
+    private let layout: GemPerpetualChartLayout
     private let period: ChartPeriod
     private let formatter: CurrencyFormatter
     private let numericFormatter: NumericFormatter
@@ -29,12 +29,12 @@ struct CandlestickChartViewModel {
     init(
         candles: [ChartCandleStick],
         period: ChartPeriod = .day,
-        lines: [ChartLineViewModel] = [],
+        position: PerpetualPosition? = nil,
         formatter: CurrencyFormatter,
         numericFormatter: NumericFormatter = NumericFormatter(),
     ) {
         self.candles = candles
-        self.lines = lines
+        self.layout = perpetualChartLayout(candles: candles.map { $0.map() }, position: position?.map())
         self.period = period
         self.formatter = formatter
         self.numericFormatter = numericFormatter
@@ -45,34 +45,15 @@ struct CandlestickChartViewModel {
     }
 
     var yAxisRange: ClosedRange<Double> {
-        let linePrices = visibleLines.map(\.price)
-        let lowest = min(candleMin, linePrices.min() ?? candleMin)
-        let highest = max(candleMax, linePrices.max() ?? candleMax)
-        let span = max(highest - lowest, abs(highest) * Constants.minimumSpanFraction)
-        let padding = span * 0.05
-        let lowerBound = max(lowest - padding, lowest * 0.95)
-        return lowerBound ... (highest + padding)
+        layout.priceLow ... layout.priceHigh
     }
 
-    var visibleLines: [ChartLineViewModel] {
-        let buffer = (candleMax - candleMin) * 0.5
-        return lines
-            .filter { $0.price >= candleMin - buffer && $0.price <= candleMax + buffer }
-            .sorted { $0.price < $1.price }
+    var lines: [ChartLineViewModel] {
+        layout.lines.map { ChartLineViewModel(line: $0, formatter: numericFormatter) }
     }
 
     var yAxisTicks: [Double] {
-        guard candleMax > candleMin else { return [candleMin, candleMax] }
-        let step = (candleMax - candleMin) / Double(Constants.yAxisTickCount - 1)
-        return (0 ..< Constants.yAxisTickCount).map { candleMin + Double($0) * step }
-    }
-
-    private var candleMin: Double {
-        candles.map(\.low).min() ?? 0
-    }
-
-    private var candleMax: Double {
-        candles.map(\.high).max() ?? 1
+        layout.ticks
     }
 
     func formattedPrice(_ price: Double) -> String {
@@ -80,14 +61,7 @@ struct CandlestickChartViewModel {
     }
 
     var lineLabelOffsets: [CGFloat] {
-        let visible = visibleLines
-        let range = yAxisRange
-        let threshold = (range.upperBound - range.lowerBound) * Constants.labelOverlapPriceFraction
-        return visible.indices.reduce(into: [CGFloat]()) { offsets, index in
-            let previous = offsets.last ?? 0
-            let overlapsPrevious = index > 0 && abs(visible[index].price - visible[index - 1].price) < threshold
-            offsets.append(overlapsPrevious ? previous + Constants.labelOverlapSpacing : 0)
-        }
+        layout.lines.map { CGFloat($0.overlapLevel) * Constants.labelOverlapSpacing }
     }
 
     var currentPrice: Double? {

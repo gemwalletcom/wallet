@@ -3,8 +3,9 @@ package com.gemwallet.android.ui.models.chart
 import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemPerpetualChartLayout
+import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
 
 class CandlestickChartUIModelTest {
@@ -15,108 +16,51 @@ class CandlestickChartUIModelTest {
         ChartCandleStick(date = 3_000L, open = 10.0, high = 10.0, low = 10.0, close = 10.0, volume = 120.0),
     )
 
+    private val layout = GemPerpetualChartLayout(
+        priceLow = 8.0,
+        priceHigh = 14.0,
+        ticks = listOf(9.0, 11.0, 13.0),
+        lines = listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, 10.5, 0u)),
+    )
+
     @Test
     fun candleDirectionsReflectOpenVsClose() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "$it" },
-        )
+        val model = model()
+
         assertEquals(ValueDirection.Up, model.candles[0].direction)
         assertEquals(ValueDirection.Down, model.candles[1].direction)
         assertEquals(ValueDirection.None, model.candles[2].direction)
     }
 
     @Test
-    fun yRangeIncludesInRangeReferencesAndExpandsAccordingly() {
-        val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 14.0, label = "TP", role = GemPerpetualChartLineKind.TAKE_PROFIT),
-            ChartReferenceLineUIModel(price = 8.0, label = "SL", role = GemPerpetualChartLineKind.STOP_LOSS),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = referenceLines,
-        )
-        assertEquals(2, model.referenceLines.size)
-        assertTrue("yMin (${model.yMin}) must be at or below 8.0", model.yMin <= 8.0)
-        assertTrue("yMax (${model.yMax}) must be at or above 14.0", model.yMax >= 14.0)
+    fun yTicksAreFractionsOfTheLayoutRange() {
+        val model = model()
+
+        assertEquals(listOf("9.0", "11.0", "13.0"), model.yTicks.map { it.label })
+        assertEquals(listOf(1f / 6f, 0.5f, 5f / 6f), model.yTicks.map { it.fraction })
+        assertEquals(6.0, model.ySpan, 1e-9)
     }
 
     @Test
-    fun referenceLinesFarOutsideCandleRangeAreFiltered() {
-        val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 100.0, label = "TP", role = GemPerpetualChartLineKind.TAKE_PROFIT),
-            ChartReferenceLineUIModel(price = 1.0, label = "SL", role = GemPerpetualChartLineKind.STOP_LOSS),
-            ChartReferenceLineUIModel(price = 10.5, label = "Entry", role = GemPerpetualChartLineKind.ENTRY),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = referenceLines,
-        )
-        assertEquals(listOf(10.5), model.referenceLines.map { it.price })
-    }
+    fun referenceLinesCarryTheirLabels() {
+        val model = model()
 
-    @Test
-    fun closeReferencesGetSequentialOverlapLevels() {
-        val references = listOf(
-            ChartReferenceLineUIModel(price = 10.0, label = "A", role = GemPerpetualChartLineKind.ENTRY),
-            ChartReferenceLineUIModel(price = 10.1, label = "B", role = GemPerpetualChartLineKind.STOP_LOSS),
-            ChartReferenceLineUIModel(price = 12.5, label = "C", role = GemPerpetualChartLineKind.TAKE_PROFIT),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = references,
-        )
-        val levels = model.referenceLines.associate { it.label to it.overlapLevel }
-        assertEquals(0, levels["A"])
-        assertEquals(1, levels["B"])
-        assertEquals(0, levels["C"])
-    }
-
-    @Test
-    fun visibleReferencesAreSortedByPriceAscending() {
-        val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 12.0, label = "B", role = GemPerpetualChartLineKind.TAKE_PROFIT),
-            ChartReferenceLineUIModel(price = 9.5, label = "A", role = GemPerpetualChartLineKind.STOP_LOSS),
-            ChartReferenceLineUIModel(price = 11.0, label = "C", role = GemPerpetualChartLineKind.ENTRY),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = referenceLines,
-        )
-        assertEquals(listOf(9.5, 11.0, 12.0), model.referenceLines.map { it.price })
-    }
-
-    @Test
-    fun yTickCountMatchesIosFour() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "%.1f".format(it) },
-        )
-        assertEquals(4, model.yTicks.size)
-        assertEquals(9.0, model.yTicks.first().value, 1e-9)
-        assertEquals(13.0, model.yTicks.last().value, 1e-9)
+        assertEquals(listOf("Entry | 10.5"), model.referenceLines.map { it.label })
+        assertEquals(GemPerpetualChartLineKind.ENTRY, model.referenceLines.single().line.kind)
     }
 
     @Test
     fun xGridlineFractionsSpanZeroToOne() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            xTickCount = 2,
-        )
+        val model = model(xTickCount = 2)
+
         assertEquals(listOf(0f, 1f), model.xGridlineFractions)
     }
 
-    @Test
-    fun positiveLowestRangeRespectsFloorGuard() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-        )
-        assertTrue("yMin (${model.yMin}) must be at least 95% of candleMin", model.yMin >= 9.0 * 0.95)
-    }
+    private fun model(xTickCount: Int = CandlestickChartUIModel.DEFAULT_X_TICK_COUNT) = CandlestickChartUIModel.from(
+        candles = candles,
+        layout = layout,
+        yTickFormatter = { "$it" },
+        lineLabel = { "Entry | ${it.price}" },
+        xTickCount = xTickCount,
+    )
 }

@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Perpetual chart layout comes from Core.** Both apps padded the price range, hid reference
+  lines far from the candles, spaced four ticks and levelled overlapping labels with the same
+  constants, and drifted on the floor guard and the flat-series span. `perpetual_chart_layout`
+  (candles plus the optional position) now returns `GemPerpetualChartLayout { price_low,
+  price_high, ticks, lines }` with `overlap_level` on each visible line, replacing
+  `perpetual_chart_lines`; iOS maps levels to label offsets and Android maps the range to canvas
+  fractions, nothing else.
 - **Simulation warning rows come from Core.** Both apps filtered the simulation warnings with an
   identical `isVisible` switch (bounded token, permit and permit-batch approvals are hidden,
   unlimited ones shown) and then branched on the warning payload again for the copy. Core now

@@ -33,7 +33,7 @@ public struct PerpetualScene: View {
                                 model: CandlestickChartViewModel(
                                     candles: data,
                                     period: chart.currentPeriod,
-                                    lines: model.chartLineModels,
+                                    position: model.positions.first?.position,
                                     formatter: CurrencyFormatter(
                                         type: .currency,
                                         currencyCode: Currency.usd.rawValue,

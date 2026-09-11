@@ -4,9 +4,7 @@ import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
 import Components
-import Formatters
 import Foundation
-import func Gemstone.perpetualChartLines
 import func Gemstone.transactionsListLimit
 import GemstonePrimitives
 import InfoSheet
@@ -135,13 +133,6 @@ public final class PerpetualSceneViewModel {
 
     public var positionViewModels: [PerpetualPositionViewModel] {
         positions.map { PerpetualPositionViewModel($0) }
-    }
-
-    var chartLineModels: [ChartLineViewModel] {
-        guard let position = positions.first?.position else { return [] }
-        return perpetualChartLines(position: position.map()).map {
-            ChartLineViewModel(line: $0, formatter: NumericFormatter())
-        }
     }
 }
 

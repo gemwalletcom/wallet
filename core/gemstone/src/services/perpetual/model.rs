@@ -3,7 +3,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::failures::StepFailure;
 use crate::services::transfer::model::GemRecipient;
-use primitives::chart::ChartCandleUpdate;
+use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::{Asset, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType};
 use serde::{Deserialize, Serialize};
 
@@ -102,11 +102,20 @@ pub enum GemPerpetualChartLineKind {
 pub struct GemPerpetualChartLine {
     pub kind: GemPerpetualChartLineKind,
     pub price: f64,
+    pub overlap_level: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualChartLayout {
+    pub price_low: f64,
+    pub price_high: f64,
+    pub ticks: Vec<f64>,
+    pub lines: Vec<GemPerpetualChartLine>,
 }
 
 #[uniffi::export]
-pub fn perpetual_chart_lines(position: PerpetualPosition) -> Vec<GemPerpetualChartLine> {
-    rules::chart_lines(&position)
+pub fn perpetual_chart_layout(candles: Vec<ChartCandleStick>, position: Option<PerpetualPosition>) -> GemPerpetualChartLayout {
+    rules::chart_layout(&candles, position.as_ref())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
