@@ -6,6 +6,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.property.toSocialLinks
+import uniffi.gemstone.socialLinks
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetMarketRow
@@ -25,7 +26,7 @@ class AssetMarketUIModelFactory @Inject constructor() {
                     is GemChartSection.PriceAlerts -> ChartSectionUIModel.PriceAlerts(section.count.toInt())
                     GemChartSection.SetPriceAlert -> ChartSectionUIModel.SetPriceAlert
                     is GemChartSection.Market -> ChartSectionUIModel.Market(section.rows.map(mapper::row))
-                    is GemChartSection.Links -> ChartSectionUIModel.Links(section.links.map { it.toPrimitives() }.toSocialLinks())
+                    is GemChartSection.Links -> ChartSectionUIModel.Links(socialLinks(section.links).toSocialLinks())
                 }
             },
         )

@@ -2,33 +2,34 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemSocialLink
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
 struct AssetLinkViewModel {
-    let assetLink: AssetLink
+    let link: GemSocialLink
 
-    init(_ assetLink: AssetLink) {
-        self.assetLink = assetLink
+    init(_ link: GemSocialLink) {
+        self.link = link
     }
 
     var insightLink: InsightLink? {
-        guard let name, let url, let image else {
+        guard let url else {
             return .none
         }
         return InsightLink(
             title: name,
-            subtitle: host,
+            subtitle: link.host,
             url: url,
             deepLink: deepLink,
             image: AssetImage.image(image),
         )
     }
 
-    var name: String? {
-        switch assetLink.linkType {
+    var name: String {
+        switch link.linkType {
         case .x: Localized.Social.x
         case .discord: Localized.Social.discord
         case .reddit: Localized.Social.reddit
@@ -43,12 +44,11 @@ struct AssetLinkViewModel {
         case .instagram: Localized.Social.instagram
         case .magicEden: Localized.Social.magiceden
         case .tikTok: Localized.Social.tiktok
-        case .none: nil
         }
     }
 
-    var image: Image? {
-        switch assetLink.linkType {
+    var image: Image {
+        switch link.linkType {
         case .x: Images.Social.x
         case .discord: Images.Social.discord
         case .reddit: Images.Social.reddit
@@ -63,22 +63,14 @@ struct AssetLinkViewModel {
         case .instagram: Images.Social.instagram
         case .magicEden: Images.Social.magiceden
         case .tikTok: Images.Social.tiktok
-        case .none: nil
         }
     }
 
     var url: URL? {
-        assetLink.url.asURL
+        link.url.asURL
     }
 
     var deepLink: URL? {
-        DeepLinkViewModel(assetLink).deepLink
-    }
-
-    var host: String? {
-        if case .website = assetLink.linkType {
-            return assetLink.url.asURL?.cleanHost()
-        }
-        return nil
+        DeepLinkViewModel(link).deepLink
     }
 }

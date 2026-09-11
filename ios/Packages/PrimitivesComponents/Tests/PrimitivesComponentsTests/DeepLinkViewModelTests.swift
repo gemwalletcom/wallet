@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import func Gemstone.communityLinks
-import GemstonePrimitives
-import Primitives
+import enum Gemstone.LinkType
 @testable import PrimitivesComponents
 import Testing
 
@@ -19,6 +18,6 @@ struct DeepLinkViewModelTests {
 
 extension DeepLinkViewModel {
     static func mock(_ linkType: LinkType) -> DeepLinkViewModel? {
-        communityLinks().map { $0.map() }.first { $0.linkType == linkType }.map { DeepLinkViewModel($0) }
+        communityLinks().first { $0.linkType == linkType }.map { DeepLinkViewModel($0) }
     }
 }

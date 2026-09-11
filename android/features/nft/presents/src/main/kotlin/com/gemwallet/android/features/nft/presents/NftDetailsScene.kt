@@ -40,7 +40,9 @@ import com.gemwallet.android.ui.components.list_item.property.AddressPropertyIte
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.components.list_item.property.toSocialLinks
+import uniffi.gemstone.socialLinks
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
@@ -222,7 +224,7 @@ private fun LazyListScope.nftAttributes(attributes: List<Pair<String, String>>) 
 }
 
 private fun LazyListScope.nftLinks(links: List<AssetLink>, onLinkClick: (String) -> Unit) {
-    val models = links.toSocialLinks()
+    val models = socialLinks(links.map { it.toGem() }).toSocialLinks()
     if (models.isEmpty()) {
         return
     }

@@ -19,7 +19,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.PublicUrl
 import uniffi.gemstone.communityLinks
 
@@ -58,7 +57,7 @@ fun AboutUsScreen(
             }
             item {
                 SubheaderItem(R.string.settings_community)
-                val socials = remember { communityLinks().map { it.toPrimitives() }.toSocialLinks() }
+                val socials = remember { communityLinks().toSocialLinks() }
                 socials.forEachIndexed { index, social ->
                     LinkItem(
                         title = stringResource(id = social.label),

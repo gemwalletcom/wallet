@@ -301,6 +301,12 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Social link rows are Core's.** iOS `AssetLink.linkType` and Android `ext/AssetLink.kt` (with
+  a `"twitter"` alias) each parsed a link name into `LinkType`, dropped unknown names and derived
+  the website host after Core had only sorted the links. `social_links(links)` and
+  `community_links()` now return `GemSocialLink { link_type, url, host }` in display order, so
+  each app only picks a title, an icon and (on iOS) a deep link per `LinkType`.
+  `GemSocialLinks.sorted` is gone; `LinkType` gained `Copy`/`PartialEq`.
 - **Name record state lives in Core.** iOS `NameRecordState` and Android `NameRecordState` were
   the same four-state enum; both apps dropped a resolved record with an empty name or address,
   and both derived address-input validity from the state with the same switch. Core now owns

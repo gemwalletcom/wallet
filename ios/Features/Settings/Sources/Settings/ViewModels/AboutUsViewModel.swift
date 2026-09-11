@@ -96,7 +96,7 @@ public final class AboutUsViewModel: Sendable {
     }
 
     var linksViewModel: SocialLinksViewModel {
-        SocialLinksViewModel(assetLinks: communityLinks().map { $0.map() })
+        SocialLinksViewModel(links: communityLinks())
     }
 
     var communityTitle: String {

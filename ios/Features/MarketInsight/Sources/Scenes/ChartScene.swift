@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.socialLinks
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -39,7 +40,7 @@ public struct ChartScene: View {
                     marketSection(model.marketValues(rows))
                 case let .links(links):
                     Section(Localized.Social.links) {
-                        SocialLinksView(model: SocialLinksViewModel(assetLinks: links.map { $0.map() }))
+                        SocialLinksView(model: SocialLinksViewModel(links: socialLinks(links: links)))
                     }
                 }
             }
