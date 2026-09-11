@@ -7,7 +7,7 @@ import uniffi.gemstone.SimulationWarning
 import uniffi.gemstone.MessageType
 
 interface WalletConnectReviewModel {
-    val icon: String
+    val icon: String?
     val name: String
     val uri: String
     val chain: Chain

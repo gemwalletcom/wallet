@@ -332,7 +332,7 @@ sealed interface AuthSceneState {
         val selectedWallet: Wallet
         val approval: AuthApproval
 
-        override val icon: String get() = peer.icon
+        override val icon: String? get() = peer.icon
         override val name: String get() = peer.name
         override val uri: String get() = peer.uri
         override val chain: Chain get() = approval.chain

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemTransferData
 import Components
 import Foundation
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -40,6 +40,6 @@ extension ConfirmAppViewModel {
     }
 
     private var assetImage: AssetImage? {
-        transfer.applicationMetadata.map { AssetImage(imageURL: $0.icon.asURL) }
+        transfer.applicationMetadata.map { AssetImage(imageURL: $0.iconURL) }
     }
 }

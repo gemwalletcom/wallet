@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.views
 
+import com.gemwallet.android.ext.iconUrl
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -148,7 +149,7 @@ fun ConnectionItem(
         leading = {
             val name = connection.session.metadata.shortName
             IconWithBadge(
-                connection.session.metadata.icon,
+                connection.session.metadata.iconUrl,
                 placeholder = if (name.isEmpty()) "WC" else name[0].toString()
             )
         },

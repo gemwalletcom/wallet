@@ -5,3 +5,6 @@ import uniffi.gemstone.GemApplicationMetadataService
 
 val ApplicationMetadata.shortName: String
     get() = GemApplicationMetadataService().use { it.shortName(toGem()) }
+
+val ApplicationMetadata.iconUrl: String?
+    get() = GemApplicationMetadataService().use { it.iconUrl(toGem()) }

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 
@@ -12,13 +13,7 @@ public struct WalletConnectionViewModel: Sendable {
     }
 
     var imageUrl: URL? {
-        if let url = URL(string: connection.session.metadata.icon) {
-            if url.host() == nil {
-                return URL(string: connection.session.metadata.url + connection.session.metadata.icon)
-            }
-            return url
-        }
-        return .none
+        connection.session.metadata.iconURL
     }
 
     var hostText: String? {

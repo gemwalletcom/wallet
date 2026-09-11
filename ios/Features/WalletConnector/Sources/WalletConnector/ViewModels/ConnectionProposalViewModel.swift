@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -66,7 +67,7 @@ public struct ConnectionProposalViewModel {
     }
 
     var imageUrl: URL? {
-        URL(string: payload.metadata.icon)
+        payload.metadata.iconURL
     }
 
     var verificationImage: Image {
