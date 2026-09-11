@@ -1,6 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,7 +26,6 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
-import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemChainSettingsService
 import uniffi.gemstone.GemChainSettingsServiceInterface
@@ -114,12 +112,6 @@ object DataModule {
         explorerService: GemExplorerService,
         gateway: GemGateway,
     ): GemChainSettingsServiceInterface = GemChainSettingsService(nodeService, explorerService, gateway)
-
-    @Singleton
-    @Provides
-    fun provideSyncService(
-        appStartService: GemAppStartService,
-    ): SyncService = SyncService(appStartService = appStartService)
 
     @Provides
     fun provideGemRecentActivityServiceInterface(service: GemRecentActivityService): GemRecentActivityServiceInterface = service

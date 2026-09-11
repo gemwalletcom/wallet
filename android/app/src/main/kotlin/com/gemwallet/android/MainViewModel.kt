@@ -9,11 +9,9 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.userMessage
 import com.gemwallet.android.model.AuthState
-import com.gemwallet.android.services.CheckAccountsService
 import android.util.Log
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import uniffi.gemstone.GemWalletService
-import com.gemwallet.android.services.SyncService
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +26,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAppStartFailure
+import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemPaymentException
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -37,11 +37,10 @@ class MainViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val isWalletConnectEnabledCase: IsWalletConnectEnabled,
     private val pairWalletConnect: PairWalletConnect,
-    private val syncService: SyncService,
+    private val appStartService: GemAppStartServiceInterface,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val walletService: GemWalletService,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
-    private val checkAccountsService: CheckAccountsService,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
 ) : ViewModel() {
@@ -107,14 +106,18 @@ class MainViewModel @Inject constructor(
     fun isAuthRequired(): Boolean = userConfig.authRequired()
 
     internal fun maintain() {
-        viewModelScope.launch(Dispatchers.IO) { syncService.sync() }
+        viewModelScope.launch(Dispatchers.IO) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(Dispatchers.IO) {
             migratePriceAlertsPreference()
             migrateV3KeystoreService()
             runCatching { walletService.migrateToSharedPassword() }
                 .onFailure { Log.e("MainViewModel", "shared keystore password migration failed", it) }
-            checkAccountsService()
+            appStartService.setupWallets().forEach(::logAppStartFailure)
         }
+    }
+
+    private fun logAppStartFailure(failure: GemAppStartFailure) {
+        Log.e("MainViewModel", "${failure.step} failed: ${failure.message}")
     }
 
     fun requestAuth(requestId: Long) {
