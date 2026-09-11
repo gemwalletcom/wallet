@@ -8,15 +8,6 @@ import PrimitivesTestKit
 import StoreTestKit
 import Testing
 
-private extension UserDefaults {
-    static func mock() -> UserDefaults {
-        let suiteName = UUID().uuidString
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        return defaults
-    }
-}
-
 private extension DB {
     func insertLegacyWallet(
         id: String,

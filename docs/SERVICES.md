@@ -301,6 +301,9 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **One `UserDefaults.mock` for the iOS test kits.** The factory lived in `GemstoneServicesTestKit`
+  and again as a private copy in the store's wallet-id migration test; it now lives in
+  `PrimitivesTestKit`, which both already depend on, and the unread `mockWithValues` is gone.
 - **iOS test kits no longer duplicate mock factories.** `Perpetual.mock` and
   `PerpetualPosition.mock` existed in both `PrimitivesTestKit` and `PerpetualsTestKit` with
   different defaults, and `Transaction.mock` in both `PrimitivesTestKit` and `StoreTestKit`. One factory per type

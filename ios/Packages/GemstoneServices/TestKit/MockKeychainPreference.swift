@@ -3,6 +3,7 @@
 import Foundation
 import GemstoneServices
 import Keychain
+import PrimitivesTestKit
 
 public final class MockKeychainPreference: KeychainPreferenceStorable, @unchecked Sendable {
     private let storage: UserDefaults
