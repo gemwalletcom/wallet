@@ -45,13 +45,6 @@ public extension DB {
         return db
     }
 
-    static func mockPerpetualAssets() throws -> DB {
-        let db = Self.mock()
-        try FiatRateStore(db: db).add([FiatRate(symbol: .usd, rate: 1)])
-        try AssetStore(db: db).add(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
-        return db
-    }
-
     static func mockAssetsWithPerpetualCollateralBalance() throws -> DB {
         let ethereum = Asset.mockEthereum()
         let bnb = Asset.mockBNB()

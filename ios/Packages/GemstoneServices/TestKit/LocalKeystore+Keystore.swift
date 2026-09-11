@@ -9,12 +9,6 @@ import GemstonePrimitives
 import GemstoneServices
 import Primitives
 
-public struct LocalKeystoreMockContext {
-    public let keystore: LocalKeystore
-    public let baseDir: URL
-    public let password: MockKeystorePassword
-}
-
 /// For public use
 public extension LocalKeystore {
     static let words = ["shoot", "island", "position", "soft", "burden", "budget", "tooth", "cruel", "issue", "economy", "destroy", "above"]
@@ -29,24 +23,6 @@ public extension LocalKeystore {
         LocalKeystore(
             directory: UUID().uuidString,
             keystorePassword: keystorePassword,
-        )
-    }
-
-    static func mockContext(
-        keystorePassword: MockKeystorePassword = MockKeystorePassword(memoryPassword: LocalKeystore.password),
-    ) throws -> LocalKeystoreMockContext {
-        let directory = UUID().uuidString
-        let baseDir = try FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appending(path: directory, directoryHint: .isDirectory)
-        let keystore = LocalKeystore(
-            directory: directory,
-            keystorePassword: keystorePassword,
-        )
-        return LocalKeystoreMockContext(
-            keystore: keystore,
-            baseDir: baseDir,
-            password: keystorePassword,
         )
     }
 }

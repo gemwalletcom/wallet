@@ -301,6 +301,11 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Unread iOS test kit factories are gone.** A sweep of every `static func mock*` in the test
+  kits against the tests found eleven with no caller (`AddressStore.mockAddresses`,
+  `AmountDisplay.mockSymbol`, `Asset.mockHypercoreSpotUSDC`, `AutocloseType.mockModify`,
+  `DB.mockPerpetualAssets`, `LocalKeystore.mockContext` with its context struct,
+  `PerpetualPortfolio.mockEmpty` and the five `PerpetualType` factories); all deleted.
 - **One `UserDefaults.mock` for the iOS test kits.** The factory lived in `GemstoneServicesTestKit`
   and again as a private copy in the store's wallet-id migration test; it now lives in
   `PrimitivesTestKit`, which both already depend on, and the unread `mockWithValues` is gone.

@@ -49,14 +49,4 @@ public extension PerpetualPortfolio {
             accountSummary: accountSummary,
         )
     }
-
-    static func mockEmpty() -> PerpetualPortfolio {
-        PerpetualPortfolio(
-            day: nil,
-            week: nil,
-            month: nil,
-            allTime: nil,
-            accountSummary: nil,
-        )
-    }
 }

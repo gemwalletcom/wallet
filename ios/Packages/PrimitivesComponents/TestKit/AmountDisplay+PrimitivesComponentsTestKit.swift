@@ -25,8 +25,4 @@ public extension AmountDisplay {
             formatter: formatter,
         )
     }
-
-    static func mockSymbol(asset: Asset = Asset.mock()) -> AmountDisplay {
-        .symbol(asset: asset)
-    }
 }
