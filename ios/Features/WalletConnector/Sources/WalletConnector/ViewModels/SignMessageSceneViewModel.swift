@@ -11,7 +11,8 @@ import PrimitivesComponents
 import Style
 import WalletConnectorService
 import struct Gemstone.SimulationPayloadField
-import struct Gemstone.SimulationWarning
+import struct Gemstone.GemSimulationWarningRow
+import func Gemstone.simulationWarningRows
 
 @Observable
 @MainActor
@@ -101,8 +102,8 @@ public final class SignMessageSceneViewModel {
         TextMessageViewModel(message: preview.text)
     }
 
-    public var simulationWarnings: [SimulationWarning] {
-        payload.simulation.warnings
+    public var simulationWarnings: [GemSimulationWarningRow] {
+        simulationWarningRows(warnings: payload.simulation.warnings)
     }
 
     public var payloadModel: SimulationPayloadModel {

@@ -10,6 +10,7 @@ import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmFailure
 import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemFeeRate
+import struct Gemstone.GemSimulationWarningRow
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
@@ -265,7 +266,7 @@ struct ConfirmTransferSceneViewModelTests {
         await model.load()
         #expect(model.state.preload?.confirmData.feeRates.map(\.priority) == priorities)
 
-        model.state.simulation = .mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
+        model.state.simulation = .mock(warnings: [GemSimulationWarningRow(kind: .externallyOwnedSpender, severity: .warning, message: nil)])
         model.feeSelection = .priority(priority: .fast)
         await model.load()
 
@@ -464,18 +465,14 @@ struct ConfirmTransferSceneViewModelTests {
             simulation: .mock(
                 warnings: [SimulationWarning(
                     severity: .warning,
-                    warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111").identifier, value: 1000)),
+                    warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111").identifier, value: nil)),
                     message: nil,
                 )],
                 payload: payload,
             ),
             load: .success(.mock(
                 simulation: GemConfirmSimulation(primaryFields: payload, secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
-                warnings: [SimulationWarning(
-                    severity: .warning,
-                    warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111").identifier, value: 1000)),
-                    message: nil,
-                )],
+                warnings: [GemSimulationWarningRow(kind: .unlimitedApproval, severity: .warning, message: nil)],
             )),
         )
         await model.load()
@@ -513,7 +510,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func simulationWarningsPassThroughExternallyOwnedSpenderWarnings() {
+    func simulationWarningsHideBoundedApprovalsAndKeepExternallyOwnedSpenderWarnings() {
         let model = ConfirmTransferSceneViewModel.mock(
             simulation: .mock(warnings: [
                 SimulationWarning(
@@ -529,8 +526,7 @@ struct ConfirmTransferSceneViewModelTests {
             ]),
         )
 
-        #expect(model.simulationWarnings.count == 2)
-        #expect(model.simulationWarnings.last?.warning == .externallyOwnedSpender)
+        #expect(model.simulationWarnings.map(\.kind) == [.externallyOwnedSpender])
         #expect(model.button.state != .disabled)
     }
 
@@ -551,8 +547,7 @@ struct ConfirmTransferSceneViewModelTests {
             ]),
         )
 
-        #expect(model.simulationWarnings.count == 2)
-        #expect(model.simulationWarnings.last?.warning == .validationError)
+        #expect(model.simulationWarnings.map(\.kind) == [.validationError])
     }
 
     @Test

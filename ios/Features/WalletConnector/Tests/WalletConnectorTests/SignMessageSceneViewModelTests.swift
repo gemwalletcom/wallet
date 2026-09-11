@@ -202,7 +202,7 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
-    func simulationWarningsPassThroughUnlimitedAndFiniteApprovals() {
+    func simulationWarningsHideBoundedApprovals() {
         let payload = SignMessagePayload.mock(
             chain: .ethereum,
             session: .mock(),
@@ -228,8 +228,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.simulationWarnings.count == 2)
-        #expect(viewModel.simulationWarnings.last?.warning == .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123").identifier, value: nil)))
+        #expect(viewModel.simulationWarnings.map(\.kind) == [.unlimitedApproval])
     }
 
     @Test
@@ -254,7 +253,7 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
-    func simulationWarningsPassThroughExternallyOwnedSpenderWarnings() {
+    func simulationWarningsHideBoundedApprovalsAndKeepExternallyOwnedSpenderWarnings() {
         let payload = SignMessagePayload.mock(
             chain: .ethereum,
             session: .mock(),
@@ -280,8 +279,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.simulationWarnings.count == 2)
-        #expect(viewModel.simulationWarnings.last?.warning == .externallyOwnedSpender)
+        #expect(viewModel.simulationWarnings.map(\.kind) == [.externallyOwnedSpender])
         #expect(!viewModel.isButtonDisabled)
     }
 
@@ -300,7 +298,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         #expect(viewModel.simulationWarnings.count == 1)
-        #expect(viewModel.simulationWarnings.first?.warning == .externallyOwnedSpender)
+        #expect(viewModel.simulationWarnings.first?.kind == .externallyOwnedSpender)
         #expect(!viewModel.isButtonDisabled)
         #expect(viewModel.payloadModel.hasFields)
         #expect(viewModel.payloadModel.primaryFields.contains(where: { $0.kind == .spender && $0.value == "0x3333333333333333333333333333333333333333" }))
@@ -334,8 +332,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.simulationWarnings.count == 2)
-        #expect(viewModel.simulationWarnings.last?.warning == .validationError)
+        #expect(viewModel.simulationWarnings.map(\.kind) == [.validationError])
     }
 
     @Test

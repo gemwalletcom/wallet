@@ -8,14 +8,14 @@ import struct Gemstone.GemConfirmScreen
 import Components
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemSimulationWarningRow
 import struct Gemstone.SimulationResult
-import struct Gemstone.SimulationWarning
 @testable import Transfer
 
 extension ConfirmSimulationState {
     static func mock(
         result: SimulationResult? = nil,
-        warnings: [SimulationWarning] = [],
+        warnings: [GemSimulationWarningRow] = [],
         headerData: AssetValueHeaderData? = nil,
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(

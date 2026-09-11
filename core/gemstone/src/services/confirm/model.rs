@@ -4,13 +4,13 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
+use crate::services::simulation::GemSimulationWarningRow;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::AssetPrice;
 use primitives::{
-    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, SimulationWarning,
-    Transaction, Wallet,
+    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
 };
 
 pub type GemAccount = Account;
@@ -158,7 +158,7 @@ pub struct GemConfirmLoad {
 pub struct GemConfirmSimulationState {
     pub chain: Chain,
     pub result: Option<SimulationResult>,
-    pub warnings: Vec<SimulationWarning>,
+    pub warnings: Vec<GemSimulationWarningRow>,
     pub simulation: Option<GemConfirmSimulation>,
     pub address_names: Vec<AddressName>,
 }

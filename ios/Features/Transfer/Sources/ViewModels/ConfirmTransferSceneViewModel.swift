@@ -26,7 +26,7 @@ import SwiftUI
 import WalletConnector
 import struct Gemstone.SimulationPayloadField
 import struct Gemstone.SimulationResult
-import struct Gemstone.SimulationWarning
+import struct Gemstone.GemSimulationWarningRow
 
 @Observable
 @MainActor
@@ -118,7 +118,7 @@ public final class ConfirmTransferSceneViewModel {
         return state.preload != nil
     }
 
-    var simulationWarnings: [SimulationWarning] {
+    var simulationWarnings: [GemSimulationWarningRow] {
         state.simulation.warnings
     }
 

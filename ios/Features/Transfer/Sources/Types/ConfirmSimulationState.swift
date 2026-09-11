@@ -6,12 +6,13 @@ import struct Gemstone.GemSimulationBalanceChange
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemSimulationWarningRow
 import struct Gemstone.SimulationResult
-import struct Gemstone.SimulationWarning
+import func Gemstone.simulationWarningRows
 
 struct ConfirmSimulationState {
     let result: SimulationResult?
-    let warnings: [SimulationWarning]
+    let warnings: [GemSimulationWarningRow]
     let hasCriticalWarning: Bool
     let payload: SimulationPayloadModel
     let headerData: AssetValueHeaderData?
@@ -19,7 +20,7 @@ struct ConfirmSimulationState {
 
     init(
         result: SimulationResult?,
-        warnings: [SimulationWarning],
+        warnings: [GemSimulationWarningRow],
         hasCriticalWarning: Bool,
         payload: SimulationPayloadModel,
         headerData: AssetValueHeaderData?,
@@ -36,7 +37,7 @@ struct ConfirmSimulationState {
     init(result: SimulationResult?, chain: Primitives.Chain) {
         self.init(
             result: result,
-            warnings: result?.warnings ?? [],
+            warnings: simulationWarningRows(warnings: result?.warnings ?? []),
             hasCriticalWarning: false,
             payload: SimulationPayloadModel(chain: chain, primaryFields: [], secondaryFields: []),
             headerData: nil,

@@ -13,10 +13,10 @@ import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmSessionInterface
 import com.gemwallet.android.ext.requireChain
-import uniffi.gemstone.SimulationWarning
+import uniffi.gemstone.GemSimulationWarningRow
 
 data class Simulation(
-    val warnings: List<SimulationWarning> = emptyList(),
+    val warnings: List<GemSimulationWarningRow> = emptyList(),
     val hasCriticalWarning: Boolean = false,
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),

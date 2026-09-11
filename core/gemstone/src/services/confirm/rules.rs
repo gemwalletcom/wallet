@@ -1228,9 +1228,9 @@ mod tests {
             prices: vec![],
         };
         let simulation_state = |warnings: Vec<SimulationWarning>| GemConfirmSimulationState {
+            warnings: crate::services::simulation::warning_rows(&warnings),
             chain: Chain::Ethereum,
             result: None,
-            warnings,
             simulation: None,
             address_names: vec![],
         };

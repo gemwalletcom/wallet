@@ -16,7 +16,8 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.SimulationResult
-import uniffi.gemstone.SimulationWarning
+import uniffi.gemstone.GemSimulationWarningRow
+import uniffi.gemstone.simulationWarningRows
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.TransferDataOutputAction
 import uniffi.gemstone.GemTransferData
@@ -55,8 +56,8 @@ sealed class WCRequest(
         override val message: String
             get() = preview.text
 
-        override val warnings: List<SimulationWarning>
-            get() = simulation.warnings
+        override val warnings: List<GemSimulationWarningRow>
+            get() = simulationWarningRows(simulation.warnings)
 
         override val hasCriticalWarning: Boolean
             get() = preview.hasCriticalWarning

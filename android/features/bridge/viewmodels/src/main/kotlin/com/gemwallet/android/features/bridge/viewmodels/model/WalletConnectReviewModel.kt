@@ -3,7 +3,7 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 import com.gemwallet.android.model.AssetValueHeader
 import com.gemwallet.android.ui.models.PayloadField
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.SimulationWarning
+import uniffi.gemstone.GemSimulationWarningRow
 import uniffi.gemstone.MessageType
 
 interface WalletConnectReviewModel {
@@ -15,7 +15,7 @@ interface WalletConnectReviewModel {
     val secondaryPayloadFields: List<PayloadField>
     val messageType: MessageType
     val message: String
-    val warnings: List<SimulationWarning> get() = emptyList()
+    val warnings: List<GemSimulationWarningRow> get() = emptyList()
     val hasCriticalWarning: Boolean get() = false
     val header: AssetValueHeader? get() = null
     val addressNames: Map<String, String> get() = emptyMap()

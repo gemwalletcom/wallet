@@ -1,3 +1,4 @@
+use crate::services::simulation::warning_rows;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
@@ -71,7 +72,7 @@ impl GemConfirmTransferService {
 fn simulation_seed(chain: Chain, simulation: Option<SimulationResult>) -> GemConfirmSimulationState {
     GemConfirmSimulationState {
         chain,
-        warnings: simulation.as_ref().map(|result| result.warnings.clone()).unwrap_or_default(),
+        warnings: simulation.as_ref().map(|result| warning_rows(&result.warnings)).unwrap_or_default(),
         result: simulation,
         simulation: None,
         address_names: Vec::new(),
@@ -176,7 +177,7 @@ impl GemConfirmTransferService {
         let address_names = self.names.get_address_names(requests).await.unwrap_or_default();
         Ok(GemConfirmSimulationState {
             chain,
-            warnings: simulation.as_ref().map(|result| result.warnings.clone()).unwrap_or_default(),
+            warnings: simulation.as_ref().map(|result| warning_rows(&result.warnings)).unwrap_or_default(),
             result: simulation,
             simulation: Some(details),
             address_names,

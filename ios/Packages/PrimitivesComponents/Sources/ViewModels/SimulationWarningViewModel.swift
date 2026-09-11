@@ -4,67 +4,48 @@ import Localization
 import Primitives
 import Style
 import SwiftUI
+import enum Gemstone.GemSimulationWarningKind
+import struct Gemstone.GemSimulationWarningRow
 import enum Gemstone.SimulationSeverity
-import struct Gemstone.SimulationWarning
-import enum Gemstone.SimulationWarningType
 
 public struct SimulationWarningViewModel: Identifiable {
-    private let warning: SimulationWarning
+    private let row: GemSimulationWarningRow
 
-    public init(warning: SimulationWarning) {
-        self.warning = warning
+    public init(row: GemSimulationWarningRow) {
+        self.row = row
     }
 
-    public var id: SimulationWarning {
-        warning
-    }
-
-    public var isVisible: Bool {
-        warning.warning.isVisible
+    public var id: GemSimulationWarningRow {
+        row
     }
 
     public var title: String? {
-        if warning.warning == .validationError, warning.severity != .critical {
+        if row.kind == .validationError, row.severity != .critical {
             return Localized.Common.warning
         }
-        guard let warningTitle = warning.warning.warningTitle else {
-            return nil
-        }
-        return warningDetails == nil ? nil : warningTitle
+        return warningDetails == nil ? nil : row.kind.warningTitle
     }
 
     public var message: String {
-        if warning.warning == .validationError, warning.severity != .critical {
-            return warning.message ?? ""
+        if row.kind == .validationError, row.severity != .critical {
+            return row.message ?? ""
         }
-        return warningDetails ?? warning.warning.warningTitle ?? ""
+        return warningDetails ?? row.kind.warningTitle
     }
 
     public var color: Color {
-        warning.severity.color
+        row.severity.color
     }
 
     private var warningDetails: String? {
-        warning.message ?? warning.warning.defaultMessage
+        row.message ?? row.kind.defaultMessage
     }
 }
 
-private extension SimulationWarningType {
-    var isVisible: Bool {
+private extension GemSimulationWarningKind {
+    var warningTitle: String {
         switch self {
-        case let .tokenApproval(approval): approval.value == nil
-        case let .permitApproval(approval): approval.value == nil
-        case let .permitBatchApproval(value): value == nil
-        case .suspiciousSpender, .externallyOwnedSpender, .nftCollectionApproval, .validationError:
-            true
-        }
-    }
-
-    var warningTitle: String? {
-        switch self {
-        case let .tokenApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
-        case let .permitApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
-        case let .permitBatchApproval(value): value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
+        case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
         case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
         case .externallyOwnedSpender: Localized.Common.warning
         case .suspiciousSpender, .validationError: Localized.Errors.errorOccurred
@@ -73,9 +54,7 @@ private extension SimulationWarningType {
 
     var defaultMessage: String? {
         switch self {
-        case let .tokenApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
-        case let .permitApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
-        case let .permitBatchApproval(value): value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
+        case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.description
         case .validationError: Localized.Errors.errorOccurred
         case .externallyOwnedSpender: Localized.Simulation.warningExternallyOwnedSpenderDescription
         case .suspiciousSpender: Localized.Common.suspiciousAddress

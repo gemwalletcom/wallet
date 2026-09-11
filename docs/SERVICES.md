@@ -301,6 +301,13 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Simulation warning rows come from Core.** Both apps filtered the simulation warnings with an
+  identical `isVisible` switch (bounded token, permit and permit-batch approvals are hidden,
+  unlimited ones shown) and then branched on the warning payload again for the copy. Core now
+  emits `GemSimulationWarningRow { kind, severity, message }` (`simulation_warning_rows` for the
+  sign-message flow, and already applied inside `GemConfirmSimulationState.warnings`), so the apps
+  only pick a title and description per `GemSimulationWarningKind`. The iOS view model and the
+  Android extension no longer look at approval values.
 - **iOS-only models leave Core.** `PriceAlertData`, `AutocloseOpenData`, `ChainNode`, `ChainNodes`
   and `SearchItemType` were typeshare types with no reader in Core and none on Android (each an
   unused generated Kotlin twin); they are iOS store and screen models, so they now live as

@@ -7,7 +7,7 @@ import PrimitivesComponents
 import Swap
 import SwiftUI
 import struct Gemstone.SimulationPayloadField
-import struct Gemstone.SimulationWarning
+import struct Gemstone.GemSimulationWarningRow
 
 enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case header
@@ -53,7 +53,7 @@ public enum ConfirmTransferItemModel {
     case networkFee(ListItemModel, selectable: Bool)
     case perpetualDetails(PerpetualDetailsViewModel)
     case perpetualModifyPosition(PerpetualModifyViewModel)
-    case warnings([SimulationWarning])
+    case warnings([GemSimulationWarningRow])
     case payload([SimulationPayloadField])
     case balanceChange(ConfirmBalanceChangeViewModel)
     case error(title: String, error: Error, onInfoAction: VoidAction)

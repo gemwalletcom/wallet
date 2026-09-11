@@ -13,7 +13,9 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
-use primitives::{AssetId, Chain, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
+use primitives::{
+    AssetId, Chain, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType,
+};
 
 use crate::models::custom_types::GemBigInt;
 use crate::{
@@ -235,6 +237,50 @@ impl GemSimulationFormatter {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSimulationWarningKind {
+    UnlimitedApproval,
+    NftCollectionApproval,
+    ExternallyOwnedSpender,
+    SuspiciousSpender,
+    ValidationError,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSimulationWarningRow {
+    pub kind: GemSimulationWarningKind,
+    pub severity: SimulationSeverity,
+    pub message: Option<String>,
+}
+
+#[uniffi::export]
+pub fn simulation_warning_rows(warnings: Vec<SimulationWarning>) -> Vec<GemSimulationWarningRow> {
+    warning_rows(&warnings)
+}
+
+pub fn warning_rows(warnings: &[SimulationWarning]) -> Vec<GemSimulationWarningRow> {
+    warnings
+        .iter()
+        .filter_map(|warning| {
+            let kind = match &warning.warning {
+                SimulationWarningType::TokenApproval(approval) | SimulationWarningType::PermitApproval(approval) => {
+                    approval.value.is_none().then_some(GemSimulationWarningKind::UnlimitedApproval)
+                }
+                SimulationWarningType::PermitBatchApproval(value) => value.is_none().then_some(GemSimulationWarningKind::UnlimitedApproval),
+                SimulationWarningType::NftCollectionApproval(_) => Some(GemSimulationWarningKind::NftCollectionApproval),
+                SimulationWarningType::ExternallyOwnedSpender => Some(GemSimulationWarningKind::ExternallyOwnedSpender),
+                SimulationWarningType::SuspiciousSpender => Some(GemSimulationWarningKind::SuspiciousSpender),
+                SimulationWarningType::ValidationError => Some(GemSimulationWarningKind::ValidationError),
+            }?;
+            Some(GemSimulationWarningRow {
+                kind,
+                severity: warning.severity,
+                message: warning.message.clone(),
+            })
+        })
+        .collect()
+}
+
 #[derive(Clone, Debug, PartialEq, uniffi::Record)]
 pub struct GemSimulationChange {
     pub asset_id: AssetId,
@@ -256,6 +302,44 @@ mod tests {
             name: None,
             symbol: None,
         }
+    }
+
+    #[test]
+    fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
+        use num_bigint::BigInt;
+        use primitives::SimulationWarningApproval;
+        let approval = |value: Option<BigInt>| SimulationWarningApproval {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            value,
+        };
+        let warning = |warning: SimulationWarningType| SimulationWarning::new(SimulationSeverity::Warning, warning, None);
+        let rows = warning_rows(&[
+            warning(SimulationWarningType::TokenApproval(approval(Some(BigInt::from(1))))),
+            warning(SimulationWarningType::PermitApproval(approval(Some(BigInt::from(1))))),
+            warning(SimulationWarningType::PermitBatchApproval(Some(BigInt::from(1)))),
+            warning(SimulationWarningType::TokenApproval(approval(None))),
+            warning(SimulationWarningType::PermitApproval(approval(None))),
+            warning(SimulationWarningType::PermitBatchApproval(None)),
+            warning(SimulationWarningType::NftCollectionApproval(AssetId::from_chain(Chain::Ethereum))),
+            warning(SimulationWarningType::ExternallyOwnedSpender),
+            warning(SimulationWarningType::SuspiciousSpender),
+            SimulationWarning::validation_error("Chain ID mismatch"),
+        ]);
+        let kinds: Vec<GemSimulationWarningKind> = rows.iter().map(|row| row.kind).collect();
+        assert_eq!(
+            kinds,
+            vec![
+                GemSimulationWarningKind::UnlimitedApproval,
+                GemSimulationWarningKind::UnlimitedApproval,
+                GemSimulationWarningKind::UnlimitedApproval,
+                GemSimulationWarningKind::NftCollectionApproval,
+                GemSimulationWarningKind::ExternallyOwnedSpender,
+                GemSimulationWarningKind::SuspiciousSpender,
+                GemSimulationWarningKind::ValidationError,
+            ]
+        );
+        let error = rows.last().unwrap();
+        assert_eq!((error.severity, error.message.as_deref()), (SimulationSeverity::Critical, Some("Chain ID mismatch")));
     }
 
     #[test]
