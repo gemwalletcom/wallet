@@ -37,7 +37,6 @@ public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, Bindab
 
         cancellable = ValueObservation
             .tracking { db in try request.fetch(db) }
-            .removeDuplicates()
             .publisher(in: dbQueue, scheduling: .immediate)
             .sink(
                 receiveCompletion: { completion in
