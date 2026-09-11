@@ -2,6 +2,7 @@ package com.gemwallet.android.features.earn.delegation.models
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -20,6 +21,9 @@ class HeadDelegationInfo(
 
     val iconUrl: String
         get() = delegation.validator.getIconUrl()
+
+    val iconPlaceholder: String
+        get() = delegation.validator.displayName().take(1)
 
     override val cryptoAmount: Double by lazy {
         Crypto(delegation.base.balance).value(asset.decimals).toDouble()

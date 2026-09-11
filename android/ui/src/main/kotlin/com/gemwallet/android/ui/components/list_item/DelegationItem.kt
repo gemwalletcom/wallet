@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -30,11 +31,11 @@ fun DelegationItem(
         leading = {
             IconWithBadge(
                 icon = delegation.validator.getIconUrl(),
-                placeholder = delegation.validator.name.firstOrNull()?.toString() ?: delegation.validator.id.firstOrNull()?.toString() ?: "",
+                placeholder = delegation.validator.displayName().firstOrNull()?.toString() ?: "",
             )
         },
         title = {
-            ListItemTitleText(text = delegation.validator.name)
+            ListItemTitleText(text = delegation.validator.displayName())
         },
         subtitle = {
             ListItemSupportText(

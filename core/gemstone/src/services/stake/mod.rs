@@ -28,6 +28,11 @@ use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
 use primitives::BlockExplorerLink;
 
+#[uniffi::export]
+pub fn validator_display_name(validator: DelegationValidator) -> String {
+    rules::validator_display_name(&validator)
+}
+
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
     gateway: Arc<GemGateway>,
