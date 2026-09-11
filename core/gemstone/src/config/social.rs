@@ -2,31 +2,19 @@ use std::str::FromStr;
 
 use primitives::{AssetLink, LinkType};
 
-#[derive(uniffi::Enum, Clone)]
-pub enum SocialUrl {
-    X,
-    Discord,
-    Reddit,
-    Telegram,
-    GitHub,
-    YouTube,
-    Facebook,
-    Website,
-    Coingecko,
-}
-
 #[uniffi::export]
-impl SocialUrl {
-    pub fn url(&self) -> Option<String> {
-        match self {
-            Self::X => Some("https://x.com/GemWallet".to_string()),
-            Self::Discord => Some("https://discord.gg/aWkq5sj7SY".to_string()),
-            Self::Telegram => Some("https://t.me/gemwallet".to_string()),
-            Self::GitHub => Some("https://github.com/gemwalletcom".to_string()),
-            Self::YouTube => Some("https://www.youtube.com/@gemwallet".to_string()),
-            Self::Reddit | Self::Facebook | Self::Website | Self::Coingecko => None,
-        }
-    }
+pub fn community_links() -> Vec<AssetLink> {
+    let links = [
+        (LinkType::X, "https://x.com/GemWallet"),
+        (LinkType::Discord, "https://discord.gg/aWkq5sj7SY"),
+        (LinkType::Telegram, "https://t.me/gemwallet"),
+        (LinkType::GitHub, "https://github.com/gemwalletcom"),
+        (LinkType::YouTube, "https://www.youtube.com/@gemwallet"),
+    ]
+    .into_iter()
+    .map(|(link_type, url)| AssetLink::new(url, link_type))
+    .collect();
+    GemSocialLinks { links }.sorted()
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -65,6 +53,12 @@ fn link_type_order(link_type: LinkType) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_community_links_come_in_display_order() {
+        let names: Vec<String> = community_links().into_iter().map(|link| link.name).collect();
+        assert_eq!(names, ["x", "telegram", "youtube", "github", "discord"]);
+    }
 
     #[test]
     fn test_sorted_links_put_the_website_first_and_unknown_links_last() {

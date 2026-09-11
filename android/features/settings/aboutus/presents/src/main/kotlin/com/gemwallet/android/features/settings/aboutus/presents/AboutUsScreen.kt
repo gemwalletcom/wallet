@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -13,12 +14,14 @@ import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.toSocialLinks
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.AppUrl
+import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.PublicUrl
-import uniffi.gemstone.SocialUrl
+import uniffi.gemstone.communityLinks
 
 @Composable
 fun AboutUsScreen(
@@ -55,20 +58,14 @@ fun AboutUsScreen(
             }
             item {
                 SubheaderItem(R.string.settings_community)
-                val socials = listOf(
-                    Triple(R.string.social_x, R.drawable.twitter, SocialUrl.X),
-                    Triple(R.string.social_telegram, R.drawable.telegram, SocialUrl.TELEGRAM),
-                    Triple(R.string.social_youtube, R.drawable.youtube, SocialUrl.YOU_TUBE),
-                    Triple(R.string.social_github, R.drawable.github, SocialUrl.GIT_HUB),
-                    Triple(R.string.social_discord, R.drawable.discord, SocialUrl.DISCORD),
-                )
-                socials.forEachIndexed { index, (titleRes, iconRes, social) ->
+                val socials = remember { communityLinks().map { it.toPrimitives() }.toSocialLinks() }
+                socials.forEachIndexed { index, social ->
                     LinkItem(
-                        title = stringResource(id = titleRes),
-                        icon = iconRes,
+                        title = stringResource(id = social.label),
+                        icon = social.icon,
                         listPosition = ListPosition.getPosition(index, socials.size),
                     ) {
-                        uriHandler.open(context, AppUrl.social(social) ?: "")
+                        uriHandler.open(context, social.url)
                     }
                 }
             }

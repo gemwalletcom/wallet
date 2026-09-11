@@ -13,7 +13,6 @@ import enum Gemstone.NodeRegion
 import class Gemstone.PriceAlertFormatter
 import enum Gemstone.PublicUrl
 import enum Gemstone.RewardsUrl
-import enum Gemstone.SocialUrl
 import struct Gemstone.SwapConfig
 import typealias Gemstone.WalletConnectConfig
 import Primitives
@@ -87,12 +86,6 @@ public enum AppUrl {
         let locale = Locale.current.identifier
         return URL(string: item.url(locale: locale))!
             .withUTM(source: utmSource)
-    }
-
-    public static func social(_ item: SocialUrl) -> URL? {
-        guard let socialUrl = item.url(),
-              let url = URL(string: socialUrl) else { return nil }
-        return url
     }
 }
 

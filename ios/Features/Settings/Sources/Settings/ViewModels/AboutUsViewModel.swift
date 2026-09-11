@@ -2,7 +2,7 @@
 
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import Components
-import enum Gemstone.SocialUrl
+import func Gemstone.communityLinks
 import GemstonePrimitives
 import Localization
 import GemstoneServices
@@ -95,18 +95,8 @@ public final class AboutUsViewModel: Sendable {
         AssetImage.image(Images.Settings.gem)
     }
 
-    private let links: [SocialUrl] = [.x, .discord, .telegram, .gitHub, .youTube]
     var linksViewModel: SocialLinksViewModel {
-        let assetLinks = links.compactMap {
-            if let url = AppUrl.social($0) {
-                return AssetLink(
-                    name: $0.linkType.rawValue,
-                    url: url.absoluteString,
-                )
-            }
-            return .none
-        }
-        return SocialLinksViewModel(assetLinks: assetLinks)
+        SocialLinksViewModel(assetLinks: communityLinks().map { $0.map() })
     }
 
     var communityTitle: String {

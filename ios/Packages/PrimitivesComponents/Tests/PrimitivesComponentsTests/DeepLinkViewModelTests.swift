@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.SocialUrl
+import func Gemstone.communityLinks
 import GemstonePrimitives
 import Primitives
 @testable import PrimitivesComponents
@@ -18,13 +18,7 @@ struct DeepLinkViewModelTests {
 }
 
 extension DeepLinkViewModel {
-    static func mock(_ url: SocialUrl) -> DeepLinkViewModel? {
-        guard let socialUrl = AppUrl.social(url) else { return nil }
-        return DeepLinkViewModel(
-            AssetLink(
-                name: url.linkType.rawValue,
-                url: socialUrl.absoluteString,
-            ),
-        )
+    static func mock(_ linkType: LinkType) -> DeepLinkViewModel? {
+        communityLinks().map { $0.map() }.first { $0.linkType == linkType }.map { DeepLinkViewModel($0) }
     }
 }

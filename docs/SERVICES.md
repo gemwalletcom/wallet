@@ -301,6 +301,11 @@ intentional one-sided integration surfaces.
 
 ## Remaining
 
+- **Core lists the community links.** `community_links()` returns the About screen's social
+  links as sorted `AssetLink`s, replacing the exported `SocialUrl` enum and its `url()`: iOS's
+  nine-arm `SocialUrl.linkType` twin mapping, its `AppUrl.social` and the hardcoded `[SocialUrl]`
+  list, and Android's `AppUrl.social` and its five hardcoded (label, icon, url) triples are gone;
+  both apps render the list with the same social-link presentation the asset screen already uses.
 - **Core owns the endpoint latency status.** `GemServiceStatus::get_endpoint_status(url)` returns
   `GemLatencyStatus { Loading, Error, Result { latency } }` and `GemNodeStatusState::latency_status()`
   projects a node check into the same enum, so the settings latency badge on both apps reads one Core

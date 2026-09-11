@@ -4,7 +4,6 @@ import Components
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import struct Gemstone.Rewards
 import Foundation
-import enum Gemstone.SocialUrl
 import GemstonePrimitives
 import Localization
 import Primitives
