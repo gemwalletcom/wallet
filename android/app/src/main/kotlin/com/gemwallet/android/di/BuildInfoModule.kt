@@ -5,6 +5,7 @@ import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.flavors.StoreRequestPushToken
 import com.gemwallet.android.flavors.isNotificationsAvailable
 import com.gemwallet.android.model.BuildInfo
+import com.gemwallet.android.features.asset.viewmodels.details.models.EarnAvailable
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
 import com.gemwallet.android.services.ShowSystemNotificationImpl
@@ -51,6 +52,11 @@ object BuildInfoModule {
     fun provideNotificationEnabled(): NotificationsAvailable {
         return isNotificationsAvailable()
     }
+
+    @Provides
+    @Singleton
+    @EarnAvailable
+    fun provideEarnAvailable(): Boolean = com.gemwallet.android.BuildConfig.DEBUG
 
     @Provides
     @Singleton

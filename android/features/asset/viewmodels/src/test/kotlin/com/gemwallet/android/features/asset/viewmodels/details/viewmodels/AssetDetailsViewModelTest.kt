@@ -137,6 +137,6 @@ class AssetDetailsViewModelTest {
         assetDetailsService = service,
         getActiveBanners = getActiveBanners,
         getPriceAlerts = getPriceAlerts,
-        assetInfoUIModelFactory = AssetInfoUIModelFactory(),
+        assetInfoUIModelFactory = AssetInfoUIModelFactory(earnAvailable = true),
     ).also(viewModels::add)
 }

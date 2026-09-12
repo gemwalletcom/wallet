@@ -89,7 +89,7 @@ class AssetInfoUIModelFactoryTest {
             reserved = reserved,
         )
         val assetInfo = mockAssetInfo(asset = asset, owner = null, balance = balance, metadata = metadata)
-        return AssetInfoUIModelFactory().create(
+        return AssetInfoUIModelFactory(earnAvailable = true).create(
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
             GemAssetDetails(
                 title = asset.name,
