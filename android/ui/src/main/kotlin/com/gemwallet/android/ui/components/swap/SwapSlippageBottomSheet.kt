@@ -49,6 +49,7 @@ fun SwapSlippageBottomSheet(
     currentBps: UInt?,
     defaultBps: UInt?,
     slippageCheck: (UInt) -> GemSlippageCheck,
+    slippageBps: (Double) -> UInt?,
     onConfirm: (UInt?) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -64,7 +65,7 @@ fun SwapSlippageBottomSheet(
         }
         val focusRequester = remember { FocusRequester() }
 
-        val bps = SwapSlippage.parseBps(input)
+        val bps = SwapSlippage.parseBps(input, slippageBps)
         val check = if (isAuto) null else bps?.let(slippageCheck)
         val isConfirmEnabled = isAuto || check == GemSlippageCheck.VALID || check == GemSlippageCheck.HIGH
 

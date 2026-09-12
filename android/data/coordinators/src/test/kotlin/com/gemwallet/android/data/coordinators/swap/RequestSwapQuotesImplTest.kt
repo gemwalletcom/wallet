@@ -331,6 +331,10 @@ class RequestSwapQuotesImplTest {
 
         override fun slippageCheck(bps: UInt): GemSlippageCheck = throw UnsupportedOperationException()
 
+        override fun slippageBpsFromPercent(percent: Double): UInt? = throw UnsupportedOperationException()
+
+        override fun slippagePercent(bps: UInt): Double = throw UnsupportedOperationException()
+
         override suspend fun updateBalances(assetIds: List<String>) = Unit
     }
 }

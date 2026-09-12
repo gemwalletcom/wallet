@@ -21,8 +21,8 @@ object SwapSlippage {
     fun sanitize(input: String): String =
         NumberSanitizer(maximumFractionDigits = 2, maximumIntegerDigits = 2).sanitize(input)
 
-    fun parseBps(input: String): UInt? {
-        val percent = input.parseInputNumberOrNull()?.takeIf { it > BigDecimal.ZERO } ?: return null
-        return (percent * BigDecimal(100)).toInt().toUInt()
+    fun parseBps(input: String, slippageBps: (Double) -> UInt?): UInt? {
+        val percent = input.parseInputNumberOrNull() ?: return null
+        return slippageBps(percent.toDouble())
     }
 }

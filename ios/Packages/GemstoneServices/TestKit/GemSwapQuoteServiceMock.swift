@@ -88,6 +88,14 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         slippageCheckResult
     }
 
+    public func slippageBpsFromPercent(percent: Double) -> UInt32? {
+        percent > 0 ? UInt32((percent * 100).rounded()) : .none
+    }
+
+    public func slippagePercent(bps: UInt32) -> Double {
+        Double(bps) / 100
+    }
+
     public func defaultSlippage(chain _: Chain) -> SwapperSlippage {
         SwapperSlippage(bps: 100, mode: .auto)
     }

@@ -14,16 +14,20 @@ class SwapSlippageTest {
     }
 
     @Test
-    fun parseBps_convertsPercentToBps() {
-        assertEquals(50u, SwapSlippage.parseBps("0.5"))
-        assertEquals(500u, SwapSlippage.parseBps("5"))
-        assertEquals(2000u, SwapSlippage.parseBps("20"))
+    fun parseBps_handsTheTypedPercentToCore() {
+        val slippageBps = { percent: Double -> (percent * 100).toUInt() }
+
+        assertEquals(50u, SwapSlippage.parseBps("0.5", slippageBps))
+        assertEquals(500u, SwapSlippage.parseBps("5", slippageBps))
+        assertEquals(2000u, SwapSlippage.parseBps("20", slippageBps))
     }
 
     @Test
-    fun parseBps_returnsNullForEmptyOrZero() {
-        assertNull(SwapSlippage.parseBps(""))
-        assertNull(SwapSlippage.parseBps("0"))
+    fun parseBps_returnsNullWithoutANumber() {
+        val slippageBps = { percent: Double -> (percent * 100).toUInt() }
+
+        assertNull(SwapSlippage.parseBps("", slippageBps))
+        assertNull(SwapSlippage.parseBps("abc", slippageBps))
     }
 
     @Test

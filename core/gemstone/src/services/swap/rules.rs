@@ -28,6 +28,7 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
 }
 
 const BASIS_POINTS: u32 = 10_000;
+const BPS_PER_PERCENT: f64 = 100.0;
 
 pub fn selected_quote(quotes: &[Quote], preferred: Option<SwapperProvider>) -> Option<Quote> {
     quotes.iter().find(|quote| Some(quote.data.provider.id) == preferred).or_else(|| quotes.first()).cloned()
@@ -36,6 +37,17 @@ pub fn selected_quote(quotes: &[Quote], preferred: Option<SwapperProvider>) -> O
 pub fn min_receive_value(value: &BigUint, slippage_bps: u32) -> BigUint {
     let kept = BASIS_POINTS.saturating_sub(slippage_bps);
     value * BigUint::from(kept) / BigUint::from(BASIS_POINTS)
+}
+
+pub fn slippage_bps_from_percent(percent: f64) -> Option<u32> {
+    match percent > 0.0 && percent.is_finite() {
+        true => Some((percent * BPS_PER_PERCENT).round() as u32),
+        false => None,
+    }
+}
+
+pub fn slippage_percent(bps: u32) -> f64 {
+    f64::from(bps) / BPS_PER_PERCENT
 }
 
 pub fn slippage_check(bps: u32, config: &SwapConfig) -> GemSlippageCheck {
@@ -303,6 +315,17 @@ mod tests {
         assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
+    }
+
+    #[test]
+    fn test_a_slippage_percent_rounds_to_the_nearest_basis_point() {
+        assert_eq!(slippage_bps_from_percent(1.0), Some(100));
+        assert_eq!(slippage_bps_from_percent(0.5), Some(50));
+        assert_eq!(slippage_bps_from_percent(0.125), Some(13), "half a basis point rounds up rather than truncating");
+        assert_eq!(slippage_bps_from_percent(0.0), None);
+        assert_eq!(slippage_bps_from_percent(-1.0), None);
+        assert_eq!(slippage_bps_from_percent(f64::NAN), None);
+        assert_eq!(slippage_percent(250), 2.5);
     }
 
     #[test]

@@ -58,6 +58,14 @@ impl GemSwapQuoteService {
         self.preferences.set_swap_slippage_bps(bps)
     }
 
+    pub fn slippage_bps_from_percent(&self, percent: f64) -> Option<u32> {
+        rules::slippage_bps_from_percent(percent)
+    }
+
+    pub fn slippage_percent(&self, bps: u32) -> f64 {
+        rules::slippage_percent(bps)
+    }
+
     pub fn slippage_check(&self, bps: u32) -> GemSlippageCheck {
         rules::slippage_check(bps, &get_swap_config())
     }
