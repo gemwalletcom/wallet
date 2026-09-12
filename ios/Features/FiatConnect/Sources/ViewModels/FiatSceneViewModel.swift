@@ -5,6 +5,7 @@ import Components
 import Formatters
 import Foundation
 import enum Gemstone.FiatProviderName
+import enum Gemstone.GemFiatAmountCheck
 import struct Gemstone.GemFiatQuoteRow
 import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
@@ -51,7 +52,7 @@ public final class FiatSceneViewModel {
     var isPresentingFiatProvider: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: FiatLoadTrigger
-    var inputValidationModel = InputValidationViewModel(mode: .onDemand)
+    var inputValidationModel = InputValidationViewModel(mode: .manual)
 
     public init(
         service: any GemFiatQuoteServiceProtocol,
@@ -72,7 +73,7 @@ public final class FiatSceneViewModel {
         let amount = session.viewState(assetPrice: nil, isUrlLoading: false).amount
         loadTrigger = FiatLoadTrigger(type: type, amount: amount, isImmediate: true)
         inputValidationModel.text = amount
-        updateValidators()
+        updateAmountError()
     }
 
     var type: FiatQuoteType {
@@ -235,7 +236,7 @@ extension FiatSceneViewModel {
             debugLog("FiatSceneViewModel get quotes error: \(error)")
         }
         session = session.onQuoteResults(results: results)
-        updateValidators()
+        updateAmountError()
     }
 
     func onAssetDataChange(_: AssetData, _ newValue: AssetData) {
@@ -246,7 +247,7 @@ extension FiatSceneViewModel {
         if session.type != type {
             applyAmount(viewState.amount, isImmediate: true)
         }
-        updateValidators()
+        updateAmountError()
     }
 
     func onSelectContinue() {
@@ -272,13 +273,13 @@ extension FiatSceneViewModel {
     func onSelectQuotes(_ quotes: [FiatQuoteViewModel]) {
         guard let quoteModel = quotes.first else { return }
         session = session.onProviderSelected(provider: quoteModel.row.provider)
-        updateValidators()
+        updateAmountError()
         isPresentingFiatProvider = false
     }
 
     func onChangeType(oldType _: FiatQuoteType, newType: FiatQuoteType) {
         inputValidationModel.text = viewState.amount
-        updateValidators()
+        updateAmountError()
         loadTrigger = FiatLoadTrigger(type: newType, amount: viewState.amount, isImmediate: true)
     }
 
@@ -307,20 +308,30 @@ extension FiatSceneViewModel {
     private func applyAmount(_ text: String, isImmediate: Bool) {
         session = session.onAmountChanged(amount: text)
         inputValidationModel.text = text
-        updateValidators()
+        updateAmountError()
         loadTrigger = FiatLoadTrigger(type: type, amount: text, isImmediate: isImmediate)
     }
 
-    private func updateValidators() {
-        let validator = FiatAmountValidator(
-            service: service,
-            type: type,
-            asset: asset,
-            quote: session.selectedQuote(),
-            availableBalance: assetData.balance.available,
-            currencyFormatter: currencyFormatter,
-        )
-        inputValidationModel.update(validators: [.assetAmount(decimals: 0, validators: [validator])])
+    private func updateAmountError() {
+        inputValidationModel.update(error: amountError)
+    }
+
+    private var amountError: (any Error)? {
+        switch viewState.phase {
+        case .invalidInput: AnyError(Localized.Errors.invalidAmount)
+        case let .invalid(check): amountCheckError(check)
+        case .ready: amountCheckError(viewState.amountCheck)
+        case .noInput, .loading, .noQuotes, .failed: nil
+        }
+    }
+
+    private func amountCheckError(_ check: GemFiatAmountCheck) -> (any Error)? {
+        switch check {
+        case .valid: nil
+        case let .belowMinimum(minimum): AnyError(Localized.Transfer.minimumAmount(currencyFormatter.string(Double(minimum))))
+        case let .aboveMaximum(maximum): AnyError(Localized.Transfer.maximumAmount(currencyFormatter.string(Double(maximum))))
+        case let .insufficientBalance(requirement): TransferAmountCalculatorError.insufficientBalance(asset, requirement: requirement.map())
+        }
     }
 
     private func openQuoteUrl() {
