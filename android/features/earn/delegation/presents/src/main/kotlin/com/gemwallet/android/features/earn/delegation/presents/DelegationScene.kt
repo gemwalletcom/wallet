@@ -114,8 +114,8 @@ fun DelegationScene(
                     GemDelegationAction.REDELEGATE -> PropertyItem(R.string.transfer_redelegate_title, onClick = { viewModel.onRedelegate(onAmount) }, listPosition = position)
                     GemDelegationAction.STAKE -> PropertyItem(R.string.transfer_stake_title, onClick = { viewModel.onStake(onAmount) }, listPosition = position)
                     GemDelegationAction.UNSTAKE -> PropertyItem(R.string.transfer_unstake_title, onClick = { viewModel.onUnstake(onAmount, onConfirm) }, listPosition = position)
-                    GemDelegationAction.WITHDRAW -> PropertyItem(R.string.transfer_withdraw_title, onClick = { viewModel.onWithdraw(onConfirm) }, listPosition = position)
-                    GemDelegationAction.DEPOSIT -> Unit
+                    GemDelegationAction.WITHDRAW -> PropertyItem(R.string.transfer_withdraw_title, onClick = { viewModel.onWithdraw(onAmount, onConfirm) }, listPosition = position)
+                    GemDelegationAction.DEPOSIT -> PropertyItem(R.string.wallet_deposit, onClick = { viewModel.onDeposit(onAmount) }, listPosition = position)
                 }
             }
         }

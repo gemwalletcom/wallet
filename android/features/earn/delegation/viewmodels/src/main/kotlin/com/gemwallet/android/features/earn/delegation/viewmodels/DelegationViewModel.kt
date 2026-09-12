@@ -13,6 +13,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.model.AmountParams
+import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.components.list_item.availableIn
@@ -134,10 +135,26 @@ class DelegationViewModel @Inject constructor(
         buildRedelegate()?.let { call(it) }
     }
 
-    fun onWithdraw(call: ConfirmTransactionAction) {
+    fun onWithdraw(amountCall: AmountTransactionAction, confirmCall: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
-        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toGem(), delegation.base.balance, false))
+        if (delegation.validator.providerType == StakeProviderType.Earn) {
+            amountCall(
+                AmountParams.Earn.Withdraw(
+                    assetId = assetInfo.asset.id,
+                    validatorId = delegation.validator.id,
+                    delegationId = delegation.base.delegationId,
+                )
+            )
+            return
+        }
+        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toGem(), delegation.base.balance, false))
+    }
+
+    fun onDeposit(call: AmountTransactionAction) {
+        val assetInfo = assetInfo.value ?: return
+        val delegation = delegation.value ?: return
+        call(AmountParams.Earn.Deposit(assetId = assetInfo.asset.id, providerId = delegation.validator.id))
     }
 
     fun onClaimRewards(call: ConfirmTransactionAction) {
