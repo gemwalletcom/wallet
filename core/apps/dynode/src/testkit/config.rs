@@ -1,7 +1,8 @@
-use crate::config::{ChainConfig, ErrorMatcherConfig, FailureTriggerConfig, NodeMonitoringConfig, RetryConfig, Url};
-use crate::jsonrpc_types::RequestType;
 use primitives::{Chain, MINUTE, NodeCheckProfile};
 use serde_json::json;
+
+use crate::config::{ChainConfig, ErrorMatcherConfig, FailureTriggerConfig, MetricsConfig, MonitoringConfig, RetryConfig, Url};
+use crate::jsonrpc_types::RequestType;
 
 pub fn url(url: &str) -> Url {
     Url {
@@ -35,8 +36,8 @@ pub fn jsonrpc(method: &str) -> RequestType {
     )
 }
 
-pub fn monitoring_config() -> NodeMonitoringConfig {
-    NodeMonitoringConfig {
+pub fn monitoring_config() -> MonitoringConfig {
+    MonitoringConfig {
         enabled: true,
         profile: NodeCheckProfile::Basic,
         interval: MINUTE * 10,
@@ -58,6 +59,7 @@ pub fn retry_config_with_attempts(enabled: bool, max_attempts: usize, status_cod
         enabled,
         max_attempts,
         errors: error_matcher_config(status_codes, error_messages),
+        ..RetryConfig::default()
     }
 }
 
@@ -65,5 +67,12 @@ pub fn error_matcher_config(status_codes: Vec<u16>, error_messages: Vec<&str>) -
     ErrorMatcherConfig {
         status_codes,
         error_messages: error_messages.into_iter().map(|value| value.to_string()).collect(),
+    }
+}
+
+pub fn metrics_config() -> MetricsConfig {
+    MetricsConfig {
+        prefix: "dynode".to_string(),
+        source: "public".to_string(),
     }
 }

@@ -1,83 +1,62 @@
-use crate::cache::{CacheProvider, RequestCache};
-use crate::config::{ChainConfig, HeadersConfig, Url};
-use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
-use crate::metrics::Metrics;
-use crate::proxy::CachedResponse;
-use crate::proxy::constants::JSON_CONTENT_TYPE;
-use crate::proxy::jsonrpc::JsonRpcHandler;
-use crate::proxy::proxy_request::ProxyRequest;
-use crate::proxy::request_builder::RequestBuilder;
-use crate::proxy::request_url::RequestUrl;
-use crate::proxy::response_builder::{CacheStatus, ProxyResponse, ResponseBuilder};
-use crate::webhook::DynodeBroadcastWebhookClient;
-use gem_tracing::{DurationMs, info_with_fields};
-use reqwest::StatusCode;
-use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue};
-use settings_chain::BroadcastProviders;
 use std::collections::HashSet;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Instant;
+
+use gem_tracing::{DurationMs, info_with_fields};
+use reqwest::Client;
+use reqwest::StatusCode;
+use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue};
+use settings_chain::BroadcastProviders;
+
+use crate::BoxError;
+use crate::cache::RequestCache;
+use crate::config::{ChainConfig, HeadersConfig, Url};
+use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
+use crate::metrics::Metrics;
+use crate::proxy::constants::JSON_CONTENT_TYPE;
+use crate::proxy::jsonrpc::JsonRpcHandler;
+use crate::proxy::proxy_request::ProxyRequest;
+use crate::proxy::request_url::RequestUrl;
+use crate::proxy::transport::{self, TransportError};
+use crate::proxy::{CacheStatus, ProxyResponse};
+use crate::webhook::DynodeBroadcastWebhookClient;
 
 const GRPC_ACCEPT_ENCODING: HeaderName = HeaderName::from_static("grpc-accept-encoding");
 const GRPC_CONTENT_TYPE: &str = "application/grpc";
 
-#[derive(Clone)]
 pub struct ProxyRequestService {
-    pub metrics: Metrics,
-    pub cache: RequestCache,
-    pub client: reqwest::Client,
-    pub forward_headers: Arc<HashSet<HeaderName>>,
-    pub headers_config: HeadersConfig,
-    pub broadcast_webhook: DynodeBroadcastWebhookClient,
-    pub broadcast_providers: Arc<BroadcastProviders>,
-}
-
-#[derive(Debug, Clone)]
-pub struct NodeDomain {
-    pub url: Url,
-    pub config: ChainConfig,
-}
-
-impl NodeDomain {
-    pub fn new(url: Url, config: ChainConfig) -> Self {
-        Self { url, config }
-    }
+    metrics: Metrics,
+    cache: RequestCache,
+    client: Client,
+    forward_headers: HashSet<HeaderName>,
+    broadcast_webhook: DynodeBroadcastWebhookClient,
+    broadcast_providers: Arc<BroadcastProviders>,
 }
 
 impl ProxyRequestService {
     pub fn new(
         metrics: Metrics,
         cache: RequestCache,
-        client: reqwest::Client,
+        client: Client,
         headers_config: HeadersConfig,
         broadcast_webhook: DynodeBroadcastWebhookClient,
         broadcast_providers: Arc<BroadcastProviders>,
     ) -> Self {
-        let forward_headers: Arc<HashSet<HeaderName>> = Arc::new(headers_config.forward.iter().filter_map(|s| HeaderName::from_str(s).ok()).collect());
+        let forward_headers = headers_config.forward.iter().filter_map(|name| HeaderName::from_str(name).ok()).collect();
 
         Self {
             metrics,
             cache,
             client,
             forward_headers,
-            headers_config,
             broadcast_webhook,
             broadcast_providers,
         }
     }
 
-    fn build_headers(&self, host: &str, original: &HeaderMap) -> HeaderMap {
-        let mut headers = RequestBuilder::filter_headers(original, &self.forward_headers);
-
-        if let Some(names) = self.headers_config.get_domain_headers(host) {
-            for name in names {
-                if let Ok(key) = HeaderName::from_str(name)
-                    && let Some(value) = original.get(&key)
-                {
-                    headers.insert(key, value.clone());
-                }
-            }
-        }
+    fn build_headers(&self, original: &HeaderMap) -> HeaderMap {
+        let mut headers = transport::filter_headers(original, &self.forward_headers);
 
         if original
             .get(CONTENT_TYPE)
@@ -90,7 +69,7 @@ impl ProxyRequestService {
         headers
     }
 
-    pub async fn handle_request(&self, request: ProxyRequest, node_domain: &NodeDomain) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn handle_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let request_type = request.request_type();
 
@@ -99,9 +78,9 @@ impl ProxyRequestService {
             _ => None,
         };
 
-        let resolved_url = node_domain.config.resolve_url(&node_domain.url, rpc_method, Some(&request.path));
+        let resolved_url = chain_config.resolve_url(active_url, rpc_method, Some(&request.path));
         let url = RequestUrl::from_parts(resolved_url, &request.path_with_query);
-        let headers = self.build_headers(url.url.host_str().unwrap_or_default(), &request.headers);
+        let headers = self.build_headers(&request.headers);
 
         let methods_for_metrics = request_type.get_methods_for_metrics();
         self.metrics.add_proxy_request(request.chain.as_ref(), &methods_for_metrics);
@@ -109,7 +88,7 @@ impl ProxyRequestService {
         if let RequestType::JsonRpc(rpc_request) = request_type {
             return JsonRpcHandler::handle_request(
                 rpc_request,
-                &request,
+                request,
                 &self.cache,
                 &self.metrics,
                 &url,
@@ -124,20 +103,28 @@ impl ProxyRequestService {
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);
         let cache_key = cache_ttl.and_then(|_| request_type.cache_key(&request.host));
         if let Some(key) = &cache_key
-            && let Some(response) = Self::try_cache_hit(&self.cache, key, &request, &self.metrics, &methods_for_metrics).await
+            && let Some(response) = self.try_cache_hit(key, request, &methods_for_metrics).await
         {
             return Ok(response);
         }
 
-        let upstream_request = RequestBuilder::build(&request.method, &url, request.body.clone(), headers)?;
-        let response = self.client.execute(upstream_request).await?;
-        let status = response.status().as_u16();
-        let response_headers = response.headers().clone();
-        let body = response.bytes().await?.to_vec();
+        let upstream_request = url.build_request(&request.method, request.body.clone(), headers);
+        let attempt_start = Instant::now();
+        let result = transport::send(&self.client, upstream_request).await;
+        self.metrics.record_node_upstream(
+            request.chain,
+            url.url.host_str().unwrap_or_default(),
+            &request.path,
+            result.as_ref().map_or(StatusCode::BAD_GATEWAY.as_u16(), |response| response.status),
+            attempt_start.elapsed(),
+        );
+        let response = result.map_err(TransportError::into_inner)?;
+        let status = response.status;
+        let response_headers = response.headers;
+        let body = response.body;
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
-        let mut headers = RequestBuilder::filter_headers(&response_headers, &self.forward_headers);
-        headers.extend(proxy_headers);
+        let response_latency = request.elapsed();
+        let headers = transport::filter_headers(&response_headers, &self.forward_headers);
 
         let remote_host = url.url.host_str().unwrap_or_default();
         for method in &methods_for_metrics {
@@ -145,7 +132,7 @@ impl ProxyRequestService {
                 .add_proxy_upstream_response(request.chain.as_ref(), method, remote_host, status, request.elapsed().as_millis());
         }
 
-        self.broadcast_webhook.notify_broadcast(&request, status, &body, &self.broadcast_providers);
+        self.broadcast_webhook.notify_broadcast(request, status, &body, &self.broadcast_providers);
 
         info_with_fields!(
             "Proxy response",
@@ -163,12 +150,8 @@ impl ProxyRequestService {
             && let (Some(ttl), Some(key)) = (cache_ttl, cache_key)
         {
             let cache = self.cache.clone();
-            let content_type = response_headers
-                .get(reqwest::header::CONTENT_TYPE)
-                .and_then(|value| value.to_str().ok())
-                .unwrap_or(JSON_CONTENT_TYPE)
-                .to_string();
-            let cached = CachedResponse::new(body.clone(), status, content_type);
+            let content_type = response_headers.get(CONTENT_TYPE).and_then(|value| value.to_str().ok()).unwrap_or(JSON_CONTENT_TYPE);
+            let cached = ProxyResponse::with_content_type(status, body.clone(), content_type);
             let size = cached.body.len();
             let id = request.id.clone();
             let host = request.host.clone();
@@ -191,13 +174,13 @@ impl ProxyRequestService {
             });
         }
 
-        Ok(ProxyResponse::new(status, headers, body))
+        Ok(ProxyResponse::new(status, headers, body).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Miss))
     }
 
-    async fn try_cache_hit(cache: &RequestCache, cache_key: &str, request: &ProxyRequest, metrics: &Metrics, methods_for_metrics: &[String]) -> Option<ProxyResponse> {
-        if let Some(cached) = cache.get(&request.chain, cache_key).await {
+    async fn try_cache_hit(&self, cache_key: &str, request: &ProxyRequest, methods_for_metrics: &[String]) -> Option<ProxyResponse> {
+        if let Some(cached) = self.cache.get(&request.chain, cache_key).await {
             for method_name in methods_for_metrics {
-                metrics.add_cache_hit(request.chain.as_ref(), method_name);
+                self.metrics.add_cache_hit(request.chain.as_ref(), method_name);
             }
 
             info_with_fields!(
@@ -208,11 +191,10 @@ impl ProxyRequestService {
                 method = &methods_for_metrics.join(",")
             );
 
-            let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Hit);
-            Some(ResponseBuilder::build_cached_with_headers(cached, proxy_headers))
+            Some(cached.with_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Hit))
         } else {
             for method_name in methods_for_metrics {
-                metrics.add_cache_miss(request.chain.as_ref(), method_name);
+                self.metrics.add_cache_miss(request.chain.as_ref(), method_name);
             }
             None
         }
@@ -221,22 +203,24 @@ impl ProxyRequestService {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::cache::RequestCache;
-    use crate::config::{CacheConfig, HeadersConfig, MetricsConfig};
-    use crate::metrics::Metrics;
-    use crate::proxy::constants::JSON_CONTENT_TYPE;
+    use std::sync::Arc;
+
     use primitives::Chain;
     use reqwest::header;
     use settings_chain::BroadcastProviders;
-    use std::collections::HashMap;
-    use std::sync::Arc;
+
+    use super::*;
+    use crate::cache::RequestCache;
+    use crate::config::HeadersConfig;
+    use crate::metrics::Metrics;
+    use crate::proxy::constants::JSON_CONTENT_TYPE;
+    use crate::testkit::config::metrics_config;
 
     fn create_service(headers_config: HeadersConfig) -> ProxyRequestService {
-        let metrics = Metrics::new(MetricsConfig::default());
+        let metrics = Metrics::new(metrics_config());
         ProxyRequestService::new(
             metrics.clone(),
-            RequestCache::new(CacheConfig::default(), std::iter::empty()),
+            RequestCache::default(),
             gem_client::reqwest_client(),
             headers_config,
             DynodeBroadcastWebhookClient::disabled(),
@@ -245,13 +229,9 @@ mod tests {
     }
 
     #[test]
-    fn test_build_headers_with_domain_config() {
-        let mut domains = HashMap::new();
-        domains.insert("example.com".to_string(), vec![header::USER_AGENT.to_string()]);
-
+    fn test_build_headers_forwards_configured_headers() {
         let service = create_service(HeadersConfig {
-            forward: vec![header::CONTENT_TYPE.to_string()],
-            domains,
+            forward: vec![header::CONTENT_TYPE.to_string(), header::USER_AGENT.to_string()],
         });
 
         let mut original = HeaderMap::new();
@@ -259,7 +239,7 @@ mod tests {
         original.insert(header::USER_AGENT, header::HeaderValue::from_static("TestAgent/1.0"));
         original.insert("x-drop", header::HeaderValue::from_static("dropped"));
 
-        let headers = service.build_headers("example.com", &original);
+        let headers = service.build_headers(&original);
 
         assert_eq!(headers.get(header::CONTENT_TYPE).unwrap(), JSON_CONTENT_TYPE);
         assert_eq!(headers.get(header::USER_AGENT).unwrap(), "TestAgent/1.0");
@@ -267,17 +247,16 @@ mod tests {
     }
 
     #[test]
-    fn test_build_headers_without_domain_config() {
+    fn test_build_headers_drops_unconfigured_headers() {
         let service = create_service(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string()],
-            domains: HashMap::new(),
         });
 
         let mut original = HeaderMap::new();
         original.insert(header::CONTENT_TYPE, header::HeaderValue::from_static(JSON_CONTENT_TYPE));
         original.insert(header::USER_AGENT, header::HeaderValue::from_static("TestAgent/1.0"));
 
-        let headers = service.build_headers("example.com", &original);
+        let headers = service.build_headers(&original);
 
         assert_eq!(headers.get(header::CONTENT_TYPE).unwrap(), JSON_CONTENT_TYPE);
         assert!(headers.get(header::USER_AGENT).is_none());
@@ -287,14 +266,13 @@ mod tests {
     fn test_build_headers_forces_grpc_identity_encoding() {
         let service = create_service(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string(), GRPC_ACCEPT_ENCODING.to_string()],
-            domains: HashMap::new(),
         });
 
         let mut original = HeaderMap::new();
         original.insert(header::CONTENT_TYPE, header::HeaderValue::from_static("application/grpc+proto"));
         original.insert(GRPC_ACCEPT_ENCODING, header::HeaderValue::from_static("gzip"));
 
-        let headers = service.build_headers("example.com", &original);
+        let headers = service.build_headers(&original);
 
         assert_eq!(headers.get(GRPC_ACCEPT_ENCODING).unwrap(), "identity");
     }

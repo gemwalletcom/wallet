@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct MetricsConfig {
-    #[serde(default)]
     pub prefix: String,
+    pub source: String,
 }

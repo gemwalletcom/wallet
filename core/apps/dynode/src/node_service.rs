@@ -1,41 +1,38 @@
-mod error;
-
-use std::error::Error;
 use std::{
     collections::{HashMap, hash_map::DefaultHasher},
     hash::{Hash, Hasher},
     sync::Arc,
 };
 
+use gem_tracing::{DurationMs, info_with_fields};
+use primitives::{Chain, ResponseError, ResponseResult, response::ErrorDetail};
 use reqwest::StatusCode;
+use serde_json::Value;
+use settings_chain::BroadcastProviders;
 use tokio::sync::RwLock;
 
+use self::error::NodeServiceError;
+use crate::BoxError;
 use crate::cache::RequestCache;
-use crate::config::{CacheConfig, ChainConfig, ChainTypesConfig, ErrorMatcherConfig, HeadersConfig, NodeMonitoringConfig, RetryConfig, Url};
+use crate::config::{ChainConfig, ChainTypesConfig, ErrorMatcherConfig, HeadersConfig, MonitoringConfig, RetryConfig, Url};
 use crate::failure_reason::FailureReason;
 use crate::jsonrpc_types::{JsonRpcErrorResponse, RequestType};
 use crate::metrics::Metrics;
 use crate::monitoring::NodeMonitor;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
-use crate::proxy::proxy_builder::ProxyBuilder;
 use crate::proxy::proxy_request::ProxyRequest;
-use crate::proxy::response_builder::{CacheStatus, ResponseBuilder};
-use crate::proxy::{NodeDomain, ProxyResponse};
+use crate::proxy::{CacheStatus, ProxyRequestService, ProxyResponse};
 use crate::webhook::DynodeBroadcastWebhookClient;
-use gem_tracing::{DurationMs, info_with_fields};
-use primitives::{Chain, ResponseError, response::ErrorDetail};
-use serde_json::Value;
-use settings_chain::BroadcastProviders;
 
-use self::error::NodeServiceError;
+mod error;
 
 pub struct NodeService {
-    pub chains: HashMap<Chain, ChainConfig>,
-    pub nodes: Arc<RwLock<HashMap<Chain, NodeDomain>>>,
-    pub metrics: Arc<Metrics>,
+    pub(crate) chains: HashMap<Chain, ChainConfig>,
+    nodes: Arc<RwLock<HashMap<Chain, Url>>>,
+    metrics: Arc<Metrics>,
     chain_types: ChainTypesConfig,
-    pub retry_config: RetryConfig,
-    proxy_builder: ProxyBuilder,
+    retry_config: RetryConfig,
+    proxy: ProxyRequestService,
     node_monitor: NodeMonitor,
 }
 
@@ -45,20 +42,16 @@ impl NodeService {
         metrics: Metrics,
         client: reqwest::Client,
         chain_types: ChainTypesConfig,
-        cache_config: CacheConfig,
+        cache: RequestCache,
         retry_config: RetryConfig,
         headers_config: HeadersConfig,
         broadcast_webhook: DynodeBroadcastWebhookClient,
-        monitoring_config: NodeMonitoringConfig,
+        monitoring_config: MonitoringConfig,
     ) -> Self {
-        let nodes = chains
-            .values()
-            .filter_map(|config| config.urls.first().cloned().map(|url| (config.chain, NodeDomain::new(url, config.clone()))))
-            .collect();
+        let nodes = chains.values().filter_map(|config| config.urls.first().cloned().map(|url| (config.chain, url))).collect();
 
-        let cache = RequestCache::new(cache_config, chains.values());
         let broadcast_providers = Arc::new(BroadcastProviders::from_chains(chains.keys().copied()));
-        let proxy_builder = ProxyBuilder::new(metrics.clone(), cache, client, headers_config, broadcast_webhook, broadcast_providers);
+        let proxy = ProxyRequestService::new(metrics.clone(), cache, client, headers_config, broadcast_webhook, broadcast_providers);
         let nodes = Arc::new(RwLock::new(nodes));
         let metrics = Arc::new(metrics);
         let node_monitor = NodeMonitor::new(chains.values().cloned(), Arc::clone(&nodes), Arc::clone(&metrics), monitoring_config);
@@ -69,7 +62,7 @@ impl NodeService {
             metrics,
             chain_types,
             retry_config,
-            proxy_builder,
+            proxy,
             node_monitor,
         }
     }
@@ -78,32 +71,36 @@ impl NodeService {
         self.node_monitor.start();
     }
 
-    pub async fn handle_request(&self, request: ProxyRequest) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
+    pub async fn handle_request(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
-        let method = request.method.clone();
-        let path = request.path.clone();
-        let request_start = request.request_start;
+        let _inflight = self.metrics.track_node_inflight(chain);
         let result = self.handle_request_inner(request).await;
+        let status = result.as_ref().map_or(StatusCode::INTERNAL_SERVER_ERROR.as_u16(), |response| response.status);
+        self.metrics.record_node_response(chain, &request.path, status);
         if let Ok(response) = &result {
-            self.metrics
-                .add_proxy_response(chain.as_ref(), method.as_str(), path.as_str(), response.status, request_start.elapsed().as_millis());
+            self.metrics.add_proxy_response(
+                chain.as_ref(),
+                request.method.as_str(),
+                request.path.as_str(),
+                response.status,
+                request.elapsed().as_millis(),
+            );
         }
         result
     }
 
-    async fn handle_request_inner(&self, request: ProxyRequest) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
-        Self::log_incoming_request(&request);
+    async fn handle_request_inner(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
+        Self::log_incoming_request(request);
 
-        let chain_config = self.get_chain_config(&request)?;
+        let chain_config = self.get_chain_config(request)?;
         if !self.chain_types.allows(chain_config, request.request_type()) {
-            return Self::request_not_allowed_response(&request);
+            return Self::request_not_allowed_response(request);
         }
-        let Some(urls) = self.resolve_request_urls(chain_config, &request).await else {
-            return self.node_not_found_response(&request);
+        let Some(urls) = self.resolve_request_urls(chain_config, request).await else {
+            return self.node_not_found_response(request);
         };
         if urls.len() == 1 {
-            let primary = NodeDomain::new(urls[0].clone(), chain_config.clone());
-            return self.proxy_builder.handle_request(request, &primary).await;
+            return self.proxy.handle_request(request, &urls[0], chain_config).await;
         }
 
         let retry_enabled = self.retry_config.enabled;
@@ -112,7 +109,6 @@ impl NodeService {
         let max_attempts = if retry_enabled { self.retry_config.effective_max_attempts(urls.len()) } else { 1 };
 
         for (index, url) in urls.iter().take(max_attempts).enumerate() {
-            let node_domain = NodeDomain::new(url.clone(), chain_config.clone());
             let remote_host = url.host();
             if index > 0 {
                 info_with_fields!(
@@ -124,9 +120,9 @@ impl NodeService {
                     reason = last_error.as_deref().unwrap_or(""),
                 );
             }
-            match self.proxy_builder.handle_request(request.clone(), &node_domain).await {
+            match self.proxy.handle_request(request, url, chain_config).await {
                 Ok(response) => {
-                    let retry_error = self.matches_response_error_signal(&request, &response, &self.retry_config.errors);
+                    let retry_error = self.matches_response_error_signal(request, &response, &self.retry_config.errors);
                     if !response.is_from_cache() {
                         self.report_active_node_outcome(index, request.chain, url, retry_error);
                     }
@@ -136,11 +132,12 @@ impl NodeService {
 
                     let upstream_data = serde_json::from_slice::<Value>(&response.body).ok();
                     if !retry_enabled {
-                        return self.log_and_create_error_response(&request, Some(remote_host.as_str()), NodeServiceError::UpstreamStatus(response.status), upstream_data);
+                        return self.log_and_create_error_response(request, Some(remote_host.as_str()), NodeServiceError::UpstreamStatus(response.status), upstream_data);
                     }
                     let retry_reason = FailureReason::Status(response.status).to_string();
                     if index + 1 < max_attempts {
                         self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), &retry_reason);
+                        self.metrics.record_node_failover(request.chain, remote_host.as_str(), &request.path, &retry_reason);
                     }
                     last_error = Some(retry_reason);
                     last_error_data = upstream_data;
@@ -165,6 +162,7 @@ impl NodeService {
                     );
                     if index + 1 < max_attempts {
                         self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), &retry_reason);
+                        self.metrics.record_node_failover(request.chain, remote_host.as_str(), &request.path, &retry_reason);
                     }
                     last_error = Some(retry_reason);
                 }
@@ -182,7 +180,7 @@ impl NodeService {
                 latency = DurationMs(request.elapsed()),
             );
         }
-        self.log_and_create_error_response(&request, None, NodeServiceError::UpstreamsFailed, last_error_data)
+        self.log_and_create_error_response(request, None, NodeServiceError::UpstreamsFailed, last_error_data)
     }
 
     fn report_active_node_outcome(&self, attempt_index: usize, chain: Chain, url: &Url, failed: bool) {
@@ -232,14 +230,14 @@ impl NodeService {
         }
 
         let current_node = self.nodes.read().await.get(&chain_config.chain).cloned()?;
-        Some(Self::get_ordered_urls(&chain_config.urls, &current_node.url, request.id.as_str()))
+        Some(Self::get_ordered_urls(&chain_config.urls, &current_node, request.id.as_str()))
     }
 
-    fn node_not_found_response(&self, request: &ProxyRequest) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
+    fn node_not_found_response(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
         self.log_and_create_error_response(request, None, NodeServiceError::NodeNotFound, None)
     }
 
-    fn request_not_allowed_response(request: &ProxyRequest) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
+    fn request_not_allowed_response(request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
         let error = NodeServiceError::RequestNotAllowed;
         let error_message = error.to_string();
         let status = error.status();
@@ -253,14 +251,9 @@ impl NodeService {
             request = &request.request_type().get_methods_list(),
         );
 
-        let body = serde_json::to_vec(&serde_json::json!({
-            "error": status.canonical_reason().unwrap_or("Error"),
-            "message": error_message,
-            "code": status.as_u16()
-        }))?;
+        let body = serde_json::to_vec(&ResponseResult::<()>::error(error_message))?;
 
-        let headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
-        ResponseBuilder::build_with_headers(body, status.as_u16(), JSON_CONTENT_TYPE, headers)
+        Ok(ProxyResponse::with_content_type(status.as_u16(), body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss))
     }
 
     fn get_ordered_urls(urls: &[Url], current: &Url, request_id: &str) -> Vec<Url> {
@@ -303,13 +296,7 @@ impl NodeService {
         }
     }
 
-    fn log_and_create_error_response(
-        &self,
-        request: &ProxyRequest,
-        host: Option<&str>,
-        error: NodeServiceError,
-        upstream_data: Option<Value>,
-    ) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
+    fn log_and_create_error_response(&self, request: &ProxyRequest, host: Option<&str>, error: NodeServiceError, upstream_data: Option<Value>) -> Result<ProxyResponse, BoxError> {
         let error_message = error.to_string();
         let request_id = request.id.as_str();
         let chain = request.chain.as_ref();
@@ -330,7 +317,7 @@ impl NodeService {
             latency = latency,
         );
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
+        let response_latency = request.elapsed();
 
         let response = match request.request_type() {
             RequestType::JsonRpc(_) => serde_json::to_value(JsonRpcErrorResponse::new(&error_message))?,
@@ -344,17 +331,18 @@ impl NodeService {
 
         let body = serde_json::to_vec(&response)?;
 
-        ResponseBuilder::build_with_headers(body, status, JSON_CONTENT_TYPE, proxy_headers)
+        Ok(ProxyResponse::with_content_type(status, body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Miss))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::config::{CacheConfig, ChainTypesConfig, MetricsConfig, Url};
-    use crate::testkit::config as testkit;
     use primitives::Chain;
     use reqwest::{Method, header, header::HeaderMap};
+
+    use super::*;
+    use crate::config::{ChainTypesConfig, Url};
+    use crate::testkit::config as testkit;
 
     fn create_service(chains: HashMap<Chain, ChainConfig>) -> NodeService {
         create_service_with_retry(chains, testkit::retry_config(false, vec![], vec![]))
@@ -365,7 +353,7 @@ mod tests {
     }
 
     fn create_service_with_config(chains: HashMap<Chain, ChainConfig>, retry_config: RetryConfig, chain_types: ChainTypesConfig) -> NodeService {
-        let metrics = Metrics::new(MetricsConfig::default());
+        let metrics = Metrics::new(testkit::metrics_config());
         let broadcast_webhook = DynodeBroadcastWebhookClient::disabled();
 
         NodeService::new(
@@ -373,14 +361,13 @@ mod tests {
             metrics,
             gem_client::reqwest_client(),
             chain_types,
-            CacheConfig::default(),
+            RequestCache::default(),
             retry_config,
             HeadersConfig {
                 forward: vec![header::CONTENT_TYPE.to_string()],
-                domains: HashMap::new(),
             },
             broadcast_webhook,
-            NodeMonitoringConfig {
+            MonitoringConfig {
                 enabled: false,
                 ..testkit::monitoring_config()
             },
@@ -487,15 +474,13 @@ mod tests {
         let service = create_service_with_config(chains, testkit::retry_config(false, vec![], vec![]), ethereum_chain_types());
         let request = create_jsonrpc_request(Chain::Ethereum, "unsupported_method");
 
-        let response = service.handle_request(request).await.unwrap();
+        let response = service.handle_request(&request).await.unwrap();
 
         assert_eq!(response.status, StatusCode::FORBIDDEN.as_u16());
         assert_eq!(
             serde_json::from_slice::<Value>(&response.body).unwrap(),
             serde_json::json!({
-                "error": "Forbidden",
-                "message": NodeServiceError::RequestNotAllowed.to_string(),
-                "code": StatusCode::FORBIDDEN.as_u16()
+                "error": { "message": NodeServiceError::RequestNotAllowed.to_string() }
             })
         );
     }
@@ -506,7 +491,7 @@ mod tests {
         let service = create_service_with_config(chains, testkit::retry_config(false, vec![], vec![]), ethereum_chain_types());
         let request = create_jsonrpc_request(Chain::Ethereum, "eth_chainId");
 
-        let result = service.handle_request(request).await;
+        let result = service.handle_request(&request).await;
 
         assert!(result.is_err());
     }
@@ -531,7 +516,7 @@ mod tests {
             Chain::Solana,
         );
 
-        let response = service.handle_request(request).await.unwrap();
+        let response = service.handle_request(&request).await.unwrap();
         let body = serde_json::from_slice::<JsonRpcErrorResponse>(&response.body).unwrap();
 
         assert_eq!(response.status, StatusCode::INTERNAL_SERVER_ERROR.as_u16());

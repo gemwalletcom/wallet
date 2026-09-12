@@ -1,15 +1,13 @@
 pub mod constants;
 pub mod jsonrpc;
-pub mod proxy_builder;
 pub mod proxy_request;
-pub mod proxy_request_builder;
-pub mod request_builder;
 pub mod request_url;
-pub mod response_builder;
+mod response;
 pub mod service;
-pub mod types;
 
-pub use proxy_request_builder::ProxyRequestBuilder;
-pub use response_builder::ProxyResponse;
-pub use service::{NodeDomain, ProxyRequestService};
-pub use types::CachedResponse;
+pub use proxy_request::ProxyRequest;
+pub(crate) use response::CacheStatus;
+pub use response::ProxyResponse;
+pub use service::ProxyRequestService;
+
+pub(crate) mod transport;

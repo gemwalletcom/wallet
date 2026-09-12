@@ -11,8 +11,9 @@ use tokio::time::{Instant as TokioInstant, sleep};
 use url::Url;
 
 use super::proxy::OutboundProxy;
-use super::{BoxError, GatewayResponse};
-use crate::config::{EndpointConfig, RateConfig};
+use crate::BoxError;
+use crate::config::routes::{EndpointConfig, RateConfig};
+use crate::proxy::{ProxyResponse, transport};
 
 pub(super) struct Endpoint {
     pub(super) name: String,
@@ -71,7 +72,7 @@ impl Endpoint {
     }
 
     fn request_headers(&self, inbound: &HeaderMap, forward_headers: &HashSet<HeaderName>) -> HeaderMap {
-        let mut headers = Self::filter_headers(inbound, forward_headers);
+        let mut headers = transport::filter_headers(inbound, forward_headers);
         for (name, value) in &self.headers {
             headers.insert(name.clone(), value.clone());
         }
@@ -85,32 +86,21 @@ impl Endpoint {
         inbound_headers: &HeaderMap,
         forward_headers: &HashSet<HeaderName>,
         body: Vec<u8>,
-    ) -> Result<(GatewayResponse, Option<Duration>), &'static str> {
-        let response = self
+    ) -> Result<(ProxyResponse, Option<Duration>), &'static str> {
+        let request = self
             .client
             .request(method.clone(), url)
             .headers(self.request_headers(inbound_headers, forward_headers))
             .body(body)
-            .send()
-            .await
+            .build()
             .map_err(|_| "transport")?;
-        let status = response.status().as_u16();
-        let retry_after = Self::retry_after(response.headers());
-        let headers = Self::filter_headers(response.headers(), forward_headers);
-        let body = response.bytes().await.map_err(|_| "response_body")?.to_vec();
-        Ok((GatewayResponse { status, headers, body }, retry_after))
+        let response = transport::send(&self.client, request).await.map_err(|error| error.kind())?;
+        let retry_after = Self::retry_after(&response.headers);
+        Ok((response, retry_after))
     }
 
     pub(super) fn cooldown_key(&self, group: &str, service: &str, path: &str) -> String {
         format!("{group}:{service}:{}:{path}", self.name)
-    }
-
-    fn filter_headers(headers: &HeaderMap, forward_headers: &HashSet<HeaderName>) -> HeaderMap {
-        headers
-            .iter()
-            .filter(|(name, _)| forward_headers.contains(*name))
-            .map(|(name, value)| (name.clone(), value.clone()))
-            .collect()
     }
 
     fn retry_after(headers: &HeaderMap) -> Option<Duration> {

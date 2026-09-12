@@ -10,7 +10,7 @@ impl PathAllowlist {
     }
 
     pub fn allows(&self, method: &str, path: &str) -> bool {
-        self.0.is_empty() || self.0.iter().any(|rule| rule.matches(method, path))
+        self.is_empty() || self.0.iter().any(|rule| rule.matches(method, path))
     }
 }
 
@@ -22,22 +22,26 @@ pub struct PathRule {
 
 impl PathRule {
     pub fn matches(&self, method: &str, path: &str) -> bool {
-        method == self.method && path_matches(&self.path, path)
+        if method != self.method {
+            return false;
+        }
+        if let Some(prefix) = self.path.strip_suffix("/**") {
+            return path.strip_prefix(prefix).is_some_and(|rest| rest.starts_with('/'));
+        }
+        path == self.path
     }
 }
 
-pub fn path_matches(rule_path: &str, path: &str) -> bool {
-    if let Some(prefix) = rule_path.strip_suffix("/**") {
-        return path.strip_prefix(prefix).is_some_and(|rest| rest.starts_with('/'));
-    }
-    path == rule_path
+pub(crate) fn path_without_query(path: &str) -> &str {
+    path.split_once('?').map_or(path, |(path, _)| path)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use config::{Config, File, FileFormat};
     use serde_json::json;
+
+    use super::*;
 
     fn allowlist() -> PathAllowlist {
         serde_json::from_value(json!([

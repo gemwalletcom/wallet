@@ -7,7 +7,7 @@ use rocket::http::Status;
 use super::route::Route;
 
 pub(super) struct AccessLog<'a> {
-    caller: &'a str,
+    source: &'a str,
     group: &'a str,
     service: &'a str,
     method: &'a Method,
@@ -16,9 +16,9 @@ pub(super) struct AccessLog<'a> {
 }
 
 impl<'a> AccessLog<'a> {
-    pub(super) fn new(caller: &'a str, route: &'a Route, method: &'a Method, uri: &'a str) -> Self {
+    pub(super) fn new(source: &'a str, route: &'a Route, method: &'a Method, uri: &'a str) -> Self {
         Self {
-            caller,
+            source,
             group: &route.group,
             service: &route.service,
             method,
@@ -29,7 +29,7 @@ impl<'a> AccessLog<'a> {
 
     pub(super) fn rejected(method: &'a Method, uri: &'a str, status: u16, reason: &str) {
         let access = Self {
-            caller: "none",
+            source: "none",
             group: "none",
             service: "none",
             method,
@@ -43,7 +43,7 @@ impl<'a> AccessLog<'a> {
     pub(super) fn request(&self) {
         info_with_fields!(
             "Egress request",
-            caller = self.caller,
+            source = self.source,
             group = self.group,
             service = self.service,
             method = self.method.as_str(),
@@ -54,7 +54,7 @@ impl<'a> AccessLog<'a> {
     pub(super) fn failover(&self, endpoint: &str, host: &str, status: u16) {
         info_with_fields!(
             "Egress failover",
-            caller = self.caller,
+            source = self.source,
             group = self.group,
             service = self.service,
             endpoint = endpoint,
@@ -69,7 +69,7 @@ impl<'a> AccessLog<'a> {
     pub(super) fn upstream_failed(&self, endpoint: &str, host: &str, reason: &str) {
         error_fields!(
             "Egress upstream failed",
-            caller = self.caller,
+            source = self.source,
             group = self.group,
             service = self.service,
             endpoint = endpoint,
@@ -85,7 +85,7 @@ impl<'a> AccessLog<'a> {
     pub(super) fn unavailable(&self, status: u16, reason: &str) {
         error_fields!(
             "Egress unavailable",
-            caller = self.caller,
+            source = self.source,
             group = self.group,
             service = self.service,
             endpoint = "none",
@@ -100,7 +100,7 @@ impl<'a> AccessLog<'a> {
     pub(super) fn response(&self, endpoint: &str, host: &str, status: u16) {
         info_with_fields!(
             "Egress response",
-            caller = self.caller,
+            source = self.source,
             group = self.group,
             service = self.service,
             endpoint = endpoint,

@@ -5,6 +5,12 @@ edition = { workspace = true }
 
 [features]
 testkit = []
+proxy_integration_tests = []
+
+[[test]]
+name = "proxy_integration"
+test = false
+required-features = ["proxy_integration_tests"]
 
 [dependencies]
 config = { workspace = true }
@@ -19,11 +25,14 @@ primitives = { path = "../../crates/primitives" }
 gem_tracing = { path = "../../crates/tracing" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
 gem_encoding = { path = "../../crates/gem_encoding", features = ["protobuf"] }
-gem_proxy = { path = "../../crates/gem_proxy" }
+gem_hash = { path = "../../crates/gem_hash" }
+rand = { workspace = true }
 metrics = { path = "../../crates/metrics" }
 settings_chain = { path = "../../crates/settings_chain" }
 serde_serializers = { path = "../../crates/serde_serializers" }
 
 url = { workspace = true }
 uuid = { workspace = true }
-gem_auth = { path = "../../crates/gem_auth", features = ["client"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

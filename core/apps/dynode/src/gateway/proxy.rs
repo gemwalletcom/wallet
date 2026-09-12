@@ -3,10 +3,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use reqwest::redirect::Policy;
-use reqwest::{Client, Proxy};
-use tokio::time::MissedTickBehavior;
+use reqwest::{Client, Error as RequestError, Proxy};
+use tokio::time::{MissedTickBehavior, interval};
 
-use crate::config::{ProxyConfig, ProxyHealthConfig};
+use crate::config::routes::{ProxyConfig, ProxyHealthConfig};
 use crate::metrics::Metrics;
 
 pub(super) struct OutboundProxy {
@@ -16,7 +16,7 @@ pub(super) struct OutboundProxy {
 }
 
 impl OutboundProxy {
-    pub(super) fn new(config: ProxyConfig, timeout: Duration) -> Result<Self, reqwest::Error> {
+    pub(super) fn new(config: ProxyConfig, timeout: Duration) -> Result<Self, RequestError> {
         let client = build_client(timeout, Some(&config.url))?;
         Ok(Self {
             health: config.health,
@@ -34,7 +34,7 @@ impl OutboundProxy {
         let client = self.client.clone();
         let available = self.available.clone();
         tokio::spawn(async move {
-            let mut interval = tokio::time::interval(health.interval);
+            let mut interval = interval(health.interval);
             interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
             loop {
                 interval.tick().await;
@@ -49,7 +49,7 @@ impl OutboundProxy {
     }
 }
 
-pub(super) fn build_client(timeout: Duration, proxy: Option<&str>) -> Result<Client, reqwest::Error> {
+pub(super) fn build_client(timeout: Duration, proxy: Option<&str>) -> Result<Client, RequestError> {
     let mut builder = gem_client::builder().timeout(timeout).redirect(Policy::none());
     if let Some(proxy) = proxy {
         builder = builder.proxy(Proxy::all(proxy)?);

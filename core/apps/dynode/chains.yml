@@ -1,3 +1,123 @@
+webhook:
+  enabled: false
+  url: ""
+  token: ""
+
+monitoring:
+  enabled: true
+  profile: wallet
+  interval: 10m
+  trigger:
+    failures: 15 # consecutive or rate minimum
+    rate: 50 # percent in window
+    window: 1m
+    latency: 1500ms
+
+request:
+  timeout: 3s
+
+headers:
+  forward:
+    - accept
+    - content-type
+    - content-encoding
+    - content-length
+    - grpc-accept-encoding
+    - grpc-encoding
+    - grpc-message
+    - grpc-status
+    - grpc-status-details-bin
+    - te
+
+retry:
+  cooldown: 60s
+  statuses: [403, 429]
+  enabled: true
+  max_attempts: 3
+  errors:
+    status_codes: [401, 403, 429, 502, 503, 504]
+    error_messages:
+      - "daily request limit"
+      - "rate limit"
+      - "Exceeded the quota usage"
+      - "Unauthorized"
+
+chain_types:
+  ethereum:
+    allowlist:
+      - rpc_method: eth_chainId
+      - rpc_method: eth_sendRawTransaction
+      - rpc_method: eth_blockNumber
+      - rpc_method: eth_call
+    contracts:
+      methods:
+        - identifiers:
+            - '0x1698ee82'
+          ttl: 5m
+          addresses:
+            - '0x1F98431c8aD98523631AE4a59f267346ea31F984'
+            - '0x1f7d7550B1b028f7571E69A784071F0205FD2EfA'
+    cache:
+      - rpc_method: eth_chainId
+        ttl: 1h
+  bitcoin:
+    allowlist:
+      - path: /api/v2/address/**
+        method: GET
+      - path: /api/v2/sendtx/
+        method: POST
+  cosmos:
+    chains:
+      thorchain:
+        allowlist:
+          - path: /thorchain/inbound_addresses
+            method: GET
+          - path: /thorchain/quote/swap
+            method: GET
+          - path: /thorchain/tx/status/**
+            method: GET
+      mayachain:
+        allowlist:
+          - path: /mayachain/inbound_addresses
+            method: GET
+          - path: /mayachain/quote/swap
+            method: GET
+          - path: /mayachain/tx/status/**
+            method: GET
+    cache:
+      - path: /cosmos/staking/v1beta1/validators
+        method: GET
+        ttl: 1d
+  tron:
+    cache:
+      - path: /wallet/getchainparameters
+        method: GET
+        ttl: 1d
+      - path: /wallet/listwitnesses
+        method: GET
+        ttl: 1d
+  solana:
+    cache:
+      - rpc_method: getVoteAccounts
+        ttl: 1h
+  hypercore:
+    cache:
+      - path: /info
+        method: POST
+        ttl: 1h
+        params:
+          type: metaAndAssetCtxs
+  aptos:
+    cache:
+      - path: /v1/view
+        method: POST
+        ttl: 1h
+        params:
+          function: 0x1::delegation_pool::operator_commission_percentage
+cache:
+  memory:
+    max: 2GB
+
 chains:
   # Ethereum
   - chain: ethereum

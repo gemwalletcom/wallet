@@ -2693,14 +2693,14 @@ name = "dynode"
 version = "2.114.23"
 dependencies = [
  "config",
- "gem_auth",
  "gem_client",
  "gem_encoding",
- "gem_proxy",
+ "gem_hash",
  "gem_tracing",
  "metrics",
  "primitives",
  "prometheus-client",
+ "rand 0.10.2",
  "reqwest 0.13.4",
  "rocket",
  "serde",
@@ -2798,27 +2798,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
-]
-
-[[package]]
-name = "egress"
-version = "2.114.23"
-dependencies = [
- "config",
- "gem_client",
- "gem_crypto",
- "gem_proxy",
- "gem_tracing",
- "metrics",
- "prometheus-client",
- "rand 0.10.2",
- "reqwest 0.13.4",
- "rocket",
- "serde",
- "serde_json",
- "serde_serializers",
- "tokio",
- "url",
 ]
 
 [[package]]
@@ -3871,15 +3850,6 @@ dependencies = [
  "settings",
  "signer",
  "tokio",
-]
-
-[[package]]
-name = "gem_proxy"
-version = "2.114.23"
-dependencies = [
- "config",
- "serde",
- "serde_json",
 ]
 
 [[package]]

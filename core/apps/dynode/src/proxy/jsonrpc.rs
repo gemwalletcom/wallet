@@ -1,19 +1,24 @@
-use crate::cache::{CacheProvider, RequestCache};
+use std::collections::{HashMap, HashSet};
+use std::time::{Duration, Instant};
+
+use gem_tracing::{DurationMs, info_with_fields};
+use reqwest::Client;
+use reqwest::StatusCode;
+use reqwest::header::HeaderMap;
+use serde::Serialize;
+use serde_json::{Error as JsonError, Value};
+use settings_chain::BroadcastProviders;
+
+use crate::BoxError;
+use crate::cache::RequestCache;
 use crate::jsonrpc_types::{JsonRpcCall, JsonRpcRequest, JsonRpcResult};
 use crate::metrics::Metrics;
-use crate::proxy::ProxyResponse;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_request::ProxyRequest;
-use crate::proxy::request_builder::RequestBuilder;
 use crate::proxy::request_url::RequestUrl;
-use crate::proxy::response_builder::{CacheStatus, ResponseBuilder};
+use crate::proxy::transport::{self, TransportError};
+use crate::proxy::{CacheStatus, ProxyResponse};
 use crate::webhook::DynodeBroadcastWebhookClient;
-use gem_tracing::{DurationMs, info_with_fields};
-use reqwest::header::HeaderMap;
-use reqwest::{Method, StatusCode};
-use settings_chain::BroadcastProviders;
-use std::collections::{HashMap, HashSet};
-use std::time::Duration;
 
 mod cache;
 
@@ -26,11 +31,11 @@ impl JsonRpcHandler {
         cache: &RequestCache,
         metrics: &Metrics,
         url: &RequestUrl,
-        client: &reqwest::Client,
+        client: &Client,
         forward_headers: &HeaderMap,
         broadcast_webhook: &DynodeBroadcastWebhookClient,
         broadcast_providers: &BroadcastProviders,
-    ) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<ProxyResponse, BoxError> {
         match rpc_request {
             JsonRpcRequest::Single(call) => Self::handle_single_request(call, request, cache, metrics, url, client, forward_headers, broadcast_webhook, broadcast_providers).await,
             JsonRpcRequest::Batch(calls) => Self::handle_batch_request(calls, request, cache, metrics, url, client, forward_headers).await,
@@ -43,11 +48,11 @@ impl JsonRpcHandler {
         cache: &RequestCache,
         metrics: &Metrics,
         url: &RequestUrl,
-        client: &reqwest::Client,
+        client: &Client,
         forward_headers: &HeaderMap,
         broadcast_webhook: &DynodeBroadcastWebhookClient,
         broadcast_providers: &BroadcastProviders,
-    ) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<ProxyResponse, BoxError> {
         let cache_ttl = cache.should_cache_call(&request.chain, call);
         if cache_ttl.is_some()
             && let Some(response) = cache::get(call, request, cache).await
@@ -62,15 +67,19 @@ impl JsonRpcHandler {
                 method = call.method.as_str()
             );
 
-            let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Hit);
+            let response_latency = request.elapsed();
             let body = serde_json::to_vec(&response)?;
-            return ResponseBuilder::build_with_headers(body, StatusCode::OK.as_u16(), JSON_CONTENT_TYPE, proxy_headers).map(ProxyResponse::into_cached);
+            return Ok(ProxyResponse::with_content_type(StatusCode::OK.as_u16(), body, JSON_CONTENT_TYPE).with_proxy_headers(
+                request.id.as_str(),
+                response_latency,
+                CacheStatus::Hit,
+            ));
         }
         if cache_ttl.is_some() {
             metrics.add_cache_miss(request.chain.as_ref(), &call.method);
         }
 
-        let (response, response_status, response_body) = Self::fetch_single_response(call, cache_ttl, request, cache, url, client, forward_headers).await?;
+        let (response, response_status, response_body) = Self::fetch_single_response(call, cache_ttl, request, cache, metrics, url, client, forward_headers).await?;
 
         metrics.add_proxy_upstream_response(
             request.chain.as_ref(),
@@ -114,8 +123,7 @@ impl JsonRpcHandler {
 
         broadcast_webhook.notify_broadcast(request, response_status, &response_body, broadcast_providers);
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss);
-        ResponseBuilder::build_with_headers(response_body, response_status, JSON_CONTENT_TYPE, proxy_headers)
+        Ok(ProxyResponse::with_content_type(response_status, response_body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss))
     }
 
     async fn handle_batch_request(
@@ -124,9 +132,9 @@ impl JsonRpcHandler {
         cache: &RequestCache,
         metrics: &Metrics,
         url: &RequestUrl,
-        client: &reqwest::Client,
+        client: &Client,
         forward_headers: &HeaderMap,
-    ) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<ProxyResponse, BoxError> {
         let request_ids = calls.iter().map(|call| call.id).collect::<HashSet<_>>();
         let cache_ttls = if request_ids.len() == calls.len() {
             calls.iter().map(|call| cache.should_cache_call(&request.chain, call)).collect::<Vec<_>>()
@@ -162,19 +170,21 @@ impl JsonRpcHandler {
             let results = cached_results.into_iter().flatten().collect::<Vec<_>>();
             (serde_json::to_vec(&results)?, StatusCode::OK.as_u16(), CacheStatus::Hit)
         } else {
-            let (body, missing_status) = Self::fetch(&missing_calls, &request.method, url, client, forward_headers).await?;
-            let response = serde_json::from_slice::<serde_json::Value>(&body).map_err(|error| Self::format_parse_error(missing_status, &body, error))?;
+            let (body, missing_status) = Self::fetch(&missing_calls, request, metrics, url, client, forward_headers).await?;
+            let response = serde_json::from_slice::<Value>(&body).map_err(|error| Self::format_parse_error(missing_status, &body, error))?;
             let (body, status, cache_status) = if response.is_array() {
                 let ordered = Self::order_batch(&missing_calls, response)?;
-                let results = ordered.as_array().cloned().ok_or("invalid JSON-RPC batch response")?;
+                let Value::Array(results) = ordered else {
+                    return Err("invalid JSON-RPC batch response".into());
+                };
                 if missing_status == StatusCode::OK.as_u16() {
                     cache::set_many(&missing_calls, &missing_ttls, &results, request, cache).await?;
                 }
                 let cache_status = if cache_hits == 0 { CacheStatus::Miss } else { CacheStatus::Partial };
                 (serde_json::to_vec(&Self::merge_batch_results(cached_results, results)?)?, missing_status, cache_status)
             } else if cache_hits > 0 {
-                let (body, status) = Self::fetch(calls, &request.method, url, client, forward_headers).await?;
-                let response = serde_json::from_slice::<serde_json::Value>(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
+                let (body, status) = Self::fetch(calls, request, metrics, url, client, forward_headers).await?;
+                let response = serde_json::from_slice::<Value>(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
                 let body = if response.is_array() {
                     serde_json::to_vec(&Self::order_batch(calls, response)?)?
                 } else {
@@ -220,23 +230,30 @@ impl JsonRpcHandler {
             latency = DurationMs(request.elapsed()),
         );
 
-        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed(), cache_status);
-        let response = ResponseBuilder::build_with_headers(response_body, response_status, JSON_CONTENT_TYPE, proxy_headers)?;
-        Ok(if cache_status == CacheStatus::Hit { response.into_cached() } else { response })
+        Ok(ProxyResponse::with_content_type(response_status, response_body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), request.elapsed(), cache_status))
     }
 
-    async fn fetch<T: serde::Serialize + ?Sized>(
+    async fn fetch<T: Serialize + ?Sized>(
         data: &T,
-        method: &Method,
+        request: &ProxyRequest,
+        metrics: &Metrics,
         url: &RequestUrl,
-        client: &reqwest::Client,
+        client: &Client,
         headers: &HeaderMap,
-    ) -> Result<(Vec<u8>, u16), Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<(Vec<u8>, u16), BoxError> {
         let body = serde_json::to_vec(data)?;
-        let request = RequestBuilder::build(method, url, body, headers.clone())?;
-        let response = client.execute(request).await?;
-        let status = response.status().as_u16();
-        Ok((response.bytes().await?.to_vec(), status))
+        let upstream_request = url.build_request(&request.method, body, headers.clone());
+        let attempt_start = Instant::now();
+        let result = transport::send(client, upstream_request).await;
+        metrics.record_node_upstream(
+            request.chain,
+            url.url.host_str().unwrap_or_default(),
+            &request.path,
+            result.as_ref().map_or(StatusCode::BAD_GATEWAY.as_u16(), |response| response.status),
+            attempt_start.elapsed(),
+        );
+        let response = result.map_err(TransportError::into_inner)?;
+        Ok((response.body, response.status))
     }
 
     async fn fetch_single_response(
@@ -244,56 +261,54 @@ impl JsonRpcHandler {
         cache_ttl: Option<Duration>,
         request: &ProxyRequest,
         cache: &RequestCache,
+        metrics: &Metrics,
         url: &RequestUrl,
-        client: &reqwest::Client,
+        client: &Client,
         forward_headers: &HeaderMap,
-    ) -> Result<(JsonRpcResult, u16, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
-        let (body, status) = Self::fetch(call, &request.method, url, client, forward_headers).await?;
+    ) -> Result<(JsonRpcResult, u16, Vec<u8>), BoxError> {
+        let (body, status) = Self::fetch(call, request, metrics, url, client, forward_headers).await?;
 
         let result: JsonRpcResult = serde_json::from_slice(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
 
         if status == StatusCode::OK.as_u16()
             && let (JsonRpcResult::Success(success), Some(ttl)) = (&result, cache_ttl)
         {
-            cache::set(call, success, ttl, request, cache).await?;
+            cache::set_result(call, &success.result, ttl, request, cache).await?;
         }
 
         Ok((result, status, body))
     }
 
-    fn order_batch(calls: &[JsonRpcCall], response: serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
-        let serde_json::Value::Array(results) = response else {
+    fn order_batch(calls: &[JsonRpcCall], response: Value) -> Result<Value, BoxError> {
+        let Value::Array(results) = response else {
             return Ok(response);
         };
 
         let request_ids = calls.iter().map(|call| call.id).collect::<HashSet<_>>();
         if request_ids.len() != calls.len() {
-            return Ok(serde_json::Value::Array(results));
+            return Ok(Value::Array(results));
         }
         if results.len() != calls.len() {
             return Err("invalid JSON-RPC batch response length".into());
         }
 
-        let results_by_id = results
+        let mut results_by_id = results
             .into_iter()
-            .filter_map(|result| result.get("id").and_then(serde_json::Value::as_u64).map(|id| (id, result)))
+            .filter_map(|result| result.get("id").and_then(Value::as_u64).map(|id| (id, result)))
             .collect::<HashMap<_, _>>();
         if results_by_id.len() != calls.len() || !results_by_id.keys().all(|id| request_ids.contains(id)) {
             return Err("invalid JSON-RPC batch response IDs".into());
         }
 
-        let ordered = calls.iter().filter_map(|call| results_by_id.get(&call.id).cloned()).collect();
-        Ok(serde_json::Value::Array(ordered))
+        let ordered = calls.iter().filter_map(|call| results_by_id.remove(&call.id)).collect();
+        Ok(Value::Array(ordered))
     }
 
-    fn merge_batch_results(
-        cached_results: Vec<Option<JsonRpcResult>>,
-        upstream_results: Vec<serde_json::Value>,
-    ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error + Send + Sync>> {
+    fn merge_batch_results(cached_results: Vec<Option<JsonRpcResult>>, upstream_results: Vec<Value>) -> Result<Vec<Value>, BoxError> {
         let mut upstream_results = upstream_results.into_iter();
         let results = cached_results
             .into_iter()
-            .map(|result| -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
+            .map(|result| -> Result<Value, BoxError> {
                 match result {
                     Some(result) => Ok(serde_json::to_value(result)?),
                     None => upstream_results.next().ok_or_else(|| "invalid JSON-RPC partial batch response length".into()),
@@ -306,7 +321,7 @@ impl JsonRpcHandler {
         Ok(results)
     }
 
-    fn format_parse_error(status: u16, body: &[u8], error: serde_json::Error) -> String {
+    fn format_parse_error(status: u16, body: &[u8], error: JsonError) -> String {
         const MAX_BODY_LEN: usize = 256;
         if body.len() <= MAX_BODY_LEN
             && let Ok(text) = std::str::from_utf8(body)
@@ -320,12 +335,13 @@ impl JsonRpcHandler {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use serde_json::json;
+
+    use super::*;
 
     #[test]
     fn test_format_parse_error() {
-        let err = || serde_json::from_slice::<serde_json::Value>(b"x").unwrap_err();
+        let err = || serde_json::from_slice::<Value>(b"x").unwrap_err();
 
         assert_eq!(
             JsonRpcHandler::format_parse_error(415, b"Expected Content-Type: application/json", err()),

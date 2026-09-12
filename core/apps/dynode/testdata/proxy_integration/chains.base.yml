@@ -1,0 +1,36 @@
+request:
+  timeout: 250ms
+  limit: 1 KiB
+headers:
+  forward: [accept, content-type, x-provider]
+retry:
+  enabled: true
+  max_attempts: 2
+  errors:
+    status_codes: [429]
+    error_messages: []
+monitoring:
+  enabled: false
+  interval: 10m
+  trigger:
+    failures: 2
+    rate: 50
+    window: 1m
+cache:
+  memory:
+    max: 1 KiB
+chain_types:
+  ethereum:
+    allowlist:
+      - rpc_method: eth_chainId
+      - rpc_method: eth_getCode
+      - rpc_method: eth_blockNumber
+    cache:
+      - rpc_method: eth_chainId
+        ttl: 1m
+      - rpc_method: eth_getCode
+        ttl: 1m
+chains:
+  - chain: ethereum
+    urls:
+      - url: __UPSTREAM__/node/base

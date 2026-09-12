@@ -23,13 +23,6 @@ RUN cargo chef cook --release --recipe-path recipe.json \
 COPY . .
 RUN cargo build --release --package dynode && cp target/release/dynode /app/
 
-FROM chef AS builder-egress
-COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json \
-    --package egress
-COPY . .
-RUN cargo build --release --package egress && cp target/release/egress /app/
-
 # Shared runtime base
 FROM debian:trixie-slim AS runtime-base
 ENV DEBIAN_FRONTEND=noninteractive
@@ -51,12 +44,4 @@ FROM runtime-base AS dynode
 WORKDIR /app
 COPY --from=builder-dynode /app/dynode /app/
 COPY --from=builder-dynode /app/apps/dynode/config.yml /app/
-COPY --from=builder-dynode /app/apps/dynode/cache.yml /app/
 CMD ["/app/dynode"]
-
-# Egress runtime image
-FROM runtime-base AS egress
-WORKDIR /app
-COPY --from=builder-egress /app/egress /app/
-COPY --from=builder-egress /app/apps/egress/config.yml /app/
-CMD ["/app/egress"]

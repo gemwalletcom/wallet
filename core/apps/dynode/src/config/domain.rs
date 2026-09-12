@@ -1,9 +1,10 @@
-use primitives::Chain;
-use serde::Deserialize;
 use std::time::Duration;
 
+use primitives::Chain;
+use serde::Deserialize;
+
 use super::AllowlistConfig;
-use super::NodeMonitoringConfig;
+use super::MonitoringConfig;
 use super::url::{Override, Url};
 
 #[derive(Debug, Clone, Deserialize)]
@@ -18,11 +19,11 @@ pub struct ChainConfig {
 }
 
 impl ChainConfig {
-    pub fn monitoring_interval(&self, monitoring_config: &NodeMonitoringConfig) -> Duration {
+    pub fn monitoring_interval(&self, monitoring_config: &MonitoringConfig) -> Duration {
         self.poll_interval_seconds.map(Duration::from_secs).unwrap_or(monitoring_config.interval)
     }
 
-    pub fn monitoring_latency(&self, monitoring_config: &NodeMonitoringConfig) -> Option<Duration> {
+    pub fn monitoring_latency(&self, monitoring_config: &MonitoringConfig) -> Option<Duration> {
         self.latency.or(monitoring_config.trigger.latency)
     }
 
@@ -53,9 +54,10 @@ impl ChainConfig {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::*;
     use crate::testkit::config as testkit;
-    use std::time::Duration;
 
     fn make_chain_config(poll_interval: Option<u64>) -> ChainConfig {
         ChainConfig {
@@ -79,8 +81,8 @@ mod tests {
         }
     }
 
-    fn make_monitoring_config(interval: u64) -> NodeMonitoringConfig {
-        NodeMonitoringConfig {
+    fn make_monitoring_config(interval: u64) -> MonitoringConfig {
+        MonitoringConfig {
             interval: Duration::from_secs(interval),
             ..testkit::monitoring_config()
         }

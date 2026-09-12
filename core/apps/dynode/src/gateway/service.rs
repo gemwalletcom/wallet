@@ -1,35 +1,30 @@
-mod access;
-mod endpoint;
-mod proxy;
-mod route;
-
 use std::collections::HashMap;
-use std::error::Error;
 use std::time::{Duration, Instant};
 
-use gem_tracing::path;
-use reqwest::Method;
-use reqwest::header::HeaderMap;
+use gem_tracing::{info_with_fields, path};
+use reqwest::header::{CACHE_CONTROL, HeaderMap, SET_COOKIE, VARY};
+use reqwest::{Error as RequestError, Method};
 use rocket::http::Status;
 use tokio::sync::RwLock;
 
-use access::AccessLog;
-use endpoint::Endpoint;
-use proxy::{OutboundProxy, build_client};
-use route::{MatchError, Route, match_route};
-
-use crate::config::{CallerConfig, EgressConfig};
+use super::access::AccessLog;
+use super::endpoint::Endpoint;
+use super::proxy::{OutboundProxy, build_client};
+use super::route::{MatchError, Route, match_route};
+use crate::BoxError;
+use crate::cache::RequestCache;
+use crate::config::RoutesConfig;
 use crate::metrics::Metrics;
-
-type BoxError = Box<dyn Error + Send + Sync>;
+use crate::proxy::{ProxyResponse, transport};
+use crate::response::ProxyError;
 
 pub(crate) struct Gateway {
-    callers: HashMap<String, CallerConfig>,
-    routes: HashMap<String, HashMap<String, Route>>,
+    routes: HashMap<String, Route>,
     proxies: HashMap<String, OutboundProxy>,
     cooldowns: RwLock<HashMap<String, Cooldown>>,
     cooldown: Duration,
     metrics: Metrics,
+    cache: RequestCache,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -43,21 +38,9 @@ struct Cooldown {
     failure: Failure,
 }
 
-pub(crate) struct GatewayResponse {
-    pub(super) status: u16,
-    pub(super) headers: HeaderMap,
-    pub(super) body: Vec<u8>,
-}
-
-pub(crate) struct GatewayError {
-    pub(super) status: Status,
-    pub(super) message: String,
-}
-
 impl Gateway {
-    pub(crate) fn new(config: EgressConfig, metrics: Metrics) -> Result<Self, BoxError> {
-        let EgressConfig {
-            callers,
+    pub(crate) fn new(config: RoutesConfig, metrics: Metrics, cache: RequestCache) -> Result<Self, BoxError> {
+        let RoutesConfig {
             headers,
             request,
             retry,
@@ -70,64 +53,67 @@ impl Gateway {
             .unwrap_or_default()
             .into_iter()
             .map(|(name, config)| Ok((name, OutboundProxy::new(config, request.timeout)?)))
-            .collect::<Result<HashMap<_, _>, reqwest::Error>>()?;
+            .collect::<Result<HashMap<_, _>, RequestError>>()?;
         let routes = routes
             .into_iter()
-            .map(|(group, services)| {
-                let services = services
-                    .into_iter()
-                    .map(|(service, route)| {
-                        Route::new(group.clone(), service.clone(), route, &retry.statuses, &headers.forward, &direct_client, &proxies).map(|route| (service, route))
-                    })
-                    .collect::<Result<HashMap<_, _>, BoxError>>()?;
-                Ok((group, services))
-            })
+            .map(|(service, route)| Route::new(service.clone(), route, &retry.statuses, &headers.forward, &direct_client, &proxies).map(|route| (service, route)))
             .collect::<Result<HashMap<_, _>, BoxError>>()?;
         for name in proxies.keys() {
             metrics.set_proxy_available(name, false);
         }
 
         Ok(Self {
-            callers,
             routes,
             proxies,
             cooldowns: RwLock::new(HashMap::new()),
             cooldown: retry.cooldown,
             metrics,
+            cache,
         })
     }
 
-    pub(crate) fn start_health_checks(&self) {
+    pub(crate) fn start(&self) {
+        let mut routes = self.routes.keys().map(String::as_str).collect::<Vec<_>>();
+        routes.sort_unstable();
+        info_with_fields!(&format!("Routes: {}", routes.join(", ")));
         for (name, proxy) in &self.proxies {
             proxy.start_health_check(name.clone(), self.metrics.clone());
         }
     }
 
-    pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
-        let route_match = match match_route(&self.routes, &self.callers, &method, uri) {
+    pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<ProxyResponse, ProxyError> {
+        let route_match = match match_route(&self.routes, &method, uri) {
             Ok(route_match) => route_match,
             Err(error) => {
                 let (status, reason, message) = match error {
-                    MatchError::Unauthorized => (Status::Unauthorized, "caller", "caller authentication failed"),
-                    MatchError::Forbidden => (Status::Forbidden, "group", "caller is not allowed to use this group"),
                     MatchError::NotFound => (Status::NotFound, "route", "route not found"),
                     MatchError::NotAllowed => (Status::Forbidden, "allowlist", "request not allowed"),
                 };
                 let uri = path::redact(uri);
                 AccessLog::rejected(&method, &uri, status.code, reason);
-                return Err(GatewayError::new(status, message));
+                return Err(ProxyError::new(status, message));
             }
         };
         let route = route_match.route;
         let path = route_match.redacted_path();
-        let caller = route_match.caller;
-        let access = AccessLog::new(caller, route, &method, &path);
+        let source = route_match.source;
+        let access = AccessLog::new(source, route, &method, &path);
         access.request();
-        let _inflight = self.metrics.track_inflight(caller, &route.group, &route.service);
+        let _inflight = self.metrics.track_inflight(source, &route.group, &route.service);
+        let cache_ttl = self.cache.provider_ttl(&route.group, &route.service, route_match.cache_path(), method.as_str(), &body);
+        let cache_key = cache_ttl.map(|_| route_match.cache_key(&method, headers, &body));
+        if let Some(key) = &cache_key {
+            if let Some(response) = self.cache.get_provider(&route.group, &route.service, key).await {
+                self.metrics.record_cache_hit(source, &route.group, &route.service, &path);
+                self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
+                return Ok(response);
+            }
+            self.metrics.record_cache_miss(source, &route.group, &route.service, &path);
+        }
         let mut candidates = self.available_endpoints(route, &path).await.map_err(|failure| {
             access.unavailable(failure.status, failure.reason);
-            self.metrics.record_response(caller, &route.group, &route.service, &path, failure.status);
-            GatewayError::new(Status::new(failure.status), "no endpoint is available")
+            self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
+            ProxyError::new(Status::new(failure.status), "no endpoint is available")
         })?;
         route.prioritize_endpoints(&mut candidates);
 
@@ -141,29 +127,31 @@ impl Gateway {
             if let Some((failed_index, status, reason)) = pending_failover.take() {
                 let failed = &route.endpoints[failed_index];
                 access.failover(&failed.name, &failed.host, status);
-                self.metrics.record_failover(caller, &route.group, &route.service, &failed.name, &path, &reason);
+                self.metrics.record_failover(source, &route.group, &route.service, &failed.name, &path, &reason);
             }
             let host = &endpoint.host;
             let target = match route_match.target_url(endpoint) {
                 Ok(target) => target,
                 Err(error) => {
                     access.response(&endpoint.name, host, Status::BadRequest.code);
-                    self.metrics.record_response(caller, &route.group, &route.service, &path, Status::BadRequest.code);
-                    return Err(GatewayError::new(Status::BadRequest, error.to_string()));
+                    self.metrics.record_response(source, &route.group, &route.service, &path, Status::BadRequest.code);
+                    return Err(ProxyError::new(Status::BadRequest, error.to_string()));
                 }
             };
             if let Some(wait) = endpoint.throttle().await {
-                self.metrics.record_throttle_wait(caller, &route.group, &route.service, &endpoint.name, wait);
+                self.metrics.record_throttle_wait(source, &route.group, &route.service, &endpoint.name, wait);
             }
             if !self.endpoint_available(route, endpoint, &path).await {
                 continue;
             }
             let started = Instant::now();
             match endpoint.send(&method, target, headers, &route.forward_headers, body.clone()).await {
-                Ok((response, retry_after)) => {
+                Ok((mut response, retry_after)) => {
+                    let cacheable = cacheable_response(&response);
+                    response.headers = transport::filter_headers(&response.headers, &route.forward_headers);
                     self.metrics
-                        .record_upstream_latency(caller, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
-                    self.metrics.record_request(caller, &route.group, &route.service, &endpoint.name, &path, response.status);
+                        .record_upstream_latency(source, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
+                    self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, response.status);
                     if route.should_retry(response.status) {
                         self.start_cooldown(
                             route,
@@ -182,12 +170,17 @@ impl Gateway {
                         continue;
                     }
                     access.response(&endpoint.name, host, response.status);
-                    self.metrics.record_response(caller, &route.group, &route.service, &path, response.status);
+                    self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
+                    if cacheable && let (Some(ttl), Some(key)) = (cache_ttl, cache_key) {
+                        self.cache.set_provider(&route.group, &route.service, key, response.clone(), ttl).await;
+                    }
                     return Ok(response);
                 }
                 Err(reason) => {
                     self.metrics
-                        .record_upstream_latency(caller, &route.group, &route.service, &endpoint.name, Status::BadGateway.code, started.elapsed());
+                        .record_request(source, &route.group, &route.service, &endpoint.name, &path, Status::BadGateway.code);
+                    self.metrics
+                        .record_upstream_latency(source, &route.group, &route.service, &endpoint.name, Status::BadGateway.code, started.elapsed());
                     access.upstream_failed(&endpoint.name, host, reason);
                     self.start_cooldown(
                         route,
@@ -208,7 +201,7 @@ impl Gateway {
         if let Some((response, endpoint_index)) = last_response {
             let endpoint = &route.endpoints[endpoint_index];
             access.response(&endpoint.name, &endpoint.host, response.status);
-            self.metrics.record_response(caller, &route.group, &route.service, &path, response.status);
+            self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
             return Ok(response);
         }
         let failure = self.available_endpoints(route, &path).await.err().unwrap_or(Failure {
@@ -216,8 +209,8 @@ impl Gateway {
             reason: "upstream",
         });
         access.unavailable(failure.status, failure.reason);
-        self.metrics.record_response(caller, &route.group, &route.service, &path, failure.status);
-        Err(GatewayError::new(Status::new(failure.status), "all upstream requests failed"))
+        self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
+        Err(ProxyError::new(Status::new(failure.status), "all upstream requests failed"))
     }
 
     async fn available_endpoints(&self, route: &Route, path: &str) -> Result<Vec<usize>, Failure> {
@@ -290,108 +283,128 @@ impl Gateway {
     }
 }
 
-impl GatewayError {
-    pub(crate) fn new(status: Status, message: impl Into<String>) -> Self {
-        Self { status, message: message.into() }
-    }
+fn cacheable_response(response: &ProxyResponse) -> bool {
+    response.status == 200
+        && !response.body.is_empty()
+        && !response.headers.contains_key(SET_COOKIE)
+        && !response.headers.get_all(CACHE_CONTROL).iter().any(|value| {
+            value.to_str().map_or(true, |value| {
+                value.split(',').any(|directive| {
+                    ["no-store", "no-cache", "private"]
+                        .iter()
+                        .any(|restricted| directive.trim().split('=').next().is_some_and(|name| name.eq_ignore_ascii_case(restricted)))
+                })
+            })
+        })
+        && !response
+            .headers
+            .get_all(VARY)
+            .iter()
+            .any(|value| value.to_str().map_or(true, |value| value.split(',').any(|name| name.trim() == "*")))
 }
 
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
-    use std::net::{IpAddr, Ipv4Addr};
 
-    use config::{Config, File, FileFormat};
+    use config::{Config as FileConfig, File, FileFormat};
     use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderName};
 
     use super::*;
-    use gem_proxy::allowlist::PathAllowlist;
-
-    use crate::config::{EndpointConfig, HeadersConfig, RequestConfig, RetryConfig, RouteConfig, Selection};
+    use crate::config::path::PathAllowlist;
+    use crate::config::routes::{EndpointConfig, RouteConfig, Selection};
+    use crate::testkit::config::metrics_config;
 
     #[test]
-    fn test_route_header_inheritance() {
-        let config = Config::builder()
-            .add_source(File::from_str(include_str!("../../testdata/route_headers.yml"), FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize::<EgressConfig>()
-            .unwrap();
-        let gateway = Gateway::new(config, Metrics::new()).unwrap();
-        let routes = &gateway.routes["security"];
-        assert_eq!(routes["tronscan"].forward_headers, HashSet::from([ACCEPT, HeaderName::from_static("tron-pro-api-key")]));
-        assert_eq!(routes["goplus"].forward_headers, HashSet::from([ACCEPT, AUTHORIZATION]));
-        assert_eq!(routes["public"].forward_headers, HashSet::from([ACCEPT]));
+    fn test_cacheable_response_honors_upstream_directives() {
+        let response = ProxyResponse::new(200, HeaderMap::new(), b"body".to_vec());
+        assert!(cacheable_response(&response));
+        for (header, value) in [
+            (CACHE_CONTROL, "max-age=60, no-store"),
+            (CACHE_CONTROL, "Private"),
+            (CACHE_CONTROL, "no-cache=authorization"),
+            (SET_COOKIE, "session=test"),
+            (VARY, "Accept, *"),
+        ] {
+            let mut response = response.clone();
+            response.headers.insert(header, value.parse().unwrap());
+            assert!(!cacheable_response(&response));
+        }
+        assert!(!cacheable_response(&ProxyResponse::new(500, HeaderMap::new(), b"body".to_vec())));
+        assert!(!cacheable_response(&ProxyResponse::new(200, HeaderMap::new(), Vec::new())));
     }
 
     #[test]
-    fn test_invalid_forward_header_rejects_configuration() {
-        for name in ["TRON-PRO-API-KEY", "accept"] {
-            let input = include_str!("../../testdata/route_headers.yml").replace(name, "invalid header");
-            let config = Config::builder()
+    fn test_route_header_inheritance() {
+        let config = FileConfig::builder()
+            .add_source(File::from_str(include_str!("../../testdata/route_headers.yml"), FileFormat::Yaml))
+            .build()
+            .unwrap()
+            .try_deserialize::<RoutesConfig>()
+            .unwrap();
+        let gateway = Gateway::new(config, Metrics::new(metrics_config()), RequestCache::default()).unwrap();
+        let routes = &gateway.routes;
+        assert_eq!(
+            routes["security_tronscan"].forward_headers,
+            HashSet::from([ACCEPT, HeaderName::from_static("tron-pro-api-key")])
+        );
+        assert_eq!(routes["security_goplus"].forward_headers, HashSet::from([ACCEPT, AUTHORIZATION]));
+        assert_eq!(routes["security_public"].forward_headers, HashSet::from([ACCEPT]));
+    }
+
+    #[test]
+    fn test_invalid_route_configuration_rejects_startup() {
+        let fixture = include_str!("../../testdata/route_headers.yml");
+        for input in [
+            fixture.replace("TRON-PRO-API-KEY", "invalid header"),
+            fixture.replace("accept", "invalid header"),
+            fixture.replace("endpoints: []", "endpoints: [{name: direct, url: 'https://example.invalid', proxy: missing}]"),
+        ] {
+            let config = FileConfig::builder()
                 .add_source(File::from_str(&input, FileFormat::Yaml))
                 .build()
                 .unwrap()
-                .try_deserialize::<EgressConfig>()
+                .try_deserialize::<RoutesConfig>()
                 .unwrap();
-            assert!(Gateway::new(config, Metrics::new()).is_err());
+            assert!(Gateway::new(config, Metrics::new(metrics_config()), RequestCache::default()).is_err());
         }
     }
 
     fn gateway() -> Gateway {
-        Gateway::new(
-            EgressConfig {
-                address: IpAddr::V4(Ipv4Addr::LOCALHOST),
-                port: 0,
-                callers: HashMap::from([(
-                    "consumer".to_string(),
-                    CallerConfig {
-                        key: "secret".to_string(),
-                        groups: HashSet::from(["indexer".to_string()]),
-                    },
-                )]),
-                headers: HeadersConfig { forward: Vec::new() },
-                request: RequestConfig {
-                    timeout: Duration::from_secs(1),
-                    limit: 1024,
-                },
-                retry: RetryConfig {
-                    cooldown: Duration::from_mins(1),
-                    statuses: vec![429],
-                },
-                proxies: None,
-                routes: HashMap::from([(
-                    "indexer".to_string(),
-                    HashMap::from([(
-                        "blockscout".to_string(),
-                        RouteConfig {
-                            selection: Selection::Ordered,
-                            headers: None,
-                            allowlist: PathAllowlist::default(),
-                            rate: None,
-                            retry: None,
-                            endpoints: ["key_1", "key_2"]
-                                .map(|name| EndpointConfig {
-                                    name: name.to_string(),
-                                    url: "https://api.blockscout.com".to_string(),
-                                    headers: None,
-                                    query: None,
-                                    proxy: None,
-                                })
-                                .into(),
-                        },
-                    )]),
-                )]),
+        let mut config: RoutesConfig = FileConfig::builder()
+            .add_source(File::from_str(include_str!("../../testdata/route_headers.yml"), FileFormat::Yaml))
+            .build()
+            .unwrap()
+            .try_deserialize()
+            .unwrap();
+        config.routes = HashMap::from([(
+            "indexer_blockscout".to_string(),
+            RouteConfig {
+                group: "indexer".to_string(),
+                selection: Selection::Ordered,
+                headers: None,
+                allowlist: PathAllowlist::default(),
+                cache: Vec::new(),
+                rate: None,
+                retry: None,
+                endpoints: ["key_1", "key_2"]
+                    .map(|name| EndpointConfig {
+                        name: name.to_string(),
+                        url: "https://api.blockscout.com".to_string(),
+                        headers: None,
+                        query: None,
+                        proxy: None,
+                    })
+                    .into(),
             },
-            Metrics::new(),
-        )
-        .unwrap()
+        )]);
+        Gateway::new(config, Metrics::new(metrics_config()), RequestCache::default()).unwrap()
     }
 
     #[tokio::test]
     async fn test_cooldowns_preserve_status_and_path() {
         let gateway = gateway();
-        let route = gateway.routes.get("indexer").unwrap().get("blockscout").unwrap();
+        let route = gateway.routes.get("indexer_blockscout").unwrap();
         let failure = Failure {
             status: Status::TooManyRequests.code,
             reason: "cooldown",

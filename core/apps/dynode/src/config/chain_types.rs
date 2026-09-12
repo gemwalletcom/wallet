@@ -5,7 +5,8 @@ use serde::Deserialize;
 
 use crate::jsonrpc_types::RequestType;
 
-use super::{AllowlistConfig, ChainConfig};
+use super::cache::ContractCacheConfig;
+use super::{AllowlistConfig, CacheRule, CacheRules, ChainConfig};
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(transparent)]
@@ -19,11 +20,27 @@ impl ChainTypesConfig {
             return allowlist.allows(request_type);
         }
 
-        self.chain_type_config(chain_config).is_none_or(|config| config.allows(chain_config.chain, request_type))
+        self.chain_types
+            .get(&chain_config.chain.chain_type())
+            .is_none_or(|config| config.allows(chain_config.chain, request_type))
     }
 
-    fn chain_type_config(&self, chain_config: &ChainConfig) -> Option<&ChainTypeConfig> {
-        self.chain_types.get(&chain_config.chain.chain_type())
+    pub(crate) fn cache_rules(&self, chain: Chain) -> Option<CacheRules> {
+        let config = self.chain_types.get(&chain.chain_type())?;
+        let policy = config.chains.get(&chain);
+        let cache = config.policy.cache.iter().chain(policy.into_iter().flat_map(|policy| &policy.cache)).cloned().collect();
+        let contracts = ContractCacheConfig {
+            methods: config
+                .policy
+                .contracts
+                .methods
+                .iter()
+                .chain(policy.into_iter().flat_map(|policy| &policy.contracts.methods))
+                .cloned()
+                .collect(),
+        };
+        let rules = CacheRules { cache, contracts };
+        (!rules.is_empty()).then_some(rules)
     }
 }
 
@@ -57,14 +74,49 @@ impl ChainTypeConfig {
 #[derive(Debug, Clone, Deserialize)]
 struct ChainPolicyConfig {
     allowlist: Option<AllowlistConfig>,
+    #[serde(default)]
+    cache: Vec<CacheRule>,
+    #[serde(default)]
+    contracts: ContractCacheConfig,
 }
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::*;
     use crate::testkit::config::{chain_config, jsonrpc};
     use primitives::Chain;
     use serde_json::json;
+
+    #[test]
+    fn test_cache_policies_extend_without_changing_access() {
+        let config: ChainTypesConfig = serde_json::from_value(json!({
+            "ethereum": {
+                "allowlist": [{ "rpc_method": "eth_chainId" }],
+                "cache": [{ "rpc_method": "eth_blockNumber", "ttl": "1m" }],
+                "chains": {
+                    "ethereum": {
+                        "cache": [
+                            { "rpc_method": "eth_blockNumber", "ttl": "2m" },
+                            { "rpc_method": "eth_chainId", "ttl": "3m" }
+                        ]
+                    }
+                }
+            }
+        }))
+        .unwrap();
+        let ethereum = config.cache_rules(Chain::Ethereum).unwrap();
+        let optimism = config.cache_rules(Chain::Optimism).unwrap();
+        assert_eq!(ethereum.rpc_ttl("eth_blockNumber"), Some(Duration::from_secs(60)));
+        assert_eq!(ethereum.rpc_ttl("eth_chainId"), Some(Duration::from_secs(180)));
+        assert_eq!(optimism.rpc_ttl("eth_blockNumber"), Some(Duration::from_secs(60)));
+        assert_eq!(optimism.rpc_ttl("eth_chainId"), None);
+        let chain = chain_config(Chain::Ethereum, "https://example.com");
+        assert!(config.allows(&chain, &jsonrpc("eth_chainId")));
+        assert!(!config.allows(&chain, &jsonrpc("eth_blockNumber")));
+        assert!(config.cache_rules(Chain::Solana).is_none());
+    }
 
     #[test]
     fn test_allows_chain_type_policy() {

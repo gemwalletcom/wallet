@@ -1,0 +1,89 @@
+request:
+  timeout: 3s
+  limit: 2 KiB
+headers:
+  forward: [accept, content-type, x-provider]
+retry:
+  cooldown: 60s
+  statuses: [429]
+cache:
+  memory:
+    max: 4 MiB
+routes:
+  providers_echo:
+    group: providers
+    selection: ordered
+    headers:
+      forward: [authorization]
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM__/echo
+        headers:
+          Authorization: Bearer endpoint-key
+        query:
+          apikey: configured-key
+  providers_basic:
+    group: providers
+    selection: ordered
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM_BASIC__/echo
+  providers_allow:
+    group: providers
+    selection: ordered
+    allowlist:
+      - path: /allowed
+        method: GET
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM__/echo
+  providers_failover:
+    group: providers
+    selection: ordered
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM__/first429
+      - name: endpoint_1
+        url: __UPSTREAM__/fallback
+  providers_exhausted:
+    group: providers
+    selection: ordered
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM__/first429
+      - name: endpoint_1
+        url: __UPSTREAM__/last429
+  providers_paced:
+    group: providers
+    selection: ordered
+    rate:
+      requests: 1
+      period: 250ms
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM__/paced
+  providers_cache:
+    group: providers
+    selection: ordered
+    headers:
+      forward: [x-variant]
+    cache:
+      - path: /value
+        method: POST
+        ttl: 1m
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM__/cache
+  providers_privacy:
+    group: providers
+    selection: ordered
+    cache:
+      - path: /no-store
+        method: GET
+        ttl: 1m
+      - path: /cookie
+        method: GET
+        ttl: 1m
+    endpoints:
+      - name: endpoint_0
+        url: __UPSTREAM__/privacy

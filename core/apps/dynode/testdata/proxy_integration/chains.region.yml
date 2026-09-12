@@ -1,0 +1,4 @@
+chains:
+  - chain: ethereum
+    urls:
+      - url: __UPSTREAM__/node/region

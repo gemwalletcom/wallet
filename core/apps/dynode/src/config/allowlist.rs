@@ -1,9 +1,7 @@
-use gem_proxy::allowlist::PathRule;
 use serde::Deserialize;
 
+use super::path::{PathRule, path_without_query};
 use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
-
-use super::path_without_query;
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(transparent)]
@@ -43,16 +41,20 @@ impl AllowlistRule {
     }
 
     fn matches_rpc(&self, rpc_method: &str) -> bool {
-        matches!(self, Self::Rpc { rpc_method: allowed } if allowed == rpc_method)
+        match self {
+            Self::Rpc { rpc_method: allowed } => allowed == rpc_method,
+            Self::Path(_) => false,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::testkit::config::jsonrpc;
     use config::{Config, File, FileFormat};
     use serde_json::json;
+
+    use super::*;
+    use crate::testkit::config::jsonrpc;
 
     fn config() -> AllowlistConfig {
         serde_json::from_value(json!([

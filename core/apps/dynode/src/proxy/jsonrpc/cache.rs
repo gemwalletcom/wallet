@@ -4,9 +4,10 @@ use gem_tracing::{DurationMs, info_with_fields};
 use reqwest::StatusCode;
 use serde_json::Value;
 
-use crate::cache::{CacheProvider, RequestCache};
+use crate::BoxError;
+use crate::cache::RequestCache;
 use crate::jsonrpc_types::{JsonRpcCall, JsonRpcResponse, JsonRpcResult};
-use crate::proxy::CachedResponse;
+use crate::proxy::ProxyResponse;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_request::ProxyRequest;
 
@@ -25,20 +26,10 @@ pub(super) async fn get_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], r
     results
 }
 
-pub(super) async fn set(
-    call: &JsonRpcCall,
-    response: &JsonRpcResponse,
-    ttl: Duration,
-    request: &ProxyRequest,
-    cache: &RequestCache,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    set_result(call, &response.result, ttl, request, cache).await
-}
-
-async fn set_result(call: &JsonRpcCall, result: &Value, ttl: Duration, request: &ProxyRequest, cache: &RequestCache) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub(super) async fn set_result(call: &JsonRpcCall, result: &Value, ttl: Duration, request: &ProxyRequest, cache: &RequestCache) -> Result<(), BoxError> {
     let result = serde_json::to_vec(result)?;
     let size = result.len();
-    let cached = CachedResponse::new(result, StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string());
+    let cached = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), result, JSON_CONTENT_TYPE);
     cache.set(&request.chain, call.cache_key(&request.host, &request.path_with_query), cached, ttl).await;
 
     info_with_fields!(
@@ -54,13 +45,7 @@ async fn set_result(call: &JsonRpcCall, result: &Value, ttl: Duration, request: 
     Ok(())
 }
 
-pub(super) async fn set_many(
-    calls: &[JsonRpcCall],
-    ttls: &[Option<Duration>],
-    responses: &[Value],
-    request: &ProxyRequest,
-    cache: &RequestCache,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub(super) async fn set_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], responses: &[Value], request: &ProxyRequest, cache: &RequestCache) -> Result<(), BoxError> {
     if calls.len() != ttls.len() || calls.len() != responses.len() {
         return Ok(());
     }
@@ -80,7 +65,7 @@ pub(super) async fn set_many(
     Ok(())
 }
 
-fn result(call: &JsonRpcCall, cached: &CachedResponse) -> Option<JsonRpcResult> {
+fn result(call: &JsonRpcCall, cached: &ProxyResponse) -> Option<JsonRpcResult> {
     Some(JsonRpcResult::Success(JsonRpcResponse {
         jsonrpc: call.jsonrpc.clone(),
         result: serde_json::from_slice(&cached.body).ok()?,
@@ -90,15 +75,55 @@ fn result(call: &JsonRpcCall, cached: &CachedResponse) -> Option<JsonRpcResult> 
 
 #[cfg(test)]
 mod tests {
+    use primitives::{Chain, MINUTE};
+    use reqwest::Method;
+    use reqwest::header::{CONTENT_TYPE, HOST, HeaderMap, HeaderValue};
     use serde_json::json;
 
     use super::*;
+    use crate::config::{CacheConfig, ChainTypesConfig, MemoryConfig};
+    use crate::testkit::config::chain_config;
+
+    #[tokio::test]
+    async fn test_result_cache_roundtrip_rebuilds_request_id() {
+        let policies: ChainTypesConfig = serde_json::from_value(json!({
+            "ethereum": { "cache": [{ "rpc_method": "eth_chainId", "ttl": "1m" }] }
+        }))
+        .unwrap();
+        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
+        let cache = RequestCache::for_chains(
+            &CacheConfig {
+                memory: MemoryConfig { max: 1_000_000 },
+            },
+            &policies,
+            chains.iter(),
+        );
+        let request = ProxyRequest::from_http(
+            Method::POST,
+            HeaderMap::from_iter([(HOST, HeaderValue::from_static("example.com"))]),
+            Vec::new(),
+            "/ethereum",
+            Chain::Ethereum,
+        )
+        .unwrap();
+        let call = JsonRpcCall::mock(1, "eth_chainId");
+        set_result(&call, &json!("0x1"), MINUTE, &request, &cache).await.unwrap();
+        let stored = cache.get(&Chain::Ethereum, &call.cache_key(&request.host, &request.path_with_query)).await.unwrap();
+        assert_eq!(stored.body, br#""0x1""#.to_vec());
+        assert_eq!(stored.headers, HeaderMap::from_iter([(CONTENT_TYPE, HeaderValue::from_static(JSON_CONTENT_TYPE))]));
+        for id in [1, 42] {
+            assert_eq!(
+                serde_json::to_value(get(&JsonRpcCall::mock(id, "eth_chainId"), &request, &cache).await.unwrap()).unwrap(),
+                json!({ "jsonrpc": "2.0", "result": "0x1", "id": id })
+            );
+        }
+    }
 
     #[test]
     fn test_cached_result_uses_request_id_and_rejects_invalid_json() {
         let call = JsonRpcCall::mock(42, "eth_chainId");
-        let cached = CachedResponse::new(br#""0x1""#.to_vec(), 200, JSON_CONTENT_TYPE.to_string());
-        let invalid = CachedResponse::new(b"invalid".to_vec(), 200, JSON_CONTENT_TYPE.to_string());
+        let cached = ProxyResponse::with_content_type(200, br#""0x1""#.to_vec(), JSON_CONTENT_TYPE);
+        let invalid = ProxyResponse::with_content_type(200, b"invalid".to_vec(), JSON_CONTENT_TYPE);
 
         assert_eq!(
             serde_json::to_value(result(&call, &cached).unwrap()).unwrap(),

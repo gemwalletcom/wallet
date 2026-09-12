@@ -1,53 +1,45 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
-use primitives::{Chain, ChainType};
+use primitives::ChainType;
 use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::{duration, size};
 
-use super::path_without_query;
+use super::path::path_without_query;
 use crate::cache::decoder::{ContractCall, ContractRequest, ETH_CALL, decode_contract_calls};
 use crate::jsonrpc_types::JsonRpcCall;
 
 #[derive(Debug, Default, Clone, Deserialize)]
 pub struct CacheConfig {
-    #[serde(deserialize_with = "size::deserialize")]
-    pub max_memory: usize,
-    #[serde(default)]
-    chain_types: HashMap<ChainType, ChainTypeCacheConfig>,
-    #[serde(default)]
-    chains: HashMap<Chain, Vec<CacheRule>>,
+    pub memory: MemoryConfig,
 }
 
-impl CacheConfig {
-    pub(crate) fn rules(&self, chain: Chain) -> Option<ChainCacheRules> {
-        let chain_type = chain.chain_type();
-        let chain_type_config = self.chain_types.get(&chain_type);
-        let cache = chain_type_config
-            .into_iter()
-            .flat_map(|config| &config.rules)
-            .chain(self.chains.get(&chain).into_iter().flatten())
-            .cloned()
-            .collect();
-        let contracts = chain_type_config.map(|config| config.contracts.clone()).unwrap_or_default();
-
-        let rules = ChainCacheRules { cache, contracts };
-        if rules.is_empty() {
-            return None;
-        }
-        Some(rules)
-    }
+#[derive(Debug, Default, Clone, Deserialize)]
+pub struct MemoryConfig {
+    #[serde(deserialize_with = "size::deserialize")]
+    pub max: usize,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ChainCacheRules {
-    cache: Vec<CacheRule>,
-    contracts: ContractCacheConfig,
+pub(crate) struct CacheRules {
+    pub(super) cache: Vec<CacheRule>,
+    pub(super) contracts: ContractCacheConfig,
 }
 
-impl ChainCacheRules {
-    fn is_empty(&self) -> bool {
+impl CacheRules {
+    pub(crate) fn from_rules(cache: Vec<CacheRule>) -> Self {
+        Self {
+            cache,
+            contracts: ContractCacheConfig::default(),
+        }
+    }
+
+    pub(crate) fn path_ttl(&self, path: &str, method: &str, body: &[u8]) -> Option<Duration> {
+        self.cache.iter().find(|rule| rule.matches_path_request(path, method, Some(body))).and_then(|rule| rule.ttl)
+    }
+
+    pub(super) fn is_empty(&self) -> bool {
         self.cache.is_empty() && self.contracts.is_empty()
     }
 
@@ -65,20 +57,12 @@ impl ChainCacheRules {
                     body,
                 },
             )
-            .or_else(|| self.cache.iter().find(|rule| rule.matches_path_request(path, method, Some(body))).and_then(|rule| rule.ttl))
+            .or_else(|| self.path_ttl(path, method, body))
     }
 
     pub(crate) fn rpc_ttl(&self, method: &str) -> Option<Duration> {
         self.cache.iter().find(|rule| rule.matches_rpc(method)).and_then(|rule| rule.ttl)
     }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct ChainTypeCacheConfig {
-    #[serde(default)]
-    rules: Vec<CacheRule>,
-    #[serde(default)]
-    contracts: ContractCacheConfig,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -93,13 +77,13 @@ pub(crate) struct CacheRule {
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
-struct ContractCacheConfig {
+pub(super) struct ContractCacheConfig {
     #[serde(default)]
-    methods: Vec<ContractMethodRule>,
+    pub(super) methods: Vec<ContractMethodRule>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct ContractMethodRule {
+pub(super) struct ContractMethodRule {
     addresses: HashSet<String>,
     identifiers: Vec<String>,
     #[serde(deserialize_with = "duration::deserialize")]
@@ -180,8 +164,11 @@ impl ContractMethodRule {
 
 #[cfg(test)]
 mod tests {
+    use primitives::{Chain, MINUTE};
+
+    use crate::config::ChainTypesConfig;
+
     use super::*;
-    use primitives::MINUTE;
 
     const CONTRACT: &str = "0x1111111111111111111111111111111111111111";
 
@@ -258,24 +245,20 @@ mod tests {
 
     #[test]
     fn test_contract_call_config_resolves_by_chain_type() {
-        let config: CacheConfig = serde_json::from_value(serde_json::json!({
-            "max_memory": "64 MB",
-            "chain_types": {
-                "ethereum": {
-                    "contracts": {
-                        "methods": [{
-                                "identifiers": ["0x1698ee82"],
-                                "ttl": "5m",
-                                "addresses": [CONTRACT]
-                        }]
-                    }
+        let config: ChainTypesConfig = serde_json::from_value(serde_json::json!({
+            "ethereum": {
+                "contracts": {
+                    "methods": [{
+                        "identifiers": ["0x1698ee82"],
+                        "ttl": "5m",
+                        "addresses": [CONTRACT]
+                    }]
                 }
             }
         }))
         .unwrap();
 
-        let ethereum = config.rules(Chain::Ethereum).unwrap();
-        assert_eq!(config.max_memory, 64_000_000);
+        let ethereum = config.cache_rules(Chain::Ethereum).unwrap();
         assert_eq!(ethereum.contracts.methods.len(), 1);
         assert_eq!(
             ethereum.call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
@@ -283,11 +266,11 @@ mod tests {
         );
         assert_eq!(
             config
-                .rules(Chain::Optimism)
+                .cache_rules(Chain::Optimism)
                 .unwrap()
                 .call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
             Some(MINUTE * 5)
         );
-        assert!(config.rules(Chain::Solana).is_none());
+        assert!(config.cache_rules(Chain::Solana).is_none());
     }
 }

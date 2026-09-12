@@ -1,49 +1,19 @@
 use std::io::Cursor;
 
-use crate::proxy::ProxyResponse;
+use primitives::ResponseResult;
 use rocket::Request;
-use rocket::http::{ContentType, Status};
-use rocket::response::{Responder, Response};
-use serde_json::json;
+use rocket::http::Status;
+use rocket::response::{Responder, Response, Result as ResponderResult};
+use rocket::serde::json::Json;
 
-pub struct ErrorResponse {
-    status: Status,
-    message: String,
-}
+use crate::proxy::ProxyResponse;
 
-impl ErrorResponse {
-    pub fn new(status: Status, message: String) -> Self {
-        Self { status, message }
-    }
-}
-
-#[rocket::async_trait]
-impl<'r> Responder<'r, 'static> for ErrorResponse {
-    fn respond_to(self, _: &'r Request<'_>) -> rocket::response::Result<'static> {
-        let body = json!({
-            "error": self.status.reason_lossy(),
-            "message": self.message,
-            "code": self.status.code
-        })
-        .to_string();
-
-        Response::build()
-            .status(self.status)
-            .header(ContentType::JSON)
-            .sized_body(body.len(), Cursor::new(body))
-            .ok()
-    }
-}
-
-pub struct ProxyRocketResponse(pub ProxyResponse);
-
-#[rocket::async_trait]
-impl<'r> Responder<'r, 'static> for ProxyRocketResponse {
-    fn respond_to(self, _: &'r Request<'_>) -> rocket::response::Result<'static> {
-        let ProxyResponse { status, headers, body, .. } = self.0;
+impl<'r> Responder<'r, 'static> for ProxyResponse {
+    fn respond_to(self, _: &'r Request<'_>) -> ResponderResult<'static> {
+        let ProxyResponse { status, headers, body, .. } = self;
 
         let mut builder = Response::build();
-        let status = Status::from_code(status).unwrap_or(Status::Ok);
+        let status = Status::new(status);
         builder.status(status);
 
         for (name, value) in headers.iter() {
@@ -55,5 +25,23 @@ impl<'r> Responder<'r, 'static> for ProxyRocketResponse {
         let body_len = body.len();
         builder.sized_body(body_len, Cursor::new(body));
         Ok(builder.finalize())
+    }
+}
+
+pub(crate) struct ProxyError {
+    status: Status,
+    message: String,
+}
+
+impl ProxyError {
+    pub(crate) fn new(status: Status, message: impl Into<String>) -> Self {
+        Self { status, message: message.into() }
+    }
+}
+
+impl<'r> Responder<'r, 'static> for ProxyError {
+    fn respond_to(self, request: &'r Request<'_>) -> ResponderResult<'static> {
+        let response = Json(ResponseResult::<()>::error(self.message));
+        Response::build_from(response.respond_to(request)?).status(self.status).ok()
     }
 }

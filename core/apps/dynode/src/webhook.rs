@@ -1,9 +1,10 @@
+use std::collections::HashMap;
+
 use gem_client::{ClientError, ClientExt, ReqwestClient, Target};
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{ChainRequest, ChainRequestProtocol, ChainRequestType, TransactionId};
 use serde_json::Value;
 use settings_chain::BroadcastProviders;
-use std::collections::HashMap;
 
 use crate::config::WebhookConfig;
 use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
@@ -27,7 +28,6 @@ impl DynodeBroadcastWebhookClient {
         }
     }
 
-    #[cfg(test)]
     pub fn disabled() -> Self {
         Self {
             enabled: false,
@@ -111,12 +111,12 @@ fn is_broadcast_request(request: &ProxyRequest, broadcast_providers: &BroadcastP
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
     use reqwest::header::HeaderMap;
+    use settings_chain::BroadcastProviders;
 
     use super::*;
     use crate::proxy::proxy_request::ProxyRequest;
-    use primitives::Chain;
-    use settings_chain::BroadcastProviders;
 
     fn make_request(chain: Chain, method: reqwest::Method, path: &str, body: &[u8]) -> ProxyRequest {
         ProxyRequest::new(
