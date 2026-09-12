@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemStreamEvent
 import uniffi.gemstone.GemStreamServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,6 +37,7 @@ class StreamObserverServiceTest {
     }
     private val service = mockk<GemStreamServiceInterface>(relaxed = true) {
         coEvery { prepareConnection() } returns true
+        coEvery { handle(any()) } returns GemStreamEvent.Prices(prices = 0u, rates = 0u)
     }
     private val connection = Connection()
 
@@ -231,7 +233,10 @@ class StreamObserverServiceTest {
     @Test
     fun handlesMessagesInOrder() = runTest {
         val snapshotGate = CompletableDeferred<Unit>()
-        coEvery { service.handle("snapshot") } coAnswers { snapshotGate.await() }
+        coEvery { service.handle("snapshot") } coAnswers {
+            snapshotGate.await()
+            GemStreamEvent.Prices(prices = 0u, rates = 0u)
+        }
         observer().start()
         runCurrent()
 
