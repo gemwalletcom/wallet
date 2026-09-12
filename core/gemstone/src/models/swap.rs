@@ -18,6 +18,16 @@ pub enum GemSlippageCheck {
     AboveMaximum,
 }
 
+#[uniffi::export]
+impl GemSlippageCheck {
+    pub fn allows_confirm(&self) -> bool {
+        match self {
+            Self::Valid | Self::High => true,
+            Self::BelowMinimum | Self::AboveMaximum => false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Object)]
 pub struct GemSwapValue {
     value: GemBigUint,
@@ -74,8 +84,16 @@ fn round_to_places(value: f64, places: i32) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places};
+    use super::{GemSlippageCheck, GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places};
     use std::sync::Arc;
+
+    #[test]
+    fn test_a_high_slippage_still_confirms_and_a_bounded_one_does_not() {
+        assert!(GemSlippageCheck::Valid.allows_confirm());
+        assert!(GemSlippageCheck::High.allows_confirm());
+        assert!(!GemSlippageCheck::BelowMinimum.allows_confirm());
+        assert!(!GemSlippageCheck::AboveMaximum.allows_confirm());
+    }
 
     #[test]
     fn test_swap_price_impact_needs_a_price_on_both_sides() {

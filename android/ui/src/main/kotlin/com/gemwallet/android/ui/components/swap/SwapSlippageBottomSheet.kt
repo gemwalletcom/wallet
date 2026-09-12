@@ -68,7 +68,7 @@ fun SwapSlippageBottomSheet(
 
         val bps = SwapSlippage.parseBps(input, slippageBps)
         val check = if (isAuto) null else bps?.let(slippageCheck)
-        val isConfirmEnabled = isAuto || check == GemSlippageCheck.VALID || check == GemSlippageCheck.HIGH
+        val isConfirmEnabled = isAuto || check?.allowsConfirm() == true
 
         val commit by rememberUpdatedState {
             if (isConfirmEnabled) onConfirm(if (isAuto) null else bps)

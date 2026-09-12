@@ -79,7 +79,7 @@ public final class SwapSlippageViewModel {
     }
 
     var isConfirmEnabled: Bool {
-        isAuto || (inputModel.isValid && selectedBps > 0)
+        isAuto || service.slippageCheck(bps: selectedBps).allowsConfirm()
     }
 
     var warningText: String? {
