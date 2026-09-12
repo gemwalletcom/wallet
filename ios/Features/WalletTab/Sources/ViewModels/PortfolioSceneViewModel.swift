@@ -44,12 +44,11 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         service: any GemPortfolioServiceProtocol,
         preferences: ObservablePreferences,
         defaultType: PortfolioType = .wallet,
-        perpetualFormatter: CurrencyFormatter = .usd,
     ) {
         self.wallet = wallet
         self.service = service
         self.preferences = preferences
-        self.perpetualFormatter = perpetualFormatter
+        perpetualFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency(portfolioType: PortfolioType.perpetuals.map()))
         let currencyCode = preferences.currency.rawValue
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
         priceFormatter = CurrencyFormatter(currencyCode: currencyCode)

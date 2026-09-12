@@ -536,6 +536,10 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
         self.allTimeLow = allTimeLow
     }
 
+    public func currency(portfolioType _: Gemstone.PortfolioType) -> Gemstone.Currency {
+        Primitives.Currency.usd.rawValue
+    }
+
     public func portfolioData(wallet _: Gemstone.Wallet, portfolioType _: Gemstone.PortfolioType, period _: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioData {
         Gemstone.PortfolioData(
             charts: [Gemstone.PortfolioChartData(chartType: .value, values: [])],

@@ -1,6 +1,6 @@
 use primitives::{
-    ChartPeriod, ChartValuePercentage, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData,
-    PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
+    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType,
+    PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
 };
 
 use super::model::GemPortfolioValues;
@@ -25,6 +25,13 @@ fn converted_percentage(value: ChartValuePercentage, rate: f64) -> ChartValuePer
 
 fn wallet_periods() -> Vec<ChartPeriod> {
     vec![ChartPeriod::Day, ChartPeriod::Week, ChartPeriod::Month, ChartPeriod::Year, ChartPeriod::All]
+}
+
+pub fn portfolio_currency(portfolio_type: PortfolioType, currency: Currency) -> Currency {
+    match portfolio_type {
+        PortfolioType::Perpetuals => Currency::USD,
+        PortfolioType::Wallet => currency,
+    }
 }
 
 pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType) -> Option<GemChartData> {
@@ -120,6 +127,12 @@ mod tests {
     use primitives::{ChartDateValue, ChartValue, PerpetualAccountSummary};
 
     use super::*;
+
+    #[test]
+    fn test_a_perpetuals_portfolio_is_quoted_in_dollars() {
+        assert_eq!(portfolio_currency(PortfolioType::Perpetuals, Currency::EUR), Currency::USD, "perpetual collateral is dollars whatever the wallet is set to");
+        assert_eq!(portfolio_currency(PortfolioType::Wallet, Currency::EUR), Currency::EUR);
+    }
 
     #[test]
     fn test_portfolio_chart_data_picks_the_chart_the_screen_asked_for() {

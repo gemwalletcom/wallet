@@ -17,6 +17,7 @@ import uniffi.gemstone.PortfolioChartData
 import uniffi.gemstone.PortfolioChartType
 import uniffi.gemstone.PortfolioData
 import uniffi.gemstone.PortfolioStatistic
+import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -50,7 +51,9 @@ class PortfolioChartViewModelTest {
         every { this@mockk.invoke() } returns sessionFlow
     }
     private val observePerpetualWallet = mockk<ObservePerpetualWallet>(relaxed = true)
-    private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface>()
+    private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface> {
+        every { currency(any()) } returns Currency.USD.string
+    }
 
     private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {
         coEvery {

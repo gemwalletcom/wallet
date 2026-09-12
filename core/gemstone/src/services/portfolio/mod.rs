@@ -51,6 +51,10 @@ impl GemPortfolioService {
         }
     }
 
+    pub fn currency(&self, portfolio_type: PortfolioType) -> Currency {
+        rules::portfolio_currency(portfolio_type, self.preferences.get_currency())
+    }
+
     pub async fn portfolio_data(&self, wallet: Wallet, portfolio_type: PortfolioType, period: ChartPeriod) -> Result<PortfolioData, GemServiceError> {
         match portfolio_type {
             PortfolioType::Wallet => Ok(rules::wallet_portfolio_data(
