@@ -1,3 +1,5 @@
+use primitives::RewardRedemptionOption;
+
 #[derive(Debug, Clone, Default, PartialEq, uniffi::Record)]
 pub struct GemRewardsState {
     pub has_referral_code: bool,
@@ -8,4 +10,11 @@ pub struct GemRewardsState {
     pub is_unverified: bool,
     pub has_pending_referral: bool,
     pub can_activate_pending_referral: bool,
+    pub redemptions: Vec<GemRewardsRedemption>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRewardsRedemption {
+    pub option: RewardRedemptionOption,
+    pub can_redeem: bool,
 }

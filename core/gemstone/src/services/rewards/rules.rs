@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use primitives::{RewardStatus, Rewards};
+use primitives::{RewardRedemptionOption, RewardStatus, Rewards};
 
-use super::model::GemRewardsState;
+use super::model::{GemRewardsRedemption, GemRewardsState};
 
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let Some(rewards) = rewards else {
@@ -19,7 +19,24 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
         is_unverified: has_referral_code && rewards.status == RewardStatus::Unverified && !has_pending_referral,
         has_pending_referral,
         can_activate_pending_referral: has_pending_referral && rewards.verify_after.is_some_and(|verify_after| now >= verify_after),
+        redemptions: redemptions(rewards),
     }
+}
+
+fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
+    rewards
+        .redemption_options
+        .iter()
+        .filter(|option| option.asset.is_some())
+        .map(|option| GemRewardsRedemption {
+            option: option.clone(),
+            can_redeem: can_redeem(rewards, option),
+        })
+        .collect()
+}
+
+fn can_redeem(rewards: &Rewards, option: &RewardRedemptionOption) -> bool {
+    rewards.points >= option.points && option.remaining.is_none_or(|remaining| remaining > 0)
 }
 
 fn has_value(code: Option<&str>) -> bool {
@@ -30,6 +47,8 @@ fn has_value(code: Option<&str>) -> bool {
 mod tests {
     use super::*;
     use chrono::TimeDelta;
+    use num_bigint::BigUint;
+    use primitives::{Asset, RewardRedemptionType};
 
     fn now() -> DateTime<Utc> {
         DateTime::from_timestamp(1_767_694_414, 0).unwrap()
@@ -49,6 +68,45 @@ mod tests {
             verify_after: Some(verify_after),
             ..rewards(code, RewardStatus::Pending)
         }
+    }
+
+    fn option(id: &str, points: i32, remaining: Option<i32>, asset: Option<Asset>) -> RewardRedemptionOption {
+        RewardRedemptionOption {
+            id: id.to_string(),
+            redemption_type: RewardRedemptionType::Asset,
+            points,
+            asset,
+            value: BigUint::from(1u32),
+            remaining,
+        }
+    }
+
+    #[test]
+    fn test_only_affordable_options_that_pay_out_an_asset_are_offered() {
+        let asset = Some(Asset::mock_eth());
+        let rewards = Rewards {
+            points: 100,
+            redemption_options: vec![
+                option("affordable", 100, None, asset.clone()),
+                option("too-expensive", 101, None, asset.clone()),
+                option("sold-out", 10, Some(0), asset.clone()),
+                option("last-one", 10, Some(1), asset),
+                option("no-asset", 10, None, None),
+            ],
+            ..Rewards::default()
+        };
+
+        let redemptions = state(Some(&rewards), now()).redemptions;
+
+        assert_eq!(
+            redemptions.iter().map(|redemption| redemption.option.id.as_str()).collect::<Vec<_>>(),
+            vec!["affordable", "too-expensive", "sold-out", "last-one"],
+            "an option that pays out nothing the wallet can hold is not a row"
+        );
+        assert_eq!(
+            redemptions.iter().map(|redemption| redemption.can_redeem).collect::<Vec<_>>(),
+            vec![true, false, false, true]
+        );
     }
 
     #[test]
