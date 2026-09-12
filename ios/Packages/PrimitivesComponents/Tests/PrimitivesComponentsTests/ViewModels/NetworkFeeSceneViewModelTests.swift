@@ -168,7 +168,7 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func valueForRateUsesScaledLoadedFeeForNativeChain() throws {
+    func aRateRowShowsTheScaledFeeOnANativeUnitChain() throws {
         let feeAsset = Asset.mockSUI()
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: feeAsset,
@@ -179,28 +179,25 @@ struct NetworkFeeSceneViewModelTests {
         let normalRate = try #require(model.feeRatesViewModels.first { $0.priority == .normal })
         let fastRate = try #require(model.feeRatesViewModels.first { $0.priority == .fast })
 
-        #expect(model.valueForRate(normalRate) == feeAsset.feeText(110_000))
-        #expect(model.valueForRate(fastRate) == feeAsset.feeText(200_000))
-        #expect(model.valueForRate(normalRate) == model.value)
-        #expect(model.valueForRate(fastRate) != fastRate.valueText)
+        #expect(normalRate.valueText == feeAsset.feeText(110_000))
+        #expect(fastRate.valueText == feeAsset.feeText(200_000))
+        #expect(normalRate.valueText == model.value)
     }
 
     @Test
-    func valueForRateUsesGasPriceRateForNonNativeChains() throws {
+    func aRateRowShowsTheRateOnAGweiOrSatVbChain() throws {
         let ethModel = NetworkFeeSceneViewModel.mock(
             feeRates: rows([(.normal, 1_000_000_000, 21_000_000_000_000)]),
             feeAmount: BigInt(21_000_000_000_000),
         )
         let ethVM = try #require(ethModel.feeRatesViewModels.first)
 
-        #expect(ethModel.valueForRate(ethVM) == ethVM.valueText)
-        #expect(ethModel.valueForRate(ethVM) != ethModel.value)
+        #expect(ethVM.valueText != ethModel.value)
 
         let bitcoinModel = NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rows([(.normal, 1, 10000)], unitType: .satVb, decimals: 1), feeAmount: BigInt(10000))
         let bitcoinVM = try #require(bitcoinModel.feeRatesViewModels.first)
 
-        #expect(bitcoinModel.valueForRate(bitcoinVM) == bitcoinVM.valueText)
-        #expect(bitcoinModel.valueForRate(bitcoinVM) != bitcoinModel.value)
+        #expect(bitcoinVM.valueText != bitcoinModel.value)
     }
 
     @Test
@@ -334,7 +331,7 @@ private func rows(
     selectedTotal: BigInt? = nil,
 ) -> GemFeeRateRows {
     GemFeeRateRows(
-        rows: rows.map { GemFeeRateRow(priority: $0.0, unitValue: $0.1, fee: $0.2) },
+        rows: rows.map { GemFeeRateRow(priority: $0.0, unitValue: $0.1, fee: $0.2, displayValue: unitType == .native ? ($0.2 ?? $0.1) : $0.1) },
         unitType: unitType,
         unitDecimals: decimals,
         supportsCustomFee: supportsCustomFee,

@@ -7,25 +7,19 @@ import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
-import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemFeeRateRow
 
 data class FeeRateUIModel(
     val row: GemFeeRateRow,
     val feeAsset: AssetPriceValue,
-    val feeUnitType: FeeUnitType,
     val feeRateDecimals: Int,
     val unitSymbol: String,
 ) {
     val priority: FeePriority = row.priority.toPrimitives()
 
     val price: String
-        get() = when (feeUnitType) {
-            FeeUnitType.Native -> ValueFormatter(style = ValueFormatter.Style.Auto)
-                .string(row.fee ?: row.unitValue, feeAsset.asset.decimals, feeAsset.asset.symbol)
-            FeeUnitType.SatVb, FeeUnitType.Gwei -> ValueFormatter(style = ValueFormatter.Style.Auto)
-                .string(row.unitValue, feeRateDecimals, unitSymbol)
-        }
+        get() = ValueFormatter(style = ValueFormatter.Style.Auto)
+            .string(row.displayValue, feeRateDecimals, unitSymbol)
 
     val fiatValue: String
         get() {

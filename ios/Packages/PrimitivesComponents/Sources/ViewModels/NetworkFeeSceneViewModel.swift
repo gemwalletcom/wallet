@@ -72,7 +72,7 @@ public struct NetworkFeeSceneViewModel {
     // MARK: - Fee Rates
 
     public var feeRatesViewModels: [FeeRateViewModel] {
-        rows.map { feeRateViewModel(priority: $0.priority.map(), unitValue: $0.unitValue, fee: $0.fee) }
+        rows.map { feeRateViewModel(priority: $0.priority.map(), displayValue: $0.displayValue, fee: $0.fee) }
     }
 
     public var selectedFeeRateViewModel: FeeRateViewModel? {
@@ -86,13 +86,6 @@ public struct NetworkFeeSceneViewModel {
 
     public func rowItem(for rate: FeeRateViewModel) -> ListItemModel {
         rowItem(title: rate.title, rate: rate)
-    }
-
-    public func valueForRate(_ rate: FeeRateViewModel) -> String {
-        switch rate.unitType {
-        case .native: rate.fee.map { display(for: $0).amount.text } ?? rate.valueText
-        case .gwei, .satVb: rate.valueText
-        }
     }
 
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
@@ -140,10 +133,10 @@ private extension NetworkFeeSceneViewModel {
     var unitType: FeeUnitType { feeRates?.unitType.map() ?? .native }
     var unitDecimals: Int { feeRates.map { Int($0.unitDecimals) } ?? feeAsset.decimals.asInt }
 
-    func feeRateViewModel(priority: FeePriority, unitValue: BigInt, fee: BigInt?) -> FeeRateViewModel {
+    func feeRateViewModel(priority: FeePriority, displayValue: BigInt, fee: BigInt?) -> FeeRateViewModel {
         FeeRateViewModel(
             priority: priority,
-            unitValue: unitValue,
+            displayValue: displayValue,
             fee: fee,
             unitType: unitType,
             decimals: unitDecimals,
@@ -152,13 +145,13 @@ private extension NetworkFeeSceneViewModel {
     }
 
     var customFeeRateViewModel: FeeRateViewModel? {
-        selection.customGasPrice().map { feeRateViewModel(priority: .normal, unitValue: $0, fee: feeAmount) }
+        selection.customGasPrice().map { feeRateViewModel(priority: .normal, displayValue: $0, fee: feeAmount) }
     }
 
     func rowItem(title: String, rate: FeeRateViewModel?) -> ListItemModel {
         ListItemModel(
             title: title,
-            subtitle: rate.map { valueForRate($0) },
+            subtitle: rate.map(\.valueText),
             subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
             subtitleExtra: rate.flatMap { fiatValueForRate($0) },
             subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),

@@ -370,10 +370,16 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
             .iter()
             .map(|rate| {
                 let unit_value = unit_value(rate);
+                let fee = base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee);
+                let display_value = match unit_type {
+                    FeeUnitType::Native => fee.clone().unwrap_or_else(|| unit_value.clone()),
+                    FeeUnitType::SatVb | FeeUnitType::Gwei => unit_value.clone(),
+                };
                 GemFeeRateRow {
                     priority: rate.priority,
-                    fee: base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee),
+                    fee,
                     unit_value,
+                    display_value,
                 }
             })
             .collect(),
@@ -604,6 +610,27 @@ mod tests {
         let solana = Asset::from_chain(Chain::Solana);
         let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &loaded_fee(5_000, HashMap::new()));
         assert_eq!((native.unit_type, native.unit_decimals), (FeeUnitType::Native, solana.decimals as u32));
+    }
+
+    #[test]
+    fn test_a_row_displays_the_fee_on_a_native_unit_chain_and_the_rate_elsewhere() {
+        let rates = vec![rate(FeePriority::Normal, "10"), rate(FeePriority::Fast, "25")];
+        let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
+
+        let gwei = fee_rate_rows(Chain::Ethereum, &Asset::from_chain(Chain::Ethereum), &rates, &normal, &loaded_fee(1_000, HashMap::new()));
+        assert_eq!(gwei.rows[1].display_value, BigInt::from(25), "a gwei row shows the rate the user picks");
+
+        let native = fee_rate_rows(Chain::Solana, &Asset::from_chain(Chain::Solana), &rates, &normal, &loaded_fee(1_000, HashMap::new()));
+        assert_eq!(native.rows[1].display_value, BigInt::from(2_500), "a native-unit row shows what the transfer costs");
+
+        let unscaled = fee_rate_rows(
+            Chain::Solana,
+            &Asset::from_chain(Chain::Solana),
+            &rates,
+            &GemConfirmFeeSelection::Custom { gas_price: BigInt::ZERO },
+            &loaded_fee(1_000, HashMap::new()),
+        );
+        assert_eq!(unscaled.rows[1].display_value, BigInt::from(25), "with no fee to scale, the rate stands in");
     }
 
     #[test]

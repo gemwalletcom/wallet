@@ -18,7 +18,6 @@ class FeeDetailsModel(
         FeeRateUIModel(
             row = row,
             feeAsset = feeAsset.priceValue,
-            feeUnitType = feeUnitType,
             feeRateDecimals = decimals,
             unitSymbol = unitSymbol,
         )
