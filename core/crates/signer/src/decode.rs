@@ -183,18 +183,25 @@ mod tests {
     fn test_decode_solana_base58() {
         let bytes = decode_private_key(&Chain::Solana, "4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC").unwrap();
         assert_eq!(bytes.len(), 32);
+        assert_eq!(encode_private_key(&Chain::Solana, &bytes).unwrap(), "DTJi5pMtSKZHdkLX4wxwvjGjf2xwXx1LSuuUZhugYWDV");
     }
 
     #[test]
     fn test_decode_ethereum_hex() {
-        let bytes = decode_private_key(&Chain::Ethereum, "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e").unwrap();
+        let value = "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e";
+        let bytes = decode_private_key(&Chain::Ethereum, value).unwrap();
         assert_eq!(bytes.len(), 32);
+        assert_eq!(encode_private_key(&Chain::Ethereum, &bytes).unwrap(), value);
     }
 
     #[test]
     fn test_decode_stellar_strkey() {
         let bytes = decode_private_key(&Chain::Stellar, "SA6XNHUKMW4QAKSHB2NOZ4SYP34ERYVAWSBTEDREYSJ2LEJ5LFHLTIRJ").unwrap();
         assert_eq!(hex::encode(bytes.as_slice()), "3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9");
+        assert_eq!(
+            encode_private_key(&Chain::Stellar, &bytes).unwrap(),
+            "0x3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9"
+        );
     }
 
     #[test]
