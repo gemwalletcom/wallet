@@ -19,16 +19,13 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
 
     init(data: PriceAlertData, currency: String) {
         self.data = data
-        let currencyCode = switch data.priceAlert.type {
-        case .auto: currency
-        case .price, .pricePercentChange: data.priceAlert.currency.rawValue
-        }
-        priceModel = PriceViewModel(price: data.price, currencyCode: currencyCode)
         row = PriceAlertFormatter.shared.row(
             alert: data.priceAlert.map(),
             currentPrice: data.price?.price,
             priceChangePercentage24h: data.price?.priceChangePercentage24h,
+            priceCurrency: currency,
         )
+        priceModel = PriceViewModel(price: data.price, currencyCode: row.priceCurrency)
     }
 
     var name: String {
@@ -74,7 +71,7 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
 
     private var prefixText: String {
         switch row.kind {
-        case .auto: priceModel.priceAmountText
+        case .auto: priceModel.fiatAmountText(amount: row.price ?? .zero)
         case .over: Localized.PriceAlerts.Direction.over
         case .under: Localized.PriceAlerts.Direction.under
         case .increase: Localized.PriceAlerts.Direction.increasesBy
@@ -85,8 +82,8 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
     private var suffixText: String {
         switch row.kind {
         case .auto: priceModel.priceChangeText
-        case .over, .under: priceModel.fiatAmountText(amount: data.priceAlert.price ?? .zero)
-        case .increase, .decrease: PercentFormatter.unsigned.string(data.priceAlert.pricePercentChange ?? .zero)
+        case .over, .under: priceModel.fiatAmountText(amount: row.price ?? .zero)
+        case .increase, .decrease: PercentFormatter.unsigned.string(row.percent ?? .zero)
         }
     }
 

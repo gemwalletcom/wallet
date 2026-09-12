@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use primitives::{PriceAlert, PriceAlertDirection, PriceAlertNotificationType};
+use primitives::{Currency, PriceAlert, PriceAlertDirection, PriceAlertNotificationType};
 
 use crate::services::collections::stale;
 
@@ -19,6 +19,9 @@ pub enum GemPriceAlertKind {
 pub struct GemPriceAlertRow {
     pub kind: GemPriceAlertKind,
     pub direction: Option<PriceAlertDirection>,
+    pub price: Option<f64>,
+    pub price_currency: Currency,
+    pub percent: Option<f64>,
 }
 
 pub struct PriceAlertSync {
@@ -47,10 +50,16 @@ pub fn price_alert_enabled(alerts: &[PriceAlert]) -> bool {
     alerts.iter().any(|alert| alert.notification_type() == PriceAlertNotificationType::Auto)
 }
 
-pub fn price_alert_row(alert: &PriceAlert, current_price: Option<f64>, price_change_percentage_24h: Option<f64>) -> GemPriceAlertRow {
+pub fn price_alert_row(alert: &PriceAlert, current_price: Option<f64>, price_change_percentage_24h: Option<f64>, price_currency: Currency) -> GemPriceAlertRow {
     GemPriceAlertRow {
         kind: alert_kind(alert),
         direction: row_direction(alert, current_price, price_change_percentage_24h),
+        price: alert.price.or(current_price),
+        price_currency: match alert.price {
+            Some(_) => alert.currency.clone(),
+            None => price_currency,
+        },
+        percent: alert.price_percent_change.or(price_change_percentage_24h),
     }
 }
 
@@ -155,50 +164,72 @@ mod tests {
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
         let auto = PriceAlert::new_auto(asset_id.clone(), Currency::USD);
         assert_eq!(
-            price_alert_row(&auto, Some(100.0), Some(-2.0)),
+            price_alert_row(&auto, Some(100.0), Some(-2.0), Currency::EUR),
             GemPriceAlertRow {
                 kind: GemPriceAlertKind::Auto,
-                direction: Some(PriceAlertDirection::Down)
+                direction: Some(PriceAlertDirection::Down),
+                price: Some(100.0),
+                price_currency: Currency::EUR,
+                percent: Some(-2.0),
             }
         );
-        assert_eq!(price_alert_row(&auto, Some(100.0), None).direction, None, "no change is neutral");
+        assert_eq!(price_alert_row(&auto, Some(100.0), None, Currency::USD).direction, None, "no change is neutral");
 
         let over = PriceAlert::new_price(asset_id.clone(), Currency::USD, 120.0, PriceAlertDirection::Up);
         assert_eq!(
-            price_alert_row(&over, Some(100.0), Some(-2.0)),
+            price_alert_row(&over, Some(100.0), Some(-2.0), Currency::EUR),
             GemPriceAlertRow {
                 kind: GemPriceAlertKind::Over,
-                direction: Some(PriceAlertDirection::Up)
+                direction: Some(PriceAlertDirection::Up),
+                price: Some(120.0),
+                price_currency: Currency::USD,
+                percent: Some(-2.0),
             },
             "the alert's own direction wins over the day's change"
         );
 
         let increase = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
-        assert_eq!(price_alert_row(&increase, Some(100.0), None).kind, GemPriceAlertKind::Increase);
+        let increase_row = price_alert_row(&increase, Some(100.0), None, Currency::USD);
+        assert_eq!(increase_row.kind, GemPriceAlertKind::Increase);
+        assert_eq!(
+            (increase_row.price, increase_row.percent),
+            (Some(100.0), Some(5.0)),
+            "a percent alert prices off the market and shows its own target"
+        );
 
         let under = PriceAlert::new_price(asset_id.clone(), Currency::USD, 80.0, PriceAlertDirection::Down);
         assert_eq!(
-            price_alert_row(&under, Some(100.0), Some(2.0)),
+            price_alert_row(&under, Some(100.0), Some(2.0), Currency::USD),
             GemPriceAlertRow {
                 kind: GemPriceAlertKind::Under,
-                direction: Some(PriceAlertDirection::Down)
+                direction: Some(PriceAlertDirection::Down),
+                price: Some(80.0),
+                price_currency: Currency::USD,
+                percent: Some(2.0),
             }
         );
 
         let decrease = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Down);
-        assert_eq!(price_alert_row(&decrease, Some(100.0), None).kind, GemPriceAlertKind::Decrease);
+        assert_eq!(price_alert_row(&decrease, Some(100.0), None, Currency::USD).kind, GemPriceAlertKind::Decrease);
 
-        assert_eq!(price_alert_row(&auto, None, None).direction, None, "an alert with no price to compare shows no direction");
+        assert_eq!(
+            price_alert_row(&auto, None, None, Currency::USD).direction,
+            None,
+            "an alert with no price to compare shows no direction"
+        );
 
         let priced = PriceAlert {
             price: Some(120.0),
             ..auto.clone()
         };
         assert_eq!(
-            price_alert_row(&priced, Some(100.0), Some(-2.0)),
+            price_alert_row(&priced, Some(100.0), Some(-2.0), Currency::USD),
             GemPriceAlertRow {
                 kind: GemPriceAlertKind::Auto,
-                direction: Some(PriceAlertDirection::Up)
+                direction: Some(PriceAlertDirection::Up),
+                price: Some(120.0),
+                price_currency: Currency::USD,
+                percent: Some(-2.0),
             },
             "a target without a direction points at the price it waits for"
         );

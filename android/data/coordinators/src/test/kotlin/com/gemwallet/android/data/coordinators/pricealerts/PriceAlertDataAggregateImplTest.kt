@@ -54,6 +54,7 @@ class PriceAlertDataAggregateImplTest {
             alert = priceAlert.toGem(),
             currentPrice = assetPrice?.price?.price,
             priceChangePercentage24h = assetPrice?.price?.priceChangePercentage24h,
+            priceCurrency = (assetPrice?.currency ?: priceAlert.currency).string,
         ),
     )
 

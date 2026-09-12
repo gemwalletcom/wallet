@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
+import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
@@ -52,6 +53,7 @@ class GetPriceAlertsImpl(
                                     alert = item.priceAlert.toGem(),
                                     currentPrice = assetInfo.price?.price?.price,
                                     priceChangePercentage24h = assetInfo.price?.price?.priceChangePercentage24h,
+                                    priceCurrency = (assetInfo.price?.currency ?: item.priceAlert.currency).string,
                                 ),
                             )
                         }.orEmpty()
@@ -76,13 +78,15 @@ class PriceAlertDataAggregateImpl(
     override val priceDirection = row.direction
 
     override val price: String
-        get() = priceAlert.price?.let { value ->
-            CurrencyFormatter(currency = priceAlert.currency).string(value)
-        } ?: assetPrice?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) }.orEmpty()
+        get() = row.price?.let { CurrencyFormatter(currency = row.priceCurrency.toCurrency()).string(it) }.orEmpty()
 
     override val percentage: String
-        get() = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
-            ?: assetPrice?.price?.priceChangePercentage24h?.formatAsPercentage().orEmpty()
+        get() = row.percent?.let { percent ->
+            when (priceAlert.pricePercentChange) {
+                null -> percent.formatAsPercentage()
+                else -> percent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+            }
+        }.orEmpty()
 
     override val kind: GemPriceAlertKind = row.kind
 
