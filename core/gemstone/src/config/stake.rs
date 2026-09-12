@@ -1,6 +1,6 @@
 use primitives::StakeChain;
 
-pub const EARN_OFFERED: bool = cfg!(debug_assertions);
+pub const EARN_OFFERED: bool = false;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StakeChainConfig {
