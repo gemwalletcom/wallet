@@ -80,6 +80,7 @@ final class ImageLoader: @unchecked Sendable {
 
     static func decode(_ data: Data, request: ImageRequest) -> UIImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              CGImageSourceGetStatus(source) == .statusComplete,
               let maxPixelSize = request.maxPixelSize.map({ Int($0.rounded(.up)) }) ?? sourcePixelSize(source)
         else {
             return nil
