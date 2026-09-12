@@ -24,15 +24,16 @@ impl GemApplicationMetadataService {
         url_host(&metadata.url)
     }
 
-    /// Prefers the icon the application supplied. Its website is only searched for one when that icon is
-    /// missing or unusable. Both are application controlled, so both load through the assets proxy.
     pub fn icon_url(&self, metadata: ApplicationMetadata) -> Option<String> {
         let website = public_url(&metadata.url)?;
         let icon = public_url(&metadata.icon).filter(|icon| icon.fragment().is_none() && icon.as_str().len() <= ICON_URL_MAX_LENGTH);
-        Some(match icon {
-            Some(icon) => proxy_url("image", icon.as_str()),
-            None => proxy_url("icon", &website.origin().ascii_serialization()),
-        })
+        let mut query = form_urlencoded::Serializer::new(String::new());
+        query.append_pair("url", &website.origin().ascii_serialization());
+        query.append_pair("size", APPLICATION_ICON_SIZE);
+        if let Some(icon) = icon {
+            query.append_pair("icon", icon.as_str());
+        }
+        Some(format!("{ASSETS_URL}/proxy/icon?{}", query.finish()))
     }
 }
 
@@ -45,16 +46,6 @@ pub fn url_host(url: &str) -> String {
     host.trim_start_matches("www.").to_string()
 }
 
-fn proxy_url(path: &str, url: &str) -> String {
-    let query = form_urlencoded::Serializer::new(String::new())
-        .append_pair("url", url)
-        .append_pair("size", APPLICATION_ICON_SIZE)
-        .finish();
-    format!("{ASSETS_URL}/proxy/{path}?{query}")
-}
-
-/// Mirrors the checks the assets proxy applies, so an unusable icon falls back to the website
-/// instead of spending a request the proxy would reject anyway.
 fn public_url(url: &str) -> Option<Url> {
     let url = Url::parse(url).ok()?;
     let host = match url.host() {
@@ -100,14 +91,14 @@ mod tests {
     }
 
     #[test]
-    fn test_icon_url_prefers_the_application_icon() {
+    fn test_icon_url_passes_the_application_icon_to_the_website_endpoint() {
         assert_eq!(
             icon_url("https://login.xyz/some/page?query=value#section", "https://login.xyz/favicon.png"),
-            Some("https://assets.gemwallet.com/proxy/image?url=https%3A%2F%2Flogin.xyz%2Ffavicon.png&size=256".into())
+            Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Flogin.xyz&size=256&icon=https%3A%2F%2Flogin.xyz%2Ffavicon.png".into())
         );
         assert_eq!(
             icon_url("https://tronscan.org", "https://cdn.example.com/logo.svg?v=2"),
-            Some("https://assets.gemwallet.com/proxy/image?url=https%3A%2F%2Fcdn.example.com%2Flogo.svg%3Fv%3D2&size=256".into())
+            Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Ftronscan.org&size=256&icon=https%3A%2F%2Fcdn.example.com%2Flogo.svg%3Fv%3D2".into())
         );
     }
 

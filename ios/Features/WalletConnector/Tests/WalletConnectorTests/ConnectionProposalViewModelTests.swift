@@ -14,7 +14,7 @@ struct ConnectionProposalViewModelTests {
             pairingProposal: .mock(proposal: .mock(metadata: metadata)),
         )
 
-        #expect(model.imageUrl?.absoluteString == "https://assets.gemwallet.com/proxy/image?url=https%3A%2F%2Ftronscan.org%2Fstatic%2Fmedia%2Flogo.png&size=256")
+        #expect(model.imageUrl?.absoluteString == "https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Ftronscan.org&size=256&icon=https%3A%2F%2Ftronscan.org%2Fstatic%2Fmedia%2Flogo.png")
         #expect(model.websiteText == "tronscan.org")
     }
 
