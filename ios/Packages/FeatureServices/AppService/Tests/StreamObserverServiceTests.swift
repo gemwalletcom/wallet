@@ -22,7 +22,10 @@ struct StreamObserverServiceTests {
                 calls.continuation.yield("connected")
             },
             onDisconnected: { calls.continuation.yield("disconnected") },
-            onEvent: { calls.continuation.yield($0) },
+            onEvent: {
+                calls.continuation.yield($0)
+                return .prices(prices: 1, rates: 0)
+            },
         )
         let observer = StreamObserverService.mock(service: service, webSocket: socket)
         await observer.connect()

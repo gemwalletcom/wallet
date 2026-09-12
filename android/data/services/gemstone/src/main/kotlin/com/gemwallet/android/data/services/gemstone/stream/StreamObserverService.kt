@@ -64,7 +64,7 @@ class StreamObserverService(
                 runCatchingCancellable {
                     when (event) {
                         WebSocketEvent.Connected -> service.connected()
-                        is WebSocketEvent.Message -> service.handle(event.text)
+                        is WebSocketEvent.Message -> Log.d(TAG, "Stream event: ${service.handle(event.text)}")
                         WebSocketEvent.Disconnected -> service.disconnected()
                     }
                 }.onFailure { Log.e(TAG, "Stream event error", it) }

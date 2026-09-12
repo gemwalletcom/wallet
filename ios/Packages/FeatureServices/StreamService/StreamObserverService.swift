@@ -83,7 +83,9 @@ public actor StreamObserverService: Sendable {
         do {
             switch event {
             case .connected: try await service.connected()
-            case let .message(data): try await service.handle(event: String(decoding: data, as: UTF8.self))
+            case let .message(data):
+                let event = try await service.handle(event: String(decoding: data, as: UTF8.self))
+                debugLog("stream event: \(event)")
             case .disconnected: await service.disconnected()
             }
         } catch {
