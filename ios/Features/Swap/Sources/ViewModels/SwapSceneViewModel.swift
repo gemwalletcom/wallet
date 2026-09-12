@@ -260,7 +260,7 @@ extension SwapSceneViewModel {
     }
 
     func load() async {
-        guard !isTransferDataLoading, !session.refreshPausedUntilRestart, let currentInput else { return }
+        guard session.refreshesQuotes(isScreenActive: true), let currentInput else { return }
         await performFetch(input: currentInput)
     }
 
