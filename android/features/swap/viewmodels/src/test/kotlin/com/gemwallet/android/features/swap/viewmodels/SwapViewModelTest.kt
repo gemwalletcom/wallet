@@ -36,6 +36,7 @@ import com.wallet.core.primitives.Currency
 import uniffi.gemstone.SwapPriceImpactType
 import io.mockk.clearMocks
 import io.mockk.coEvery
+import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import io.mockk.coVerify
@@ -111,7 +112,10 @@ class SwapViewModelTest {
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
         every { newSession() } answers { GemSwapSession(quotePhase = GemSwapQuotePhase.NoInput, transferPhase = GemSwapTransferPhase.Idle) }
+        every { selectPairAsset(any(), any(), any()) } answers { pairSelection }
     }
+
+    private var pairSelection = GemSwapPairSelection(payAssetId = null, receiveAssetId = null)
 
     private val createdViewModels = mutableListOf<SwapViewModel>()
 
@@ -214,6 +218,7 @@ class SwapViewModelTest {
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
 
+        pairSelection = GemSwapPairSelection(solAsset.id.toIdentifier(), null)
         viewModel.onSelect(SwapItemType.Pay, solAsset.id)
         advanceUntilIdle()
 
@@ -229,6 +234,7 @@ class SwapViewModelTest {
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
 
+        pairSelection = GemSwapPairSelection(solAsset.id.toIdentifier(), usdcAsset.id.toIdentifier())
         viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
         advanceUntilIdle()
 
@@ -245,6 +251,7 @@ class SwapViewModelTest {
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("1.5")
         Snapshot.sendApplyNotifications()
+        pairSelection = GemSwapPairSelection(solAsset.id.toIdentifier(), usdcAsset.id.toIdentifier())
         viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
         advanceUntilIdle()
 
@@ -254,24 +261,25 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `selecting same receive asset clears pay asset and amount`() = runTest(testDispatcher) {
-        val savedState = swapSavedState()
+    fun `receiving the asset being paid with turns the pair around and clears the amount`() = runTest(testDispatcher) {
+        val savedState = swapSavedState(to = usdcAsset.id.toIdentifier())
 
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
         Snapshot.sendApplyNotifications()
+        pairSelection = GemSwapPairSelection(usdcAsset.id.toIdentifier(), solAsset.id.toIdentifier())
         viewModel.onSelect(SwapItemType.Receive, solAsset.id)
         advanceUntilIdle()
 
         assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
-        assertNull("pay must be cleared when receive matches it", savedState.get<String?>(RouteArgument.FromAssetId.key))
-        assertEquals("", viewModel.payValue.text.toString())
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertEquals("the amount was typed in the asset that moved to the other side", "", viewModel.payValue.text.toString())
     }
 
     @Test
-    fun `selecting same pay asset clears receive`() = runTest(testDispatcher) {
+    fun `paying with the asset being received turns the pair around`() = runTest(testDispatcher) {
         val savedState = swapSavedState(
             from = usdcAsset.id.toIdentifier(),
             to = solAsset.id.toIdentifier(),
@@ -280,11 +288,12 @@ class SwapViewModelTest {
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
 
+        pairSelection = GemSwapPairSelection(solAsset.id.toIdentifier(), usdcAsset.id.toIdentifier())
         viewModel.onSelect(SwapItemType.Pay, solAsset.id)
         advanceUntilIdle()
 
         assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
-        assertNull(savedState.get<String?>(RouteArgument.ToAssetId.key))
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
     }
 
     @Test

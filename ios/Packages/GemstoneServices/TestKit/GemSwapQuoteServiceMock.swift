@@ -7,6 +7,8 @@ import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
 import typealias Gemstone.Currency
 import enum Gemstone.GemSlippageCheck
+import struct Gemstone.GemSwapPairSelection
+import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapQuoteSummary
 import func Gemstone.swapQuote
 import protocol Gemstone.GemSwapQuoteServiceProtocol
@@ -94,6 +96,13 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func slippagePercent(bps: UInt32) -> Double {
         Double(bps) / 100
+    }
+
+    public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String) -> GemSwapPairSelection {
+        switch side {
+        case .pay: GemSwapPairSelection(payAssetId: assetId, receiveAssetId: selection.receiveAssetId)
+        case .receive: GemSwapPairSelection(payAssetId: selection.payAssetId, receiveAssetId: assetId)
+        }
     }
 
     public func defaultSlippage(chain _: Chain) -> SwapperSlippage {

@@ -26,6 +26,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSlippageCheck
+import uniffi.gemstone.GemSwapPairSelection
+import uniffi.gemstone.GemSwapSide
 import uniffi.gemstone.GemSwapQuotePhase
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapSession
@@ -332,6 +334,9 @@ class RequestSwapQuotesImplTest {
         override fun slippageCheck(bps: UInt): GemSlippageCheck = throw UnsupportedOperationException()
 
         override fun slippageBpsFromPercent(percent: Double): UInt? = throw UnsupportedOperationException()
+
+        override fun selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String): GemSwapPairSelection =
+            throw UnsupportedOperationException()
 
         override fun slippagePercent(bps: UInt): Double = throw UnsupportedOperationException()
 

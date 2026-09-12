@@ -8,7 +8,9 @@ use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, S
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
 use crate::models::swap::GemSlippageCheck;
-use crate::services::swap::model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapRate, GemSwapTransfer};
+use crate::services::swap::model::{
+    GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSelection, GemSwapPairSuggestion, GemSwapRate, GemSwapSide, GemSwapTransfer,
+};
 use std::collections::HashMap;
 
 pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: BigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
@@ -245,6 +247,27 @@ fn minimum_amount(error: Option<&SwapperError>) -> Option<BigInt> {
     (minimum > BigInt::from(0)).then_some(minimum)
 }
 
+pub fn select_pair_asset(selection: GemSwapPairSelection, side: GemSwapSide, asset_id: AssetId) -> GemSwapPairSelection {
+    let (chosen, other) = match side {
+        GemSwapSide::Pay => (selection.pay_asset_id, selection.receive_asset_id),
+        GemSwapSide::Receive => (selection.receive_asset_id, selection.pay_asset_id),
+    };
+    let other = match other.as_ref() == Some(&asset_id) {
+        true => chosen,
+        false => other,
+    };
+    match side {
+        GemSwapSide::Pay => GemSwapPairSelection {
+            pay_asset_id: Some(asset_id),
+            receive_asset_id: other,
+        },
+        GemSwapSide::Receive => GemSwapPairSelection {
+            pay_asset_id: other,
+            receive_asset_id: Some(asset_id),
+        },
+    }
+}
+
 pub fn pair_for_asset(asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
     let pays_with_native = asset_id.is_token() && !has_balance && asset_id.chain.has_native_asset();
     if pays_with_native {
@@ -342,6 +365,44 @@ mod tests {
         assert_eq!(slippage_check(500, &config), GemSlippageCheck::High);
         assert_eq!(slippage_check(1_000, &config), GemSlippageCheck::High);
         assert_eq!(slippage_check(1_001, &config), GemSlippageCheck::AboveMaximum);
+    }
+
+    #[test]
+    fn test_choosing_the_other_side_s_asset_swaps_the_pair() {
+        let eth = AssetId::from_chain(Chain::Ethereum);
+        let btc = AssetId::from_chain(Chain::Bitcoin);
+        let sol = AssetId::from_chain(Chain::Solana);
+        let pair = GemSwapPairSelection {
+            pay_asset_id: Some(eth.clone()),
+            receive_asset_id: Some(btc.clone()),
+        };
+
+        let swapped = select_pair_asset(pair.clone(), GemSwapSide::Pay, btc.clone());
+        assert_eq!(
+            (swapped.pay_asset_id, swapped.receive_asset_id),
+            (Some(btc.clone()), Some(eth.clone())),
+            "paying with what was being received turns the pair around instead of emptying a side"
+        );
+
+        let swapped_back = select_pair_asset(pair.clone(), GemSwapSide::Receive, eth.clone());
+        assert_eq!((swapped_back.pay_asset_id, swapped_back.receive_asset_id), (Some(btc.clone()), Some(eth.clone())));
+
+        let replaced = select_pair_asset(pair, GemSwapSide::Pay, sol.clone());
+        assert_eq!(
+            (replaced.pay_asset_id, replaced.receive_asset_id),
+            (Some(sol.clone()), Some(btc)),
+            "any other asset only replaces the side it was chosen for"
+        );
+
+        let first = select_pair_asset(
+            GemSwapPairSelection {
+                pay_asset_id: None,
+                receive_asset_id: None,
+            },
+            GemSwapSide::Receive,
+            sol.clone(),
+        );
+        assert_eq!((first.pay_asset_id, first.receive_asset_id), (None, Some(sol)));
     }
 
     #[test]

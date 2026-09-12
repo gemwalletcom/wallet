@@ -4,6 +4,7 @@ use primitives::{Asset, AssetId, Chain, Currency};
 use swapper::{Quote, SwapperError, SwapperSlippage};
 
 use super::rules;
+use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
 use crate::config::swap_config::{get_default_slippage, get_swap_config};
 use crate::models::custom_types::GemBigUint;
@@ -56,6 +57,10 @@ impl GemSwapQuoteService {
 
     pub fn set_slippage_bps(&self, bps: Option<u32>) -> Result<(), GemServiceError> {
         self.preferences.set_swap_slippage_bps(bps)
+    }
+
+    pub fn select_pair_asset(&self, selection: GemSwapPairSelection, side: GemSwapSide, asset_id: AssetId) -> GemSwapPairSelection {
+        rules::select_pair_asset(selection, side, asset_id)
     }
 
     pub fn slippage_bps_from_percent(&self, percent: f64) -> Option<u32> {

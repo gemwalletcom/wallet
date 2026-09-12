@@ -86,6 +86,18 @@ pub struct GemSwapPair {
     pub to_asset_id: AssetId,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSwapSide {
+    Pay,
+    Receive,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapPairSelection {
+    pub pay_asset_id: Option<AssetId>,
+    pub receive_asset_id: Option<AssetId>,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapPairSuggestion {
     pub pay_asset_id: AssetId,

@@ -16,6 +16,8 @@ import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import Localization
+import struct Gemstone.GemSwapPairSelection
+import enum Gemstone.GemSwapSide
 import Primitives
 import PrimitivesComponents
 import Store
@@ -345,18 +347,20 @@ extension SwapSceneViewModel {
 
     public func onFinishAssetSelection(asset: Asset) {
         guard case let .selectAsset(type) = isPresentingInfoSheet else { return }
-        switch type {
-        case .pay:
-            if asset.id == pairSelectorModel.toAssetId {
-                pairSelectorModel.toAssetId = pairSelectorModel.fromAssetId
-            }
-            pairSelectorModel.fromAssetId = asset.id
-        case .receive:
-            if asset.id == pairSelectorModel.fromAssetId {
-                pairSelectorModel.fromAssetId = pairSelectorModel.toAssetId
-            }
-            pairSelectorModel.toAssetId = asset.id
+        let side: GemSwapSide = switch type {
+        case .pay: .pay
+        case .receive: .receive
         }
+        let selection = service.selectPairAsset(
+            selection: GemSwapPairSelection(
+                payAssetId: pairSelectorModel.fromAssetId?.identifier,
+                receiveAssetId: pairSelectorModel.toAssetId?.identifier,
+            ),
+            side: side,
+            assetId: asset.id.identifier,
+        )
+        pairSelectorModel.fromAssetId = selection.payAssetId.flatMap { try? AssetId(id: $0) }
+        pairSelectorModel.toAssetId = selection.receiveAssetId.flatMap { try? AssetId(id: $0) }
         isPresentingInfoSheet = nil
     }
 }

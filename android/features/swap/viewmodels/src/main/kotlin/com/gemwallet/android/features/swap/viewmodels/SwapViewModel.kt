@@ -23,6 +23,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.domains.swap.toGem
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
@@ -66,6 +67,8 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSlippageCheck
+import uniffi.gemstone.GemSwapPairSelection
+import uniffi.gemstone.GemSwapSide
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.swapperQuoteSummary
 import uniffi.gemstone.SwapperException
@@ -249,21 +252,19 @@ class SwapViewModel @Inject constructor(
 
     fun onSelect(type: SwapItemType, assetId: AssetId) {
         session.update { it.onQuoteInvalidated() }
-        when (type) {
-            SwapItemType.Pay -> {
-                if (receiveAsset.value?.id() == assetId) {
-                    savedStateHandle[RouteArgument.ToAssetId.key] = null
-                }
-                savedStateHandle[RouteArgument.FromAssetId.key] = assetId.toIdentifier()
-                payValue.clearText()
-            }
-            SwapItemType.Receive -> {
-                if (payAsset.value?.id() == assetId) {
-                    savedStateHandle[RouteArgument.FromAssetId.key] = null
-                    payValue.clearText()
-                }
-                savedStateHandle[RouteArgument.ToAssetId.key] = assetId.toIdentifier()
-            }
+        val selection = swapQuoteService.selectPairAsset(
+            GemSwapPairSelection(
+                payAssetId = payAsset.value?.id()?.toIdentifier(),
+                receiveAssetId = receiveAsset.value?.id()?.toIdentifier(),
+            ),
+            type.toGem(),
+            assetId.toIdentifier(),
+        )
+        val payChanged = selection.payAssetId != payAsset.value?.id()?.toIdentifier()
+        savedStateHandle[RouteArgument.FromAssetId.key] = selection.payAssetId
+        savedStateHandle[RouteArgument.ToAssetId.key] = selection.receiveAssetId
+        if (payChanged) {
+            payValue.clearText()
         }
     }
 
