@@ -180,7 +180,7 @@ fun WalletSearchScreen(
                 autoFocus = true,
             )
         },
-        titleBadge = ::getAssetBadge,
+        titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
         support = { assetPriceSupport(it.price) },
         query = viewModel.queryState,
         pinned = pinned,
