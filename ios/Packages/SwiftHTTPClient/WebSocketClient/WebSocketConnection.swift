@@ -15,6 +15,7 @@ public actor WebSocketConnection: WebSocketConnectable {
     private var streamId: UUID?
     private var connectionId: UUID?
     private var reconnectAttempt: Int = 0
+    private var awaitingPong = false
     private var pendingMessages: [URLSessionWebSocketTask.Message] = []
 
     public init(configuration: WebSocketConfiguration) {
@@ -107,6 +108,7 @@ public actor WebSocketConnection: WebSocketConnectable {
     private func cancelKeepalive() {
         keepaliveTask?.cancel()
         keepaliveTask = nil
+        awaitingPong = false
     }
 
     private func startKeepalive() {
@@ -123,10 +125,20 @@ public actor WebSocketConnection: WebSocketConnectable {
 
     private func sendPing() {
         guard state == .connected, let task, let connectionId else { return }
-        task.sendPing { [weak self] error in
-            guard let error else { return }
-            Task { await self?.handleError(error, connectionId: connectionId) }
+        guard !awaitingPong else {
+            return handleError(WebSocketError.notConnected, connectionId: connectionId)
         }
+        awaitingPong = true
+        task.sendPing { [weak self] error in
+            Task { await self?.receivePong(error, connectionId: connectionId) }
+        }
+    }
+
+    private func receivePong(_ error: Error?, connectionId: UUID) {
+        guard self.connectionId == connectionId else { return }
+        awaitingPong = false
+        guard let error else { return }
+        handleError(error, connectionId: connectionId)
     }
 
     private func cancelReconnect() {
