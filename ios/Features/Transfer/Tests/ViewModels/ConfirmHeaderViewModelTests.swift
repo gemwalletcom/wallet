@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import GemstonePrimitives
+import struct Gemstone.GemSimulationValue
 import Components
 @testable import Primitives
 import PrimitivesComponents
@@ -56,7 +58,7 @@ struct ConfirmHeaderViewModelTests {
     func simulationHeaderDataResolvesAssetValue() {
         let model = ConfirmHeaderViewModel(
             request: .mock(),
-            state: .mock(simulation: .mock(headerData: AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(BigInt(1_000_000))))),
+            state: .mock(simulation: .mock(headerData: GemSimulationValue(asset: Asset.mockEthereumUSDT().map(), value: .exact(value: BigUInt(1_000_000))))),
             currency: .usd,
         )
 
@@ -65,8 +67,8 @@ struct ConfirmHeaderViewModelTests {
             Issue.record("Expected assetValue header")
             return
         }
-        #expect(data.asset == .mockEthereumUSDT())
-        #expect(data.value == .exact(BigInt(1_000_000)))
+        #expect(data.asset == Asset.mockEthereumUSDT().map())
+        #expect(data.value == .exact(value: BigUInt(1_000_000)))
         #expect(item.showClearHeader == true)
     }
 

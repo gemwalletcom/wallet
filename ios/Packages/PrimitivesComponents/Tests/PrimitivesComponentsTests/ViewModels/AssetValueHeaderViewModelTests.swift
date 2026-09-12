@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import GemstonePrimitives
+import struct Gemstone.GemSimulationValue
 import Localization
 import Primitives
 @testable import PrimitivesComponents
@@ -11,7 +13,7 @@ struct AssetValueHeaderViewModelTests {
     @Test
     func unlimitedTitle() {
         let model = AssetValueHeaderViewModel(
-            data: AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .unlimited),
+            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().map(), value: .unlimited),
         )
 
         #expect(model.title == Localized.Simulation.Header.unlimitedAsset("USDT"))
@@ -21,7 +23,7 @@ struct AssetValueHeaderViewModelTests {
     @Test
     func formattedNumericTitle() {
         let model = AssetValueHeaderViewModel(
-            data: AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(BigInt(1_000_000))),
+            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().map(), value: .exact(value: BigUInt(1_000_000))),
         )
 
         #expect(model.title == "1 USDT")

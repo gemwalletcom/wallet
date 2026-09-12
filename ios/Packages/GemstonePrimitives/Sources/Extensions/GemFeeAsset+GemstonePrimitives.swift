@@ -2,7 +2,6 @@
 
 import BigInt
 import Foundation
-import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemFeeAsset
@@ -33,15 +32,6 @@ public extension GemFeeAsset {
             balance: Primitives.Balance(balance),
             price: price.map { $0.map().mapToPrice() },
         )
-    }
-}
-
-public extension GemApprovalValue {
-    func map() -> Primitives.ApprovalValue {
-        switch self {
-        case let .exact(value): .exact(BigInt(value))
-        case .unlimited: .unlimited
-        }
     }
 }
 

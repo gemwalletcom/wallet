@@ -5,9 +5,8 @@ import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSimulationBalanceChange
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.model.AssetValueHeader
+import uniffi.gemstone.GemSimulationValue
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.toAssetValueHeader
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemConfirmSimulationState
@@ -20,7 +19,7 @@ data class Simulation(
     val hasCriticalWarning: Boolean = false,
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
-    val header: AssetValueHeader? = null,
+    val header: GemSimulationValue? = null,
     val balanceChanges: List<GemSimulationBalanceChange> = emptyList(),
 )
 
@@ -38,7 +37,7 @@ fun GemConfirmSimulationState.toSimulation(
             .withExplorerLinks(chain) { chain, address -> session.addressUrl(chain.string, address) },
         secondaryPayloadFields = details.secondaryFields
             .withExplorerLinks(chain) { chain, address -> session.addressUrl(chain.string, address) },
-        header = details.header?.toAssetValueHeader(),
+        header = details.header,
         balanceChanges = details.balanceChanges,
     )
 }

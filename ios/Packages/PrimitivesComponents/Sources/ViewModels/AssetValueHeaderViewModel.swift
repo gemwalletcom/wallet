@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
+import struct Gemstone.GemSimulationValue
+import GemstonePrimitives
 import Foundation
 import Localization
 import Primitives
@@ -11,13 +14,13 @@ import SwiftUI
 struct AssetValueHeaderViewModel: ValueHeaderViewModel {
     private static let formatter = ValueFormatter(style: .full)
 
-    let data: AssetValueHeaderData
+    let data: GemSimulationValue
 
     let isWatchWallet: Bool = false
     let buttons: [HeaderButton] = []
 
     var assetImage: AssetImage? {
-        AssetViewModel(asset: data.asset).assetImage
+        AssetViewModel(asset: data.asset.map()).assetImage
     }
 
     var title: String {
@@ -26,8 +29,8 @@ struct AssetValueHeaderViewModel: ValueHeaderViewModel {
             Localized.Simulation.Header.unlimitedAsset(data.asset.symbol)
         case let .exact(value):
             Self.formatter.string(
-                value,
-                decimals: data.asset.decimals.asInt,
+                BigInt(value),
+                decimals: Int(data.asset.decimals),
                 currency: data.asset.symbol,
             )
         }

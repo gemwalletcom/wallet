@@ -4,6 +4,7 @@ import struct Gemstone.GemSignMessagePreview
 import protocol Gemstone.GemSignMessageServiceProtocol
 import Components
 import Foundation
+import struct Gemstone.GemSimulationValue
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -90,8 +91,8 @@ public final class SignMessageSceneViewModel {
         )
     }
 
-    public var headerData: AssetValueHeaderData? {
-        preview.header?.map()
+    public var headerData: GemSimulationValue? {
+        preview.header
     }
 
     var messageText: String {

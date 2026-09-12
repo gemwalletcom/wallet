@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
-import com.gemwallet.android.model.AssetValueHeader
+import uniffi.gemstone.GemSimulationValue
 import com.gemwallet.android.ui.models.PayloadField
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemSimulationWarningRow
@@ -17,7 +17,7 @@ interface WalletConnectReviewModel {
     val message: String
     val warnings: List<GemSimulationWarningRow> get() = emptyList()
     val hasCriticalWarning: Boolean get() = false
-    val header: AssetValueHeader? get() = null
+    val header: GemSimulationValue? get() = null
     val addressNames: Map<String, String> get() = emptyMap()
     val hasPayload: Boolean get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 }

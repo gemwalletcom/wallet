@@ -1,6 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmFailure
+import GemstonePrimitives
+import BigInt
+import struct Gemstone.GemSimulationValue
 import struct Gemstone.GemConfirmLoad
 import enum Gemstone.GemConfirmPhase
 import struct Gemstone.GemConfirmPreload
@@ -16,7 +19,7 @@ extension ConfirmSimulationState {
     static func mock(
         result: SimulationResult? = nil,
         warnings: [GemSimulationWarningRow] = [],
-        headerData: AssetValueHeaderData? = nil,
+        headerData: GemSimulationValue? = nil,
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(
             result: result,

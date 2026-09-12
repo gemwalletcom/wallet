@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemSignMessageService
+import BigInt
+import struct Gemstone.GemSimulationValue
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
@@ -390,7 +392,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.headerData == AssetValueHeaderData(asset: asset, value: .unlimited))
+        #expect(viewModel.headerData == GemSimulationValue(asset: asset.map(), value: .unlimited))
         #expect(!(viewModel.payloadModel.primaryFields + viewModel.payloadModel.secondaryFields).contains { $0.kind == .value })
     }
 

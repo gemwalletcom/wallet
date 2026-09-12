@@ -6,8 +6,7 @@ import com.gemwallet.android.ext.host
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.shortName
-import com.gemwallet.android.model.AssetValueHeader
-import com.gemwallet.android.model.toAssetValueHeader
+import uniffi.gemstone.GemSimulationValue
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemSignMessagePreview
@@ -62,8 +61,8 @@ sealed class WCRequest(
         override val hasCriticalWarning: Boolean
             get() = preview.hasCriticalWarning
 
-        override val header: AssetValueHeader?
-            get() = preview.header?.toAssetValueHeader()
+        override val header: GemSimulationValue?
+            get() = preview.header
 
         override val primaryPayloadFields: List<PayloadField> by lazy { preview.primaryFields.fields() }
 

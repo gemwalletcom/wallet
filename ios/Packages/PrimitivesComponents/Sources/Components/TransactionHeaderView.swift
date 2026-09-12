@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemSimulationValue
 import Components
 import Primitives
 import Style
@@ -10,7 +11,7 @@ public enum TransactionHeaderType {
     case swap(from: SwapAmountField, to: SwapAmountField)
     case nft(name: String?, image: AssetImage)
     case asset(image: AssetImage)
-    case assetValue(AssetValueHeaderData)
+    case assetValue(GemSimulationValue)
 }
 
 public struct TransactionHeaderView: View {

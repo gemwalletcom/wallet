@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import BigInt
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmSimulation
 import enum Gemstone.GemExecuteResult
@@ -76,7 +77,7 @@ struct ConfirmSubmissionTests {
 
         let state = model.state.simulation
 
-        #expect(state.headerData == AssetValueHeaderData(asset: usdt, value: .exact(1_000_000)))
+        #expect(state.headerData == GemSimulationValue(asset: usdt.map(), value: .exact(value: BigUInt(1_000_000))))
         #expect(state.payload.primaryFields.isEmpty)
         #expect(state.payload.secondaryFields.isEmpty)
     }
@@ -95,7 +96,7 @@ struct ConfirmSubmissionTests {
         )))
         await model.load()
 
-        #expect(model.state.simulation.headerData == AssetValueHeaderData(asset: usdt, value: .unlimited))
+        #expect(model.state.simulation.headerData == GemSimulationValue(asset: usdt.map(), value: .unlimited))
     }
 
     @Test
