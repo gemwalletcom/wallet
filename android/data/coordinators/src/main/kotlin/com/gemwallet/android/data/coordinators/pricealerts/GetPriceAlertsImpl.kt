@@ -11,14 +11,12 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.id
-import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import uniffi.gemstone.PriceAlertFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PriceAlert
-import com.wallet.core.primitives.PriceAlertNotificationType
 import uniffi.gemstone.GemPriceAlertKind
 import uniffi.gemstone.GemPriceAlertRow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -91,6 +89,6 @@ class PriceAlertDataAggregateImpl(
     override val kind: GemPriceAlertKind = row.kind
 
     override val hasTarget: Boolean
-        get() = priceAlert.type != PriceAlertNotificationType.Auto
+        get() = row.kind != GemPriceAlertKind.AUTO
 
 }
