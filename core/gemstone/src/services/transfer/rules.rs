@@ -1,7 +1,6 @@
 use chrono::Utc;
 use num_bigint::BigInt;
 use primitives::SwapProvider;
-use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
 use primitives::{
     AccountDataType, AddressName, ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType,
@@ -13,6 +12,7 @@ use primitives::{
 use super::model::{GemConfirmDestination, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionLoadInput, transaction_metadata_block_number, transaction_metadata_sequence};
+use crate::services::assets::rules as asset_rules;
 use crate::services::amount::model::GemAmountError;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transactions::GemTransactionHeaderKind;
@@ -151,11 +151,11 @@ impl TransferInput for TransactionInputType {
         if let Self::Perpetual { .. } = self
             && chain == Chain::HyperCore
         {
-            return default_asset(chain, AssetType::PERPETUAL).unwrap_or(asset);
+            return asset_rules::default_asset(chain, AssetType::PERPETUAL).unwrap_or(asset);
         }
         match chain {
             Chain::Tempo => asset,
-            Chain::HyperCore => default_asset(chain, AssetType::TOKEN).unwrap_or(asset),
+            Chain::HyperCore => asset_rules::default_asset(chain, AssetType::TOKEN).unwrap_or(asset),
             _ if asset.id.is_token() => Asset::from_chain(chain),
             _ => asset,
         }
@@ -534,10 +534,6 @@ impl GemPendingTransactionInput {
 }
 
 const HYPERCORE_ORDER_PREFIX: &str = "order:";
-
-fn default_asset(chain: Chain, asset_type: AssetType) -> Option<Asset> {
-    wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
-}
 
 #[cfg(test)]
 mod tests {

@@ -21,6 +21,7 @@ use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert
 use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
+use primitives::AssetType;
 use crate::services::collections::{missing, missing_by, unique};
 
 pub fn asset_list_versions(versions: &ConfigVersions) -> [(AssetList, i32); 3] {
@@ -61,6 +62,10 @@ pub fn asset_prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
                 .map(|price| AssetPrice::new(asset.asset.id.clone(), price.price, price.price_change_percentage_24h, price.updated_at))
         })
         .collect()
+}
+
+pub fn default_asset(chain: Chain, asset_type: AssetType) -> Option<Asset> {
+    wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
 }
 
 pub fn default_asset_basic(asset: Asset) -> AssetBasic {
