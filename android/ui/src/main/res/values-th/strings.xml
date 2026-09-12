@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">สิทธิ์การเข้าถึง</string>
   <string name="wallet_connect_permissions_view_balance">ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ</string>
   <string name="wallet_connect_permissions_approval_requests">ส่งคำขออนุมัติ</string>
+  <string name="wallet_connect_request_expired">คำขอหมดอายุแล้ว</string>
   <string name="swap_you_pay">คุณจ่าย</string>
   <string name="swap_you_receive">คุณได้รับ</string>
   <string name="swap_price_impact">ผลกระทบต่อราคา</string>

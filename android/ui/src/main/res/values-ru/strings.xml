@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Разрешения</string>
   <string name="wallet_connect_permissions_view_balance">Просматривать баланс и активность</string>
   <string name="wallet_connect_permissions_approval_requests">Отправлять запросы на подтверждение</string>
+  <string name="wallet_connect_request_expired">Срок запроса истёк</string>
   <string name="swap_you_pay">Вы платите</string>
   <string name="swap_you_receive">Вы получаете</string>
   <string name="swap_price_impact">Влияние цены</string>

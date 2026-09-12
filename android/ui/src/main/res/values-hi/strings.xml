@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">अनुमतियां</string>
   <string name="wallet_connect_permissions_view_balance">अपना बैलेंस और गतिविधि देखें</string>
   <string name="wallet_connect_permissions_approval_requests">अनुमोदन अनुरोध भेजें</string>
+  <string name="wallet_connect_request_expired">अनुरोध की समय-सीमा समाप्त</string>
   <string name="swap_you_pay">आप भुगतान करें</string>
   <string name="swap_you_receive">आप प्राप्त करें</string>
   <string name="swap_price_impact">मूल्य प्रभाव</string>

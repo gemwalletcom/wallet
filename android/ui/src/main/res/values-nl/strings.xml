@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Toestemmingen</string>
   <string name="wallet_connect_permissions_view_balance">Bekijk je saldo en activiteit</string>
   <string name="wallet_connect_permissions_approval_requests">Verzoeken om goedkeuring verzenden</string>
+  <string name="wallet_connect_request_expired">Verzoek verlopen</string>
   <string name="swap_you_pay">Jij betaalt</string>
   <string name="swap_you_receive">Jij ontvangt</string>
   <string name="swap_price_impact">Prijsimpact</string>

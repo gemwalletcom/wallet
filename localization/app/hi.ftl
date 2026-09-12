@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = DApp से कनेक्ट कर�
 wallet_connect_permissions_title = अनुमतियां
 wallet_connect_permissions_view_balance = अपना बैलेंस और गतिविधि देखें
 wallet_connect_permissions_approval_requests = अनुमोदन अनुरोध भेजें
+wallet_connect_request_expired = अनुरोध की समय-सीमा समाप्त
 
 # Swap
 

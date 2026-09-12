@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = 扫描二维码或粘贴连接链接，
 wallet_connect_permissions_title = 权限
 wallet_connect_permissions_view_balance = 查看余额和交易记录
 wallet_connect_permissions_approval_requests = 发送审批请求
+wallet_connect_request_expired = 请求已过期
 
 # Swap
 

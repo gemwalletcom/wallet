@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = 掃描 QR 碼或貼上連線連結，�
 wallet_connect_permissions_title = 權限
 wallet_connect_permissions_view_balance = 查看餘額和交易紀錄
 wallet_connect_permissions_approval_requests = 傳送授權請求
+wallet_connect_request_expired = 請求已過期
 
 # Swap
 

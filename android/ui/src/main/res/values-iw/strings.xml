@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">הרשאות</string>
   <string name="wallet_connect_permissions_view_balance">צפה ביתרה ובפעילות שלך</string>
   <string name="wallet_connect_permissions_approval_requests">שלח בקשות אישור</string>
+  <string name="wallet_connect_request_expired">פג תוקף הבקשה</string>
   <string name="swap_you_pay">אתה משלם</string>
   <string name="swap_you_receive">אתה מקבל</string>
   <string name="swap_price_impact">השפעת המחיר</string>

@@ -695,6 +695,8 @@ wallet_connect_permissions_title = Permissions
 wallet_connect_permissions_view_balance = View your balance and activity
 # Used in WalletConnect connection and request screens for the permissions approval requests label.
 wallet_connect_permissions_approval_requests = Send approval requests
+# Shown when a WalletConnect request arrives or is confirmed after the app that sent it stopped waiting for an answer.
+wallet_connect_request_expired = Request expired
 
 # Swap
 

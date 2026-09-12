@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">권한</string>
   <string name="wallet_connect_permissions_view_balance">잔액과 활동 내역을 확인하세요</string>
   <string name="wallet_connect_permissions_approval_requests">승인 요청 보내기</string>
+  <string name="wallet_connect_request_expired">요청이 만료되었습니다</string>
   <string name="swap_you_pay">지불 금액</string>
   <string name="swap_you_receive">수령 금액</string>
   <string name="swap_price_impact">가격 영향</string>

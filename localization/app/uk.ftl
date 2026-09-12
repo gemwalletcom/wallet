@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Відскануйте або вста�
 wallet_connect_permissions_title = Дозволи
 wallet_connect_permissions_view_balance = Перегляд вашого балансу та активності
 wallet_connect_permissions_approval_requests = Надсилати запити на схвалення
+wallet_connect_request_expired = Термін запиту минув
 
 # Swap
 

@@ -47,6 +47,11 @@ fun RequestScene(
                         R.string.errors_connections_malicious_origin,
                         Toast.LENGTH_LONG
                     ).show()
+                    BridgeRequestError.Expired -> Toast.makeText(
+                        context,
+                        R.string.wallet_connect_request_expired,
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             },
             onError = reportError,

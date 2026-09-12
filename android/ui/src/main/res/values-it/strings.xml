@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Autorizzazioni</string>
   <string name="wallet_connect_permissions_view_balance">Visualizza il tuo saldo e la tua attività</string>
   <string name="wallet_connect_permissions_approval_requests">Invia richieste di approvazione</string>
+  <string name="wallet_connect_request_expired">Richiesta scaduta</string>
   <string name="swap_you_pay">Paghi tu</string>
   <string name="swap_you_receive">Ricevi</string>
   <string name="swap_price_impact">Impatto sul prezzo</string>

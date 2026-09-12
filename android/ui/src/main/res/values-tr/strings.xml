@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">İzinler</string>
   <string name="wallet_connect_permissions_view_balance">Bakiyenizi ve işlemlerinizi görüntüleyin.</string>
   <string name="wallet_connect_permissions_approval_requests">Onay isteklerini gönderin</string>
+  <string name="wallet_connect_request_expired">İstek süresi doldu</string>
   <string name="swap_you_pay">Öde</string>
   <string name="swap_you_receive">Alacağın</string>
   <string name="swap_price_impact">Fiyat Etkisi</string>

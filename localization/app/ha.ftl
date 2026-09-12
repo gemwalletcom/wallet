@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Duba ko liƙa lamba don haɗi zuwa DApp
 wallet_connect_permissions_title = Izini
 wallet_connect_permissions_view_balance = Duba ma'aunin ku da ayyukan ku
 wallet_connect_permissions_approval_requests = Aika buƙatun amincewa
+wallet_connect_request_expired = Buƙatar ta ƙare
 
 # Swap
 

@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">اجازتیں</string>
   <string name="wallet_connect_permissions_view_balance">اپنا توازن اور سرگرمی دیکھیں</string>
   <string name="wallet_connect_permissions_approval_requests">منظوری کی درخواستیں بھیجیں۔</string>
+  <string name="wallet_connect_request_expired">درخواست کی میعاد ختم ہو گئی</string>
   <string name="swap_you_pay">آپ ادا کرتے ہیں</string>
   <string name="swap_you_receive">آپ وصول کرتے ہیں</string>
   <string name="swap_price_impact">قیمت کا اثر</string>

@@ -49,6 +49,7 @@ sealed interface WalletConnectEvent {
     data class SessionProposal(val proposal: WalletConnectSessionProposal, val verifyContext: WalletConnectVerifyContext) : WalletConnectEvent
     data class SessionRequest(val request: WalletConnectSessionRequest, val verifyContext: WalletConnectVerifyContext) : WalletConnectEvent
     data class AuthenticationRequest(val request: WalletConnectAuthenticationRequest, val verifyContext: WalletConnectVerifyContext) : WalletConnectEvent
+    data class RequestExpired(val topic: String, val id: Long) : WalletConnectEvent
 }
 
 data class WalletConnectSession(

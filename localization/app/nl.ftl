@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Scan of plak de code om verbinding te m
 wallet_connect_permissions_title = Toestemmingen
 wallet_connect_permissions_view_balance = Bekijk je saldo en activiteit
 wallet_connect_permissions_approval_requests = Verzoeken om goedkeuring verzenden
+wallet_connect_request_expired = Verzoek verlopen
 
 # Swap
 

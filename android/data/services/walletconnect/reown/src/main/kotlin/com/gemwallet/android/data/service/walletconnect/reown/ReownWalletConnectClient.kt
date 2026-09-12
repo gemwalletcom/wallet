@@ -255,7 +255,9 @@ class ReownWalletConnectClient @Inject constructor(
         Log.e(TAG, "Reown wallet error", error.throwable)
     }
     override fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal) = Unit
-    override fun onRequestExpired(request: Wallet.Model.ExpiredRequest) = Unit
+    override fun onRequestExpired(request: Wallet.Model.ExpiredRequest) {
+        walletEvents.tryEmit(WalletConnectEvent.RequestExpired(request.topic, request.id))
+    }
 
     override fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete) {
         if (sessionDelete is Wallet.Model.SessionDelete.Success) {

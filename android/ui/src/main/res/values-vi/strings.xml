@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Quyền hạn</string>
   <string name="wallet_connect_permissions_view_balance">Xem số dư và hoạt động của bạn</string>
   <string name="wallet_connect_permissions_approval_requests">Gửi yêu cầu phê duyệt</string>
+  <string name="wallet_connect_request_expired">Yêu cầu đã hết hạn</string>
   <string name="swap_you_pay">Bạn trả</string>
   <string name="swap_you_receive">Bạn nhận được</string>
   <string name="swap_price_impact">Tác động giá</string>

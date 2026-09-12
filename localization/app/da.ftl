@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Scan eller indsæt kode for at oprette 
 wallet_connect_permissions_title = Tilladelser
 wallet_connect_permissions_view_balance = Se din saldo og aktivitet
 wallet_connect_permissions_approval_requests = Send godkendelsesanmodninger
+wallet_connect_request_expired = Anmodningen er udløbet
 
 # Swap
 

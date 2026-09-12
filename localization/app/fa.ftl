@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = برای اتصال به DApp، کد ر
 wallet_connect_permissions_title = مجوزها
 wallet_connect_permissions_view_balance = مشاهده موجودی و فعالیت خود
 wallet_connect_permissions_approval_requests = ارسال درخواست‌های تأیید
+wallet_connect_request_expired = درخواست منقضی شد
 
 # Swap
 

@@ -13,6 +13,7 @@ pub struct GemWalletConnectSessionRequest {
     pub chain_id: Option<String>,
     pub origin: Option<String>,
     pub validation: WalletConnectionVerificationStatus,
+    pub expiry: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -31,6 +32,7 @@ pub enum GemWalletConnectResponse {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemWalletConnectFailure {
     MaliciousOrigin,
+    Expired,
     Failed { message: String },
 }
 
@@ -41,6 +43,15 @@ pub struct GemWalletConnectOutcome {
 }
 
 impl GemWalletConnectOutcome {
+    pub fn expired() -> Self {
+        Self {
+            response: Some(GemWalletConnectResponse::Error {
+                error: crate::services::wallet_connect::rules::request_expired_error(),
+            }),
+            failure: Some(GemWalletConnectFailure::Expired),
+        }
+    }
+
     pub fn rejected(failure: Option<GemWalletConnectFailure>) -> Self {
         Self {
             response: Some(GemWalletConnectResponse::Error {

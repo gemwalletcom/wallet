@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Tilladelser</string>
   <string name="wallet_connect_permissions_view_balance">Se din saldo og aktivitet</string>
   <string name="wallet_connect_permissions_approval_requests">Send godkendelsesanmodninger</string>
+  <string name="wallet_connect_request_expired">Anmodningen er udløbet</string>
   <string name="swap_you_pay">Du betaler</string>
   <string name="swap_you_receive">Du modtager</string>
   <string name="swap_price_impact">Prispåvirkning</string>

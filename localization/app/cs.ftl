@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Naskenujte nebo vložte kód pro připo
 wallet_connect_permissions_title = Oprávnění
 wallet_connect_permissions_view_balance = Zobrazení zůstatku a aktivity
 wallet_connect_permissions_approval_requests = Odeslat žádosti o schválení
+wallet_connect_request_expired = Platnost žádosti vypršela
 
 # Swap
 

@@ -1700,6 +1700,8 @@ public enum Localized {
     public static let disconnect = Localized.tr("Localizable", "wallet_connect.disconnect", fallback: "Disconnect")
     /// No active connections
     public static let noActiveConnections = Localized.tr("Localizable", "wallet_connect.no_active_connections", fallback: "No active connections")
+    /// Request expired
+    public static let requestExpired = Localized.tr("Localizable", "wallet_connect.request_expired", fallback: "Request expired")
     /// WalletConnect
     public static let title = Localized.tr("Localizable", "wallet_connect.title", fallback: "WalletConnect")
     public enum Connect {

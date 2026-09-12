@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = สแกนหรือวางรห
 wallet_connect_permissions_title = สิทธิ์การเข้าถึง
 wallet_connect_permissions_view_balance = ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ
 wallet_connect_permissions_approval_requests = ส่งคำขออนุมัติ
+wallet_connect_request_expired = คำขอหมดอายุแล้ว
 
 # Swap
 

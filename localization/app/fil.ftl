@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = I-scan o i-paste ang code para kumonekt
 wallet_connect_permissions_title = Mga Pahintulot
 wallet_connect_permissions_view_balance = Tingnan ang iyong balanse at aktibidad
 wallet_connect_permissions_approval_requests = Magpadala ng mga kahilingan sa pag-apruba
+wallet_connect_request_expired = Nag-expire na ang kahilingan
 
 # Swap
 

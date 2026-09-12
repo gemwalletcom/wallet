@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">權限</string>
   <string name="wallet_connect_permissions_view_balance">查看餘額和交易紀錄</string>
   <string name="wallet_connect_permissions_approval_requests">傳送授權請求</string>
+  <string name="wallet_connect_request_expired">請求已過期</string>
   <string name="swap_you_pay">支付</string>
   <string name="swap_you_receive">預計收到</string>
   <string name="swap_price_impact">價格影響</string>

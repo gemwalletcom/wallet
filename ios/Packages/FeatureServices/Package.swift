@@ -26,6 +26,7 @@ let package = Package(
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
         .package(name: "SystemServices", path: "../SystemServices"),
+        .package(name: "Localization", path: "../Localization"),
     ],
     targets: [
         .target(
@@ -110,6 +111,7 @@ let package = Package(
                 "Primitives",
                 "Gemstone",
                 "GemstonePrimitives",
+                "Localization",
                 .product(name: "WalletConnect", package: "reown-swift"),
                 .product(name: "ReownWalletKit", package: "reown-swift"),
                 .product(name: "WalletConnectNetworking", package: "reown-swift"),

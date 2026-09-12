@@ -97,12 +97,14 @@ class WCRequestViewModel @Inject constructor(
                         chainId = sessionRequest.chainId,
                         origin = verifyContext.origin,
                         validation = verifyContext.map(),
+                        expiry = null,
                     ),
                 )
             }
             when (val failure = outcome.failure) {
                 null -> Unit
                 GemWalletConnectFailure.MaliciousOrigin -> onNotify(BridgeRequestError.MaliciousSession)
+                GemWalletConnectFailure.Expired -> onNotify(BridgeRequestError.Expired)
                 is GemWalletConnectFailure.Failed -> onError(failure.message)
             }
             when (val response = outcome.response) {

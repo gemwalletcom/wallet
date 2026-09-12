@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Escaneie ou cole o código para conecta
 wallet_connect_permissions_title = Permissões
 wallet_connect_permissions_view_balance = Veja seu saldo e atividade
 wallet_connect_permissions_approval_requests = Enviar solicitações de aprovação
+wallet_connect_request_expired = Solicitação expirada
 
 # Swap
 

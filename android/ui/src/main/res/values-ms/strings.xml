@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Kebenaran</string>
   <string name="wallet_connect_permissions_view_balance">Lihat baki dan aktiviti anda</string>
   <string name="wallet_connect_permissions_approval_requests">Hantar permintaan kelulusan</string>
+  <string name="wallet_connect_request_expired">Permintaan telah tamat tempoh</string>
   <string name="swap_you_pay">Anda Bayar</string>
   <string name="swap_you_receive">Anda Terima</string>
   <string name="swap_price_impact">Kesan Harga</string>

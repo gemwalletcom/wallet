@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">権限</string>
   <string name="wallet_connect_permissions_view_balance">残高とアクティビティを確認する</string>
   <string name="wallet_connect_permissions_approval_requests">承認依頼を送信する</string>
+  <string name="wallet_connect_request_expired">リクエストの有効期限が切れました</string>
   <string name="swap_you_pay">支払額</string>
   <string name="swap_you_receive">受取額</string>
   <string name="swap_price_impact">価格への影響</string>

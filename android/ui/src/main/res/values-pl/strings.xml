@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Uprawnienia</string>
   <string name="wallet_connect_permissions_view_balance">Wyświetl swoje saldo i aktywność</string>
   <string name="wallet_connect_permissions_approval_requests">Wyślij prośby o zatwierdzenie</string>
+  <string name="wallet_connect_request_expired">Żądanie wygasło</string>
   <string name="swap_you_pay">Ty płacisz</string>
   <string name="swap_you_receive">Otrzymujesz</string>
   <string name="swap_price_impact">Wpływ na cenę</string>

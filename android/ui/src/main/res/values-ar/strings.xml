@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">الأذونات</string>
   <string name="wallet_connect_permissions_view_balance">اطلع على رصيدك ونشاطك</string>
   <string name="wallet_connect_permissions_approval_requests">إرسال طلبات الموافقة</string>
+  <string name="wallet_connect_request_expired">انتهت صلاحية الطلب</string>
   <string name="swap_you_pay">انت تدفع</string>
   <string name="swap_you_receive">انت تستقبل</string>
   <string name="swap_price_impact">تأثير السعر</string>

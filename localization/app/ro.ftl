@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Scanați sau lipiți codul pentru a vă
 wallet_connect_permissions_title = Permisiuni
 wallet_connect_permissions_view_balance = Vizualizați soldul și activitatea dvs.
 wallet_connect_permissions_approval_requests = Trimiteți cereri de aprobare
+wallet_connect_request_expired = Cererea a expirat
 
 # Swap
 

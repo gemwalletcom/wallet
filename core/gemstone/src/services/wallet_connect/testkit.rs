@@ -83,6 +83,7 @@ impl GemWalletConnectSessionRequest {
             chain_id: Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()),
             origin: Some("https://example.com".to_string()),
             validation: WalletConnectionVerificationStatus::Verified,
+            expiry: None,
         }
     }
 }

@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = Отсканируйте или вст�
 wallet_connect_permissions_title = Разрешения
 wallet_connect_permissions_view_balance = Просматривать баланс и активность
 wallet_connect_permissions_approval_requests = Отправлять запросы на подтверждение
+wallet_connect_request_expired = Срок запроса истёк
 
 # Swap
 

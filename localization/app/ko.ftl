@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = DApp에 연결하려면 코드를 스�
 wallet_connect_permissions_title = 권한
 wallet_connect_permissions_view_balance = 잔액과 활동 내역을 확인하세요
 wallet_connect_permissions_approval_requests = 승인 요청 보내기
+wallet_connect_request_expired = 요청이 만료되었습니다
 
 # Swap
 

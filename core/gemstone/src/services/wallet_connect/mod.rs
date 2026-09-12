@@ -167,6 +167,10 @@ impl GemWalletConnectService {
         if !self.should_process_message(rules::request_message_id(&request.topic, &request.request_id)) {
             return GemWalletConnectOutcome::ignored();
         }
+        let expiry = request.expiry;
+        if rules::is_expired(expiry, Utc::now()) {
+            return GemWalletConnectOutcome::expired();
+        }
         let Ok(connection) = self.connection(&request.topic).await else {
             return GemWalletConnectOutcome::rejected(None);
         };
@@ -177,11 +181,12 @@ impl GemWalletConnectService {
         let Some(chain_id) = request.chain_id else {
             return GemWalletConnectOutcome::rejected(None);
         };
-        match self.handle_request(request.topic, request.method, request.params, chain_id, domain).await {
+        match self.handle_request(request.topic, request.method, request.params, chain_id, domain, expiry).await {
             Ok(response) => GemWalletConnectOutcome {
                 response: Some(response),
                 failure: None,
             },
+            Err(_) if rules::is_expired(expiry, Utc::now()) => GemWalletConnectOutcome::expired(),
             Err(GemServiceError::Cancelled) => GemWalletConnectOutcome::rejected(None),
             Err(error) => GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: error.to_string() })),
         }
@@ -195,7 +200,15 @@ impl GemWalletConnectService {
 }
 
 impl GemWalletConnectService {
-    async fn handle_request(&self, topic: String, method: String, params: String, chain_id: String, domain: String) -> Result<GemWalletConnectResponse, GemServiceError> {
+    async fn handle_request(
+        &self,
+        topic: String,
+        method: String,
+        params: String,
+        chain_id: String,
+        domain: String,
+        expiry: Option<u64>,
+    ) -> Result<GemWalletConnectResponse, GemServiceError> {
         let action = self.wallet_connect.parse_request(topic.clone(), method, params, chain_id, domain.clone())?;
         let session_id = topic;
         let response = match action {
@@ -205,6 +218,7 @@ impl GemWalletConnectService {
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain).await?;
                 let assets = self.assets.ensure_simulation_assets(simulation.asset_ids()).await?;
                 let message = self.wallet_connect.decode_sign_message(chain, sign_type, data);
+                self.ensure_live(expiry)?;
                 let signature = self
                     .signer
                     .sign_message(GemWalletConnectMessageRequest {
@@ -222,7 +236,7 @@ impl GemWalletConnectService {
             }
             WalletConnectAction::SignTransaction { chain, transaction_type, data } => {
                 let transaction_id = self
-                    .sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Sign)
+                    .sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Sign, expiry)
                     .await?;
                 self.wallet_connect.encode_sign_transaction(chain, transaction_id)
             }
@@ -237,13 +251,13 @@ impl GemWalletConnectService {
                     });
                 };
                 let signed = self
-                    .sign_transaction(session_id, chain, transaction_type, data.clone(), GemWalletConnectTransactionAction::Sign)
+                    .sign_transaction(session_id, chain, transaction_type, data.clone(), GemWalletConnectTransactionAction::Sign, expiry)
                     .await?;
                 self.wallet_connect.encode_sign_all_transactions(vec![signed])
             }
             WalletConnectAction::SendTransaction { chain, transaction_type, data } => {
                 let transaction_id = self
-                    .sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Send)
+                    .sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Send, expiry)
                     .await?;
                 self.wallet_connect.encode_send_transaction(chain, transaction_id)
             }
@@ -275,12 +289,14 @@ impl GemWalletConnectService {
         transaction_type: WalletConnectTransactionType,
         data: String,
         action: GemWalletConnectTransactionAction,
+        expiry: Option<u64>,
     ) -> Result<String, GemServiceError> {
         let (connection, account) = self.connection_account(&session_id, chain).await?;
         let transaction = self.wallet_connect.decode_send_transaction(transaction_type.clone(), data.clone())?;
         rules::validate_transaction_sender(&transaction, &account)?;
         let simulation = self.simulation.simulate_send_transaction(chain, transaction_type, data).await?;
         let transfer = rules::transfer_data(chain, connection.session.metadata.clone(), transaction, action)?;
+        self.ensure_live(expiry)?;
         self.signer
             .sign_transaction(GemWalletConnectTransactionRequest {
                 session_id,
@@ -293,6 +309,13 @@ impl GemWalletConnectService {
                 action,
             })
             .await
+    }
+
+    fn ensure_live(&self, expiry: Option<u64>) -> Result<(), GemServiceError> {
+        match rules::is_expired(expiry, Utc::now()) {
+            true => Err(GemServiceError::Cancelled),
+            false => Ok(()),
+        }
     }
 
     async fn get_accounts(&self, session_id: &str, chain: Chain) -> Result<Vec<Account>, GemServiceError> {
@@ -333,6 +356,7 @@ mod tests {
             chain_id: Some("eip155:1".to_string()),
             origin: Some("https://example.com".to_string()),
             validation: WalletConnectionVerificationStatus::Verified,
+            expiry: None,
         }
     }
 
@@ -466,6 +490,31 @@ mod tests {
                 GemWalletConnectOutcome { response: None, failure: None },
                 "a redelivered request gets no second answer: the first one is still being decided or was already sent"
             );
+
+            let expired = service
+                .process_request(GemWalletConnectSessionRequest {
+                    expiry: Some((Utc::now() - chrono::TimeDelta::seconds(1)).timestamp() as u64),
+                    ..request("expired")
+                })
+                .await;
+            assert_eq!(
+                expired,
+                GemWalletConnectOutcome {
+                    response: Some(GemWalletConnectResponse::Error {
+                        error: rules::request_expired_error(),
+                    }),
+                    failure: Some(GemWalletConnectFailure::Expired),
+                },
+                "a request the dapp stopped waiting for is answered as expired and never reaches the signer"
+            );
+
+            let live = service
+                .process_request(GemWalletConnectSessionRequest {
+                    expiry: Some((Utc::now() + chrono::TimeDelta::seconds(300)).timestamp() as u64),
+                    ..request("live")
+                })
+                .await;
+            assert_eq!(live.failure, None, "a request still inside its expiry is answered normally");
 
             let malicious = service
                 .process_request(GemWalletConnectSessionRequest {

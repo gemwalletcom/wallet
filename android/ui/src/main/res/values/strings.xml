@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Permissions</string>
   <string name="wallet_connect_permissions_view_balance">View your balance and activity</string>
   <string name="wallet_connect_permissions_approval_requests">Send approval requests</string>
+  <string name="wallet_connect_request_expired">Request expired</string>
   <string name="swap_you_pay">You Pay</string>
   <string name="swap_you_receive">You Receive</string>
   <string name="swap_price_impact">Price Impact</string>

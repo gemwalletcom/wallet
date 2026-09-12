@@ -23,6 +23,7 @@ use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
 pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
+const SESSION_REQUEST_EXPIRED_ERROR_CODE: i32 = 8000;
 const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
 
 pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Account, GemServiceError> {
@@ -160,6 +161,17 @@ pub fn user_rejected_error() -> GemWalletConnectRpcError {
         code: USER_REJECTED_ERROR_CODE,
         message: "User rejected the request".to_string(),
     }
+}
+
+pub fn request_expired_error() -> GemWalletConnectRpcError {
+    GemWalletConnectRpcError {
+        code: SESSION_REQUEST_EXPIRED_ERROR_CODE,
+        message: "Session request expired".to_string(),
+    }
+}
+
+pub fn is_expired(expiry: Option<u64>, now: DateTime<Utc>) -> bool {
+    expiry.is_some_and(|expiry| now.timestamp() >= expiry as i64)
 }
 
 pub fn method_not_found_error() -> GemWalletConnectRpcError {

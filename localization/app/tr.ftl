@@ -367,6 +367,7 @@ wallet_connect_state_empty_description = DApp'e bağlanmak için kodu tarayın v
 wallet_connect_permissions_title = İzinler
 wallet_connect_permissions_view_balance = Bakiyenizi ve işlemlerinizi görüntüleyin.
 wallet_connect_permissions_approval_requests = Onay isteklerini gönderin
+wallet_connect_request_expired = İstek süresi doldu
 
 # Swap
 

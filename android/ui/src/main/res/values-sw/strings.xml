@@ -316,6 +316,7 @@
   <string name="wallet_connect_permissions_title">Ruhusa</string>
   <string name="wallet_connect_permissions_view_balance">Tazama salio na shughuli zako</string>
   <string name="wallet_connect_permissions_approval_requests">Tuma maombi ya idhini</string>
+  <string name="wallet_connect_request_expired">Ombi limeisha muda</string>
   <string name="swap_you_pay">Unalipa</string>
   <string name="swap_you_receive">Unapokea</string>
   <string name="swap_price_impact">Athari ya Bei</string>

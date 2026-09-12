@@ -7,6 +7,7 @@ import struct Gemstone.GemWalletConnectSessionRequest
 import enum Gemstone.GemWalletConnectError
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
+import Localization
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 @preconcurrency import ReownWalletKit
@@ -150,6 +151,7 @@ extension WalletConnectorService {
                 chainId: request.chainId.absoluteString,
                 origin: verifyContext?.origin,
                 validation: verifyContext?.validation.map() ?? .unknown,
+                expiry: request.expiryTimestamp,
             ))
             if let response = outcome.response {
                 do {
@@ -247,6 +249,7 @@ private extension GemWalletConnectFailure {
     var error: any Error {
         switch self {
         case .maliciousOrigin: GemWalletConnectError.InvalidOrigin
+        case .expired: AnyError(Localized.WalletConnect.requestExpired)
         case let .failed(message): AnyError(message)
         }
     }
