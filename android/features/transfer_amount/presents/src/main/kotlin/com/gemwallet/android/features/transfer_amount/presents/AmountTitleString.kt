@@ -25,6 +25,10 @@ fun AmountTitle.asString(): String = when (this) {
         is AmountParams.Stake.Freeze -> R.string.transfer_freeze_title
         is AmountParams.Stake.Unfreeze -> R.string.transfer_unfreeze_title
     })
+    is AmountTitle.Earn -> stringResource(when (action) {
+        is AmountParams.Earn.Deposit -> R.string.wallet_deposit
+        is AmountParams.Earn.Withdraw -> R.string.transfer_withdraw_title
+    })
     is AmountTitle.Perpetual -> perpetualTitle(action)
 }
 

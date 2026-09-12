@@ -20,6 +20,7 @@ sealed interface EmptyContentType {
     data object SearchPerpetuals : EmptyContentType
 
     data class Stake(val symbol: String) : EmptyContentType
+    data class Earn(val symbol: String) : EmptyContentType
     data object PriceAlerts : EmptyContentType
     data object Contacts : EmptyContentType
     data object WalletConnect : EmptyContentType

@@ -6,6 +6,7 @@ import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.earn.delegation.presents.DelegationScene
+import com.gemwallet.android.features.stake.presents.EarnScreen
 import com.gemwallet.android.features.stake.presents.StakeScreen
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
@@ -14,6 +15,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class StakeRoute(val assetId: AssetId) : NavKey
+
+@Serializable
+data class EarnRoute(val assetId: AssetId) : NavKey
 
 @Serializable
 data class DelegationRoute(val validatorId: String, val delegationId: String) : NavKey
@@ -31,6 +35,15 @@ fun EntryProviderScope<NavKey>.stake(
             amountAction = onAmount,
             onDelegation = onDelegation,
             onConfirm = onConfirm,
+            onCancel = onCancel,
+        )
+    }
+
+    entry<EarnRoute>(
+        metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
+    ) {
+        EarnScreen(
+            amountAction = onAmount,
             onCancel = onCancel,
         )
     }

@@ -53,6 +53,7 @@ class AssetInfoUIModel(
     enum class BalanceViewType(@param:StringRes val label: Int) {
         Available(R.string.asset_balances_available),
         Stake(R.string.wallet_stake),
+        Earn(R.string.common_earn),
         PendingUnconfirmed(R.string.stake_pending),
         Reserved(R.string.asset_balances_reserved)
     }

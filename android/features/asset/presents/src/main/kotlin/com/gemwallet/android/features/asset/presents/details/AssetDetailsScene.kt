@@ -149,6 +149,7 @@ internal fun AssetDetailsScene(
                             AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> InfoSheetEntity.PendingUnconfirmedBalanceInfo
                             AssetInfoUIModel.BalanceViewType.Available,
                             AssetInfoUIModel.BalanceViewType.Stake,
+                            AssetInfoUIModel.BalanceViewType.Earn,
                             AssetInfoUIModel.BalanceViewType.Reserved -> null
                         },
                         onAction = when (item.type) {
@@ -156,6 +157,10 @@ internal fun AssetDetailsScene(
                             AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> null
                             AssetInfoUIModel.BalanceViewType.Stake -> {
                                 { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
+                            }
+
+                            AssetInfoUIModel.BalanceViewType.Earn -> {
+                                { onAction(AssetDetailsAction.Earn(uiState.asset.id)) }
                             }
 
                             AssetInfoUIModel.BalanceViewType.Reserved -> item.url?.let { url ->

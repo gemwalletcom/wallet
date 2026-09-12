@@ -93,6 +93,23 @@ sealed interface AmountParams {
     }
 
     @Serializable
+    sealed interface Earn : AmountParams {
+
+        @Serializable @SerialName("earn.deposit")
+        data class Deposit(
+            override val assetId: AssetId,
+            val providerId: String,
+        ) : Earn
+
+        @Serializable @SerialName("earn.withdraw")
+        data class Withdraw(
+            override val assetId: AssetId,
+            val validatorId: String,
+            val delegationId: String,
+        ) : Earn
+    }
+
+    @Serializable
     @SerialName("perpetual")
     data class Perpetual(
         override val assetId: AssetId,

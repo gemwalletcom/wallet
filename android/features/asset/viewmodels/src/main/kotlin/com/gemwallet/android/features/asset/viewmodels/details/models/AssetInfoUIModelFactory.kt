@@ -80,7 +80,14 @@ class AssetInfoUIModelFactory @Inject constructor() {
                 )
                 is GemBalanceRow.PendingUnconfirmed -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.PendingUnconfirmed, text(row.value))
                 is GemBalanceRow.Reserved -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.Reserved, text(row.value), row.url)
-                is GemBalanceRow.Earn -> null
+                is GemBalanceRow.Earn -> AssetInfoUIModel.BalanceUIModel(
+                    AssetInfoUIModel.BalanceViewType.Earn,
+                    if (row.value == BigInteger.ZERO) {
+                        "APR ${(assetInfo.metadata.earnApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
+                    } else {
+                        text(row.value)
+                    },
+                )
             }
         }
     }

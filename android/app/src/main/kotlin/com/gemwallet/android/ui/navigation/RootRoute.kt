@@ -71,6 +71,7 @@ import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.gemwallet.android.ui.navigation.routes.EarnRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
@@ -269,6 +270,8 @@ class WalletNavigator(
     fun openAddPriceAlertTarget(assetId: AssetId) = push(AddPriceAlertTargetRoute(assetId))
     fun openPerpetuals() = push(PerpetualRoute)
     fun openPerpetualDetails(assetId: AssetId) = push(PerpetualPositionRoute(assetId))
+    fun openEarn(assetId: AssetId) = push(EarnRoute(assetId))
+
     fun openStake(assetId: AssetId) = push(StakeRoute(assetId))
     fun openDelegation(validatorId: String, delegationId: String) = push(DelegationRoute(validatorId, delegationId))
     fun openReceive() = push(ReceiveSelectRoute)
@@ -381,6 +384,7 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         is ConfirmRoute,
         is DelegationRoute,
         is RecipientInputRoute,
+        is EarnRoute,
         is StakeRoute,
         is SwapPairRoute,
         is SwapSelectRoute -> true

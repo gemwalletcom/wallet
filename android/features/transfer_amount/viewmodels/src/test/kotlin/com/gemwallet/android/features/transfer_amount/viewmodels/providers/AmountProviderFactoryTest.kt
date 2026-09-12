@@ -7,6 +7,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetValidators
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -21,6 +22,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -36,17 +38,20 @@ class AmountProviderFactoryTest {
             every { this@mockk.invoke(any(), any(), any()) } returns flowOf(null)
         },
         getDelegations = mockk<GetDelegations>(relaxed = true) {
-            every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList())
+            every { this@mockk.invoke(any(), any(), any()) } returns flowOf(emptyList())
         },
         getStakeValidator = mockk(relaxed = true),
         getValidators = mockk<GetValidators>(relaxed = true) {
-            every { this@mockk.invoke(any()) } returns flowOf(emptyList())
+            every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList())
         },
         getPerpetual = mockk<GetPerpetual>(relaxed = true) {
             every { getPerpetual(any()) } returns flowOf(null)
         },
         getPerpetualBalance = mockk<GetPerpetualBalance>(relaxed = true) {
             every { getBalance() } returns flowOf(null)
+        },
+        getSession = mockk<GetSession>(relaxed = true) {
+            every { this@mockk.invoke() } returns MutableStateFlow(null)
         },
         service = mockk<GemAmountServiceInterface>(relaxed = true),
     )
