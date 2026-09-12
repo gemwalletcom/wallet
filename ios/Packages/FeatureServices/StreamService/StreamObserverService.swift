@@ -27,12 +27,15 @@ public actor StreamObserverService: Sendable {
     // MARK: - Public API
 
     public func connect() {
+        guard !isActive else { return }
         isActive = true
-        startObserving()
+        restart()
     }
 
     public func updateSession() async {
-        startObserving()
+        if await webSocket.state == .disconnected {
+            restart()
+        }
         do {
             try await service.updateSession()
         } catch {
@@ -49,16 +52,15 @@ public actor StreamObserverService: Sendable {
 
     // MARK: - Private
 
-    private func startObserving() {
-        guard isActive, observeTask == nil else { return }
+    private func restart() {
+        guard isActive else { return }
+        let previous = observeTask
+        previous?.cancel()
         observeTask = Task { [weak self] in
+            await previous?.value
+            guard !Task.isCancelled else { return }
             await self?.observeConnection()
-            await self?.stopObserving()
         }
-    }
-
-    private func stopObserving() {
-        observeTask = nil
     }
 
     private func observeConnection() async {
