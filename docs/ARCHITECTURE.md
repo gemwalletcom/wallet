@@ -506,6 +506,16 @@ Pass a domain record when it already owns the needed fields. Breaking a delegati
 
 Input parsing must preserve the source's meaning: human input and machine strings need different parsers. Returning a coarse success flag or rounding before checking precision discards information the next layer needs. See [number parsing](#number-parsing-human-input-vs-machine-strings).
 
+### Presentation choices are decisions
+
+Which name a row shows, what sits under it, what trails it, and whether a badge repeats a value already in the title are decisions, not formatting. They belong in the record the screen already receives, as cases the app maps to widgets. Left to the apps they drift silently, because each one looks locally reasonable and nothing compares them.
+
+Core picks the number, its units and the currency it is quoted in; the app renders it in the user's locale. A unit choice ("days and hours above a day, hours and minutes below it"), a conversion factor, and which of several available numbers a row displays are all decisions with one right answer. Formatting is the part that must stay platform: Core's value formatter is not locale-aware, so a Core-formatted amount regresses every locale that groups or separates differently.
+
+A default argument that supplies an app's own answer hides that answer from review. Make the parameter required so every call site names where its answer comes from; the compiler then lists the places that were deciding on their own.
+
+Count the copies before adding one. A rule that looks like two app-side duplicates is often three, with the third inside a Core crate that must agree with the other two. Search the workspace before introducing a shared answer, and make the existing owner the one that answers.
+
 ### State and lifecycle have an owner
 
 Screen services are constructed with the screen. Putting them in launch-time environment entries built dependencies for screens the user never opened. A screen-scoped service may retain state that belongs to that screen, such as confirm preload and simulation; this does not justify a global cache or singleton mutable state.
