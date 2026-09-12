@@ -158,6 +158,23 @@ mod tests {
     }
 
     #[test]
+    fn test_a_session_change_subscribes_over_the_live_connection() {
+        block_on(async {
+            let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
+            let second_wallet = WalletId::Multicoin("0x2".into());
+            kit.balances.set_assets_enabled(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+
+            kit.service.prepare_session(Some(kit.wallet_id.clone())).await.unwrap();
+            kit.service.prepare_session(Some(second_wallet)).await.unwrap();
+
+            assert_eq!(
+                kit.connection.messages(),
+                vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("subscribe", asset_ids(&[Chain::Ethereum]))]
+            );
+        });
+    }
+
+    #[test]
     fn test_each_reconnect_sends_a_fresh_subscription() {
         block_on(async {
             let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[Chain::Ethereum]);

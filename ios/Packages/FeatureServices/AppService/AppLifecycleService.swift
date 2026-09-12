@@ -57,7 +57,7 @@ public actor AppLifecycleService: Sendable {
 
     public func updateWalletConnections() async {
         async let perpetual: () = connectPerpetual()
-        async let stream: () = streamObserverService.update()
+        async let stream: () = streamObserverService.updateSession()
         _ = await (perpetual, stream)
     }
 

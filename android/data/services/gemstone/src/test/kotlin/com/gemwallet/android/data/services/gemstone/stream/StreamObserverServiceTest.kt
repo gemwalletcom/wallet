@@ -77,16 +77,17 @@ class StreamObserverServiceTest {
     }
 
     @Test
-    fun reconnectsWhenWalletChanges() = runTest {
+    fun aWalletChangeSubscribesOverTheLiveConnection() = runTest {
         observer().start()
         runCurrent()
 
         sessions.value = mockSession(wallet = mockWallet(id = "wallet-2"))
         runCurrent()
 
-        assertEquals(2, connection.connectCount)
+        assertEquals(1, connection.connectCount)
         assertEquals(1, connection.activeConnections)
-        coVerify(exactly = 2) { service.prepareConnection() }
+        coVerify(exactly = 1) { service.prepareConnection() }
+        coVerify(exactly = 1) { service.updateSession() }
     }
 
     @Test

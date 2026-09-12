@@ -90,6 +90,10 @@ impl GemStreamService {
         Ok(true)
     }
 
+    pub async fn update_session(&self) -> Result<(), GemServiceError> {
+        self.subscriptions.prepare_session(self.session.get_current_wallet_id()?).await.map(|_| ())
+    }
+
     pub async fn connected(&self) -> Result<(), GemServiceError> {
         self.subscriptions.reconnect().await
     }

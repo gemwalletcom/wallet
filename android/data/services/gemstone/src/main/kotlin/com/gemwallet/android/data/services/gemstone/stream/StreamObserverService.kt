@@ -9,9 +9,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemStreamServiceInterface
@@ -31,18 +33,23 @@ class StreamObserverService(
         connectionJob = scope.launch {
             withContext(NonCancellable) { previousJob?.join() }
             currentCoroutineContext().ensureActive()
-            getSession()
-                .map { it?.wallet?.id?.id }
-                .distinctUntilChanged()
-                .collectLatest {
-                    runCatchingCancellable {
-                        val connects = service.prepareConnection()
-                        currentCoroutineContext().ensureActive()
-                        if (connects) {
-                            observeConnection()
-                        }
-                    }.onFailure { Log.e(TAG, "Stream connection error", it) }
+            val wallets = getSession().map { it?.wallet?.id?.id }.distinctUntilChanged()
+            launch {
+                wallets.drop(1).collect {
+                    runCatchingCancellable { service.updateSession() }
+                        .onFailure { Log.e(TAG, "Stream session update error", it) }
                 }
+            }
+            while (isActive) {
+                runCatchingCancellable {
+                    val connects = service.prepareConnection()
+                    currentCoroutineContext().ensureActive()
+                    when (connects) {
+                        true -> observeConnection()
+                        false -> wallets.first { it != null }
+                    }
+                }.onFailure { Log.e(TAG, "Stream connection error", it) }
+            }
         }
     }
 

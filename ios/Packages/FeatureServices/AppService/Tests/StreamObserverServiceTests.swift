@@ -68,42 +68,36 @@ struct StreamObserverServiceTests {
     }
 
     @Test
-    func replacementWaitsForTeardownAndUpdatesStayStopped() async {
+    func sessionUpdateKeepsTheConnectionAndStopsWithTheObserver() async {
         let opened = AsyncStream<Void>.makeStream()
-        let closing = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
         let preparations = Locked(wrappedValue: 0)
-        let didBlock = Locked(wrappedValue: false)
+        let sessions = Locked(wrappedValue: 0)
         let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(()) })
         let service = GemStreamServiceMock(
             prepare: {
                 preparations.wrappedValue += 1
                 return true
             },
-            onDisconnected: {
-                if !didBlock.wrappedValue {
-                    didBlock.wrappedValue = true
-                    await withCheckedContinuation { closing.continuation.yield($0) }
-                }
-            },
+            onSession: { sessions.wrappedValue += 1 },
         )
         let observer = StreamObserverService.mock(service: service, webSocket: socket)
         var connections = opened.stream.makeAsyncIterator()
         await observer.connect()
         _ = await connections.next()
-        await observer.update()
-        var closures = closing.stream.makeAsyncIterator()
-        let completion = await closures.next()
+
+        await observer.updateSession()
+
+        #expect(sessions.wrappedValue == 1)
         #expect(preparations.wrappedValue == 1)
-        completion?.resume()
-        _ = await connections.next()
-        #expect(preparations.wrappedValue == 2)
+
         await observer.disconnect()
-        await observer.update()
-        #expect(preparations.wrappedValue == 2)
+        await observer.updateSession()
+
+        #expect(preparations.wrappedValue == 1)
     }
 
     @Test
-    func foregroundUpdateConnectsWhenCoreBecomesReady() async {
+    func foregroundSessionUpdateConnectsWhenCoreBecomesReady() async {
         let opened = AsyncStream<Void>.makeStream()
         let closed = AsyncStream<Void>.makeStream()
         let ready = Locked(wrappedValue: false)
@@ -117,7 +111,7 @@ struct StreamObserverServiceTests {
         var closures = closed.stream.makeAsyncIterator()
         _ = await closures.next()
         ready.wrappedValue = true
-        await observer.update()
+        await observer.updateSession()
         var connections = opened.stream.makeAsyncIterator()
         _ = await connections.next()
         await observer.disconnect()

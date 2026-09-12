@@ -27,33 +27,38 @@ public actor StreamObserverService: Sendable {
     // MARK: - Public API
 
     public func connect() {
-        guard !isActive else { return }
         isActive = true
-        restart()
+        startObserving()
     }
 
-    public func update() {
-        guard isActive else { return }
-        restart()
+    public func updateSession() async {
+        startObserving()
+        do {
+            try await service.updateSession()
+        } catch {
+            debugLog("stream session update error: \(error)")
+        }
     }
 
     public func disconnect() async {
         isActive = false
         observeTask?.cancel()
         await observeTask?.value
+        observeTask = nil
     }
 
     // MARK: - Private
 
-    private func restart() {
-        let previous = observeTask
-        previous?.cancel()
+    private func startObserving() {
+        guard isActive, observeTask == nil else { return }
         observeTask = Task { [weak self] in
-            await previous?.value
-            guard !Task.isCancelled else { return }
-            guard let self else { return }
-            await observeConnection()
+            await self?.observeConnection()
+            await self?.stopObserving()
         }
+    }
+
+    private func stopObserving() {
+        observeTask = nil
     }
 
     private func observeConnection() async {
