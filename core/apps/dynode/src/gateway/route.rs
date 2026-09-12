@@ -274,6 +274,23 @@ mod tests {
     }
 
     #[test]
+    fn test_target_url_without_suffix() {
+        let routes = routes(vec![route("indexer", "sui")]);
+        let matched = match_route(&routes, &Method::POST, "/parser/sui").unwrap();
+        assert_eq!(
+            matched.target_url(&endpoint("https://graphql.mainnet.sui.io/graphql", HashMap::new())).unwrap().as_str(),
+            "https://graphql.mainnet.sui.io/graphql"
+        );
+        assert_eq!(
+            matched
+                .target_url(&endpoint("https://sui.blockpi.network/v1/graphql/key", HashMap::new()))
+                .unwrap()
+                .as_str(),
+            "https://sui.blockpi.network/v1/graphql/key"
+        );
+    }
+
+    #[test]
     fn test_target_credentials() {
         let routes = routes(vec![route("indexer", "blockscout")]);
         let matched = match_route(&routes, &Method::GET, "/worker/blockscout/api?apikey=client&chain=1").unwrap();
