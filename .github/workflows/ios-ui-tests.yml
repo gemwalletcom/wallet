@@ -34,7 +34,7 @@ env:
 
 jobs:
   ui_test:
-    runs-on: blacksmith-6vcpu-macos-26
+    runs-on: macos-26
 
     steps:
       - name: Checkout
