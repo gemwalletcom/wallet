@@ -10,7 +10,6 @@ import Recents
 import Style
 import SwiftUI
 import Transfer
-import struct Gemstone.GemTransferData
 
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -65,10 +64,10 @@ struct SelectAssetSceneNavigationStack: View {
                                 type: .asset(asset: input.asset.map()),
                                 recipient: recipient,
                                 onRecipientDataAction: {
-                                    navigationPath.append($0)
+                                    navigationPath.append(AmountInput(type: .transfer(recipient: $0), asset: input.asset))
                                 },
                                 onTransferAction: {
-                                    navigationPath.append($0)
+                                    navigationPath.append(ConfirmTransferInput(data: $0))
                                 },
                             ),
                         )
@@ -87,7 +86,7 @@ struct SelectAssetSceneNavigationStack: View {
                                 input: AmountInput(type: .deposit, asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: {
-                                    navigationPath.append($0)
+                                    navigationPath.append(ConfirmTransferInput(data: $0))
                                 },
                             ),
                         )
@@ -97,7 +96,7 @@ struct SelectAssetSceneNavigationStack: View {
                                 input: AmountInput(type: .withdraw, asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: {
-                                    navigationPath.append($0)
+                                    navigationPath.append(ConfirmTransferInput(data: $0))
                                 },
                             ),
                         )
@@ -107,11 +106,11 @@ struct SelectAssetSceneNavigationStack: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: GemTransferData.self) { data in
+            .navigationDestination(for: ConfirmTransferInput.self) { confirm in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: model.wallet,
-                        data: data,
+                        data: confirm.data,
                         onComplete: { dismiss() },
                     ),
                 )

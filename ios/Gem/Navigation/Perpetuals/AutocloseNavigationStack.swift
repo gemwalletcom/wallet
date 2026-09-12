@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import Perpetuals
 import Primitives
 import SwiftUI
-import struct Gemstone.GemTransferData
 
 struct AutocloseNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -18,14 +18,14 @@ struct AutocloseNavigationStack: View {
         NavigationStack(path: $navigationPath) {
             AutocloseScene(
                 model: AutocloseSceneViewModel(
-                    type: .modify(position, onTransferAction: { navigationPath.append($0) }),
+                    type: .modify(position, onTransferAction: { navigationPath.append(ConfirmTransferInput(data: $0)) }),
                 ),
             )
-            .navigationDestination(for: GemTransferData.self) {
+            .navigationDestination(for: ConfirmTransferInput.self) {
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
-                        data: $0,
+                        data: $0.data,
                         onComplete: onComplete,
                     ),
                 )

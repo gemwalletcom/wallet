@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemTransferData
+import GemstonePrimitives
 import Primitives
 import Swap
 import SwiftUI
@@ -25,16 +25,16 @@ struct SwapNavigationStack: View {
                         wallet: wallet,
                         pairSelector: SwapPairSelectorViewModel(fromAssetId: nil, toAssetId: nil),
                     ),
-                    onSwap: { navigationPath.append($0) },
+                    onSwap: { navigationPath.append(ConfirmTransferInput(data: $0)) },
                 ),
             )
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: GemTransferData.self) { data in
+            .navigationDestination(for: ConfirmTransferInput.self) { input in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
-                        data: data,
+                        data: input.data,
                         onComplete: onComplete,
                     ),
                 )

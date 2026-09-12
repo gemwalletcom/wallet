@@ -35,7 +35,7 @@ struct EarnNavigationView: View {
                         input: input,
                         wallet: wallet,
                         onTransferAction: {
-                            navigationPath.append($0)
+                            navigationPath.append(ConfirmTransferInput(data: $0))
                         },
                     ),
                 )
@@ -51,7 +51,7 @@ struct EarnNavigationView: View {
                             navigationPath.append($0)
                         },
                         onTransferAction: {
-                            navigationPath.append($0)
+                            navigationPath.append(ConfirmTransferInput(data: $0))
                         },
                     ),
                 )

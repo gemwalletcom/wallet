@@ -39,7 +39,7 @@ struct StakeNavigationView: View {
                     input: input,
                     wallet: model.wallet,
                     onTransferAction: {
-                        navigationPath.append($0)
+                        navigationPath.append(ConfirmTransferInput(data: $0))
                     },
                 ),
             )
@@ -55,7 +55,7 @@ struct StakeNavigationView: View {
                         navigationPath.append($0)
                     },
                     onTransferAction: {
-                        navigationPath.append($0)
+                        navigationPath.append(ConfirmTransferInput(data: $0))
                     },
                 ),
             )

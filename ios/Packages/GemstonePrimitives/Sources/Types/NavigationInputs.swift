@@ -2,7 +2,10 @@
 
 import Foundation
 import struct Gemstone.GemPaymentRecipient
+import struct Gemstone.GemTransferData
 import Primitives
+
+public typealias AmountInputAction = ((AmountInput) -> Void)?
 
 public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     public let type: SelectedAssetType
@@ -25,5 +28,27 @@ public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
 
     public var assetAddress: AssetAddress {
         assetData.assetAddress
+    }
+}
+
+public struct AmountInput: Hashable, Identifiable {
+    public let type: AmountType
+    public let asset: Asset
+
+    public init(type: AmountType, asset: Asset) {
+        self.type = type
+        self.asset = asset
+    }
+
+    public var id: String {
+        asset.id.identifier
+    }
+}
+
+public struct ConfirmTransferInput: Hashable {
+    public let data: GemTransferData
+
+    public init(data: GemTransferData) {
+        self.data = data
     }
 }
