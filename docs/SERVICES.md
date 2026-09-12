@@ -273,7 +273,6 @@ Each is one question, and none is blocked on investigation.
 | Notification permission | Core owns "granted / denied / never asked", but Android's adapter holds an application context and cannot tell "never asked" from "denied", so it sends a first-time user to Settings. | Core keeps the three-state decision; Android needs an activity-scoped requester. |
 | Privacy lock | iOS has an app-lock setting with a cover-screen rule and an overlay window; Android has none. | Product call. The cover predicate is Core's, the overlay is platform. |
 | WalletConnect one-click auth | Android only, and its rules — including what the user is asked to sign — live in view-model code. | Product call. Whoever takes it moves the rules to Core first. |
-| Earn visibility | Both apps hide the earn balance row outside a debug build, each with its own build check, so releasing the feature means flipping two switches. | Core should answer whether earn is offered, the way it answers the rest of the row. |
 | Polling beside a live socket | Android polls nowhere, so adopting Core's refresh interval means adding timers to the activity, asset and perpetual screens: new background work, not a consolidation. | Product call on whether Android wants the safety net iOS has. |
 
 ### Android

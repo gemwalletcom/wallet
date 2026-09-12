@@ -12,6 +12,7 @@ use super::model::{
     GemWalletSearchLimits,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
+use crate::config::stake::EARN_OFFERED;
 use crate::models::custom_types::GemBigUint;
 use crate::perpetual::GemPerpetual;
 use crate::services::balance::GemAssetBalance;
@@ -334,7 +335,7 @@ pub fn details_state(
         shows_price_alerts: has_price(price) && displayed_alerts > 0,
         price_alerts_count: displayed_alerts,
         price_alert_enabled: price_alert_enabled(&price_alerts),
-        shows_earn: metadata.is_earn_enabled && !is_view_only && balance.earn == GemBigUint::ZERO,
+        shows_earn: EARN_OFFERED && metadata.is_earn_enabled && !is_view_only && balance.earn == GemBigUint::ZERO,
         empty_transactions_action: if metadata.is_buy_enabled {
             Some(GemAssetEmptyAction::Buy)
         } else if metadata.is_swap_enabled {
@@ -859,7 +860,10 @@ mod tests {
     fn test_details_state_offers_earn_until_there_is_an_earn_balance() {
         let earn_enabled = metadata(true, false, false, true);
 
-        assert!(details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &GemAssetBalance::mock(), &[], Some(1.0), vec![]).shows_earn);
+        assert_eq!(
+            details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &GemAssetBalance::mock(), &[], Some(1.0), vec![]).shows_earn,
+            EARN_OFFERED
+        );
         let earning = GemAssetBalance {
             earn: GemBigUint::from(100u32),
             ..GemAssetBalance::mock()

@@ -1,5 +1,7 @@
 use primitives::StakeChain;
 
+pub const EARN_OFFERED: bool = cfg!(debug_assertions);
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct StakeChainConfig {
     pub time_lock: u64,

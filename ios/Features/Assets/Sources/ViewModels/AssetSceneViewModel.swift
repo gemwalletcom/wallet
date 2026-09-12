@@ -113,12 +113,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var balanceRows: [GemBalanceRow] {
-        let rows = stakeBalance.detailRows(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled)
-        #if DEBUG
-            return rows
-        #else
-            return rows.filter { if case .earn = $0 { false } else { true } }
-        #endif
+        stakeBalance.detailRows(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled)
     }
 
     var details: GemAssetDetails {
@@ -165,11 +160,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var showEarnButton: Bool {
-        #if DEBUG
-            details.state.showsEarn
-        #else
-            false
-        #endif
+        details.state.showsEarn
     }
 
     var priceItemViewModel: PriceListItemViewModel {

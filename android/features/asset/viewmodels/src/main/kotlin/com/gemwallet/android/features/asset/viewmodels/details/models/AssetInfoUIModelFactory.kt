@@ -23,9 +23,7 @@ import uniffi.gemstone.GemBalanceRow
 import javax.inject.Inject
 import java.math.BigInteger
 
-class AssetInfoUIModelFactory @Inject constructor(
-    @param:EarnAvailable private val earnAvailable: Boolean,
-) {
+class AssetInfoUIModelFactory @Inject constructor() {
 
     fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
@@ -82,7 +80,7 @@ class AssetInfoUIModelFactory @Inject constructor(
                 )
                 is GemBalanceRow.PendingUnconfirmed -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.PendingUnconfirmed, text(row.value))
                 is GemBalanceRow.Reserved -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.Reserved, text(row.value), row.url)
-                is GemBalanceRow.Earn -> if (!earnAvailable) null else AssetInfoUIModel.BalanceUIModel(
+                is GemBalanceRow.Earn -> AssetInfoUIModel.BalanceUIModel(
                     AssetInfoUIModel.BalanceViewType.Earn,
                     if (row.value == BigInteger.ZERO) {
                         "APR ${(assetInfo.metadata.earnApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"

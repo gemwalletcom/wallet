@@ -16,6 +16,7 @@ use super::model::{
     GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection, GemValidatorRow,
 };
 use crate::config::image::GemImage;
+use crate::config::stake::EARN_OFFERED;
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::error::GemServiceError;
@@ -234,7 +235,7 @@ impl GemAssetBalance {
         let rows: Vec<GemBalanceRow> = [
             self.shows_stake_balance(chain, is_stake_enabled)
                 .then(|| GemBalanceRow::Staked { value: self.staked_value(chain) }),
-            positive(&self.earn).map(|value| GemBalanceRow::Earn { value }),
+            positive(&self.earn).filter(|_| EARN_OFFERED).map(|value| GemBalanceRow::Earn { value }),
             positive(&self.pending_unconfirmed).map(|value| GemBalanceRow::PendingUnconfirmed { value }),
             positive(&self.reserved).map(|value| GemBalanceRow::Reserved {
                 value,
@@ -1172,10 +1173,7 @@ mod tests {
             earn: BigUint::from(7u32),
             ..GemAssetBalance::mock()
         };
-        assert_eq!(
-            earn.detail_rows(Chain::Ethereum, false),
-            vec![Available { value: BigUint::ZERO }, Earn { value: BigUint::from(7u32) }]
-        );
+        assert_eq!(earn.detail_rows(Chain::Ethereum, false).contains(&Earn { value: BigUint::from(7u32) }), EARN_OFFERED);
     }
 
     #[test]
