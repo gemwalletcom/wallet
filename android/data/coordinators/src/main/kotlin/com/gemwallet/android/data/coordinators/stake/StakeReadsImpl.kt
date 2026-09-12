@@ -36,8 +36,8 @@ class GetValidatorsImpl(
     private val stakeService: GemStakeServiceInterface,
 ) : GetValidators {
 
-    override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
-        stakeStore.observeValidators(assetId, StakeProviderType.Stake)
+    override fun invoke(assetId: AssetId, providerType: StakeProviderType): Flow<List<DelegationValidator>> =
+        stakeStore.observeValidators(assetId, providerType)
             .map { validators -> stakeService.selectableValidators(validators.map { it.toGem() }).map { it.toPrimitives() } }
 }
 
@@ -45,8 +45,8 @@ class GetDelegationsImpl(
     private val stakeStore: GemstoneStakeStore,
 ) : GetDelegations {
 
-    override fun invoke(walletId: WalletId, assetId: AssetId): Flow<List<Delegation>> =
-        stakeStore.observeDelegations(walletId, assetId)
+    override fun invoke(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType): Flow<List<Delegation>> =
+        stakeStore.observeDelegations(walletId, assetId, providerType)
             .map { delegations -> delegations.sortedByDescending { it.base.balance } }
 }
 
