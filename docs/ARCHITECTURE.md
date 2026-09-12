@@ -219,7 +219,7 @@ The store is the change trigger. Core is the decider. Core has no observation pr
 
 ### Navigation values are app types
 
-A navigation stack matches a pushed value, or a route key, to its destination by exact type, and it does so silently: a push with no destination for its type does nothing, reports nothing, and still compiles. The push and the destination sit in different modules, so the route is a contract between two files that never see each other, and it has to be a type the app owns and changes deliberately. A generated transport record is not that type — its shape follows the FFI, so replacing one generated type with another under a screen breaks every link that pushed the old one while the build stays green. On both apps a route carries `Primitives` values, never a Gemstone record: push the value the destination's model already takes, map the generated record to it in the model rather than in the scene, and let the record be the payload the screen reads once it is there. Exercising the link is the only thing that proves a route.
+A navigation stack matches a pushed value, or a route key, to its destination by exact type, and it does so silently: a push with no destination for its type does nothing, reports nothing, and still compiles. The push and the destination sit in different modules, so the route is a contract between two files that never see each other, and it has to be a type the app owns and changes deliberately. A generated transport record is not that type — its shape follows the FFI, so replacing one generated type with another under a screen breaks every link that pushed the old one while the build stays green. On both apps the matched type is the app's own — a `Primitives` value when the destination already takes one, otherwise an app input that carries the payload — and never the generated record itself. Map to it in the model rather than in the scene, and let the record stay the payload the screen reads once it is there. Exercising the link is the only thing that proves a route.
 
 ```swift
 // iOS scene: the row pushes the app's validator, the selection maps Core's row
@@ -236,6 +236,13 @@ public extension SelectionState where T == GemValidatorRow {
 // iOS stack: the destination takes the same app type
 .navigationDestination(for: DelegationValidator.self) { validator in
     ValidatorSelectScene(model: viewModelFactory.validatorSelectScene(currentValidator: validator, ...))
+}
+```
+
+```swift
+// an app input carries a payload that has no Primitives equivalent
+public struct ConfirmTransferInput: Hashable {
+    public let data: GemTransferData
 }
 ```
 
