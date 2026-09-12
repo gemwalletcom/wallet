@@ -102,6 +102,8 @@ class SwapViewModel @Inject constructor(
 
     fun slippageBps(percent: Double): UInt? = swapQuoteService.slippageBpsFromPercent(percent)
 
+    fun slippagePercent(bps: UInt): Double = swapQuoteService.slippagePercent(bps)
+
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
     private val quoteRefreshEnabled = combine(

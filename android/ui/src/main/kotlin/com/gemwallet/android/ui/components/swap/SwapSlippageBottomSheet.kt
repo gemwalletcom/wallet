@@ -50,6 +50,7 @@ fun SwapSlippageBottomSheet(
     defaultBps: UInt?,
     slippageCheck: (UInt) -> GemSlippageCheck,
     slippageBps: (Double) -> UInt?,
+    slippagePercent: (UInt) -> Double,
     onConfirm: (UInt?) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -61,7 +62,7 @@ fun SwapSlippageBottomSheet(
     ) {
         var isAuto by remember(currentBps) { mutableStateOf(currentBps == null) }
         var input by remember(currentBps) {
-            mutableStateOf(currentBps?.let(SwapSlippage::format).orEmpty())
+            mutableStateOf(currentBps?.let { SwapSlippage.format(it, slippagePercent) }.orEmpty())
         }
         val focusRequester = remember { FocusRequester() }
 
@@ -108,7 +109,7 @@ fun SwapSlippageBottomSheet(
                             .weight(1f)
                             .padding(start = paddingSmall),
                         value = input,
-                        placeholder = defaultBps?.let(SwapSlippage::format).orEmpty(),
+                        placeholder = defaultBps?.let { SwapSlippage.format(it, slippagePercent) }.orEmpty(),
                         onValueChange = { input = SwapSlippage.sanitize(it) },
                         suffix = "%",
                         focusRequester = focusRequester,
@@ -117,11 +118,11 @@ fun SwapSlippageBottomSheet(
                 }
                 when (check) {
                     GemSlippageCheck.ABOVE_MAXIMUM -> FooterText(
-                        text = stringResource(R.string.common_maximum_value, SwapSlippage.maxPercentLabel),
+                        text = stringResource(R.string.common_maximum_value, SwapSlippage.maxPercentLabel(slippagePercent)),
                         color = MaterialTheme.colorScheme.error,
                     )
                     GemSlippageCheck.BELOW_MINIMUM -> FooterText(
-                        text = stringResource(R.string.common_minimum_value, SwapSlippage.minPercentLabel),
+                        text = stringResource(R.string.common_minimum_value, SwapSlippage.minPercentLabel(slippagePercent)),
                         color = MaterialTheme.colorScheme.error,
                     )
                     GemSlippageCheck.HIGH -> FooterText(
@@ -132,9 +133,9 @@ fun SwapSlippageBottomSheet(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 SuggestionsBar(
-                    labels = SwapSlippage.suggestionsBps.map { "${SwapSlippage.format(it)}%" },
+                    labels = SwapSlippage.suggestionsBps.map { "${SwapSlippage.format(it, slippagePercent)}%" },
                     modifier = Modifier.padding(horizontal = paddingDefault, vertical = paddingSmall),
-                    onSelected = { index -> input = SwapSlippage.format(SwapSlippage.suggestionsBps[index]) },
+                    onSelected = { index -> input = SwapSlippage.format(SwapSlippage.suggestionsBps[index], slippagePercent) },
                 )
             }
         }

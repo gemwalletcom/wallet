@@ -9,14 +9,15 @@ import com.gemwallet.android.domains.gemConfig
 object SwapSlippage {
     private val config by lazy { gemConfig.getSwapConfig() }
     val suggestionsBps: List<UInt> = config.slippageSuggestionsBps
-    val maxPercent: Int = (config.maxSlippageBps / 100u).toInt()
-    private val minPercent: BigDecimal = config.minSlippageBps.toLong().toBigDecimal().movePointLeft(2).stripTrailingZeros()
+    val maxBps: UInt = config.maxSlippageBps
+    private val minBps: UInt = config.minSlippageBps
 
-    val maxPercentLabel: String = "$maxPercent%"
-    val minPercentLabel: String = "${minPercent.toPlainString()}%"
+    fun maxPercentLabel(slippagePercent: (UInt) -> Double): String = "${format(maxBps, slippagePercent)}%"
 
-    fun format(bps: UInt): String =
-        bps.toLong().toBigDecimal().movePointLeft(2).stripTrailingZeros().toPlainString()
+    fun minPercentLabel(slippagePercent: (UInt) -> Double): String = "${format(minBps, slippagePercent)}%"
+
+    fun format(bps: UInt, slippagePercent: (UInt) -> Double): String =
+        slippagePercent(bps).toBigDecimal().stripTrailingZeros().toPlainString()
 
     fun sanitize(input: String): String =
         NumberSanitizer(maximumFractionDigits = 2, maximumIntegerDigits = 2).sanitize(input)

@@ -5,12 +5,14 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SwapSlippageTest {
+    private val slippagePercent = { bps: UInt -> bps.toDouble() / 100 }
+
     @Test
     fun format_trimsTrailingZeros() {
-        assertEquals("1", SwapSlippage.format(100u))
-        assertEquals("0.5", SwapSlippage.format(50u))
-        assertEquals("0.1", SwapSlippage.format(10u))
-        assertEquals("5", SwapSlippage.format(500u))
+        assertEquals("1", SwapSlippage.format(100u, slippagePercent))
+        assertEquals("0.5", SwapSlippage.format(50u, slippagePercent))
+        assertEquals("0.1", SwapSlippage.format(10u, slippagePercent))
+        assertEquals("5", SwapSlippage.format(500u, slippagePercent))
     }
 
     @Test
@@ -33,7 +35,7 @@ class SwapSlippageTest {
     @Test
     fun suggestions_formatToExpectedLabels() {
         assertEquals(listOf(30u, 50u, 300u), SwapSlippage.suggestionsBps)
-        assertEquals(listOf("0.3", "0.5", "3"), SwapSlippage.suggestionsBps.map { SwapSlippage.format(it) })
+        assertEquals(listOf("0.3", "0.5", "3"), SwapSlippage.suggestionsBps.map { SwapSlippage.format(it, slippagePercent) })
     }
 
     @Test
