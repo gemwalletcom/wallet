@@ -43,7 +43,9 @@ class EarnViewModelTest {
     private val funded = mockDelegation(assetId = asset.id, balance = BigInteger("500"), validator = provider)
     private val empty = mockDelegation(assetId = asset.id, balance = BigInteger.ZERO, delegationId = "empty", validator = provider)
 
-    private val stakeService = mockk<uniffi.gemstone.GemStakeServiceInterface>(relaxed = true)
+    private val stakeService = mockk<uniffi.gemstone.GemStakeServiceInterface>(relaxed = true) {
+        every { earnApr(any(), any()) } returns 4.0
+    }
     private val getAssetInfo = mockk<GetAssetInfo> {
         every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
@@ -84,7 +86,7 @@ class EarnViewModelTest {
     }
 
     @Test
-    fun `the rate comes from the first provider`() = runTest(testDispatcher) {
+    fun `the rate is the one core answers for the providers`() = runTest(testDispatcher) {
         val model = viewModel()
 
         assertEquals(4.0, model.apr.first { it > 0.0 }, 0.0)

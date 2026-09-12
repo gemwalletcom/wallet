@@ -73,7 +73,7 @@ class EarnViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap<String, GemValidatorRow>())
 
     val apr = combine(providers, assetInfo) { items, current ->
-        items.firstOrNull()?.apr?.takeIf { it > 0.0 } ?: current?.metadata?.earnApr ?: 0.0
+        stakeService.earnApr(items.map { it.toGem() }, current?.metadata?.earnApr)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
 
     val depositParams = combine(providers, session) { items, current ->

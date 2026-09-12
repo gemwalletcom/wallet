@@ -67,13 +67,8 @@ public final class EarnSceneViewModel {
         AssetViewModel(asset: asset)
     }
 
-    private var apr: Double? {
-        providers.first.map(\.apr).flatMap { $0 > 0 ? $0 : nil }
-            ?? assetData.metadata.earnApr
-    }
-
     var aprModel: AprViewModel {
-        AprViewModel(apr: apr ?? .zero)
+        AprViewModel(apr: service.earnApr(providers: providers.map { $0.map() }, assetApr: assetData.metadata.earnApr))
     }
 
     var showDeposit: Bool {

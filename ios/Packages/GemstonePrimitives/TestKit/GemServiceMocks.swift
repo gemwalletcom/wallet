@@ -601,6 +601,10 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         changesAmountOnUnstake
     }
 
+    public func earnApr(providers: [Gemstone.DelegationValidator], assetApr: Double?) -> Double {
+        providers.first.map(\.apr).flatMap { $0 > 0 ? $0 : nil } ?? assetApr ?? 0
+    }
+
     public func usesFreeze(chain _: Gemstone.Chain) -> Bool {
         freezes
     }

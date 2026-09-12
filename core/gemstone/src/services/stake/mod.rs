@@ -70,6 +70,10 @@ impl GemStakeService {
         transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
     }
 
+    pub fn earn_apr(&self, providers: Vec<DelegationValidator>, asset_apr: Option<f64>) -> f64 {
+        rules::earn_apr(&providers, asset_apr)
+    }
+
     pub fn validator_row(&self, validator: DelegationValidator) -> GemValidatorRow {
         rules::validator_row(&validator)
     }
