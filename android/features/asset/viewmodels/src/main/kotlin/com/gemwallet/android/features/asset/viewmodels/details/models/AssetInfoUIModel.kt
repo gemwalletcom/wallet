@@ -8,9 +8,9 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BalanceMetadata
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemAssetDetailsState
+import uniffi.gemstone.GemAssetNetworkDestination
 
 class AssetInfoUIModel(
     val assetInfo: AssetInfo,
@@ -29,7 +29,7 @@ class AssetInfoUIModel(
     val explorerAddressUrl: String? = null,
     val explorerTokenUrl: String? = null,
     val verificationStatus: VerificationStatus? = null,
-    val networkDestination: NetworkDestination? = null,
+    val networkDestination: GemAssetNetworkDestination? = null,
     val shareUrl: String = "",
     val detailsState: GemAssetDetailsState,
 ) {
@@ -43,11 +43,6 @@ class AssetInfoUIModel(
         val balances: List<BalanceUIModel> = emptyList(),
         val balanceMetadata: BalanceMetadata? = null,
     )
-
-    sealed interface NetworkDestination {
-        data class Asset(val assetId: AssetId) : NetworkDestination
-        data class Assets(val chain: Chain) : NetworkDestination
-    }
 
     data class BalanceUIModel(
         val type: BalanceViewType,

@@ -16,11 +16,9 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemAssetDetails
-import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBalanceRow
 import javax.inject.Inject
 import java.math.BigInteger
@@ -53,7 +51,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
             explorerAddressUrl = details.addressLink?.link,
             explorerTokenUrl = details.tokenLink?.link,
             verificationStatus = details.verificationStatus?.toPrimitives(),
-            networkDestination = details.networkDestination?.let(::networkDestination),
+            networkDestination = details.networkDestination,
             shareUrl = details.shareUrl,
             detailsState = details.state,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
@@ -64,11 +62,6 @@ class AssetInfoUIModelFactory @Inject constructor() {
                 balanceMetadata = feeAssetInfo.balance.metadata,
             ),
         )
-    }
-
-    private fun networkDestination(destination: GemAssetNetworkDestination): AssetInfoUIModel.NetworkDestination? = when (destination) {
-        is GemAssetNetworkDestination.Asset -> AssetInfoUIModel.NetworkDestination.Asset(destination.asset.toPrimitives().id)
-        is GemAssetNetworkDestination.Assets -> AssetInfoUIModel.NetworkDestination.Assets(destination.chain.requireChain())
     }
 
     private fun balanceRows(assetInfo: AssetInfo, formatter: ValueFormatter): List<AssetInfoUIModel.BalanceUIModel> {
