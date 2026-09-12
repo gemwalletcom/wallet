@@ -129,8 +129,9 @@ public struct WalletSearchScene: View {
 
     private func assetItems(for items: [AssetData]) -> some View {
         AssetItemsView(
-            items: items,
-            currencyCode: model.currencyCode,
+            items: items,            currencyCode: model.currencyCode,
+
+            row: model.assetRow,
             contextMenuItems: model.contextMenuItems,
             onSelect: model.onSelectAsset,
         )

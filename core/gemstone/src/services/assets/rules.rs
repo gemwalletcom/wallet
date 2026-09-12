@@ -135,6 +135,15 @@ fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> 
     flow
 }
 
+pub fn wallet_row() -> GemAssetRow {
+    GemAssetRow {
+        title: GemAssetRowTitle::Asset,
+        shows_symbol: false,
+        subtitle: GemAssetRowSubtitle::Price,
+        trailing: GemAssetRowTrailing::Balance,
+    }
+}
+
 pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: Option<SwapAssetList>) -> GemSelectAssetFlow {
     let row = |shows_symbol: bool, subtitle: GemAssetRowSubtitle, trailing: GemAssetRowTrailing| GemAssetRow {
         title: GemAssetRowTitle::CanonicalAsset,

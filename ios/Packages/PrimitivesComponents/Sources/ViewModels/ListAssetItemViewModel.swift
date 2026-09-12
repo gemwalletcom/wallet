@@ -19,7 +19,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     public init(
         showBalancePrivacy: Binding<Bool>,
         assetDataModel: AssetDataViewModel,
-        row: GemAssetRow = .wallet,
+        row: GemAssetRow,
         action: ((ListAssetItemAction) -> Void)? = nil,
     ) {
         self.showBalancePrivacy = showBalancePrivacy
@@ -33,6 +33,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         assetData: AssetData,
         formatter: ValueFormatter,
         currencyCode: String,
+        row: GemAssetRow,
     ) {
         let model = AssetDataViewModel(
             assetData: assetData,
@@ -42,7 +43,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         self.init(
             showBalancePrivacy: showBalancePrivacy,
             assetDataModel: model,
-            row: .wallet,
+            row: row,
             action: nil,
         )
     }

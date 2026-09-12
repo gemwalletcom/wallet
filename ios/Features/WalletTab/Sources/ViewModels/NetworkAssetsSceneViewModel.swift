@@ -5,6 +5,7 @@ import GemstoneServices
 import Components
 import Foundation
 import Localization
+import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import Store
@@ -123,4 +124,8 @@ extension NetworkAssetsSceneViewModel {
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
+    var assetRow: GemAssetRow {
+        service.assetRow()
+    }
+
 }

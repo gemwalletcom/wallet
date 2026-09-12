@@ -61,8 +61,9 @@ public struct WalletScene: View {
             if !sections.pinned.isEmpty {
                 Section {
                     WalletAssetsList(
-                        assets: sections.pinned,
-                        currencyCode: state.currencyCode,
+                        assets: sections.pinned,                        currencyCode: state.currencyCode,
+
+                        row: model.assetRow,
                         onHideAsset: model.onHideAsset,
                         onPinAsset: model.onPinAsset,
                         onCopyAddress: model.onCopyAddress,
@@ -76,8 +77,9 @@ public struct WalletScene: View {
 
             Section {
                 WalletAssetsList(
-                    assets: sections.assets,
-                    currencyCode: state.currencyCode,
+                    assets: sections.assets,                    currencyCode: state.currencyCode,
+
+                    row: model.assetRow,
                     onHideAsset: model.onHideAsset,
                     onPinAsset: model.onPinAsset,
                     onCopyAddress: model.onCopyAddress,

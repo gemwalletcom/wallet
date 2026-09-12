@@ -5,7 +5,8 @@ use std::sync::Arc;
 use primitives::{Asset, AssetFiatValue, AssetId, Banner, BannerEvent, Currency, PerpetualBalance, TotalFiatValue, Wallet};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
-use crate::services::assets::model::GemHeaderActions;
+use crate::services::assets::model::{GemAssetRow, GemHeaderActions};
+use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerContext, GemBannerKey, GemBannerService};
@@ -58,7 +59,18 @@ impl GemWalletHomeService {
         self.preferences.get_currency()
     }
 
-    pub fn view_state(&self, wallet: Wallet, balances: Vec<AssetFiatValue>, perpetual: Option<PerpetualBalance>, banners: Vec<Banner>, is_wallet_empty: bool) -> GemWalletHomeViewState {
+    pub fn asset_row(&self) -> GemAssetRow {
+        asset_rules::wallet_row()
+    }
+
+    pub fn view_state(
+        &self,
+        wallet: Wallet,
+        balances: Vec<AssetFiatValue>,
+        perpetual: Option<PerpetualBalance>,
+        banners: Vec<Banner>,
+        is_wallet_empty: bool,
+    ) -> GemWalletHomeViewState {
         let chains = wallet.chains();
         let total_value = self.total_fiat_value(balances, perpetual);
         GemWalletHomeViewState {

@@ -3,11 +3,13 @@
 import Components
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemAssetRow
 import SwiftUI
 
 struct AssetItemsView: View {
     let items: [AssetData]
     let currencyCode: String
+    let row: GemAssetRow
     let contextMenuItems: (AssetData) -> [ContextMenuItemType]
     let onSelect: (Asset) -> Void
 
@@ -20,6 +22,7 @@ struct AssetItemsView: View {
                         assetData: assetData,
                         formatter: .short,
                         currencyCode: currencyCode,
+                        row: row,
                     ),
                 )
                 .contextMenu(contextMenuItems(assetData)),

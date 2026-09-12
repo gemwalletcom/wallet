@@ -10,6 +10,7 @@ import GemstoneServices
 import InfoSheet
 import Localization
 import NFT
+import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import Store
@@ -260,4 +261,8 @@ extension WalletSceneViewModel {
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
+    var assetRow: GemAssetRow {
+        service.assetRow()
+    }
+
 }
