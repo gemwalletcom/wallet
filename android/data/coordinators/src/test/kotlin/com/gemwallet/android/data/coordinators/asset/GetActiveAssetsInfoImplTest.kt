@@ -11,6 +11,10 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemAssetRow
+import uniffi.gemstone.GemAssetRowSubtitle
+import uniffi.gemstone.GemAssetRowTitle
+import uniffi.gemstone.GemAssetRowTrailing
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -37,9 +41,17 @@ class GetActiveAssetsInfoImplTest {
         override fun byIdentifiers(assetIds: List<String>): Flow<List<AssetInfo>> = flowOf(assets)
     }
 
+    private val row = GemAssetRow(
+        title = GemAssetRowTitle.CANONICAL_ASSET,
+        showsSymbol = false,
+        subtitle = GemAssetRowSubtitle.PRICE,
+        trailing = GemAssetRowTrailing.BALANCE,
+    )
+
     private fun subject(hideBalance: Boolean, scope: CoroutineScope) = GetActiveAssetsInfoImpl(
         getWalletAssets = getWalletAssets,
         userConfig = mockk<UserConfig> { every { isHideBalances() } returns flowOf(hideBalance) },
+        row = row,
         scope = scope,
     )
 
@@ -47,7 +59,7 @@ class GetActiveAssetsInfoImplTest {
     fun emitsFormattedRowsForEveryWalletAsset() = runTest {
         val rows = subject(hideBalance = false, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(hideBalance = false), rows)
+        assertEquals(assets.toAssetInfoDataAggregates(naming = row.title, hideBalance = false), rows)
         assertEquals("\$50,000.00", rows.first().price?.valueFormatted)
         assertEquals("+2.50%", rows.first().price?.changePercentageFormatted)
     }
@@ -56,7 +68,7 @@ class GetActiveAssetsInfoImplTest {
     fun hidesBalancesWhenAsked() = runTest {
         val rows = subject(hideBalance = true, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(hideBalance = true), rows)
+        assertEquals(assets.toAssetInfoDataAggregates(naming = row.title, hideBalance = true), rows)
         assertEquals(listOf("*****", "*****", "*****"), rows.map { it.balance })
     }
 }

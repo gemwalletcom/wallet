@@ -52,8 +52,11 @@ import com.gemwallet.android.application.session.cases.GetCurrentWallet
 object AssetModule {
     @Provides
     @Singleton
-    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets, userConfig: UserConfig): GetActiveAssetsInfo =
-        GetActiveAssetsInfoImpl(getWalletAssets, userConfig)
+    fun provideGetActiveAssetsInfo(
+        getWalletAssets: GetWalletAssets,
+        userConfig: UserConfig,
+        walletHomeService: GemWalletHomeServiceInterface,
+    ): GetActiveAssetsInfo = GetActiveAssetsInfoImpl(getWalletAssets, userConfig, walletHomeService.assetRow())
 
     @Provides
     @Singleton
