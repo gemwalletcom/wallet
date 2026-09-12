@@ -4,6 +4,7 @@ use std::time::Duration;
 use cacher::{CacheKey, CacherClient};
 use gem_tracing::{error_fields, info_with_fields};
 use primitives::{StreamEvent, WebSocketPricePayload, unix_timestamp};
+use redis::PushKind;
 use rocket::futures::StreamExt;
 use rocket::serde::json::serde_json;
 use rocket_ws::stream::DuplexStream;
@@ -46,7 +47,15 @@ pub async fn new_stream(redis_url: &str, cacher_client: &CacherClient, retention
                     }
                 }
             }
-            Some(message) = rx.recv() => {
+            message = rx.recv() => {
+                let Some(message) = message else {
+                    error_fields!("websocket redis push channel closed");
+                    break;
+                };
+                if message.kind == PushKind::Disconnection {
+                    error_fields!("websocket redis connection lost");
+                    break;
+                }
                 match observer.handle_redis_message(&message) {
                     Ok(Some(event)) => {
                         if let Err(e) = observer.send_event(&mut stream, event).await {
