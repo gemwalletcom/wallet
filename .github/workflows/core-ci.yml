@@ -23,7 +23,7 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: core
@@ -38,7 +38,7 @@ jobs:
         run: just lint
 
   unit_test:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: core
@@ -53,7 +53,7 @@ jobs:
         run: just test
 
   integration_build:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: core
@@ -72,7 +72,7 @@ jobs:
           cargo tree --package gemstone | grep -i reqwest && exit 1 || echo "✓ No reqwest dependencies found in gemstone"
 
   check_schema:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: core
