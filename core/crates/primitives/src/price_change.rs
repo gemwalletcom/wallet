@@ -8,6 +8,13 @@ impl PriceChangeCalculator {
         (to - from) / from * 100.0
     }
 
+    pub fn pnl_percentage(pnl: f64, margin: f64) -> f64 {
+        match margin > 0.0 {
+            true => Self::percentage(margin, margin + pnl),
+            false => 0.0,
+        }
+    }
+
     pub fn amount(percentage: f64, value: f64) -> f64 {
         let denominator = 100.0 + percentage;
         if denominator == 0.0 {
@@ -29,6 +36,14 @@ mod tests {
         assert_eq!(PriceChangeCalculator::percentage(50.0, 100.0), 100.0);
         assert_eq!(PriceChangeCalculator::percentage(100.0, 100.0), 0.0);
         assert_eq!(PriceChangeCalculator::percentage(0.0, 100.0), 0.0);
+    }
+
+    #[test]
+    fn test_pnl_percentage_measures_the_profit_against_the_margin() {
+        assert_eq!(PriceChangeCalculator::pnl_percentage(50.0, 200.0), 25.0);
+        assert_eq!(PriceChangeCalculator::pnl_percentage(-50.0, 200.0), -25.0);
+        assert_eq!(PriceChangeCalculator::pnl_percentage(50.0, 0.0), 0.0, "no margin is no percentage");
+        assert_eq!(PriceChangeCalculator::pnl_percentage(50.0, -10.0), 0.0);
     }
 
     #[test]

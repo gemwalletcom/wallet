@@ -42,8 +42,7 @@ public struct PnLViewModel {
     }
 
     public var percent: Double {
-        guard let pnl, marginAmount > 0 else { return 0 }
-        return priceChangeCalculator.percentage(from: marginAmount, to: marginAmount + pnl)
+        priceChangeCalculator.pnlPercentage(pnl: pnl ?? .zero, margin: marginAmount)
     }
 
     public var color: Color {

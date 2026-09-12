@@ -8,4 +8,6 @@ object PriceChangeCalculator {
     fun percentage(from: Double, to: Double): Double = calculator.percentage(from, to)
 
     fun amount(percentage: Double, value: Double): Double = calculator.amount(percentage, value)
+
+    fun pnlPercentage(pnl: Double, margin: Double): Double = calculator.pnlPercentage(pnl, margin)
 }

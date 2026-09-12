@@ -3,6 +3,7 @@ package com.gemwallet.android.domains.perpetual
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
+import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.wallet.core.primitives.Currency
 
 private val pnlFormatter = PriceChangeFormatter(
@@ -10,10 +11,6 @@ private val pnlFormatter = PriceChangeFormatter(
 )
 
 fun formatPnlWithPercentage(pnl: Double, marginAmount: Double): String {
-    val percentage = if (marginAmount > 0.0) {
-        (pnl / marginAmount) * 100.0
-    } else {
-        0.0
-    }.formatAsPercentage()
+    val percentage = PriceChangeCalculator.pnlPercentage(pnl, marginAmount).formatAsPercentage()
     return "${pnlFormatter.string(pnl)} ($percentage)"
 }
