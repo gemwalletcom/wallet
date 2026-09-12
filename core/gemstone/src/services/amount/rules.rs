@@ -5,7 +5,7 @@ use primitives::{Asset, AutocloseEstimator, Chain, EarnType, PerpetualDirection,
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
-    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+    GemAmountTransfer, GemAmountType, GemNumberSanitizer, GemPerpetualAutoclose,
 };
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
@@ -345,6 +345,30 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
     StakeChain::from_str(chain.as_ref()).ok()
 }
 
+const SEPARATORS: [char; 2] = ['.', ','];
+
+pub fn sanitize_number_input(input: &GemNumberSanitizer, text: &str) -> String {
+    let is_separator = |character: &char| SEPARATORS.contains(character) || input.decimal_separator.contains(*character);
+    let typed: String = text.chars().filter(|character| character.is_numeric() || is_separator(character)).collect();
+    let limit = |value: &str, maximum: Option<u32>| match maximum {
+        Some(maximum) => value.chars().take(maximum as usize).collect::<String>(),
+        None => value.to_string(),
+    };
+    match typed.chars().position(|character| is_separator(&character)) {
+        None => limit(&typed, input.maximum_integer_digits),
+        Some(position) => {
+            let integer: String = typed.chars().take(position).collect();
+            let fraction: String = typed.chars().skip(position + 1).filter(|character| !is_separator(character)).collect();
+            format!(
+                "{}{}{}",
+                limit(&integer, input.maximum_integer_digits),
+                input.decimal_separator,
+                limit(&fraction, input.maximum_fraction_digits)
+            )
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -354,6 +378,66 @@ mod tests {
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
+
+    #[test]
+    fn test_sanitize_number_input_keeps_digits_and_the_first_separator() {
+        let input = GemNumberSanitizer {
+            decimal_separator: ".".to_string(),
+            maximum_fraction_digits: None,
+            maximum_integer_digits: None,
+        };
+
+        assert_eq!(sanitize_number_input(&input, "abc123.45xyz"), "123.45");
+        assert_eq!(sanitize_number_input(&input, "123.45.67"), "123.4567");
+        assert_eq!(sanitize_number_input(&input, " 1 000 "), "1000");
+        assert_eq!(sanitize_number_input(&input, "12"), "12");
+        assert_eq!(sanitize_number_input(&input, "."), ".");
+        assert_eq!(sanitize_number_input(&input, "٣.٥"), "٣.٥");
+    }
+
+    #[test]
+    fn test_sanitize_number_input_answers_in_the_callers_separator() {
+        let comma = GemNumberSanitizer {
+            decimal_separator: ",".to_string(),
+            maximum_fraction_digits: None,
+            maximum_integer_digits: None,
+        };
+        let dot = GemNumberSanitizer {
+            decimal_separator: ".".to_string(),
+            maximum_fraction_digits: None,
+            maximum_integer_digits: None,
+        };
+
+        assert_eq!(sanitize_number_input(&comma, "1.5"), "1,5");
+        assert_eq!(sanitize_number_input(&dot, "1,5"), "1.5");
+
+        let arabic = GemNumberSanitizer {
+            decimal_separator: "٫".to_string(),
+            maximum_fraction_digits: None,
+            maximum_integer_digits: None,
+        };
+        assert_eq!(sanitize_number_input(&arabic, "٣٫٥"), "٣٫٥");
+    }
+
+    #[test]
+    fn test_sanitize_number_input_limits_each_part() {
+        let fraction = GemNumberSanitizer {
+            decimal_separator: ".".to_string(),
+            maximum_fraction_digits: Some(2),
+            maximum_integer_digits: None,
+        };
+        let integer = GemNumberSanitizer {
+            decimal_separator: ".".to_string(),
+            maximum_fraction_digits: None,
+            maximum_integer_digits: Some(2),
+        };
+
+        assert_eq!(sanitize_number_input(&fraction, "0.111111"), "0.11");
+        assert_eq!(sanitize_number_input(&fraction, "12.5"), "12.5");
+        assert_eq!(sanitize_number_input(&fraction, "12"), "12");
+        assert_eq!(sanitize_number_input(&integer, "33333312312"), "33");
+        assert_eq!(sanitize_number_input(&integer, "19.555"), "19.555");
+    }
 
     fn asset(chain: Chain) -> Asset {
         Asset::from_chain(chain)

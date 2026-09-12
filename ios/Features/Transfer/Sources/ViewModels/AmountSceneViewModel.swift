@@ -8,6 +8,7 @@ import enum Gemstone.GemAmountError
 import struct Gemstone.GemAmountInput
 import enum Gemstone.GemAmountInputType
 import protocol Gemstone.GemAmountServiceProtocol
+import struct Gemstone.GemNumberSanitizer
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
@@ -133,7 +134,7 @@ public final class AmountSceneViewModel {
             inputType: amountInputType,
             asset: asset,
             currencyFormatter: currencyFormatter,
-            numberSanitizer: NumberSanitizer(),
+            numberSanitizer: GemNumberSanitizer(decimalSeparator: Locale.current.decimalSeparator ?? ".", maximumFractionDigits: nil, maximumIntegerDigits: nil),
             secondaryText: secondaryText,
             onTapActionButton: onSelectInputButton,
             usesWholeAmounts: input.usesWholeAmounts,

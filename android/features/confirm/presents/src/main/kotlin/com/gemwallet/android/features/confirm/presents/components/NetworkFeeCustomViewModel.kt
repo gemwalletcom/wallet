@@ -7,7 +7,8 @@ import androidx.compose.runtime.setValue
 import com.gemwallet.android.domains.confirm.CustomFee
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.math.NumberSanitizer
+import uniffi.gemstone.GemNumberSanitizer
+import java.text.DecimalFormatSymbols
 import com.gemwallet.android.model.FeeSelection
 import java.math.BigInteger
 
@@ -33,6 +34,6 @@ class NetworkFeeCustomViewModel(
     val rate: BigInteger? get() = custom.rate
 
     fun onInputChange(value: String) {
-        input = NumberSanitizer(maximumFractionDigits = decimals).sanitize(value)
+        input = GemNumberSanitizer(DecimalFormatSymbols.getInstance().decimalSeparator.toString(), decimals.toUInt(), null).sanitize(value)
     }
 }

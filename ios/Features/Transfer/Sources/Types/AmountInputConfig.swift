@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import enum Gemstone.GemAmountInputType
+import struct Gemstone.GemNumberSanitizer
 import GemstonePrimitives
 import Primitives
 import Style
@@ -13,7 +14,7 @@ struct AmountInputConfig: CurrencyInputConfigurable {
     let inputType: GemAmountInputType
     let asset: Asset
     let currencyFormatter: CurrencyFormatter
-    let numberSanitizer: NumberSanitizer
+    let numberSanitizer: GemNumberSanitizer
     let secondaryText: String
     let onTapActionButton: (() -> Void)?
     let usesWholeAmounts: Bool
@@ -49,6 +50,6 @@ struct AmountInputConfig: CurrencyInputConfigurable {
     }
 
     var sanitizer: ((String) -> String)? {
-        { numberSanitizer.sanitize($0) }
+        { numberSanitizer.sanitize(input: $0) }
     }
 }
