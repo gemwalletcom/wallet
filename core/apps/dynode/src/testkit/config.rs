@@ -1,8 +1,35 @@
+use config::{Config as FileConfig, File, FileFormat};
 use primitives::{Chain, MINUTE, NodeCheckProfile};
 use serde_json::json;
 
-use crate::config::{ChainConfig, ErrorMatcherConfig, FailureTriggerConfig, MetricsConfig, MonitoringConfig, RetryConfig, Url};
+use crate::config::{ChainConfig, Config, ErrorMatcherConfig, FailureTriggerConfig, MetricsConfig, MonitoringConfig, RetryConfig, Url};
 use crate::jsonrpc_types::RequestType;
+
+pub fn sample_config() -> Config {
+    let mut config: Config = FileConfig::builder()
+        .add_source(File::from_str(include_str!("../../config.yml"), FileFormat::Yaml))
+        .build()
+        .unwrap()
+        .try_deserialize()
+        .unwrap();
+    config.chains = Some(
+        FileConfig::builder()
+            .add_source(File::from_str(include_str!("../../chains.yml"), FileFormat::Yaml))
+            .build()
+            .unwrap()
+            .try_deserialize()
+            .unwrap(),
+    );
+    config.routes = Some(
+        FileConfig::builder()
+            .add_source(File::from_str(include_str!("../../routes.yml"), FileFormat::Yaml))
+            .build()
+            .unwrap()
+            .try_deserialize()
+            .unwrap(),
+    );
+    config
+}
 
 pub fn url(url: &str) -> Url {
     Url {

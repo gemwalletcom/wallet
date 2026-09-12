@@ -5,35 +5,9 @@ use serde_json::{Value, json};
 
 use super::*;
 use crate::config::RoutesConfig;
-use crate::testkit::config::chain_config;
+use crate::testkit::config::{chain_config, sample_config};
 
 const TEST_LIMIT: usize = 8;
-
-fn sample_config() -> Config {
-    let mut config: Config = FileConfig::builder()
-        .add_source(File::from_str(include_str!("../../config.yml"), FileFormat::Yaml))
-        .build()
-        .unwrap()
-        .try_deserialize()
-        .unwrap();
-    config.chains = Some(
-        FileConfig::builder()
-            .add_source(File::from_str(include_str!("../../chains.yml"), FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize()
-            .unwrap(),
-    );
-    config.routes = Some(
-        FileConfig::builder()
-            .add_source(File::from_str(include_str!("../../routes.yml"), FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize()
-            .unwrap(),
-    );
-    config
-}
 
 async fn nodes() -> Client {
     let mut config = sample_config();

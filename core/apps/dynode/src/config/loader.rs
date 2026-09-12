@@ -185,33 +185,7 @@ mod tests {
     use super::*;
     use crate::config::Override;
     use crate::config::routes::{ProxyConfig, ProxyHealthConfig};
-    use crate::testkit::config::chain_config;
-
-    fn sample_config() -> Config {
-        let mut config: Config = FileConfig::builder()
-            .add_source(File::from_str(include_str!("../../config.yml"), FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize()
-            .unwrap();
-        config.chains = Some(
-            FileConfig::builder()
-                .add_source(File::from_str(include_str!("../../chains.yml"), FileFormat::Yaml))
-                .build()
-                .unwrap()
-                .try_deserialize()
-                .unwrap(),
-        );
-        config.routes = Some(
-            FileConfig::builder()
-                .add_source(File::from_str(include_str!("../../routes.yml"), FileFormat::Yaml))
-                .build()
-                .unwrap()
-                .try_deserialize()
-                .unwrap(),
-        );
-        config
-    }
+    use crate::testkit::config::{chain_config, sample_config};
 
     #[test]
     fn test_expand_value_preserves_literal_environment_contents() {
