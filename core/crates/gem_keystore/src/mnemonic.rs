@@ -47,10 +47,6 @@ impl Mnemonic {
         Ok(Zeroizing::new(entropy[..len].to_vec()))
     }
 
-    pub fn suggest(prefix: &str) -> Vec<String> {
-        Self::suggest_limited(prefix, None)
-    }
-
     pub fn suggest_limited(prefix: &str, limit: Option<usize>) -> Vec<String> {
         let prefix = &prefix.trim().to_lowercase();
         if prefix.is_empty() {
@@ -82,12 +78,12 @@ mod tests {
 
     #[test]
     fn test_suggest() {
-        assert_eq!(Mnemonic::suggest("woo"), vec!["wood", "wool"]);
+        assert_eq!(Mnemonic::suggest_limited("woo", None), vec!["wood", "wool"]);
         assert_eq!(Mnemonic::suggest_limited("woo", Some(1)), vec!["wood"]);
-        assert_eq!(Mnemonic::suggest("abandon"), vec!["abandon"]);
-        assert_eq!(Mnemonic::suggest("woof"), Vec::<String>::new());
+        assert_eq!(Mnemonic::suggest_limited("abandon", None), vec!["abandon"]);
+        assert_eq!(Mnemonic::suggest_limited("woof", None), Vec::<String>::new());
 
-        let all_words = Mnemonic::suggest(" ");
+        let all_words = Mnemonic::suggest_limited(" ", None);
         assert_eq!(all_words.len(), 0);
     }
 

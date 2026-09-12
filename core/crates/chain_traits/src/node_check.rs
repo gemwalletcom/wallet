@@ -39,10 +39,6 @@ impl NodeCheckRecorder {
         self.record_value_with_latency(method, result, Duration::ZERO).0
     }
 
-    pub fn record_value<T: Display, E: Display>(self, method: &str, result: Result<T, E>) -> (Self, Option<T>) {
-        self.record_value_with_latency(method, result, Duration::ZERO)
-    }
-
     pub async fn record_timed<T: Display, E: Display, F: Future<Output = Result<T, E>>>(self, method: &str, future: F) -> Self {
         self.record_value_timed(method, future).await.0
     }
@@ -72,10 +68,6 @@ impl NodeCheckRecorder {
             Err(error) => NodeCheckStatus::Warning { warning: error.to_string() },
         };
         self.record_status(method, status, started.elapsed())
-    }
-
-    pub fn record_optional_available<T, E: Display>(self, method: &str, result: Result<T, E>) -> Self {
-        self.record_optional_available_with_latency(method, result, Duration::ZERO)
     }
 
     fn record_optional_available_with_latency<T, E: Display>(self, method: &str, result: Result<T, E>, latency: Duration) -> Self {
@@ -362,7 +354,7 @@ mod tests {
         let value = "x".repeat(MAX_RESULT_LENGTH + 1);
         let result: Result<String, &str> = Ok(value.clone());
 
-        let (recorder, recorded) = recorder.record_value("method", result);
+        let (recorder, recorded) = futures::executor::block_on(recorder.record_value_timed("method", async { result }));
         assert_eq!(recorded, Some(value));
         assert_eq!(
             recorder.finish().get("method").map(|result| result.status.clone()),
@@ -373,7 +365,7 @@ mod tests {
     #[test]
     fn records_optional_failure_as_warning() {
         let result: Result<(), &str> = Err("method not found");
-        let recorder = NodeCheckRecorder::default().record_optional_available("method", result);
+        let recorder = futures::executor::block_on(NodeCheckRecorder::default().record_optional_available_timed("method", async { result }));
 
         assert_eq!(
             recorder.finish().get("method").map(|result| result.status.clone()),

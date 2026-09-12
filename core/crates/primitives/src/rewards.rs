@@ -55,13 +55,6 @@ impl RewardStatus {
             Self::Unverified | Self::Pending | Self::Attribution | Self::Disabled => false,
         }
     }
-
-    pub fn is_disabled(&self) -> bool {
-        match self {
-            Self::Disabled => true,
-            Self::Unverified | Self::Pending | Self::Verified | Self::Trusted | Self::Attribution => false,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq)]
@@ -244,12 +237,5 @@ mod tests {
         assert!(RewardStatus::Trusted.is_verified());
         assert!(!RewardStatus::Attribution.is_verified());
         assert!(!RewardStatus::Disabled.is_verified());
-
-        assert!(!RewardStatus::Unverified.is_disabled());
-        assert!(!RewardStatus::Pending.is_disabled());
-        assert!(!RewardStatus::Verified.is_disabled());
-        assert!(!RewardStatus::Trusted.is_disabled());
-        assert!(!RewardStatus::Attribution.is_disabled());
-        assert!(RewardStatus::Disabled.is_disabled());
     }
 }

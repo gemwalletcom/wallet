@@ -3,7 +3,6 @@ pub mod address;
 pub mod address_deserializer;
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 pub mod beacon;
-pub mod call_decoder;
 pub mod constants;
 pub mod contracts;
 pub mod domain;

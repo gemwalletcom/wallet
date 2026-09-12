@@ -27,8 +27,6 @@ hex = { workspace = true }
 futures = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true, features = ["eip712-serde"] }
-alloy-dyn-abi = { workspace = true, features = ["eip712"] }
-alloy-json-abi = { workspace = true }
 alloy-consensus = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

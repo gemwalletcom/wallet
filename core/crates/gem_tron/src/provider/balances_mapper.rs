@@ -112,7 +112,7 @@ fn new_stake_balance(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{TronAccount, TronFrozen, TronReward, TronSmartContractResult, TronUnfrozen, TronVote};
+    use crate::models::{TriggerConstantContractResponse, TronAccount, TronFrozen, TronReward, TronUnfrozen, TronVote};
     use primitives::{AssetId, Chain, asset_constants::TRON_USDT_ASSET_ID};
     use serde_json;
 
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_map_token_balance_with_real_payload() {
-        let response: TronSmartContractResult = serde_json::from_str(include_str!("../../testdata/balance_token.json")).unwrap();
+        let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/balance_token.json")).unwrap();
         let asset_id: AssetId = TRON_USDT_ASSET_ID.clone();
         let balance = map_token_balance(&response.constant_result[0], asset_id.clone()).unwrap();
 

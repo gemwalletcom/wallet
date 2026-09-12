@@ -22,19 +22,6 @@ struct TriggerSmartContractNestedTransaction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TronSmartContractResult {
-    pub result: TronSmartContractResultMessage,
-    pub constant_result: Vec<String>,
-    pub energy_used: i32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TronSmartContractResultMessage {
-    pub result: bool,
-    pub message: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TriggerSmartContractData {
     pub contract_address: String,
     pub data: String,

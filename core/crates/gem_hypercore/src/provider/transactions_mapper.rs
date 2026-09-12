@@ -41,16 +41,6 @@ pub fn map_user_fills(address: &str, fills: Vec<UserFill>, spot_meta: Option<&Sp
     groups.into_values().filter_map(|fills| map_fill_group(address, fills, spot_meta)).collect()
 }
 
-pub fn map_user_fill_by_oid(address: &str, fills: Vec<UserFill>, oid: u64, spot_meta: Option<&SpotMeta>) -> Option<Transaction> {
-    let fills = fills.into_iter().filter(|fill| fill.oid == oid).collect::<Vec<_>>();
-    map_fill_group(address, fills, spot_meta)
-}
-
-pub fn map_user_fill_by_hash(address: &str, fills: Vec<UserFill>, hash: &str, spot_meta: Option<&SpotMeta>) -> Option<Transaction> {
-    let fills = fills.into_iter().filter(|fill| fill.hash == hash).collect::<Vec<_>>();
-    map_fill_group(address, fills, spot_meta)
-}
-
 fn map_fill_group(address: &str, fills: Vec<UserFill>, spot_meta: Option<&SpotMeta>) -> Option<Transaction> {
     let last_fill = fills.iter().max_by_key(|fill| fill.time)?.clone();
 
@@ -171,7 +161,7 @@ mod tests {
     use super::*;
     use crate::models::action::ExchangeRequest;
     use crate::models::spot::SpotMeta;
-    use crate::provider::testkit::{TEST_TRANSACTION_ID, TEST_TRANSACTION_ORDER_ID};
+    use crate::provider::testkit::TEST_TRANSACTION_ID;
     use primitives::{
         PerpetualDirection, TransactionPerpetualMetadata, TransactionType,
         asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
@@ -243,12 +233,10 @@ mod tests {
     #[test]
     fn test_map_transaction_by_hash() {
         let fills: Vec<UserFill> = serde_json::from_str(include_str!("../../testdata/user_fills_multiple.json")).unwrap();
-        let transaction = map_user_fill_by_hash("0xabc", fills.clone(), TEST_TRANSACTION_ID, None).unwrap();
-        let by_order_id = map_user_fill_by_oid("0xabc", fills, TEST_TRANSACTION_ORDER_ID.parse().unwrap(), None).unwrap();
+        let transactions = map_user_fills("0xabc", fills, None);
+        let transaction = transactions.iter().find(|transaction| transaction.hash() == TEST_TRANSACTION_ID).unwrap();
 
-        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.transaction_type, TransactionType::PerpetualOpenPosition);
-        assert_eq!(by_order_id.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.asset_id.to_string(), "hypercore_perpetual::HYPE");
         assert_eq!(transaction.fee_asset_id, HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone());
         assert_eq!(transaction.fee, BigUint::from(441520u64));

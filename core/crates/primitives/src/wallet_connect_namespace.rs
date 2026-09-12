@@ -30,18 +30,6 @@ impl WalletConnectCAIP2 {
         }
     }
 
-    pub fn get_chain_type(namespace: String) -> Option<ChainType> {
-        match WalletConnectCAIP2::from_str(&namespace).ok()? {
-            WalletConnectCAIP2::Eip155 => Some(ChainType::Ethereum),
-            WalletConnectCAIP2::Solana => Some(ChainType::Solana),
-            WalletConnectCAIP2::Cosmos => Some(ChainType::Cosmos),
-            WalletConnectCAIP2::Algorand => Some(ChainType::Algorand),
-            WalletConnectCAIP2::Sui => Some(ChainType::Sui),
-            WalletConnectCAIP2::Ton => Some(ChainType::Ton),
-            WalletConnectCAIP2::Tron => Some(ChainType::Tron),
-        }
-    }
-
     pub fn get_chain(namespace: String, reference: String) -> Option<Chain> {
         let namespace = WalletConnectCAIP2::from_str(&namespace).ok()?;
         match namespace {
@@ -111,19 +99,6 @@ impl WalletConnectCAIP2 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_get_chain_type() {
-        assert_eq!(WalletConnectCAIP2::get_chain_type("eip155".to_string()), Some(ChainType::Ethereum));
-        assert_eq!(WalletConnectCAIP2::get_chain_type("solana".to_string()), Some(ChainType::Solana));
-        assert_eq!(WalletConnectCAIP2::get_chain_type("cosmos".to_string()), Some(ChainType::Cosmos));
-        assert_eq!(WalletConnectCAIP2::get_chain_type("algorand".to_string()), Some(ChainType::Algorand));
-        assert_eq!(WalletConnectCAIP2::get_chain_type("sui".to_string()), Some(ChainType::Sui));
-        assert_eq!(WalletConnectCAIP2::get_chain_type("ton".to_string()), Some(ChainType::Ton));
-        assert_eq!(WalletConnectCAIP2::get_chain_type("tron".to_string()), Some(ChainType::Tron));
-        assert_eq!(WalletConnectCAIP2::get_chain_type("bip122".to_string()), None);
-        assert_eq!(WalletConnectCAIP2::get_chain_type("unknown".to_string()), None);
-    }
 
     #[test]
     fn test_get_chain() {

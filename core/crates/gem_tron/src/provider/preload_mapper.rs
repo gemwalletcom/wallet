@@ -205,10 +205,6 @@ impl TronAccountUsage {
         self.net_limit.saturating_sub(self.net_used)
     }
 
-    pub fn missing_bandwidth(&self, required: u64) -> u64 {
-        required.saturating_sub(self.available_bandwidth())
-    }
-
     pub fn available_energy(&self) -> u64 {
         self.energy_limit.saturating_sub(self.energy_used)
     }
@@ -274,8 +270,6 @@ mod tests {
 
         assert_eq!(usage.available_bandwidth(), 1200); // (1000-100) + (500-200)
         assert_eq!(usage.available_staked_bandwidth(), 300);
-        assert_eq!(usage.missing_bandwidth(1500), 300);
-        assert_eq!(usage.missing_bandwidth(1000), 0);
     }
 
     #[test]

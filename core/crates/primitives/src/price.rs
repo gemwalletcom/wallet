@@ -28,10 +28,6 @@ impl Price {
     pub fn with_rate(self, rate: f64) -> Self {
         Price { price: self.price * rate, ..self }
     }
-
-    pub fn new_with_rate(&self, base_rate: f64, rate: f64) -> Self {
-        self.with_rate(rate * base_rate)
-    }
 }
 
 #[allow(dead_code)]
@@ -44,26 +40,4 @@ struct PriceData {
     price_alerts: Vec<PriceAlert>,
     market: Option<AssetMarket>,
     links: Vec<AssetLink>,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_new_with_rate() {
-        let price = Price::new(100.0, 5.0, DateTime::default(), PriceProvider::Coingecko);
-
-        let new_price = price.new_with_rate(1.0, 2.0);
-        assert_eq!(new_price.price, 200.0);
-        assert_eq!(new_price.price_change_percentage_24h, 5.0);
-
-        let new_price = price.new_with_rate(2.0, 1.0);
-        assert_eq!(new_price.price, 200.0);
-        assert_eq!(new_price.price_change_percentage_24h, 5.0);
-
-        let new_price = price.new_with_rate(1.0, 0.5);
-        assert_eq!(new_price.price, 50.0);
-        assert_eq!(new_price.price_change_percentage_24h, 5.0);
-    }
 }
