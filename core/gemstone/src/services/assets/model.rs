@@ -105,6 +105,13 @@ pub struct GemSelectAssetFlow {
 }
 
 #[uniffi::export]
+impl GemSelectAssetFlow {
+    pub fn shows_recents(&self, is_searching: bool, has_recents: bool) -> bool {
+        self.recents && !is_searching && has_recents
+    }
+}
+
+#[uniffi::export]
 impl GemSelectAssetType {
     pub fn flow(&self) -> GemSelectAssetFlow {
         super::rules::select_asset_flow(self.clone(), None)

@@ -133,7 +133,7 @@ public final class SelectAssetViewModel {
     }
 
     var showRecents: Bool {
-        flow.recents && searchableQuery.isEmpty && recentModel.hasAssets
+        flow.showsRecents(isSearching: !searchableQuery.isEmpty, hasRecents: recentModel.hasAssets)
     }
 
     var currencyCode: String {

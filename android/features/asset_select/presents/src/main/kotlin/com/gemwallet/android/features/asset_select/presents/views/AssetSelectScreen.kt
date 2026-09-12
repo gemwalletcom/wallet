@@ -48,7 +48,6 @@ fun AssetSelectScreen(
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
     val flow = viewModel.flow
-    val showRecents = flow.recents && onSelectRecent != null
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val support: (AssetInfoDataAggregate) -> (@Composable () -> Unit)? = when (flow.row.subtitle) {
@@ -90,6 +89,7 @@ fun AssetSelectScreen(
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
+    val showRecents = flow.showsRecents(viewModel.queryState.text.isNotEmpty(), recent.isNotEmpty()) && onSelectRecent != null
     val isAddAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()

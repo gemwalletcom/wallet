@@ -857,6 +857,15 @@ mod tests {
     }
 
     #[test]
+    fn test_recents_show_only_outside_a_search_and_when_there_are_some() {
+        let flow = select_asset_flow(GemSelectAssetType::Send, None);
+
+        assert!(flow.shows_recents(false, true));
+        assert!(!flow.shows_recents(true, true));
+        assert!(!flow.shows_recents(false, false));
+    }
+
+    #[test]
     fn test_details_state_offers_earn_until_there_is_an_earn_balance() {
         let earn_enabled = metadata(true, false, false, true);
 
