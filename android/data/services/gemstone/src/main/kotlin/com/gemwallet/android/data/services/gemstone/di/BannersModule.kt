@@ -13,6 +13,8 @@ import com.gemwallet.android.data.services.gemstone.notifications.GemstoneNotifi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemBannerServiceInterface
+import com.gemwallet.android.application.notifications.NotificationPermissionRequests
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemBannerStore
 import javax.inject.Singleton
@@ -30,8 +32,15 @@ object BannersModule {
 
     @Provides
     @Singleton
-    fun provideGemNotificationPermissions(@ApplicationContext context: Context): GemNotificationPermissions =
-        GemstoneNotificationPermissions(context)
+    fun provideNotificationPermissionRequests(): NotificationPermissionRequests = NotificationPermissionRequests()
+
+    @Provides
+    @Singleton
+    fun provideGemNotificationPermissions(
+        @ApplicationContext context: Context,
+        requests: NotificationPermissionRequests,
+        preferences: GemPreferencesService,
+    ): GemNotificationPermissions = GemstoneNotificationPermissions(context, requests, preferences)
 
     @Provides
     @Singleton

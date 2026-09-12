@@ -1,6 +1,15 @@
 package com.gemwallet.android
 
 import android.content.Intent
+import android.Manifest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.gemwallet.android.application.notifications.NotificationPermissionRequests
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -45,12 +54,19 @@ class MainActivity : FragmentActivity(), AuthRequester {
     private lateinit var systemAuthenticator: SystemAuthenticator
 
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
+    @Inject lateinit var notificationPermissionRequests: NotificationPermissionRequests
     @Inject lateinit var activeWalletConnectRequest: ActiveWalletConnectRequest
     @Inject lateinit var addressService: GemAddressService
     @Inject lateinit var deeplinkService: GemDeeplinkService
     @Inject lateinit var assetsService: GemAssetsService
     @Inject lateinit var chainService: GemChainService
     @Inject lateinit var assetConfigService: GemAssetConfigService
+
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        pendingNotificationPermission?.complete(granted)
+        pendingNotificationPermission = null
+    }
+    private var pendingNotificationPermission: CompletableDeferred<Boolean>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -65,6 +81,19 @@ class MainActivity : FragmentActivity(), AuthRequester {
 
         viewModel.handleIntent(intent)
         viewModel.maintain()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                notificationPermissionRequests.requests.collect { request ->
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                        request.complete(false)
+                        return@collect
+                    }
+                    pendingNotificationPermission = request
+                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        }
 
         setContent {
             val state by viewModel.uiState.collectAsStateWithLifecycle()

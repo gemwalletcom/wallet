@@ -183,6 +183,10 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setRateApplicationShown() throws {}
 
+    public func notificationPrompt(isGranted: Bool) -> Gemstone.GemNotificationPrompt {
+        isGranted ? .enable : .request
+    }
+
     public func shouldAskNotifications() -> Bool {
         false
     }

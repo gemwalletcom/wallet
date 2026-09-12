@@ -47,6 +47,21 @@ pub fn flag(value: Option<String>) -> bool {
     value.as_deref() == Some("true")
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemNotificationPrompt {
+    Enable,
+    Request,
+    OpenSettings,
+}
+
+pub fn notification_prompt(is_granted: bool, has_asked: bool) -> GemNotificationPrompt {
+    match (is_granted, has_asked) {
+        (true, _) => GemNotificationPrompt::Enable,
+        (false, false) => GemNotificationPrompt::Request,
+        (false, true) => GemNotificationPrompt::OpenSettings,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -92,6 +107,14 @@ mod tests {
         assert_eq!(appearance(Some("dark".to_string())), Appearance::Dark);
         assert_eq!(appearance(Some("nope".to_string())), Appearance::System);
         assert_eq!(appearance(None), Appearance::System);
+    }
+
+    #[test]
+    fn test_a_wallet_that_was_never_asked_is_asked_before_being_sent_to_settings() {
+        assert_eq!(notification_prompt(false, false), GemNotificationPrompt::Request);
+        assert_eq!(notification_prompt(false, true), GemNotificationPrompt::OpenSettings, "the system shows its prompt once");
+        assert_eq!(notification_prompt(true, false), GemNotificationPrompt::Enable);
+        assert_eq!(notification_prompt(true, true), GemNotificationPrompt::Enable);
     }
 
     #[test]

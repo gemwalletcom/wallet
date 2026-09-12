@@ -187,6 +187,10 @@ impl GemPreferencesService {
         rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
     }
 
+    pub fn notification_prompt(&self, is_granted: bool) -> rules::GemNotificationPrompt {
+        rules::notification_prompt(is_granted, !self.should_ask_notifications())
+    }
+
     pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
         let now = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
         self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
