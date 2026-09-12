@@ -207,8 +207,7 @@ public final class FiatSceneViewModel {
     }
 
     var rateValue: String {
-        guard let selectedQuoteViewModel else { return "" }
-        return "1 \(asset.symbol) ≈ \(selectedQuoteViewModel.rateText)"
+        selectedQuoteViewModel?.rateText ?? ""
     }
 
     func buttonTitle(amount: Int) -> String {

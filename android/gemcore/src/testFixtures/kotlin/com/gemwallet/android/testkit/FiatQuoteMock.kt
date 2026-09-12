@@ -6,6 +6,7 @@ import com.wallet.core.primitives.FiatQuoteType
 import java.math.BigInteger
 import uniffi.gemstone.FiatProvider
 import uniffi.gemstone.FiatQuote
+import uniffi.gemstone.GemAssetRate
 import uniffi.gemstone.GemFiatQuoteRow
 
 fun mockFiatProvider(
@@ -51,7 +52,7 @@ fun mockFiatQuoteRow(
     providerImageUrl: String? = null,
     cryptoAmount: Double = 0.17,
     fiatAmount: Double = 100.0,
-    rate: Double? = null,
+    rate: GemAssetRate? = null,
 ) = GemFiatQuoteRow(
     quoteId = quoteId,
     provider = provider.toGem(),

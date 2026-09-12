@@ -6,6 +6,7 @@ import struct Gemstone.FiatProvider
 import enum Gemstone.FiatProviderName
 import struct Gemstone.FiatQuote
 import enum Gemstone.FiatQuoteType
+import struct Gemstone.GemAssetRate
 import struct Gemstone.GemFiatQuoteRow
 import GemstonePrimitives
 import Primitives
@@ -59,7 +60,7 @@ public extension GemFiatQuoteRow {
         providerImageUrl: String? = nil,
         cryptoAmount: Double = 0,
         fiatAmount: Double = 0,
-        rate: Double? = nil,
+        rate: GemAssetRate? = nil,
     ) -> GemFiatQuoteRow {
         GemFiatQuoteRow(
             quoteId: quoteId,

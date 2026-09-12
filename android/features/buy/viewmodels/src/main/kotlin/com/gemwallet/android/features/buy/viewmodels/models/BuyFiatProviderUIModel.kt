@@ -13,31 +13,34 @@ import uniffi.gemstone.GemFiatQuoteRow
 
 @Stable
 data class BuyFiatProviderUIModel(
-    val provider: FiatProviderName,
-    val providerName: String,
-    val providerImageUrl: String?,
+    val row: GemFiatQuoteRow,
     override val asset: Asset,
-    override val cryptoAmount: Double,
-    val fiatFormatted: String,
-    val rate: String,
+    val currency: Currency,
 ) : CryptoFormattedUIModel {
+
+    val provider: FiatProviderName by lazy { row.provider.toPrimitives() }
+
+    val providerName: String get() = row.providerName
+
+    val providerImageUrl: String? get() = row.providerImageUrl
+
+    override val cryptoAmount: Double get() = row.cryptoAmount
 
     override val cryptoFormatted: String by lazy { "≈ $cryptoText" }
 
     val cryptoText: String by lazy {
         ValueFormatter(style = ValueFormatter.Style.Auto).string(BigDecimal.valueOf(cryptoAmount), asset.symbol)
     }
+
+    val fiatFormatted: String by lazy { fiatFormatter.string(row.fiatAmount) }
+
+    val rate: String by lazy {
+        row.rate?.let { "1 ${it.baseSymbol} ≈ ${fiatFormatter.string(it.value)}" }.orEmpty()
+    }
+
+    private val fiatFormatter: CurrencyFormatter
+        get() = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
 }
 
-fun GemFiatQuoteRow.toProviderUIModel(asset: Asset, currency: Currency): BuyFiatProviderUIModel {
-    val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
-    return BuyFiatProviderUIModel(
-        provider = provider.toPrimitives(),
-        providerName = providerName,
-        providerImageUrl = providerImageUrl,
-        asset = asset,
-        cryptoAmount = cryptoAmount,
-        fiatFormatted = formatter.string(fiatAmount),
-        rate = rate?.let { "1 ${asset.symbol} ≈ ${formatter.string(it)}" }.orEmpty(),
-    )
-}
+fun GemFiatQuoteRow.toProviderUIModel(asset: Asset, currency: Currency): BuyFiatProviderUIModel =
+    BuyFiatProviderUIModel(row = this, asset = asset, currency = currency)

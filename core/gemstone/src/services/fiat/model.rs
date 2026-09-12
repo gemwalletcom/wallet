@@ -1,5 +1,6 @@
 use super::rules;
 use crate::services::balance::GemBalanceRequirement;
+use crate::services::swap::GemAssetRate;
 use primitives::{FiatProviderName, FiatTransactionStatus};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -18,7 +19,7 @@ pub struct GemFiatQuoteRow {
     pub provider_image_url: Option<String>,
     pub crypto_amount: f64,
     pub fiat_amount: f64,
-    pub rate: Option<f64>,
+    pub rate: Option<GemAssetRate>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

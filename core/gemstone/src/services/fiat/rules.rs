@@ -6,6 +6,7 @@ use rand::RngExt;
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
 use crate::services::balance::GemBalanceRequirement;
+use crate::services::swap::GemAssetRate;
 
 pub fn default_amount(config: &FiatConfig, quote_type: FiatQuoteType) -> u32 {
     match quote_type {
@@ -75,7 +76,11 @@ pub fn quote_row(quote: &FiatQuote, asset_price: Option<f64>) -> GemFiatQuoteRow
         provider_image_url: quote.provider.image_url.clone(),
         crypto_amount: quote.crypto_amount,
         fiat_amount,
-        rate: (quote.crypto_amount > 0.0).then(|| quote.fiat_amount / quote.crypto_amount),
+        rate: (quote.crypto_amount > 0.0).then(|| GemAssetRate {
+            base_symbol: quote.asset.symbol.clone(),
+            quote_symbol: quote.fiat_currency.clone(),
+            value: quote.fiat_amount / quote.crypto_amount,
+        }),
     }
 }
 
@@ -171,11 +176,18 @@ mod tests {
     }
 
     #[test]
-    fn test_row_has_no_rate_when_the_quote_buys_nothing() {
+    fn test_row_names_the_rate_it_prices_and_has_none_when_the_quote_buys_nothing() {
         let mut quote = quote(1);
         quote.crypto_amount = 4.0;
         quote.fiat_amount = 100.0;
-        assert_eq!(quote_row(&quote, None).rate, Some(25.0));
+        assert_eq!(
+            quote_row(&quote, None).rate,
+            Some(GemAssetRate {
+                base_symbol: quote.asset.symbol.clone(),
+                quote_symbol: "USD".to_string(),
+                value: 25.0
+            })
+        );
 
         quote.crypto_amount = 0.0;
         assert_eq!(quote_row(&quote, None).rate, None);

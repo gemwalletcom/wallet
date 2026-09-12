@@ -36,7 +36,8 @@ struct FiatQuoteViewModel {
     }
 
     var rateText: String {
-        row.rate.map { formatter.string($0) } ?? ""
+        guard let rate = row.rate else { return "" }
+        return "1 \(rate.baseSymbol) ≈ \(formatter.string(rate.value))"
     }
 }
 
