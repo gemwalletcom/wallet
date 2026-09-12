@@ -2256,6 +2256,7 @@ dependencies = [
  "gem_evm",
  "gem_jsonrpc",
  "gem_rewards",
+ "gem_solana",
  "gem_tracing",
  "job_runner",
  "lists",

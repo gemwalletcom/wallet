@@ -32,6 +32,13 @@ pub struct Meta {
     pub post_balances: Vec<u64>,
     pub pre_token_balances: Vec<TokenBalance>,
     pub post_token_balances: Vec<TokenBalance>,
+    pub loaded_addresses: Option<LoadedAddresses>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct LoadedAddresses {
+    pub writable: Vec<String>,
+    pub readonly: Vec<String>,
 }
 
 impl Meta {
@@ -130,6 +137,15 @@ pub struct BlockTransaction {
 }
 
 impl BlockTransaction {
+    pub fn account_key(&self, index: usize) -> Option<&String> {
+        self.transaction
+            .message
+            .account_keys
+            .iter()
+            .chain(self.meta.loaded_addresses.iter().flat_map(|addresses| addresses.writable.iter().chain(&addresses.readonly)))
+            .nth(index)
+    }
+
     pub fn fee(&self) -> BigUint {
         BigUint::from(self.meta.fee)
     }
@@ -209,6 +225,7 @@ mod tests {
                 post_balances: post,
                 pre_token_balances: vec![],
                 post_token_balances: vec![],
+                loaded_addresses: None,
             },
             transaction: Transaction {
                 message: TransactionMessage {
@@ -218,6 +235,23 @@ mod tests {
                 signatures: vec![],
             },
         }
+    }
+
+    #[test]
+    fn test_account_key() {
+        let mut transaction = block_transaction(5000, vec!["sender", "program"], vec![], vec![]);
+        assert_eq!(transaction.account_key(0).map(String::as_str), Some("sender"));
+        assert_eq!(transaction.account_key(2), None);
+
+        transaction.meta.loaded_addresses = Some(LoadedAddresses {
+            writable: vec!["destination".to_string()],
+            readonly: vec!["mint".to_string()],
+        });
+
+        assert_eq!(
+            (0..5).map(|index| transaction.account_key(index).map(String::as_str)).collect::<Vec<_>>(),
+            vec![Some("sender"), Some("program"), Some("destination"), Some("mint"), None]
+        );
     }
 
     #[test]

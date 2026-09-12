@@ -51,15 +51,14 @@ impl TransactionParser<ParseContext<'_>, Transaction> for RelayParser {
 }
 
 fn is_relay_instruction(context: &ParseContext<'_>, instruction: &Instruction) -> bool {
-    context.transaction.transaction.message.account_keys.get(instruction.program_id_index).map(String::as_str) == Some(RELAY_DEPOSITORY_PROGRAM_ID)
+    context.transaction.account_key(instruction.program_id_index).map(String::as_str) == Some(RELAY_DEPOSITORY_PROGRAM_ID)
 }
 
 fn decode_deposit(context: &ParseContext<'_>, instruction: &Instruction) -> Option<DecodedDeposit> {
     let data = bs58::decode(&instruction.data).into_vec().ok()?;
     let discriminator = data.get(..DEPOSIT_NATIVE_DISCRIMINATOR.len())?;
     let arguments = DepositArguments::try_from_slice(data.get(DEPOSIT_NATIVE_DISCRIMINATOR.len()..)?).ok()?;
-    let account_keys = &context.transaction.transaction.message.account_keys;
-    let account = |position: usize| account_keys.get(*instruction.accounts.get(position)? as usize).cloned();
+    let account = |position: usize| context.transaction.account_key(*instruction.accounts.get(position)? as usize).cloned();
     let sender = account(SENDER_ACCOUNT_INDEX)?;
     let asset_id = if discriminator == DEPOSIT_NATIVE_DISCRIMINATOR {
         Chain::Solana.as_asset_id()
