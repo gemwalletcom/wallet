@@ -198,10 +198,6 @@ func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetS
 
 Core → app mappings live in `GemstonePrimitives` as extensions. A mapping onto a *feature-internal* type stays in the feature — `GemstonePrimitives` cannot import a feature module, and reaching for one is the signal that the mapping belongs in the feature.
 
-#### Navigation values are app types
-
-A navigation stack matches a pushed value to a destination by exact type, and it does so silently: a push with no destination for its type does nothing, reports nothing, and still compiles. The push and the destination sit in different modules, so the route is a contract between two files that never see each other, and it has to be a type the app owns and changes deliberately. A generated transport record is not that type — its shape follows the FFI, so replacing one generated type with another under a screen breaks every link that pushed the old one while the build stays green. Push the value the destination's model already takes, map the generated record to it in the model rather than in the scene, and treat the record as the payload a screen reads once it is there. Exercising the link is the only thing that proves a route.
-
 ### Android
 
 A case in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`, injected by Hilt. An observed read returns a `Flow`; the case still asks Core for the decision on each emission:
@@ -220,6 +216,36 @@ override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAg
 One Core call answers the whole screen, so the case has nothing to assemble.
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
+
+### Navigation values are app types
+
+A navigation stack matches a pushed value, or a route key, to its destination by exact type, and it does so silently: a push with no destination for its type does nothing, reports nothing, and still compiles. The push and the destination sit in different modules, so the route is a contract between two files that never see each other, and it has to be a type the app owns and changes deliberately. A generated transport record is not that type — its shape follows the FFI, so replacing one generated type with another under a screen breaks every link that pushed the old one while the build stays green. On both apps a route carries `Primitives` values, never a Gemstone record: push the value the destination's model already takes, map the generated record to it in the model rather than in the scene, and let the record be the payload the screen reads once it is there. Exercising the link is the only thing that proves a route.
+
+```swift
+// iOS scene: the row pushes the app's validator, the selection maps Core's row
+NavigationLink(value: validatorSelection.selectedValidator) {
+    ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
+}
+
+public extension SelectionState where T == GemValidatorRow {
+    var selectedValidator: DelegationValidator {
+        selected.validator.map()
+    }
+}
+
+// iOS stack: the destination takes the same app type
+.navigationDestination(for: DelegationValidator.self) { validator in
+    ValidatorSelectScene(model: viewModelFactory.validatorSelectScene(currentValidator: validator, ...))
+}
+```
+
+```kotlin
+// Android: a route key is a serializable record of primitives
+@Serializable
+data class AssetRoute(val assetId: AssetId) : NavKey
+```
+
+Pushing `GemValidatorRow` and matching `.navigationDestination(for: GemValidatorRow.self)` compiles and works until one of the two changes; pushing it against the destination above compiles and does nothing.
 
 ### Never call Core from the main thread
 
