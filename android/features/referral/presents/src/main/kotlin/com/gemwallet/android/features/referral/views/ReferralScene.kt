@@ -58,6 +58,7 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.RewardRedemptionOption
 import uniffi.gemstone.ReferralAllowance
 import uniffi.gemstone.ReferralQuota
@@ -82,7 +83,7 @@ fun ReferralScene(
     onCancelCode: () -> Unit,
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
-    onRedeem: (RewardRedemptionOption) -> Unit,
+    onRedeem: (GemRewardsRedemption) -> Unit,
     onClose: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
@@ -193,7 +194,7 @@ fun ReferralScene(
                         }
                     }
                     if (uiState.showsInfo) {
-                        referralInfo(rewards, onRedeem)
+                        referralInfo(rewards, uiState.redemptions, onRedeem)
                     }
                 }
             }
@@ -304,4 +305,5 @@ private fun previewState(
     isUnverified = false,
     hasPendingReferral = false,
     canActivatePendingReferral = false,
+    redemptions = emptyList(),
 )

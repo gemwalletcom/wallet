@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.Rewards
+import struct Gemstone.GemRewardsRedemption
 import struct Gemstone.RewardRedemptionOption
 import Components
 import Localization
@@ -32,8 +33,8 @@ public struct RewardsScene: View {
                 if model.rewardsState.showsInfo {
                     infoSection(rewards: rewards)
                 }
-                if rewards.redemptionOptions.isNotEmpty {
-                    redemptionOptionsSection(options: rewards.redemptionOptions)
+                if model.redemptions.isNotEmpty {
+                    redemptionOptionsSection(redemptions: model.redemptions)
                 }
             case .noData:
                 inviteFriendsSection
@@ -187,9 +188,10 @@ public struct RewardsScene: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func redemptionOptionsSection(options: [RewardRedemptionOption]) -> some View {
+    private func redemptionOptionsSection(redemptions: [GemRewardsRedemption]) -> some View {
         Section {
-            ForEach(options.map { RewardRedemptionOptionViewModel(option: $0) }) { viewModel in
+            ForEach(redemptions, id: \.option.id) { redemption in
+                let viewModel = RewardRedemptionOptionViewModel(option: redemption.option)
                 NavigationCustomLink(
                     with: ListItemView(
                         title: viewModel.title,
@@ -197,8 +199,8 @@ public struct RewardsScene: View {
                         imageStyle: .asset(assetImage: viewModel.assetImage),
                     ),
                 ) {
-                    if model.canRedeem(option: viewModel.option) {
-                        model.showRedemptionAlert(for: viewModel.option)
+                    if redemption.canRedeem {
+                        model.showRedemptionAlert(for: redemption.option)
                     } else {
                         model.showError(Localized.Rewards.insufficientPoints)
                     }

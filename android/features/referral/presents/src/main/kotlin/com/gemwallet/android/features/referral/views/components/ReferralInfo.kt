@@ -30,12 +30,14 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
+import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.RewardRedemptionOption
 import uniffi.gemstone.Rewards
 
 internal fun LazyListScope.referralInfo(
     rewards: Rewards,
-    onRedeem: (RewardRedemptionOption) -> Unit,
+    redemptions: List<GemRewardsRedemption>,
+    onRedeem: (GemRewardsRedemption) -> Unit,
 ) {
     item {
         SubheaderItem(R.string.common_info)
@@ -70,10 +72,10 @@ internal fun LazyListScope.referralInfo(
         )
     }
 
-    if (rewards.redemptionOptions.isNotEmpty()) {
+    if (redemptions.isNotEmpty()) {
         item { SubheaderItem(R.string.rewards_ways_spend_title) }
-        itemsPositioned(rewards.redemptionOptions.filter { it.asset != null }) { position, item ->
-            RewardRedemptionOptionItem(item, position) { onRedeem(item) }
+        itemsPositioned(redemptions) { position, item ->
+            RewardRedemptionOptionItem(item.option, position) { onRedeem(item) }
         }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.Rewards
+import struct Gemstone.GemRewardsRedemption
 import struct Gemstone.RewardRedemptionOption
 import protocol Gemstone.GemRewardsServiceProtocol
 import struct Gemstone.GemRewardsState
@@ -119,6 +120,10 @@ public final class RewardsViewModel: Sendable {
         return (try? service.referralLink(code: code).absoluteString) ?? ""
     }
 
+    var redemptions: [GemRewardsRedemption] {
+        rewardsState.redemptions
+    }
+
     var rewardsState: GemRewardsState {
         service.state(rewards: rewards)
     }
@@ -231,11 +236,6 @@ public final class RewardsViewModel: Sendable {
         } catch {
             showError(error.localizedDescription)
         }
-    }
-
-    func canRedeem(option: RewardRedemptionOption) -> Bool {
-        guard let rewards else { return false }
-        return rewards.points >= option.points
     }
 
     func showRedemptionAlert(for option: RewardRedemptionOption) {

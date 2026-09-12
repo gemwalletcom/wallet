@@ -108,4 +108,5 @@ private fun pendingState(canActivate: Boolean) = GemRewardsState(
     isUnverified = false,
     hasPendingReferral = true,
     canActivatePendingReferral = canActivate,
+    redemptions = emptyList(),
 )

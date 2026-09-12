@@ -12,6 +12,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemRewardsServiceInterface
+import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.RewardRedemptionOption
 import uniffi.gemstone.Rewards
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -120,13 +121,12 @@ class ReferralViewModel @Inject constructor(
         }
     }
 
-    fun redeem(option: RewardRedemptionOption, callback: (Throwable?) -> Unit) {
+    fun redeem(redemption: GemRewardsRedemption, callback: (Throwable?) -> Unit) {
         val wallet = currentWallet.value ?: return
-        val rewards = rewards.value ?: return
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (rewards.points < option.points) throw ReferralError.InsufficientPoints
-                service.redeem(wallet.toGem(), option.id)
+                if (!redemption.canRedeem) throw ReferralError.InsufficientPoints
+                service.redeem(wallet.toGem(), redemption.option.id)
                 sync()
                 withContext(Dispatchers.Main) {
                     callback(null)
