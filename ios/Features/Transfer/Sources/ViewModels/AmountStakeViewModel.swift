@@ -19,6 +19,12 @@ public enum AmountStakeSelection {
     case resource(SelectionState<Resource>)
 }
 
+public extension SelectionState where T == GemValidatorRow {
+    var selectedValidator: DelegationValidator {
+        selected.validator.map()
+    }
+}
+
 public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
     public let selection: AmountStakeSelection

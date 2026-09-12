@@ -65,7 +65,7 @@ public struct AmountScene: View {
                 case let .validator(validatorSelection):
                     Section(validatorSelection.title) {
                         if validatorSelection.isEnabled {
-                            NavigationLink(value: validatorSelection.selected) {
+                            NavigationLink(value: validatorSelection.selectedValidator) {
                                 ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
                             }
                         } else {

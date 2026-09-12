@@ -198,6 +198,10 @@ func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetS
 
 Core → app mappings live in `GemstonePrimitives` as extensions. A mapping onto a *feature-internal* type stays in the feature — `GemstonePrimitives` cannot import a feature module, and reaching for one is the signal that the mapping belongs in the feature.
 
+#### A route is an app type
+
+A value pushed on a navigation stack, and the destination that receives it, are app types. A generated record is a payload a screen reads, never a route, and the mapping to the route belongs in the view model, not in the scene. A push whose value type has no matching destination does nothing and reports nothing, so a route is only proven by exercising the link.
+
 ### Android
 
 A case in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`, injected by Hilt. An observed read returns a `Flow`; the case still asks Core for the decision on each emission:
