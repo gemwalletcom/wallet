@@ -16,17 +16,18 @@ public struct StateButtonStyle: ButtonStyle {
         ZStack {
             adoptiveShape(configuration: configuration)
 
-            if variant.state.showProgress {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(Colors.whiteSolid)
-            } else {
+            HStack(spacing: .small) {
+                if variant.state.showProgress {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(Colors.whiteSolid)
+                }
                 configuration.label
                     .lineLimit(1)
                     .foregroundStyle(foreground(configuration: configuration))
-                    .padding(.horizontal, .medium)
-                    .frame(maxWidth: .infinity, maxHeight: Self.maxHeight)
             }
+            .padding(.horizontal, .medium)
+            .frame(maxWidth: .infinity, maxHeight: Self.maxHeight)
         }
     }
 
