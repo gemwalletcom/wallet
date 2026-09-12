@@ -97,7 +97,7 @@ public struct QRScannerScene: View {
     }
 
     private func photosPicker(
-        @ViewBuilder label: @Sendable @escaping () -> some View,
+        @ViewBuilder label: @escaping () -> some View,
     ) -> some View {
         PhotosPicker(
             selection: $model.selectedPhoto,
