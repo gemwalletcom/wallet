@@ -5,6 +5,7 @@ use std::net::IpAddr;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
+use gem_proxy::allowlist::PathAllowlist;
 use serde::Deserialize;
 use serde_serializers::{duration, size};
 
@@ -68,6 +69,8 @@ pub(crate) struct ProxyHealthConfig {
 pub(crate) struct RouteConfig {
     pub selection: Selection,
     pub headers: Option<HeadersConfig>,
+    #[serde(default)]
+    pub allowlist: PathAllowlist,
     pub rate: Option<RateConfig>,
     pub retry: Option<RetryOverride>,
     pub endpoints: Vec<EndpointConfig>,

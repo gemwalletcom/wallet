@@ -104,13 +104,14 @@ impl Gateway {
     }
 
     pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<GatewayResponse, GatewayError> {
-        let route_match = match match_route(&self.routes, &self.callers, uri) {
+        let route_match = match match_route(&self.routes, &self.callers, &method, uri) {
             Ok(route_match) => route_match,
             Err(error) => {
                 let (status, reason, message) = match error {
                     MatchError::Unauthorized => (Status::Unauthorized, "caller", "caller authentication failed"),
                     MatchError::Forbidden => (Status::Forbidden, "group", "caller is not allowed to use this group"),
                     MatchError::NotFound => (Status::NotFound, "route", "route not found"),
+                    MatchError::NotAllowed => (Status::Forbidden, "allowlist", "request not allowed"),
                 };
                 let uri = path::redact(uri);
                 AccessLog::rejected(&method, &uri, status.code, reason);
@@ -304,6 +305,8 @@ mod tests {
     use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderName};
 
     use super::*;
+    use gem_proxy::allowlist::PathAllowlist;
+
     use crate::config::{EndpointConfig, HeadersConfig, RequestConfig, RetryConfig, RouteConfig, Selection};
 
     #[test]
@@ -364,6 +367,7 @@ mod tests {
                         RouteConfig {
                             selection: Selection::Ordered,
                             headers: None,
+                            allowlist: PathAllowlist::default(),
                             rate: None,
                             retry: None,
                             endpoints: ["key_1", "key_2"]

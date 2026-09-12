@@ -1,3 +1,4 @@
+use gem_proxy::allowlist::PathRule;
 use serde::Deserialize;
 
 use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
@@ -27,35 +28,22 @@ impl AllowlistConfig {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct AllowlistRule {
-    path: Option<String>,
-    method: Option<String>,
-    rpc_method: Option<String>,
+#[serde(untagged)]
+enum AllowlistRule {
+    Rpc { rpc_method: String },
+    Path(PathRule),
 }
 
 impl AllowlistRule {
     fn matches_path_request(&self, path: &str, method: &str) -> bool {
-        let Some(rule_method) = self.method.as_ref() else {
-            return false;
-        };
-        if method != rule_method {
-            return false;
+        match self {
+            Self::Path(rule) => rule.matches(method, path_without_query(path)),
+            Self::Rpc { .. } => false,
         }
-
-        let Some(rule_path) = self.path.as_ref() else {
-            return false;
-        };
-
-        let path = path_without_query(path);
-        if let Some(prefix) = rule_path.strip_suffix("/**") {
-            return path.strip_prefix(prefix).is_some_and(|rest| rest.starts_with('/'));
-        }
-
-        path == rule_path
     }
 
     fn matches_rpc(&self, rpc_method: &str) -> bool {
-        self.rpc_method.as_ref().is_some_and(|method| method == rpc_method)
+        matches!(self, Self::Rpc { rpc_method: allowed } if allowed == rpc_method)
     }
 }
 
@@ -63,6 +51,7 @@ impl AllowlistRule {
 mod tests {
     use super::*;
     use crate::testkit::config::jsonrpc;
+    use config::{Config, File, FileFormat};
     use serde_json::json;
 
     fn config() -> AllowlistConfig {
@@ -138,5 +127,26 @@ mod tests {
         let config: AllowlistConfig = serde_json::from_value(json!([])).unwrap();
 
         assert!(config.allows(&jsonrpc("unknown_method")));
+    }
+
+    #[test]
+    fn test_deserializes_mixed_rules_from_yaml() {
+        #[derive(Deserialize)]
+        struct Wrapper {
+            allowlist: AllowlistConfig,
+        }
+
+        let input = "allowlist:\n  - rpc_method: eth_call\n  - path: /api/v2/address/**\n    method: GET\n";
+        let wrapper = Config::builder()
+            .add_source(File::from_str(input, FileFormat::Yaml))
+            .build()
+            .unwrap()
+            .try_deserialize::<Wrapper>()
+            .unwrap();
+
+        assert!(wrapper.allowlist.allows(&jsonrpc("eth_call")));
+        assert!(!wrapper.allowlist.allows(&jsonrpc("eth_chainId")));
+        assert!(wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/address/bc1q".to_string(), Vec::new())));
+        assert!(!wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/block/1".to_string(), Vec::new())));
     }
 }

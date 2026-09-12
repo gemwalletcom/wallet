@@ -2696,6 +2696,7 @@ dependencies = [
  "gem_auth",
  "gem_client",
  "gem_encoding",
+ "gem_proxy",
  "gem_tracing",
  "metrics",
  "primitives",
@@ -2806,6 +2807,7 @@ dependencies = [
  "config",
  "gem_client",
  "gem_crypto",
+ "gem_proxy",
  "gem_tracing",
  "metrics",
  "prometheus-client",
@@ -2813,6 +2815,7 @@ dependencies = [
  "reqwest 0.13.4",
  "rocket",
  "serde",
+ "serde_json",
  "serde_serializers",
  "tokio",
  "url",
@@ -3868,6 +3871,15 @@ dependencies = [
  "settings",
  "signer",
  "tokio",
+]
+
+[[package]]
+name = "gem_proxy"
+version = "2.114.23"
+dependencies = [
+ "config",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
