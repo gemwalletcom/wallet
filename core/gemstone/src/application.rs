@@ -27,13 +27,12 @@ impl GemApplicationMetadataService {
     pub fn icon_url(&self, metadata: ApplicationMetadata) -> Option<String> {
         let website = public_url(&metadata.url)?;
         let icon = public_url(&metadata.icon).filter(|icon| icon.fragment().is_none() && icon.as_str().len() <= ICON_URL_MAX_LENGTH);
-        let mut query = form_urlencoded::Serializer::new(String::new());
-        query.append_pair("url", &website.origin().ascii_serialization());
-        query.append_pair("size", APPLICATION_ICON_SIZE);
-        if let Some(icon) = icon {
-            query.append_pair("icon", icon.as_str());
-        }
-        Some(format!("{ASSETS_URL}/proxy/icon?{}", query.finish()))
+        let source = icon.map_or_else(|| website.origin().ascii_serialization(), |icon| icon.to_string());
+        let query = form_urlencoded::Serializer::new(String::new())
+            .append_pair("url", &source)
+            .append_pair("size", APPLICATION_ICON_SIZE)
+            .finish();
+        Some(format!("{ASSETS_URL}/proxy/icon?{query}"))
     }
 }
 
@@ -91,14 +90,14 @@ mod tests {
     }
 
     #[test]
-    fn test_icon_url_passes_the_application_icon_to_the_website_endpoint() {
+    fn test_icon_url_requests_the_application_icon() {
         assert_eq!(
             icon_url("https://login.xyz/some/page?query=value#section", "https://login.xyz/favicon.png"),
-            Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Flogin.xyz&size=256&icon=https%3A%2F%2Flogin.xyz%2Ffavicon.png".into())
+            Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Flogin.xyz%2Ffavicon.png&size=256".into())
         );
         assert_eq!(
             icon_url("https://tronscan.org", "https://cdn.example.com/logo.svg?v=2"),
-            Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Ftronscan.org&size=256&icon=https%3A%2F%2Fcdn.example.com%2Flogo.svg%3Fv%3D2".into())
+            Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Fcdn.example.com%2Flogo.svg%3Fv%3D2&size=256".into())
         );
     }
 
