@@ -132,6 +132,17 @@ public struct AmountScene: View {
                 action: onSelectNextButton,
             )
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if model.transferState.isLoading {
+                    ProgressView()
+                } else {
+                    Button(model.continueTitle, action: onSelectNextButton)
+                        .bold()
+                        .disabled(!model.isNextEnabled)
+                }
+            }
+        }
         .contentMargins([.top], .zero, for: .scrollContent)
         .listSectionSpacing(.custom(.medium))
         .frame(maxWidth: .infinity)
@@ -142,6 +153,9 @@ public struct AmountScene: View {
             if model.shouldFocusOnAppear {
                 focusedField = true
             }
+        }
+        .onDisappear {
+            focusedField = false
         }
     }
 
