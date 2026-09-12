@@ -17,6 +17,7 @@ use gem_everstake::{EverstakeClient, EverstakeStakingClient};
 use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
+use gem_jsonrpc::grpc::ReqwestGrpcTransport;
 use gem_monad::MonadStakingClient;
 use gem_near::rpc::{NearClient, NearIndexer, NearProvider};
 use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer, PolkadotProvider};
@@ -64,7 +65,7 @@ impl ProviderFactory {
     }
 
     fn build_provider(config: ProviderConfig, user_agent: &str, reqwest_client: Client) -> Box<dyn ChainTraits> {
-        let gem_client = ReqwestClient::new_with_user_agent(config.url.clone(), reqwest_client, user_agent.to_string());
+        let gem_client = ReqwestClient::new_with_user_agent(config.url.clone(), reqwest_client.clone(), user_agent.to_string());
         let chain = config.chain;
 
         match chain.chain_type() {
@@ -113,7 +114,7 @@ impl ProviderFactory {
             }
             ChainType::Aptos => Box::new(AptosClient::new(gem_client)),
             ChainType::Sui => Box::new(SuiProvider::new(
-                SuiClient::new(config.url),
+                SuiClient::new_with_transport(config.url, Arc::new(ReqwestGrpcTransport::new_with_client(reqwest_client))),
                 Box::new(SuiIndexer::new(config.indexers.sui.configure_client(gem_client))),
             )),
             ChainType::Xrp => Box::new(XrpClient::new(JsonRpcClient::new(gem_client))),
@@ -232,5 +233,22 @@ impl ProviderFactory {
         } else {
             format!("{}/{}", settings.dynode.url, chain.as_ref())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+    use reqwest::Error;
+
+    use super::*;
+
+    #[test]
+    fn test_sui_preserves_client_configuration() {
+        let client = Client::builder().https_only(true).build().unwrap();
+        let provider = ProviderFactory::new_provider_with_client(ProviderConfig::new(Chain::Sui, "http://example.com"), client);
+        let error = block_on(provider.get_chain_id()).unwrap_err();
+
+        assert!(error.downcast_ref::<Error>().unwrap().is_builder());
     }
 }
