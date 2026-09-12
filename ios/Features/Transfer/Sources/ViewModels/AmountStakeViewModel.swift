@@ -5,6 +5,7 @@ import Foundation
 import enum Gemstone.GemAmountType
 import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemStakeAmountInput
+import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,7 +15,7 @@ import Validators
 import struct Gemstone.GemTransferData
 
 public enum AmountStakeSelection {
-    case validator(SelectionState<DelegationValidator>)
+    case validator(SelectionState<GemValidatorRow>)
     case resource(SelectionState<Resource>)
 }
 
@@ -38,9 +39,9 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             guard let selected = validators.validator else {
                 preconditionFailure("Stake action \(type) requires at least one validator")
             }
-            selection = .validator(SelectionState(options: validators.options.map { $0.map() }, selected: selected.map(), isEnabled: validators.canSelect, title: Localized.Stake.validator))
-            recommendedValidators = validators.recommended.map { $0.map() }
-            action = type.withValidator(validator: selected)
+            selection = .validator(SelectionState(options: validators.options, selected: selected, isEnabled: validators.canSelect, title: Localized.Stake.validator))
+            recommendedValidators = validators.recommended.map { $0.validator.map() }
+            action = type.withValidator(validator: selected.validator)
         }
     }
 
@@ -66,7 +67,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
 
     func select(_ validator: DelegationValidator) {
         guard case let .validator(state) = selection else { return }
-        state.selected = validator
+        state.selected = service.validatorRow(validator: validator.map())
         action = action.withValidator(validator: validator.map())
     }
 

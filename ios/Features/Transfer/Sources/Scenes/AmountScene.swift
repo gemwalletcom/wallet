@@ -66,10 +66,10 @@ public struct AmountScene: View {
                     Section(validatorSelection.title) {
                         if validatorSelection.isEnabled {
                             NavigationLink(value: validatorSelection.selected) {
-                                ValidatorView(model: ValidatorViewModel(validator: validatorSelection.selected))
+                                ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
                             }
                         } else {
-                            ValidatorView(model: ValidatorViewModel(validator: validatorSelection.selected))
+                            ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
                         }
                     }
 
@@ -118,7 +118,7 @@ public struct AmountScene: View {
 
             case let .earn(earn):
                 Section(earn.providerTitle) {
-                    ValidatorView(model: ValidatorViewModel(validator: earn.provider))
+                    ValidatorView(model: ValidatorViewModel(row: earn.providerRow))
                 }
 
             case .transfer:

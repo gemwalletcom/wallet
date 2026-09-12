@@ -1,8 +1,6 @@
 package com.gemwallet.android.features.earn.delegation.models
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -11,19 +9,21 @@ import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
+import uniffi.gemstone.GemValidatorRow
 
 @Stable
 class HeadDelegationInfo(
     private val delegation: Delegation,
     private val assetInfo: AssetInfo,
     override val currency: Currency,
+    private val validator: GemValidatorRow,
 ) : CryptoFormattedUIModel, FiatFormattedUIModel {
 
     val iconUrl: String
-        get() = delegation.validator.getIconUrl()
+        get() = validator.imageUrl
 
     val iconPlaceholder: String
-        get() = delegation.validator.displayName().take(1)
+        get() = validator.placeholder
 
     override val cryptoAmount: Double by lazy {
         Crypto(delegation.base.balance).value(asset.decimals).toDouble()

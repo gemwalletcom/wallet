@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemValidatorRow
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Stake
@@ -8,15 +10,25 @@ import Testing
 
 struct ValidatorViewModelTests {
     @Test func aprText() {
-        let model = ValidatorViewModel(validator: .mock(apr: 2.15))
-
-        #expect(model.aprModel.text == "APR 2.15%")
+        #expect(model(.mock(apr: 2.15)).aprModel.text == "APR 2.15%")
     }
 
-    @Test func nameFallsBackToTheAddressWhenUnnamed() {
-        let validator = DelegationValidator.mock(.solana, id: "8GbwASqdpw4dVcwbWUxbHXMrjyQx2aKkoBR5H1GJF8iD", name: "")
+    @Test func nameAndPlaceholderComeFromTheRow() {
+        let model = model(.mock(name: "Everstake"), name: "Everstake", placeholder: "E")
 
-        #expect(ValidatorViewModel(validator: validator).name == "8GbwA...JF8iD")
-        #expect(ValidatorViewModel(validator: .mock(name: "Everstake")).name == "Everstake")
+        #expect(model.name == "Everstake")
+        #expect(model.validatorImage.type == .text("E"))
+    }
+
+    private func model(_ validator: DelegationValidator, name: String = "", placeholder: String = "") -> ValidatorViewModel {
+        ValidatorViewModel(
+            row: GemValidatorRow(
+                validator: validator.map(),
+                name: name,
+                imageUrl: "https://assets.gemwallet.com/validator.png",
+                placeholder: placeholder,
+                provider: .none,
+            ),
+        )
     }
 }

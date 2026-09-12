@@ -6,8 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.stake.displayName
+import uniffi.gemstone.GemValidatorRow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -21,6 +20,7 @@ import uniffi.gemstone.delegationStatus
 fun DelegationItem(
     assetInfo: AssetInfo,
     delegation: Delegation,
+    validator: GemValidatorRow,
     listPosition: ListPosition,
     onClick: () -> Unit
 ) {
@@ -30,12 +30,12 @@ fun DelegationItem(
         listPosition = listPosition,
         leading = {
             IconWithBadge(
-                icon = delegation.validator.getIconUrl(),
-                placeholder = delegation.validator.displayName().firstOrNull()?.toString() ?: "",
+                icon = validator.imageUrl,
+                placeholder = validator.placeholder,
             )
         },
         title = {
-            ListItemTitleText(text = delegation.validator.displayName())
+            ListItemTitleText(text = validator.name)
         },
         subtitle = {
             ListItemSupportText(

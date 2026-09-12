@@ -50,6 +50,7 @@ import uniffi.gemstone.GemStakeActionItem
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
+import uniffi.gemstone.GemValidatorRow
 import java.math.BigInteger
 
 @Composable
@@ -59,6 +60,7 @@ internal fun StakeScene(
     actions: List<GemStakeActionItem>,
     rewardsText: String,
     delegations: List<Delegation>,
+    validatorRows: Map<String, GemValidatorRow>,
     stakeInfoUrl: String?,
     lockTimeDays: Int?,
     minStakeAmount: BigInteger,
@@ -115,6 +117,7 @@ internal fun StakeScene(
                         DelegationItem(
                             assetInfo = assetInfo,
                             delegation = item,
+                            validator = validatorRows[item.validator.id] ?: return@itemsIndexed,
                             listPosition = ListPosition.getPosition(index, delegations.size),
                             onClick = { onAction(StakeSceneAction.OpenDelegation(item)) }
                         )

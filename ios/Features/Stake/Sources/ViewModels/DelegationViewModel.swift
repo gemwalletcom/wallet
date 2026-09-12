@@ -102,7 +102,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorModel: ValidatorViewModel {
-        ValidatorViewModel(validator: delegation.validator)
+        ValidatorViewModel(row: service.validatorRow(validator: delegation.validator.map()))
     }
 
     public var validatorText: String {

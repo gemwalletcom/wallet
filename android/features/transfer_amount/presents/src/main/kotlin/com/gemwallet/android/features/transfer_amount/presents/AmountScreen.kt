@@ -57,7 +57,7 @@ fun AmountScreen(
             selection?.let { resolved ->
                 ValidatorsScreen(
                     selection = resolved,
-                    selectedValidatorId = validator?.id.orEmpty(),
+                    selectedValidatorId = validator?.validator?.id.orEmpty(),
                     onCancel = { isSelectValidator = false },
                     onSelect = {
                         provider.selectValidator(it)

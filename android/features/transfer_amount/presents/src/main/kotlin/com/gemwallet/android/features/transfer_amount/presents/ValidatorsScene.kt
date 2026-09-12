@@ -14,12 +14,13 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
+import uniffi.gemstone.GemValidatorRow
 import com.wallet.core.primitives.StakeProviderType
 
 @Composable
 fun ValidatorsScene(
-    recommended: List<DelegationValidator>,
-    validators: List<DelegationValidator>,
+    recommended: List<GemValidatorRow>,
+    validators: List<GemValidatorRow>,
     selectedValidatorId: String,
     onSelect: (String) -> Unit,
     onCancel: () -> Unit,
@@ -33,11 +34,11 @@ fun ValidatorsScene(
                 item {
                     SubheaderItem(R.string.common_recommended)
                 }
-                itemsPositioned(recommended, key = { index, item -> "recommended-${item.id}" }) { position, item ->
+                itemsPositioned(recommended, key = { index, item -> "recommended-${item.validator.id}" }) { position, item ->
                     ValidatorItem(
                         data = item,
                         listPosition = position,
-                        isSelected = selectedValidatorId == item.id,
+                        isSelected = selectedValidatorId == item.validator.id,
                         onClick = onSelect
                     )
                 }
@@ -47,11 +48,11 @@ fun ValidatorsScene(
                 SubheaderItem(R.string.stake_active)
             }
             val validatorsSize = validators.size
-            itemsIndexed(validators, key = { index, item -> item.id }) { index, item ->
+            itemsIndexed(validators, key = { index, item -> item.validator.id }) { index, item ->
                 ValidatorItem(
                     data = item,
                     listPosition = ListPosition.getPosition(index, validatorsSize),
-                    isSelected = selectedValidatorId == item.id,
+                    isSelected = selectedValidatorId == item.validator.id,
                     onClick = onSelect
                 )
             }
@@ -66,37 +67,29 @@ fun PreviewValidatorsScene() {
         ValidatorsScene(
             recommended = emptyList(),
             validators = listOf(
-                    DelegationValidator(
-                        chain = Chain.Sei,
-                        id = "some_validator_id",
-                        name = "Castlenode",
-                        isActive = true,
-                        commission = 0.5,
-                        apr = 9.10,
-                        providerType = StakeProviderType.Stake,
-                    ),
-                    DelegationValidator(
-                        chain = Chain.Sei,
-                        id = "some_validator_id_1",
-                        name = "Ubik Capital 0%Fee",
-                        isActive = true,
-                        commission = 0.5,
-                        apr = 10.000,
-                        providerType = StakeProviderType.Stake,
-                    ),
-                    DelegationValidator(
-                        chain = Chain.Sei,
-                        id = "some_validator_id_2",
-                        name = "Virtual Hive",
-                        isActive = true,
-                        commission = 0.5,
-                        apr = 9.50,
-                        providerType = StakeProviderType.Stake,
-                    ),
-                ),
+                previewRow("some_validator_id", "Castlenode", 9.10),
+                previewRow("some_validator_id_1", "Ubik Capital 0%Fee", 10.000),
+                previewRow("some_validator_id_2", "Virtual Hive", 9.50),
+            ),
             selectedValidatorId = "some_validator_id_1",
             onCancel = {},
             onSelect = {},
         )
     }
 }
+
+private fun previewRow(id: String, name: String, apr: Double) = GemValidatorRow(
+    validator = uniffi.gemstone.DelegationValidator(
+        chain = Chain.Sei.string,
+        id = id,
+        name = name,
+        isActive = true,
+        commission = 0.5,
+        apr = apr,
+        providerType = uniffi.gemstone.StakeProviderType.STAKE,
+    ),
+    name = name,
+    imageUrl = "",
+    placeholder = name.take(1),
+    provider = null,
+)

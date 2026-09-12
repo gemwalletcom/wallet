@@ -24,8 +24,8 @@ fun ValidatorsScreen(
         return
     }
     ValidatorsScene(
-        recommended = selection.recommended.map { it.toPrimitives() },
-        validators = selection.options.map { it.toPrimitives() },
+        recommended = selection.recommended,
+        validators = selection.options,
         selectedValidatorId = selectedValidatorId,
         onCancel = onCancel,
         onSelect = onSelect,

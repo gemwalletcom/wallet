@@ -9,11 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.duration.formatAvailableIn
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
@@ -21,23 +19,24 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
+import uniffi.gemstone.GemValidatorRow
 import com.wallet.core.primitives.StakeProviderType
 
 @Composable
 fun ValidatorItem(
-    data: DelegationValidator,
+    data: GemValidatorRow,
     listPosition: ListPosition,
     isSelected: Boolean = false,
     onClick: ((String) -> Unit)?
 ) {
     ListItem(
-        modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke(data.id) },
+        modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke(data.validator.id) },
         leading = {
             ValidatorIcon(data = data, isSelected = isSelected)
         },
         title = {
             Text(
-                text = data.displayName(),
+                text = data.name,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
@@ -47,7 +46,7 @@ fun ValidatorItem(
         listPosition = listPosition,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemSupportText(R.string.stake_apr, " ${data.formatApr()}")
+                ListItemSupportText(R.string.stake_apr, " ${data.validator.apr.formatApr()}")
             }
         },
     )
@@ -55,29 +54,24 @@ fun ValidatorItem(
 
 @Composable
 private fun ValidatorIcon(
-    data: DelegationValidator,
+    data: GemValidatorRow,
     isSelected: Boolean,
 ) {
     if (isSelected) {
         IconWithBadge(
-            icon = data.getIconUrl(),
+            icon = data.imageUrl,
             placeholder = data.placeholder,
             badge = { SelectionCheckmark() },
         )
     } else {
         IconWithBadge(
-            icon = data.getIconUrl(),
+            icon = data.imageUrl,
             placeholder = data.placeholder,
         )
     }
 }
 
-fun DelegationValidator.formatApr(): String {
-    return apr.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
-}
-
-private val DelegationValidator.placeholder: String
-    get() = displayName().firstOrNull()?.toString() ?: "V"
+fun Double.formatApr(): String = formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
 
 fun availableIn(delegation: Delegation?): String {
     val remaining = availableInDurationMillis(delegation) ?: return ""
@@ -94,15 +88,7 @@ internal fun availableInDurationMillis(
 fun PreviewValidatorItem() {
     WalletTheme {
         ValidatorItem(
-            data = DelegationValidator(
-                chain = Chain.Sei,
-                id = "some_validator_id",
-                name = "Castlenode",
-                isActive = true,
-                commission = 0.5,
-                apr = 9.10,
-                providerType = StakeProviderType.Stake,
-            ),
+            data = previewValidatorRow(),
             isSelected = false,
             listPosition = ListPosition.Middle,
             onClick = {},
@@ -115,18 +101,26 @@ fun PreviewValidatorItem() {
 fun PreviewValidatorItemSelected() {
     WalletTheme {
         ValidatorItem(
-            data = DelegationValidator(
-                chain = Chain.Sei,
-                id = "some_validator_id",
-                name = "Castlenode",
-                isActive = true,
-                commission = 0.5,
-                apr = 9.10,
-                providerType = StakeProviderType.Stake,
-            ),
+            data = previewValidatorRow(),
             listPosition = ListPosition.Single,
             isSelected = true,
             onClick = {},
         )
     }
 }
+
+private fun previewValidatorRow() = GemValidatorRow(
+    validator = uniffi.gemstone.DelegationValidator(
+        chain = Chain.Sei.string,
+        id = "some_validator_id",
+        name = "Castlenode",
+        isActive = true,
+        commission = 0.5,
+        apr = 9.10,
+        providerType = uniffi.gemstone.StakeProviderType.STAKE,
+    ),
+    name = "Castlenode",
+    imageUrl = "",
+    placeholder = "C",
+    provider = null,
+)

@@ -130,6 +130,7 @@ remote:
   - SolanaNftStandard
   - SolanaTokenProgramId
   - StakeProviderType
+  - YieldProvider
   - SwapPriceImpact
   - SwapPriceImpactType
   - SwapProvider

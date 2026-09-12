@@ -15,7 +15,7 @@ use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
     GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationStatus, GemDelegationTone, GemStakeAction,
-    GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection,
+    GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -27,11 +27,6 @@ use crate::services::transfer::GemTransferData;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
 use primitives::BlockExplorerLink;
-
-#[uniffi::export]
-pub fn validator_display_name(validator: DelegationValidator) -> String {
-    rules::validator_display_name(&validator)
-}
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -73,6 +68,10 @@ impl GemStakeService {
 
     pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
         transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
+    }
+
+    pub fn validator_row(&self, validator: DelegationValidator) -> GemValidatorRow {
+        rules::validator_row(&validator)
     }
 
     pub fn validator_url(&self, validator: DelegationValidator) -> Option<BlockExplorerLink> {

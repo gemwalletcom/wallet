@@ -97,6 +97,11 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val validatorRows = delegations
+        .map { items -> items.associate { it.validator.id to stakeService.validatorRow(it.validator.toGem()) } }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
     private val hasValidators = assetId
         .flatMapLatest { getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }

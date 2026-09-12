@@ -33,6 +33,7 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemStakeValidatorSelection
+import uniffi.gemstone.GemValidatorRow
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -131,8 +132,8 @@ class AmountStakeProvider(
         .map { it?.validators }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    val validatorState: StateFlow<DelegationValidator?> = selected
-        .map { it?.validators?.validator?.toPrimitives() }
+    val validatorState: StateFlow<GemValidatorRow?> = selected
+        .map { it?.validators?.validator }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
     private data class StakeSelection(
@@ -140,7 +141,7 @@ class AmountStakeProvider(
         val validators: GemStakeValidatorSelection,
     ) {
         fun confirmed(resource: Resource): GemStakeAmountInput =
-            (validators.validator?.let(input::withValidator) ?: input).withResource(resource.toGem())
+            (validators.validator?.validator?.let(input::withValidator) ?: input).withResource(resource.toGem())
     }
 
     private fun stakeInputFrom(

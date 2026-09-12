@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemValidatorRow
 import Components
 import GemstonePrimitives
 import Foundation
@@ -59,11 +60,15 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func listItem(validator: DelegationValidator) -> ListItemValue<DelegationValidator> {
-        let model = ValidatorViewModel(validator: validator)
+        let model = ValidatorViewModel(row: service.validatorRow(validator: validator.map()))
         return ListItemValue(
             title: model.name,
             subtitle: model.aprModel.text,
             value: validator,
         )
+    }
+
+    public func validatorRow(for validator: DelegationValidator) -> GemValidatorRow {
+        service.validatorRow(validator: validator.map())
     }
 }

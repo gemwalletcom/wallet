@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
 import protocol Gemstone.GemAmountServiceProtocol
+import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -25,6 +26,10 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         case let .deposit(provider): provider
         case let .withdraw(delegation): delegation.validator
         }
+    }
+
+    var providerRow: GemValidatorRow {
+        service.validatorRow(validator: provider.map())
     }
 
     var providerTitle: String {

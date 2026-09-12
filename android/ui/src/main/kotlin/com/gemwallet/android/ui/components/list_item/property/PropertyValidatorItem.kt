@@ -12,17 +12,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.stake.displayName
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.formatApr
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingMiddle
-import com.wallet.core.primitives.DelegationValidator
+import uniffi.gemstone.GemValidatorRow
 
 @Composable
 fun PropertyValidatorItem(
-    validator: DelegationValidator,
+    validator: GemValidatorRow,
     listPosition: ListPosition = ListPosition.Single,
     onClick: (() -> Unit)? = null,
 ) {
@@ -35,12 +33,12 @@ fun PropertyValidatorItem(
                 horizontalArrangement = Arrangement.spacedBy(paddingMiddle),
             ) {
                 IconWithBadge(
-                    icon = validator.getIconUrl(),
-                    placeholder = validator.displayName().firstOrNull()?.toString() ?: "V",
+                    icon = validator.imageUrl,
+                    placeholder = validator.placeholder,
                 )
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = validator.displayName(),
+                    text = validator.name,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyLarge,
@@ -50,7 +48,7 @@ fun PropertyValidatorItem(
         },
         data = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemSupportText(R.string.stake_apr, " ${validator.formatApr()}")
+                ListItemSupportText(R.string.stake_apr, " ${validator.validator.apr.formatApr()}")
                 if (onClick != null) {
                     DataBadgeChevron()
                 }

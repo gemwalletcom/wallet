@@ -6,6 +6,7 @@ import Primitives
 import PrimitivesTestKit
 import class Gemstone.GemAmountService
 import enum Gemstone.GemStakeAmountInput
+import struct Gemstone.GemValidatorRow
 import GemstoneServicesTestKit
 import Testing
 @testable import Transfer
@@ -34,8 +35,8 @@ struct AmountStakeViewModelTests {
         let first = DelegationValidator.mock(id: "first")
         let second = DelegationValidator.mock(id: "second")
 
-        #expect(validatorState(.stake(validators: [first.map(), second.map()], validator: nil))?.selected.id == "first")
-        #expect(validatorState(.stake(validators: [first.map(), second.map()], validator: second.map()))?.selected.id == "second")
+        #expect(validatorState(.stake(validators: [first.map(), second.map()], validator: nil))?.selected.validator.id == "first")
+        #expect(validatorState(.stake(validators: [first.map(), second.map()], validator: second.map()))?.selected.validator.id == "second")
     }
 
     @Test
@@ -114,7 +115,7 @@ struct AmountStakeViewModelTests {
     }
 }
 
-private func validatorState(_ type: GemStakeAmountInput, asset: Asset = .mockBNB()) -> SelectionState<DelegationValidator>? {
+private func validatorState(_ type: GemStakeAmountInput, asset: Asset = .mockBNB()) -> SelectionState<GemValidatorRow>? {
     let model = AmountStakeViewModel(asset: asset, type: type, service: GemAmountService.mock())
     if case let .validator(state) = model.selection { return state }
     return nil

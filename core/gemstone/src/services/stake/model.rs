@@ -4,7 +4,7 @@ use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
-use primitives::{Delegation, DelegationState, DelegationValidator, Resource, StakeType};
+use primitives::{Delegation, DelegationState, DelegationValidator, Resource, StakeType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemDelegationTone {
@@ -126,8 +126,17 @@ impl GemStakeAmountInput {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemStakeValidatorSelection {
-    pub options: Vec<DelegationValidator>,
-    pub recommended: Vec<DelegationValidator>,
-    pub validator: Option<DelegationValidator>,
+    pub options: Vec<GemValidatorRow>,
+    pub recommended: Vec<GemValidatorRow>,
+    pub validator: Option<GemValidatorRow>,
     pub can_select: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemValidatorRow {
+    pub validator: DelegationValidator,
+    pub name: String,
+    pub image_url: String,
+    pub placeholder: String,
+    pub provider: Option<YieldProvider>,
 }
