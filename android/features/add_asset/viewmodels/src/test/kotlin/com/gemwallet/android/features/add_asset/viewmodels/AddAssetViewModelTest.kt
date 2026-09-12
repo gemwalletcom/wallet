@@ -99,11 +99,12 @@ class AddAssetViewModelTest {
             viewModel.addAsset { finished = true }.join()
 
             assertEquals(false, finished)
-            assertEquals("disk full", viewModel.uiState.value.error)
-            assertEquals(false, viewModel.uiState.value.isLoading)
+            val failed = viewModel.uiState.first { it.error != null }
+            assertEquals("disk full", failed.error)
+            assertEquals(false, failed.isLoading)
 
             viewModel.clearError()
-            assertEquals(null, viewModel.uiState.value.error)
+            assertEquals(null, viewModel.uiState.first { it.error == null }.error)
         } finally {
             viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         }

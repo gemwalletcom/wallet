@@ -3,6 +3,7 @@
 import BigInt
 import Components
 import Formatters
+import GemstonePrimitives
 import Foundation
 import struct Gemstone.GemSwapRate
 import struct Gemstone.SwapperQuote

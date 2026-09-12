@@ -20,22 +20,6 @@ public struct DelegationViewModel: Sendable {
     private let service: any GemStakeServiceProtocol
     private let priceFormatter: CurrencyFormatter
 
-    private static let dateFormatterDefault: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day, .hour]
-        formatter.zeroFormattingBehavior = .dropLeading
-        formatter.unitsStyle = .full
-        return formatter
-    }()
-
-    private static let dateFormatterDay: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute]
-        formatter.zeroFormattingBehavior = .dropLeading
-        formatter.unitsStyle = .full
-        return formatter
-    }()
-
     public init(
         service: any GemStakeServiceProtocol,
         delegation: Delegation,
@@ -118,15 +102,13 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var completionDateText: String? {
-        guard status.completion != nil else { return nil }
-        let now = Date.now
-        if let completionDate = delegation.base.completionDate, completionDate > now {
-            if now.distance(to: completionDate) < 86400 {
-                return Self.dateFormatterDay.string(from: .now, to: completionDate)
-            }
-            return Self.dateFormatterDefault.string(from: .now, to: completionDate)
-        }
-        return .none
+        guard
+            status.completion != nil,
+            let completionDate = delegation.base.completionDate,
+            case let remaining = Date.now.distance(to: completionDate),
+            remaining > 0
+        else { return nil }
+        return CountdownFormatter().string(seconds: Int64(remaining))
     }
 }
 
