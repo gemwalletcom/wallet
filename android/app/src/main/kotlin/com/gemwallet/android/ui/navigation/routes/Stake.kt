@@ -44,6 +44,7 @@ fun EntryProviderScope<NavKey>.stake(
     ) {
         EarnScreen(
             amountAction = onAmount,
+            onDelegation = onDelegation,
             onCancel = onCancel,
         )
     }

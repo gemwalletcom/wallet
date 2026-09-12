@@ -38,6 +38,7 @@ import com.gemwallet.android.ui.theme.paddingLarge
 @Composable
 fun EarnScreen(
     amountAction: AmountTransactionAction,
+    onDelegation: (String, String) -> Unit,
     onCancel: () -> Unit,
     viewModel: EarnViewModel = hiltViewModel(),
 ) {
@@ -103,7 +104,7 @@ fun EarnScreen(
                             delegation = item,
                             validator = validatorRows[item.validator.id] ?: return@itemsIndexed,
                             listPosition = ListPosition.getPosition(index, positions.size),
-                            onClick = { amountAction(viewModel.withdrawParams(item)) },
+                            onClick = { onDelegation(item.validator.id, item.base.delegationId) },
                         )
                     }
                 }

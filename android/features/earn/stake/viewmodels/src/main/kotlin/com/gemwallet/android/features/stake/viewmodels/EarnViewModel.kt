@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -106,9 +105,6 @@ class EarnViewModel @Inject constructor(
     fun onRefresh() {
         sync.update { true }
     }
-
-    fun withdrawParams(delegation: Delegation): AmountParams.Earn.Withdraw =
-        AmountParams.Earn.Withdraw(assetId, delegation.validator.id, delegation.base.delegationId)
 
     private companion object {
         const val TAG = "Earn"
