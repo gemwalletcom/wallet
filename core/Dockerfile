@@ -11,17 +11,21 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder-core
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json \
+RUN --mount=type=cache,id=core-target,target=/app/target,sharing=locked \
+    cargo chef cook --release --recipe-path recipe.json \
     --package api --package daemon
 COPY . .
-RUN cargo build --release --package api --package daemon && cp target/release/api target/release/daemon /app/
+RUN --mount=type=cache,id=core-target,target=/app/target,sharing=locked \
+    cargo build --release --package api --package daemon && cp target/release/api target/release/daemon /app/
 
 FROM chef AS builder-dynode
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json \
+RUN --mount=type=cache,id=dynode-target,target=/app/target,sharing=locked \
+    cargo chef cook --release --recipe-path recipe.json \
     --package dynode
 COPY . .
-RUN cargo build --release --package dynode && cp target/release/dynode /app/
+RUN --mount=type=cache,id=dynode-target,target=/app/target,sharing=locked \
+    cargo build --release --package dynode && cp target/release/dynode /app/
 
 # Shared runtime base
 FROM debian:trixie-slim AS runtime-base
