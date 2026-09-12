@@ -2,8 +2,7 @@
 
 import Foundation
 
-extension LockPeriod: CaseIterable {
-    public static let allCases: [LockPeriod] = [.immediate, .oneMinute, .fiveMinutes, .fifteenMinutes, .oneHour, .sixHours]
+extension LockPeriod {
     public static let `default`: LockPeriod = .oneMinute
 }
 

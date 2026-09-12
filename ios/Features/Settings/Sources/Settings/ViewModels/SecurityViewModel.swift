@@ -31,7 +31,7 @@ public final class SecurityViewModel {
     }
 
     var allLockPeriods: [LockPeriod] {
-        LockPeriod.allCases
+        LockPeriod.offered
     }
 
     public init(
