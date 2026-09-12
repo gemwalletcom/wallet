@@ -345,12 +345,24 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
             asset_id: input.input_type.get_asset().id.clone(),
             address: input.sender_address.clone(),
         },
-        target: ScanAddressTarget {
-            asset_id: input.input_type.get_recipient_asset().id.clone(),
-            address: input.destination_address.clone(),
-        },
+        target: scan_target(&input),
         website: input.get_website(),
         transaction_type: input.input_type.transaction_type(),
+    }
+}
+
+fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
+    if let TransactionInputType::Swap { from_asset, swap_data, .. } = &input.input_type
+        && !swap_data.data.to.is_empty()
+    {
+        return ScanAddressTarget {
+            asset_id: from_asset.id.clone(),
+            address: swap_data.data.to.clone(),
+        };
+    }
+    ScanAddressTarget {
+        asset_id: input.input_type.get_recipient_asset().id.clone(),
+        address: input.destination_address.clone(),
     }
 }
 
@@ -444,7 +456,7 @@ mod tests {
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationSeverity, SimulationWarning, StakeType, SwapProvider,
         TransactionType, TransferDataExtra, TransferDataOutputAction, Wallet, WalletId,
-        swap::{ApprovalData, SwapData},
+        swap::{ApprovalData, SwapData, SwapQuoteData},
     };
     use primitives::{AddressName, AddressType, VerificationStatus};
     use std::collections::HashMap;
@@ -830,6 +842,33 @@ mod tests {
     }
 
     #[test]
+    fn test_a_swap_scans_the_contract_that_receives_the_funds() {
+        let swap = |to: &str, destination: &str| GemTransactionPreloadInput {
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_eth(),
+                to_asset: Asset::mock_spl_token(),
+                swap_data: SwapData {
+                    data: SwapQuoteData {
+                        to: to.to_string(),
+                        ..SwapQuoteData::mock()
+                    },
+                    ..SwapData::mock()
+                },
+            },
+            sender_address: "sender".to_string(),
+            destination_address: destination.to_string(),
+            references: vec![],
+        };
+
+        let target = scan_payload(swap("0xrouter", "own-solana-address")).target;
+        assert_eq!(target.address, "0xrouter", "the scan asks about the contract, not the address the user already owns");
+        assert_eq!(target.asset_id, Asset::mock_eth().id, "the contract is on the chain the funds leave");
+
+        let without_contract = scan_payload(swap("", "recipient")).target;
+        assert_eq!(without_contract.address, "recipient", "a swap with no contract falls back to the recipient");
+    }
+
+    #[test]
     fn test_scan_payload_covers_every_input_type() {
         let swap = GemTransactionPreloadInput {
             input_type: TransactionInputType::Swap {
@@ -844,8 +883,6 @@ mod tests {
         let payload = scan_payload(swap);
         assert_eq!(payload.transaction_type, TransactionType::Swap);
         assert_eq!(payload.origin.asset_id, Asset::mock_sol().id);
-        assert_eq!(payload.target.asset_id, Asset::mock_spl_token().id);
-        assert_eq!(payload.target.address, "router");
         assert_eq!(payload.website, None);
 
         let generic = GemTransactionPreloadInput {
