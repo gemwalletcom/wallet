@@ -415,9 +415,18 @@ fun Throwable.toBroadcastLabel(): String = toConfirmLabel()
     ?: "${stringResource(R.string.errors_transfer_error)}: ${message ?: toString()}"
 
 @Composable
-private fun Throwable.toConfirmLabel(): String? = when (this) {
+private fun Throwable.toConfirmLabel(): String? = (this as? GemConfirmException)?.label()
+
+@Composable
+private fun GemConfirmException.label(): String = when (this) {
     is GemConfirmException.ScanMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
     is GemConfirmException.ScanMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
+    is GemConfirmException.FeeRatesMissing -> stringResource(R.string.errors_unable_estimate_network_fee)
+    is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
+    is GemConfirmException.Cancelled -> stringResource(R.string.errors_cancelled)
+    is GemConfirmException.AccountMissing -> stringResource(R.string.errors_wallet_account_missing)
+    is GemConfirmException.SenderMismatch -> stringResource(R.string.errors_unknown)
+    is GemConfirmException.BalanceMissing -> toString()
     is GemConfirmException.InsufficientBalance -> {
         val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
         val asset = asset.toPrimitives()
@@ -456,15 +465,16 @@ private fun Throwable.toConfirmLabel(): String? = when (this) {
             formatter.string(requirement.shortfall, asset),
         )
     }
-    is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
-    is GemConfirmException.Network -> msg
-    is GemConfirmException.Broadcast -> "${stringResource(R.string.errors_transfer_error)}: $msg"
     is GemConfirmException.Sign -> when (error) {
         GemSignerError.DustThreshold -> stringResource(R.string.errors_dust_threshold_short)
-        else -> stringResource(R.string.errors_transfer_error)
+        GemSignerError.InsufficientFunds -> stringResource(R.string.info_insufficient_balance_title)
+        else -> msg
     }
-    is GemConfirmException -> null
-    else -> null
+    is GemConfirmException.Network -> msg
+    is GemConfirmException.Load -> msg
+    is GemConfirmException.Broadcast -> msg
+    is GemConfirmException.Record -> msg
+    is GemConfirmException.ApprovalInvalid -> msg
 }
 
 @Composable
