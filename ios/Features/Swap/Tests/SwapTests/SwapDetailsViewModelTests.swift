@@ -22,7 +22,8 @@ struct SwapDetailsViewModelTests {
             try SwapDetailsViewModel
                 .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).swapQuote).swapEstimationField == nil,
         )
-        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField == nil)
+        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField?.value.text == "≈ 30 sec")
+        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 90).swapQuote).swapEstimationField?.value.text == "≈ 1 min, 30 sec")
         #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 180).swapQuote).swapEstimationField?.value.text == "≈ 3 min")
     }
 
@@ -56,7 +57,7 @@ extension SwapDetailsViewModel {
             currency: Currency.usd.rawValue,
             swapPriceImpact: nil,
             minReceiveValue: BigInt(summary.minReceiveValue),
-            etaMinutes: summary.etaMinutes,
+            etaSeconds: selectedQuote.etaInSeconds,
             swapProviderSelectAction: nil,
         )
     }

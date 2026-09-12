@@ -51,7 +51,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
                         .priceImpact(receive: toAssetPrice.swapValue(quote.toValue)),
                     minReceiveValue: BigInt(summary.minReceiveValue),
-                    etaMinutes: summary.etaMinutes,
+                    etaSeconds: quote.etaInSeconds,
                 ),
             )
         case let .perpetual(_, perpetualType):

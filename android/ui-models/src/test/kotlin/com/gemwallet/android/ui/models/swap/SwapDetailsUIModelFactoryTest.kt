@@ -40,7 +40,7 @@ class SwapDetailsUIModelFactoryTest {
         assertNull(result.summaryPriceImpactText)
         assertNull(result.summaryPriceImpactBadgeText)
         assertEquals("1.00%", result.slippageText)
-        assertNull(result.estimatedTime)
+        assertEquals(30u, result.etaInSeconds)
     }
 
     @Test
@@ -64,7 +64,7 @@ class SwapDetailsUIModelFactoryTest {
         assertEquals("(-5.00%)", result.summaryPriceImpactBadgeText)
         assertFalse(result.shouldShowPriceImpactWarning)
         assertTrue(result.isProviderSelectable)
-        assertEquals("≈ 3 min", result.estimatedTime)
+        assertEquals(180u, result.etaInSeconds)
     }
 
     @Test
@@ -81,14 +81,6 @@ class SwapDetailsUIModelFactoryTest {
 
         assertEquals("+2.34%", result!!.priceImpact!!.displayText)
         assertEquals("2.34%", result.priceImpact.warningText)
-    }
-
-    @Test
-    fun `estimated time matches ios minute truncation`() {
-        assertNull(swapDetails(toValue = "950000000000000000", etaInSeconds = 60u)!!.estimatedTime)
-        assertEquals("≈ 1 min", swapDetails(toValue = "950000000000000000", etaInSeconds = 61u)!!.estimatedTime)
-        assertEquals("≈ 1 min", swapDetails(toValue = "950000000000000000", etaInSeconds = 119u)!!.estimatedTime)
-        assertEquals("≈ 2 min", swapDetails(toValue = "950000000000000000", etaInSeconds = 120u)!!.estimatedTime)
     }
 
     @Test
@@ -191,7 +183,6 @@ class SwapDetailsUIModelFactoryTest {
                 isProviderSelectable = isProviderSelectable,
                 priceImpact = priceImpact,
                 minReceiveValue = summary.minReceiveValue,
-                etaMinutes = summary.etaMinutes,
             ),
         )
     }

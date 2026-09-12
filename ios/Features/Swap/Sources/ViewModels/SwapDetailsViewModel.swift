@@ -14,13 +14,6 @@ import PrimitivesComponents
 
 @Observable
 public final class SwapDetailsViewModel {
-    private static let timeFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.minute]
-        formatter.unitsStyle = .short
-        return formatter
-    }()
-
     private let valueFormatter = ValueFormatter(style: .auto)
     private let percentSignLessFormatter = PercentFormatter.unsigned
 
@@ -36,7 +29,7 @@ public final class SwapDetailsViewModel {
     private let isProviderSelectionEnabled: Bool
     private let swapPriceImpact: SwapPriceImpact?
     private let minReceiveValue: BigInt
-    private let etaMinutes: UInt32?
+    private let etaSeconds: UInt32?
     private let swapProviderSelectAction: ((SwapperQuote) -> Void)?
 
     public init(
@@ -50,7 +43,7 @@ public final class SwapDetailsViewModel {
         isProviderSelectionEnabled: Bool = true,
         swapPriceImpact: SwapPriceImpact?,
         minReceiveValue: BigInt,
-        etaMinutes: UInt32?,
+        etaSeconds: UInt32?,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
         self.state = state
@@ -64,7 +57,7 @@ public final class SwapDetailsViewModel {
         self.isProviderSelectionEnabled = isProviderSelectionEnabled
         self.swapPriceImpact = swapPriceImpact
         self.minReceiveValue = minReceiveValue
-        self.etaMinutes = etaMinutes
+        self.etaSeconds = etaSeconds
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 
@@ -99,13 +92,10 @@ public final class SwapDetailsViewModel {
     // MARK: - Estimation
 
     var swapEstimationField: ListItemField? {
-        guard
-            let etaMinutes,
-            let estimationTime = Self.timeFormatter.string(from: TimeInterval(etaMinutes) * 60)
-        else {
-            return nil
-        }
-        return ListItemField(title: Localized.Swap.EstimatedTime.title, value: String(format: "%@ %@", "≈", estimationTime))
+        guard let etaSeconds else { return nil }
+        let estimationTime = EstimatedConfirmationFormatter().string(seconds: etaSeconds)
+        guard estimationTime.isEmpty == false else { return nil }
+        return ListItemField(title: Localized.Swap.EstimatedTime.title, value: estimationTime)
     }
 
     // MARK: - Rate

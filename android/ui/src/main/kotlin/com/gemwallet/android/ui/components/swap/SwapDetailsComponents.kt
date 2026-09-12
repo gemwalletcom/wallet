@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.swap
 
+import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -142,7 +143,7 @@ fun SwapDetailsBottomSheet(
             item {
                 AssetRatePropertyItem(model.rate, ListPosition.First)
             }
-            model.estimatedTime?.let {
+            model.etaInSeconds?.let(::formatEstimatedConfirmation)?.takeIf { it.isNotEmpty() }?.let {
                 item {
                     PropertyItem(
                         title = R.string.swap_estimated_time_title,

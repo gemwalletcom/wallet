@@ -56,7 +56,6 @@ data class SwapDetailsUIModelInput(
     val isProviderSelectable: Boolean,
     val priceImpact: SwapPriceImpact? = null,
     val minReceiveValue: BigInteger = BigInteger.ZERO,
-    val etaMinutes: UInt? = null,
 )
 
 object SwapDetailsUIModelFactory {
@@ -88,7 +87,7 @@ object SwapDetailsUIModelFactory {
             slippageText = slippagePercent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
             slippageBps = input.slippageBps,
             selectedSlippage = input.selectedSlippage,
-            estimatedTime = input.etaMinutes?.let { "≈ $it min" },
+            etaInSeconds = input.etaInSeconds,
             isProviderSelectable = input.isProviderSelectable,
         )
     }

@@ -25,7 +25,6 @@ pub struct GemSwapRate {
 pub struct GemSwapQuoteSummary {
     pub quote: SwapQuote,
     pub min_receive_value: GemBigUint,
-    pub eta_minutes: Option<u32>,
     pub rate: Option<GemSwapRate>,
 }
 
@@ -33,7 +32,6 @@ pub struct GemSwapQuoteSummary {
 pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset) -> GemSwapQuoteSummary {
     GemSwapQuoteSummary {
         min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
-        eta_minutes: quote.eta_in_seconds.and_then(rules::eta_minutes),
         rate: rules::swap_rate(&from_asset, &quote.from_value, &to_asset, &quote.to_value),
         quote,
     }

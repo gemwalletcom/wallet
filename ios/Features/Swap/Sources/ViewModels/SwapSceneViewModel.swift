@@ -133,7 +133,7 @@ public final class SwapSceneViewModel {
             swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
                 .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue)),
             minReceiveValue: BigInt(summary.minReceiveValue),
-            etaMinutes: summary.etaMinutes,
+            etaSeconds: selectedQuote.etaInSeconds,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },

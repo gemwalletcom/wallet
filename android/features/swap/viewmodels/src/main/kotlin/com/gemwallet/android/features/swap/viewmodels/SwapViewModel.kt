@@ -211,7 +211,6 @@ class SwapViewModel @Inject constructor(
                     priceImpact = quote.pay.swapValue(quote.quote.fromValue)
                         .priceImpact(quote.receive.swapValue(quote.quote.toValue)),
                     minReceiveValue = summary.minReceiveValue,
-                    etaMinutes = summary.etaMinutes,
                 ),
             )
         }

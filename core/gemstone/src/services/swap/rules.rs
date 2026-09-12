@@ -28,7 +28,6 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
 }
 
 const BASIS_POINTS: u32 = 10_000;
-const ETA_MINIMUM_SECONDS: u32 = 60;
 
 pub fn selected_quote(quotes: &[Quote], preferred: Option<SwapperProvider>) -> Option<Quote> {
     quotes.iter().find(|quote| Some(quote.data.provider.id) == preferred).or_else(|| quotes.first()).cloned()
@@ -48,13 +47,6 @@ pub fn slippage_check(bps: u32, config: &SwapConfig) -> GemSlippageCheck {
         GemSlippageCheck::High
     } else {
         GemSlippageCheck::Valid
-    }
-}
-
-pub fn eta_minutes(seconds: u32) -> Option<u32> {
-    match seconds > ETA_MINIMUM_SECONDS {
-        true => Some(seconds / ETA_MINIMUM_SECONDS),
-        false => None,
     }
 }
 
@@ -305,16 +297,12 @@ mod tests {
     }
 
     #[test]
-    fn test_min_receive_value_and_eta() {
+    fn test_min_receive_value_keeps_the_slippage_share() {
         let value = BigUint::from(1_000_000u32);
         assert_eq!(min_receive_value(&value, 0), value);
         assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
-
-        assert_eq!(eta_minutes(60), None);
-        assert_eq!(eta_minutes(61), Some(1));
-        assert_eq!(eta_minutes(180), Some(3));
     }
 
     #[test]
