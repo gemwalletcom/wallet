@@ -22,7 +22,7 @@ use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectCha
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemSessionApproval, GemSessionProposal, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome, GemWalletConnectResponse, GemWalletConnectRpcError,
+    GemSessionApproval, GemSessionProposal, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome, GemWalletConnectResponse, GemWalletConnectRpcError,
     GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
@@ -94,6 +94,10 @@ impl GemWalletConnectService {
 
     pub fn authentication_chain_ids(&self, chain_ids: Vec<String>) -> Vec<String> {
         rules::authentication_chain_ids(&chain_ids)
+    }
+
+    pub fn authentication_accounts(&self, chain_ids: Vec<String>, wallet: Wallet) -> Vec<GemWalletConnectAuthAccount> {
+        rules::authentication_accounts(&chain_ids, &wallet)
     }
 
     pub fn authentication_methods(&self) -> Vec<String> {

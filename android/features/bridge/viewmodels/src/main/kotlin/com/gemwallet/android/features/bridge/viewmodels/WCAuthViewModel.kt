@@ -1,11 +1,13 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
 import uniffi.gemstone.GemChainServiceInterface
+import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
@@ -87,7 +89,7 @@ class WCAuthViewModel @Inject constructor(
                     url = request.metadata?.url.orEmpty(),
                     icons = listOfNotNull(request.metadata?.icon),
                     requiredChainIds = emptyList(),
-                    optionalChainIds = request.ethereumChainIds(),
+                    optionalChainIds = walletConnectService.authenticationChainIds(request.payloadParams.chains),
                     origin = verifyContext.origin,
                     validation = verifyContext.map(),
                 )
@@ -240,7 +242,7 @@ class WCAuthViewModel @Inject constructor(
         val supportedAccounts = supportedAccounts(wallet, request)
         val selectedAccount = supportedAccounts.firstOrNull()
             ?: throw IllegalStateException("Requested chains are not supported")
-        val supportedChains = supportedAccounts.map { it.chainId }.distinct()
+        val supportedChains = supportedAccounts.map { it.chainId }
         val payloadParams = approveWalletConnectAuthentication.authPayloadParams(
             payloadParams = request.payloadParams,
             supportedChains = supportedChains,
@@ -248,11 +250,11 @@ class WCAuthViewModel @Inject constructor(
         )
         val issuer = selectedAccount.issuer
         val message = approveWalletConnectAuthentication.authMessage(payloadParams, issuer)
-        val payloadPreview = payloadPreview(selectedAccount.account.chain, message)
+        val payloadPreview = payloadPreview(selectedAccount.account.toPrimitives().chain, message)
 
         return AuthApproval(
             wallet = wallet,
-            account = selectedAccount.account,
+            account = selectedAccount.account.toPrimitives(),
             payloadParams = payloadParams,
             issuer = issuer,
             message = message,
@@ -265,17 +267,8 @@ class WCAuthViewModel @Inject constructor(
     private fun supportedAccounts(
         wallet: Wallet,
         request: WalletConnectAuthenticationRequest,
-    ): List<AuthAccount> {
-        return request.ethereumChainIds().mapNotNull { chainId ->
-            val chain = Chain.fromWalletConnectChainId(chainService, chainId) ?: return@mapNotNull null
-            val account = wallet.getAccount(chain) ?: return@mapNotNull null
-            AuthAccount(account = account, chainId = chainId)
-        }
-    }
-
-    private fun WalletConnectAuthenticationRequest.ethereumChainIds(): List<String> {
-        return walletConnectService.authenticationChainIds(payloadParams.chains)
-    }
+    ): List<GemWalletConnectAuthAccount> =
+        walletConnectService.authenticationAccounts(request.payloadParams.chains, wallet.toGem())
 
     private fun payloadPreview(
         chain: Chain,
@@ -368,13 +361,6 @@ data class AuthApproval(
     val secondaryPayloadFields: List<PayloadField>,
 ) {
     val chain: Chain get() = account.chain
-}
-
-private data class AuthAccount(
-    val account: Account,
-    val chainId: String,
-) {
-    val issuer: String get() = "did:pkh:$chainId:${account.address}"
 }
 
 private data class AuthPayloadPreview(

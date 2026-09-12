@@ -15,7 +15,7 @@ use primitives::{
 
 use crate::services::error::GemServiceError;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use crate::services::wallet_connect::model::{GemWalletConnectRpcError, GemWalletConnectTransactionAction};
+use crate::services::wallet_connect::model::{GemWalletConnectAuthAccount, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
@@ -115,6 +115,21 @@ pub fn authentication_chain_ids(chain_ids: &[String]) -> Vec<String> {
             .filter(|chain_id| parse_chain(chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
             .cloned(),
     )
+}
+
+pub fn authentication_accounts(chain_ids: &[String], wallet: &Wallet) -> Vec<GemWalletConnectAuthAccount> {
+    authentication_chain_ids(chain_ids)
+        .into_iter()
+        .filter_map(|chain_id| {
+            let chain = parse_chain(&chain_id)?;
+            let account = wallet.accounts.iter().find(|account| account.chain == chain)?;
+            Some(GemWalletConnectAuthAccount {
+                issuer: format!("did:pkh:{chain_id}:{}", account.address),
+                account: account.clone(),
+                chain_id,
+            })
+        })
+        .collect()
 }
 
 pub fn account_chains(accounts: &[String]) -> Vec<Chain> {
@@ -369,6 +384,29 @@ mod tests {
                 application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]),
             )
         }
+    }
+
+    #[test]
+    fn test_authentication_offers_one_account_per_requested_chain_the_wallet_holds() {
+        let wallet = wallet("multi", WalletType::Multicoin, &[Chain::Ethereum, Chain::Solana]);
+
+        let accounts = authentication_accounts(
+            &[
+                "eip155:1".to_string(),
+                "eip155:137".to_string(),
+                "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(),
+                "eip155:1".to_string(),
+            ],
+            &wallet,
+        );
+
+        assert_eq!(
+            accounts.iter().map(|account| account.chain_id.as_str()).collect::<Vec<_>>(),
+            vec!["eip155:1"],
+            "a repeated chain is asked once, a chain the wallet holds no account for is dropped, and only ethereum chains authenticate"
+        );
+        assert_eq!(accounts[0].issuer, "did:pkh:eip155:1:address");
+        assert!(accounts.iter().all(|account| account.account.chain == Chain::Ethereum));
     }
 
     #[test]

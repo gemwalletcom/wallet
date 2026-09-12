@@ -16,6 +16,13 @@ pub struct GemWalletConnectSessionRequest {
     pub expiry: Option<u64>,
 }
 
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletConnectAuthAccount {
+    pub account: Account,
+    pub chain_id: String,
+    pub issuer: String,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletConnectRpcError {
     pub code: i32,
