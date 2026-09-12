@@ -44,7 +44,7 @@ Cross-platform subsystem references live in [docs/](docs). Read the relevant one
 - [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
 - [Payments](docs/PAYMENTS.md) — payment decoding flow, implementation map, and QR test cases
 - [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
-- [Egress](docs/EGRESS.md) — provider routing, scoped headers, credentials, and configuration rollout
+- [Dynode](core/apps/dynode/README.md) — local proxy usage and configuration
 
 Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are listed in [core/AGENTS.md](core/AGENTS.md).
 
