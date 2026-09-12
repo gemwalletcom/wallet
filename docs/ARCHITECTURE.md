@@ -198,9 +198,9 @@ func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetS
 
 Core → app mappings live in `GemstonePrimitives` as extensions. A mapping onto a *feature-internal* type stays in the feature — `GemstonePrimitives` cannot import a feature module, and reaching for one is the signal that the mapping belongs in the feature.
 
-#### A route is an app type
+#### Navigation values are app types
 
-A value pushed on a navigation stack, and the destination that receives it, are app types. A generated record is a payload a screen reads, never a route, and the mapping to the route belongs in the view model, not in the scene. A push whose value type has no matching destination does nothing and reports nothing, so a route is only proven by exercising the link.
+A navigation stack matches a pushed value to a destination by exact type, and it does so silently: a push with no destination for its type does nothing, reports nothing, and still compiles. The push and the destination sit in different modules, so the route is a contract between two files that never see each other, and it has to be a type the app owns and changes deliberately. A generated transport record is not that type — its shape follows the FFI, so replacing one generated type with another under a screen breaks every link that pushed the old one while the build stays green. Push the value the destination's model already takes, map the generated record to it in the model rather than in the scene, and treat the record as the payload a screen reads once it is there. Exercising the link is the only thing that proves a route.
 
 ### Android
 
