@@ -8,7 +8,7 @@ Run from `core/`:
 cargo run -p dynode
 ```
 
-Configuration lives beside `config.yml`:
+Configuration lives in [core/apps/dynode](../core/apps/dynode):
 
 - `config.yml`: listener address, port, and metrics prefix/source.
 - `chains.yml`: node inventory, monitoring, request settings, allowlists, and cache rules. Additional `chains*.yml` files load in filename order and override matching chains.
