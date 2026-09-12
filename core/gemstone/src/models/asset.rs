@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetId, AssetProperties, AssetScore, Chain, ChainAsset, WalletType, known_assets};
+use primitives::{Asset, AssetId, AssetScore, Chain, ChainAsset, WalletType, known_assets};
 
 pub type GemAsset = Asset;
 pub type GemChainAsset = ChainAsset;
@@ -35,10 +35,6 @@ pub fn wallet_asset_is_enabled(asset_id: AssetId, wallet_type: WalletType) -> bo
             is_native || is_default
         }
     }
-}
-
-pub fn asset_is_swapable(asset_id: AssetId) -> bool {
-    AssetProperties::default(asset_id).is_swapable
 }
 
 pub fn chain_asset_wrapper(chain: Chain) -> GemChainAsset {

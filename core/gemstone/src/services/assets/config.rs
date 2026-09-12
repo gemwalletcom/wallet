@@ -2,7 +2,7 @@ use primitives::{Asset, AssetBasic, AssetId, AssetType, Chain, ChainAsset};
 
 use super::icon::{GemAssetIcon, asset_icon};
 use super::rules::{default_asset_basic, default_token_chain, popular_asset_ids};
-use crate::models::asset::{asset_is_swapable, chain_asset_wrapper, chain_fee_asset_ids, default_token_rank};
+use crate::models::asset::{chain_asset_wrapper, chain_fee_asset_ids, default_token_rank};
 use crate::services::confirm::{GemAcquireAssetFlow, acquire_asset_flow};
 use crate::services::search::rules::matching_assets;
 
@@ -38,10 +38,6 @@ impl GemAssetConfigService {
 
     pub fn asset_icon(&self, asset_id: AssetId) -> GemAssetIcon {
         asset_icon(&asset_id)
-    }
-
-    pub fn is_swapable(&self, asset_id: AssetId) -> bool {
-        asset_is_swapable(asset_id)
     }
 
     pub fn popular_ids(&self) -> Vec<AssetId> {
