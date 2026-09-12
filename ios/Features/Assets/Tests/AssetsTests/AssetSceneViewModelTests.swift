@@ -50,13 +50,13 @@ struct AssetSceneViewModelTests {
             ),
         )
         let rows = ethereum.balanceRows
-        #expect(rows.count == 3)
-        guard case let .staked(staked) = rows[1], case let .earn(earn) = rows[2] else {
-            Issue.record("Expected available, staked and earn rows")
+        #expect(rows.count == 2)
+        guard case let .staked(staked) = rows[1] else {
+            Issue.record("Expected available and staked rows")
             return
         }
         #expect(ethereum.stakeBalanceText(staked) == "6 ETH")
-        #expect(ethereum.balanceText(earn) == "4 ETH")
+        #expect(ethereum.balanceText(BigUInt(4_000_000_000_000_000_000)) == "4 ETH")
         #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false))).balanceRows.isEmpty)
     }
 
