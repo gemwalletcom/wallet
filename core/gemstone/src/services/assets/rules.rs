@@ -137,7 +137,7 @@ fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> 
 
 pub fn wallet_row() -> GemAssetRow {
     GemAssetRow {
-        title: GemAssetRowTitle::Asset,
+        title: GemAssetRowTitle::CanonicalAsset,
         shows_symbol: false,
         subtitle: GemAssetRowSubtitle::Price,
         trailing: GemAssetRowTrailing::Balance,
@@ -362,6 +362,14 @@ mod tests {
         assert_eq!(row(GemSelectAssetType::Withdraw), (GemSelectRowAction::Navigate, None));
         assert_eq!(row(GemSelectAssetType::WalletSearch), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
         assert_eq!(row(GemSelectAssetType::WalletSearchResults), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
+    }
+
+    #[test]
+    fn test_the_wallet_list_row_names_a_native_asset_by_its_chain_and_hides_the_symbol() {
+        let row = wallet_row();
+        assert_eq!(row.title, GemAssetRowTitle::CanonicalAsset);
+        assert!(!row.shows_symbol, "the wallet list repeats no symbol beside the name");
+        assert_eq!((row.subtitle, row.trailing), (GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance));
     }
 
     #[test]

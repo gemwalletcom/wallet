@@ -61,12 +61,12 @@ fun NetworkAssetsScreen(
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             if (pinned.isNotEmpty()) {
                 item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
-                networkAssetRows(pinned, onSelectAsset, longPressedAsset, activeActions)
+                networkAssetRows(pinned, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
             }
-            networkAssetRows(unpinned, onSelectAsset, longPressedAsset, activeActions)
+            networkAssetRows(unpinned, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
             if (hidden.isNotEmpty()) {
                 item { SubheaderItem(R.string.common_hidden) }
-                networkAssetRows(hidden, onSelectAsset, longPressedAsset, hiddenActions)
+                networkAssetRows(hidden, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, hiddenActions)
             }
             if (isEmpty) {
                 item {
@@ -82,6 +82,7 @@ fun NetworkAssetsScreen(
 
 private fun LazyListScope.networkAssetRows(
     items: List<AssetInfoDataAggregate>,
+    showsSymbol: Boolean,
     onSelect: (AssetId) -> Unit,
     longPressedAsset: MutableState<AssetId?>,
     contextActions: AssetContextActions,
@@ -90,7 +91,7 @@ private fun LazyListScope.networkAssetRows(
         items = items,
         onSelect = { onSelect(it.id) },
         support = { assetPriceSupport(it.price) },
-        titleBadge = ::getAssetBadge,
+        titleBadge = { item -> getAssetBadge(item, showsSymbol) },
         itemTrailing = { getBalanceInfo(it)() },
         longPressedAsset = longPressedAsset,
         contextActions = contextActions,
