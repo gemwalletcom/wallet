@@ -38,6 +38,11 @@ class NftDetailsViewModel @Inject constructor(
         runCatchingCancellable { service.refreshAsset(nftAssetId.toIdentifier()) }.isSuccess
     }
 
+    suspend fun setAsAvatar(): Boolean = withContext(Dispatchers.IO) {
+        val url = nftAsset.value?.asset?.images?.preview?.url ?: return@withContext false
+        runCatchingCancellable { service.setWalletAvatar(url) }.isSuccess
+    }
+
     suspend fun report(reason: ReportReason): Boolean = withContext(Dispatchers.IO) {
         val asset = nftAsset.value ?: return@withContext false
         val report = ReportNft(

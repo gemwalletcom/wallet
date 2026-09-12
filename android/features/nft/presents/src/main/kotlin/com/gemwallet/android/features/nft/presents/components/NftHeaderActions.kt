@@ -30,6 +30,7 @@ fun NftHeaderActions(
     canSend: Boolean,
     onSend: () -> Unit,
     onRefresh: () -> Unit,
+    onSetAsAvatar: () -> Unit,
     onReport: () -> Unit,
 ) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
@@ -76,6 +77,14 @@ fun NftHeaderActions(
                     onClick = {
                         isMenuExpanded = false
                         onRefresh()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.nft_set_as_avatar)) },
+                    leadingIcon = { Icon(AppIcons.Wallet, contentDescription = null) },
+                    onClick = {
+                        isMenuExpanded = false
+                        onSetAsAvatar()
                     },
                 )
                 DropdownMenuItem(

@@ -82,6 +82,7 @@ fun NFTDetailsScene(
     val model = assetData ?: return
     var isReportVisible by remember { mutableStateOf(false) }
     val reported = stringResource(R.string.transaction_status_confirmed)
+    val avatarSet = stringResource(R.string.nft_set_as_avatar)
     Scene(
         titleContent = {
             NftTitle(
@@ -118,6 +119,15 @@ fun NFTDetailsScene(
                             scope.launch {
                                 if (viewModel.refresh()) {
                                     snackbar.showSnackbar(refresh, R.drawable.ic_check_circle)
+                                } else {
+                                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
+                                }
+                            }
+                        },
+                        onSetAsAvatar = {
+                            scope.launch {
+                                if (viewModel.setAsAvatar()) {
+                                    snackbar.showSnackbar(avatarSet, R.drawable.ic_check_circle)
                                 } else {
                                     snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
                                 }
