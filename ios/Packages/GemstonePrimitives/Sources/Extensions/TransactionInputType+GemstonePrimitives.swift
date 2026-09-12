@@ -37,8 +37,8 @@ public extension TransactionInputType {
         .perpetual(asset: asset.map(), perpetualType: perpetualType)
     }
 
-    static func earn(_ asset: Primitives.Asset, _ earnType: Primitives.EarnType, _ data: Gemstone.ContractCallData) -> Self {
-        .earn(asset: asset.map(), earnType: earnType.map(), data: data)
+    static func earn(_ asset: Primitives.Asset, _ earnType: Gemstone.EarnType, _ data: Gemstone.ContractCallData) -> Self {
+        .earn(asset: asset.map(), earnType: earnType, data: data)
     }
 
     static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: TransferDataExtra) -> Self {

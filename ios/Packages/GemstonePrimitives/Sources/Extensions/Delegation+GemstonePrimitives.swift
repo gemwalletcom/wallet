@@ -76,12 +76,3 @@ public extension Primitives.StakeType {
         }
     }
 }
-
-public extension Primitives.EarnType {
-    func map() -> Gemstone.EarnType {
-        switch self {
-        case let .deposit(validator): .deposit(validator.map())
-        case let .withdraw(delegation): .withdraw(delegation.map())
-        }
-    }
-}

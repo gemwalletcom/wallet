@@ -83,7 +83,7 @@ public final class EarnSceneViewModel {
     var depositDestination: AmountInput? {
         guard let provider = providers.first else { return nil }
         return AmountInput(
-            type: .earn(.deposit(provider)),
+            type: .earn(.deposit(provider.map())),
             asset: asset,
         )
     }

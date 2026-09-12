@@ -135,11 +135,11 @@ public extension DelegationSceneViewModel {
         case .redelegate:
             onAmountInputAction?(amountInput(.stake(.redelegate(validators: validators.map { $0.map() }, delegation: model.delegation.map(), validator: nil))))
         case .deposit:
-            onAmountInputAction?(amountInput(.earn(.deposit(model.delegation.validator))))
+            onAmountInputAction?(amountInput(.earn(.deposit(model.delegation.validator.map()))))
         case .withdraw:
             switch providerType {
             case .stake: onTransferAction?(stakeTransferData(.withdraw(model.delegation)))
-            case .earn: onAmountInputAction?(amountInput(.earn(.withdraw(model.delegation))))
+            case .earn: onAmountInputAction?(amountInput(.earn(.withdraw(model.delegation.map()))))
             }
         }
     }
