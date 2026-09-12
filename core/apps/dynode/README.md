@@ -16,7 +16,22 @@ Configuration lives beside `config.yml`:
 
 Supply the family files you need. Chains and provider routes share the cache implementation but have separate `cache.memory.max` budgets. Keep `allowlist` and `cache` rules separate.
 
+## Routes
+
 Chain requests use `/<chain>`. Provider requests use `/<source>/<service>/<path>`; `source` identifies the caller, and the route's configured `group` is used for metrics.
+
+```mermaid
+flowchart TD
+    Request["Provider request"] --> Route{"Route exists and request allowed?"}
+    Route -->|No| Error["JSON error"]
+    Route -->|Yes| Cache{"Cached response?"}
+    Cache -->|Hit| Response["Return response"]
+    Cache -->|Miss| Endpoint["Select endpoint"]
+    Endpoint --> Headers["Forward allowed headers and apply endpoint headers"]
+    Headers --> Upstream["Forward request upstream"]
+    Upstream --> Filter["Filter response headers and cache when configured"]
+    Filter --> Response
+```
 
 The local FastNear example allows:
 
