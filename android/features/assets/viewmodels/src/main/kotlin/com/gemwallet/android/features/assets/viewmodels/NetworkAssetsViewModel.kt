@@ -12,7 +12,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
@@ -54,12 +54,12 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     val pinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { it.metadata.isPinned }.toAssetInfoDataAggregates(AssetRowNaming.CanonicalNative) }
+        .map { assets -> assets.filter { it.metadata.isPinned }.toAssetInfoDataAggregates(GemAssetRowTitle.CANONICAL_ASSET) }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unpinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { !it.metadata.isPinned }.toAssetInfoDataAggregates(AssetRowNaming.CanonicalNative) }
+        .map { assets -> assets.filter { !it.metadata.isPinned }.toAssetInfoDataAggregates(GemAssetRowTitle.CANONICAL_ASSET) }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -69,7 +69,7 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     val hidden: StateFlow<List<AssetInfoDataAggregate>> = hiddenAssets
-        .map { assets -> assets.toAssetInfoDataAggregates(AssetRowNaming.CanonicalNative) }
+        .map { assets -> assets.toAssetInfoDataAggregates(GemAssetRowTitle.CANONICAL_ASSET) }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

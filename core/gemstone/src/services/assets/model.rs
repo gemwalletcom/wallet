@@ -61,6 +61,7 @@ pub enum GemSelectAssetScope {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetRowTitle {
     Asset,
+    CanonicalAsset,
     Network,
 }
 

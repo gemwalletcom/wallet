@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
-import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
@@ -90,7 +90,7 @@ class FiatViewModel @Inject constructor(
         .map {
             val assetInfo = it.toAssetInfo()
             assetInfo.toAssetInfoDataAggregate(
-                naming = AssetRowNaming.CanonicalNative,
+                naming = GemAssetRowTitle.CANONICAL_ASSET,
                 displayedAmount = assetInfo.balance.balanceAmount.available,
             )
         }

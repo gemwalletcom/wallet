@@ -10,7 +10,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PriceInfo
@@ -81,7 +81,7 @@ internal fun PriceAlertAutoAssetItem(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    val uiModel = remember(assetInfo) { assetInfo.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) }
+    val uiModel = remember(assetInfo) { assetInfo.toAssetInfoDataAggregate(GemAssetRowTitle.CANONICAL_ASSET) }
     AssetListItem(
         asset = uiModel,
         listPosition = ListPosition.Single,

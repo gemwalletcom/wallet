@@ -21,7 +21,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.RecentActivityType
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ui.models.AssetToast
@@ -124,7 +124,7 @@ open class BaseAssetSelectViewModel(
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
                 val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
-                assetInfo.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative, formatters = formatters)
+                assetInfo.toAssetInfoDataAggregate(GemAssetRowTitle.CANONICAL_ASSET, formatters = formatters)
             }
     }
     .flowOn(Dispatchers.IO)

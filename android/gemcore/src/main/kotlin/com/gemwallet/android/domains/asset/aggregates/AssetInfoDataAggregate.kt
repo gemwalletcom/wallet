@@ -10,6 +10,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
+import uniffi.gemstone.GemAssetRowTitle
 import java.math.BigDecimal
 
 @Immutable
@@ -27,20 +28,15 @@ data class AssetInfoDataAggregate(
 )
 
 fun List<AssetInfo>.toAssetInfoDataAggregates(
-    naming: AssetRowNaming = AssetRowNaming.Stored,
+    naming: GemAssetRowTitle = GemAssetRowTitle.ASSET,
     hideBalance: Boolean = false,
 ): List<AssetInfoDataAggregate> {
     val formatters = RowFormatters()
     return map { it.toAssetInfoDataAggregate(naming = naming, hideBalance = hideBalance, formatters = formatters) }
 }
 
-enum class AssetRowNaming {
-    Stored,
-    CanonicalNative,
-}
-
 fun AssetInfo.toAssetInfoDataAggregate(
-    naming: AssetRowNaming = AssetRowNaming.Stored,
+    naming: GemAssetRowTitle = GemAssetRowTitle.ASSET,
     hideBalance: Boolean = false,
     displayedAmount: Double = balance.totalAmount,
     formatters: RowFormatters = RowFormatters(),
@@ -77,10 +73,11 @@ fun AssetInfo.toAssetInfoDataAggregate(
     )
 }
 
-private fun AssetInfo.title(naming: AssetRowNaming): String = when (naming) {
-    AssetRowNaming.Stored -> asset.name
-    AssetRowNaming.CanonicalNative -> when (asset.subtype) {
+private fun AssetInfo.title(naming: GemAssetRowTitle): String = when (naming) {
+    GemAssetRowTitle.ASSET -> asset.name
+    GemAssetRowTitle.CANONICAL_ASSET -> when (asset.subtype) {
         AssetSubtype.NATIVE -> asset.chain.asset().name
         AssetSubtype.TOKEN -> asset.name
     }
+    GemAssetRowTitle.NETWORK -> asset.id.chain.asset().name
 }

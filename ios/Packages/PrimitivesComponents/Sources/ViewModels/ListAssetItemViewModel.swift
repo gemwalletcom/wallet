@@ -50,6 +50,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     public var name: String {
         switch row.title {
         case .asset: assetDataModel.name
+        case .canonicalAsset: assetDataModel.asset.id.type == .native ? assetDataModel.asset.chain.asset.name : assetDataModel.name
         case .network: assetDataModel.asset.chain.networkName
         }
     }
