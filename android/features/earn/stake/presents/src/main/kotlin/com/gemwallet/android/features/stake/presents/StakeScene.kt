@@ -64,6 +64,7 @@ internal fun StakeScene(
     stakeInfoUrl: String?,
     lockTimeDays: Int?,
     minStakeAmount: BigInteger,
+    usesFreeze: Boolean,
     amountAction: AmountTransactionAction,
     onAction: (StakeSceneAction) -> Unit,
 ) {
@@ -104,7 +105,9 @@ internal fun StakeScene(
                     onRewards = { onAction(StakeSceneAction.ClaimRewards) },
                 )
 
-                energyItem(assetInfo.balance.metadata)
+                if (usesFreeze) {
+                    energyItem(assetInfo.balance.metadata)
+                }
 
                 if (delegations.isEmpty()) {
                     item {

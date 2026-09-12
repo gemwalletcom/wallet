@@ -81,6 +81,10 @@ class StakeViewModel @Inject constructor(
         .mapLatest { seconds -> seconds?.takeIf { it > 0uL }?.let { it.toLong().secondsToDays() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val usesFreeze = assetInfo
+        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.usesFreeze(chain) } ?: false }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val minStakeAmount = assetInfo
         .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.minStakeAmount(chain) } ?: BigInteger.ZERO }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)

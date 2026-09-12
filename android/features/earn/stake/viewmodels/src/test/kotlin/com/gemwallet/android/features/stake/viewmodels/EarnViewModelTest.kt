@@ -22,6 +22,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -76,26 +77,28 @@ class EarnViewModelTest {
     @Test
     fun `positions leave out the ones with nothing in them`() = runTest(testDispatcher) {
         val model = viewModel()
-        advanceUntilIdle()
 
-        assertEquals(listOf(funded.base.delegationId), model.positions.value.map { it.base.delegationId })
+        val shown = model.positions.first { it.isNotEmpty() }
+
+        assertEquals(listOf(funded.base.delegationId), shown.map { it.base.delegationId })
     }
 
     @Test
     fun `the rate comes from the first provider`() = runTest(testDispatcher) {
         val model = viewModel()
-        advanceUntilIdle()
 
-        assertEquals(4.0, model.apr.value, 0.0)
+        assertEquals(4.0, model.apr.first { it > 0.0 }, 0.0)
     }
 
     @Test
     fun `depositing needs a provider and a wallet that can sign`() = runTest(testDispatcher) {
         val withProvider = viewModel()
-        advanceUntilIdle()
-        assertEquals(AmountParams.Earn.Deposit(asset.id, provider.id), withProvider.depositParams.value)
 
-        assertNull("nothing to deposit into", viewModel(providers = emptyList()).also { advanceUntilIdle() }.depositParams.value)
+        assertEquals(AmountParams.Earn.Deposit(asset.id, provider.id), withProvider.depositParams.first { it != null })
+
+        val withoutProvider = viewModel(providers = emptyList())
+        advanceUntilIdle()
+        assertNull("nothing to deposit into", withoutProvider.depositParams.value)
 
         session.value = mockSession(wallet = mockWallet(type = WalletType.View))
         val watching = viewModel()

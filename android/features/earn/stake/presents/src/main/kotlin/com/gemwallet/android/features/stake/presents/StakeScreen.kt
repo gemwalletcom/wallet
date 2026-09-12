@@ -28,6 +28,7 @@ fun StakeScreen(
     val validatorRows by viewModel.validatorRows.collectAsStateWithLifecycle()
     val lockTimeDays by viewModel.lockTimeDays.collectAsStateWithLifecycle()
     val minStakeAmount by viewModel.minStakeAmount.collectAsStateWithLifecycle()
+    val usesFreeze by viewModel.usesFreeze.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
     if (stakeAssetInfo == null) {
@@ -46,6 +47,7 @@ fun StakeScreen(
             stakeInfoUrl = stakeInfoUrl,
             lockTimeDays = lockTimeDays,
             minStakeAmount = minStakeAmount,
+            usesFreeze = usesFreeze,
             amountAction = amountAction,
             onAction = { action ->
                 when (action) {
