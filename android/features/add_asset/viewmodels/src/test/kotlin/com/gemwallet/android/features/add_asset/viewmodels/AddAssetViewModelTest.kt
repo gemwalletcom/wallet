@@ -22,6 +22,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -58,8 +59,10 @@ class AddAssetViewModelTest {
     fun `typed address resolves the token through the service`() = runTest {
         val viewModel = AddAssetViewModel(getSession, service)
         try {
-            viewModel.addressState.value = "0x1"
-            Snapshot.sendApplyNotifications()
+            withContext(Dispatchers.Main) {
+                viewModel.addressState.value = "0x1"
+                Snapshot.sendApplyNotifications()
+            }
 
             assertEquals(TokenSearchState.Found(token), viewModel.searchState.first { it is TokenSearchState.Found })
             assertEquals(token, viewModel.token.first { it != null })
@@ -72,8 +75,10 @@ class AddAssetViewModelTest {
     fun `addAsset adds the found token to the current wallet`() = runTest {
         val viewModel = AddAssetViewModel(getSession, service)
         try {
-            viewModel.addressState.value = "0x1"
-            Snapshot.sendApplyNotifications()
+            withContext(Dispatchers.Main) {
+                viewModel.addressState.value = "0x1"
+                Snapshot.sendApplyNotifications()
+            }
             viewModel.token.first { it != null }
 
             var finished = false
@@ -91,8 +96,10 @@ class AddAssetViewModelTest {
         coEvery { service.add(any(), any()) } throws GemServiceException.Store("disk full")
         val viewModel = AddAssetViewModel(getSession, service)
         try {
-            viewModel.addressState.value = "0x1"
-            Snapshot.sendApplyNotifications()
+            withContext(Dispatchers.Main) {
+                viewModel.addressState.value = "0x1"
+                Snapshot.sendApplyNotifications()
+            }
             viewModel.token.first { it != null }
 
             var finished = false
