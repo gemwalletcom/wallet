@@ -2,6 +2,7 @@
 
 import Components
 import FiatConnect
+import struct Gemstone.GemValidatorRow
 import InfoSheet
 import Perpetuals
 import Primitives
@@ -60,13 +61,13 @@ struct AmountNavigationView: View {
                     }
                 }
             }
-            .navigationDestination(for: DelegationValidator.self) { validator in
+            .navigationDestination(for: GemValidatorRow.self) { row in
                 if case let .stake(stake) = model.provider,
                    case let .validator(validatorSelection) = stake.selection
                 {
                     ValidatorSelectScene(
                         model: viewModelFactory.validatorSelectScene(
-                            currentValidator: validator,
+                            currentValidator: row.validator.map(),
                             recommended: stake.recommendedValidators,
                             validators: validatorSelection.options.map { $0.validator.map() },
                             selectValidator: model.onValidatorSelected,
