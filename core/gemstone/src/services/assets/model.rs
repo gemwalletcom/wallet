@@ -286,6 +286,7 @@ pub struct GemAssetDetailsInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
+    pub title: String,
     pub explorer_name: String,
     pub address_link: Option<BlockExplorerLink>,
     pub token_link: Option<BlockExplorerLink>,

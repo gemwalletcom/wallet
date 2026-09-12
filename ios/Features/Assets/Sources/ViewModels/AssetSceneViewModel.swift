@@ -85,7 +85,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     public var title: String {
-        assetModel.name
+        details.title
     }
 
     var priceAlertsTitle: String {

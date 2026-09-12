@@ -41,12 +41,8 @@ class AssetInfoUIModelFactoryTest {
     fun tearDown() = unmockkStatic("com.gemwallet.android.ext.ChainKt")
 
     @Test
-    fun `name uses chain asset for native and own name for token`() {
-        val native = model(mockAsset(chain = Chain.Cosmos, name = "Renamed Cosmos"))
-        val token = model(mockAsset(chain = Chain.Cosmos, name = "Token", type = AssetType.TOKEN))
-
-        assertEquals("Cosmos", native.name)
-        assertEquals("Token", token.name)
+    fun `the row name is the title core decided`() {
+        assertEquals("Renamed Cosmos", model(mockAsset(chain = Chain.Cosmos, name = "Renamed Cosmos")).name)
     }
 
     @Test
@@ -96,6 +92,7 @@ class AssetInfoUIModelFactoryTest {
         return AssetInfoUIModelFactory().create(
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
             GemAssetDetails(
+                title = asset.name,
                 state = GemAssetDetailsState(
                     isViewOnly = false,
                     headerActions = GemHeaderActions.Buttons(emptyList()),

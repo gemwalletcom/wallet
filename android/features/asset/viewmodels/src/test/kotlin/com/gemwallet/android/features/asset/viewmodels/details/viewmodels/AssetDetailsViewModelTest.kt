@@ -106,6 +106,7 @@ class AssetDetailsViewModelTest {
     }
 
     private fun details(input: GemAssetDetailsInput) = GemAssetDetails(
+        title = input.asset.name,
         state = GemAssetDetailsState(
             isViewOnly = false,
             headerActions = GemHeaderActions.Buttons(emptyList()),

@@ -270,6 +270,13 @@ pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
     }
 }
 
+pub fn asset_title(asset: &Asset) -> String {
+    match asset.id.is_native() {
+        true => Asset::from_chain(asset.chain()).name,
+        false => asset.name.clone(),
+    }
+}
+
 pub fn details_state(
     wallet_type: WalletType,
     chain: Chain,
@@ -781,6 +788,16 @@ mod tests {
         assert!(state(WalletType::Multicoin, Chain::Tron, &metadata(true, false, false, false), &[]).shows_resources);
         assert!(!state(WalletType::Multicoin, Chain::Cosmos, &metadata(true, false, false, false), &[]).shows_resources);
         assert!(!state(WalletType::Multicoin, Chain::Bitcoin, &metadata(true, false, false, false), &[]).shows_resources);
+    }
+
+    #[test]
+    fn test_a_native_asset_is_titled_by_its_chain() {
+        let mut stale = Asset::from_chain(Chain::Ethereum);
+        stale.name = "Ether (old)".to_string();
+        assert_eq!(asset_title(&stale), "Ethereum", "a native row reads the chain's own name, not the stored one");
+
+        let token = Asset::mock_ethereum_usdc();
+        assert_eq!(asset_title(&token), token.name, "a token keeps the name it was stored with");
     }
 
     #[test]

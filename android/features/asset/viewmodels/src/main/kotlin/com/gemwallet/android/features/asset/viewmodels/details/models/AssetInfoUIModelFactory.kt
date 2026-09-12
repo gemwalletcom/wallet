@@ -39,7 +39,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
         val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
         return AssetInfoUIModel(
             assetInfo = assetInfo,
-            name = assetName(asset),
+            name = details.title,
             iconUrl = asset.id.iconModel(),
             priceValue = if (price == 0.0) "" else currencyFormatter.string(price),
             priceDayChanges = assetInfo.price?.price?.priceChangePercentage24h.formatAsPercentage(),
@@ -70,9 +70,6 @@ class AssetInfoUIModelFactory @Inject constructor() {
         is GemAssetNetworkDestination.Asset -> AssetInfoUIModel.NetworkDestination.Asset(destination.asset.toPrimitives().id)
         is GemAssetNetworkDestination.Assets -> AssetInfoUIModel.NetworkDestination.Assets(destination.chain.requireChain())
     }
-
-    private fun assetName(asset: Asset): String =
-        if (asset.type == AssetType.NATIVE) asset.id.chain.asset().name else asset.name
 
     private fun balanceRows(assetInfo: AssetInfo, formatter: ValueFormatter): List<AssetInfoUIModel.BalanceUIModel> {
         val asset = assetInfo.asset
