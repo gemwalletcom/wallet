@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemPerpetualMarketCounts
+import struct Gemstone.GemPerpetualMarketSections
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
 import GemstonePrimitives
@@ -102,24 +104,33 @@ public final class PerpetualsSceneViewModel {
         Images.System.search
     }
 
+    var marketSections: GemPerpetualMarketSections {
+        GemPerpetualMarketCounts(
+            positions: UInt32(positions.count),
+            pinned: UInt32(sections.pinned.count),
+            markets: UInt32(sections.markets.count),
+            recents: recentModel.hasAssets ? 1 : 0,
+        ).sections(isSearching: isSearching, isQueryEmpty: searchQuery.isEmpty)
+    }
+
     var showPositions: Bool {
-        positions.isNotEmpty
+        marketSections.showsPositions
     }
 
     var showPinned: Bool {
-        sections.pinned.isNotEmpty
+        marketSections.showsPinned
     }
 
     var showMarkets: Bool {
-        sections.markets.isNotEmpty
+        marketSections.showsMarkets
     }
 
     var showRecents: Bool {
-        isSearching && searchQuery.isEmpty && recentModel.hasAssets
+        marketSections.showsRecents
     }
 
     var showSearchEmptyState: Bool {
-        isSearching && !showPositions && !showPinned && !showMarkets
+        marketSections.showsEmpty
     }
 
     var sections: PerpetualsSections {

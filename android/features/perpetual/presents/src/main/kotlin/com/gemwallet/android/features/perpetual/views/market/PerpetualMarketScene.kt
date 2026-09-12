@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetual.views.market
 
+import uniffi.gemstone.GemPerpetualMarketCounts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -80,8 +81,14 @@ internal fun PerpetualMarketScene(
 ) {
     val longPressedAsset = remember { mutableStateOf<PerpetualId?>(null) }
     var isSearching by rememberSaveable { mutableStateOf(false) }
-    val showRecents = isSearching && query.text.isEmpty() && recent.isNotEmpty()
-    val showMarkets = !isSearching || unpinnedPerpetuals.isNotEmpty() || positions.isEmpty()
+    val sections = GemPerpetualMarketCounts(
+        positions = positions.size.toUInt(),
+        pinned = pinnedPerpetuals.size.toUInt(),
+        markets = unpinnedPerpetuals.size.toUInt(),
+        recents = recent.size.toUInt(),
+    ).sections(isSearching, query.text.isEmpty())
+    val showRecents = sections.showsRecents
+    val showMarkets = sections.showsMarkets
 
     Scene(
         titleContent = {
@@ -166,31 +173,28 @@ internal fun PerpetualMarketScene(
                         )
                     }
                 }
+                if (sections.showsEmpty) {
+                    item {
+                        EmptyContentView(
+                            type = EmptyContentType.SearchPerpetuals,
+                            modifier = Modifier
+                                .animateItem()
+                                .fillParentMaxSize(),
+                        )
+                    }
+                }
                 if (showMarkets) {
-                    if (unpinnedPerpetuals.isEmpty()) {
-                        if (isSearching) {
-                            item {
-                                EmptyContentView(
-                                    type = EmptyContentType.SearchPerpetuals,
-                                    modifier = Modifier
-                                        .animateItem()
-                                        .fillParentMaxSize(),
-                                )
-                            }
-                        }
-                    } else {
-                        item {
-                            SubheaderItem(R.string.markets_title)
-                        }
-                        itemsPositioned(unpinnedPerpetuals) { position, item ->
-                            PerpetualItem(
-                                item = item,
-                                listPosition = position,
-                                longPressState = longPressedAsset,
-                                onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                                onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
-                            )
-                        }
+                    item {
+                        SubheaderItem(R.string.markets_title)
+                    }
+                    itemsPositioned(unpinnedPerpetuals) { position, item ->
+                        PerpetualItem(
+                            item = item,
+                            listPosition = position,
+                            longPressState = longPressedAsset,
+                            onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
+                            onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                        )
                     }
                 }
             }

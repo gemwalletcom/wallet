@@ -5,10 +5,7 @@ use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType};
 
-use super::model::{
-    GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails,
-    GemPerpetualDetailsAction, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualTransferData,
-};
+use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualTransferData};
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
@@ -483,6 +480,19 @@ fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec
     merged
 }
 
+pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is_query_empty: bool) -> GemPerpetualMarketSections {
+    let shows_positions = counts.positions > 0;
+    let shows_pinned = counts.pinned > 0;
+    let shows_markets = counts.markets > 0;
+    GemPerpetualMarketSections {
+        shows_positions,
+        shows_recents: is_searching && is_query_empty && counts.recents > 0,
+        shows_pinned,
+        shows_markets,
+        shows_empty: is_searching && !shows_positions && !shows_pinned && !shows_markets,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -492,6 +502,41 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::PerpetualId;
     use primitives::TransactionInputType;
+
+    #[test]
+    fn test_market_sections_hide_recents_mid_search_and_answer_empty_only_while_searching() {
+        let counts = GemPerpetualMarketCounts {
+            positions: 0,
+            pinned: 0,
+            markets: 0,
+            recents: 2,
+        };
+
+        assert_eq!(
+            counts.sections(true, true),
+            GemPerpetualMarketSections {
+                shows_positions: false,
+                shows_recents: true,
+                shows_pinned: false,
+                shows_markets: false,
+                shows_empty: true
+            }
+        );
+        assert!(!counts.sections(true, false).shows_recents);
+        assert!(!counts.sections(false, true).shows_recents);
+        assert!(!counts.sections(false, true).shows_empty);
+
+        let listed = GemPerpetualMarketCounts {
+            positions: 1,
+            pinned: 2,
+            markets: 3,
+            recents: 0,
+        };
+        let sections = listed.sections(true, true);
+        assert!(sections.shows_positions && sections.shows_pinned && sections.shows_markets);
+        assert!(!sections.shows_empty);
+    }
+
 
     fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData {

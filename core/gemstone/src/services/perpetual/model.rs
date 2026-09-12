@@ -194,6 +194,30 @@ impl GemPerpetualPositionAction {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemPerpetualMarketSections {
+    pub shows_positions: bool,
+    pub shows_recents: bool,
+    pub shows_pinned: bool,
+    pub shows_markets: bool,
+    pub shows_empty: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemPerpetualMarketCounts {
+    pub positions: u32,
+    pub pinned: u32,
+    pub markets: u32,
+    pub recents: u32,
+}
+
+#[uniffi::export]
+impl GemPerpetualMarketCounts {
+    pub fn sections(&self, is_searching: bool, is_query_empty: bool) -> GemPerpetualMarketSections {
+        super::rules::market_sections(self, is_searching, is_query_empty)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
