@@ -10,6 +10,10 @@ public final class GemstoneNotificationPermissions: GemNotificationPermissions, 
         self.service = service
     }
 
+    public func isAvailable() -> Bool {
+        true
+    }
+
     public func requestPermissionsOrOpenSettings() async throws -> Bool {
         try await service.requestPermissionsOrOpenSettings()
     }

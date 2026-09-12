@@ -40,7 +40,8 @@ object BannersModule {
         @ApplicationContext context: Context,
         requests: NotificationPermissionRequests,
         preferences: GemPreferencesService,
-    ): GemNotificationPermissions = GemstoneNotificationPermissions(context, requests, preferences)
+        notificationsAvailable: NotificationsAvailable,
+    ): GemNotificationPermissions = GemstoneNotificationPermissions(context, requests, preferences, notificationsAvailable)
 
     @Provides
     @Singleton

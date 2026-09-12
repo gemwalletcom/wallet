@@ -38,20 +38,20 @@ class DevicePushSettings(
 
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 
-    private val pushEnabledState = MutableStateFlow(notificationsAvailable && preferencesService.isPushNotificationsEnabled())
+    private val pushEnabledState = MutableStateFlow(false)
 
     override suspend fun switchPushEnabled(enabled: Boolean) {
         pushEnabledState.value = runCatchingCancellable {
-            notificationsService.get().setEnabled(enabled && notificationsAvailable)
+            notificationsService.get().setEnabled(enabled)
         }.getOrElse {
             Log.e(TAG, "push notifications toggle failed", it)
-            preferencesService.isPushNotificationsEnabled()
+            notificationsService.get().isEnabled()
         }
     }
 
     override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart {
         migratePushEnabled()
-        pushEnabledState.value = notificationsAvailable && preferencesService.isPushNotificationsEnabled()
+        pushEnabledState.value = notificationsService.get().isEnabled()
     }
 
     override fun setPushToken(token: String) {
@@ -68,8 +68,7 @@ class DevicePushSettings(
     private suspend fun migratePushEnabled() {
         val stored = context.dataStore.data.map { it[LegacyPushEnabled] }.firstOrNull() ?: return
         if (stored && !preferencesService.isPushNotificationsEnabled()) {
-            preferencesService.setPushNotificationsEnabled(notificationsAvailable)
-            pushEnabledState.value = notificationsAvailable
+            preferencesService.setPushNotificationsEnabled(true)
         }
         context.dataStore.edit { it.remove(LegacyPushEnabled) }
     }

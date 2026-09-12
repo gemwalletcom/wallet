@@ -20,11 +20,11 @@ impl GemNotificationsService {
     }
 
     pub fn is_enabled(&self) -> bool {
-        self.preferences.is_push_notifications_enabled()
+        self.permissions.is_available() && self.preferences.is_push_notifications_enabled()
     }
 
     pub async fn set_enabled(&self, enabled: bool) -> Result<bool, GemServiceError> {
-        if !enabled {
+        if !enabled || !self.permissions.is_available() {
             self.device.set_push_enabled(false).await?;
             return Ok(false);
         }

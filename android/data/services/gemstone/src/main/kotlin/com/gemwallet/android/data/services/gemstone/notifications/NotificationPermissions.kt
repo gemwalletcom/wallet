@@ -8,6 +8,7 @@ import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationManagerCompat
 import com.gemwallet.android.application.notifications.NotificationPermissionRequests
+import com.gemwallet.android.model.NotificationsAvailable
 import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemNotificationPrompt
 import uniffi.gemstone.GemPreferencesService
@@ -16,7 +17,10 @@ class GemstoneNotificationPermissions(
     private val context: Context,
     private val requests: NotificationPermissionRequests,
     private val preferences: GemPreferencesService,
+    private val notificationsAvailable: NotificationsAvailable,
 ) : GemNotificationPermissions {
+
+    override fun isAvailable(): Boolean = notificationsAvailable
 
     override suspend fun requestPermissionsOrOpenSettings(): Boolean =
         when (preferences.notificationPrompt(isGranted())) {
