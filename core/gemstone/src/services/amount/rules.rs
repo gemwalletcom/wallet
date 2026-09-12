@@ -5,7 +5,7 @@ use primitives::{Asset, AutocloseEstimator, Chain, EarnType, PerpetualDirection,
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
-    GemAmountTransfer, GemAmountType, GemNumberSanitizer, GemPerpetualAutoclose,
+    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
 };
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
@@ -346,26 +346,106 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 }
 
 const SEPARATORS: [char; 2] = ['.', ','];
+const GROUPING_SYMBOLS: [char; 5] = [' ', '\'', '\u{2019}', '\u{202F}', '\u{00A0}'];
+const ARABIC_DECIMAL: char = '\u{066B}';
+const DIGIT_ZEROS: [char; 2] = ['\u{0660}', '\u{06F0}'];
+const ARABIC_GROUPING: char = '\u{066C}';
 
-pub fn sanitize_number_input(input: &GemNumberSanitizer, text: &str) -> String {
-    let is_separator = |character: &char| SEPARATORS.contains(character) || input.decimal_separator.contains(*character);
+pub fn sanitize_number_input(decimal_separator: &str, text: &str, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
+    let is_separator = |character: &char| SEPARATORS.contains(character) || decimal_separator.contains(*character);
     let typed: String = text.chars().filter(|character| character.is_numeric() || is_separator(character)).collect();
     let limit = |value: &str, maximum: Option<u32>| match maximum {
         Some(maximum) => value.chars().take(maximum as usize).collect::<String>(),
         None => value.to_string(),
     };
     match typed.chars().position(|character| is_separator(&character)) {
-        None => limit(&typed, input.maximum_integer_digits),
+        None => limit(&typed, maximum_integer_digits),
         Some(position) => {
             let integer: String = typed.chars().take(position).collect();
             let fraction: String = typed.chars().skip(position + 1).filter(|character| !is_separator(character)).collect();
-            format!(
-                "{}{}{}",
-                limit(&integer, input.maximum_integer_digits),
-                input.decimal_separator,
-                limit(&fraction, input.maximum_fraction_digits)
-            )
+            format!("{}{}{}", limit(&integer, maximum_integer_digits), decimal_separator, limit(&fraction, maximum_fraction_digits))
         }
+    }
+}
+
+pub fn plain_number(decimal_separator: &str, text: &str) -> String {
+    let mut trimmed = latin_digits(text).trim().to_string();
+    while let Some(last) = trimmed.chars().last() {
+        if last.is_ascii_digit() || SEPARATORS.contains(&last) || GROUPING_SYMBOLS.contains(&last) {
+            break;
+        }
+        trimmed.pop();
+    }
+    let without_grouping: String = trimmed.chars().filter(|character| !GROUPING_SYMBOLS.contains(character)).collect();
+    if without_grouping.is_empty() {
+        return String::new();
+    }
+    without_leading_zeros(&standard_decimal(decimal_separator, &without_grouping))
+}
+
+fn latin_digits(text: &str) -> String {
+    text.chars()
+        .filter(|character| *character != ARABIC_GROUPING)
+        .map(|character| match character {
+            ARABIC_DECIMAL => '.',
+            _ => latin_digit(character).unwrap_or(character),
+        })
+        .collect()
+}
+
+fn latin_digit(character: char) -> Option<char> {
+    if let Some(digit) = character.to_digit(10) {
+        return char::from_digit(digit, 10);
+    }
+    DIGIT_ZEROS.iter().find_map(|zero| {
+        let offset = (character as u32).checked_sub(*zero as u32)?;
+        (offset < 10).then(|| char::from_digit(offset, 10)).flatten()
+    })
+}
+
+fn standard_decimal(decimal_separator: &str, text: &str) -> String {
+    let dots = text.matches('.').count();
+    let commas = text.matches(',').count();
+    match (dots > 0, commas > 0) {
+        (true, true) if decimal_separator == "." => keep_last(&text.replace(',', ""), '.'),
+        (true, true) => keep_last(&text.replace('.', ""), ',').replace(',', "."),
+        (true, false) if dots > 1 || (decimal_separator == "," && is_grouping_dot(text)) => text.replace('.', ""),
+        (true, false) => keep_last(text, '.'),
+        (false, true) if commas > 1 || decimal_separator != "," => text.replace(',', ""),
+        (false, true) => text.replace(',', "."),
+        (false, false) => text.to_string(),
+    }
+}
+
+fn is_grouping_dot(text: &str) -> bool {
+    match text.split_once('.') {
+        Some((before, after)) => {
+            !before.is_empty()
+                && before.chars().all(|character| character.is_ascii_digit())
+                && after.len() == 3
+                && after.chars().all(|character| character.is_ascii_digit())
+        }
+        None => false,
+    }
+}
+
+fn keep_last(text: &str, symbol: char) -> String {
+    match text.rfind(symbol) {
+        Some(position) => format!("{}{}", text[..position].replace(symbol, ""), &text[position..]),
+        None => text.to_string(),
+    }
+}
+
+fn without_leading_zeros(text: &str) -> String {
+    let (integer, fraction) = match text.split_once('.') {
+        Some((integer, fraction)) => (integer, Some(fraction)),
+        None => (text, None),
+    };
+    let trimmed = integer.trim_start_matches('0');
+    let integer = if trimmed.is_empty() { "0" } else { trimmed };
+    match fraction {
+        Some(fraction) => format!("{integer}.{fraction}"),
+        None => integer.to_string(),
     }
 }
 
@@ -381,62 +461,111 @@ mod tests {
 
     #[test]
     fn test_sanitize_number_input_keeps_digits_and_the_first_separator() {
-        let input = GemNumberSanitizer {
-            decimal_separator: ".".to_string(),
-            maximum_fraction_digits: None,
-            maximum_integer_digits: None,
-        };
-
-        assert_eq!(sanitize_number_input(&input, "abc123.45xyz"), "123.45");
-        assert_eq!(sanitize_number_input(&input, "123.45.67"), "123.4567");
-        assert_eq!(sanitize_number_input(&input, " 1 000 "), "1000");
-        assert_eq!(sanitize_number_input(&input, "12"), "12");
-        assert_eq!(sanitize_number_input(&input, "."), ".");
-        assert_eq!(sanitize_number_input(&input, "٣.٥"), "٣.٥");
+        assert_eq!(sanitize_number_input(".", "abc123.45xyz", None, None), "123.45");
+        assert_eq!(sanitize_number_input(".", "123.45.67", None, None), "123.4567");
+        assert_eq!(sanitize_number_input(".", " 1 000 ", None, None), "1000");
+        assert_eq!(sanitize_number_input(".", "12", None, None), "12");
+        assert_eq!(sanitize_number_input(".", ".", None, None), ".");
+        assert_eq!(sanitize_number_input(".", "٣.٥", None, None), "٣.٥");
     }
 
     #[test]
     fn test_sanitize_number_input_answers_in_the_callers_separator() {
-        let comma = GemNumberSanitizer {
-            decimal_separator: ",".to_string(),
-            maximum_fraction_digits: None,
-            maximum_integer_digits: None,
-        };
-        let dot = GemNumberSanitizer {
-            decimal_separator: ".".to_string(),
-            maximum_fraction_digits: None,
-            maximum_integer_digits: None,
-        };
-
-        assert_eq!(sanitize_number_input(&comma, "1.5"), "1,5");
-        assert_eq!(sanitize_number_input(&dot, "1,5"), "1.5");
-
-        let arabic = GemNumberSanitizer {
-            decimal_separator: "٫".to_string(),
-            maximum_fraction_digits: None,
-            maximum_integer_digits: None,
-        };
-        assert_eq!(sanitize_number_input(&arabic, "٣٫٥"), "٣٫٥");
+        assert_eq!(sanitize_number_input(",", "1.5", None, None), "1,5");
+        assert_eq!(sanitize_number_input(".", "1,5", None, None), "1.5");
+        assert_eq!(sanitize_number_input("٫", "٣٫٥", None, None), "٣٫٥");
     }
 
     #[test]
     fn test_sanitize_number_input_limits_each_part() {
-        let fraction = GemNumberSanitizer {
-            decimal_separator: ".".to_string(),
-            maximum_fraction_digits: Some(2),
-            maximum_integer_digits: None,
-        };
-        let integer = GemNumberSanitizer {
-            decimal_separator: ".".to_string(),
-            maximum_fraction_digits: None,
-            maximum_integer_digits: Some(2),
-        };
+        assert_eq!(sanitize_number_input(".", "0.111111", Some(2), None), "0.11");
+        assert_eq!(sanitize_number_input(".", "12.5", Some(2), None), "12.5");
+        assert_eq!(sanitize_number_input(".", "12", Some(2), None), "12");
+        assert_eq!(sanitize_number_input(".", "33333312312", None, Some(2)), "33");
+        assert_eq!(sanitize_number_input(".", "19.555", None, Some(2)), "19.555");
+    }
 
-        assert_eq!(sanitize_number_input(&fraction, "0.111111"), "0.11");
-        assert_eq!(sanitize_number_input(&fraction, "12.5"), "12.5");
-        assert_eq!(sanitize_number_input(&fraction, "12"), "12");
-        assert_eq!(sanitize_number_input(&integer, "33333312312"), "33");
-        assert_eq!(sanitize_number_input(&integer, "19.555"), "19.555");
+    #[test]
+    fn test_plain_number_strips_grouping_for_each_locale() {
+        let cases = [
+            (".", "1,234.56", "1234.56"),
+            (".", " 1,234.56 ", "1234.56"),
+            (".", "1,234.56$", "1234.56"),
+            (".", "1,234.56 USD", "1234.56"),
+            (".", "123,456.78BTC", "123456.78"),
+            (".", "12,345,678,901.23456789", "12345678901.23456789"),
+            (",", "1.234,56", "1234.56"),
+            (",", " 1.234,56 ", "1234.56"),
+            (",", "1.234,56 kr", "1234.56"),
+            (",", "12.345.678.901,23456789", "12345678901.23456789"),
+            (".", "1'234.56", "1234.56"),
+            (",", "1 234,56 \u{20ac}", "1234.56"),
+            (",", "1\u{202f}234,56", "1234.56"),
+            (".", "1,234.56\u{5143}", "1234.56"),
+        ];
+
+        for (separator, input, expected) in cases {
+            assert_eq!(plain_number(separator, input), expected, "{input} in {separator}");
+        }
+    }
+
+    #[test]
+    fn test_plain_number_reads_arabic_numerals() {
+        let cases = [
+            ("\u{66b}", "\u{661}\u{66c}\u{662}\u{663}\u{664}\u{66b}\u{665}\u{666}", "1234.56"),
+            ("\u{66b}", " \u{661}\u{66c}\u{662}\u{663}\u{664}\u{66b}\u{665}\u{666} ", "1234.56"),
+            ("\u{66b}", "\u{661}\u{66c}\u{662}\u{663}\u{664}\u{66b}\u{665}\u{666} SAR", "1234.56"),
+        ];
+
+        for (separator, input, expected) in cases {
+            assert_eq!(plain_number(separator, input), expected);
+        }
+    }
+
+    #[test]
+    fn test_plain_number_tells_a_grouping_mark_from_a_decimal_point() {
+        let cases = [
+            (".", "1.234", "1.234"),
+            (",", "1.234", "1234"),
+            (".", "1.000.000", "1000000"),
+            (",", "1,000,000", "1000000"),
+            (".", "1,000,000", "1000000"),
+            (",", "1.000.000", "1000000"),
+            (",", "1,5", "1.5"),
+            (".", "1.5", "1.5"),
+            (".", "1,234", "1234"),
+            (".", "1,234 567.89", "1234567.89"),
+            (",", "1 234 567,89 \u{20ac}", "1234567.89"),
+        ];
+
+        for (separator, input, expected) in cases {
+            assert_eq!(plain_number(separator, input), expected, "{input} in {separator}");
+        }
+    }
+
+    #[test]
+    fn test_plain_number_answers_nothing_when_no_number_was_typed() {
+        for input in ["", "   ", "non-digit"] {
+            assert_eq!(plain_number(".", input), "");
+        }
+    }
+
+    #[test]
+    fn test_plain_number_drops_leading_zeros_and_trailing_symbols() {
+        let cases = [
+            (".", "0.12317", "0.12317"),
+            (".", "00.12317", "0.12317"),
+            (".", "0001234.56", "1234.56"),
+            (",", "0,12317", "0.12317"),
+            (".", "123,456.78!!!!", "123456.78"),
+            (".", "1,2 34.5'6", "1234.56"),
+            (".", "1234.56", "1234.56"),
+            (",", "1234.56", "1234.56"),
+        ];
+
+        for (separator, input, expected) in cases {
+            assert_eq!(plain_number(separator, input), expected, "{input} in {separator}");
+        }
     }
 
     fn asset(chain: Chain) -> Asset {

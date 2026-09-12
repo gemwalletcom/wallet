@@ -4,7 +4,7 @@ import BigInt
 import Formatters
 import Foundation
 import class Gemstone.GemCustomFee
-import struct Gemstone.GemNumberSanitizer
+import struct Gemstone.GemNumberFormat
 import GemstonePrimitives
 import Localization
 import Observation
@@ -88,7 +88,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func sanitize(_ text: String) -> String {
-        GemNumberSanitizer(decimalSeparator: Locale.current.decimalSeparator ?? ".", maximumFractionDigits: UInt32(decimals), maximumIntegerDigits: nil).sanitize(input: text)
+        GemNumberFormat(decimalSeparator: Locale.current.decimalSeparator ?? ".").sanitize(input: text, maximumFractionDigits: UInt32(decimals), maximumIntegerDigits: nil)
     }
 
     public func confirm() {

@@ -1,16 +1,10 @@
 package com.gemwallet.android.math
 
+import uniffi.gemstone.GemNumberFormat
 import java.math.BigDecimal
+import java.text.DecimalFormatSymbols
 
-fun String.plainInputNumber(): String {
-    val parts = trim().replace(",", ".")
-        .replace(" ", "")
-        .split(".")
-    val number = List(parts.size) { i ->
-        "${parts[i]}${if (i + 1 == parts.size - 1) "." else ""}"
-    }.joinToString("")
-    return number.trim().replace("\uFEFF", "")
-}
+fun String.plainInputNumber(): String = GemNumberFormat(DecimalFormatSymbols.getInstance().decimalSeparator.toString()).plain(this)
 
 fun String.parseInputNumber(): BigDecimal = BigDecimal(plainInputNumber())
 

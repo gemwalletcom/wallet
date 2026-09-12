@@ -137,15 +137,17 @@ impl std::fmt::Display for GemAmountError {
 impl std::error::Error for GemAmountError {}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemNumberSanitizer {
+pub struct GemNumberFormat {
     pub decimal_separator: String,
-    pub maximum_fraction_digits: Option<u32>,
-    pub maximum_integer_digits: Option<u32>,
 }
 
 #[uniffi::export]
-impl GemNumberSanitizer {
-    pub fn sanitize(&self, input: String) -> String {
-        super::rules::sanitize_number_input(self, &input)
+impl GemNumberFormat {
+    pub fn sanitize(&self, input: String, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
+        super::rules::sanitize_number_input(&self.decimal_separator, &input, maximum_fraction_digits, maximum_integer_digits)
+    }
+
+    pub fn plain(&self, input: String) -> String {
+        super::rules::plain_number(&self.decimal_separator, &input)
     }
 }

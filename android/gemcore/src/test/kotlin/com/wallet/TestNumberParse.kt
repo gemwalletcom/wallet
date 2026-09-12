@@ -1,61 +1,30 @@
 package com.wallet
 
-import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.math.parseInputNumber
+import com.gemwallet.android.math.parseInputNumberOrNull
+import com.gemwallet.android.math.plainInputNumber
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.math.BigDecimal
+import java.text.DecimalFormatSymbols
 
 class TestNumberParse {
 
+    private val separator = DecimalFormatSymbols.getInstance().decimalSeparator
+
     @Test
-    fun testUSInput() {
-        assertEquals("0.1", "0.1".parseInputNumber().toString())
-        assertEquals(BigDecimal("0.1"), "0.1".parseInputNumber())
-
-        assertEquals("0.2", "0.2".parseInputNumber().toString())
-        assertEquals(BigDecimal("0.2"), "0.2".parseInputNumber())
-
-
-        assertEquals("1", "1".parseInputNumber().toString())
+    fun testTypedNumberParsesInTheDeviceLocale() {
+        assertEquals(BigDecimal("0.1"), "0${separator}1".parseInputNumber())
         assertEquals(BigDecimal("1"), "1".parseInputNumber())
-
-        assertEquals("1.2", "1.2".parseInputNumber().toString())
-        assertEquals(BigDecimal("1.2"), "1.2".parseInputNumber())
-        assertEquals(1.2f, "1.2".parseInputNumber().toFloat())
-
-        assertEquals("1.13", "1.13".parseInputNumber().toString())
-        assertEquals(BigDecimal("1.13"), "1.13".parseInputNumber())
-
-        assertEquals("0.1234567", "0.1234567".parseInputNumber().toString())
-        assertEquals("0.1234567", "0,1234567".parseInputNumber().toString())
-        assertEquals("730.1234567", "730.1234567".parseInputNumber().toString())
-        assertEquals("730.1234567", "730,1234567".parseInputNumber().toString())
-        assertEquals("122726.1234567", "122,726.1234567".parseInputNumber().toString())
+        assertEquals(BigDecimal("1.13"), "1${separator}13".parseInputNumber())
+        assertEquals(BigDecimal("730.1234567"), "730${separator}1234567".parseInputNumber())
     }
 
     @Test
-    fun testTrailingGroupWithoutFractionIsDecimalSeparator() {
-        assertEquals(BigDecimal("1.5"), "1,5".parseInputNumber())
-        assertEquals(BigDecimal("122.726"), "122,726".parseInputNumber())
-        assertEquals(BigDecimal("1.000"), "1,000".parseInputNumber())
-        assertEquals(BigDecimal("1.000"), "1.000".parseInputNumber())
-    }
-
-    @Test
-    fun testRU_UAInput() {
-        assertEquals(BigDecimal("0.1234567"), "0.1234567".parseInputNumber())
-        assertEquals(BigDecimal("0.1234567"), "0,1234567".parseInputNumber())
-        assertEquals(BigDecimal("730.1234567"), "730.1234567".parseInputNumber())
-        assertEquals(BigDecimal("730.1234567"), "730,1234567".parseInputNumber())
-        assertEquals(BigDecimal("122726.1234567"), "122 726.1234567".parseInputNumber())
-    }
-
-    @Test
-    fun testPlainInputNumberKeepsUnparsableTextForCore() {
-        assertEquals("1000.5", "1 000,5".plainInputNumber())
-        assertEquals("122726.1234567", "122,726.1234567".plainInputNumber())
+    fun testPlainNumberLeavesNothingWhenNoNumberWasTyped() {
         assertEquals("", "".plainInputNumber())
-        assertEquals("abc", "abc".plainInputNumber())
+        assertEquals("", "abc".plainInputNumber())
+        assertNull("abc".parseInputNumberOrNull())
     }
 }

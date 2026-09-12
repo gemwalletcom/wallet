@@ -2,13 +2,13 @@ package com.gemwallet.android.ui.components.fields
 
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldBuffer
-import uniffi.gemstone.GemNumberSanitizer
+import uniffi.gemstone.GemNumberFormat
 import java.text.DecimalFormatSymbols
 
 object AmountInputTransformation : InputTransformation {
-    private val sanitizer = GemNumberSanitizer(DecimalFormatSymbols.getInstance().decimalSeparator.toString(), null, null)
+    private val format = GemNumberFormat(DecimalFormatSymbols.getInstance().decimalSeparator.toString())
 
-    fun isValid(input: CharSequence): Boolean = input.toString().let { sanitizer.sanitize(it) == it }
+    fun isValid(input: CharSequence): Boolean = input.toString().let { format.sanitize(it, null, null) == it }
 
     override fun TextFieldBuffer.transformInput() {
         if (!isValid(asCharSequence())) {

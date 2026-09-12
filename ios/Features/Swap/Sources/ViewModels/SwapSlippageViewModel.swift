@@ -3,7 +3,7 @@
 import Formatters
 import Foundation
 import class Gemstone.Config
-import struct Gemstone.GemNumberSanitizer
+import struct Gemstone.GemNumberFormat
 import enum Gemstone.GemSlippageCheck
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import GemstonePrimitives
@@ -100,11 +100,11 @@ public final class SwapSlippageViewModel {
     }
 
     func sanitize(_ text: String) -> String {
-        GemNumberSanitizer(
-            decimalSeparator: Locale.current.decimalSeparator ?? ".",
+        GemNumberFormat(decimalSeparator: Locale.current.decimalSeparator ?? ".").sanitize(
+            input: text,
             maximumFractionDigits: UInt32(Self.maxFractionDigits),
             maximumIntegerDigits: UInt32(String(Int(maxPercent)).count),
-        ).sanitize(input: text)
+        )
     }
 
     func confirm() {
