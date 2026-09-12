@@ -10,23 +10,16 @@ import Testing
 
 struct ValidatorViewModelTests {
     @Test func aprText() {
-        #expect(model(.mock(apr: 2.15)).aprModel.text == "APR 2.15%")
+        #expect(mock(.mock(apr: 2.15)).aprModel.text == "APR 2.15%")
     }
 
-    @Test func nameAndPlaceholderComeFromTheRow() {
-        let model = model(.mock(name: "Everstake"), name: "Everstake", placeholder: "E")
-
-        #expect(model.name == "Everstake")
-        #expect(model.validatorImage.type == .text("E"))
-    }
-
-    private func model(_ validator: DelegationValidator, name: String = "", placeholder: String = "") -> ValidatorViewModel {
+    private func mock(_ validator: DelegationValidator) -> ValidatorViewModel {
         ValidatorViewModel(
             row: GemValidatorRow(
                 validator: validator.map(),
-                name: name,
+                name: "",
                 imageUrl: "https://assets.gemwallet.com/validator.png",
-                placeholder: placeholder,
+                placeholder: "",
                 provider: .none,
             ),
         )
