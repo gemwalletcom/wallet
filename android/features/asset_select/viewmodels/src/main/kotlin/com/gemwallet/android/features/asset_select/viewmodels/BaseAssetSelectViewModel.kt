@@ -137,12 +137,16 @@ open class BaseAssetSelectViewModel(
     )
 
     private fun assetSections(items: List<AssetInfoDataAggregate>): AssetSections {
-        val popularIds = if (flow.popularSection) assetConfig.popularIds().mapNotNull { it.toAssetId() } else emptyList()
-        val (pinned, unpinned) = items.partition { it.pinned }
+        val sections = assetConfig.assetSections(
+            ids = items.map { it.asset.id.toIdentifier() },
+            pinnedIds = items.filter { it.pinned }.map { it.asset.id.toIdentifier() },
+            showsPopular = flow.popularSection,
+        )
+        val byId = items.associateBy { it.asset.id.toIdentifier() }
         return AssetSections(
-            popular = items.filter { it.asset.id in popularIds }.toImmutableList(),
-            pinned = pinned.toImmutableList(),
-            unpinned = unpinned.toImmutableList(),
+            popular = sections.popular.mapNotNull(byId::get).toImmutableList(),
+            pinned = sections.pinned.mapNotNull(byId::get).toImmutableList(),
+            unpinned = sections.assets.mapNotNull(byId::get).toImmutableList(),
         )
     }
 

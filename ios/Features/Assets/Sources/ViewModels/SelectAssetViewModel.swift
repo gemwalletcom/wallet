@@ -83,10 +83,9 @@ public final class SelectAssetViewModel {
     }
 
     var sections: AssetsSections {
-        AssetsSections.from(assets, popularIds: flow.popularSection ? Self.popularIds : [])
+        AssetsSections.from(assets, showsPopular: flow.popularSection)
     }
 
-    private static let popularIds = Set(GemAssetConfigService.shared.popularIds().compactMap { try? AssetId(id: $0) })
 
     var showPopularSection: Bool {
         sections.popular.isNotEmpty

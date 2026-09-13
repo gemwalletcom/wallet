@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::str::FromStr;
 
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
@@ -7,6 +8,7 @@ use primitives::{
 };
 
 use super::model::{
+    GemAssetSectionIds,
     AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemAssetRow, GemAssetRowSubtitle, GemAssetRowTitle,
     GemAssetRowTrailing, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetType, GemSelectRowAction,
     GemWalletSearchLimits,
@@ -269,6 +271,22 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
         },
     }
+}
+
+pub fn asset_sections(ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool, popular_ids: Vec<AssetId>) -> GemAssetSectionIds {
+    let pinned_ids: HashSet<AssetId> = pinned_ids.into_iter().collect();
+    let popular_ids: HashSet<AssetId> = match shows_popular {
+        true => popular_ids.into_iter().collect(),
+        false => HashSet::new(),
+    };
+    ids.into_iter().fold(GemAssetSectionIds::default(), |mut sections, id| {
+        match (pinned_ids.contains(&id), popular_ids.contains(&id)) {
+            (true, _) => sections.pinned.push(id),
+            (false, true) => sections.popular.push(id),
+            (false, false) => sections.assets.push(id),
+        }
+        sections
+    })
 }
 
 pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
@@ -553,6 +571,22 @@ mod tests {
         assert!(counts(0, 0, 1).shows_hidden);
         assert!(counts(2, 0, 0).shows_pinned);
         assert!(!counts(2, 0, 0).shows_unpinned);
+    }
+
+    #[test]
+    fn test_a_popular_asset_leaves_the_plain_bucket_and_a_pinned_one_wins_over_both() {
+        let id = |chain| AssetId::from_chain(chain);
+        let ids = vec![id(Chain::Bitcoin), id(Chain::Ethereum), id(Chain::Solana)];
+        let popular = vec![id(Chain::Ethereum)];
+
+        let shown = asset_sections(ids.clone(), vec![id(Chain::Bitcoin)], true, popular.clone());
+        assert_eq!(shown.pinned, vec![id(Chain::Bitcoin)]);
+        assert_eq!(shown.popular, vec![id(Chain::Ethereum)]);
+        assert_eq!(shown.assets, vec![id(Chain::Solana)]);
+
+        let hidden = asset_sections(ids, vec![], false, popular);
+        assert!(hidden.popular.is_empty());
+        assert_eq!(hidden.assets.len(), 3);
     }
 
     fn test_wallet_search_limits_widen_while_searching_and_fetch_one_more_than_shown() {

@@ -1,7 +1,8 @@
 use primitives::{Asset, AssetBasic, AssetId, AssetType, Chain, ChainAsset};
 
 use super::icon::{GemAssetIcon, asset_icon};
-use super::rules::{default_asset_basic, default_token_chain, popular_asset_ids};
+use super::model::GemAssetSectionIds;
+use super::rules::{asset_sections, default_asset_basic, default_token_chain, popular_asset_ids};
 use crate::models::asset::{chain_asset_wrapper, chain_fee_asset_ids, default_token_rank};
 use crate::services::confirm::{GemAcquireAssetFlow, acquire_asset_flow};
 use crate::services::search::rules::matching_assets;
@@ -46,6 +47,10 @@ impl GemAssetConfigService {
 
     pub fn matching_assets(&self, assets: Vec<Asset>, query: String) -> Vec<Asset> {
         matching_assets(assets, &query)
+    }
+
+    pub fn asset_sections(&self, ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool) -> GemAssetSectionIds {
+        asset_sections(ids, pinned_ids, shows_popular, popular_asset_ids())
     }
 }
 

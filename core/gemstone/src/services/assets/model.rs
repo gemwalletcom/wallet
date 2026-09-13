@@ -253,6 +253,13 @@ impl GemWalletSearchLimits {
     }
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetSectionIds {
+    pub pinned: Vec<AssetId>,
+    pub popular: Vec<AssetId>,
+    pub assets: Vec<AssetId>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemNetworkAssetCounts {
     pub pinned: u32,
