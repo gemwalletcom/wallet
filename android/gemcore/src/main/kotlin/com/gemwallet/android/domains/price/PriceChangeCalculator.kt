@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.price
 
+import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.PriceChangeCalculator as GemPriceChangeCalculator
 
 object PriceChangeCalculator {
@@ -10,4 +11,6 @@ object PriceChangeCalculator {
     fun amount(percentage: Double, value: Double): Double = calculator.amount(percentage, value)
 
     fun pnlPercentage(pnl: Double, margin: Double): Double = calculator.pnlPercentage(pnl, margin)
+
+    fun sign(value: Double): GemAmountSign = calculator.sign(value)
 }

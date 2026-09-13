@@ -1,3 +1,4 @@
+use crate::services::transactions::GemAmountSign;
 use primitives::PriceChangeCalculator as Calculator;
 
 #[derive(Debug, uniffi::Object)]
@@ -26,5 +27,25 @@ impl PriceChangeCalculator {
 
     pub fn amount(&self, percentage: f64, value: f64) -> f64 {
         Calculator::amount(percentage, value)
+    }
+
+    pub fn sign(&self, value: f64) -> GemAmountSign {
+        match value < 0.0 {
+            true => GemAmountSign::Outgoing,
+            false => GemAmountSign::Incoming,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{GemAmountSign, PriceChangeCalculator};
+
+    #[test]
+    fn test_a_flat_change_reads_as_a_gain() {
+        let calculator = PriceChangeCalculator::new();
+        assert_eq!(calculator.sign(1.5), GemAmountSign::Incoming);
+        assert_eq!(calculator.sign(0.0), GemAmountSign::Incoming);
+        assert_eq!(calculator.sign(-1.5), GemAmountSign::Outgoing);
     }
 }

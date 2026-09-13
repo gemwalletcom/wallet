@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import class Gemstone.PriceChangeCalculator
 import Foundation
 import Style
 import SwiftUI
@@ -9,6 +10,7 @@ import SwiftUI
 public struct PriceChangeViewModel {
     private let value: Double?
     private let currencyFormatter: CurrencyFormatter
+    private let priceChangeCalculator = PriceChangeCalculator()
 
     public init(value: Double?, currencyFormatter: CurrencyFormatter) {
         self.value = value
@@ -17,8 +19,7 @@ public struct PriceChangeViewModel {
 
     public var text: String? {
         guard let value else { return nil }
-        let formatted = currencyFormatter.string(abs(value))
-        return value >= 0 ? "+\(formatted)" : "-\(formatted)"
+        return priceChangeCalculator.sign(value: value).format(amount: currencyFormatter.string(abs(value)))
     }
 
     public var color: Color {
