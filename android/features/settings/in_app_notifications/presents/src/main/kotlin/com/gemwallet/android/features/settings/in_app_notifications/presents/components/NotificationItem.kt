@@ -31,9 +31,11 @@ import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
-import com.wallet.core.primitives.CoreEmoji
-import com.wallet.core.primitives.CoreListItemIcon
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.InAppNotification
+import uniffi.gemstone.GemNotificationIcon
+import uniffi.gemstone.notificationRow
 
 @Composable
 fun NotificationItem(
@@ -41,8 +43,9 @@ fun NotificationItem(
     listPosition: ListPosition,
     onOpenUrl: (String) -> Unit,
 ) {
+    val row = notificationRow(notification.toGem())
     val item = notification.item
-    val icon = item.icon
+    val icon = row.icon
     val url = item.url
     val subtitle = item.subtitle
     val value = item.value
@@ -65,7 +68,7 @@ fun NotificationItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (notification.readAt == null) {
+                if (row.isUnread) {
                     Spacer(Modifier.width(space8))
                     NewBadge()
                 }
@@ -126,30 +129,23 @@ private fun NewBadge() {
 }
 
 @Composable
-private fun NotificationIcon(icon: CoreListItemIcon) {
+private fun NotificationIcon(icon: GemNotificationIcon) {
     when (icon) {
-        is CoreListItemIcon.Emoji -> Box(
+        is GemNotificationIcon.Emoji -> Box(
             modifier = Modifier.size(listItemIconSize),
             contentAlignment = Alignment.Center,
         ) {
             val emojiSize = with(LocalDensity.current) { (listItemIconSize * EmojiSizeRatio).toSp() }
             Text(
-                text = icon.value.glyph(),
+                text = icon.glyph,
                 fontSize = emojiSize,
                 lineHeight = emojiSize,
                 textAlign = TextAlign.Center,
             )
         }
-        is CoreListItemIcon.Image -> AsyncImage(model = icon.value, size = listItemIconSize)
-        is CoreListItemIcon.Asset -> AsyncImage(model = icon.value.iconModel(), size = listItemIconSize)
+        is GemNotificationIcon.Image -> AsyncImage(model = icon.url, size = listItemIconSize)
+        is GemNotificationIcon.Asset -> AsyncImage(model = icon.assetId.toAssetId()?.iconModel(), size = listItemIconSize)
     }
-}
-
-private fun CoreEmoji.glyph(): String = when (this) {
-    CoreEmoji.Gift -> "🎁"
-    CoreEmoji.Gem -> "💎"
-    CoreEmoji.Party -> "🎉"
-    CoreEmoji.Warning -> "⚠️"
 }
 
 private const val EmojiSizeRatio = 0.75f

@@ -1,3 +1,6 @@
+pub mod model;
+pub use model::{GemNotificationIcon, GemNotificationRow, notification_row};
+
 pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;

@@ -14,6 +14,17 @@ pub enum CoreEmoji {
     Warning,
 }
 
+impl CoreEmoji {
+    pub fn glyph(&self) -> &'static str {
+        match self {
+            Self::Gift => "\u{1f381}",
+            Self::Gem => "\u{1f48e}",
+            Self::Party => "\u{1f389}",
+            Self::Warning => "\u{26a0}\u{fe0f}",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[typeshare(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase", tag = "type", content = "value")]

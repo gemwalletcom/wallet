@@ -2,14 +2,18 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemNotificationIcon
+import struct Gemstone.GemNotificationRow
+import func Gemstone.notificationRow
 import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
 
 public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
     private let item: CoreListItem
-    private let isRead: Bool
+    private let row: GemNotificationRow
 
     public let id: String
     public let url: URL?
@@ -17,14 +21,14 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
     public init(notification: InAppNotification) {
         id = notification.id
         item = notification.item
-        isRead = notification.isRead
+        row = notificationRow(notification: notification.map())
         url = notification.item.url?.asURL
     }
 
     var listItemModel: ListItemModel {
         ListItemModel(
             title: item.title,
-            titleTag: isRead ? nil : Localized.Assets.Tags.new,
+            titleTag: row.isUnread ? Localized.Assets.Tags.new : nil,
             titleTagStyle: TextStyle(font: .footnote.weight(.medium), color: .blue, background: Colors.blue.opacity(.light)),
             titleExtra: item.subtitle,
             subtitle: item.value,
@@ -35,7 +39,7 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
     }
 
     private var imageStyle: ListItemImageStyle? {
-        guard let icon = item.icon else { return nil }
+        guard let icon = row.icon else { return nil }
         return ListItemImageStyle(
             assetImage: assetImage(for: icon),
             imageSize: .image.asset,
@@ -44,22 +48,11 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
         )
     }
 
-    private func assetImage(for icon: CoreListItemIcon) -> AssetImage {
+    private func assetImage(for icon: GemNotificationIcon) -> AssetImage {
         switch icon {
-        case let .emoji(emoji): AssetImage(type: .emoji(emoji.value))
-        case let .asset(assetId): AssetIdViewModel(assetId: assetId).assetImage
+        case let .emoji(glyph): AssetImage(type: .emoji(glyph))
+        case let .asset(assetId): AssetIdViewModel(assetId: Primitives.AssetId(core: assetId)).assetImage
         case let .image(url): AssetImage(imageURL: url.asURL)
-        }
-    }
-}
-
-private extension CoreEmoji {
-    var value: String {
-        switch self {
-        case .gift: Emoji.WalletAvatar.gift.rawValue
-        case .gem: Emoji.gem
-        case .party: Emoji.party
-        case .warning: Emoji.WalletAvatar.warning.rawValue
         }
     }
 }
