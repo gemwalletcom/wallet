@@ -242,6 +242,18 @@ This is as far as a view model should move into Core, and the limits are the poi
 
 Core has no observation primitive and no lifecycle, which is why the reactive half stays in the app. The view model owns the task, the debounce, the cancellation and the navigation; the session owns the answers.
 
+### Keep the crossings few
+
+A record crosses by copy. Every call carries its arguments and its result across the boundary, so the cost of this design is counted in calls, not in Rust work. Four rules keep it flat.
+
+**Never call Core from a `body` or a `@Composable`.** Those re-run on every frame and every recomposition. A Core call belongs in the model, computed when the data changes. `ContactChainSelectScene` calls `chainService.getChains(query)` inside a composable and gets away with it only because it is wrapped in `remember`; without that wrapper it is a crossing per recomposition.
+
+**One call per list, not one per row.** A rule that takes the whole list — `matching_assets(assets, query)` — costs one crossing; the same rule as `matches(asset, query)` costs one per item and copies each item twice. `transaction_row(transaction)` is the shape to grow out of: both apps call it once per transaction, sending a whole `TransactionExtended` in and a row back, so a page of 500 is 1000 record copies. Prefer `rows(items) -> Vec<Row>` for anything that can be long.
+
+**Build rows once per data change, and memoize.** Android wraps row construction in a map keyed by the source value; iOS builds them inside the `ObservableQuery` that produced the rows. Neither rebuilds per render, and that is the requirement, not an optimization.
+
+**Memoization needs equality.** A session or view state is memoized by comparing the value it came from, so the record must derive `PartialEq` — a record that does not silently never hits its cache. This is also why screen state is a `Record`: it copies once and every read afterwards is free, where a `uniffi::Object` crosses by handle but charges a crossing for every property read. Use an `Object` only when the state is large and read rarely, or when it owns something Rust-side.
+
 ### Field types
 
 - Big-integer atomic quantities are `GemBigInt` / `GemBigUint`, never `String`. `String` moves the parse to every call site, and each one invents its own failure behaviour. The bindings type them too (`core/gemstone/uniffi.toml`): Kotlin sees `java.math.BigInteger`, Swift sees `BigInt` / `BigUInt`, so an app never parses a Core value and never `.toString()`s one to hand it back. The only parses left on the apps are of typeshare models and database columns, which are strings by generation.
