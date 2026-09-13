@@ -40,7 +40,7 @@ fun NetworkAssetsScreen(
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val hidden by viewModel.hidden.collectAsStateWithLifecycle()
-    val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
     val activeActions = remember(viewModel) {
         AssetContextActions(onTogglePin = viewModel::togglePin, onHide = viewModel::hideAsset)
@@ -68,7 +68,7 @@ fun NetworkAssetsScreen(
                 item { SubheaderItem(R.string.common_hidden) }
                 networkAssetRows(hidden, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, hiddenActions)
             }
-            if (isEmpty) {
+            if (sections.showsEmpty) {
                 item {
                     EmptyContentView(
                         type = EmptyContentType.NetworkAssets(onManageAssets = onManageAssets),

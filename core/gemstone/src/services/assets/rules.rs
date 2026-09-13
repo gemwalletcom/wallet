@@ -543,6 +543,18 @@ mod tests {
     }
 
     #[test]
+    #[test]
+    fn test_network_assets_are_empty_only_when_every_section_is() {
+        use super::super::model::GemNetworkAssetCounts;
+        let counts = |pinned, unpinned, hidden| GemNetworkAssetCounts { pinned, unpinned, hidden }.sections();
+
+        assert!(counts(0, 0, 0).shows_empty);
+        assert!(!counts(0, 0, 1).shows_empty);
+        assert!(counts(0, 0, 1).shows_hidden);
+        assert!(counts(2, 0, 0).shows_pinned);
+        assert!(!counts(2, 0, 0).shows_unpinned);
+    }
+
     fn test_wallet_search_limits_widen_while_searching_and_fetch_one_more_than_shown() {
         let initial = wallet_search_limits("  ");
         let searching = wallet_search_limits("btc");

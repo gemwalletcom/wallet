@@ -13,6 +13,8 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import uniffi.gemstone.GemAssetRow
+import uniffi.gemstone.GemNetworkAssetCounts
+import uniffi.gemstone.GemNetworkAssetSections
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
@@ -75,10 +77,14 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isEmpty: StateFlow<Boolean> = combine(pinned, unpinned, hidden) { pinned, unpinned, hidden ->
-        pinned.isEmpty() && unpinned.isEmpty() && hidden.isEmpty()
+    val sections: StateFlow<GemNetworkAssetSections> = combine(pinned, unpinned, hidden) { pinned, unpinned, hidden ->
+        GemNetworkAssetCounts(
+            pinned = pinned.size.toUInt(),
+            unpinned = unpinned.size.toUInt(),
+            hidden = hidden.size.toUInt(),
+        ).sections()
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemNetworkAssetCounts(0u, 0u, 0u).sections())
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

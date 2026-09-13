@@ -253,6 +253,33 @@ impl GemWalletSearchLimits {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemNetworkAssetCounts {
+    pub pinned: u32,
+    pub unpinned: u32,
+    pub hidden: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemNetworkAssetSections {
+    pub shows_pinned: bool,
+    pub shows_unpinned: bool,
+    pub shows_hidden: bool,
+    pub shows_empty: bool,
+}
+
+#[uniffi::export]
+impl GemNetworkAssetCounts {
+    pub fn sections(&self) -> GemNetworkAssetSections {
+        GemNetworkAssetSections {
+            shows_pinned: self.pinned > 0,
+            shows_unpinned: self.unpinned > 0,
+            shows_hidden: self.hidden > 0,
+            shows_empty: self.pinned == 0 && self.unpinned == 0 && self.hidden == 0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemHeaderButtonKind {
     Send,

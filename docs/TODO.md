@@ -35,7 +35,6 @@ Rejected: transaction, transaction detail, delegation, validator, asset select/s
 
 Copy: [`GemPerpetualMarketCounts::sections`](../core/gemstone/src/services/perpetual/model.rs) → [iOS](../ios/Features/Perpetuals/Sources/ViewModels/PerpetualsSceneViewModel.swift), [Android](../android/features/perpetual/presents/src/main/kotlin/com/gemwallet/android/features/perpetual/views/market/PerpetualMarketScene.kt).
 
-- **C2** **S** Network assets sections — [iOS](../ios/Features/WalletTab/Sources/ViewModels/NetworkAssetsSceneViewModel.swift), [Android](../android/features/assets/viewmodels/src/main/kotlin/com/gemwallet/android/features/assets/viewmodels/NetworkAssetsViewModel.kt). The native-asset exclusion and the emptiness booleans are written twice.
 - **C3** **S** Select asset sections — [iOS `AssetsSection`](../ios/Packages/PrimitivesComponents/Sources/Types/AssetsSection.swift) excludes popular in the model, Android does it in the scene.
 - **C4** **S** Recents sections — [iOS](../ios/Features/Recents/Sources/ViewModels/RecentsSceneViewModel.swift), [Android](../android/features/asset_select/viewmodels/src/main/kotlin/com/gemwallet/android/features/asset_select/viewmodels/RecentsSheetViewModel.kt). Both build an id set, re-filter, then compute their own empty and clear booleans.
 - **C5** **M** Audit remaining screens for action lists assembled app-side; `GemStakeActionItem`, `GemHeaderButtonKind`, `GemAssetAction`, `GemFiatButtonAction` are the shape.
