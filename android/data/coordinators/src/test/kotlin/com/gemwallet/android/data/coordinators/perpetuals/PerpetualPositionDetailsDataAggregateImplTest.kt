@@ -13,6 +13,7 @@ import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualTriggerOrder
+import com.gemwallet.android.testkit.mockPerpetual
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.After
@@ -146,9 +147,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         pnl: Double,
     ): PerpetualPositionData {
         val asset = mockAsset()
-        val perpetual = mockk<Perpetual> {
-            every { name } returns "TON"
-        }
+        val perpetual = mockPerpetual()
         val position = mockk<PerpetualPosition> {
             every { id } returns "pos-ton"
             every { assetId } returns AssetId(Chain.HyperCore)
