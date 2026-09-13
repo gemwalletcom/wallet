@@ -70,7 +70,21 @@ Copy: [`FiatScene.swift`](../ios/Features/FiatConnect/Sources/Scenes/FiatScene.s
 - **B2** **L** Android, 88 files under `presents/`, 31 branching on a Core enum inside the composable. Move the `when` into the view model. `DocsUrl` is read in nine composables; referral renders `Rewards`, `RewardStatus`, `ReferralQuota` directly.
 - **B3** **S** Fiat has a session and still leaks: [`FiatUiState`](../android/features/buy/viewmodels/src/main/kotlin/com/gemwallet/android/features/buy/viewmodels/models/FiatUiState.kt) carries `GemFiatQuotePhase` and `GemFiatAmountCheck` into [`FiatNavScreen`](../android/features/buy/presents/src/main/kotlin/com/gemwallet/android/features/buy/views/FiatNavScreen.kt). One resolved `errorText` on the view model.
 
-## 5. Platform parity
+## 5. Numbers cross as a value and a style
+
+The largest duplication left. Contract: [a number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback). Do F1 first; the rest depend on it.
+
+- **F1** **M** Define `GemPrecision`, `GemNumberStyle` and `GemFormattedNumber` in Core beside [`number_formatter`](../core/crates/number_formatter/src/), and move the adaptive rule with its `0.99` and `1e-10` constants there, with tests.
+- **F2** **M** Retire the precision ladder from [`Precision+Constants.swift`](../ios/Packages/Formatters/Sources/Precision+Constants.swift) and [`Precision.kt`](../android/gemcore/src/main/kotlin/com/gemwallet/android/model/Precision.kt); both keep only a renderer that applies a `GemPrecision`.
+- **F3** **M** `ValueFormatter` — [iOS](../ios/Packages/Formatters/Sources/ValueFormatter.swift), [Android](../android/gemcore/src/main/kotlin/com/gemwallet/android/model/ValueFormatter.kt). Same abbreviation threshold `100_000`, small-amount `0.1`, dust `0.0001`, `<dust` rendering and Full/Short/Auto ladder on both. Core already has a partial [`value_formatter.rs`](../core/crates/number_formatter/src/value_formatter.rs) with no `Short` style and no uniffi export.
+- **F4** **S** `CurrencyFormatter` type-to-precision policy — [iOS](../ios/Packages/Formatters/Sources/CurrencyFormatter.swift), [Android](../android/gemcore/src/main/kotlin/com/gemwallet/android/model/CurrencyFormatter.kt). Three types, `Fiat` pinned to two decimals, compact at `100_000`.
+- **F5** **S** `PercentFormatter` — [iOS](../ios/Packages/Formatters/Sources/PercentFormatter.swift), [Android](../android/gemcore/src/main/kotlin/com/gemwallet/android/domains/percentage/PercentageFormatter.kt). Both scale by 1/100, cap at two fraction digits and pick a sign strategy.
+- **F6** **M** Carry `GemFormattedNumber` in the row records and view states that carry a bare `f64` today, starting with `GemFiatQuoteRow` and `GemAssetRow`.
+- **F7** **S** Then `FiatSceneViewModel` holds no `CurrencyFormatter` or `ValueFormatter`; the session's view state carries the numbers and the scene renders them.
+
+Not in scope: `Formatters` and `Validators` on iOS still cannot import Gemstone, so the renderer that applies a `GemPrecision` must stay dependency-free. That is why this is a value-plus-style contract and not a foreign trait.
+
+## 6. Platform parity
 
 Core exports these and one app calls them. Establish whether it is a missing feature or a duplicated decision first.
 
@@ -84,7 +98,7 @@ Core exports these and one app calls them. Establish whether it is a missing fea
 
 Legitimately one-sided, not gaps: `isVersionHigher` (Play update), `migrateToSharedPassword` (Android password store), `signWithKeystore` (iOS keystore), `isOriginRejected` in the auth flow (Android-only one-click auth; proposal and sign check it inside Core on both), `scanTransaction` (both scan through `GemConfirmService`).
 
-## 6. Everything else
+## 7. Everything else
 
 Product or security decisions, one question each:
 

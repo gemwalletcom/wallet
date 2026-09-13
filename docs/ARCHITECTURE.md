@@ -242,6 +242,49 @@ This is as far as a view model should move into Core, and the limits are the poi
 
 Core has no observation primitive and no lifecycle, which is why the reactive half stays in the app. The view model owns the task, the debounce, the cancellation and the navigation; the session owns the answers.
 
+### A number crosses as a value and a style, never as a string or a callback
+
+Formatting is the largest duplication left in the apps: the precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the fiat-pins-to-two-places rule and the dust threshold are written out in [`Precision+Constants.swift`](../ios/Packages/Formatters/Sources/Precision+Constants.swift) and [`Precision.kt`](../android/gemcore/src/main/kotlin/com/gemwallet/android/model/Precision.kt) as line-for-line ports. Those are decisions, so they belong in Core.
+
+Two mechanisms are tempting and both are wrong.
+
+**Do not export a formatter as a foreign trait.** A `GemCurrencyFormatter` the apps implement would let Core call back for every number, and a view state with fifty rows and three numbers each becomes a hundred and fifty reverse crossings inside one call — the most expensive direction there is, against the rule above. It also breaks a real boundary: [`Formatters`](../ios/Packages/Formatters/) and `Validators` cannot import Gemstone, because the price widget links `Formatters` without the Rust library. And it makes a session impure, so a screen's state can no longer be asserted as one literal in a Rust test.
+
+**Do not return a finished string either.** Core's formatter is not locale-aware, so a Core-formatted amount regresses every locale that groups or separates differently.
+
+**A number crosses as its value plus the style that decides how precisely it reads.** Core owns the choice; the app owns the rendering, with one small renderer per platform and no crossing per number.
+
+```rust
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPrecision {
+    Fraction { min: u32, max: u32 },
+    Significant { max: u32 },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFormattedNumber {
+    pub value: f64,
+    pub style: GemNumberStyle,
+    pub precision: GemPrecision,
+}
+```
+
+A row or view state carries `GemFormattedNumber` where it carries a bare `f64` today, and the app turns it into text with `NumberFormatter` or `DecimalFormat`. The adaptive rule, the abbreviation threshold and the dust cut live once, in Core, with tests that fail if a constant moves.
+
+### An app row model holds the Core record; it does not restate its fields
+
+A row model that copies `url`, `host` and `isSelected` out of a Core record is a partial twin: the copy has to be maintained, and a field added in Core reaches the screen only after someone widens the copy. Hold the record and read through it.
+
+```kotlin
+data class NodeRowUiModel(
+    val node: GemNodeSelection,
+    val canDelete: Boolean = false,
+    val statusState: GemNodeStatusState = GemNodeStatusState.Loading,
+)
+```
+
+The model adds only what Core does not own — here whether the row can be deleted and the status of its last check. This is the same rule as [no hand-written twins](#6-where-derived-domain-answers-live), applied to the presentation layer, and it keeps the two apps' row models the same shape: iOS's `ChainNodeViewModel` holds `node: GemNodeSelection` for the same reason.
+
 ### Keep the crossings few
 
 A record crosses by copy. Every call carries its arguments and its result across the boundary, so the cost of this design is counted in calls, not in Rust work. Four rules keep it flat.
