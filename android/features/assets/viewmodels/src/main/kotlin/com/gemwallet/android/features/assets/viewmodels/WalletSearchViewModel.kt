@@ -86,8 +86,8 @@ class WalletSearchViewModel @Inject constructor(
         .map { items -> items.take(limits().perpetuals.toInt()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val hasMorePerpetuals: StateFlow<Boolean> = visiblePerpetuals
-        .map { items -> items.size > limits().perpetuals.toInt() }
+    val hasMorePerpetuals: StateFlow<Boolean> = perpetuals
+        .map { items -> limits().hasMorePerpetuals(items.size.toUInt()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val nftData: Flow<List<NFTData>> = getNftCollections(null)
@@ -107,7 +107,7 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hasMoreNfts: StateFlow<Boolean> = nfts
-        .map { items -> items.size > limits().nfts.toInt() }
+        .map { items -> limits().hasMoreNfts(items.size.toUInt()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val lists: StateFlow<List<AssetList>> = currentQuery
@@ -123,9 +123,9 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hasMoreAssets: StateFlow<Boolean> = combine(
-        pinned, unpinned, currentQuery,
-    ) { pinned, unpinned, query ->
-        (pinned.size + unpinned.size) > assetsLimit(query)
+        unpinned, currentQuery,
+    ) { unpinned, query ->
+        limits(query).hasMoreAssets(unpinned.size.toUInt())
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

@@ -164,15 +164,15 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var hasMoreAssets: Bool {
-        searchResult.assets.count > Int(limits.assets)
+        limits.hasMoreAssets(count: UInt32(sections.assets.count))
     }
 
     var hasMorePerpetuals: Bool {
-        searchResult.perpetuals.count > Int(limits.perpetuals)
+        limits.hasMorePerpetuals(count: UInt32(sections.perpetuals.count))
     }
 
     var hasMoreNFTs: Bool {
-        sections.nfts.count > Int(limits.nfts)
+        limits.hasMoreNfts(count: UInt32(sections.nfts.count))
     }
 
     var assetsResultsDestination: Scenes.AssetsResults {

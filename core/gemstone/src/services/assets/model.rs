@@ -238,6 +238,21 @@ pub struct GemWalletSearchLimits {
     pub results: u32,
 }
 
+#[uniffi::export]
+impl GemWalletSearchLimits {
+    pub fn has_more_assets(&self, count: u32) -> bool {
+        count > self.assets
+    }
+
+    pub fn has_more_perpetuals(&self, count: u32) -> bool {
+        count > self.perpetuals
+    }
+
+    pub fn has_more_nfts(&self, count: u32) -> bool {
+        count > self.nfts
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemHeaderButtonKind {
     Send,

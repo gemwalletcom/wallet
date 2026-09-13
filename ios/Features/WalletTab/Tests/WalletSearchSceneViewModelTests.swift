@@ -22,12 +22,22 @@ struct WalletSearchSceneViewModelTests {
     @Test
     func hasMoreAssets() {
         let model = WalletSearchSceneViewModel.mock()
+        let unpinned = { AssetData.mock(metadata: .mock(isPinned: false)) }
 
-        model.searchQuery.value = .mock(assets: (0 ..< 12).map { _ in .mock() })
+        model.searchQuery.value = .mock(assets: (0 ..< 12).map { _ in unpinned() })
         #expect(model.hasMoreAssets == false)
 
-        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in .mock() })
+        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in unpinned() })
         #expect(model.hasMoreAssets == true)
+    }
+
+    @Test
+    func hasMoreAssetsCountsOnlyTheAssetsThePreviewShows() {
+        let model = WalletSearchSceneViewModel.mock()
+        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock() })
+
+        #expect(model.previewAssets.isEmpty)
+        #expect(model.hasMoreAssets == false)
     }
 
     @Test
