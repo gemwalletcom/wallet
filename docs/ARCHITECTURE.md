@@ -183,6 +183,25 @@ public var name: String {
 
 `GemValidatorRow`, `GemFiatQuoteRow` and `GemBalanceRow` are the same shape for their lists. The thing to look for in a row model is a decision the record could carry: if both apps compute it, it belongs in the record, not in two view models.
 
+### Sections, actions and destinations are records too
+
+A row is not the only choice a screen makes, and the other three recur often enough to have the same answer.
+
+**Which sections show, and which empty state.** A screen that splits one list into positions, pinned, recents and results decides that split from counts and whether a search is running. Left in the apps it becomes four booleans on each side that drift one at a time.
+
+```rust
+#[uniffi::export]
+impl GemPerpetualMarketCounts {
+    pub fn sections(&self, is_searching: bool, is_query_empty: bool) -> GemPerpetualMarketSections { ... }
+}
+```
+
+**Which actions the screen or row offers.** Core returns the list of available actions as cases; the app renders each case as its own button. `GemStakeActionItem`, `GemHeaderButtonKind`, `GemAssetAction` and `GemFiatButtonAction` are this shape. An app that assembles the action list itself is deciding what the user is allowed to do, on its own, twice.
+
+**What a tap means.** The destination of a row is Core's answer — `GemSelectRowAction`, `GemDelegationDestination`, `GemAcquireAssetFlow` — and performing it is the app's, with the app's own route type per [navigation values are app types](#navigation-values-are-app-types). Core says *open the validator*; the app decides that means pushing `DelegationValidator`.
+
+**A limit comes with its answer.** When Core hands back a limit, it also answers what the limit implies, or each app invents the comparison. `GemWalletSearchLimits` returns `assets`, `perpetuals` and `nfts`, and both apps then wrote their own "is there more" check against different counts — iOS against the whole result, Android against the pinned and unpinned sum. A limit that only names a number is half an answer.
+
 ### A screen whose state changes is a session
 
 A screen that only reads gets a record. A screen the user drives — typing an amount, choosing a provider, waiting on a quote — gets a **session**: an immutable record holding that screen's state, event methods that return a new session, and one method that derives everything the screen shows.

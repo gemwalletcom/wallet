@@ -261,31 +261,7 @@ Any other app-side service must own a real platform concern. A class that merely
 
 ## Open work
 
-Only open work lives here. When an item lands, delete its line in the same commit; a finished item leaves no note behind. When the list empties, audit again and write a new one. The shape everything converges on is [ARCHITECTURE.md](ARCHITECTURE.md).
-
-### Decisions someone has to make
-
-Each is one question, and none is blocked on investigation.
-
-| Item | Question | Recommendation |
-|---|---|---|
-| Biometric gate | iOS gates at the Keychain ACL, so every secret read prompts. Android prompts at each call site and its password store is unauthenticated, so a new caller bypasses the gate. | Core marks which operations require authentication; the adapter enforces it. |
-| Notification permission | Core owns "granted / denied / never asked", but Android's adapter holds an application context and cannot tell "never asked" from "denied", so it sends a first-time user to Settings. | Core keeps the three-state decision; Android needs an activity-scoped requester. |
-| Privacy lock | iOS has an app-lock setting with a cover-screen rule and an overlay window; Android has none. | Product call. The cover predicate is Core's, the overlay is platform. |
-| WalletConnect one-click auth | Android only, and its rules — including what the user is asked to sign — live in view-model code. | Product call. Whoever takes it moves the rules to Core first. |
-| Polling beside a live socket | Android polls nowhere, so adopting Core's refresh interval means adding timers to the activity, asset and perpetual screens: new background work, not a consolidation. | Product call on whether Android wants the safety net iOS has. |
-
-### Android
-
-- **Earn flow.** No Earn surface exists: no earn provider reader, amount params or confirm params, and Core's deposit delegation action maps to nothing. Build the scene, amount provider and confirm params on the earn methods Core already exports.
-- **Dead `NOT NULL` columns** with no iOS counterpart: an asset `updatedAt` stamp, swap amounts on transaction state, two legacy NFT image columns, and the price currency column. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating the tables behind their foreign keys in one migration.
-- **Secure auth fallback.** The config-store fallback for the auth value can go once enough installs have written the secure one; that is an install-base call, not a code call.
-
-### iOS
-
-- **Naming.** Untyped `.map()` conversions remain where Android names the direction (`toPrimitives()`).
-- **Transaction scene corner radius** is an open iOS 26 styling question; it marks a real gap.
-- **The two dated file migrations** move the keystore and database from documents to application support at launch. Deleting them strands anyone who has not opened the app since the move, losing their keystore, so this needs install-base data.
+Open work lives in [TODO.md](TODO.md): the architecture migration to row records and screen sessions, the decisions someone has to make, and the per-platform items. This file keeps only the contract for how a service is built.
 
 ### Deliberate divergences — do not "fix" these
 
