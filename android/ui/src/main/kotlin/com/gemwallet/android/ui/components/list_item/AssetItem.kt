@@ -68,6 +68,7 @@ fun AssetListItem(
     asset: Asset,
     listPosition: ListPosition,
     modifier: Modifier = Modifier,
+    title: String = asset.name,
     support: @Composable (() -> Unit)? = null,
     badge: String? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -79,7 +80,7 @@ fun AssetListItem(
         contentPadding = assetListItemContentPadding(),
         titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(asset) },
-        title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
+        title = @Composable { ListItemTitleText(title, { Badge(text = badge) }) },
         subtitle = support,
         trailing = if (trailing == null) null else {
             { trailing.invoke() }

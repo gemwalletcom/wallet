@@ -262,9 +262,9 @@ fun PreviewPerpetualMarketScene() {
                         decimals = 8,
                         type = AssetType.NATIVE
                     )
-                    override val name: String = "BTC/USD 10x Long"
+                    override val title: String = "BTC/USD 10x Long"
                     override val direction: PerpetualDirection = PerpetualDirection.Long
-                    override val leverage: Int = 10
+                    override val leverage: String = "10x"
                     override val marginAmount: String = "$10,000.00"
                     override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
                     override val pnlState: ValueDirection = ValueDirection.Up
@@ -278,9 +278,9 @@ fun PreviewPerpetualMarketScene() {
                         decimals = 18,
                         type = AssetType.NATIVE
                     )
-                    override val name: String = "ETH/USD 5x Short"
+                    override val title: String = "ETH/USD 5x Short"
                     override val direction: PerpetualDirection = PerpetualDirection.Short
-                    override val leverage: Int = 20
+                    override val leverage: String = "20x"
                     override val marginAmount: String = "$5,000.00"
                     override val pnlWithPercentage: String = "-$180.00 (-3.60%)"
                     override val pnlState: ValueDirection = ValueDirection.Down
@@ -289,7 +289,8 @@ fun PreviewPerpetualMarketScene() {
             unpinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-                    override val name: String = "BTC/USD"
+                    override val title: String = "BTC/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 95420.50
@@ -307,7 +308,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
-                    override val name: String = "ETH/USD"
+                    override val title: String = "ETH/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 3625.75
@@ -325,7 +327,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "SOL")
-                    override val name: String = "SOL/USD"
+                    override val title: String = "SOL/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 235.40
@@ -343,7 +346,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "AVAX")
-                    override val name: String = "AVAX/USD"
+                    override val title: String = "AVAX/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 41.85
@@ -361,7 +365,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "LINK")
-                    override val name: String = "LINK/USD"
+                    override val title: String = "LINK/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 21.45
@@ -381,7 +386,8 @@ fun PreviewPerpetualMarketScene() {
             pinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-                    override val name: String = "BTC/USD"
+                    override val title: String = "BTC/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 95420.50
@@ -399,7 +405,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
-                    override val name: String = "ETH/USD"
+                    override val title: String = "ETH/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 3625.75

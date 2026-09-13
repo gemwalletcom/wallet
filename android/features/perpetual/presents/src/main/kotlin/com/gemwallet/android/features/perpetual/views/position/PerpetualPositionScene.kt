@@ -147,9 +147,9 @@ private fun PerpetualPositionScenePreview() {
     val samplePosition = object : PerpetualPositionDetailsDataAggregate {
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
-        override val name: String = "BTC"
+        override val title: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Long
-        override val leverage: Int = 10
+        override val leverage: String = "10x"
         override val marginAmount: String = "$4,771.03"
         override val pnlWithPercentage: String = "+$460.25 (+9.64%)"
         override val pnlState: ValueDirection = ValueDirection.Up

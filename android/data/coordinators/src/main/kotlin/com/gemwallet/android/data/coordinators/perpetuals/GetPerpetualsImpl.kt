@@ -9,7 +9,9 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.coroutines.Dispatchers
+import com.gemwallet.android.ext.toGem
 import kotlinx.coroutines.flow.Flow
+import uniffi.gemstone.perpetualMarketRow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -38,7 +40,11 @@ class GetPerpetualsImpl @Inject constructor(
 
         override val asset: Asset = data.asset
 
-        override val name: String = data.perpetual.name
+        private val row = perpetualMarketRow(data.perpetual.toGem())
+
+        override val title: String = row.title
+
+        override val showsPrice: Boolean = row.showsPrice
 
         override val volume: String = formatters.abbreviated(price.currency).string(data.perpetual.volume24h)
 

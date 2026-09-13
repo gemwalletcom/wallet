@@ -5,7 +5,7 @@ use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType};
 
-use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualTransferData};
+use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualMarketRow, GemPerpetualPositionRow, GemPerpetualTransferData};
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
@@ -493,6 +493,13 @@ pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is
     }
 }
 
+pub fn market_row(perpetual: &Perpetual) -> GemPerpetualMarketRow {
+    GemPerpetualMarketRow {
+        title: perpetual.name.clone(),
+        shows_price: perpetual.price != 0.0,
+    }
+}
+
 pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> GemPerpetualPositionRow {
     GemPerpetualPositionRow {
         title: match asset.symbol.is_empty() {
@@ -720,6 +727,16 @@ mod tests {
 
         assert!(!GemMarketsRefreshTrigger::Scheduled.should_sync_markets(just_synced, 10_000));
         assert!(GemMarketsRefreshTrigger::UserRequested.should_sync_markets(just_synced, 10_000));
+    }
+
+    #[test]
+    fn test_a_market_row_hides_a_price_it_does_not_have() {
+        let priced = market("BTC");
+        let unpriced = Perpetual { price: 0.0, ..priced.clone() };
+
+        assert!(market_row(&priced).shows_price);
+        assert!(!market_row(&unpriced).shows_price);
+        assert_eq!(market_row(&priced).title, "BTC");
     }
 
     #[test]

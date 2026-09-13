@@ -102,6 +102,17 @@ pub fn perpetual_position_row(perpetual: Perpetual, asset: Asset, position: Perp
     rules::position_row(&perpetual, &asset, &position)
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualMarketRow {
+    pub title: String,
+    pub shows_price: bool,
+}
+
+#[uniffi::export]
+pub fn perpetual_market_row(perpetual: Perpetual) -> GemPerpetualMarketRow {
+    rules::market_row(&perpetual)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualChartLineKind {
     Entry,

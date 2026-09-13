@@ -8,7 +8,9 @@ interface PerpetualDataAggregate {
 
     val id: PerpetualId
 
-    val name: String
+    val title: String
+
+    val showsPrice: Boolean
 
     val price: EquivalentValue
 

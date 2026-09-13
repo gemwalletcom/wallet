@@ -148,7 +148,7 @@ class WalletSearchViewModel @Inject constructor(
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = visiblePerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
         setPerpetualPinned(perpetualId, !item.isPinned)
-        emitToast(AssetToast.Pin(item.name, !item.isPinned))
+        emitToast(AssetToast.Pin(item.title, !item.isPinned))
     }
 
 }

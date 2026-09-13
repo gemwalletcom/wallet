@@ -81,9 +81,10 @@ fun PerpetualItem(
 ) {
     AssetListItem(
         asset = item.asset,
+        title = item.title,
         modifier = modifier,
         listPosition = listPosition,
-        support = if (item.price.value == null || item.price.value == 0.0) {
+        support = if (!item.showsPrice) {
             null
         } else {
             {
@@ -112,7 +113,8 @@ fun PerpetualItem(
 private fun PerpetualItemPreview() {
     val sampleData = object : PerpetualDataAggregate {
         override val id = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-        override val name = "Bitcoin Perpetual"
+        override val title = "BTC"
+        override val showsPrice = true
         override val asset = Asset(
             id = AssetId(Chain.Bitcoin),
             name = "Bitcoin",

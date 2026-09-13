@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemPerpetualMarketRow
+import func Gemstone.perpetualMarketRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -10,14 +12,17 @@ import SwiftUI
 struct PerpetualItemViewModel: ListAssetItemViewable {
     let model: PerpetualViewModel
 
+    private let row: GemPerpetualMarketRow
+
     init(
         model: PerpetualViewModel,
     ) {
         self.model = model
+        row = perpetualMarketRow(perpetual: model.perpetual.map())
     }
 
     var name: String {
-        model.name
+        row.title
     }
 
     var symbol: String? {
@@ -31,7 +36,8 @@ struct PerpetualItemViewModel: ListAssetItemViewable {
     }
 
     var subtitleView: ListAssetItemSubtitleView {
-        .price(
+        guard row.showsPrice else { return .none }
+        return .price(
             price: TextValue(
                 text: model.priceText,
                 style: TextStyle(font: .footnote, color: Colors.gray),
