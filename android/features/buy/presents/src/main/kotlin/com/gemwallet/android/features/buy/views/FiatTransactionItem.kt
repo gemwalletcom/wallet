@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.FiatTransactionAssetData
 import uniffi.gemstone.GemFiatTransactionBadge
+import uniffi.gemstone.fiatProviderName
 import uniffi.gemstone.fiatTransactionStatus
 import java.math.BigInteger
 
@@ -72,7 +73,7 @@ fun FiatTransactionItem(
                 titleBadge = { status.badge?.let { FiatTransactionStatusBadge(it) } }
             )
         },
-        subtitle = { ListItemSupportText("${asset.name} (${info.provider.name})") },
+        subtitle = { ListItemSupportText("${asset.name} (${fiatProviderName(info.provider.toGem())})") },
         listPosition = listPosition,
         trailing = {
             Column(horizontalAlignment = Alignment.End) {

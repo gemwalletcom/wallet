@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.fiatProviderName
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -17,13 +19,6 @@ public extension FiatProviderName {
     }
 
     var displayName: String {
-        switch self {
-        case .moonPay: "MoonPay"
-        case .transak: "Transak"
-        case .banxa: "Banxa"
-        case .mercuryo: "Mercuryo"
-        case .paybis: "Paybis"
-        case .flashnet: "Flashnet"
-        }
+        fiatProviderName(provider: map())
     }
 }
