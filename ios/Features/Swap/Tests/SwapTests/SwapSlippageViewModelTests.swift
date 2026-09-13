@@ -11,7 +11,7 @@ import Testing
 struct SwapSlippageViewModelTests {
     @Test
     func initAuto() {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum), chain: .ethereum, slippage: .auto) { _ in }
 
         #expect(model.isAuto)
         #expect(model.inputModel.text.isEmpty)
@@ -73,7 +73,7 @@ struct SwapSlippageViewModelTests {
 
     @Test(arguments: ["", "0", "0.", "abc"])
     func incompleteInputDisablesConfirmWithoutError(input: String) {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum), chain: .ethereum, slippage: .manual(bps: 100)) { _ in }
         model.isAuto = false
         model.inputModel.text = input
 
@@ -85,10 +85,6 @@ struct SwapSlippageViewModelTests {
     func confirmEnabledState() {
         let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .manual(bps: 100)) { _ in }
         #expect(model.isConfirmEnabled)
-
-        model.inputModel.text = ""
-        #expect(model.errorText == nil)
-        #expect(model.isConfirmEnabled == false)
 
         model.inputModel.text = "5"
         #expect(model.isConfirmEnabled)
