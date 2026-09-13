@@ -52,9 +52,9 @@ pub fn parse_amount(text: &str) -> FiatAmountInput {
         return FiatAmountInput::Empty;
     }
     match normalized.parse::<f64>() {
-        Ok(value) if value > 0.0 => FiatAmountInput::Value(value),
-        Ok(_) => FiatAmountInput::Empty,
-        Err(_) => FiatAmountInput::Invalid,
+        Ok(value) if value > 0.0 && value.fract() == 0.0 => FiatAmountInput::Value(value),
+        Ok(value) if value <= 0.0 => FiatAmountInput::Empty,
+        Ok(_) | Err(_) => FiatAmountInput::Invalid,
     }
 }
 
@@ -245,11 +245,13 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_amount_accepts_a_decimal_comma_and_treats_zero_as_empty() {
-        assert!(matches!(parse_amount(" 12,5 "), FiatAmountInput::Value(value) if value == 12.5));
+    fn test_parse_amount_takes_whole_amounts_only_and_treats_zero_as_empty() {
         assert!(matches!(parse_amount("1 000"), FiatAmountInput::Value(value) if value == 1000.0));
+        assert!(matches!(parse_amount(" 12 "), FiatAmountInput::Value(value) if value == 12.0));
         assert!(matches!(parse_amount(""), FiatAmountInput::Empty));
         assert!(matches!(parse_amount("0"), FiatAmountInput::Empty));
+        assert!(matches!(parse_amount(" 12,5 "), FiatAmountInput::Invalid));
+        assert!(matches!(parse_amount("12.5"), FiatAmountInput::Invalid));
         assert!(matches!(parse_amount("abc"), FiatAmountInput::Invalid));
     }
 
