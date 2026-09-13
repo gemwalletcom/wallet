@@ -3,11 +3,9 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl};
 
-use super::model::GemFiatAmountCheck;
 use super::session::GemFiatSession;
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
-use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -42,10 +40,6 @@ impl GemFiatQuoteService {
 
     pub fn random_amount(&self) -> u32 {
         rules::random_amount(&get_fiat_config())
-    }
-
-    pub fn amount_check(&self, quote_type: FiatQuoteType, amount: f64, quote: Option<FiatQuote>, available: GemBigUint) -> GemFiatAmountCheck {
-        rules::amount_check(&get_fiat_config(), quote_type, amount, quote.as_ref(), &available, CURRENCY)
     }
 
     pub fn quote_debounce_milliseconds(&self) -> u64 {

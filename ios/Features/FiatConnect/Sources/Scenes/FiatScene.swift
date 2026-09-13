@@ -17,7 +17,8 @@ public struct FiatScene: View {
         let viewState = model.viewState
         return List {
             CurrencyInputValidationView(
-                model: $model.inputValidationModel,
+                text: $model.amount,
+                error: model.amountError,
                 config: model.currencyInputConfig,
             )
             .padding(.top, .medium)
@@ -35,7 +36,6 @@ public struct FiatScene: View {
         .contentMargins([.top], .zero, for: .scrollContent)
         .frame(maxWidth: .infinity)
         .onChange(of: model.type, model.onChangeType)
-        .onChange(of: model.inputValidationModel.text, model.onChangeAmountText)
         .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
             await model.load()
         }

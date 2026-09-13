@@ -68,11 +68,9 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: [Gemstone.FiatQuote]
-    private let check: @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck
 
-    public init(quotes: [Gemstone.FiatQuote] = [], check: @escaping @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck = { _ in .valid }) {
+    public init(quotes: [Gemstone.FiatQuote] = []) {
         self.quotes = quotes
-        self.check = check
     }
 
     public func getCurrency() -> Gemstone.Currency {
@@ -97,10 +95,6 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
 
     public func randomAmount() -> UInt32 {
         50
-    }
-
-    public func amountCheck(quoteType _: Gemstone.FiatQuoteType, amount _: Double, quote: Gemstone.FiatQuote?, available _: GemBigUint) -> GemFiatAmountCheck {
-        check(quote)
     }
 
     public func quoteDebounceMilliseconds() -> UInt64 {

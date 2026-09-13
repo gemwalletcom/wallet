@@ -21,7 +21,8 @@ public struct AmountScene: View {
         @Bindable var model = model
         List {
             CurrencyInputValidationView(
-                model: $model.amountInputModel,
+                text: $model.amountInputModel.text,
+                error: model.amountInputModel.error,
                 config: model.inputConfig,
                 infoAction: model.infoAction(for:),
             )
