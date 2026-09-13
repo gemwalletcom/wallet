@@ -19,6 +19,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.wallet.core.primitives.AddressType
+import uniffi.gemstone.contactInitials
 
 @Composable
 fun PropertyDestination(
@@ -30,7 +31,7 @@ fun PropertyDestination(
     when (model) {
         is ConfirmProperty.Destination.Transfer -> {
             val (icon, initials) = when (model.addressType) {
-                AddressType.Contact -> walletImageModel(LocalContext.current, model.imageUrl) to model.domain?.take(2)?.uppercase()
+                AddressType.Contact -> walletImageModel(LocalContext.current, model.imageUrl) to model.domain?.let { contactInitials(it) }
                 else -> null to null
             }
             AddressPropertyItem(

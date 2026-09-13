@@ -31,7 +31,9 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Contact
+import uniffi.gemstone.contactRow
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
@@ -96,13 +98,14 @@ private fun ContactListItem(
     listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
+    val row = contactRow(contact.toGem())
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
         minHeight = ListItemDefaults.defaultMinHeight,
-        leading = { ContactAvatar(name = contact.name, avatar = ContactAvatarState.from(contact.imageUrl)) },
-        title = { ListItemTitleText(text = contact.name) },
-        subtitle = contact.description?.takeIf { it.isNotBlank() }?.let { description ->
+        leading = { ContactAvatar(name = row.title, avatar = ContactAvatarState.from(contact.imageUrl)) },
+        title = { ListItemTitleText(text = row.title) },
+        subtitle = row.subtitle?.let { description ->
             {
                 Text(
                     text = description,

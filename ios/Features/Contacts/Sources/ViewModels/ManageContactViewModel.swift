@@ -8,6 +8,7 @@ import Components
 import struct Gemstone.GemRecipient
 import GemstoneServices
 import Foundation
+import func Gemstone.contactInitials
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -176,7 +177,7 @@ public final class ManageContactViewModel {
     }
 
     private var initials: String {
-        String(nameInputModel.text.trim().prefix(2))
+        contactInitials(name: nameInputModel.text)
     }
 
     func listItemModel(for address: ContactAddress) -> ListItemModel {

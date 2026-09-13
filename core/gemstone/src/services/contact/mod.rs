@@ -15,7 +15,7 @@ use crate::payment::GemPaymentService;
 use crate::services::file::GemFileStore;
 use crate::services::name::GemAddressStore;
 
-pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput, GemContactScannedAddress};
+pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput, GemContactRow, GemContactScannedAddress, contact_initials, contact_row};
 pub use store::GemContactStore;
 
 const AVATAR_EXTENSION: &str = "png";

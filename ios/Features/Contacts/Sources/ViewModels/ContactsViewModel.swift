@@ -6,6 +6,7 @@ import Components
 import struct Gemstone.GemRecipient
 import GemstoneServices
 import Foundation
+import func Gemstone.contactRow
 import Localization
 import GemstonePrimitives
 import Primitives
@@ -97,13 +98,14 @@ public final class ContactsViewModel {
     }
 
     func listItemModel(for contact: ContactData) -> ListItemModel {
-        ListItemModel(
-            title: contact.contact.name,
+        let row = contactRow(contact: contact.contact.map())
+        return ListItemModel(
+            title: row.title,
             titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
-            titleExtra: contact.contact.description,
+            titleExtra: row.subtitle,
             titleStyleExtra: .calloutSecondary,
             titleExtraLineLimit: 1,
-            imageStyle: .asset(assetImage: contact.contact.avatarImage),
+            imageStyle: .asset(assetImage: contact.contact.avatarImage(initials: row.initials)),
         )
     }
 
