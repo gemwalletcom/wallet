@@ -7,7 +7,6 @@ import com.gemwallet.android.application.transactions.cases.GetTransactionDetail
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
-import com.gemwallet.android.domains.transaction.format
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives

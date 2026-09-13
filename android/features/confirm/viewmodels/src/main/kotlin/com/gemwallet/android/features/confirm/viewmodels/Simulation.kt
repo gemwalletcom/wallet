@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
-import com.gemwallet.android.domains.transaction.format
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSimulationBalanceChange
 import com.gemwallet.android.domains.confirm.ConfirmProperty

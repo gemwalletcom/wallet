@@ -6,7 +6,6 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.domains.transaction.format
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter

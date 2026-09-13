@@ -66,6 +66,17 @@ pub enum GemAmountSign {
     Outgoing,
 }
 
+#[uniffi::export]
+impl GemAmountSign {
+    pub fn format(&self, amount: String) -> String {
+        match self {
+            Self::None => amount,
+            Self::Incoming => format!("+{amount}"),
+            Self::Outgoing => format!("-{amount}"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum GemTransactionValue {
     None,
@@ -267,4 +278,16 @@ pub enum GemSwapProgressStep {
 pub struct GemSwapAgain {
     pub from_asset_id: AssetId,
     pub to_asset_id: AssetId,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::GemAmountSign;
+
+    #[test]
+    fn test_a_signed_amount_carries_its_direction_and_an_unsigned_one_does_not() {
+        assert_eq!(GemAmountSign::Incoming.format("1.00 BTC".to_string()), "+1.00 BTC");
+        assert_eq!(GemAmountSign::Outgoing.format("1.00 BTC".to_string()), "-1.00 BTC");
+        assert_eq!(GemAmountSign::None.format("1.00 BTC".to_string()), "1.00 BTC");
+    }
 }
