@@ -15,6 +15,13 @@ pub struct GemAssetRate {
     pub value: f64,
 }
 
+#[uniffi::export]
+impl GemAssetRate {
+    pub fn text(&self, formatted_value: String) -> String {
+        format!("1 {} ≈ {}", self.base_symbol, formatted_value)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapRate {
     pub direct: GemAssetRate,
@@ -119,4 +126,19 @@ pub enum GemSwapButtonAction {
     RetryTransfer,
     UseMinimumAmount { value: GemBigInt },
     InsufficientBalance,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::GemAssetRate;
+
+    #[test]
+    fn test_rate_text_names_the_base_and_keeps_the_formatted_value() {
+        let rate = GemAssetRate {
+            base_symbol: "BTC".to_string(),
+            quote_symbol: "USDT".to_string(),
+            value: 100.0,
+        };
+        assert_eq!(rate.text("100.00 USDT".to_string()), "1 BTC ≈ 100.00 USDT");
+    }
 }

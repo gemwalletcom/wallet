@@ -35,7 +35,7 @@ data class BuyFiatProviderUIModel(
     val fiatFormatted: String by lazy { fiatFormatter.string(row.fiatAmount) }
 
     val rate: String by lazy {
-        row.rate?.let { "1 ${it.baseSymbol} ≈ ${fiatFormatter.string(it.value)}" }.orEmpty()
+        row.rate?.let { it.text(fiatFormatter.string(it.value)) }.orEmpty()
     }
 
     private val fiatFormatter: CurrencyFormatter

@@ -17,5 +17,5 @@ class AssetRateFormatter(
 
     fun format(rate: GemSwapRate): AssetRatePair = AssetRatePair(forward = format(rate.direct), reverse = format(rate.inverse))
 
-    fun format(rate: GemAssetRate): String = "1 ${rate.baseSymbol} ≈ ${formatter.string(rate.value, rate.quoteSymbol)}"
+    fun format(rate: GemAssetRate): String = rate.text(formatter.string(rate.value, rate.quoteSymbol))
 }

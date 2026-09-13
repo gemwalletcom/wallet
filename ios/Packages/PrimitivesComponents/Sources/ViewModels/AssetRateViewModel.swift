@@ -14,6 +14,6 @@ public struct AssetRateViewModel {
 
     public func text(isInverse: Bool) -> String {
         let rate = isInverse ? rate.inverse : rate.direct
-        return "1 \(rate.baseSymbol) ≈ \(formatter.string(rate.value, symbol: rate.quoteSymbol))"
+        return rate.text(formattedValue: formatter.string(rate.value, symbol: rate.quoteSymbol))
     }
 }
