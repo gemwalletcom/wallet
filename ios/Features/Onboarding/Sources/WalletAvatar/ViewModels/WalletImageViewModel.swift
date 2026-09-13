@@ -3,6 +3,7 @@
 import protocol Gemstone.GemAvatarServiceProtocol
 import Components
 import Foundation
+import func Gemstone.walletAvatarEmojis
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -39,7 +40,7 @@ public final class WalletImageViewModel: Sendable {
     }
 
     let emojiViewSize: Sizing = .image.extraLarge
-    let emojiList: [EmojiValue] = Array(Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) })
+    let emojiList: [EmojiValue] = walletAvatarEmojis().map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
 
     public init(
         wallet: Wallet,

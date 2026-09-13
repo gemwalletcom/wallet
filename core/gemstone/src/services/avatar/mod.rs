@@ -1,3 +1,6 @@
+pub mod emoji;
+pub use emoji::wallet_avatar_emojis;
+
 use std::sync::Arc;
 
 use primitives::WalletId;
