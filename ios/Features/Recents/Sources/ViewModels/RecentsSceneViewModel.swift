@@ -4,6 +4,8 @@ import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Components
+import struct Gemstone.GemRecentsCounts
+import struct Gemstone.GemRecentsSections
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -48,11 +50,18 @@ public final class RecentsSceneViewModel {
     }
 
     var showEmpty: Bool {
-        recentAssets.isEmpty || (!searchQuery.isEmpty && filteredAssets.isEmpty)
+        recentsSections.showsEmpty || recentsSections.showsNoResults
     }
 
     var showClear: Bool {
-        recentAssets.isNotEmpty
+        recentsSections.showsClear
+    }
+
+    private var recentsSections: GemRecentsSections {
+        GemRecentsCounts(
+            recents: UInt32(recentAssets.count),
+            matching: UInt32(filteredAssets.count),
+        ).sections(isSearching: !searchQuery.isEmpty)
     }
 
     var sections: [ListSection<RecentAsset>] {
@@ -60,15 +69,12 @@ public final class RecentsSceneViewModel {
     }
 
     var emptyModel: any EmptyContentViewable {
-        if recentAssets.isEmpty {
-            return EmptyContentTypeViewModel(type: .recents)
-        }
-        return EmptyContentTypeViewModel(type: .search(type: .assets))
+        recentsSections.showsNoResults ? EmptyContentTypeViewModel(type: .search(type: .assets)) : EmptyContentTypeViewModel(type: .recents)
     }
 
     private var filteredAssets: [RecentAsset] {
-        let matching = Set(recentAssets.map(\.asset).matching(query: searchQuery).map(\.id))
-        return recentAssets.filter { matching.contains($0.asset.id) }
+        let matching = Set(recentAssets.map(\.asset).matchingIds(query: searchQuery))
+        return recentAssets.filter { matching.contains($0.asset.id.identifier) }
     }
 }
 

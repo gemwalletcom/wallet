@@ -49,6 +49,10 @@ impl GemAssetConfigService {
         matching_assets(assets, &query)
     }
 
+    pub fn matching_asset_ids(&self, assets: Vec<Asset>, query: String) -> Vec<AssetId> {
+        matching_assets(assets, &query).into_iter().map(|asset| asset.id).collect()
+    }
+
     pub fn asset_sections(&self, ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool) -> GemAssetSectionIds {
         asset_sections(ids, pinned_ids, shows_popular, popular_asset_ids())
     }

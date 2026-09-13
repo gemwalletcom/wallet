@@ -107,3 +107,56 @@ mod tests {
         assert_eq!(store.added.lock().unwrap().len(), 1);
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemRecentsCounts {
+    pub recents: u32,
+    pub matching: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemRecentsSections {
+    pub shows_items: bool,
+    pub shows_clear: bool,
+    pub shows_no_results: bool,
+    pub shows_empty: bool,
+}
+
+#[uniffi::export]
+impl GemRecentsCounts {
+    pub fn sections(&self, is_searching: bool) -> GemRecentsSections {
+        let no_results = self.recents > 0 && is_searching && self.matching == 0;
+        GemRecentsSections {
+            shows_items: self.matching > 0,
+            shows_clear: self.recents > 0 && !is_searching,
+            shows_no_results: no_results,
+            shows_empty: self.recents == 0,
+        }
+    }
+}
+
+#[cfg(test)]
+mod section_tests {
+    use super::*;
+
+    fn sections(recents: u32, matching: u32, is_searching: bool) -> GemRecentsSections {
+        GemRecentsCounts { recents, matching }.sections(is_searching)
+    }
+
+    #[test]
+    fn test_a_search_that_matches_nothing_is_not_the_same_as_having_no_recents() {
+        let searched = sections(5, 0, true);
+        assert!(searched.shows_no_results);
+        assert!(!searched.shows_empty);
+        assert!(!searched.shows_clear);
+
+        let none = sections(0, 0, false);
+        assert!(none.shows_empty);
+        assert!(!none.shows_no_results);
+        assert!(!none.shows_clear);
+
+        let listed = sections(5, 5, false);
+        assert!(listed.shows_items);
+        assert!(!listed.shows_empty);
+    }
+}

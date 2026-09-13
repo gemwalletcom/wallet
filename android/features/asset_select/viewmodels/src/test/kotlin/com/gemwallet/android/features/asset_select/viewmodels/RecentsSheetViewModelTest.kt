@@ -34,6 +34,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemRecentsCounts
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecentsSheetViewModelTest {
@@ -105,8 +106,7 @@ class RecentsSheetViewModelTest {
     fun `uiModel properties derive correctly`() {
         val withItems = RecentsSheetUIModel(
             items = recentItems.toImmutableList(),
-            hasAnyRecents = true,
-            searchActive = false,
+            sections = GemRecentsCounts(recents = 5u, matching = 5u).sections(false),
         )
         assertFalse(withItems.isEmpty)
         assertTrue(withItems.showClear)
@@ -114,8 +114,7 @@ class RecentsSheetViewModelTest {
 
         val searchNoResults = RecentsSheetUIModel(
             items = persistentListOf(),
-            hasAnyRecents = true,
-            searchActive = true,
+            sections = GemRecentsCounts(recents = 5u, matching = 0u).sections(true),
         )
         assertTrue(searchNoResults.isEmpty)
         assertFalse(searchNoResults.showClear)
@@ -123,8 +122,7 @@ class RecentsSheetViewModelTest {
 
         val noRecents = RecentsSheetUIModel(
             items = persistentListOf(),
-            hasAnyRecents = false,
-            searchActive = false,
+            sections = GemRecentsCounts(recents = 0u, matching = 0u).sections(false),
         )
         assertTrue(noRecents.isEmpty)
         assertFalse(noRecents.showClear)
