@@ -4,7 +4,7 @@ use crate::perpetual::GemPerpetual;
 use crate::services::failures::StepFailure;
 use crate::services::transfer::model::GemRecipient;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
-use primitives::{Asset, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType};
+use primitives::{Asset, Perpetual, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -88,6 +88,18 @@ pub struct GemPerpetualDetails {
 #[uniffi::export]
 pub fn perpetual_details(perpetual_type: PerpetualType) -> Option<GemPerpetualDetails> {
     rules::details(&perpetual_type)
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualPositionRow {
+    pub title: String,
+    pub leverage: String,
+    pub direction: PerpetualDirection,
+}
+
+#[uniffi::export]
+pub fn perpetual_position_row(perpetual: Perpetual, asset: Asset, position: PerpetualPosition) -> GemPerpetualPositionRow {
+    rules::position_row(&perpetual, &asset, &position)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

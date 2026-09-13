@@ -3,6 +3,8 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemPerpetualPositionRow
+import func Gemstone.perpetualPositionRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -14,12 +16,14 @@ public struct PerpetualPositionViewModel {
     private let currencyFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
     private let autocloseFormatter: AutocloseFormatter
+    private let row: GemPerpetualPositionRow
 
     public init(
         _ data: PerpetualPositionData,
         currencyStyle: CurrencyFormatterType = .currency,
     ) {
         self.data = data
+        row = perpetualPositionRow(perpetual: data.perpetual.map(), asset: data.asset.map(), position: data.position.map())
         currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
         autocloseFormatter = AutocloseFormatter(
             currencyFormatter: currencyFormatter,
@@ -37,11 +41,11 @@ public struct PerpetualPositionViewModel {
     }
 
     public var symbolText: String {
-        data.asset.symbol
+        row.title
     }
 
     public var leverageText: String {
-        "\(Int(data.position.leverage))x"
+        row.leverage
     }
 
     public var directionText: String {
@@ -51,6 +55,7 @@ public struct PerpetualPositionViewModel {
     public var positionTypeText: String {
         "\(directionText.uppercased()) \(leverageText)"
     }
+
 
     public var positionTypeColor: Color {
         PerpetualDirectionViewModel(direction: data.position.direction).color

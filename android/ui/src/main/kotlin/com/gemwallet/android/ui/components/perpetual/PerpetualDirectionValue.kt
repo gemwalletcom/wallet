@@ -8,10 +8,7 @@ import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.PerpetualDirection
 
 @Composable
-fun PerpetualDirection.text(leverage: Int): String = when (this) {
-    PerpetualDirection.Short -> "${stringResource(R.string.perpetual_short).uppercase()} ${leverage}x"
-    PerpetualDirection.Long -> "${stringResource(R.string.perpetual_long).uppercase()} ${leverage}x"
-}
+fun PerpetualDirection.text(leverage: String): String = "${title().uppercase()} $leverage"
 
 @Composable
 fun PerpetualDirection.title(): String = when (this) {

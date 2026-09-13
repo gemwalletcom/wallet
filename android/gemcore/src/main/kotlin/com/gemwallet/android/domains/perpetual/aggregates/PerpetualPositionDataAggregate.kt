@@ -8,9 +8,9 @@ import com.wallet.core.primitives.PerpetualId
 interface PerpetualPositionDataAggregate {
     val perpetualId: PerpetualId
     val asset: Asset
-    val name: String
+    val title: String
     val direction: PerpetualDirection
-    val leverage: Int
+    val leverage: String
     val marginAmount: String
     val pnlWithPercentage: String
     val pnlState: ValueDirection

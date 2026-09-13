@@ -49,7 +49,7 @@ fun PerpetualPositionItem(
         contentPadding = adaptivePadding(default = paddingMiddle, compact = space6),
         titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(data.asset) },
-        title = @Composable { ListItemTitleText(data.asset.symbol.ifEmpty { data.name }) },
+        title = @Composable { ListItemTitleText(data.title) },
         subtitle = { ListItemSupportText(data.direction.text(data.leverage), color = data.direction.color()) },
         trailing = {
             Column(
@@ -78,9 +78,9 @@ private fun PerpetualPositionLongItemPreview() {
     val sampleData = object : PerpetualPositionDataAggregate {
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
-        override val name: String = "BTC"
+        override val title: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Long
-        override val leverage: Int = 40
+        override val leverage: String = "40x"
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
         override val pnlState: ValueDirection = ValueDirection.Up
@@ -105,9 +105,9 @@ private fun PerpetualPositionShortItemPreview() {
     val sampleData = object : PerpetualPositionDataAggregate {
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
-        override val name: String = "BTC"
+        override val title: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Short
-        override val leverage: Int = 40
+        override val leverage: String = "40x"
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "-$1,250.00 (+12.50%)"
         override val pnlState: ValueDirection = ValueDirection.Down

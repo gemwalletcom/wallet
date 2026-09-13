@@ -5,7 +5,7 @@ use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType};
 
-use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualTransferData};
+use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualTransferData};
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
@@ -493,6 +493,17 @@ pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is
     }
 }
 
+pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> GemPerpetualPositionRow {
+    GemPerpetualPositionRow {
+        title: match asset.symbol.is_empty() {
+            true => perpetual.name.clone(),
+            false => asset.symbol.clone(),
+        },
+        leverage: format!("{}x", position.leverage),
+        direction: position.direction.clone(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -709,6 +720,19 @@ mod tests {
 
         assert!(!GemMarketsRefreshTrigger::Scheduled.should_sync_markets(just_synced, 10_000));
         assert!(GemMarketsRefreshTrigger::UserRequested.should_sync_markets(just_synced, 10_000));
+    }
+
+    #[test]
+    fn test_a_position_row_falls_back_to_the_market_name_when_the_asset_has_no_symbol() {
+        let market = market("BTC");
+        let mut held = position("one");
+        held.leverage = 40;
+        let symboled = Asset::from_chain(Chain::HyperCore);
+        let unsymboled = Asset { symbol: String::new(), ..symboled.clone() };
+
+        assert_eq!(position_row(&market, &symboled, &held).title, symboled.symbol);
+        assert_eq!(position_row(&market, &unsymboled, &held).title, "BTC");
+        assert_eq!(position_row(&market, &symboled, &held).leverage, "40x");
     }
 
     fn position(id: &str) -> PerpetualPosition {

@@ -64,7 +64,7 @@ class PerpetualMarketViewModel @Inject constructor(
     val positions = combine(getPositions.getPerpetualPositions(), query) { items, q ->
         val needle = q?.trim().orEmpty()
         if (needle.isEmpty()) items else items.filter {
-            it.name.contains(needle, ignoreCase = true) ||
+            it.title.contains(needle, ignoreCase = true) ||
                 it.asset.symbol.contains(needle, ignoreCase = true) ||
                 it.asset.name.contains(needle, ignoreCase = true)
         }
