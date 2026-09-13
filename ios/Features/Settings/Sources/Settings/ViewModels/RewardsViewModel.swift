@@ -238,8 +238,9 @@ public final class RewardsViewModel: Sendable {
         }
     }
 
-    func showRedemptionAlert(for option: RewardRedemptionOption) {
-        let viewModel = RewardRedemptionOptionViewModel(option: option)
+    func showRedemptionAlert(for redemption: GemRewardsRedemption) {
+        let viewModel = RewardRedemptionOptionViewModel(redemption: redemption)
+        let option = redemption.option
         isPresentingAlert = AlertMessage(
             title: viewModel.confirmationMessage,
             message: "",

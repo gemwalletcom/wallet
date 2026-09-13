@@ -191,7 +191,7 @@ public struct RewardsScene: View {
     private func redemptionOptionsSection(redemptions: [GemRewardsRedemption]) -> some View {
         Section {
             ForEach(redemptions, id: \.option.id) { redemption in
-                let viewModel = RewardRedemptionOptionViewModel(option: redemption.option)
+                let viewModel = RewardRedemptionOptionViewModel(redemption: redemption)
                 NavigationCustomLink(
                     with: ListItemView(
                         title: viewModel.title,
@@ -200,7 +200,7 @@ public struct RewardsScene: View {
                     ),
                 ) {
                     if redemption.canRedeem {
-                        model.showRedemptionAlert(for: redemption.option)
+                        model.showRedemptionAlert(for: redemption)
                     } else {
                         model.showError(Localized.Rewards.insufficientPoints)
                     }

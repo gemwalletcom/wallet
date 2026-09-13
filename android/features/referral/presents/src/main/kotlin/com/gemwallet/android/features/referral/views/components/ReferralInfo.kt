@@ -75,17 +75,18 @@ internal fun LazyListScope.referralInfo(
     if (redemptions.isNotEmpty()) {
         item { SubheaderItem(R.string.rewards_ways_spend_title) }
         itemsPositioned(redemptions) { position, item ->
-            RewardRedemptionOptionItem(item.option, position) { onRedeem(item) }
+            RewardRedemptionOptionItem(item, position) { onRedeem(item) }
         }
     }
 }
 
 @Composable
 private fun RewardRedemptionOptionItem(
-    option: RewardRedemptionOption,
+    redemption: GemRewardsRedemption,
     listPosition: ListPosition = ListPosition.Middle,
     onClick: () -> Unit
 ) {
+    val option = redemption.option
     val asset = option.asset ?: return
     var showConfirm by remember { mutableStateOf(false) }
     PropertyItem(
@@ -100,7 +101,7 @@ private fun RewardRedemptionOptionItem(
         },
         data = {
             PropertyDataText(
-                text = option.pointsText,
+                text = redemption.pointsText,
                 badge = { DataBadgeChevron() },
             )
         },
@@ -114,7 +115,7 @@ private fun RewardRedemptionOptionItem(
         containerColor = MaterialTheme.colorScheme.background,
         text = {
             Text(
-                text = option.confirmationMessage(),
+                text = option.confirmationMessage(redemption.pointsText),
                 style = MaterialTheme.typography.bodyLarge,
             )
         },
@@ -137,7 +138,7 @@ private fun RewardRedemptionOptionItem(
 }
 
 @Composable
-private fun RewardRedemptionOption.confirmationMessage(): String {
+private fun RewardRedemptionOption.confirmationMessage(pointsText: String): String {
     return stringResource(R.string.rewards_confirm_redeem, valueText, pointsText)
 }
 
@@ -145,6 +146,3 @@ private val RewardRedemptionOption.valueText: String
     get() = asset?.let {
         ValueFormatter(style = ValueFormatter.Style.Short).string(value, it.toPrimitives())
     } ?: ""
-
-private val RewardRedemptionOption.pointsText: String
-    get() = "$points \uD83D\uDC8E"

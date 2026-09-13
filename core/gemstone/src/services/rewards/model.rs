@@ -17,4 +17,5 @@ pub struct GemRewardsState {
 pub struct GemRewardsRedemption {
     pub option: RewardRedemptionOption,
     pub can_redeem: bool,
+    pub points_text: String,
 }

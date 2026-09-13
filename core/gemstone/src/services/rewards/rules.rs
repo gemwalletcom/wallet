@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{RewardRedemptionOption, RewardStatus, Rewards};
+use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards};
 
 use super::model::{GemRewardsRedemption, GemRewardsState};
 
@@ -23,12 +23,17 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     }
 }
 
+fn points_text(points: i32) -> String {
+    format!("{points} {}", CoreEmoji::Gem.glyph())
+}
+
 fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
     rewards
         .redemption_options
         .iter()
         .filter(|option| option.asset.is_some())
         .map(|option| GemRewardsRedemption {
+            points_text: points_text(option.points),
             option: option.clone(),
             can_redeem: can_redeem(rewards, option),
         })
@@ -45,6 +50,11 @@ fn has_value(code: Option<&str>) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_points_read_with_the_gem_glyph() {
+        assert_eq!(points_text(250), "250 \u{1f48e}");
+    }
+
     use super::*;
     use chrono::TimeDelta;
     use num_bigint::BigUint;
