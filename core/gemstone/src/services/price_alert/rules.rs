@@ -15,6 +15,16 @@ pub enum GemPriceAlertKind {
     Decrease,
 }
 
+#[uniffi::export]
+impl GemPriceAlertKind {
+    pub fn groups_by_asset(&self) -> bool {
+        match self {
+            Self::Auto => false,
+            Self::Over | Self::Under | Self::Increase | Self::Decrease => true,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPriceAlertRow {
     pub kind: GemPriceAlertKind,
@@ -63,7 +73,7 @@ pub fn price_alert_row(alert: &PriceAlert, current_price: Option<f64>, price_cha
     }
 }
 
-fn alert_kind(alert: &PriceAlert) -> GemPriceAlertKind {
+pub fn alert_kind(alert: &PriceAlert) -> GemPriceAlertKind {
     match (alert.notification_type(), alert.price_direction.clone()) {
         (PriceAlertNotificationType::Price, Some(PriceAlertDirection::Up)) => GemPriceAlertKind::Over,
         (PriceAlertNotificationType::Price, Some(PriceAlertDirection::Down)) => GemPriceAlertKind::Under,
@@ -143,6 +153,15 @@ fn direction(alert: &PriceAlert) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_only_an_auto_alert_stands_outside_its_asset_group() {
+        assert!(!GemPriceAlertKind::Auto.groups_by_asset());
+        assert!(GemPriceAlertKind::Over.groups_by_asset());
+        assert!(GemPriceAlertKind::Under.groups_by_asset());
+        assert!(GemPriceAlertKind::Increase.groups_by_asset());
+        assert!(GemPriceAlertKind::Decrease.groups_by_asset());
+    }
+
 
     use super::*;
     use primitives::{AssetId, Chain, currency::Currency};

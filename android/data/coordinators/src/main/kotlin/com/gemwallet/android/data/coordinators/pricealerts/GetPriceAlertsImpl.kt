@@ -88,7 +88,4 @@ class PriceAlertDataAggregateImpl(
 
     override val kind: GemPriceAlertKind = row.kind
 
-    override val hasTarget: Boolean
-        get() = row.kind != GemPriceAlertKind.AUTO
-
 }

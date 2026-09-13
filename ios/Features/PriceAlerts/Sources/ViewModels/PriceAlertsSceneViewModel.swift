@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.PriceAlertFormatter
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
@@ -48,10 +50,10 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
         let (autoAlerts, manualGroups) = alerts.displayedAlerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
-            switch alert.priceAlert.type {
-            case .auto:
+            switch PriceAlertFormatter.shared.alertKind(alert: alert.priceAlert.map()).groupsByAsset() {
+            case false:
                 result.0.append(alert)
-            case .price, .pricePercentChange:
+            case true:
                 result.1[alert.asset, default: []].append(alert)
             }
         }

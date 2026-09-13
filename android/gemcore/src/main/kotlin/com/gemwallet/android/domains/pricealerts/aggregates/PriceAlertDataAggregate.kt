@@ -17,5 +17,4 @@ interface PriceAlertDataAggregate {
     val price: String
     val percentage: String
     val kind: GemPriceAlertKind
-    val hasTarget: Boolean
 }
