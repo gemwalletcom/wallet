@@ -10,6 +10,7 @@ Read the contract and the named implementation, then the actual owner and caller
 |---|---|---|
 | Pure feature rule | [§ 1](#1-rules-are-pure-and-have-a-test-that-flips), [§ 6](#6-where-derived-domain-answers-live) | [`price_alert/rules.rs`](../core/gemstone/src/services/price_alert/rules.rs), including its tests |
 | Service orchestration and store port | [§ 2](#2-the-service-orchestrates-it-owns-its-store-and-depends-on-services), [§ 4](#4-the-store-trait-is-the-apps-only-persistence-obligation) | [`price_alert/mod.rs`](../core/gemstone/src/services/price_alert/mod.rs), [`store.rs`](../core/gemstone/src/services/price_alert/store.rs) |
+| Screen state, list rows, or what a view may name | [§ 3](#3-return-one-record-that-answers-the-whole-question), [§ 5](#5-the-app-maps-it-does-not-decide) | [`fiat/session.rs`](../core/gemstone/src/services/fiat/session.rs), [`assets/model.rs`](../core/gemstone/src/services/assets/model.rs) |
 | App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-on-ios-narrow-cases-on-android), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
 | Loading UI | Shared [reuse rule](../skills/engineering-principles.md#clean-code-principles) | Current screen state first; [`LoadingView.swift`](../ios/Packages/Components/Sources/LoadingView.swift), [`LoadingScene.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/screen/LoadingScene.kt) |
 | REST or JSON-RPC client | [§ 12](#12-a-clients-requests-are-one-enum-the-client-only-sends) | [`AptosClient`](../core/crates/gem_aptos/src/rpc/client.rs) for direct sends, [`TronGridClient`](../core/crates/gem_tron/src/rpc/trongrid/client.rs) for shared credentials, [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for RPC |
@@ -154,6 +155,74 @@ pub enum GemApprovalValue {
 }
 ```
 
+### A list row is a record of choices
+
+A row is the smallest case of this rule and the one the codebase repeats most. Core returns what the row *means* — which name it shows, whether the symbol would repeat that name, what sits underneath, what trails it — and the app turns each case into a widget. The record carries no formatted text: Core's value formatter is not locale-aware, so a formatted string regresses every locale that groups or separates differently. It carries the choices that would otherwise be re-made, differently, in each list on each platform.
+
+```rust
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetRow {
+    pub title: GemAssetRowTitle,
+    pub shows_symbol: bool,
+    pub subtitle: GemAssetRowSubtitle,
+    pub trailing: GemAssetRowTrailing,
+}
+```
+
+The screen asks its service for the row once and passes it down, so wallet, search, select and network-asset lists all render from one answer and a change to what a row means is one edit in Core. The app's row model holds the record and exposes platform values from it:
+
+```swift
+public var name: String {
+    switch row.title {
+    case .asset: assetDataModel.name
+    case .canonicalAsset: assetDataModel.asset.id.type == .native ? assetDataModel.asset.chain.asset.name : assetDataModel.name
+    case .network: assetDataModel.asset.chain.networkName
+    }
+}
+```
+
+`GemValidatorRow`, `GemFiatQuoteRow` and `GemBalanceRow` are the same shape for their lists. The thing to look for in a row model is a decision the record could carry: if both apps compute it, it belongs in the record, not in two view models.
+
+### A screen whose state changes is a session
+
+A screen that only reads gets a record. A screen the user drives — typing an amount, choosing a provider, waiting on a quote — gets a **session**: an immutable record holding that screen's state, event methods that return a new session, and one method that derives everything the screen shows.
+
+```rust
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFiatSession {
+    pub quote_type: FiatQuoteType,
+    pub buy: GemFiatOperation,
+    pub sell: GemFiatOperation,
+    pub available: GemBigUint,
+}
+
+#[uniffi::export]
+impl GemFiatSession {
+    pub fn on_amount_changed(&self, amount: String) -> GemFiatSession { ... }
+    pub fn on_quote_results(&self, results: GemFiatQuotesResult) -> GemFiatSession { ... }
+    pub fn view_state(&self, asset_price: Option<f64>, is_url_loading: bool) -> GemFiatViewState { ... }
+}
+```
+
+The view model's whole job on an event becomes one line, and every decision the screen makes — which phase it is in, whether the button is enabled, what the amount check says — is one Rust test away instead of two app tests that can disagree.
+
+```swift
+var type: FiatQuoteType {
+    get { session.type }
+    set { session = session.onTypeChanged(quoteType: newValue.map()) }
+}
+```
+
+This is as far as a view model should move into Core, and the limits are the point:
+
+- **The session is pure.** No `await`, no store, no clock, no network. Work that needs those is a service call the app makes, and its outcome re-enters through an event. A session that could block is a service wearing the wrong name.
+- **What the session cannot know is an argument to `view_state`, not stored state.** The asset price and whether a URL is opening are the app's facts, so they are parameters. That keeps the session a function of its own events and keeps its tests free of setup.
+- **One `view_state` call returning one record.** Ten getters are ten crossings per render; one record is one, and the app can memoize it by comparing the session it came from.
+- **A `Record`, not an `Object`.** Value semantics let the app diff old against new to decide whether to recompute, and let a Rust test assert a whole screen state as one literal.
+- **One session per screen**, the same rule as [one Core service per screen](#7-at-most-one-core-service-on-ios-narrow-cases-on-android). A view model holding two sessions is describing two screens.
+
+Core has no observation primitive and no lifecycle, which is why the reactive half stays in the app. The view model owns the task, the debounce, the cancellation and the navigation; the session owns the answers.
+
 ### Field types
 
 - Big-integer atomic quantities are `GemBigInt` / `GemBigUint`, never `String`. `String` moves the parse to every call site, and each one invents its own failure behaviour. The bindings type them too (`core/gemstone/uniffi.toml`): Kotlin sees `java.math.BigInteger`, Swift sees `BigInt` / `BigUInt`, so an app never parses a Core value and never `.toString()`s one to hand it back. The only parses left on the apps are of typeshare models and database columns, which are strings by generation.
@@ -253,6 +322,41 @@ data class AssetRoute(val assetId: AssetId) : NavKey
 ```
 
 Pushing `GemValidatorRow` and matching `.navigationDestination(for: GemValidatorRow.self)` compiles and works until one of the two changes; pushing it against the destination above compiles and does nothing.
+
+### A view never names a Core type
+
+The boundary is the view, not the view model. A view model holds the Core record it was given — declaring a twin of it is a [separate violation](#6-where-derived-domain-answers-live) — and exposes platform values from it. What must not appear inside a SwiftUI `body` or a `@Composable` is the generated type itself: a view that names one is pinned to a transport shape it does not own, and the shape follows the FFI, so a field that moves in Core edits screens instead of models.
+
+Two leaks account for most of it. A `switch` over a Core enum picking a localized string inside the view, and a Core record handed to a child view's initializer. Both move into the model unchanged — localization stays app-side, only the type stops crossing.
+
+```swift
+// scene
+Text(model.errorText ?? "")
+
+// model: the Core enum stops here
+var errorText: String? {
+    switch viewState.phase {
+    case .invalidInput: Localized.Errors.invalidAmount
+    case let .invalid(check): text(for: check)
+    case .noInput, .loading, .ready, .noQuotes, .failed: nil
+    }
+}
+```
+
+```kotlin
+// composable
+FooterText(state.errorText)
+
+// view model: the Core enum stops here
+private fun errorText(phase: GemFiatQuotePhase): String? = when (phase) {
+    GemFiatQuotePhase.InvalidInput -> context.getString(R.string.errors_invalid_amount)
+    is GemFiatQuotePhase.Invalid -> checkText(phase.check)
+    is GemFiatQuotePhase.Failed -> context.getString(R.string.errors_unknown_try_again)
+    GemFiatQuotePhase.NoInput, GemFiatQuotePhase.NoQuotes, is GemFiatQuotePhase.Loading, GemFiatQuotePhase.Ready -> null
+}
+```
+
+Two greps keep this honest, because nothing else will: no file under an iOS feature's `Sources/Scenes/` and no file under an Android feature's `presents/` should name `Gemstone` or `uniffi.gemstone`.
 
 ### Never call Core from the main thread
 
