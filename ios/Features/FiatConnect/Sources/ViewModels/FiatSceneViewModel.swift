@@ -48,7 +48,7 @@ public final class FiatSceneViewModel {
 
     var session: GemFiatSession
     var urlState: StateViewType<Void> = .noData
-    @ObservationIgnored private var derivedViewState: (input: ViewStateInput, state: GemFiatViewState)?
+    @ObservationIgnored private let derivedViewState = DerivedValue<ViewStateInput, GemFiatViewState>()
     var isPresentingFiatProvider: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: FiatLoadTrigger
@@ -82,13 +82,9 @@ public final class FiatSceneViewModel {
     }
 
     var viewState: GemFiatViewState {
-        let input = ViewStateInput(session: session, assetPrice: priceUsdQuery.value, isUrlLoading: urlState.isLoading)
-        if let derived = derivedViewState, derived.input == input {
-            return derived.state
+        derivedViewState(ViewStateInput(session: session, assetPrice: priceUsdQuery.value, isUrlLoading: urlState.isLoading)) {
+            $0.session.viewState(assetPrice: $0.assetPrice, isUrlLoading: $0.isUrlLoading)
         }
-        let state = session.viewState(assetPrice: input.assetPrice, isUrlLoading: input.isUrlLoading)
-        derivedViewState = (input, state)
-        return state
     }
 
     var quotesState: StateViewType<[GemFiatQuoteRow]> {
