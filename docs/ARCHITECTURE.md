@@ -295,6 +295,8 @@ A record crosses by copy. Every call carries its arguments and its result across
 
 **Build rows once per data change, and memoize.** Android wraps row construction in a map keyed by the source value; iOS builds them inside the `ObservableQuery` that produced the rows. Neither rebuilds per render, and that is the requirement, not an optimization.
 
+**Memoize behind a named input, not a tuple.** A screen that reads its view state a dozen times per render should derive it once, keyed on a small `Equatable` struct naming the inputs — the session plus whatever the session could not know. An anonymous tuple of four values is the same logic and unreadable; when a second screen needs it, the memo moves into a shared type rather than being copied.
+
 **Memoization needs equality.** A session or view state is memoized by comparing the value it came from, so the record must derive `PartialEq` — a record that does not silently never hits its cache. This is also why screen state is a `Record`: it copies once and every read afterwards is free, where a `uniffi::Object` crosses by handle but charges a crossing for every property read. Use an `Object` only when the state is large and read rarely, or when it owns something Rust-side.
 
 ### Field types

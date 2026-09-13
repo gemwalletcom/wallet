@@ -48,7 +48,7 @@ public final class FiatSceneViewModel {
 
     var session: GemFiatSession
     var urlState: StateViewType<Void> = .noData
-    @ObservationIgnored private var viewStateCache: (session: GemFiatSession, assetPrice: Double?, isUrlLoading: Bool, state: GemFiatViewState)?
+    @ObservationIgnored private var derivedViewState: (input: ViewStateInput, state: GemFiatViewState)?
     var isPresentingFiatProvider: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: FiatLoadTrigger
@@ -82,13 +82,12 @@ public final class FiatSceneViewModel {
     }
 
     var viewState: GemFiatViewState {
-        let assetPrice = priceUsdQuery.value
-        let isUrlLoading = urlState.isLoading
-        if let cache = viewStateCache, cache.session == session, cache.assetPrice == assetPrice, cache.isUrlLoading == isUrlLoading {
-            return cache.state
+        let input = ViewStateInput(session: session, assetPrice: priceUsdQuery.value, isUrlLoading: urlState.isLoading)
+        if let derived = derivedViewState, derived.input == input {
+            return derived.state
         }
-        let state = session.viewState(assetPrice: assetPrice, isUrlLoading: isUrlLoading)
-        viewStateCache = (session, assetPrice, isUrlLoading, state)
+        let state = session.viewState(assetPrice: input.assetPrice, isUrlLoading: input.isUrlLoading)
+        derivedViewState = (input, state)
         return state
     }
 
@@ -357,5 +356,15 @@ extension FiatSceneViewModel {
                 debugLog("FiatSceneViewModel get quote URL error: \(error)")
             }
         }
+    }
+}
+
+// MARK: - Private
+
+private extension FiatSceneViewModel {
+    struct ViewStateInput: Equatable {
+        let session: GemFiatSession
+        let assetPrice: Double?
+        let isUrlLoading: Bool
     }
 }
