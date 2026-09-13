@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import enum Gemstone.GemNodeRowTitle
 import struct Gemstone.GemNodeSelection
 import enum Gemstone.GemNodeStatusState
 import Localization
@@ -10,18 +11,15 @@ import Style
 struct ChainNodeViewModel {
     let node: GemNodeSelection
 
-    private let gemNodeFlag: String?
     private let statusState: GemNodeStatusState
     private let formatter: ValueFormatter
 
     init(
         node: GemNodeSelection,
-        gemNodeFlag: String?,
         statusState: GemNodeStatusState,
         formatter: ValueFormatter,
     ) {
         self.node = node
-        self.gemNodeFlag = gemNodeFlag
         self.statusState = statusState
         self.formatter = formatter
     }
@@ -35,8 +33,10 @@ struct ChainNodeViewModel {
     }
 
     var title: String {
-        guard let gemNodeFlag else { return node.host }
-        return Localized.Nodes.gemWalletNode + " " + gemNodeFlag
+        switch node.title() {
+        case let .host(host): host
+        case let .gemNode(flag): Localized.Nodes.gemWalletNode + " " + flag
+        }
     }
 
     var titleExtra: String? {

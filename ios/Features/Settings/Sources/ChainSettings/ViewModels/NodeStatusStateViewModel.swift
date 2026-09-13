@@ -11,10 +11,7 @@ struct NodeStatusStateViewModel {
     let nodeStatus: GemNodeStatusState
 
     func latestBlockText(title: String, formatter: ValueFormatter) -> String {
-        let value = switch nodeStatus {
-        case let .result(latestBlockNumber, _): formatter.string(BigInt(latestBlockNumber), decimals: 0)
-        case .error, .loading: "-"
-        }
+        let value = nodeStatus.latestBlock().map { formatter.string(BigInt($0), decimals: 0) } ?? "-"
         return "\(title): \(value)"
     }
 

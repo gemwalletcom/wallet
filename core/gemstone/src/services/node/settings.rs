@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use primitives::node_config::NodeRegion;
 use primitives::{Chain, Latency};
 
 use super::model::{GemAddNodeError, GemNodeCheck, GemNodeSelection, GemNodeStatusState};
@@ -62,10 +61,6 @@ impl GemChainSettingsService {
     pub async fn add_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.nodes.add_node(chain, url.clone()).await?;
         self.nodes.select_node(chain, url).await
-    }
-
-    pub fn node_flag(&self, url: String) -> Option<String> {
-        NodeRegion::from_url(&url).map(|region| region.flag().to_string())
     }
 
     pub async fn node_status(&self, chain: Chain, url: String) -> GemNodeStatusState {

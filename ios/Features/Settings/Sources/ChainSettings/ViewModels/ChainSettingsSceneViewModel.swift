@@ -44,7 +44,6 @@ public final class ChainSettingsSceneViewModel {
         nodes.map { node in
             ChainNodeViewModel(
                 node: node,
-                gemNodeFlag: service.nodeFlag(url: node.url),
                 statusState: statusStateByNodeUrl[node.url] ?? .loading,
                 formatter: formatter,
             )

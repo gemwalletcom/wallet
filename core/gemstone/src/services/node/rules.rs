@@ -37,6 +37,7 @@ pub fn node_selections(nodes: Vec<Node>, selected_url: &str) -> Vec<GemNodeSelec
         .map(|node| GemNodeSelection {
             host: node_host(&node.url),
             is_selected: node.url == selected_url,
+            gem_node_flag: NodeRegion::from_url(&node.url).map(|region| region.flag().to_string()),
             url: node.url,
         })
         .collect()
@@ -191,6 +192,38 @@ mod tests {
     }
 
     #[test]
+    #[test]
+    fn test_a_gem_node_titles_by_flag_and_any_other_by_host() {
+        use super::super::model::GemNodeRowTitle;
+        let plain = GemNodeSelection {
+            url: "https://rpc.example.com".into(),
+            host: "rpc.example.com".into(),
+            is_selected: false,
+            gem_node_flag: None,
+        };
+        let gem = GemNodeSelection {
+            gem_node_flag: Some("\u{1f1fa}\u{1f1f8}".into()),
+            ..plain.clone()
+        };
+        assert_eq!(plain.title(), GemNodeRowTitle::Host { host: "rpc.example.com".into() });
+        assert_eq!(gem.title(), GemNodeRowTitle::GemNode { flag: "\u{1f1fa}\u{1f1f8}".into() });
+    }
+
+    #[test]
+    fn test_only_a_finished_status_has_a_latest_block() {
+        use primitives::Latency;
+        assert_eq!(GemNodeStatusState::Loading.latest_block(), None);
+        assert_eq!(GemNodeStatusState::Error.latest_block(), None);
+        assert_eq!(
+            GemNodeStatusState::Result {
+                latest_block_number: 42,
+                latency: Latency::from_milliseconds(10),
+            }
+            .latest_block(),
+            Some(42)
+        );
+    }
+
     fn test_node_selections_marks_the_url_and_not_the_host() {
         let nodes = vec![node("https://rpc.example.com/one", 1), node("https://rpc.example.com/two", 2)];
         let selections = node_selections(nodes, "https://rpc.example.com/two");

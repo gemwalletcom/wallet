@@ -16,6 +16,13 @@ impl GemNodeStatusState {
     pub fn latency_status(&self) -> GemLatencyStatus {
         rules::latency_status(self)
     }
+
+    pub fn latest_block(&self) -> Option<u64> {
+        match self {
+            Self::Result { latest_block_number, .. } => Some(*latest_block_number),
+            Self::Loading | Self::Error => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -27,11 +34,28 @@ pub struct GemNodeCheck {
     pub latency: Latency,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+pub enum GemNodeRowTitle {
+    Host { host: String },
+    GemNode { flag: String },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNodeSelection {
     pub url: String,
     pub host: String,
     pub is_selected: bool,
+    pub gem_node_flag: Option<String>,
+}
+
+#[uniffi::export]
+impl GemNodeSelection {
+    pub fn title(&self) -> GemNodeRowTitle {
+        match &self.gem_node_flag {
+            Some(flag) => GemNodeRowTitle::GemNode { flag: flag.clone() },
+            None => GemNodeRowTitle::Host { host: self.host.clone() },
+        }
+    }
 }
 
 #[derive(Debug, Clone, uniffi::Error)]

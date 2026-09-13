@@ -41,7 +41,6 @@ class NetworksNodeUiStateTest {
 
         val rows = buildNodeRows(
             selections = listOf(gemNode, defaultNode, customNode),
-            gemNodeFlag = { url -> "🇺🇸".takeIf { url == gemNode.url } },
             canDelete = { url -> url == customNode.url },
         )
 
@@ -57,7 +56,6 @@ class NetworksNodeUiStateTest {
 
         val rows = buildNodeRows(
             selections = listOf(firstNode, secondNode),
-            gemNodeFlag = { null },
             canDelete = { true },
         )
 
@@ -68,11 +66,11 @@ class NetworksNodeUiStateTest {
         url = url,
         host = url.removePrefix("https://").substringBefore("/"),
         isSelected = isSelected,
+        gemNodeFlag = null,
     )
 
     private fun rows(vararg selections: GemNodeSelection) = buildNodeRows(
         selections = selections.toList(),
-        gemNodeFlag = { null },
         canDelete = { false },
     )
 }

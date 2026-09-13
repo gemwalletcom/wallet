@@ -20,6 +20,8 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemNodeRowTitle
+import uniffi.gemstone.GemNodeSelection
 import uniffi.gemstone.GemNodeStatusState
 import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
@@ -84,17 +86,14 @@ internal fun NodeItem(
 }
 
 @Composable
-private fun NodeRowUiModel.title(): String {
-    return gemNodeFlag?.let { "${stringResource(R.string.nodes_gem_wallet_node)} $it" } ?: host
+private fun NodeRowUiModel.title(): String = when (val title = node.title()) {
+    is GemNodeRowTitle.Host -> title.host
+    is GemNodeRowTitle.GemNode -> "${stringResource(R.string.nodes_gem_wallet_node)} ${title.flag}"
 }
 
 @Composable
 private fun NodeRowUiModel.latestBlockText(): String {
-    val blockValue = when (val currentState = statusState) {
-        GemNodeStatusState.Error,
-        GemNodeStatusState.Loading -> Placeholder.empty
-        is GemNodeStatusState.Result -> DecimalFormat.getInstance().format(currentState.latestBlockNumber.toLong())
-    }
+    val blockValue = statusState.latestBlock()?.let { DecimalFormat.getInstance().format(it.toLong()) } ?: Placeholder.empty
 
     return "${stringResource(R.string.nodes_import_node_latest_block)}: $blockValue"
 }
@@ -105,9 +104,12 @@ fun NodeItemPreview() {
     WalletTheme {
         NodeItem(
             model = NodeRowUiModel(
-                url = "https://some.url.eth",
-                host = "some.url.eth",
-                selected = true,
+                node = GemNodeSelection(
+                    url = "https://some.url.eth",
+                    host = "some.url.eth",
+                    isSelected = true,
+                    gemNodeFlag = null,
+                ),
                 canDelete = true,
                 statusState = GemNodeStatusState.Result(
                     latestBlockNumber = 123902302938UL,

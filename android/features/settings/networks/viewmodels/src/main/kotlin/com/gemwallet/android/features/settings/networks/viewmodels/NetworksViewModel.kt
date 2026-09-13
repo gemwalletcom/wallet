@@ -108,7 +108,6 @@ class NetworksViewModel @Inject constructor(
     private suspend fun loadNodes(chain: Chain) {
         val nodes = buildNodeRows(
             selections = service.nodes(chain.string),
-            gemNodeFlag = service::nodeFlag,
             canDelete = { url -> canDeleteNode(chain, url) },
         )
 
@@ -221,15 +220,11 @@ internal fun visibleNodeStates(
 
 internal fun buildNodeRows(
     selections: List<GemNodeSelection>,
-    gemNodeFlag: (String) -> String?,
     canDelete: (String) -> Boolean,
 ): List<NodeRowUiModel> {
     return selections.map { selection ->
         NodeRowUiModel(
-            url = selection.url,
-            host = selection.host,
-            gemNodeFlag = gemNodeFlag(selection.url),
-            selected = selection.isSelected,
+            node = selection,
             canDelete = canDelete(selection.url),
         )
     }
