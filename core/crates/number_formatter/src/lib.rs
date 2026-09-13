@@ -4,6 +4,8 @@ pub mod crypto_fiat_converter;
 pub use crypto_fiat_converter::CryptoFiatConverter;
 pub mod currency;
 pub mod number_formatter;
+pub mod precision;
+pub use precision::{ABBREVIATION_THRESHOLD, Precision};
 pub use number_formatter::NumberFormatter;
 pub mod price_suggestion;
 pub mod value_formatter;
