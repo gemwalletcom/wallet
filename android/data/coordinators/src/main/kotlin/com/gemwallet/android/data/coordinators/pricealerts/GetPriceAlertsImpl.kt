@@ -6,7 +6,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceAlertStore
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.ext.toIdentifier
@@ -82,7 +82,7 @@ class PriceAlertDataAggregateImpl(
         get() = row.percent?.let { percent ->
             when (priceAlert.pricePercentChange) {
                 null -> percent.formatAsPercentage()
-                else -> percent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+                else -> percent.formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
             }
         }.orEmpty()
 

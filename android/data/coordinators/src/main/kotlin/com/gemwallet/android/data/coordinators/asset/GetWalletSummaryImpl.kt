@@ -8,7 +8,7 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
@@ -120,7 +120,7 @@ internal class WalletSummaryEquivalentValue(
         if (amount > 0) "+$formatted" else formatted
     }.orEmpty()
 
-    override val changePercentageFormatted: String = changePercentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+    override val changePercentageFormatted: String = changePercentage.formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
 }
 
 internal data class WalletSummaryDisplayState(

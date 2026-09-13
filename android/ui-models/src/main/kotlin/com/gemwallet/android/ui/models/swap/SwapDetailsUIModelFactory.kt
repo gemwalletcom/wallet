@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.swap
 
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.model.AssetPriceValue
@@ -69,7 +69,7 @@ object SwapDetailsUIModelFactory {
             SwapPriceImpactUIModel(
                 type = it.impactType,
                 displayText = it.percentage.formatAsPercentage(),
-                warningText = it.percentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+                warningText = it.percentage.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
                 isHigh = it.isHigh,
                 showsInSummary = it.showsInSummary,
             )
@@ -84,7 +84,7 @@ object SwapDetailsUIModelFactory {
             priceImpact = priceImpact,
             minimumReceive = ValueFormatter(style = ValueFormatter.Style.Auto)
                 .string(minReceiveAtomic, input.receiveAsset.asset),
-            slippageText = slippagePercent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+            slippageText = slippagePercent.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
             slippageBps = input.slippageBps,
             selectedSlippage = input.selectedSlippage,
             etaInSeconds = input.etaInSeconds,

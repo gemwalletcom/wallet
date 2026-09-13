@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.chart
 
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
@@ -31,7 +31,7 @@ data class ChartHeaderUIModel(
             changeText = header.changePercentage?.let { percentage ->
                 when (type) {
                     GemChartValueType.PRICE -> percentage.formatAsPercentage()
-                    GemChartValueType.PRICE_CHANGE -> "(${percentage.formatAsPercentage(PercentageFormatterStyle.PercentSignLess)})"
+                    GemChartValueType.PRICE_CHANGE -> "(${percentage.formatAsPercentage(GemPercentageStyle.UNSIGNED)})"
                 }
             },
             direction = (if (type == GemChartValueType.PRICE_CHANGE) header.value else header.changePercentage ?: 0.0).toValueDirection(),

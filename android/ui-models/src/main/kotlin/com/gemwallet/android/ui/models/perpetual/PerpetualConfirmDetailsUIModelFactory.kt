@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.perpetual
 
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.formatPnlWithPercentage
 import com.gemwallet.android.domains.price.toValueDirection
@@ -31,7 +31,7 @@ object PerpetualConfirmDetailsUIModelFactory {
             autoclose = autocloseFrom(data),
             marketPriceText = currencyFormatter.string(data.marketPrice),
             entryPriceText = data.entryPrice?.let { currencyFormatter.string(it) },
-            slippageText = data.slippage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+            slippageText = data.slippage.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
         )
     }
 
