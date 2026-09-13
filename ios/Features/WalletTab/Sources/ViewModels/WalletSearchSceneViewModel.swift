@@ -98,6 +98,10 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         service.searchCollections(data: searchResult.collections.map { $0.map() }, query: searchQuery.request.searchBy)
     }
 
+    var searchDebounce: Duration {
+        .milliseconds(service.searchDebounceMilliseconds())
+    }
+
     var currencyCode: String {
         service.getCurrency()
     }

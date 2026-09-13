@@ -46,6 +46,7 @@ class SwapSelectViewModelTest {
         every { service.flow(any()) } answers { firstArg<GemSelectAssetType>().flow() }
         coEvery { service.searchAssets(any()) } returns emptyList()
         every { service.supportsTokens(any()) } returns false
+        every { service.searchDebounceMilliseconds() } returns 250uL
     }
 
     @After

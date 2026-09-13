@@ -91,7 +91,7 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val searchRequests = currentQuery.debounce(SEARCH_DEBOUNCE_MS).distinctUntilChanged()
+    private val searchRequests = currentQuery.debounce(service.searchDebounceMilliseconds().toLong()).distinctUntilChanged()
 
     private val filters = combine(
         session,
@@ -287,6 +287,5 @@ open class BaseAssetSelectViewModel(
 
     private companion object {
         private const val TAG = "AssetSelect"
-        private const val SEARCH_DEBOUNCE_MS = 250L
     }
 }

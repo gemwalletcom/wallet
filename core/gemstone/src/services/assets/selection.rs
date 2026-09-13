@@ -64,6 +64,10 @@ impl GemAssetSelectionService {
         rules::select_asset_flow(select_type, swap_receive_assets)
     }
 
+    pub fn search_debounce_milliseconds(&self) -> u64 {
+        crate::config::search_config::SEARCH_DEBOUNCE_MILLISECONDS
+    }
+
     pub fn wallet_search_limits(&self, query: String) -> GemWalletSearchLimits {
         rules::wallet_search_limits(&query)
     }
