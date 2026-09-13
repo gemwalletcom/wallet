@@ -116,3 +116,32 @@ pub enum GemWalletConnectTransactionAction {
     Sign,
     Send,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemVerificationLevel {
+    Verified,
+    Unverified,
+    Suspicious,
+}
+
+#[uniffi::export]
+pub fn verification_level(status: WalletConnectionVerificationStatus) -> GemVerificationLevel {
+    match status {
+        WalletConnectionVerificationStatus::Verified => GemVerificationLevel::Verified,
+        WalletConnectionVerificationStatus::Unknown => GemVerificationLevel::Unverified,
+        WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious => GemVerificationLevel::Suspicious,
+    }
+}
+
+#[cfg(test)]
+mod verification_tests {
+    use super::*;
+
+    #[test]
+    fn test_an_invalid_origin_reads_as_suspicious_and_an_unknown_one_only_as_unverified() {
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Verified), GemVerificationLevel::Verified);
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Unknown), GemVerificationLevel::Unverified);
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Invalid), GemVerificationLevel::Suspicious);
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Malicious), GemVerificationLevel::Suspicious);
+    }
+}

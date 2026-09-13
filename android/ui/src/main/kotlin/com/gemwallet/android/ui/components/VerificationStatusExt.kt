@@ -8,26 +8,26 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.pendingColor
+import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.WalletConnectionVerificationStatus
+import uniffi.gemstone.verificationLevel
 
 @StringRes
-fun WalletConnectionVerificationStatus.titleRes(): Int = when (this) {
-    WalletConnectionVerificationStatus.VERIFIED -> R.string.asset_verification_verified
-    WalletConnectionVerificationStatus.UNKNOWN -> R.string.asset_verification_unverified
-    WalletConnectionVerificationStatus.INVALID,
-    WalletConnectionVerificationStatus.MALICIOUS -> R.string.asset_verification_suspicious
+fun WalletConnectionVerificationStatus.titleRes(): Int = when (verificationLevel(this)) {
+    GemVerificationLevel.VERIFIED -> R.string.asset_verification_verified
+    GemVerificationLevel.UNVERIFIED -> R.string.asset_verification_unverified
+    GemVerificationLevel.SUSPICIOUS -> R.string.asset_verification_suspicious
 }
 
 @Composable
-fun WalletConnectionVerificationStatus.icon(): ImageVector = when (this) {
-    WalletConnectionVerificationStatus.VERIFIED -> AppIcons.Verified
-    else -> AppIcons.Warning
+fun WalletConnectionVerificationStatus.icon(): ImageVector = when (verificationLevel(this)) {
+    GemVerificationLevel.VERIFIED -> AppIcons.Verified
+    GemVerificationLevel.UNVERIFIED, GemVerificationLevel.SUSPICIOUS -> AppIcons.Warning
 }
 
 @Composable
-fun WalletConnectionVerificationStatus.color(): Color = when (this) {
-    WalletConnectionVerificationStatus.VERIFIED -> MaterialTheme.colorScheme.tertiary
-    WalletConnectionVerificationStatus.UNKNOWN -> pendingColor
-    WalletConnectionVerificationStatus.INVALID,
-    WalletConnectionVerificationStatus.MALICIOUS -> MaterialTheme.colorScheme.error
+fun WalletConnectionVerificationStatus.color(): Color = when (verificationLevel(this)) {
+    GemVerificationLevel.VERIFIED -> MaterialTheme.colorScheme.tertiary
+    GemVerificationLevel.UNVERIFIED -> pendingColor
+    GemVerificationLevel.SUSPICIOUS -> MaterialTheme.colorScheme.error
 }

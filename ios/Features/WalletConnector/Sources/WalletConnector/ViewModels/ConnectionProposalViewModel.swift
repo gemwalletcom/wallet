@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemVerificationLevel
+import func Gemstone.verificationLevel
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -68,27 +70,31 @@ public struct ConnectionProposalViewModel {
         payload.metadata.iconURL
     }
 
+    private var verification: GemVerificationLevel {
+        verificationLevel(status: pairingProposal.verificationStatus.map())
+    }
+
     var verificationImage: Image {
-        switch pairingProposal.verificationStatus {
+        switch verification {
         case .verified: Images.Transaction.State.success
-        case .unknown: Images.TokenStatus.warning
-        case .invalid, .malicious: Images.TokenStatus.risk
+        case .unverified: Images.TokenStatus.warning
+        case .suspicious: Images.TokenStatus.risk
         }
     }
 
     var statusText: String {
-        switch pairingProposal.verificationStatus {
+        switch verification {
         case .verified: Localized.Asset.Verification.verified
-        case .unknown: Localized.Asset.Verification.unverified
-        case .invalid, .malicious: Localized.Asset.Verification.suspicious
+        case .unverified: Localized.Asset.Verification.unverified
+        case .suspicious: Localized.Asset.Verification.suspicious
         }
     }
 
     var statusTextStyle: TextStyle {
-        switch pairingProposal.verificationStatus {
+        switch verification {
         case .verified: TextStyle(font: .callout, color: Colors.green)
-        case .unknown: TextStyle(font: .callout, color: Colors.orange)
-        case .invalid, .malicious: TextStyle(font: .callout, color: Colors.red)
+        case .unverified: TextStyle(font: .callout, color: Colors.orange)
+        case .suspicious: TextStyle(font: .callout, color: Colors.red)
         }
     }
 
