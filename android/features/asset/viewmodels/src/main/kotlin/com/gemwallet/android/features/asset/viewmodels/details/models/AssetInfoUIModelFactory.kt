@@ -2,7 +2,7 @@ package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.ext.asset
@@ -73,7 +73,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
                 is GemBalanceRow.Staked -> AssetInfoUIModel.BalanceUIModel(
                     AssetInfoUIModel.BalanceViewType.Stake,
                     if (row.value == BigInteger.ZERO) {
-                        "APR ${(assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
+                        "APR ${(assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = GemPercentageStyle.UNSIGNED)}"
                     } else {
                         text(row.value)
                     },
@@ -83,7 +83,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
                 is GemBalanceRow.Earn -> AssetInfoUIModel.BalanceUIModel(
                     AssetInfoUIModel.BalanceViewType.Earn,
                     if (row.value == BigInteger.ZERO) {
-                        "APR ${(assetInfo.metadata.earnApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
+                        "APR ${(assetInfo.metadata.earnApr ?: 0.0).formatAsPercentage(style = GemPercentageStyle.UNSIGNED)}"
                     } else {
                         text(row.value)
                     },

@@ -19,6 +19,7 @@ pub mod mnemonic;
 pub mod models;
 pub mod network;
 pub mod payment;
+pub mod percentage;
 pub mod precision;
 pub mod perpetual;
 pub mod price;

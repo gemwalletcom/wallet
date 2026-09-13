@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset.presents.chart
 
 import androidx.compose.foundation.lazy.LazyListScope
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.formatLeverage
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AllTimeUIModel
@@ -52,4 +52,4 @@ private fun PortfolioStatistic.asAllTimeUIModel(): AllTimeUIModel? = when (this)
 }
 
 private fun PortfolioMarginUsage.marginText(formatter: CurrencyFormatter): String =
-    "${formatter.string(accountValue * usage)} (${(usage * 100).formatAsPercentage(PercentageFormatterStyle.PercentSignLess)})"
+    "${formatter.string(accountValue * usage)} (${(usage * 100).formatAsPercentage(GemPercentageStyle.UNSIGNED)})"

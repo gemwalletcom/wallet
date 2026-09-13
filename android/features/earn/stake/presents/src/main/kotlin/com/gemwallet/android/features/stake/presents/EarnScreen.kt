@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.features.stake.viewmodels.EarnViewModel
 import com.gemwallet.android.model.AmountParams
@@ -75,7 +75,7 @@ fun EarnScreen(
                 item {
                     PropertyItem(
                         title = stringResource(R.string.stake_apr, ""),
-                        data = apr.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+                        data = apr.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
                         dataColor = MaterialTheme.colorScheme.tertiary,
                         listPosition = ListPosition.Single,
                     )

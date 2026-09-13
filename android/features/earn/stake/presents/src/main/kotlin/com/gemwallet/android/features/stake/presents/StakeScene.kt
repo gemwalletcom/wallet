@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.duration.formatDuration
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
@@ -154,7 +154,7 @@ private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo, lockTimeDays: I
             )
             is StakeInfoRow.Apr -> PropertyItem(
                 title = stringResource(id = R.string.stake_apr, ""),
-                data = row.value.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+                data = row.value.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
                 dataColor = MaterialTheme.colorScheme.tertiary,
                 info = InfoSheetEntity.StakeAprInfo(icon = row.iconUrl),
                 listPosition = position,

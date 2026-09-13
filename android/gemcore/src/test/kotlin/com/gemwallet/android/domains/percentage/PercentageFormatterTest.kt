@@ -3,6 +3,7 @@ package com.gemwallet.android.domains.percentage
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.util.Locale
+import uniffi.gemstone.GemPercentageStyle
 
 class PercentageFormatterTest {
 
@@ -24,10 +25,10 @@ class PercentageFormatterTest {
 
     @Test
     fun formatAsPercentage_signless_matchesIosPercentSignLessFormatter() {
-        assertEquals("1.23%", (-1.23).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess, locale = Locale.US))
-        assertEquals("11.12%", 11.12.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess, locale = Locale.US))
-        assertEquals("11.00%", 11.0.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess, locale = Locale.US))
-        assertEquals("12,000,123.00%", 12_000_123.0.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess, locale = Locale.US))
+        assertEquals("1.23%", (-1.23).formatAsPercentage(style = GemPercentageStyle.UNSIGNED, locale = Locale.US))
+        assertEquals("11.12%", 11.12.formatAsPercentage(style = GemPercentageStyle.UNSIGNED, locale = Locale.US))
+        assertEquals("11.00%", 11.0.formatAsPercentage(style = GemPercentageStyle.UNSIGNED, locale = Locale.US))
+        assertEquals("12,000,123.00%", 12_000_123.0.formatAsPercentage(style = GemPercentageStyle.UNSIGNED, locale = Locale.US))
     }
 
     @Test
@@ -46,7 +47,7 @@ class PercentageFormatterTest {
         assertEquals(
             "0%",
             0.0.formatAsPercentage(
-                style = PercentageFormatterStyle.PercentSignLessCompact,
+                style = GemPercentageStyle.UNSIGNED_COMPACT,
                 locale = Locale.US,
             )
         )
@@ -55,11 +56,11 @@ class PercentageFormatterTest {
     @Test
     fun formatAsPercentage_compactStyle_isAvailableForNonUiCallers() {
         assertEquals("12.5%", 12.5.formatAsPercentage(
-            style = PercentageFormatterStyle.PercentSignLessCompact,
+            style = GemPercentageStyle.UNSIGNED_COMPACT,
             locale = Locale.US,
         ))
         assertEquals("12%", 12.0.formatAsPercentage(
-            style = PercentageFormatterStyle.PercentSignLessCompact,
+            style = GemPercentageStyle.UNSIGNED_COMPACT,
             locale = Locale.US,
         ))
     }

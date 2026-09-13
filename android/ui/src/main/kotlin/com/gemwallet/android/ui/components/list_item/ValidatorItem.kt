@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.duration.formatAvailableIn
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -71,7 +71,7 @@ private fun ValidatorIcon(
     }
 }
 
-fun Double.formatApr(): String = formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+fun Double.formatApr(): String = formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
 
 fun availableIn(delegation: Delegation?): String {
     val remaining = availableInDurationMillis(delegation) ?: return ""
