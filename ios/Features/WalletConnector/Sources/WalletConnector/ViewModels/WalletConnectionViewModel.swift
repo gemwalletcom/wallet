@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemApplicationMetadataService
+import struct Gemstone.GemConnectionRow
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -8,8 +10,12 @@ import PrimitivesComponents
 public struct WalletConnectionViewModel: Sendable {
     let connection: WalletConnection
 
+    private var row: GemConnectionRow {
+        GemApplicationMetadataService.shared.connectionRow(metadata: connection.session.metadata.map())
+    }
+
     var nameText: String {
-        connection.session.metadata.shortName
+        row.title
     }
 
     var imageUrl: URL? {
@@ -17,8 +23,7 @@ public struct WalletConnectionViewModel: Sendable {
     }
 
     var hostText: String? {
-        let host = connection.session.metadata.host
-        return host.isEmpty ? nil : host
+        row.host
     }
 
     var url: URL? {

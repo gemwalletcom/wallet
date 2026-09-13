@@ -1,4 +1,4 @@
-use primitives::ApplicationMetadata;
+use primitives::{ApplicationMetadata, ApplicationMetadataSource};
 use url::{Host, Url, form_urlencoded};
 
 use crate::config::public::ASSETS_URL;
@@ -18,6 +18,15 @@ impl GemApplicationMetadataService {
 
     pub fn short_name(&self, metadata: ApplicationMetadata) -> String {
         metadata.short_name()
+    }
+
+    pub fn connection_row(&self, metadata: ApplicationMetadata) -> GemConnectionRow {
+        let name = metadata.short_name();
+        GemConnectionRow {
+            initial: name.chars().next().map(|first| first.to_uppercase().to_string()),
+            title: name,
+            host: Some(url_host(&metadata.url)).filter(|host| !host.is_empty()),
+        }
     }
 
     pub fn host(&self, metadata: ApplicationMetadata) -> String {
@@ -63,6 +72,25 @@ fn public_url(url: &str) -> Option<Url> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_a_connection_without_a_host_has_no_subtitle_and_takes_its_initial_from_the_name() {
+        let service = GemApplicationMetadataService::new();
+        let metadata = |url: &str, name: &str| ApplicationMetadata {
+            name: name.to_string(),
+            description: String::new(),
+            url: url.to_string(),
+            icon: String::new(),
+            source: ApplicationMetadataSource::WalletConnect,
+        };
+
+        let hosted = service.connection_row(metadata("https://app.uniswap.org", "Uniswap"));
+        assert_eq!(hosted.host.as_deref(), Some("app.uniswap.org"));
+        assert_eq!(hosted.initial.as_deref(), Some("U"));
+
+        assert_eq!(service.connection_row(metadata("", "Uniswap")).host, None);
+        assert_eq!(service.connection_row(metadata("", "")).initial, None);
+    }
+
     use super::*;
 
     fn icon_url(url: &str, icon: &str) -> Option<String> {
@@ -138,4 +166,11 @@ mod tests {
             assert_eq!(icon_url(url, "https://cdn.example.com/icon.png"), None, "url: {url}");
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemConnectionRow {
+    pub title: String,
+    pub host: Option<String>,
+    pub initial: Option<String>,
 }

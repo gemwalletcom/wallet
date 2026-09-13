@@ -44,6 +44,8 @@ import kotlinx.coroutines.launch
 import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+import uniffi.gemstone.GemApplicationMetadataService
+import com.gemwallet.android.ext.toGem
 
 @Composable
 fun ConnectionsScene(
@@ -144,17 +146,17 @@ fun ConnectionItem(
     listPosition: ListPosition,
     onClick: ((String) -> Unit)? = null,
 ) {
+    val row = GemApplicationMetadataService().use { it.connectionRow(connection.session.metadata.toGem()) }
     ListItem(
         modifier = if (onClick == null) Modifier else Modifier.clickable { onClick(connection.session.id) },
         leading = {
-            val name = connection.session.metadata.shortName
             IconWithBadge(
                 connection.session.metadata.iconUrl,
-                placeholder = if (name.isEmpty()) "WC" else name[0].toString()
+                placeholder = row.initial ?: "WC",
             )
         },
-        title = { ListItemTitleText(connection.session.metadata.shortName) },
-        subtitle = { ListItemSupportText(connection.session.metadata.host) },
+        title = { ListItemTitleText(row.title) },
+        subtitle = row.host?.let { host -> { ListItemSupportText(host) } },
         listPosition = listPosition
     )
 }
