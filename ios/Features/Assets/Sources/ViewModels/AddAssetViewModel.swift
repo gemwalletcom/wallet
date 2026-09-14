@@ -41,7 +41,7 @@ struct AddAssetViewModel {
     }
 
     var type: String {
-        asset.id.assetType?.rawValue ?? ""
+        asset.type.rawValue
     }
 
     var explorerUrl: URL? {
