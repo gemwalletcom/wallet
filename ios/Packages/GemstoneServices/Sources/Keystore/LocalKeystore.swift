@@ -99,9 +99,10 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         try FileManager.default.removeItem(at: keystoreURL)
     }
 
-    @MainActor
-    func getPassword() throws -> String {
-        try keystorePassword.getPassword()
+    func getPassword() async throws -> String {
+        try await queue.asyncTask { [keystorePassword] in
+            try keystorePassword.getPassword()
+        }
     }
 
     private func pendingV3Migrations(for wallets: [Primitives.Wallet]) -> [(wallet: Primitives.Wallet, v3URL: URL)] {
