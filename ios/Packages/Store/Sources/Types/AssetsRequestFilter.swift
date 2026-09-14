@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 public enum AssetsRequestFilter {
-    case search(String, hasPriorityAssets: Bool)
+    case search(String)
     case enabled
     case buyable
     case sellable

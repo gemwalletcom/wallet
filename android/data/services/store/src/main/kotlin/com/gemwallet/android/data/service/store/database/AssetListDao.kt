@@ -14,9 +14,8 @@ interface AssetListDao {
 
     @Query("""
         SELECT asset_lists.* FROM asset_lists
-        JOIN search ON asset_lists.id = search.listId
-        WHERE search.`query` = :query
+        JOIN search ON search.listId = asset_lists.id AND search.`query` = :query
         ORDER BY search.priority ASC
     """)
-    fun searchWithPriority(query: String): Flow<List<DbAssetList>>
+    fun search(query: String): Flow<List<DbAssetList>>
 }

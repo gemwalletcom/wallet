@@ -152,11 +152,11 @@ struct AssetsRequestTests {
         try searchStore.add(type: .asset, query: "T", ids: [AssetBasic].mock().reversed().map(\.asset.id.identifier))
 
         try db.dbQueue.read { db in
-            let btc = try AssetsRequest.mock(filters: [.search("btc", hasPriorityAssets: false)]).fetch(db)
-            let bnb = try AssetsRequest.mock(filters: [.search("bNb", hasPriorityAssets: false)]).fetch(db)
-            let tron = try AssetsRequest.mock(filters: [.search("0xdAC17F958D2ee523a2206206994597C13D831ec7", hasPriorityAssets: false)]).fetch(db)
+            let btc = try AssetsRequest.mock(filters: [.search("btc")]).fetch(db)
+            let bnb = try AssetsRequest.mock(filters: [.search("bNb")]).fetch(db)
+            let tron = try AssetsRequest.mock(filters: [.search("0xdAC17F958D2ee523a2206206994597C13D831ec7")]).fetch(db)
             let searchAssets = try AssetsRequest.mock(searchBy: query).fetch(db)
-            let prioritySearchAssets = try AssetsRequest.mock(filters: [.search("T", hasPriorityAssets: true)]).fetch(db)
+            let prioritySearchAssets = try AssetsRequest.mock(filters: [.search("T")]).fetch(db)
 
             #expect(btc.count == 1)
             #expect(btc.first?.asset.symbol == "BTC")
@@ -187,9 +187,23 @@ struct AssetsRequestTests {
         try searchStore.add(type: .asset, query: query, ids: assets.map(\.asset.id.identifier))
 
         try db.dbQueue.read { db in
-            let result = try AssetsRequest.mock(filters: [.search(query, hasPriorityAssets: true)]).fetch(db)
+            let result = try AssetsRequest.mock(filters: [.search(query)]).fetch(db)
 
             #expect(result.map(\.asset.id) == assets.reversed().map(\.asset.id))
+        }
+    }
+
+    @Test func searchKeepsTextMatchesTheApiAnswerLeftOut() throws {
+        let db = DB.mockAssets()
+        let query = "usdt"
+        let answeredByApi = Asset.mockBNB()
+
+        try SearchStore(db: db).add(type: .asset, query: query, ids: [answeredByApi.id.identifier])
+
+        try db.dbQueue.read { db in
+            let result = try AssetsRequest.mock(searchBy: query).fetch(db)
+
+            #expect(result.map(\.asset.symbol) == ["USDT", answeredByApi.symbol])
         }
     }
 

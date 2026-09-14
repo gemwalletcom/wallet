@@ -1,5 +1,6 @@
 use crate::params::{QueryLimitParam, SearchQueryParam};
 use primitives::Chain;
+use primitives::asset_score::AssetRank;
 use rocket::FromForm;
 use std::str::FromStr;
 
@@ -48,8 +49,11 @@ impl SearchRequest {
         }
     }
 
-    pub fn rank_threshold(&self) -> u32 {
-        if self.query.len() < STRICT_RANK_QUERY_LENGTH { 15 } else { 5 }
+    pub fn rank_threshold(&self) -> i32 {
+        match self.query.len() < STRICT_RANK_QUERY_LENGTH {
+            true => AssetRank::Trivial.threshold(),
+            false => AssetRank::Unknown.threshold(),
+        }
     }
 
     pub fn should_search_lists(&self) -> bool {
@@ -73,7 +77,7 @@ mod tests {
         assert_eq!(SearchRequest::new("USDT", None, None, MAX_QUERY_LIMIT, None).rank_threshold(), 15);
         assert_eq!(SearchRequest::new("USDT TRC20", None, None, MAX_QUERY_LIMIT, None).rank_threshold(), 15);
         assert_eq!(SearchRequest::new("ethereum chain", None, None, MAX_QUERY_LIMIT, None).rank_threshold(), 15);
-        assert_eq!(SearchRequest::new("ethereum contract", None, None, MAX_QUERY_LIMIT, None).rank_threshold(), 5);
+        assert_eq!(SearchRequest::new("ethereum contract", None, None, MAX_QUERY_LIMIT, None).rank_threshold(), 0);
     }
 
     #[test]

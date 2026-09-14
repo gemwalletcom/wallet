@@ -4,7 +4,7 @@ use serde_json::Value;
 pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
     let mut filters = vec![];
     filters.push("properties.isEnabled = true".to_string());
-    filters.push(format!("score.rank > {}", request.rank_threshold()));
+    filters.push(format!("score.rank >= {}", request.rank_threshold()));
 
     if request.has_tag_filter() {
         filters.push(filter_array("tags", request.tags.clone()));
@@ -42,13 +42,14 @@ fn filter_string(value: String) -> String {
 mod tests {
     use super::*;
     use crate::params::MAX_QUERY_LIMIT;
+    use primitives::asset_score::AssetScore;
 
     #[test]
     fn build_assets_filters_short_query() {
         let request = SearchRequest::new("USDT TRC20", None, None, MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 15"]);
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank >= 15"]);
     }
 
     #[test]
@@ -56,7 +57,15 @@ mod tests {
         let request = SearchRequest::new("ethereum contract", None, None, MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5"]);
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank >= 0"]);
+    }
+
+    #[test]
+    fn build_assets_filters_keep_default_scored_assets() {
+        let request = SearchRequest::new("justlend", None, None, MAX_QUERY_LIMIT, None);
+
+        assert!(build_assets_filters(&request).contains(&format!("score.rank >= {}", request.rank_threshold())));
+        assert!(AssetScore::default().rank >= request.rank_threshold());
     }
 
     #[test]
@@ -64,7 +73,7 @@ mod tests {
         let request = SearchRequest::new("ethereum contract", None, Some("defi"), MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "tags IN [\"defi\"]"]);
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank >= 0", "tags IN [\"defi\"]"]);
     }
 
     #[test]
@@ -72,13 +81,13 @@ mod tests {
         let request = SearchRequest::new("ethereum contract", Some("ethereum"), None, MAX_QUERY_LIMIT, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "chain IN [\"ethereum\"]"]);
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank >= 0", "chain IN [\"ethereum\"]"]);
 
         let request = SearchRequest::new("", Some("smartchain"), Some("bstocks"), MAX_QUERY_LIMIT, None);
 
         assert_eq!(
             build_assets_filters(&request),
-            vec!["properties.isEnabled = true", "score.rank > 15", "tags IN [\"bstocks\"]", "chain IN [\"smartchain\"]"]
+            vec!["properties.isEnabled = true", "score.rank >= 15", "tags IN [\"bstocks\"]", "chain IN [\"smartchain\"]"]
         );
     }
 

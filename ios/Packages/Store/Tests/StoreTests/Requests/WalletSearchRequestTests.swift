@@ -46,6 +46,21 @@ struct WalletSearchRequestTests {
     }
 
     @Test
+    func searchKeepsTextMatchesTheApiAnswerLeftOut() throws {
+        let db = DB.mockAssets()
+        let query = "usdt"
+        let answeredByApi = Asset.mockBNB()
+
+        try SearchStore(db: db).add(type: .asset, query: query, ids: [answeredByApi.id.identifier])
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, searchKey: query, limit: 10).fetch(db)
+
+            #expect(result.assets.map(\.asset.symbol) == ["USDT", answeredByApi.symbol])
+        }
+    }
+
+    @Test
     func searchNativeAssetByChainDoesNotMatchChainTokens() throws {
         let db = DB.mockAssets(assets: [
             .mock(asset: .mock(id: AssetId(chain: .ton), name: "Gram", symbol: "GRAM", decimals: 9, type: .native)),

@@ -12,6 +12,9 @@ import com.gemwallet.android.data.service.store.database.entities.DbPerpetualUpd
 import com.gemwallet.android.data.service.store.database.entities.toUpdate
 import kotlinx.coroutines.flow.Flow
 
+private const val PERPETUAL_MATCHES_QUERY = """(perpetuals.name LIKE '%' || :query || '%' COLLATE NOCASE
+            OR asset.symbol LIKE '%' || :query || '%' COLLATE NOCASE)"""
+
 @Dao
 interface PerpetualDao {
 
@@ -37,11 +40,13 @@ interface PerpetualDao {
     @Transaction
     @Query("""
         SELECT perpetuals.* FROM perpetuals
-        JOIN search ON perpetuals.id = search.perpetualId
-        WHERE search.`query` = :query
-        ORDER BY search.priority ASC, perpetuals.volume24h DESC
+        JOIN asset ON asset.id = perpetuals.assetId
+        LEFT JOIN search ON search.perpetualId = perpetuals.id AND search.`query` = :query
+        WHERE search.priority IS NOT NULL OR $PERPETUAL_MATCHES_QUERY
+        ORDER BY $PERPETUAL_MATCHES_QUERY DESC,
+            search.priority IS NULL, search.priority ASC, perpetuals.volume24h DESC
     """)
-    fun searchWithPriority(query: String): Flow<List<DbPerpetualData>>
+    fun search(query: String): Flow<List<DbPerpetualData>>
 
     @Transaction
     @Query("SELECT * FROM perpetuals WHERE id = :perpetualId")

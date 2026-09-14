@@ -89,6 +89,10 @@ private const val ASSET_INFO_SOURCE = """
 private const val ASSET_INFO_SELECT = "SELECT $ASSET_INFO_COLUMNS $ASSET_INFO_SOURCE"
 private const val ASSET_INFO = "($ASSET_INFO_SELECT) AS asset_info"
 
+private const val ASSET_MATCHES_QUERY = """(symbol LIKE '%' || :query || '%'
+            OR name LIKE '%' || :query || '%' COLLATE NOCASE
+            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))"""
+
 const val ASSETS_LIMIT = 100
 
 @Dao
@@ -247,28 +251,31 @@ interface AssetsDao {
 
     @Query("""
         SELECT asset_info.*
-        FROM $ASSET_INFO WHERE
-            asset_info.id NOT IN (:exclude)
-            AND chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
-            AND (walletId = :walletId OR walletId IS NULL)
-            AND assetRank >= 0
-            AND (symbol LIKE '%' || :query || '%'
-            OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
-            AND (NOT :buyable OR isBuyEnabled = 1)
-            AND (NOT :sellable OR isSellEnabled = 1)
-            AND (NOT :swappable OR isSwapEnabled = 1)
-            AND (NOT :hasBalance OR balanceTotalAmount > 0)
-            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
-            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
-            ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
-            LIMIT :limit
+        FROM $ASSET_INFO
+        LEFT JOIN search ON search.assetId = asset_info.id AND search.`query` = :query
+        WHERE
+            assetRank >= 0
+            AND (search.priority IS NOT NULL OR $ASSET_MATCHES_QUERY)
+            AND (:byAllWallets OR (
+                chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
+                AND (walletId = :walletId OR walletId IS NULL)
+                AND (NOT :buyable OR isBuyEnabled = 1)
+                AND (NOT :sellable OR isSellEnabled = 1)
+                AND (NOT :swappable OR isSwapEnabled = 1)
+                AND (NOT :hasBalance OR balanceTotalAmount > 0)
+                AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
+                AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
+            ))
+        ORDER BY $ASSET_MATCHES_QUERY DESC,
+            pinned DESC, visible DESC, balanceFiatTotalAmount DESC,
+            search.priority IS NULL, search.priority ASC, assetRank DESC
+        LIMIT :limit
         """)
     fun search(
         walletId: String,
         query: String,
+        byAllWallets: Boolean = false,
         limit: Int = NO_QUERY_LIMIT,
-        exclude: List<String> = emptyList(),
         buyable: Boolean = false,
         sellable: Boolean = false,
         swappable: Boolean = false,
@@ -282,71 +289,22 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
-        JOIN search ON asset_info.id = search.assetId
+        JOIN search ON search.assetId = asset_info.id AND search.`query` = :searchKey
         WHERE
-            asset_info.id NOT IN (:exclude)
-            AND chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
+            chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
             AND (walletId = :walletId OR walletId IS NULL)
             AND assetRank >= 0
-            AND search.`query` = :query
-            AND (NOT :buyable OR isBuyEnabled = 1)
-            AND (NOT :sellable OR isSellEnabled = 1)
-            AND (NOT :swappable OR isSwapEnabled = 1)
-            AND (NOT :hasBalance OR balanceTotalAmount > 0)
-            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
-            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
-            ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
-            LIMIT :limit
+        ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
+        LIMIT :limit
         """)
-    fun searchWithPriority(
-        walletId: String,
-        query: String,
-        limit: Int = NO_QUERY_LIMIT,
-        exclude: List<String> = emptyList(),
-        buyable: Boolean = false,
-        sellable: Boolean = false,
-        swappable: Boolean = false,
-        hasBalance: Boolean = false,
-        hasAvailableBalance: Boolean = false,
-        byChainsOrAssetIds: Boolean = false,
-        chains: List<Chain> = emptyList(),
-        assetIds: List<String> = emptyList(),
-    ): Flow<List<DbAssetInfo>>
-
-    @Query("""
-        SELECT asset_info.*
-        FROM $ASSET_INFO WHERE
-            assetRank >= 0
-            AND
-            (symbol LIKE '%' || :query || '%'
-            OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
-            ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
-            LIMIT :limit
-        """)
-    fun searchByAllWallets(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT): Flow<List<DbAssetInfo>>
-
-    @Query("""
-        SELECT asset_info.*
-        FROM $ASSET_INFO
-        JOIN search ON asset_info.id = search.assetId
-        WHERE
-            assetRank >= 0
-            AND
-            search.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
-            LIMIT :limit
-        """)
-    fun searchByAllWalletsWithPriority(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT): Flow<List<DbAssetInfo>>
+    fun searchByKey(walletId: String, searchKey: String, limit: Int = NO_QUERY_LIMIT): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO WHERE
             (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
             AND assetRank >= 0
-            AND (symbol LIKE '%' || :query || '%'
-            OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
+            AND $ASSET_MATCHES_QUERY
             ORDER BY assetRank DESC
         """)
     fun swapSearch(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>

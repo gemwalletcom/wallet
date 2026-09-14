@@ -52,62 +52,50 @@ public struct WalletSearchRequest: DatabaseQueryable, Hashable {
 // MARK: - Private
 
 extension WalletSearchRequest {
-    private func hasPriority(_ db: Database, searchKey: String, column: Column) throws -> Bool {
-        guard searchKey.isNotEmpty else { return false }
-        return try SearchRecord
-            .filter(SearchRecord.Columns.query == searchKey)
-            .filter(column != nil)
-            .fetchOne(db) != nil
-    }
-
     private func loadAssets(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [AssetData] {
-        let hasPriority = try hasPriority(db, searchKey: searchKey, column: SearchRecord.Columns.assetId)
-        guard hasPriority || scope.isAll else { return [] }
-
         let balanceAlias = TableAlias(name: BalanceRecord.databaseTableName)
         let priceAlias = TableAlias(name: PriceRecord.databaseTableName)
         let searchAlias = TableAlias(name: SearchRecord.databaseTableName)
         let totalFiatValue = balanceAlias[BalanceRecord.Columns.totalAmount] * (priceAlias[PriceRecord.Columns.price] ?? 0)
+        let matchesQuery = scope.isAll ? AssetRecord.textSearchFilter(query: query) : false.sqlExpression
 
-        var request = AssetRecord
+        let request = AssetRecord
             .including(optional: AssetRecord.account)
             .including(optional: AssetRecord.balance)
             .including(optional: AssetRecord.price)
             .filter(AssetRecord.Columns.rank >= 0)
             .joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
             .filter(TableAlias(name: AccountRecord.databaseTableName)[AccountRecord.Columns.walletId] == walletId.id)
-
-        if hasPriority {
-            request = request
-                .joining(required: AssetRecord.search.filter(SearchRecord.Columns.query == searchKey))
-                .order(totalFiatValue.desc, searchAlias[SearchRecord.Columns.priority].ascNullsLast, AssetRecord.Columns.rank.desc)
-        } else {
-            request = request
-                .filter(AssetRecord.textSearchFilter(query: query))
-                .order(balanceAlias[BalanceRecord.Columns.isPinned].desc, balanceAlias[BalanceRecord.Columns.isEnabled].desc, totalFiatValue.desc, AssetRecord.Columns.rank.desc)
-        }
+            .joining(optional: AssetRecord.search.filter(SearchRecord.Columns.query == searchKey))
+            .filter(matchesQuery || searchAlias[SearchRecord.Columns.priority] != nil)
+            .order(
+                matchesQuery.desc,
+                balanceAlias[BalanceRecord.Columns.isPinned].desc,
+                balanceAlias[BalanceRecord.Columns.isEnabled].desc,
+                totalFiatValue.desc,
+                searchAlias[SearchRecord.Columns.priority].ascNullsLast,
+                AssetRecord.Columns.rank.desc,
+            )
 
         return try request.limit(limit).asRequest(of: AssetRecordInfo.self).fetchAll(db).map(\.assetData)
     }
 
     private func loadPerpetuals(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [PerpetualData] {
-        let hasPriority = try hasPriority(db, searchKey: searchKey, column: SearchRecord.Columns.perpetualId)
-        guard hasPriority || scope.isAll else { return [] }
-
         let searchAlias = TableAlias(name: SearchRecord.databaseTableName)
         let assetAlias = TableAlias(name: AssetRecord.databaseTableName)
+        let matchesQuery = scope.isAll
+            ? PerpetualRecord.Columns.name.like("%%\(query)%%") || assetAlias[AssetRecord.Columns.symbol].like("%%\(query)%%")
+            : false.sqlExpression
 
-        var request = PerpetualRecord.including(required: PerpetualRecord.asset)
-
-        if hasPriority {
-            request = request
-                .joining(required: PerpetualRecord.search.filter(SearchRecord.Columns.query == searchKey))
-                .order(searchAlias[SearchRecord.Columns.priority].ascNullsLast, PerpetualRecord.Columns.volume24h.desc)
-        } else {
-            request = request
-                .filter(PerpetualRecord.Columns.name.like("%%\(query)%%") || assetAlias[AssetRecord.Columns.symbol].like("%%\(query)%%"))
-                .order(PerpetualRecord.Columns.volume24h.desc)
-        }
+        let request = PerpetualRecord
+            .including(required: PerpetualRecord.asset)
+            .joining(optional: PerpetualRecord.search.filter(SearchRecord.Columns.query == searchKey))
+            .filter(matchesQuery || searchAlias[SearchRecord.Columns.priority] != nil)
+            .order(
+                matchesQuery.desc,
+                searchAlias[SearchRecord.Columns.priority].ascNullsLast,
+                PerpetualRecord.Columns.volume24h.desc,
+            )
 
         return try request.limit(limit).asRequest(of: PerpetualInfo.self).fetchAll(db).map { $0.mapToPerpetualData() }
     }

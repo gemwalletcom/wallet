@@ -31,7 +31,7 @@ public struct AssetsRequest: DatabaseQueryable {
         let filters = if searchBy.isEmpty {
             filters
         } else {
-            try filters + [.search(searchBy, hasPriorityAssets: hasPriorityAssets(db, query: searchBy))]
+            filters + [.search(searchBy)]
         }
 
         switch scope {
@@ -71,31 +71,26 @@ public struct AssetsRequest: DatabaseQueryable {
 // MARK: - Private
 
 extension AssetsRequest {
-    private func hasPriorityAssets(_ db: Database, query: String) throws -> Bool {
-        try SearchRecord
-            .filter(SearchRecord.Columns.query == query)
-            .filter(SearchRecord.Columns.assetId != nil)
-            .limit(1).fetchOne(db) != nil
-    }
-
     private static func applyFilter(request: QueryInterfaceRequest<AssetRecord>, _ filter: AssetsRequestFilter) -> QueryInterfaceRequest<AssetRecord> {
         switch filter {
-        case let .search(query, hasPriorityAssets):
-            if hasPriorityAssets {
-                let totalValue = (TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.totalAmount] * (TableAlias(name: PriceRecord.databaseTableName)[PriceRecord.Columns.price] ?? 0))
-                return request.joining(required: AssetRecord.search
-                    .filter(SearchRecord.Columns.query == query))
-                    .order(
-                        totalValue.desc,
-                        (totalValue == 0).desc,
-                        TableAlias(name: SearchRecord.databaseTableName)[SearchRecord.Columns.priority].ascNullsLast,
-                        TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.rank].desc,
-                    )
-            }
+        case let .search(query):
+            let assetAlias = TableAlias(name: AssetRecord.databaseTableName)
+            let balanceAlias = TableAlias(name: BalanceRecord.databaseTableName)
+            let priceAlias = TableAlias(name: PriceRecord.databaseTableName)
+            let searchAlias = TableAlias(name: SearchRecord.databaseTableName)
+            let totalValue = balanceAlias[BalanceRecord.Columns.totalAmount] * (priceAlias[PriceRecord.Columns.price] ?? 0)
+            let matchesQuery = AssetRecord.textSearchFilter(query: query)
+
             return request
-                .filter(AssetRecord.textSearchFilter(query: query))
+                .joining(optional: AssetRecord.search.filter(SearchRecord.Columns.query == query))
+                .filter(matchesQuery || searchAlias[SearchRecord.Columns.priority] != nil)
                 .order(
-                    AssetRecord.Columns.rank.desc,
+                    matchesQuery.desc,
+                    balanceAlias[BalanceRecord.Columns.isPinned].desc,
+                    balanceAlias[BalanceRecord.Columns.isEnabled].desc,
+                    totalValue.desc,
+                    searchAlias[SearchRecord.Columns.priority].ascNullsLast,
+                    assetAlias[AssetRecord.Columns.rank].desc,
                 )
         case .hasBalance:
             return request
@@ -210,13 +205,12 @@ extension AssetsRequest: Equatable {}
 extension AssetsRequestFilter {
     var referencesBalances: Bool {
         switch self {
-        case .hasBalance,
+        case .search,
+             .hasBalance,
              .hasAvailableBalance,
              .enabledBalance,
              .disabledBalance:
             true
-        case let .search(_, hasPriorityAssets):
-            hasPriorityAssets
         case .enabled,
              .buyable,
              .sellable,

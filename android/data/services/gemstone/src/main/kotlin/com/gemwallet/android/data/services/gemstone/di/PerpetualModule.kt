@@ -12,7 +12,6 @@ import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.gemwallet.android.data.service.store.database.SearchDao
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemConnectionService
@@ -44,11 +43,10 @@ object PerpetualModule {
     @Singleton
     fun provideGemstonePerpetualStore(
         perpetualDao: PerpetualDao,
-        searchDao: SearchDao,
         perpetualPositionDao: PerpetualPositionDao,
         balancesDao: BalancesDao,
         transactionRunner: StoreTransactionRunner,
-    ): GemstonePerpetualStore = GemstonePerpetualStore(perpetualDao, searchDao, perpetualPositionDao, balancesDao, transactionRunner)
+    ): GemstonePerpetualStore = GemstonePerpetualStore(perpetualDao, perpetualPositionDao, balancesDao, transactionRunner)
 
     @Provides
     @Singleton
