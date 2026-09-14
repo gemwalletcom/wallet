@@ -46,30 +46,11 @@ public struct ValueFormatter: Sendable {
         return appendingCurrency(decimal.formatted(formatStyle(for: decimal)), currency: currency)
     }
 
-    public func inputNumber(from string: String, decimals: Int) throws -> BigInt {
-        try BigNumberFormatter.standard.number(from: plainInputNumber(string), decimals: decimals)
-    }
-
-    public func plainInputNumber(_ string: String) -> String {
-        NumberInputNormalizer.normalize(string, locale: locale)
-    }
-
     public func double(from number: BigInt, decimals: Int) throws -> Double {
         guard let result = BigNumberFormatter.standard.double(from: number, decimals: decimals) else {
             throw AnyError("unknown \(number) number")
         }
         return result
-    }
-
-    public func number(amount: String) throws -> Decimal {
-        try number(amount: amount, locale: locale)
-    }
-
-    func number(amount: String, locale: Locale) throws -> Decimal {
-        guard let decimal = Decimal(string: amount, locale: locale) else {
-            throw AnyError("unknown \(amount) decimal")
-        }
-        return decimal
     }
 }
 

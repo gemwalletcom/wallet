@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.math.parseInputNumberOrNull
+import com.gemwallet.android.math.parseInputValueOrNull
 import com.gemwallet.android.model.ValueFormatter
 import uniffi.gemstone.GemFeeRateRows
 import uniffi.gemstone.GemCustomFee
@@ -26,7 +26,7 @@ data class CustomFee(
         ): CustomFee {
             val baseTotal = rows.selectedTotal ?: BigInteger.ZERO
             val normalTotal = rows.normalTotal ?: baseTotal
-            val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
+            val rate = input.parseInputValueOrNull(decimals)?.takeIf { it > BigInteger.ZERO }
 
             return GemCustomFee.estimate(
                 chain = currentFee.feeAsset.chain.string,

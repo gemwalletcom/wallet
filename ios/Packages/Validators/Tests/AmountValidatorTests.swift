@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Formatters
 import Foundation
 import Primitives
 import PrimitivesTestKit
@@ -10,7 +9,6 @@ import Testing
 
 struct AmountValidatorTests {
     private let asset = Asset.mockEthereumUSDT()
-    private let formatter = ValueFormatter(style: .full)
     private var decimals: Int {
         Int(asset.decimals)
     }
@@ -19,18 +17,16 @@ struct AmountValidatorTests {
     func assetAmountConverts() throws {
         let recorder = RecordingAmountValidator()
         let validator = AmountValidator.assetAmount(
-            formatter: formatter,
             decimals: decimals,
             validators: [recorder],
         )
-        try validator.validate("123.456")
-        #expect(recorder.value == BigInt(123_456_000))
+        try validator.validate("123.4567")
+        #expect(recorder.value == BigInt(123_456_700))
     }
 
     @Test
     func assetAmountPropagatesValidationFailure() {
         let validator = AmountValidator.assetAmount(
-            formatter: formatter,
             decimals: decimals,
             validators: [InvalidAmountValidator()],
         )

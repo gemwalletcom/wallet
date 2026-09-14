@@ -14,8 +14,4 @@ public struct NumericFormatter: Sendable, Hashable {
         guard let symbol else { return number }
         return "\(number) \(symbol)"
     }
-
-    public func double(from amount: String) -> Double? {
-        Decimal(string: amount, locale: locale)?.doubleValue
-    }
 }

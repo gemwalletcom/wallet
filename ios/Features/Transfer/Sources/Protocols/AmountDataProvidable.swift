@@ -8,7 +8,6 @@ import enum Gemstone.GemAmountInputType
 import enum Gemstone.GemAmountType
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemTransferData
-import GemstonePrimitives
 import Primitives
 
 protocol AmountDataProvidable {

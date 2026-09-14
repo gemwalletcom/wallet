@@ -137,11 +137,11 @@ public extension AutocloseSceneViewModel {
 
 extension AutocloseSceneViewModel {
     private var takeProfitPrice: Double? {
-        NumericFormatter().double(from: input.takeProfit.text)
+        NumberInput.double(input.takeProfit.text)
     }
 
     private var stopLossPrice: Double? {
-        NumericFormatter().double(from: input.stopLoss.text)
+        NumberInput.double(input.stopLoss.text)
     }
 
     private var position: PerpetualPositionData? {
@@ -182,7 +182,7 @@ extension AutocloseSceneViewModel {
     private var takeProfitField: GemAutocloseField {
         let price: Double? = switch type {
         case let .modify(position, _): position.position.takeProfit?.price
-        case let .open(data, _): data.takeProfit.flatMap { NumericFormatter().double(from: $0) }
+        case let .open(data, _): data.takeProfit.flatMap { NumberInput.double($0) }
         }
         return input.field(
             type: .takeProfit,
@@ -196,7 +196,7 @@ extension AutocloseSceneViewModel {
     private var stopLossField: GemAutocloseField {
         let price: Double? = switch type {
         case let .modify(position, _): position.position.stopLoss?.price
-        case let .open(data, _): data.stopLoss.flatMap { NumericFormatter().double(from: $0) }
+        case let .open(data, _): data.stopLoss.flatMap { NumberInput.double($0) }
         }
         return input.field(
             type: .stopLoss,

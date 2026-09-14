@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -83,7 +84,7 @@ struct SwapTokenViewModel {
         switch type {
         case let .selected(model):
             guard
-                let value = try? formatter.inputNumber(from: amount, decimals: model.asset.decimals.asInt),
+                let value = try? NumberInput.value(amount, decimals: model.asset.decimals.asInt),
                 let amount = try? formatter.double(from: value, decimals: model.asset.decimals.asInt),
                 amount > 0,
                 let price = model.priceViewModel.price

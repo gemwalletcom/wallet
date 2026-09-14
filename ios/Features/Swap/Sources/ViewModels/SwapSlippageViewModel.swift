@@ -19,7 +19,6 @@ import Validators
 @MainActor
 @Observable
 public final class SwapSlippageViewModel {
-    private nonisolated static let formatter = NumericFormatter()
 
     private let service: any GemSwapQuoteServiceProtocol
     private let onSelect: (SwapSlippage) -> Void
@@ -103,7 +102,7 @@ public final class SwapSlippageViewModel {
 
     func sanitize(_ text: String) -> String {
         let state = viewState
-        return GemNumberFormat(decimalSeparator: Locale.current.decimalSeparator ?? ".").sanitize(
+        return NumberInput.format().sanitize(
             input: text,
             maximumFractionDigits: state.maximumFractionDigits,
             maximumIntegerDigits: state.maximumIntegerDigits,
@@ -115,7 +114,7 @@ public final class SwapSlippageViewModel {
     }
 
     nonisolated static func bps(from text: String, service: any GemSwapQuoteServiceProtocol) -> UInt32? {
-        guard let percent = formatter.double(from: text) else { return nil }
+        guard let percent = NumberInput.double(text) else { return nil }
         return service.slippageBpsFromPercent(percent: percent)
     }
 

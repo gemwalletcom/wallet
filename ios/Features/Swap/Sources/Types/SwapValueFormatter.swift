@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import GemstonePrimitives
 import Primitives
 
 public struct SwapValueFormatter {
@@ -12,7 +13,7 @@ public struct SwapValueFormatter {
     }
 
     public func format(inputValue: String, decimals: Int) throws -> BigInt {
-        let value = try formatter.inputNumber(from: inputValue, decimals: decimals)
+        let value = try NumberInput.value(inputValue, decimals: decimals)
         guard value > 0 else {
             throw SwapQuoteInputError.invalidAmount
         }

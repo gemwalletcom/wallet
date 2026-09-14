@@ -40,6 +40,12 @@ impl GemPerpetual {
         }
     }
 
+    pub fn format_input_price(&self, price: f64, decimals: i32, decimal_separator: String) -> String {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::format_input_price(price, decimals, decimal_separator.chars().next().unwrap_or('.')),
+        }
+    }
+
     pub fn funding_apr(&self, funding: f64) -> f64 {
         perpetual_rules::funding_apr(funding)
     }

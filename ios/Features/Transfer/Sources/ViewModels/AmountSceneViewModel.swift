@@ -134,7 +134,7 @@ public final class AmountSceneViewModel {
             inputType: amountInputType,
             asset: asset,
             currencyFormatter: currencyFormatter,
-            numberFormat: GemNumberFormat(decimalSeparator: Locale.current.decimalSeparator ?? "."),
+            numberFormat: NumberInput.format(),
             secondaryText: secondaryText,
             onTapActionButton: onSelectInputButton,
             usesWholeAmounts: input.usesWholeAmounts,
@@ -188,7 +188,7 @@ extension AmountSceneViewModel {
 
     func onSelectAutoclose() {
         guard case let .perpetual(perpetual) = provider else { return }
-        let amount = NumericFormatter().double(from: amountInputModel.text) ?? .zero
+        let amount = NumberInput.double(amountInputModel.text) ?? .zero
         isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
     }
 
@@ -241,8 +241,7 @@ private extension AmountSceneViewModel {
     }
 
     func refreshEntry() {
-        let text = amountInputModel.text
-        entry = provider.entry(from: assetData, inputType: amountInputType, text: text.isEmpty ? text : formatter.plainInputNumber(text))
+        entry = provider.entry(from: assetData, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text))
         amountInputModel.update(error: entryError)
     }
 

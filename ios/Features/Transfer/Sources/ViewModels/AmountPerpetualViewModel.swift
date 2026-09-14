@@ -23,7 +23,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     let leverageTextStyle: TextStyle
     let currencyFormatter: CurrencyFormatter
     private let service: any GemAmountServiceProtocol
-    private let numericFormatter = NumericFormatter()
 
     var takeProfit: String?
     var stopLoss: String?
@@ -64,8 +63,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             takeProfitLabel: Localized.Perpetual.takeProfit,
             stopLossLabel: Localized.Perpetual.stopLoss,
         ).format(
-            takeProfit: takeProfit.flatMap { numericFormatter.double(from: $0) },
-            stopLoss: stopLoss.flatMap { numericFormatter.double(from: $0) },
+            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
+            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
         )
     }
 
@@ -87,8 +86,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             value: value,
             useMaxAmount: useMaxAmount,
             leverage: leverage,
-            takeProfit: takeProfit.flatMap { numericFormatter.double(from: $0) },
-            stopLoss: stopLoss.flatMap { numericFormatter.double(from: $0) },
+            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
+            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
         )
     }
 

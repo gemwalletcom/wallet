@@ -20,11 +20,6 @@ public struct PerpetualFormatter {
     }
 
     public func formatInputPrice(_ price: Double, decimals: Int32, locale: Locale = .current) -> String {
-        let formatted = perpetual.formatPrice(price: price, decimals: decimals)
-        let decimalSeparator = locale.decimalSeparator ?? "."
-        guard decimalSeparator != "." else {
-            return formatted
-        }
-        return formatted.replacingOccurrences(of: ".", with: decimalSeparator)
+        perpetual.formatInputPrice(price: price, decimals: decimals, decimalSeparator: NumberInput.format(locale).decimalSeparator)
     }
 }

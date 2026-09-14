@@ -3,8 +3,8 @@
 import BigInt
 import Components
 import Formatters
-import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
+import enum Gemstone.SwapProvider
 import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import Primitives
@@ -60,7 +60,7 @@ public struct SwapProviderItem: Sendable {
     }
 
     private func fiatBalance() -> String {
-        guard let value = try? valueFormatter.inputNumber(from: amount, decimals: asset.decimals.asInt),
+        guard let value = try? NumberInput.value(amount, decimals: asset.decimals.asInt),
               let amount = try? valueFormatter.double(from: value, decimals: asset.decimals.asInt),
               let price = priceViewModel.price
         else {

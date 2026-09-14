@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import Gemstone
+import GemstonePrimitives
 import struct Gemstone.GemPriceAlertSession
 import struct Gemstone.GemPriceAlertViewState
 import protocol Gemstone.GemPriceAlertServiceProtocol
@@ -21,7 +22,6 @@ public final class SetPriceAlertViewModel {
     private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
     private let currencyFormatter: CurrencyFormatter
-    private let numericFormatter = NumericFormatter()
 
     var state: SetPriceAlertViewModelState
     var isPresentingAlertMessage: AlertMessage?
@@ -133,7 +133,7 @@ public final class SetPriceAlertViewModel {
     // MARK: - Private
 
     private var amountValue: Double? {
-        numericFormatter.double(from: state.amount)
+        NumberInput.double(state.amount)
     }
 
     private var completeMessage: String {

@@ -37,6 +37,7 @@ let package = Package(
                 "Localization",
                 "PrimitivesComponents",
                 "Gemstone",
+                "GemstonePrimitives",
                 "Store",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Formatters",

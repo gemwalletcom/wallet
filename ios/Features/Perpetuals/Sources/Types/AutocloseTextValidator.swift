@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
 import class Gemstone.AutocloseValidator
 import GemstonePrimitives
@@ -9,7 +8,6 @@ import Validators
 
 struct AutocloseTextValidator: TextValidator {
     private let validator: AutocloseValidator
-    private let formatter = NumericFormatter()
 
     init(type: TpslType, direction: PerpetualDirection, marketPrice: Double) {
         validator = AutocloseValidator(triggerType: type.map(), direction: direction.map(), marketPrice: marketPrice)
@@ -18,7 +16,7 @@ struct AutocloseTextValidator: TextValidator {
     func validate(_ text: String) throws {
         guard !text.isEmpty else { return }
 
-        guard let price = formatter.double(from: text) else {
+        guard let price = NumberInput.double(text) else {
             throw TransferError.invalidAmount
         }
 

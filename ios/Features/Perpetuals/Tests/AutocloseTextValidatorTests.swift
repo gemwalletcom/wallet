@@ -1,20 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
+@testable import Perpetuals
 import Primitives
 import Testing
-@testable import Perpetuals
 
 struct AutocloseTextValidatorTests {
     @Test
-    func validatesTheSameNumberThatWouldBeSubmitted() {
-        let text = "1,234.5"
+    func validatesTheSameNumberThatWouldBeSubmitted() throws {
         let validator = AutocloseTextValidator(type: .takeProfit, direction: .long, marketPrice: 100)
 
-        #expect(throws: (any Error).self) {
-            try validator.validate(text)
-        }
-        #expect(NumericFormatter(locale: .current).double(from: text) == 1)
+        try validator.validate("1 234.5")
     }
 
     @Test
