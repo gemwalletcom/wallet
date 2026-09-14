@@ -1,8 +1,9 @@
-use crate::signer::{instructions::reference_accounts, transaction};
 use primitives::{SignerError, SignerInput};
-use solana_primitives::{
+
+use crate::{
     Instruction, Pubkey,
     instructions::{memo::memo, system::transfer},
+    signer::{instructions::reference_accounts, transaction},
 };
 
 pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) -> Result<Vec<Instruction>, SignerError> {
@@ -21,21 +22,23 @@ pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) ->
 
 #[cfg(test)]
 mod tests {
+    use hex_lit::hex;
+
     use crate::signer::{SolanaChainSigner, testkit::*};
+    use crate::{
+        Pubkey,
+        instructions::program_ids::{SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID},
+    };
     use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{Asset, AssetId, Chain, ChainSigner, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput};
-    use solana_primitives::{
-        Pubkey,
-        instructions::program_ids::{COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID},
-    };
 
     // https://github.com/trustwallet/wallet-core/blob/master/rust/tw_tests/tests/chains/solana/solana_sign.rs
     const REFERENCE_TRANSFER_PRIVATE_KEY: &str = "A7psj2GW7ZMdY4E5hJq14KMeYg7HFjULSsWSrTXZLvYr";
     const REFERENCE_TRANSFER_TX: &str = "3p2kzZ1DvquqC6LApPuxpTg5CCDVPqJFokGSnGhnBHrta4uq7S2EyehV1XNUVXp51D69GxGzQZUjikfDzbWBG2aFtG3gHT1QfLzyFKHM4HQtMQMNXqay1NAeiiYZjNhx9UvMX4uAQZ4Q6rx6m2AYfQ7aoMUrejq298q1wBFdtS9XVB5QTiStnzC7zs97FUEK2T4XapjF1519EyFBViTfHpGpnf5bfizDzsW9kYUtRDW1UC2LgHr7npgq5W9TBmHf9hSmRgM9XXucjXLqubNWE7HUMhbKjuBqkirRM";
 
     fn transfer_data(lamports: u64) -> Vec<u8> {
-        let mut data = vec![2, 0, 0, 0];
+        let mut data = hex!("02000000").to_vec();
         data.extend_from_slice(&lamports.to_le_bytes());
         data
     }
@@ -69,7 +72,12 @@ mod tests {
         assert_ne!(transaction.signatures()[0].as_bytes(), &[0u8; 64]);
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
-            vec![COMPUTE_BUDGET_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID]
+            vec![
+                SOLANA_COMPUTE_BUDGET_PROGRAM_ID,
+                SOLANA_COMPUTE_BUDGET_PROGRAM_ID,
+                SOLANA_MEMO_PROGRAM_ID,
+                SOLANA_SYSTEM_PROGRAM_ID
+            ]
         );
         assert_eq!(transaction.instructions()[0].data, {
             let mut data = vec![3];

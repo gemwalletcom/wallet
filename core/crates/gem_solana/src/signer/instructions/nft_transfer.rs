@@ -1,15 +1,16 @@
-use crate::{METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, SYSTEM_PROGRAM_ID, SYSVAR_INSTRUCTIONS_ID, get_token_program_by_id, metaplex::metadata::Metadata, signer::transaction};
 use primitives::{NFTAsset, SignerError, SignerInput, SolanaNftStandard, SolanaTokenProgramId, TransactionLoadMetadata, contract_constants::SOLANA_METAPLEX_AUTH_RULES_PROGRAM_ID};
-use solana_primitives::{
-    AccountMeta, Instruction, Pubkey,
+
+use super::token_transfer::spl_transfer_checked;
+use crate::{
+    AccountMeta, Instruction, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, Pubkey, SYSTEM_PROGRAM_ID, SYSVAR_INSTRUCTIONS_ID, get_token_program_by_id,
     instructions::{
         associated_token::get_associated_token_address_with_program_id,
         memo::memo,
-        program_ids::{ASSOCIATED_TOKEN_PROGRAM_ID, system_program},
+        program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, system_program},
     },
+    metaplex::metadata::Metadata,
+    signer::transaction,
 };
-
-use super::token_transfer::spl_transfer_checked;
 
 const MPL_CORE_TRANSFER_V1: u8 = 14;
 const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
@@ -49,7 +50,7 @@ fn metaplex_token_metadata_transfer(
 ) -> Result<Vec<Instruction>, SignerError> {
     let mpl_program = Pubkey::from_base58(METAPLEX_PROGRAM).map_err(SignerError::from_display)?;
     let token_program = Pubkey::from_base58(get_token_program_by_id(spl_token_program.clone())).map_err(SignerError::from_display)?;
-    let ata_program = Pubkey::from_base58(ASSOCIATED_TOKEN_PROGRAM_ID).map_err(SignerError::from_display)?;
+    let ata_program = Pubkey::from_base58(SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID).map_err(SignerError::from_display)?;
     let sysvar_instructions = Pubkey::from_base58(SYSVAR_INSTRUCTIONS_ID).map_err(SignerError::from_display)?;
     let mint = Pubkey::from_base58(&nft_asset.token_id).map_err(SignerError::from_display)?;
     let recipient = Pubkey::from_base58(&input.destination_address).map_err(SignerError::from_display)?;
@@ -62,7 +63,7 @@ fn metaplex_token_metadata_transfer(
     let sender_token_address = Pubkey::from_base58(&sender_token_address).map_err(SignerError::from_display)?;
     let recipient_token_address = match input.metadata.get_recipient_token_address().map_err(SignerError::from_display)? {
         Some(address) => Pubkey::from_base58(&address).map_err(SignerError::from_display)?,
-        None => get_associated_token_address_with_program_id(&recipient, &mint, &token_program),
+        None => get_associated_token_address_with_program_id(&recipient, &mint, &token_program)?,
     };
 
     let metadata_pda = Metadata::find_pda(mint).ok_or_else(|| SignerError::invalid_input("failed to derive metadata PDA"))?.0;
@@ -157,19 +158,19 @@ mod tests {
         METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, SYSTEM_PROGRAM_ID, SYSVAR_INSTRUCTIONS_ID, TOKEN_PROGRAM,
         signer::{SolanaChainSigner, testkit::*},
     };
+    use crate::{
+        Pubkey,
+        instructions::{
+            associated_token::get_associated_token_address_with_program_id,
+            program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID, token_program},
+        },
+    };
     use num_bigint::BigUint;
     use primitives::contract_constants::SOLANA_METAPLEX_AUTH_RULES_PROGRAM_ID;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         Asset, Chain, ChainSigner, GasPriceType, NFTAsset, NFTAssetId, NFTImages, NFTResource, NFTType, SignerInput, SolanaNftStandard, SolanaTokenProgramId, TransactionFee,
         TransactionInputType, TransactionLoadInput, TransactionLoadMetadata,
-    };
-    use solana_primitives::{
-        Pubkey,
-        instructions::{
-            associated_token::get_associated_token_address_with_program_id,
-            program_ids::{ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, token_program},
-        },
     };
 
     const NFT_MINT: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
@@ -233,10 +234,10 @@ mod tests {
         let transaction = crate::decode_transaction(&result).unwrap();
         let mint = Pubkey::from_base58(NFT_MINT).unwrap();
         let recipient = Pubkey::from_base58(TEST_RECIPIENT).unwrap();
-        let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program());
+        let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program()).unwrap();
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
-            vec![ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID]
+            vec![SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID]
         );
         assert_eq!(transaction.instructions()[0].data, vec![1]);
         assert_eq!(account_key(&transaction, 0, 1), recipient_token_address);
@@ -273,7 +274,7 @@ mod tests {
         let mint = Pubkey::from_base58(NFT_MINT).unwrap();
         let source = Pubkey::from_base58(TEST_SENDER_TOKEN_ADDRESS).unwrap();
         let recipient = Pubkey::from_base58(TEST_RECIPIENT).unwrap();
-        let recipient_ata = get_associated_token_address_with_program_id(&recipient, &mint, &Pubkey::from_base58(TOKEN_PROGRAM).unwrap());
+        let recipient_ata = get_associated_token_address_with_program_id(&recipient, &mint, &token_program()).unwrap();
         let metadata_pda = crate::metaplex::metadata::Metadata::find_pda(mint).unwrap().0;
         let master_edition = crate::metaplex::metadata::Metadata::find_master_edition_pda(mint).unwrap().0;
         let source_record = crate::metaplex::metadata::Metadata::find_token_record_pda(mint, source).unwrap().0;
@@ -298,7 +299,7 @@ mod tests {
         assert_eq!(account_key(&transaction, 0, 11), system_program_pk);
         assert_eq!(account_key(&transaction, 0, 12), sysvar_instructions);
         assert_eq!(account_key(&transaction, 0, 13).to_string(), TOKEN_PROGRAM);
-        assert_eq!(account_key(&transaction, 0, 14).to_string(), ASSOCIATED_TOKEN_PROGRAM_ID);
+        assert_eq!(account_key(&transaction, 0, 14).to_string(), SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID);
         assert_eq!(account_key(&transaction, 0, 15), auth_rules_program);
         assert_eq!(account_key(&transaction, 0, 16), auth_rules);
     }

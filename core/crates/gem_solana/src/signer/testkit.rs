@@ -1,7 +1,8 @@
 use gem_encoding::decode_base64;
-use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-use primitives::{SolanaTokenProgramId, TransactionLoadMetadata};
-use solana_primitives::{CompiledInstruction, LegacyMessage, MessageHeader, Pubkey, VersionedTransaction, get_address};
+use primitives::{SolanaTokenProgramId, TransactionLoadMetadata, testkit::signer_mock::TEST_PRIVATE_KEY};
+use signer::Ed25519KeyPair;
+
+use crate::{CompiledInstruction, Message, MessageHeader, Pubkey, VersionedTransaction};
 
 pub const TEST_RECIPIENT: &str = "EN2sCsJ1WDV8UFqsiTXHcUPUxQ4juE71eCknHYYMifkd";
 pub const TEST_SENDER_TOKEN_ADDRESS: &str = "HEeranxp3y7kVQKVSLdZW1rUmnbs7bAtUTMu8o88Jash";
@@ -11,7 +12,8 @@ pub fn sender_address() -> String {
 }
 
 pub fn sender_address_for_key(private_key: &[u8]) -> String {
-    get_address(private_key).unwrap()
+    let key_pair = Ed25519KeyPair::from_private_key(private_key).unwrap();
+    bs58::encode(key_pair.public_key_bytes).into_string()
 }
 
 pub fn solana_metadata(sender_token_address: Option<&str>, recipient_token_address: Option<&str>, token_program: Option<SolanaTokenProgramId>) -> TransactionLoadMetadata {
@@ -45,7 +47,7 @@ pub fn base58_transaction(encoded_base64: &str) -> String {
 pub fn mock_legacy_transaction() -> VersionedTransaction {
     VersionedTransaction::Legacy {
         signatures: vec![],
-        message: LegacyMessage {
+        message: Message {
             header: MessageHeader {
                 num_required_signatures: 1,
                 num_readonly_signed_accounts: 0,

@@ -1,21 +1,23 @@
+use std::{fmt::Display, sync::Arc};
+
+use futures::try_join;
+use gem_encoding::decode_base64;
+use gem_evm::EVM_ZERO_ADDRESS;
+use gem_solana::{
+    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, AccountMeta, Base64InstructionData, Instruction, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient, WSOL_TOKEN_ADDRESS,
+    associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id},
+    compute_budget, encode_v0_transaction, instruction_from_primitive,
+    instructions::program_ids,
+    instructions_from_primitives, system, token,
+};
+use num_bigint::BigUint;
+use primitives::{Chain, SolanaInstruction};
+
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
     client_factory::create_client_with_chain,
     mayan::{constants::MAYAN_CPI_PROXY_PROGRAM_ID, model::SolanaClientSwap},
 };
-use futures::try_join;
-use gem_encoding::decode_base64;
-use gem_evm::EVM_ZERO_ADDRESS;
-use gem_solana::{
-    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, Base64InstructionData, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient, WSOL_TOKEN_ADDRESS, encode_v0_transaction, instruction_from_primitive,
-    instructions_from_primitives,
-};
-use num_bigint::BigUint;
-use primitives::{Chain, SolanaInstruction};
-use solana_primitives::associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id};
-use solana_primitives::instructions::program_ids;
-use solana_primitives::{AccountMeta, Instruction, Pubkey, compute_budget, system, token};
-use std::{fmt::Display, sync::Arc};
 
 #[derive(Debug)]
 pub(in crate::mayan::tx_builder) struct SolanaTransaction {
@@ -72,7 +74,7 @@ pub(in crate::mayan::tx_builder) fn append_ledger_deposit_instructions(instructi
         &program_ids::token_program(),
     ))?);
 
-    let source_account = get_associated_token_address_with_program_id(deposit.user, deposit.mint, &program_ids::token_program());
+    let source_account = get_associated_token_address_with_program_id(deposit.user, deposit.mint, &program_ids::token_program()).map_err(solana_error)?;
     instructions.push(wrap_instruction_in_cpi_proxy(token::transfer(
         &source_account,
         deposit.ledger_account,
@@ -128,7 +130,7 @@ pub(in crate::mayan::tx_builder) fn setup_wraps_native_sol(instructions: &[Solan
 
 pub(in crate::mayan::tx_builder) fn wrap_native_sol_instructions(owner: &Pubkey, amount: u64) -> Result<Vec<Instruction>, SwapperError> {
     let wrapped_mint = wrapped_sol_mint()?;
-    let wrapped_account = get_associated_token_address_with_program_id(owner, &wrapped_mint, &program_ids::token_program());
+    let wrapped_account = get_associated_token_address_with_program_id(owner, &wrapped_mint, &program_ids::token_program()).map_err(solana_error)?;
     Ok(vec![
         wrap_instruction_in_cpi_proxy(create_associated_token_account_idempotent_with_address(
             owner,
@@ -159,7 +161,7 @@ fn override_setup_payer(mut instruction: SolanaInstruction, payer: &Pubkey) -> R
 }
 
 fn wrapped_sol_account(owner: &Pubkey) -> Result<Pubkey, SwapperError> {
-    Ok(get_associated_token_address_with_program_id(owner, &wrapped_sol_mint()?, &program_ids::token_program()))
+    get_associated_token_address_with_program_id(owner, &wrapped_sol_mint()?, &program_ids::token_program()).map_err(solana_error)
 }
 
 fn wrapped_sol_mint() -> Result<Pubkey, SwapperError> {

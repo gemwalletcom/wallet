@@ -1,7 +1,7 @@
-use super::stake_account;
-use crate::signer::transaction;
 use primitives::{SignerError, SignerInput, StakeType};
-use solana_primitives::{Instruction, Pubkey, instructions::memo::memo};
+
+use super::stake_account;
+use crate::{Instruction, Pubkey, instructions::memo::memo, signer::transaction};
 
 pub(in crate::signer) fn stake(input: &SignerInput, sender: Pubkey) -> Result<Vec<Instruction>, SignerError> {
     let stake_type = input.input_type.get_stake_type().map_err(SignerError::invalid_input)?;
@@ -38,14 +38,14 @@ pub(in crate::signer) fn stake(input: &SignerInput, sender: Pubkey) -> Result<Ve
 mod tests {
     use super::*;
     use crate::signer::{SolanaChainSigner, testkit::*};
+    use crate::{
+        Pubkey,
+        instructions::program_ids::{SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID},
+    };
     use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         Asset, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput,
-    };
-    use solana_primitives::{
-        Pubkey,
-        instructions::program_ids::{MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID as SYSTEM_PROGRAM_ID_STRING},
     };
 
     // https://github.com/trustwallet/wallet-core/blob/master/rust/tw_tests/tests/chains/solana/solana_sign.rs
@@ -109,7 +109,7 @@ mod tests {
         assert_eq!(transaction.signatures().len(), 1);
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
-            vec![SYSTEM_PROGRAM_ID_STRING, crate::STAKE_PROGRAM_ID, crate::STAKE_PROGRAM_ID, MEMO_PROGRAM_ID]
+            vec![SOLANA_SYSTEM_PROGRAM_ID, crate::STAKE_PROGRAM_ID, crate::STAKE_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID]
         );
         assert_eq!(account_key(&transaction, 0, 1), stake_account);
         assert_eq!(transaction.instructions()[0].data[0..4], 3u32.to_le_bytes());

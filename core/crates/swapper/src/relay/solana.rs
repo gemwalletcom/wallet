@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
 use futures::try_join;
-use gem_solana::{HexInstructionData, SolanaAddress, SolanaClient, encode_v0_transaction, instructions_from_primitives};
+use gem_solana::{AddressLookupTableAccount, HexInstructionData, SolanaAddress, SolanaClient, compute_budget, encode_v0_transaction, instructions_from_primitives};
 use num_bigint::BigUint;
 use primitives::Chain;
-use solana_primitives::{AddressLookupTableAccount, compute_budget};
 
 use super::model::SolanaStepData;
 use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain};

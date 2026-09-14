@@ -1,7 +1,7 @@
-use crate::{STAKE_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSVAR_CLOCK_ID, SYSVAR_RENT_ID};
 use primitives::{SignerError, SignerInput};
 use sha2::{Digest, Sha256};
-use solana_primitives::{AccountMeta, Instruction, Pubkey};
+
+use crate::{AccountMeta, Instruction, Pubkey, STAKE_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSVAR_CLOCK_ID, SYSVAR_RENT_ID};
 
 const SYSVAR_STAKE_HISTORY_ID: &str = "SysvarStakeHistory1111111111111111111111111";
 const STAKE_CONFIG_ID: &str = "StakeConfig11111111111111111111111111111111";

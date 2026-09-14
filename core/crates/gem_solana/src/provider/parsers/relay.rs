@@ -1,4 +1,5 @@
 use borsh::BorshDeserialize;
+use hex_lit::hex;
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, Transaction};
 
@@ -6,8 +7,8 @@ use crate::{RELAY_DEPOSITORY_PROGRAM_ID, models::Instruction};
 
 use super::{ParseContext, ParseContextExt, TransactionParser};
 
-const DEPOSIT_NATIVE_DISCRIMINATOR: [u8; 8] = [13, 158, 13, 223, 95, 213, 28, 6];
-const DEPOSIT_TOKEN_DISCRIMINATOR: [u8; 8] = [11, 156, 96, 218, 39, 163, 180, 19];
+const DEPOSIT_NATIVE_DISCRIMINATOR: [u8; 8] = hex!("0d9e0ddf5fd51c06");
+const DEPOSIT_TOKEN_DISCRIMINATOR: [u8; 8] = hex!("0b9c60da27a3b413");
 const SENDER_ACCOUNT_INDEX: usize = 1;
 const TOKEN_MINT_ACCOUNT_INDEX: usize = 4;
 

@@ -4,8 +4,8 @@ mod stake_account;
 mod token_transfer;
 mod transfer;
 
+use crate::{AccountMeta, Pubkey};
 use primitives::{SignerError, SignerInput};
-use solana_primitives::{AccountMeta, Pubkey};
 
 pub(super) use nft_transfer::nft_transfer;
 pub(super) use stake::stake;

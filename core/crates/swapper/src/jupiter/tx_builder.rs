@@ -1,11 +1,12 @@
+use gem_encoding::encode_base64;
+use gem_solana::{
+    AddressLookupTableAccount, Base64InstructionData, DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
+    compute_budget::{ensure_compute_unit_price, parse_compute_unit_limit_data, set_compute_unit_limit},
+    instruction_from_primitive, instructions_from_primitives,
+};
+
 use super::model::BuildResponse;
 use crate::SwapperError;
-use gem_encoding::encode_base64;
-use gem_solana::{Base64InstructionData, DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, instruction_from_primitive, instructions_from_primitives};
-use solana_primitives::{
-    AddressLookupTableAccount, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
-    compute_budget::{ensure_compute_unit_price, parse_compute_unit_limit_data, set_compute_unit_limit},
-};
 
 impl BuildResponse {
     pub(super) fn into_transaction(self, payer: &str, fee_account: &str) -> Result<String, SwapperError> {

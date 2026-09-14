@@ -2182,22 +2182,6 @@ dependencies = [
 
 [[package]]
 name = "curve25519-dalek"
-version = "4.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97fb8b7c4503de7d6ae7b42ab72a5a59857b4c937ec27a3d4539dba95b5ab2be"
-dependencies = [
- "cfg-if",
- "cpufeatures 0.2.17",
- "curve25519-dalek-derive",
- "digest 0.10.7",
- "fiat-crypto 0.2.9",
- "rustc_version 0.4.1",
- "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "curve25519-dalek"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5eed333089e2e1c1ac8c6c0398e5e2497b4c9926ca6d0365ed1e099afa5bc23"
@@ -2206,7 +2190,7 @@ dependencies = [
  "cpufeatures 0.3.0",
  "curve25519-dalek-derive",
  "digest 0.11.3",
- "fiat-crypto 0.3.0",
+ "fiat-crypto",
  "rustc_version 0.4.1",
  "subtle",
  "zeroize",
@@ -2728,16 +2712,6 @@ dependencies = [
 
 [[package]]
 name = "ed25519"
-version = "2.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "115531babc129696a58c64a4fef0a8bf9e9698629fb97e9e40767d235cfbcd53"
-dependencies = [
- "pkcs8 0.10.2",
- "signature 2.2.0",
-]
-
-[[package]]
-name = "ed25519"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29fcf32e6c73d1079f83ab4d782de2d81620346a5f38c6237a86a22f8368980a"
@@ -2747,26 +2721,12 @@ dependencies = [
 
 [[package]]
 name = "ed25519-dalek"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9"
-dependencies = [
- "curve25519-dalek 4.1.3",
- "ed25519 2.2.3",
- "serde",
- "sha2 0.10.9",
- "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "ed25519-dalek"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ebaa1a2bf1290ab3bfe5a7b771d050ebffab2711c19a81691c683a5144a25de"
 dependencies = [
- "curve25519-dalek 5.0.0",
- "ed25519 3.0.0",
+ "curve25519-dalek",
+ "ed25519",
  "sha2 0.11.0",
  "subtle",
  "zeroize",
@@ -3012,12 +2972,6 @@ dependencies = [
  "url",
  "uuid",
 ]
-
-[[package]]
-name = "fiat-crypto"
-version = "0.2.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
 
 [[package]]
 name = "fiat-crypto"
@@ -3427,7 +3381,7 @@ dependencies = [
  "chain_primitives",
  "chain_traits",
  "chrono",
- "ed25519-dalek 3.0.0",
+ "ed25519-dalek",
  "futures",
  "gem_client",
  "gem_hash",
@@ -3450,7 +3404,7 @@ dependencies = [
  "alloy-primitives",
  "cacher",
  "chrono",
- "ed25519-dalek 3.0.0",
+ "ed25519-dalek",
  "gem_encoding",
  "gem_hash",
  "jsonwebtoken 11.0.0",
@@ -3523,7 +3477,7 @@ dependencies = [
  "bech32 0.12.0",
  "chain_traits",
  "chrono",
- "curve25519-dalek 5.0.0",
+ "curve25519-dalek",
  "futures",
  "gem_client",
  "gem_hash",
@@ -3865,11 +3819,13 @@ dependencies = [
  "bs58",
  "chain_traits",
  "chrono",
+ "curve25519-dalek",
  "futures",
  "gem_client",
  "gem_encoding",
  "gem_jsonrpc",
  "hex",
+ "hex_lit",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -3878,7 +3834,7 @@ dependencies = [
  "serde_serializers",
  "settings",
  "sha2 0.11.0",
- "solana-primitives",
+ "signer",
  "tokio",
  "url",
 ]
@@ -5998,7 +5954,6 @@ dependencies = [
  "primitives",
  "serde",
  "serde_json",
- "solana-primitives",
  "tokio",
 ]
 
@@ -7993,7 +7948,7 @@ version = "2.114.26"
 dependencies = [
  "alloy-primitives",
  "bs58",
- "ed25519-dalek 3.0.0",
+ "ed25519-dalek",
  "hex",
  "k256 0.14.0",
  "primitives",
@@ -8122,22 +8077,6 @@ checksum = "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
 dependencies = [
  "libc",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "solana-primitives"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99e4227d956e651c30768d46d38c5128dd4562d47f4ab071de0b39ede48ac71e"
-dependencies = [
- "base64 0.22.1",
- "borsh",
- "bs58",
- "ed25519-dalek 2.2.0",
- "hex",
- "serde",
- "sha2 0.10.9",
- "thiserror 2.0.19",
 ]
 
 [[package]]
@@ -8402,7 +8341,6 @@ dependencies = [
  "serde_urlencoded",
  "settings",
  "sha2 0.11.0",
- "solana-primitives",
  "strum",
  "sui-sdk-types",
  "sui-transaction-builder",

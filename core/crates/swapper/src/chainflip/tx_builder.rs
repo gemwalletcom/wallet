@@ -1,17 +1,17 @@
-use super::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
-use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain};
-use num_bigint::BigUint;
+use std::{str::FromStr, sync::Arc};
 
 use gem_encoding::encode_base64;
-use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, SolanaClient, try_decode_blockhash};
+use gem_solana::{AccountMeta, DEFAULT_SWAP_GAS_LIMIT, InstructionBuilder, Pubkey, SolanaClient, TransactionBuilder, compute_budget::set_compute_unit_limit, try_decode_blockhash};
 use gem_tron::address::TronAddress;
+use num_bigint::BigUint;
 use primitives::{
     Chain,
     hex::{decode_hex, encode},
     swap::SwapQuoteDataType::Contract,
 };
-use solana_primitives::{AccountMeta, InstructionBuilder, Pubkey, TransactionBuilder, compute_budget::set_compute_unit_limit};
-use std::{str::FromStr, sync::Arc};
+
+use super::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
+use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain};
 
 pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
     let address = response.source_token_address.as_deref().unwrap_or(&response.to);
@@ -57,7 +57,7 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
     transaction_builder.add_instruction(instruction);
 
     let transaction = transaction_builder.build().map_err(SwapperError::transaction_error)?;
-    let bytes = transaction.serialize_legacy().map_err(SwapperError::transaction_error)?;
+    let bytes = transaction.serialize().map_err(SwapperError::transaction_error)?;
 
     Ok(encode_base64(&bytes))
 }

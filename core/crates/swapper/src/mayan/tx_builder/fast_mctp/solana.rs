@@ -1,3 +1,12 @@
+use std::{fmt::Debug, sync::Arc};
+
+use gem_client::Client;
+use gem_solana::{
+    AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, find_program_address,
+    instructions::program_ids,
+};
+use rand::Rng;
+
 use super::{circle_max_fee64, destination_referrer_address, fast_mctp_input_contract, fast_mctp_min_finality, referrer_bytes, refund_relayer_fee64, token_out};
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
@@ -18,14 +27,6 @@ use crate::{
         wormhole_chain::{WormholeChain, id_for_name as wormhole_chain_id},
     },
 };
-use gem_client::Client;
-use gem_solana::SolanaAddress;
-use rand::Rng;
-use solana_primitives::anchor::global_discriminator;
-use solana_primitives::associated_token::get_associated_token_address_with_program_id;
-use solana_primitives::instructions::program_ids;
-use solana_primitives::{AccountMeta, Instruction, Pubkey, find_program_address};
-use std::{fmt::Debug, sync::Arc};
 
 const LEDGER_ORDER_SEED: &[u8] = b"LEDGER_ORDER";
 const LEDGER_BRIDGE_SEED: &[u8] = b"LEDGER_BRIDGE";
@@ -65,7 +66,7 @@ impl FastMctpBuildContext {
         let random_key = random_u16();
         let seed_prefix = if route.has_auction == Some(true) { LEDGER_ORDER_SEED } else { LEDGER_BRIDGE_SEED };
         let (ledger, _) = find_program_address(&fast_mctp_program, &[seed_prefix, user.as_bytes(), &random_key.to_le_bytes()]).map_err(solana_error)?;
-        let ledger_account = get_associated_token_address_with_program_id(&ledger, &fast_mctp_input_mint, &program_ids::token_program());
+        let ledger_account = get_associated_token_address_with_program_id(&ledger, &fast_mctp_input_mint, &program_ids::token_program()).map_err(solana_error)?;
         let destination_address = quote_destination_address(quote).to_string();
         let token_out = token_out(route)?;
         let referrer_address = destination_referrer_address(route)?;

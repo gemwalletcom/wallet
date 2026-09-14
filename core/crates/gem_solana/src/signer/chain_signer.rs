@@ -1,12 +1,12 @@
 use std::str;
 
+use ::signer::Ed25519KeyPair;
 use chrono::Utc;
 use gem_encoding::encode_base64;
 use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerError, SignerInput, TransferDataOutputType};
-use solana_primitives::{Pubkey, get_public_key, sign_message as sign_solana_message};
 
-use super::{instructions, swap, transaction};
-use crate::{VersionedTransactionExt, decode_transaction, siws::SiwsMessage, transaction::is_transaction_bytes};
+use super::{instructions, sign_message as sign_solana_message, swap, transaction};
+use crate::{Pubkey, VersionedTransactionExt, decode_transaction, siws::SiwsMessage, transaction::is_transaction_bytes};
 
 #[derive(Default)]
 pub struct SolanaChainSigner;
@@ -51,7 +51,7 @@ impl ChainSigner for SolanaChainSigner {
             && let Some(siws) = SiwsMessage::parse(raw).map_err(SignerError::invalid_input)?
         {
             siws.validate(Chain::Solana, Utc::now()).map_err(SignerError::invalid_input)?;
-            let public_key = get_public_key(private_key).map_err(SignerError::from_display)?;
+            let public_key = Ed25519KeyPair::from_private_key(private_key)?.public_key_bytes;
             if siws.address != bs58::encode(public_key).into_string() {
                 return SignerError::invalid_input_err("SIWS account mismatch");
             }
@@ -66,8 +66,7 @@ impl ChainSigner for SolanaChainSigner {
         let data = extra.data_as_str().map_err(SignerError::invalid_input)?;
         let mut transaction = decode_transaction(data).map_err(SignerError::invalid_input)?;
 
-        let signatures = transaction.signatures();
-        if signatures.is_empty() || signatures[0].as_bytes() != &[0u8; 64] {
+        if transaction.signatures().first().is_none_or(|signature| signature.as_bytes() != &[0u8; 64]) {
             return Err(SignerError::invalid_input("user signature should be first"));
         }
 
@@ -81,7 +80,11 @@ impl ChainSigner for SolanaChainSigner {
         match extra.output_type {
             TransferDataOutputType::Signature => Ok(bs58::encode(signature.as_bytes()).into_string()),
             TransferDataOutputType::EncodedTransaction => {
-                transaction.signatures_mut()[0] = signature;
+                let signature_slot = transaction
+                    .signatures_mut()
+                    .first_mut()
+                    .ok_or_else(|| SignerError::signing_error("missing Solana signature slot"))?;
+                *signature_slot = signature;
                 let bytes = transaction.serialize().map_err(|e| SignerError::signing_error(format!("serialize transaction: {e}")))?;
                 Ok(encode_base64(&bytes))
             }
@@ -93,10 +96,10 @@ impl ChainSigner for SolanaChainSigner {
 mod tests {
     use super::*;
     use crate::signer::testkit::{DOUBLE_SIG_TX, EXPECTED_MESSAGE_HEX, SINGLE_SIG_TX, mock_legacy_transaction};
+    use crate::{SignatureBytes, VersionedTransaction};
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
-    use solana_primitives::VersionedTransaction;
 
     #[test]
     fn test_deserialize_single_signature_transaction() {
@@ -137,7 +140,7 @@ mod tests {
     fn test_sign_data_uses_latest_blockhash_for_payment() {
         let mut transaction = mock_legacy_transaction();
         *transaction.recent_blockhash_mut() = [7; 32];
-        transaction.add_signature(solana_primitives::SignatureBytes::new([0; 64]));
+        transaction.add_signature(SignatureBytes::new([0; 64]));
         let encoded = encode_base64(&transaction.serialize().unwrap());
         let blockhash = bs58::encode([4; 32]).into_string();
         let mut input = TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction);
@@ -158,7 +161,7 @@ mod tests {
     fn test_sign_data_preserves_wallet_connect_blockhash() {
         let mut transaction = mock_legacy_transaction();
         *transaction.recent_blockhash_mut() = [0; 32];
-        transaction.add_signature(solana_primitives::SignatureBytes::new([0; 64]));
+        transaction.add_signature(SignatureBytes::new([0; 64]));
         let encoded = encode_base64(&transaction.serialize().unwrap());
         let mut input = TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction);
         input.metadata = TransactionLoadMetadata::mock_solana(&bs58::encode([4; 32]).into_string());

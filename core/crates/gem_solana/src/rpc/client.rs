@@ -1,11 +1,11 @@
-use crate::jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
-use crate::models::{
-    AccountData, EpochInfo, InflationRate, ResultTokenInfo, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance, blockhash::SolanaBlockhashResult,
-    prioritization_fee::SolanaPrioritizationFee, simulation::SimulateTransactionResult, transaction::BlockTransactions,
-};
 use crate::{
-    STAKE_PROGRAM_ID,
+    AddressLookupTableAccount, Pubkey, STAKE_PROGRAM_ID,
+    jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter},
     metaplex::{decode_metadata, metadata::Metadata},
+    models::{
+        AccountData, EpochInfo, InflationRate, ResultTokenInfo, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance,
+        blockhash::SolanaBlockhashResult, prioritization_fee::SolanaPrioritizationFee, simulation::SimulateTransactionResult, transaction::BlockTransactions,
+    },
 };
 #[cfg(feature = "rpc")]
 use gem_client::Client;
@@ -15,7 +15,6 @@ use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
 use primitives::Chain;
 #[cfg(feature = "rpc")]
 use serde::de::DeserializeOwned;
-use solana_primitives::{AddressLookupTableAccount, Pubkey};
 use std::{error::Error, str::FromStr};
 
 #[cfg(feature = "rpc")]
