@@ -191,6 +191,30 @@ class WalletNavigatorTest {
     }
 
     @Test
+    fun openPendingNavigation_requiresConfirmationDuringWalletCreation() {
+        val navigator = navigatorWith(
+            WalletRootRoute,
+            WalletsRoute,
+            CreateWalletAlertRoute,
+            CreateWalletRoute,
+        )
+
+        val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Solana))))
+
+        assertFalse(opened)
+        assertTrue(navigator.needsPendingNavigationConfirmation())
+        assertEquals(
+            listOf(
+                WalletRootRoute,
+                WalletsRoute,
+                CreateWalletAlertRoute,
+                CreateWalletRoute,
+            ),
+            navigator.backStack.toList(),
+        )
+    }
+
+    @Test
     fun finishWalletSecurityReminder_replacesReminderWithPhraseRoute() {
         val walletId = mockWalletId("wallet-1")
         val navigator = navigatorWith(
@@ -235,6 +259,7 @@ class WalletNavigatorTest {
             AssetRoute(assetId),
             WalletSecurityReminderRoute(walletId, GemWalletSecretKind.PHRASE),
             WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
+            CreateWalletRoute,
             RecipientInputRoute(assetId, nftAssetId = null),
             AmountRoute("amount"),
             AmountRoute("perpetual"),

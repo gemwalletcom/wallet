@@ -394,7 +394,8 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
 internal fun NavKey.isPendingNavigationProtectedRoute(): Boolean {
     return isConfirmFlowSegmentRoute() ||
         this is WalletSecurityReminderRoute ||
-        this is WalletPhraseRoute
+        this is WalletPhraseRoute ||
+        this is CreateWalletRoute
 }
 
 private fun ImportType.toImportRoute(): NavKey {
