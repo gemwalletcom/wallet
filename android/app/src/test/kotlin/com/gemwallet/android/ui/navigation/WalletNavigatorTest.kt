@@ -250,6 +250,37 @@ class WalletNavigatorTest {
     }
 
     @Test
+    fun dropNonRestorableRoutes_keepsTheLiveRootWhenItDiffersFromTheStartDestination() {
+        val assetId = mockAssetId(Chain.Solana)
+
+        val restored = listOf<NavKey>(
+            WalletRootRoute,
+            AssetRoute(assetId),
+        ).dropNonRestorableRoutes(OnboardingRoute)
+
+        assertEquals(listOf(WalletRootRoute, AssetRoute(assetId)), restored)
+    }
+
+    @Test
+    fun dropNonRestorableRoutes_keepsOnboardingRootAgainstAWalletStartDestination() {
+        val restored = listOf<NavKey>(OnboardingRoute).dropNonRestorableRoutes(WalletRootRoute)
+
+        assertEquals(listOf(OnboardingRoute), restored)
+    }
+
+    @Test
+    fun dropNonRestorableRoutes_fallsBackToStartDestinationWhenTheRootIsNotARoot() {
+        val assetId = mockAssetId(Chain.Solana)
+
+        val restored = listOf<NavKey>(
+            AssetRoute(assetId),
+            AmountRoute("amount"),
+        ).dropNonRestorableRoutes(WalletRootRoute)
+
+        assertEquals(listOf(WalletRootRoute), restored)
+    }
+
+    @Test
     fun dropNonRestorableRoutes_removesSensitiveAndInFlightRoutes() {
         val assetId = mockAssetId(Chain.Solana)
         val walletId = mockWalletId("wallet-1")
