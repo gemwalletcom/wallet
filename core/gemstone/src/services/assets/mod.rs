@@ -71,21 +71,11 @@ impl GemAssetsService {
     }
 
     pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
-        if let Some(asset) = self.stored_asset(&asset_id).await? {
-            return Ok(asset);
+        match self.ensure_asset(asset_id.clone()).await {
+            Ok(asset) => Ok(asset),
+            Err(error) if asset_id.is_native() => Err(error),
+            Err(_) => self.node_token_asset(asset_id).await,
         }
-        let Some(token_id) = asset_id.token_id.clone() else {
-            return self.ensure_asset(asset_id).await;
-        };
-        let asset = match self.gateway.get_token_data(asset_id.chain, token_id.clone()).await {
-            Ok(asset) => asset,
-            Err(error) => match self.search_token_asset(&asset_id, token_id).await {
-                Ok(Some(asset)) => asset,
-                Ok(None) | Err(_) => return Err(error.into()),
-            },
-        };
-        self.store.save_assets(vec![rules::default_asset_basic(asset.clone())]).await?;
-        Ok(asset)
     }
 
     pub async fn sync_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
@@ -154,14 +144,22 @@ impl GemAssetsService {
         if missing.is_empty() {
             return self.assets(asset_ids).await;
         }
-        // Simulation assets may not exist in the backend; fall back to the node.
-        if let Ok(assets) = self.get_assets(missing.clone(), None).await {
-            self.store.save_assets(assets).await?;
-        }
-        for asset_id in missing {
-            self.ensure_token_asset(asset_id).await?;
+        let synced = self.sync_missing_assets(missing.clone()).await.unwrap_or_default();
+        for asset_id in rules::missing_asset_ids(missing, synced) {
+            self.node_token_asset(asset_id).await?;
         }
         self.assets(asset_ids).await
+    }
+
+    async fn node_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+        let Some(token_id) = asset_id.token_id.clone() else {
+            return Err(GemServiceError::NotFound {
+                msg: format!("asset not found: {asset_id}"),
+            });
+        };
+        let asset = self.gateway.get_token_data(asset_id.chain, token_id).await?;
+        self.store.save_assets(vec![rules::default_asset_basic(asset.clone())]).await?;
+        Ok(asset)
     }
 
     pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
@@ -200,11 +198,6 @@ impl GemAssetsService {
 
     pub async fn search(&self, query: String, chains: Vec<Chain>, tags: Vec<String>) -> Result<SearchResponse, GemApiError> {
         Ok(self.api.client.get_search(query, chains, tags).await?)
-    }
-
-    async fn search_token_asset(&self, asset_id: &AssetId, token_id: String) -> Result<Option<Asset>, GemApiError> {
-        let assets = self.api.client.get_search_assets(token_id, vec![asset_id.chain]).await?;
-        Ok(assets.into_iter().map(|basic| basic.asset).find(|asset| &asset.id == asset_id))
     }
 
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
@@ -271,9 +264,7 @@ impl GemAssetsService {
     pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
         let token_chains = rules::token_search_chains(&chains);
         let (assets, tokens) = futures::join!(self.search_assets(query.clone(), chains), self.search_tokens(query, token_chains));
-        let mut assets = assets?;
-        assets.extend(tokens);
-        Ok(assets)
+        Ok(rules::merge_assets(assets?, tokens))
     }
 
     pub async fn sync_swappable_chains(&self) -> Result<(), GemServiceError> {
@@ -299,4 +290,82 @@ pub fn popular_asset_ids() -> Vec<AssetId> {
 
 pub fn default_token_chain(chains: Vec<Chain>) -> Option<Chain> {
     rules::default_token_chain(&chains)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::gateway::{EmptyPreferences, GemGateway};
+    use crate::services::assets::testkit::MemoryAssetStore;
+    use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
+    use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
+    use crate::services::wallet::testkit::MemoryWalletStore;
+    use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+    use crate::testkit::TestAlienProvider;
+    use futures::executor::block_on;
+    use std::sync::Mutex;
+
+    const USDT_TOKEN_ID: &str = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+    const USDT_RESPONSE: &str = r#"[{
+        "asset": {"id": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "name": "Tether", "symbol": "USDT", "decimals": 6, "type": "ERC20"},
+        "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": true, "earnApr": 4.68, "hasImage": true, "hasPrice": true},
+        "score": {"rank": 34, "type": "low"},
+        "price": null
+    }]"#;
+
+    fn service(provider: Arc<TestAlienProvider>) -> (GemAssetsService, Arc<MemoryAssetStore>) {
+        let preferences_store = Arc::new(MemoryPreferencesStore::default());
+        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store.clone(), Arc::new(EmptyPreferences)));
+        let session = Arc::new(GemWalletSessionService::new(
+            Arc::new(MemoryWalletSessionStore { current: Mutex::new(None) }),
+            Arc::new(MemoryWalletStore::default()),
+        ));
+        let store = Arc::new(MemoryAssetStore::default());
+        let service = GemAssetsService::new(
+            Arc::new(GemApiClient::new(provider)),
+            gateway,
+            store.clone(),
+            Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
+            Arc::new(GemPreferencesService::new(preferences_store)),
+            session,
+        );
+        (service, store)
+    }
+
+    fn usdt() -> AssetId {
+        AssetId::from(Chain::Ethereum, Some(USDT_TOKEN_ID.to_string()))
+    }
+
+    #[test]
+    fn test_ensure_token_asset_keeps_the_backend_properties() {
+        block_on(async {
+            let provider = Arc::new(TestAlienProvider::with_json(200, USDT_RESPONSE));
+            let (service, store) = service(provider.clone());
+
+            let asset = service.ensure_token_asset(usdt()).await.unwrap();
+
+            let saved = store.assets.lock().unwrap().clone();
+            assert_eq!(asset.symbol, "USDT");
+            assert_eq!(saved.len(), 1);
+            assert_eq!((saved[0].score.rank, saved[0].properties.is_buyable, saved[0].properties.earn_apr), (34, true, Some(4.68)));
+            assert_eq!(provider.requested_paths(), vec!["/v1/assets".to_string()]);
+        });
+    }
+
+    #[test]
+    fn test_ensure_token_asset_asks_the_node_only_after_the_backend() {
+        block_on(async {
+            let provider = Arc::new(TestAlienProvider::with_status(404));
+            let (service, store) = service(provider.clone());
+
+            let result = service.ensure_token_asset(usdt()).await;
+
+            assert!(result.is_err());
+            assert!(store.assets.lock().unwrap().is_empty());
+            assert_eq!(
+                provider.requested_paths(),
+                vec!["/v1/assets".to_string(), crate::services::node::rules::preferred_chain_node(Chain::Ethereum, None).url]
+            );
+        });
+    }
 }

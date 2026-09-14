@@ -25,7 +25,7 @@ use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use primitives::AssetType;
-use crate::services::collections::{missing, missing_by, unique};
+use crate::services::collections::{missing, missing_by, unique, unique_by};
 
 pub fn menu_actions(input: &GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
     [
@@ -88,6 +88,10 @@ pub fn default_asset(chain: Chain, asset_type: AssetType) -> Option<Asset> {
 pub fn default_asset_basic(asset: Asset) -> AssetBasic {
     let asset_id = asset.id.clone();
     AssetBasic::new(asset, AssetProperties::default(asset_id.clone()), AssetScore::new(asset_id.default_rank()))
+}
+
+pub fn merge_assets(assets: Vec<AssetBasic>, tokens: Vec<AssetBasic>) -> Vec<AssetBasic> {
+    unique_by(assets.into_iter().chain(tokens), |asset| asset.asset.id.clone())
 }
 
 pub fn default_assets() -> Vec<AssetBasic> {
@@ -794,6 +798,30 @@ mod tests {
         assert!(native.score.rank > token.score.rank);
         assert!(native.properties.is_enabled);
         assert!(native.price.is_none());
+    }
+
+    #[test]
+    fn test_merge_assets_keeps_the_backend_copy_of_a_token() {
+        let token = |rank: i32| AssetBasic {
+            score: AssetScore::new(rank),
+            ..default_asset_basic(Asset::new(
+                AssetId::from(Chain::Ethereum, Some("0x1".to_string())),
+                String::new(),
+                String::new(),
+                18,
+                primitives::AssetType::ERC20,
+            ))
+        };
+
+        let merged = merge_assets(
+            vec![default_asset_basic(Asset::from_chain(Chain::Ethereum)), token(34)],
+            vec![token(15), default_asset_basic(Asset::from_chain(Chain::Solana))],
+        );
+
+        assert_eq!(
+            merged.iter().map(|asset| asset.score.rank).collect::<Vec<_>>(),
+            vec![Chain::Ethereum.rank(), 34, Chain::Solana.rank()]
+        );
     }
 
     #[test]
