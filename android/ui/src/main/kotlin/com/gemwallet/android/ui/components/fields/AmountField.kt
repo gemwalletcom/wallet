@@ -39,7 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.math.NumberSanitizer
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAmountInputType
 
@@ -56,7 +55,7 @@ fun ColumnScope.AmountField(
     onInputTypeClick: (() -> Unit)? = null,
     readOnly: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Decimal,
-    sanitizer: NumberSanitizer = NumberSanitizer(),
+    maximumFractionDigits: UInt? = null,
     error: String,
     textStyle: TextStyle = MaterialTheme.typography.displaySmall,
     transformation: AmountTransformation = CryptoAmountTransformation(
@@ -75,7 +74,7 @@ fun ColumnScope.AmountField(
         modifier = modifier,
         value = if (fieldValue.text == amount) fieldValue else TextFieldValue(amount, TextRange(amount.length)),
         onValueChange = {
-            if (sanitizer.sanitize(it.text) == it.text) {
+            if (AmountInputTransformation.isValid(it.text, maximumFractionDigits)) {
                 fieldValue = it
                 if (it.text != amount) onValueChange(it.text)
             }

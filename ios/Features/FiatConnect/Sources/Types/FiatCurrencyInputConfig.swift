@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
+import struct Gemstone.GemNumberFormat
 import Primitives
 import SwiftUI
 
 struct FiatCurrencyInputConfig: CurrencyInputConfigurable {
     let secondaryText: String
     let currencySymbol: String
-    let numberSanitizer: NumberSanitizer
+    let numberFormat: GemNumberFormat
 
     var currencyPosition: CurrencyTextField.CurrencyPosition {
         .leading
@@ -23,7 +23,7 @@ struct FiatCurrencyInputConfig: CurrencyInputConfigurable {
     }
 
     var sanitizer: ((String) -> String)? {
-        { numberSanitizer.sanitize($0) }
+        { numberFormat.sanitize(input: $0, maximumFractionDigits: nil, maximumIntegerDigits: nil) }
     }
 
     var actionStyle: CurrencyInputActionStyle?

@@ -6,6 +6,7 @@ import Formatters
 import Foundation
 import enum Gemstone.FiatProviderName
 import enum Gemstone.GemFiatAmountCheck
+import struct Gemstone.GemNumberFormat
 import struct Gemstone.GemFiatQuoteRow
 import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
@@ -39,6 +40,7 @@ public final class FiatSceneViewModel {
     private let assetAddress: AssetAddress
     private let currencyFormatter: CurrencyFormatter
     private let locale: Locale
+    private let numberFormat: GemNumberFormat
     private let valueFormatter = ValueFormatter(locale: .US, style: .auto)
 
     public let priceUsdQuery: ObservableQuery<PriceUsdRequest>
@@ -64,6 +66,7 @@ public final class FiatSceneViewModel {
         self.service = service
         self.locale = locale
         currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: service.currency.rawValue)
+        numberFormat = GemNumberFormat(decimalSeparator: locale.decimalSeparator ?? ".")
         self.assetAddress = assetAddress
         self.wallet = wallet
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
@@ -119,7 +122,11 @@ public final class FiatSceneViewModel {
     }
 
     var currencyInputConfig: any CurrencyInputConfigurable {
-        FiatCurrencyInputConfig(secondaryText: cryptoAmountValue, currencySymbol: currencyFormatter.symbol)
+        FiatCurrencyInputConfig(
+            secondaryText: cryptoAmountValue,
+            currencySymbol: currencyFormatter.symbol,
+            numberFormat: numberFormat,
+        )
     }
 
     func actionButtonTitle(_ viewState: GemFiatViewState) -> String {
