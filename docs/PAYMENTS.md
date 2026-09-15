@@ -15,16 +15,19 @@ Open the scanner from the wallet screen and scan this page from another device. 
 | ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/primitives/src/payment_decoder/erc681.rs) |
 | Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, repeated `reference`, `memo`, and `label` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
 | TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/primitives/src/payment_decoder/ton_pay.rs) |
+| WalletConnect Pay | Merchant payment links: `https://pay.walletconnect.com/?pid=pay_…`, `https://pay.walletconnect.com/pay_…`, `wc:…?pay=…` and a bare `pay_…` id | [WalletConnect Pay decoder](../core/crates/primitives/src/payment_decoder/wallet_connect_pay.rs) |
 
 ## How decoding works
 
 ```mermaid
 flowchart TD
     Scan["Scanned text"] --> Action["URL action router"]
-    Action -->|"wc:"| WalletConnect["WalletConnect"]
-    Action -->|"gem:// or gemwallet.com"| Deeplink["Gem deeplink"]
     Action --> Decoder["Payment decoder"]
+    Action -->|"Not a payment: wc:"| WalletConnect["WalletConnect"]
+    Action -->|"Not a payment: gem:// or gemwallet.com"| Deeplink["Gem deeplink"]
     Decoder --> Scheme{"URI scheme"}
+    Scheme -->|"https://pay.walletconnect.com or wc:…?pay="| WCPay["WalletConnect Pay link"]
+    Scheme -->|"No scheme, pay_ id"| WCPay
     Scheme -->|"ethereum:"| ERC681["ERC-681"]
     Scheme -->|"solana:"| Solana["Solana Pay"]
     Scheme -->|"ton:"| TON["TON transfer"]
@@ -36,9 +39,15 @@ flowchart TD
     BIP321 --> BIP21
     XRP --> BIP21
     Solana -->|"HTTPS transaction request"| PaymentReview["Open review request<br/>Loading"]
+    WCPay --> PaymentReview
     PaymentReview --> Gateway["Load merchant and transaction"]
+    Gateway -->|"Gateway asks for identity data"| Verify["Identity form in a web view"]
+    Verify -->|"Complete"| PaymentReview
+    Gateway -->|"Payment already final"| StatusToast["Status toast"]
     Gateway --> Confirm["Open confirmation"]
     Confirm --> Simulation["Preload and simulate concurrently"]
+    Simulation -->|"Broadcast"| Report["Report the hash to the gateway"]
+    Report -->|"Refused"| ErrorToast["Error toast with the gateway's reason"]
     ERC681 & Solana & TON & BIP21 & Address --> Request{"Payment request?"}
     Request -->|"No"| Reject["Not supported"]
     Request -->|"Yes"| Assets{"Matching wallet assets"}
@@ -50,11 +59,15 @@ flowchart TD
 
 Routing is decided in Core by [payment_destination](../core/gemstone/src/payment.rs): it matches wallet assets, validates and checksums the address, converts the amount exactly (excess precision is never rounded), and requires a memo only on chains where the QR tag identifies the deposit (Cosmos, TON, XRP, Stellar, Algorand). Solana Pay transfers confirm without a memo. A recipient-review destination carries the checksummed `GemRecipient` (address, memo, references) and the requested amount, so the apps prefill the recipient screen from Core's answer without re-checksumming.
 
-`GemPaymentService` is the one payment object on both apps: it decodes URLs, routes destinations, builds transfer data and loads Solana transaction links through the alien provider it is constructed with.
+`GemPaymentService` is the one payment object on both apps: it decodes URLs, routes destinations, builds transfer data, and loads, re-selects and confirms payment links through the alien provider it is constructed with.
 
 Parameter keys are case-insensitive. Every format whose standard defines `label` parses it into `PaymentRequest.label`. Any unimplemented `req-` parameter rejects the whole URI, and so does a scheme the decoder does not list, so a new chain never gains a payment URI by accident. Payment instructions Gem cannot sign are ignored when the URI still carries an on-chain address, so `bitcoin:<address>?sp=<silent payment>` pays on chain; a URI that carries only such instructions is rejected.
 
-WalletConnect and Gem deeplinks are routed before payments. Solana transaction links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
+Payments are routed before WalletConnect pairing and Gem deeplinks, so a `wc:` URI that carries a `pay` query opens the payment, not a session. Solana transaction links and WalletConnect Pay links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
+
+WalletConnect Pay links resolve through the gateway in one `load` per screen: `/options` lists the merchant and one quote per wallet asset (coins only; token quotes that need typed-data signatures are dropped), `/fetch` builds the transaction for the selected quote, and the gateway answers `/fetch` with an identity-data error when the payer still has to fill in the merchant's form. Only that error opens the web form; `collectData` in `/options` stays after the form is done and is not a signal. Quotes are re-selected by asset id, never by option id: the gateway issues new option ids on every `/options` call and rejects the previous ones, so the option id is only valid for the `/confirm` that follows its own `/fetch`. Every quote carries `expiresAt`, and the built transaction's router deadline is that same instant, so a late signature fails on chain instead of being credited; the app does not keep its own expiry timer. A link whose payment is already final does not open a screen: `load` fails with the gateway status and the app shows it as a toast.
+
+A payment is its own transaction input: `load` answers `GemPaymentLoad::Sign` with the transfer data already built, so neither app resolves an asset or maps a transaction; the payment service ensures the asset and builds `TransactionInputType::Payment { asset, invoice, extra }`, whose `invoice` holds the link, the merchant, the price when the rail quotes one, and every option, signed and preloaded like an encoded generic transaction; the option being paid is the one whose asset is the transfer's asset. Core answers the confirm's title, its price header and its merchant recipient row from that input, so the screen renders a payment the way it renders swap data, without calling the payment service; switching an option is a load option like a fee priority: `GemConfirmLoadOptions.asset_id` makes the confirm session re-select through the payment service and swap the transfer it holds before it preloads, every screen it answers names the transfer it was loaded for, and the broadcast hash is reported inside `execute`, with the transfer that was sent: succeeded and processing answer nothing, any other status comes back as the sent result's warning, so the app toasts only a refusal; the confirm's own sent toast and the activity list already cover success. Solana Pay transaction links answer the same `Sign` with an invoice that quotes nothing, so they keep the plain confirm. Confirm Core has no payment code.
 
 Static Solana Pay transfer requests use the regular transfer flow. Each `reference` is preserved in URL order and added to the SOL or SPL-token transfer instruction as a read-only, non-signer account. A `memo` is emitted as the instruction immediately before the transfer.
 
@@ -63,6 +76,7 @@ Core entry points:
 - [URL action routing](../core/crates/primitives/src/url_action.rs)
 - [Payment decoder dispatch](../core/crates/primitives/src/payment_decoder/decoder.rs)
 - [Payment service](../core/crates/payment/src/service.rs)
+- [WalletConnect Pay provider](../core/crates/payment/src/wallet_connect_pay/provider.rs)
 - [UniFFI bridge](../core/gemstone/src/payment.rs)
 
 ## Payment flows

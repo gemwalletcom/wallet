@@ -12,7 +12,7 @@ import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.GemAssetsServiceInterface
+import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.Payment
 import uniffi.gemstone.PaymentLink
@@ -21,7 +21,6 @@ import uniffi.gemstone.PaymentRequest
 class PaymentNavigation @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
     private val paymentService: GemPaymentService,
-    private val assetsService: GemAssetsServiceInterface,
 ) {
 
     suspend fun routes(payment: Payment): List<NavKey> = when (payment) {
@@ -42,12 +41,13 @@ class PaymentNavigation @Inject constructor(
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {
         val assets = getWalletAssets().first()
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
-        val payment = paymentService.load(
+        val load = paymentService.load(
             link,
             accounts.map { ChainAddress(chain = it.chain, address = it.address).toGem() },
         )
-        val asset = assetsService.ensureTokenAsset(paymentService.transactionAssetId(payment))
-        val transfer = paymentService.transactionTransferData(payment, asset)
-        return listOfNotNull(transfer.pack()?.let(::ConfirmRoute))
+        return when (load) {
+            is GemPaymentLoad.Sign -> listOfNotNull(load.transfer.pack()?.let(::ConfirmRoute))
+            is GemPaymentLoad.Verify -> emptyList()
+        }
     }
 }

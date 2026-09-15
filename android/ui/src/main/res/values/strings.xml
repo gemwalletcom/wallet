@@ -111,6 +111,8 @@
   <string name="buy_rate">Rate</string>
   <string name="buy_no_results">No quotes available</string>
   <string name="transfer_network_fee">Network Fee</string>
+  <string name="transfer_pay_with">Pay with</string>
+  <string name="transfer_payment_title">Payment</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Confirm</string>
   <string name="transfer_from">From</string>

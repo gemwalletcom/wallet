@@ -48,6 +48,7 @@ impl GemConfirmFeeSelection {
 pub struct GemConfirmLoadOptions {
     pub fee_selection: GemConfirmFeeSelection,
     pub fee_asset_id: Option<AssetId>,
+    pub asset_id: Option<AssetId>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -64,7 +65,7 @@ pub struct GemConfirmData {
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemExecuteResult {
     Signed { data: Vec<String> },
-    Sent { hashes: Vec<String>, transactions: Vec<Transaction> },
+    Sent { hashes: Vec<String>, transactions: Vec<Transaction>, warning: Option<String> },
 }
 
 pub(super) struct GemSendResult {
@@ -147,6 +148,7 @@ impl GemConfirmSimulation {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
+    pub transfer: GemTransferData,
     pub sender: GemAccount,
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,

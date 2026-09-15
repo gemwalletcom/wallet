@@ -13,7 +13,6 @@ import com.gemwallet.android.domains.confirm.perpetualType
 import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
 import com.gemwallet.android.domains.confirm.applicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.domains.confirm.confirmLoadOptions
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -115,7 +114,7 @@ class ConfirmViewModel @Inject constructor(
     val isExternalRequest = request.map { it?.inputType?.applicationMetadata != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val isPaymentRequest = request.map { it?.inputType?.applicationMetadata?.source == ApplicationMetadataSource.Payment }
+    val isPaymentRequest = request.map { it?.inputType is TransactionInputType.Payment }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val session = getSession()

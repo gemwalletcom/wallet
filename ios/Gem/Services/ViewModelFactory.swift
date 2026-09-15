@@ -261,6 +261,15 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
+    public func paymentVerificationScene(
+        verification: PaymentVerification,
+        wallet: Wallet,
+        onComplete: @escaping (PaymentDestination) -> Void,
+    ) -> PaymentVerificationViewModel {
+        PaymentVerificationViewModel(verification: verification, wallet: wallet, service: paymentService, onComplete: onComplete)
+    }
+
+    @MainActor
     public func setPriceAlertScene(walletId: WalletId, asset: Asset, onComplete: StringAction) -> SetPriceAlertViewModel {
         SetPriceAlertViewModel(walletId: walletId, asset: asset, service: priceAlertService, onComplete: onComplete)
     }
@@ -564,8 +573,8 @@ public struct ViewModelFactory: Sendable {
             ),
             wallet: wallet,
             confirmation: confirmTransferService().confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
-            onComplete: { [toastPresenter] in
-                Task { toastPresenter.present(.transfer(for: data.inputType)) }
+            onComplete: { [toastPresenter] result in
+                Task { toastPresenter.present(.transfer(result, for: data.inputType)) }
                 onComplete?()
             },
         )
@@ -581,6 +590,7 @@ public struct ViewModelFactory: Sendable {
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,
             preferences: preferencesService,
+            payment: paymentService,
         )
     }
 

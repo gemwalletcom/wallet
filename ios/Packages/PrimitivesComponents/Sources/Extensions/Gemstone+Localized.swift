@@ -464,6 +464,7 @@ extension GemSelectAssetTitle {
     public var text: String {
         switch self {
         case .send: Localized.Wallet.send
+        case .payWith: Localized.Transfer.payWith
         case .receive: Localized.Wallet.receive
         case .receiveCollection: Localized.Wallet.receiveCollection
         case .buy: Localized.Wallet.buy
