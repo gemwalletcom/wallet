@@ -61,21 +61,15 @@ pub enum GemWalletSecret {
     PrivateKey { key: String },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemSecretPhraseWord {
-    pub index: u32,
-    pub word: String,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemSecretPhraseRow {
-    Pair { left: GemSecretPhraseWord, right: GemSecretPhraseWord },
-    Single { word: GemSecretPhraseWord },
+    Pair { left: u32, right: u32 },
+    Single { index: u32 },
 }
 
 #[uniffi::export]
-pub fn secret_phrase_rows(words: Vec<String>) -> Vec<GemSecretPhraseRow> {
-    rules::secret_phrase_rows(words)
+pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
+    rules::secret_phrase_rows(word_count)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

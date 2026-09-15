@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.components.screen
 
 import uniffi.gemstone.GemSecretPhraseRow
-import uniffi.gemstone.GemSecretPhraseWord
 import uniffi.gemstone.secretPhraseRows
 
 data class PhraseWord(
@@ -14,11 +13,11 @@ sealed interface PhraseRow {
     data class Single(val word: PhraseWord) : PhraseRow
 }
 
-fun phraseRows(words: List<String>): List<PhraseRow> = secretPhraseRows(words).map { row ->
+fun phraseRows(words: List<String>): List<PhraseRow> = secretPhraseRows(words.size.toUInt()).map { row ->
     when (row) {
-        is GemSecretPhraseRow.Pair -> PhraseRow.Pair(left = row.left.toUi(), right = row.right.toUi())
-        is GemSecretPhraseRow.Single -> PhraseRow.Single(word = row.word.toUi())
+        is GemSecretPhraseRow.Pair -> PhraseRow.Pair(left = words.phraseWord(row.left), right = words.phraseWord(row.right))
+        is GemSecretPhraseRow.Single -> PhraseRow.Single(word = words.phraseWord(row.index))
     }
 }
 
-private fun GemSecretPhraseWord.toUi() = PhraseWord(index = index.toInt(), word = word)
+private fun List<String>.phraseWord(index: UInt) = PhraseWord(index = index.toInt(), word = this[index.toInt()])
