@@ -145,73 +145,34 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun openPendingNavigation_requiresConfirmationDuringActiveTransactionFlow() {
-        val assetId = mockAssetId(Chain.Solana)
+    fun openPendingNavigation_resetsActiveTransactionFlow() {
         val navigator = navigatorWith(
             WalletRootRoute,
-            AssetRoute(assetId),
+            AssetRoute(mockAssetId(Chain.Solana)),
             AmountRoute("amount"),
         )
+        val route = AssetRoute(mockAssetId(Chain.Ethereum))
 
-        val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Ethereum))))
+        val opened = navigator.openPendingNavigation(listOf(route))
 
-        assertFalse(opened)
-        assertTrue(navigator.needsPendingNavigationConfirmation())
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                AssetRoute(assetId),
-                AmountRoute("amount"),
-            ),
-            navigator.backStack.toList(),
-        )
+        assertTrue(opened)
+        assertEquals(listOf(WalletRootRoute, route), navigator.backStack.toList())
     }
 
     @Test
-    fun openPendingNavigation_requiresConfirmationDuringSecretPhraseFlow() {
+    fun openPendingNavigation_resetsSecretPhraseFlow() {
         val walletId = mockWalletId("wallet-1")
         val navigator = navigatorWith(
             WalletRootRoute,
             WalletDetailsRoute(walletId),
             WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
         )
+        val route = AssetRoute(mockAssetId(Chain.Solana))
 
-        val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Solana))))
+        val opened = navigator.openPendingNavigation(listOf(route))
 
-        assertFalse(opened)
-        assertTrue(navigator.needsPendingNavigationConfirmation())
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                WalletDetailsRoute(walletId),
-                WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
-            ),
-            navigator.backStack.toList(),
-        )
-    }
-
-    @Test
-    fun openPendingNavigation_requiresConfirmationDuringWalletCreation() {
-        val navigator = navigatorWith(
-            WalletRootRoute,
-            WalletsRoute,
-            CreateWalletAlertRoute,
-            CreateWalletRoute,
-        )
-
-        val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Solana))))
-
-        assertFalse(opened)
-        assertTrue(navigator.needsPendingNavigationConfirmation())
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                WalletsRoute,
-                CreateWalletAlertRoute,
-                CreateWalletRoute,
-            ),
-            navigator.backStack.toList(),
-        )
+        assertTrue(opened)
+        assertEquals(listOf(WalletRootRoute, route), navigator.backStack.toList())
     }
 
     @Test
@@ -233,20 +194,6 @@ class WalletNavigatorTest {
             ),
             navigator.backStack.toList(),
         )
-    }
-
-    @Test
-    fun confirmedPendingNavigation_resetsActiveFlow() {
-        val navigator = navigatorWith(
-            WalletRootRoute,
-            AmountRoute("amount"),
-        )
-        val route = AssetRoute(mockAssetId(Chain.Solana))
-
-        val opened = navigator.openPendingNavigation(listOf(route), confirmed = true)
-
-        assertTrue(opened)
-        assertEquals(listOf(WalletRootRoute, route), navigator.backStack.toList())
     }
 
     @Test

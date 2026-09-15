@@ -342,21 +342,12 @@ class WalletNavigator(
         )
     }
 
-    internal fun openPendingNavigation(routes: List<NavKey>, confirmed: Boolean = false): Boolean {
+    internal fun openPendingNavigation(routes: List<NavKey>): Boolean {
         if (routes.isEmpty()) return false
-        if (!canOpenPendingNavigation()) return false
-        if (!confirmed && needsPendingNavigationConfirmation()) return false
+        if (backStack.firstOrNull() != WalletRootRoute) return false
         resetToWallet()
         routes.forEach(::push)
         return true
-    }
-
-    internal fun needsPendingNavigationConfirmation(): Boolean {
-        return canOpenPendingNavigation() && backStack.lastOrNull()?.isPendingNavigationProtectedRoute() == true
-    }
-
-    private fun canOpenPendingNavigation(): Boolean {
-        return backStack.firstOrNull() == WalletRootRoute
     }
 
     fun popConfirmFlow() {
@@ -389,13 +380,6 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         is SwapSelectRoute -> true
         else -> false
     }
-}
-
-internal fun NavKey.isPendingNavigationProtectedRoute(): Boolean {
-    return isConfirmFlowSegmentRoute() ||
-        this is WalletSecurityReminderRoute ||
-        this is WalletPhraseRoute ||
-        this is CreateWalletRoute
 }
 
 private fun ImportType.toImportRoute(): NavKey {
