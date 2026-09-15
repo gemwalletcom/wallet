@@ -340,18 +340,6 @@ interface AssetsDao {
     fun searchByAllWalletsWithPriority(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT): Flow<List<DbAssetInfo>>
 
     @Query("""
-        SELECT asset_info.*
-        FROM $ASSET_INFO WHERE
-            (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
-            AND assetRank >= 0
-            AND (symbol LIKE '%' || :query || '%'
-            OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
-            ORDER BY assetRank DESC
-        """)
-    fun swapSearch(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
-
-    @Query("""
         SELECT asset.*, MAX(recent_assets.addedAt) AS added_at
         FROM asset
         JOIN recent_assets

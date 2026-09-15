@@ -5,7 +5,7 @@ use number_formatter::BigNumberFormatter;
 use primitives::swap::{SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
-use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
+use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
 use crate::models::swap::GemSlippageCheck;
@@ -193,6 +193,14 @@ fn most_frequent_asset(asset_ids: &[AssetId]) -> Option<AssetId> {
 
 pub fn first_other_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId) -> Option<AssetId> {
     asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id)
+}
+
+pub fn assets_in_wallet(supported: AssetList, wallet: &Wallet) -> AssetList {
+    let has_account = |chain: &Chain| wallet.accounts.iter().any(|account| &account.chain == chain);
+    AssetList {
+        chains: supported.chains.into_iter().filter(has_account).collect(),
+        asset_ids: supported.asset_ids.into_iter().filter(|asset_id| has_account(&asset_id.chain)).collect(),
+    }
 }
 
 #[uniffi::export]
@@ -709,5 +717,33 @@ mod tests {
         let asset_ids = vec![AssetId::from_chain(Chain::Ethereum)];
 
         assert_eq!(first_other_asset(asset_ids, &AssetId::from_chain(Chain::Ethereum)), None);
+    }
+
+    fn supported_from_tron() -> AssetList {
+        AssetList {
+            chains: vec![Chain::Tron, Chain::Bitcoin],
+            asset_ids: vec![
+                AssetId::from_chain(Chain::Bitcoin),
+                AssetId::from(Chain::Tron, Some("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string())),
+                AssetId::from_chain(Chain::Ethereum),
+            ],
+        }
+    }
+
+    #[test]
+    fn test_assets_in_wallet_drops_chains_without_an_account() {
+        let assets = assets_in_wallet(supported_from_tron(), &wallet(&[Chain::Tron]));
+
+        assert_eq!(assets.chains, vec![Chain::Tron]);
+        assert_eq!(assets.asset_ids, vec![AssetId::from(Chain::Tron, Some("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string()))]);
+    }
+
+    #[test]
+    fn test_assets_in_wallet_keeps_every_chain_the_wallet_has() {
+        let supported = supported_from_tron();
+        let assets = assets_in_wallet(supported.clone(), &wallet(&[Chain::Tron, Chain::Bitcoin, Chain::Ethereum]));
+
+        assert_eq!(assets.chains, supported.chains);
+        assert_eq!(assets.asset_ids, supported.asset_ids);
     }
 }

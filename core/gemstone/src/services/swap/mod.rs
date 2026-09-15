@@ -25,7 +25,7 @@ use crate::services::wallet::GemKeystorePassword;
 pub use model::{
     GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer, swap_quote_summary, swapper_quote_summary,
 };
-use primitives::{AssetId, WalletId};
+use primitives::AssetId;
 pub use session::{GemSwapButtonState, GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
 pub use store::GemSwapStore;
 
@@ -63,16 +63,16 @@ impl GemSwapService {
         self.swapper.get_quote(&request).await
     }
 
-    pub async fn suggest_pair(&self, wallet_id: WalletId, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
+    pub async fn suggest_pair(&self, wallet: Wallet, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
         let pay_asset_id = match pay_asset_id {
             Some(asset_id) => asset_id,
-            None => match self.store.get_pay_asset_ids(wallet_id.clone()).await?.into_iter().next() {
+            None => match self.store.get_pay_asset_ids(wallet.id.clone()).await?.into_iter().next() {
                 Some(asset_id) => asset_id,
                 None => return Ok(None),
             },
         };
         Ok(Some(GemSwapPairSuggestion {
-            receive_asset_id: self.suggest_receive_asset(&wallet_id, &pay_asset_id).await?,
+            receive_asset_id: self.suggest_receive_asset(&wallet, &pay_asset_id).await?,
             pay_asset_id,
         }))
     }
@@ -94,17 +94,17 @@ impl GemSwapService {
 }
 
 impl GemSwapService {
-    async fn suggest_receive_asset(&self, wallet_id: &WalletId, pay_asset_id: &AssetId) -> Result<Option<AssetId>, GemServiceError> {
-        let pairs = self.store.get_swap_pairs(wallet_id.clone()).await?;
+    async fn suggest_receive_asset(&self, wallet: &Wallet, pay_asset_id: &AssetId) -> Result<Option<AssetId>, GemServiceError> {
+        let pairs = self.store.get_swap_pairs(wallet.id.clone()).await?;
         if let Some(asset_id) = rules::most_swapped_receive_asset(&pairs, pay_asset_id) {
             return Ok(Some(asset_id));
         }
-        let recents = self.store.get_recent_asset_ids(wallet_id.clone()).await?;
+        let recents = self.store.get_recent_asset_ids(wallet.id.clone()).await?;
         if let Some(asset_id) = rules::first_other_asset(recents, pay_asset_id) {
             return Ok(Some(asset_id));
         }
-        let supported = self.supported_assets(pay_asset_id.clone());
-        let candidates = self.store.get_receive_asset_ids(wallet_id.clone(), supported.chains, supported.asset_ids).await?;
+        let supported = rules::assets_in_wallet(self.supported_assets(pay_asset_id.clone()), wallet);
+        let candidates = self.store.get_receive_asset_ids(wallet.id.clone(), supported.chains, supported.asset_ids).await?;
         Ok(rules::first_other_asset(candidates, pay_asset_id))
     }
 
