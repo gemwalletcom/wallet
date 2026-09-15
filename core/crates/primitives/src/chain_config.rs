@@ -7,8 +7,18 @@ pub(crate) const NO_NATIVE_ASSET_RANK: i32 = -1;
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ChainStack {
     Native,
+    Arbitrum,
     Optimism,
     ZkSync,
+}
+
+impl ChainStack {
+    pub fn base_fee_multiplier(self) -> u8 {
+        match self {
+            Self::Arbitrum => 2,
+            Self::Native | Self::Optimism | Self::ZkSync => 1,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -342,7 +352,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             is_utxo: false,
             evm: Some(EvmChainConfig {
                 min_priority_fee: 10_000_000,
-                chain_stack: ChainStack::Native,
+                chain_stack: ChainStack::Arbitrum,
                 is_ethereum_layer2: true,
                 weth_contract: Some(ARBITRUM_WETH_TOKEN_ID),
             }),
@@ -1313,7 +1323,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             is_utxo: false,
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
-                chain_stack: ChainStack::Native,
+                chain_stack: ChainStack::Arbitrum,
                 is_ethereum_layer2: true,
                 weth_contract: Some(ROBINHOOD_WETH_TOKEN_ID),
             }),

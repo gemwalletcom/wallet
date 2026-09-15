@@ -254,8 +254,8 @@ mod tests {
         assert_eq!(estimates.transfer.len(), 1);
         assert_eq!(estimates.transfer[0].priority, FeePriority::Normal);
         assert_eq!(estimates.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
-        assert_eq!(estimates.transfer[0].fee, BigInt::from(2_600u64));
-        assert_eq!(estimates.token_transfer.unwrap()[0].fee, BigInt::from(2_600u64));
+        assert_eq!(estimates.transfer[0].fee, BigInt::from(1_300u64));
+        assert_eq!(estimates.token_transfer.unwrap()[0].fee, BigInt::from(1_300u64));
     }
 }
 

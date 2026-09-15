@@ -1,6 +1,6 @@
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult,
-    SimulationWarningType, Transaction, TransactionPreloadInput, Wallet,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
+    SimulationResult, SimulationWarningType, Transaction, TransactionPreloadInput, Wallet,
 };
 
 use super::error::GemConfirmError;
@@ -406,8 +406,19 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
     }
 }
 
-pub(super) fn displayed_fee_rates(rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+pub(super) fn confirmation_fee_rates(chain: Chain, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+    let multiplier = if is_max_amount {
+        1
+    } else {
+        chain.config().evm.as_ref().map_or(1, |config| config.chain_stack.base_fee_multiplier())
+    };
     let mut rates = rates;
+    for rate in &mut rates {
+        match &mut rate.gas_price_type {
+            GasPriceType::Eip1559 { gas_price, .. } => *gas_price *= multiplier,
+            GasPriceType::Regular { .. } | GasPriceType::Solana { .. } => {}
+        }
+    }
     rates.sort_by_key(|rate| match rate.priority {
         FeePriority::Normal => 0,
         FeePriority::Fast => 1,
@@ -452,7 +463,6 @@ mod tests {
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::FeeOption;
-    use primitives::GasPriceType;
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationSeverity, SimulationWarning, StakeType, SwapProvider,
         TransactionType, TransferDataExtra, TransferDataOutputAction, Wallet, WalletId,
@@ -667,9 +677,44 @@ mod tests {
     }
 
     #[test]
-    fn test_displayed_fee_rates_list_normal_before_fast() {
-        let rates = displayed_fee_rates(vec![rate(FeePriority::Fast, "20"), rate(FeePriority::Normal, "10")]);
+    fn test_confirmation_fee_rates_list_normal_before_fast() {
+        let rates = confirmation_fee_rates(Chain::Ethereum, false, vec![rate(FeePriority::Fast, "20"), rate(FeePriority::Normal, "10")]);
         assert_eq!(rates.iter().map(|rate| rate.priority).collect::<Vec<_>>(), vec![FeePriority::Normal, FeePriority::Fast]);
+    }
+
+    #[test]
+    fn test_confirmation_fee_rates_arbitrum_stack() {
+        for (chain, is_max_amount, base_fee) in [
+            (Chain::Arbitrum, false, 40),
+            (Chain::Robinhood, false, 40),
+            (Chain::Arbitrum, true, 20),
+            (Chain::Robinhood, true, 20),
+            (Chain::Ethereum, false, 20),
+            (Chain::Optimism, false, 20),
+            (Chain::ZkSync, false, 20),
+        ] {
+            let rates = confirmation_fee_rates(
+                chain,
+                is_max_amount,
+                vec![
+                    GemFeeRate {
+                        priority: FeePriority::Normal,
+                        gas_price_type: GasPriceType::eip1559(20, 5),
+                    },
+                    GemFeeRate {
+                        priority: FeePriority::Fast,
+                        gas_price_type: GasPriceType::eip1559(20, 10),
+                    },
+                ],
+            );
+            assert_eq!(
+                rates.iter().map(|rate| rate.gas_price_type.clone()).collect::<Vec<_>>(),
+                vec![GasPriceType::eip1559(base_fee, 5), GasPriceType::eip1559(base_fee, 10)],
+                "{chain:?} max={is_max_amount}"
+            );
+            let custom = GemConfirmFeeSelection::Custom { gas_price: BigInt::from(30) }.select_fee_rate(&rates).unwrap();
+            assert_eq!(custom.gas_price_type, GasPriceType::eip1559(25, 5));
+        }
     }
 
     #[test]
