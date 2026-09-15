@@ -69,5 +69,7 @@ enum class EVMChain(val string: String) {
 	Stable("stable"),
 	@SerialName("tempo")
 	Tempo("tempo"),
+	@SerialName("arc")
+	Arc("arc"),
 }
 

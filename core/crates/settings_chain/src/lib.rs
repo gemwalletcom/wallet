@@ -216,6 +216,7 @@ impl ProviderFactory {
             Chain::Robinhood => &settings.chains.robinhood,
             Chain::Stable => &settings.chains.stable,
             Chain::Tempo => &settings.chains.tempo,
+            Chain::Arc => &settings.chains.arc,
         }
     }
 

@@ -147,5 +147,6 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::Robinhood => vec![EtherScan::boxed(EVMChain::Robinhood), BlockScout::new_robinhood()],
         Chain::Stable => vec![EtherScan::boxed(EVMChain::Stable)],
         Chain::Tempo => vec![TempoExplorer::boxed()],
+        Chain::Arc => vec![BlockScout::new_arc()],
     }
 }

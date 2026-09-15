@@ -35,4 +35,5 @@ public enum EVMChain: String, Codable, CaseIterable, Equatable, Hashable, Sendab
 	case robinhood
 	case stable
 	case tempo
+	case arc
 }
