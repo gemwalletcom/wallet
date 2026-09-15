@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{Chain, ChainAddress, PaymentInvoice, PaymentLink, PaymentMerchant};
+use primitives::{Chain, ChainAddress, PaymentInvoice, PaymentLink, PaymentMerchant, TransferDataOutputType};
 
 use crate::provider::PaymentProvider;
 use crate::solana_pay::client::SolanaPayClient;
@@ -57,6 +57,8 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
                 transaction_type: prepared.transaction_type,
                 memo: prepared.memo,
                 request: prepared.request,
+                output_type: TransferDataOutputType::EncodedTransaction,
+                approval: None,
             },
         })
     }
@@ -120,6 +122,8 @@ mod tests {
                     transaction_type: prepared.transaction_type,
                     memo: prepared.memo,
                     request: prepared.request,
+                    output_type: TransferDataOutputType::EncodedTransaction,
+                    approval: None,
                 },
             }
         );

@@ -1,4 +1,5 @@
-use primitives::{AssetId, ChainAddress, PaymentInvoice, PaymentRequest, TransactionType};
+use primitives::swap::ApprovalData;
+use primitives::{AssetId, ChainAddress, PaymentInvoice, PaymentRequest, TransactionType, TransferDataOutputType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PaymentTransaction {
@@ -8,6 +9,8 @@ pub struct PaymentTransaction {
     pub transaction_type: TransactionType,
     pub memo: Option<String>,
     pub request: Option<PaymentRequest>,
+    pub output_type: TransferDataOutputType,
+    pub approval: Option<ApprovalData>,
 }
 
 #[allow(clippy::large_enum_variant)]

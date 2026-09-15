@@ -184,10 +184,10 @@ fn transaction_transfer_data(transaction: PaymentTransaction, asset: Asset) -> G
                 gas_limit: None,
                 gas_price: None,
                 data: Some(transaction_data(&transaction.transaction)),
-                output_type: TransferDataOutputType::EncodedTransaction,
+                output_type: transaction.output_type,
                 output_action: TransferDataOutputAction::Send,
                 transaction_type: transaction.transaction_type,
-                approval: None,
+                approval: transaction.approval,
             },
         },
         recipient,
@@ -587,6 +587,8 @@ mod tests {
                 references: None,
                 asset_id,
             }),
+            output_type: TransferDataOutputType::EncodedTransaction,
+            approval: None,
         };
         let usdc = AssetId::from_token(Chain::Solana, USDC_MINT);
 
@@ -612,6 +614,8 @@ mod tests {
             transaction_type: TransactionType::Transfer,
             memo: Some("order 7".to_string()),
             request,
+            output_type: TransferDataOutputType::EncodedTransaction,
+            approval: None,
         };
         let decoded = transaction_transfer_data(
             transaction(Some(request(

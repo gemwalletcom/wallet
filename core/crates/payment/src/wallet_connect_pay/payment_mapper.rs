@@ -1,7 +1,7 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType,
+    AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType,
     WalletConnectCAIP2, WalletConnectCAIP19,
 };
 use std::str::FromStr;
@@ -9,7 +9,7 @@ use url::Url;
 
 use crate::PaymentTransaction;
 use crate::error::PaymentError;
-use crate::wallet_connect_pay::model::{Invoice, Options, PaymentOption, PaymentOptionsResponse, PaymentPriceAmount, PaymentSend, Quote};
+use crate::wallet_connect_pay::model::{Invoice, Options, PaymentAction, PaymentOption, PaymentOptionsResponse, PaymentPriceAmount, Quote};
 
 const CAIP19_PREFIX: &str = "caip19";
 const ISO4217_PREFIX: &str = "iso4217/";
@@ -72,27 +72,36 @@ pub(super) fn status_reason(status: PaymentStatus) -> String {
     .to_string()
 }
 
-pub(super) fn map_transaction(quote: &Quote, send: PaymentSend, invoice: PaymentInvoice) -> PaymentTransaction {
-    let transaction_type = if send.data.is_empty() {
-        TransactionType::Transfer
-    } else {
-        TransactionType::SmartContractCall
+pub(super) fn map_transaction(quote: &Quote, action: PaymentAction, invoice: PaymentInvoice) -> PaymentTransaction {
+    let (transaction, transaction_type, recipient, output_type, approval) = match action {
+        PaymentAction::Send(send) => {
+            let transaction_type = if send.data.is_empty() {
+                TransactionType::Transfer
+            } else {
+                TransactionType::SmartContractCall
+            };
+            (send.data, transaction_type, send.recipient, TransferDataOutputType::EncodedTransaction, None)
+        }
+        PaymentAction::Sign(sign) => (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, None),
+        PaymentAction::ApproveAndSign { approval, sign } => (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, Some(approval)),
     };
 
     PaymentTransaction {
         invoice,
         account: quote.account.clone(),
-        transaction: send.data,
+        transaction,
         transaction_type,
         memo: None,
         request: Some(PaymentRequest {
-            address: send.recipient,
-            amount: Some(PaymentAmount::AtomicValue { value: send.value }),
+            address: recipient,
+            amount: Some(PaymentAmount::AtomicValue { value: quote.value.clone() }),
             memo: None,
             label: None,
             references: None,
             asset_id: Some(quote.asset_id.clone()),
         }),
+        output_type,
+        approval,
     }
 }
 
@@ -154,7 +163,9 @@ fn get_coin_asset_id(unit: &str) -> Option<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::model::{Merchant, PaymentPriceDisplay};
+    use crate::wallet_connect_pay::model::{Merchant, PaymentPriceDisplay, PaymentSend, PaymentSign};
+    use primitives::swap::ApprovalData;
+    use primitives::{Chain, ChainAddress};
 
     fn amount(unit: &str, value: &str) -> PaymentPriceAmount {
         PaymentPriceAmount {
@@ -175,6 +186,57 @@ mod tests {
         );
         assert_eq!(map_price(&amount("EUR", "5")).unwrap().currency, "EUR");
         assert!(map_price(&amount("iso4217/USD", "0.30")).is_err());
+    }
+
+    #[test]
+    fn test_map_transaction() {
+        let quote = |asset_id: AssetId| Quote {
+            id: "opt_1".to_string(),
+            account: ChainAddress::new(Chain::Polygon, "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string()),
+            asset_id,
+            value: BigUint::from(1_000_000u32),
+            collect_data_url: None,
+            actions: Vec::new(),
+        };
+        let usdt = AssetId::from_token(Chain::Polygon, "0xc2132d05d31c914a87c6611c10748aeb04b58e8f");
+        let sign = || PaymentSign {
+            recipient: "0x0000000000a84d1a9b0063a910315c7ffa9cd248".to_string(),
+            typed_data: "{\"primaryType\":\"PermitTransferFrom\"}".to_string(),
+        };
+
+        let coin = map_transaction(
+            &quote(AssetId::from_chain(Chain::Polygon)),
+            PaymentAction::Send(PaymentSend {
+                recipient: "0x0000000000a84d1a9b0063a910315c7ffa9cd248".to_string(),
+                value: BigUint::from(1_000_000u32),
+                data: String::new(),
+            }),
+            PaymentInvoice::mock(),
+        );
+        assert_eq!(coin.transaction_type, TransactionType::Transfer);
+        assert_eq!(coin.output_type, TransferDataOutputType::EncodedTransaction);
+        assert_eq!(coin.approval, None);
+        assert_eq!(coin.request.as_ref().and_then(|request| request.asset_id.clone()), Some(AssetId::from_chain(Chain::Polygon)));
+
+        let signature = map_transaction(&quote(usdt.clone()), PaymentAction::Sign(sign()), PaymentInvoice::mock());
+        assert_eq!(signature.transaction, sign().typed_data);
+        assert_eq!(signature.transaction_type, TransactionType::Transfer);
+        assert_eq!(signature.output_type, TransferDataOutputType::Signature);
+        assert_eq!(signature.approval, None);
+        assert_eq!(signature.request.as_ref().map(|request| request.address.clone()), Some(sign().recipient));
+        assert_eq!(signature.request.as_ref().and_then(|request| request.asset_id.clone()), Some(usdt.clone()));
+
+        let approval = ApprovalData::mock();
+        let approved = map_transaction(
+            &quote(usdt),
+            PaymentAction::ApproveAndSign {
+                approval: approval.clone(),
+                sign: sign(),
+            },
+            PaymentInvoice::mock(),
+        );
+        assert_eq!(approved.output_type, TransferDataOutputType::Signature);
+        assert_eq!(approved.approval, Some(approval));
     }
 
     #[test]

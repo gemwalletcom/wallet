@@ -67,14 +67,9 @@ impl<C: Client> WalletConnectPayProvider<C> {
                 });
             }
         };
-        match Self::get_action(quote, actions)? {
-            PaymentAction::Send(send) => Ok(PaymentLoad::Sign {
-                transaction: map_transaction(quote, send, payment_invoice),
-            }),
-            PaymentAction::Sign(_) | PaymentAction::ApproveAndSign { .. } => Err(PaymentError::InvalidRequest {
-                reason: "Token payments are not supported yet".to_string(),
-            }),
-        }
+        Ok(PaymentLoad::Sign {
+            transaction: map_transaction(quote, Self::get_action(quote, actions)?, payment_invoice),
+        })
     }
 
     async fn get_actions(&self, quote: &Quote) -> Result<PaymentActions, PaymentError> {
