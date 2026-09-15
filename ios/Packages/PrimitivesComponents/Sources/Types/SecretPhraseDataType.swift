@@ -3,6 +3,6 @@
 import Foundation
 
 public enum SecretPhraseDataType {
-    case words(words: [[WordIndex]])
+    case words(rows: [SecretPhraseRow])
     case privateKey(key: String)
 }

@@ -2,10 +2,13 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
+use super::model::{
+    GemSecretPhraseRow, GemSecretPhraseWord, GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle,
+};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
+const SECRET_PHRASE_COLUMNS: usize = 2;
 use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -117,6 +120,21 @@ fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
         SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),
         SecretExport::None => None,
     }
+}
+
+pub fn secret_phrase_rows(words: Vec<String>) -> Vec<GemSecretPhraseRow> {
+    let cells = words
+        .into_iter()
+        .enumerate()
+        .map(|(index, word)| GemSecretPhraseWord { index: index as u32, word })
+        .collect::<Vec<_>>();
+    let per_column = cells.len() / SECRET_PHRASE_COLUMNS;
+    let pairs = (0..per_column).map(|row| GemSecretPhraseRow::Pair {
+        left: cells[row].clone(),
+        right: cells[row + per_column].clone(),
+    });
+    let odd_last = cells.get(per_column * SECRET_PHRASE_COLUMNS).map(|cell| GemSecretPhraseRow::Single { word: cell.clone() });
+    pairs.chain(odd_last).collect()
 }
 
 pub fn row(wallet: &Wallet) -> GemWalletRow {
@@ -407,6 +425,41 @@ mod tests {
         assert_eq!(secret_kind(&phrase), Some(GemWalletSecretKind::Phrase));
         assert_eq!(secret_kind(&private_key), Some(GemWalletSecretKind::PrivateKey));
         assert_eq!(secret_kind(&view), None);
+    }
+
+    #[test]
+    fn test_secret_phrase_rows() {
+        let word = |index: u32, word: &str| GemSecretPhraseWord { index, word: word.to_string() };
+        let words = |list: &[&str]| list.iter().map(|word| word.to_string()).collect::<Vec<_>>();
+
+        assert_eq!(
+            secret_phrase_rows(words(&["a", "b", "c", "d"])),
+            vec![
+                GemSecretPhraseRow::Pair {
+                    left: word(0, "a"),
+                    right: word(2, "c")
+                },
+                GemSecretPhraseRow::Pair {
+                    left: word(1, "b"),
+                    right: word(3, "d")
+                },
+            ]
+        );
+        assert_eq!(
+            secret_phrase_rows(words(&["a", "b", "c", "d", "e"])),
+            vec![
+                GemSecretPhraseRow::Pair {
+                    left: word(0, "a"),
+                    right: word(2, "c")
+                },
+                GemSecretPhraseRow::Pair {
+                    left: word(1, "b"),
+                    right: word(3, "d")
+                },
+                GemSecretPhraseRow::Single { word: word(4, "e") },
+            ]
+        );
+        assert_eq!(secret_phrase_rows(vec![]), vec![]);
     }
 
     #[test]

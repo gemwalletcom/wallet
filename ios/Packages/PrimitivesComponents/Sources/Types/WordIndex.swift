@@ -17,14 +17,3 @@ extension WordIndex: Identifiable {
         String(index)
     }
 }
-
-public extension WordIndex {
-    static func rows(for words: [String]) -> [[WordIndex]] {
-        words
-            .enumerated()
-            .map {
-                WordIndex(index: $0.offset, word: $0.element)
-            }
-            .splitInSubArrays(into: words.count / 2)
-    }
-}
