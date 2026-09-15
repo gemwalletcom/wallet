@@ -988,6 +988,10 @@ info_network_fee_title = Network Fee
 info_watch_wallet_title = Watch Wallet
 # Used in Info bottom sheets for the watch wallet description.
 info_watch_wallet_description = A wallet that you do not have access to, but you can watch its transactions and movements.
+# Used as the identity form title and in its Info bottom sheet for a WalletConnect Pay payment.
+info_payment_verification_title = Payment Verification
+# Used in Info bottom sheets for the payment verification description.
+info_payment_verification_description = To meet compliance requirements, this merchant needs to verify your identity before the payment.
 # Used in Info bottom sheets for the network fee description. Contains 2 string placeholders.
 info_network_fee_description = Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.
 # Used in Info bottom sheets for the transaction error description.
