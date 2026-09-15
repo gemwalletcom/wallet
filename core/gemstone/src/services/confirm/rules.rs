@@ -112,7 +112,7 @@ impl ConfirmInput for TransactionInputType {
         let Self::Payment { extra, .. } = self else {
             return None;
         };
-        extra.data.as_ref().and_then(|data| String::from_utf8(data.clone()).ok())
+        extra.data.as_ref().filter(|data| !data.is_empty()).and_then(|data| String::from_utf8(data.clone()).ok())
     }
 
     fn validate_simulation(&self, simulation: &SimulationResult) -> Result<(), GemConfirmError> {
@@ -1063,9 +1063,13 @@ mod tests {
         binary.data = Some(vec![0xff, 0xfe]);
         assert_eq!(payment(binary).simulation_payload(), None);
 
-        let mut empty = extra;
-        empty.data = None;
-        assert_eq!(payment(empty).simulation_payload(), None);
+        let mut missing = extra.clone();
+        missing.data = None;
+        assert_eq!(payment(missing).simulation_payload(), None);
+
+        let mut coin_transfer = extra;
+        coin_transfer.data = Some(Vec::new());
+        assert_eq!(payment(coin_transfer).simulation_payload(), None, "a coin transfer carries no calldata to simulate");
 
         let swap = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
