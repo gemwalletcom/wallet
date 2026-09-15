@@ -406,16 +406,17 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
     }
 }
 
-pub(super) fn confirmation_fee_rates(chain: Chain, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
-    let multiplier = if is_max_amount {
-        1
-    } else {
-        chain.config().evm.as_ref().map_or(1, |config| config.chain_stack.base_fee_multiplier())
-    };
+pub(super) fn confirmation_fee_rates(asset_id: &AssetId, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+    let chain = asset_id.chain;
+    let increase_percent = chain
+        .config()
+        .evm
+        .as_ref()
+        .map_or(0, |config| config.chain_stack.base_fee_increase_percent(is_max_amount && asset_id.is_native()));
     let mut rates = rates;
     for rate in &mut rates {
         match &mut rate.gas_price_type {
-            GasPriceType::Eip1559 { gas_price, .. } => *gas_price *= multiplier,
+            GasPriceType::Eip1559 { gas_price, .. } => *gas_price += &*gas_price * increase_percent / 100,
             GasPriceType::Regular { .. } | GasPriceType::Solana { .. } => {}
         }
     }
@@ -678,23 +679,38 @@ mod tests {
 
     #[test]
     fn test_confirmation_fee_rates_list_normal_before_fast() {
-        let rates = confirmation_fee_rates(Chain::Ethereum, false, vec![rate(FeePriority::Fast, "20"), rate(FeePriority::Normal, "10")]);
+        let rates = confirmation_fee_rates(
+            &AssetId::from_chain(Chain::Ethereum),
+            false,
+            vec![rate(FeePriority::Fast, "20"), rate(FeePriority::Normal, "10")],
+        );
         assert_eq!(rates.iter().map(|rate| rate.priority).collect::<Vec<_>>(), vec![FeePriority::Normal, FeePriority::Fast]);
     }
 
     #[test]
     fn test_confirmation_fee_rates_arbitrum_stack() {
-        for (chain, is_max_amount, base_fee) in [
-            (Chain::Arbitrum, false, 40),
-            (Chain::Robinhood, false, 40),
-            (Chain::Arbitrum, true, 20),
-            (Chain::Robinhood, true, 20),
-            (Chain::Ethereum, false, 20),
-            (Chain::Optimism, false, 20),
-            (Chain::ZkSync, false, 20),
+        for (chain, is_token, is_max_amount, base_fee) in [
+            (Chain::Arbitrum, false, false, 40),
+            (Chain::Robinhood, false, false, 40),
+            (Chain::Arbitrum, false, true, 24),
+            (Chain::Robinhood, false, true, 24),
+            (Chain::Ethereum, false, false, 20),
+            (Chain::Optimism, false, false, 20),
+            (Chain::ZkSync, false, false, 20),
+            (Chain::Ethereum, false, true, 20),
+            (Chain::Optimism, false, true, 20),
+            (Chain::ZkSync, false, true, 20),
+            (Chain::Arbitrum, true, true, 40),
+            (Chain::Robinhood, true, true, 40),
+            (Chain::Ethereum, true, true, 20),
         ] {
+            let asset_id = if is_token {
+                AssetId::from_token(chain, "0x1111111111111111111111111111111111111111")
+            } else {
+                AssetId::from_chain(chain)
+            };
             let rates = confirmation_fee_rates(
-                chain,
+                &asset_id,
                 is_max_amount,
                 vec![
                     GemFeeRate {
