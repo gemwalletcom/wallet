@@ -402,7 +402,7 @@ struct ServicesFactory {
             appUpdateService: appUpdateService,
             inAppNotificationService: inAppNotificationService,
             biometryService: BiometryAuthenticationService(
-                keystorePassword: LocalKeystorePassword(),
+                keystorePassword: storages.keystorePassword,
                 securityService: Gemstone.GemSecurityService(),
             ),
             keystore: storages.keystore,

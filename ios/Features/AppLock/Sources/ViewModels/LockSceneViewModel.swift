@@ -62,7 +62,7 @@ public class LockSceneViewModel {
     }
 
     var shouldShowLockScreen: Bool {
-        isLocked || showPlaceholderPreview
+        isLocked || (isAutoLockEnabled && showPlaceholderPreview)
     }
 
     var lockPeriod: LockPeriod {
@@ -94,6 +94,7 @@ extension LockSceneViewModel {
     func handleSceneChange(to phase: ScenePhase) {
         switch phase {
         case .background:
+            showPlaceholderPreview = true
             if case let .unlocking(attempt) = state, !attempt.isInvalidated {
                 state = .unlocking(attempt.invalidated())
             }
@@ -112,7 +113,7 @@ extension LockSceneViewModel {
                 startUnlock()
             }
         case .inactive:
-            showPlaceholderPreview = true
+            showPlaceholderPreview = !service.isAuthenticating
         @unknown default:
             break
         }

@@ -74,6 +74,23 @@ struct LockWindowTests {
     }
 
     @Test
+    func setPhaseInactiveDuringAuthenticationKeepsWindowHidden() {
+        let service = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+            isPrivacyLockEnabled: true,
+        )
+        service.isAuthenticating = true
+        let manager = LockWindowMock(lockModel: LockSceneViewModel(service: service))
+        manager.lockModel.state = .unlocked
+
+        manager.setPhase(phase: .inactive)
+
+        #expect(!manager.showLockScreen)
+        #expect(!manager.isPrivacyLockVisible)
+    }
+
+    @Test
     func setPhaseActiveStartsUnlock() async {
         let manager = LockWindowMock.mock()
         manager.setPhase(phase: .active)

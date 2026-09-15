@@ -410,6 +410,47 @@ struct LockSceneViewModelTests {
     }
 
     @Test
+    func inactiveDuringOwnAuthenticationKeepsContentVisible() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+            isPrivacyLockEnabled: true,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        mockService.isAuthenticating = true
+
+        viewModel.handleSceneChange(to: .inactive)
+
+        #expect(!viewModel.shouldShowLockScreen, "a Face ID sheet of our own is not the user leaving the app")
+        #expect(!viewModel.isPrivacyLockVisible)
+
+        mockService.isAuthenticating = false
+        viewModel.handleSceneChange(to: .active)
+
+        #expect(viewModel.state == .unlocked)
+        #expect(!viewModel.shouldShowLockScreen)
+    }
+
+    @Test
+    func leavingDuringOwnAuthenticationStillHidesContent() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+            isPrivacyLockEnabled: true,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        mockService.isAuthenticating = true
+
+        viewModel.handleSceneChange(to: .inactive)
+        viewModel.handleSceneChange(to: .background)
+
+        #expect(viewModel.shouldShowLockScreen)
+        #expect(viewModel.isPrivacyLockVisible)
+    }
+
+    @Test
     func handleSceneChangeWhenAutoLockDisabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
@@ -546,6 +587,7 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
 
     var requiresAuthentication: Bool
     var isPrivacyLockEnabled: Bool
+    var isAuthenticating: Bool = false
     var availableAuthentication: KeystoreAuthentication
 
     var shouldAuthenticateSucceed: Bool = true
