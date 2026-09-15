@@ -63,15 +63,6 @@ extension ViewModelFactory {
         )
     }
 
-    @MainActor
-    public func paymentVerificationScene(
-        verification: PaymentVerification,
-        wallet: Wallet,
-        onComplete: @escaping (PaymentDestination) -> Void,
-    ) -> PaymentVerificationViewModel {
-        PaymentVerificationViewModel(verification: verification, wallet: wallet, service: paymentService, onComplete: onComplete)
-    }
-
     private func confirmTransferService() -> GemConfirmTransferService {
         GemConfirmTransferService(
             confirm: confirmService,

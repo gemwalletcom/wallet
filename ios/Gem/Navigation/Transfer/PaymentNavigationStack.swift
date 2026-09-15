@@ -1,10 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.PaymentLink
 import Primitives
 import SwiftUI
 import Transfer
 
 struct PaymentNavigationStack: View {
+    @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.viewModelFactory) private var viewModelFactory
 
@@ -20,14 +22,8 @@ struct PaymentNavigationStack: View {
         switch type {
         case let .confirm(transfer):
             ConfirmTransferNavigationStack(wallet: wallet, transferData: transfer, onComplete: onComplete)
-        case let .verify(verification):
-            PaymentVerificationScene(
-                model: viewModelFactory.paymentVerificationScene(
-                    verification: verification,
-                    wallet: wallet,
-                    onComplete: { presenter.isPresentingPayment.wrappedValue = $0 },
-                ),
-            )
+        case let .verify(url, link):
+            PaymentVerificationScene(model: PaymentVerificationSceneViewModel(url: url, onComplete: { onVerified(link) }))
         case let .recipient(input):
             SelectedAssetNavigationStack(input: input, wallet: wallet, onComplete: onComplete)
         case let .selectAsset(type, chains):
@@ -41,5 +37,9 @@ struct PaymentNavigationStack: View {
 extension PaymentNavigationStack {
     private func onComplete() {
         presenter.isPresentingPayment.wrappedValue = nil
+    }
+
+    private func onVerified(_ link: PaymentLink) {
+        Task { await navigationHandler.handle(.payment(payment: .link(link: link))) }
     }
 }

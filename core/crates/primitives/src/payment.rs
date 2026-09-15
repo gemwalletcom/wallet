@@ -48,6 +48,13 @@ pub struct PaymentInvoice {
     pub merchant: PaymentMerchant,
     pub price: Option<PaymentPrice>,
     pub quotes: Vec<PaymentQuote>,
+    pub verification: Option<PaymentVerification>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaymentVerification {
+    pub url: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

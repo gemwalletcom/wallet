@@ -35,6 +35,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case balanceChange(Int)
     case payload
     case networkFee
+    case verification
     case error
 
     public var id: Self {
@@ -52,6 +53,7 @@ public enum ConfirmTransferItemModel {
     case memo(ListItemModel)
     case swapDetails(SwapDetailsViewModel)
     case networkFee(ListItemModel, selectable: Bool)
+    case verification(ListItemModel)
     case perpetualDetails(PerpetualDetailsViewModel)
     case perpetualModifyPosition(PerpetualModifyViewModel)
     case warnings([SimulationWarningViewModel])

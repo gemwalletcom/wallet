@@ -92,6 +92,11 @@ impl GemConfirmation {
             self.select_asset(asset_id).await?;
         }
         let transfer = self.transfer.lock().await.clone();
+        if transfer.verification().is_some() {
+            let screen = self.state().await?;
+            *self.screen.lock().await = Some(screen.clone());
+            return Ok(screen);
+        }
         let input = self.service.confirm_input(self.wallet.clone(), transfer.clone())?;
         let input_type = transfer.input_type;
         let requested = async {
@@ -115,7 +120,7 @@ impl GemConfirmation {
 impl GemConfirmation {
     async fn select_asset(&self, asset_id: AssetId) -> Result<(), GemConfirmError> {
         let transfer = self.transfer.lock().await.clone();
-        if transfer.input_type.get_asset().id == asset_id {
+        if transfer.input_type.get_asset().id == asset_id && transfer.verification().is_none() {
             return Ok(());
         }
         let TransactionInputType::Payment { invoice, .. } = transfer.input_type else {
@@ -126,11 +131,7 @@ impl GemConfirmation {
         let addresses = self.wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
         let transfer = match self.service.payment().select_asset(invoice, addresses, asset_id).await? {
             GemPaymentLoad::Sign { transfer } => transfer,
-            GemPaymentLoad::Verify { .. } => {
-                return Err(GemConfirmError::Load {
-                    msg: "Payment needs verification".to_string(),
-                });
-            }
+            GemPaymentLoad::Verify { invoice, asset_id, url } => self.service.payment().verification_transfer_data(invoice, asset_id, url).await?,
         };
         *self.transfer.lock().await = transfer;
         *self.screen.lock().await = None;

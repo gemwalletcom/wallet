@@ -250,6 +250,8 @@ pub struct GemConfirmScreen {
     pub phase: GemConfirmPhase,
     pub has_critical_warning: bool,
     pub failure: Option<GemConfirmFailure>,
+    #[uniffi(default = true)]
+    pub has_preload: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

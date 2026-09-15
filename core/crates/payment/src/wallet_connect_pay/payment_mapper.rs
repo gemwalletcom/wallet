@@ -57,6 +57,7 @@ pub(super) fn map_invoice(invoice: &Invoice, payment_id: &str) -> PaymentInvoice
         },
         price: Some(invoice.price.clone()),
         quotes: invoice.quotes.iter().map(map_payment_quote).collect(),
+        verification: None,
     }
 }
 

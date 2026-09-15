@@ -23,6 +23,7 @@ impl PaymentInvoice {
             merchant: PaymentMerchant::mock(),
             price: Some(PaymentPrice::mock()),
             quotes: vec![PaymentQuote::mock(AssetId::from_chain(Chain::Ethereum))],
+            verification: None,
         }
     }
 }

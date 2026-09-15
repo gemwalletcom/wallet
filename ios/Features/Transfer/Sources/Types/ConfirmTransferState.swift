@@ -11,6 +11,7 @@ import struct Gemstone.GemFeeAsset
 import struct Gemstone.GemFeeRateRows
 import struct Gemstone.GemTransactionLoadFee
 import struct Gemstone.GemTransferData
+import struct Gemstone.PaymentVerification
 import Components
 import Foundation
 import Primitives
@@ -64,6 +65,10 @@ extension ConfirmTransferState {
 
     func feeRateRows(selection: GemConfirmFeeSelection) -> GemFeeRateRows? {
         confirmData?.feeRateRows(selection: selection, feeAsset: feeAsset.toGem())
+    }
+
+    var verification: PaymentVerification? {
+        transfer.verification()
     }
 
     var transactionError: ConfirmTransferError? {

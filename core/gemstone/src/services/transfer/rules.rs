@@ -1,6 +1,6 @@
 use chrono::Utc;
 use num_bigint::BigInt;
-use primitives::SwapProvider;
+use primitives::{PaymentVerification, SwapProvider};
 use primitives::swap::ApprovalData;
 use primitives::{
     AccountDataType, AddressName, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType,
@@ -54,6 +54,13 @@ impl GemTransferData {
 
     pub fn shows_memo(&self) -> bool {
         self.input_type.shows_memo()
+    }
+
+    pub fn verification(&self) -> Option<PaymentVerification> {
+        let TransactionInputType::Payment { invoice, .. } = &self.input_type else {
+            return None;
+        };
+        invoice.verification.clone()
     }
 
     pub fn confirm_rows(&self) -> Vec<GemConfirmRow> {

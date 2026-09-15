@@ -177,7 +177,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
             payloadModel.primaryFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
-            ListSection(type: .fee, [.networkFee]),
+            ListSection(type: .fee, [state.verification == nil ? .networkFee : .verification]),
             ListSection(type: .error, [.error]),
         ].compactMap(\.self)
     }
@@ -232,6 +232,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
             )
+        case .verification:
+            ConfirmVerificationViewModel(infoAction: onSelectVerificationInfo)
         case .error:
             ConfirmErrorViewModel(
                 error: state.transactionError,
@@ -288,6 +290,20 @@ extension ConfirmTransferSceneViewModel {
         isPresentingSheet = nil
         guard asset.id != transfer.asset.id else { return }
         assetSelection = asset.id
+    }
+
+    func onSelectVerification() {
+        guard let verification = state.verification, let url = URL(string: verification.url) else { return }
+        isPresentingSheet = .paymentVerification(url)
+    }
+
+    func onSelectVerificationInfo() {
+        isPresentingSheet = .info(.paymentVerification)
+    }
+
+    public func onPaymentVerified() {
+        isPresentingSheet = nil
+        Task { await load() }
     }
 
     func onSelectFeePicker() {

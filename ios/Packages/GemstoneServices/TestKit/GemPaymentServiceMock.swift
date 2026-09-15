@@ -20,7 +20,6 @@ import Primitives
 public final class GemPaymentServiceMock: GemPaymentServiceProtocol, @unchecked Sendable {
     private let service = GemPaymentService.mock()
     private let loadResult: Result<GemPaymentLoad, any Error>
-    public private(set) var selectedAssetIds: [AssetId] = []
 
     public init(
         load: Result<GemPaymentLoad, any Error> = .failure(AnyError("not stubbed")),
@@ -32,9 +31,8 @@ public final class GemPaymentServiceMock: GemPaymentServiceProtocol, @unchecked 
         try loadResult.get()
     }
 
-    public func selectAsset(invoice _: PaymentInvoice, addresses _: [ChainAddress], assetId: AssetId) async throws -> GemPaymentLoad {
-        selectedAssetIds.append(assetId)
-        return try loadResult.get()
+    public func selectAsset(invoice _: PaymentInvoice, addresses _: [ChainAddress], assetId _: AssetId) async throws -> GemPaymentLoad {
+        try loadResult.get()
     }
 
     public func decodeUrl(string: String) throws -> Payment {

@@ -4,18 +4,18 @@ use crate::GemstoneError;
 use crate::address::{checksum_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
 use crate::config::wallet_connect::get_wallet_connect_config;
-use crate::models::custom_types::GemBigUint;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentInvoice, GemPaymentLink, GemPaymentRequest};
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
 use payment::{PaymentLoad, PaymentService, PaymentTransaction, WalletConnectPayAuth};
 use primitives::TransactionInputType;
 use primitives::{
-    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentQuote, PaymentURLDecoder, TransferDataExtra, TransferDataOutputAction,
-    TransferDataOutputType, hex,
+    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentQuote, PaymentURLDecoder, PaymentVerification, TransactionType, TransferDataExtra,
+    TransferDataOutputAction, TransferDataOutputType, hex,
 };
 use uuid::Uuid;
 
@@ -104,6 +104,11 @@ impl GemPaymentService {
         self.payments.confirm(&invoice.link, &quote.id, transaction_hash).await
     }
 
+    pub(crate) async fn verification_transfer_data(&self, invoice: GemPaymentInvoice, asset_id: AssetId, url: String) -> Result<GemTransferData, GemPaymentError> {
+        let asset = self.assets.ensure_token_asset(asset_id).await?;
+        verification_transfer_data(invoice, asset, url)
+    }
+
     async fn payment_load(&self, load: PaymentLoad) -> Result<GemPaymentLoad, GemPaymentError> {
         match load {
             PaymentLoad::Sign { transaction } => {
@@ -115,6 +120,40 @@ impl GemPaymentService {
             PaymentLoad::Verify { invoice, asset_id, url } => Ok(GemPaymentLoad::Verify { invoice, asset_id, url }),
         }
     }
+}
+
+fn verification_transfer_data(invoice: GemPaymentInvoice, asset: Asset, url: String) -> Result<GemTransferData, GemPaymentError> {
+    let quote = invoice.quotes.iter().find(|quote| quote.asset_id == asset.id).ok_or(GemPaymentError::InvalidRequest {
+        reason: "Payment has no quote for the asset".to_string(),
+    })?;
+    let value = GemBigInt::from(BigInt::from(quote.value.clone()));
+    Ok(GemTransferData {
+        input_type: TransactionInputType::Payment {
+            asset,
+            invoice: GemPaymentInvoice {
+                verification: Some(PaymentVerification { url }),
+                ..invoice
+            },
+            extra: TransferDataExtra {
+                to: String::new(),
+                gas_limit: None,
+                gas_price: None,
+                data: None,
+                output_type: TransferDataOutputType::EncodedTransaction,
+                output_action: TransferDataOutputAction::Send,
+                transaction_type: TransactionType::Transfer,
+                approval: None,
+            },
+        },
+        recipient: GemRecipient {
+            address: String::new(),
+            name: None,
+            memo: None,
+            references: Vec::new(),
+        },
+        value,
+        use_max_amount: false,
+    })
 }
 
 fn transaction_transfer_data(transaction: PaymentTransaction, asset: Asset) -> GemTransferData {

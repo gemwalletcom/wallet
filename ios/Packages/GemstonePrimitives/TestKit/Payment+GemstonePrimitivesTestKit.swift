@@ -7,6 +7,7 @@ import enum Gemstone.PaymentLink
 import struct Gemstone.PaymentMerchant
 import struct Gemstone.PaymentPrice
 import struct Gemstone.PaymentQuote
+import struct Gemstone.PaymentVerification
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -17,8 +18,9 @@ public extension PaymentInvoice {
         merchant: PaymentMerchant = .mock(),
         price: PaymentPrice? = .mock(),
         quotes: [PaymentQuote] = [.mock()],
+        verification: PaymentVerification? = nil,
     ) -> PaymentInvoice {
-        PaymentInvoice(link: link, merchant: merchant, price: price, quotes: quotes)
+        PaymentInvoice(link: link, merchant: merchant, price: price, quotes: quotes, verification: verification)
     }
 }
 

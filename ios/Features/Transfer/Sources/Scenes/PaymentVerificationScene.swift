@@ -1,12 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import InfoSheet
+import Style
 import SwiftUI
 
 public struct PaymentVerificationScene: View {
-    @State private var model: PaymentVerificationViewModel
+    @State private var model: PaymentVerificationSceneViewModel
 
-    public init(model: PaymentVerificationViewModel) {
+    public init(model: PaymentVerificationSceneViewModel) {
         _model = State(wrappedValue: model)
     }
 
@@ -17,9 +19,17 @@ public struct PaymentVerificationScene: View {
                 allowedHost: model.allowedHost,
                 messageHandler: model.messageHandler,
             )
+            .navigationTitle(model.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("", systemImage: SystemImage.info, action: model.onSelectInfo)
+                }
+            }
         }
-        .alertSheet($model.isPresentingAlertMessage)
+        .sheet(item: $model.isPresentingInfoSheet) {
+            InfoSheetScene(type: $0)
+        }
     }
 }

@@ -57,6 +57,7 @@ remote:
   - PaymentMerchant
   - PaymentPrice
   - PaymentInvoice
+  - PaymentVerification
   - AssetMarket
   - AssetMetaData
   - AssetPrice

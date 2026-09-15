@@ -90,6 +90,11 @@ extension ConfirmTransferScene {
                 isEnabled: selectable,
                 action: self.model.onSelectFeePicker,
             )
+        case let .verification(model):
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                action: self.model.onSelectVerification,
+            )
         case let .warnings(models):
             SimulationWarningsContent(models: models)
         case let .balanceChange(model):

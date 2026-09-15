@@ -15,6 +15,7 @@ import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemTransferData
 import struct Gemstone.PaymentInvoice
 import struct Gemstone.PaymentQuote
+import struct Gemstone.PaymentVerification
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -57,7 +58,7 @@ struct ConfirmTransferSceneViewModelTests {
         let bnb = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
         let confirmation = GemConfirmationMock(state: .mock(preload: nil), load: .success(.mock(transfer: bnb)))
         let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockEthereum(), invoice: invoice), confirmation: confirmation)
-        model.isPresentingSheet = .paymentAsset(.payment([Asset.mockBNB().id]))
+        model.onSelectPaymentAsset(.payment([Asset.mockBNB().id]))
 
         model.selectPaymentAsset(.mockBNB())
         await model.load()
@@ -66,6 +67,29 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(confirmation.loadOptions.last?.assetId == Asset.mockBNB().id.identifier)
         #expect(model.transfer.chain == .smartChain)
         #expect(model.state.preload != nil)
+    }
+
+    @Test
+    func gatedPaymentAssetReplacesTheFeeRowAndOpensTheForm() async {
+        let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockEthereum()), .mock(asset: .mockBNB())], verification: PaymentVerification(url: "https://walletconnect.com/collect"))
+        let gated = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
+        let confirmation = GemConfirmationMock(state: .mock(preload: nil), load: .success(.mock(transfer: gated, preload: nil)))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockEthereum(), invoice: .mock()), confirmation: confirmation)
+
+        model.selectPaymentAsset(.mockBNB())
+        await model.load()
+
+        #expect(model.transfer.chain == .smartChain)
+        #expect(model.sections.contains { $0.values.contains(.verification) })
+        #expect(model.button.state == .disabled)
+
+        model.onSelectVerification()
+
+        guard case let .paymentVerification(url)? = model.isPresentingSheet else {
+            Issue.record("Expected the verification sheet")
+            return
+        }
+        #expect(url.absoluteString == "https://walletconnect.com/collect")
     }
 
     @Test
@@ -82,9 +106,10 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func selectingTheSamePaymentAssetOnlyClosesTheSheet() async {
-        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: .mock(quotes: [.mock(asset: .mockBNB())])))
+        let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockBNB())])
+        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: invoice))
         await model.load()
-        model.isPresentingSheet = .paymentAsset(.payment([Asset.mockBNB().id]))
+        model.onSelectPaymentAsset(.payment([Asset.mockBNB().id]))
 
         model.selectPaymentAsset(.mockBNB())
 
