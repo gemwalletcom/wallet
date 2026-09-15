@@ -33,6 +33,18 @@ struct BiometryAuthenticationServiceTests {
     }
 
     @Test
+    func isAuthenticatingComesFromTheKeystorePassword() {
+        let keystorePassword = MockKeystorePassword(availableAuthentication: .biometrics)
+        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
+
+        #expect(!service.isAuthenticating)
+
+        keystorePassword.isAuthenticating = true
+
+        #expect(service.isAuthenticating)
+    }
+
+    @Test
     func requiresAuthenticationReflectsStoredAuthentication() {
         let keystorePassword = MockKeystorePassword(availableAuthentication: .biometrics)
         let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())

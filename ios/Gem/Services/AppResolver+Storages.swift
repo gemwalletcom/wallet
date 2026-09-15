@@ -8,10 +8,12 @@ extension AppResolver {
     struct Storages {
         let db: DB = .init()
         let stores: Stores
-        let keystore = LocalKeystore()
+        let keystorePassword = LocalKeystorePassword()
+        let keystore: LocalKeystore
 
         init() {
             stores = Stores(db: db)
+            keystore = LocalKeystore(keystorePassword: keystorePassword)
         }
     }
 }
