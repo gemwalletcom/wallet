@@ -124,7 +124,7 @@ impl SearchClient {
             .search(ASSET_LISTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset)
             .await?;
 
-        Ok(lists.into_iter().map(Into::into).collect())
+        Ok(lists.iter().filter_map(|list| list.as_primitive(&request.chains)).collect())
     }
 
     pub async fn get_perpetuals_search(&self, request: &SearchRequest) -> Result<Vec<PerpetualSearchData>, Box<dyn Error + Send + Sync>> {
