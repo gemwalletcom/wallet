@@ -146,8 +146,9 @@ fun AssetsScreen(
                 }
                 item(key = BannersItemKey) {
                     BannersScene(
-                        asset = null,
-                        onClick = {},
+                        banners = walletSummary?.banners.orEmpty(),
+                        onSelect = {},
+                        onClose = viewModel::closeBanner,
                         onBuy = { onAction(AssetsAction.Buy) },
                         onReceive = { onAction(AssetsAction.Receive) },
                     )

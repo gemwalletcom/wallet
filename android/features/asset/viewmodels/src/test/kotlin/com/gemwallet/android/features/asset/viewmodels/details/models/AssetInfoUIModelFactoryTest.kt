@@ -113,6 +113,7 @@ class AssetInfoUIModelFactoryTest {
                 shareUrl = "",
                 swapPair = GemSwapPairSuggestion(asset.id.toIdentifier(), null),
             ),
+            banners = emptyList(),
         )
     }
 }

@@ -40,6 +40,11 @@ fun AssetDetailsScreen(
                     AssetDetailsAction.Pin -> viewModel.pin()
                     AssetDetailsAction.Add -> viewModel.add()
                     is AssetDetailsAction.TogglePriceAlert -> viewModel.togglePriceAlert(action.assetId)
+                    is AssetDetailsAction.CloseBanner -> viewModel.closeBanner(action.banner)
+                    AssetDetailsAction.OpenPerpetuals -> {
+                        viewModel.enablePerpetuals()
+                        onAction(AssetDetailsAction.OpenPerpetuals)
+                    }
                     is AssetDetailsAction.Navigation -> onAction(action)
                 }
             },

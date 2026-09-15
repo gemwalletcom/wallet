@@ -208,7 +208,7 @@ One Core service per screen, held by the screen's view model on both apps. The s
 | `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetDetailsViewModel` |
 | `GemAssetSelectionService` | — | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses |
 | `GemAvatarService` | — | `WalletImageViewModel`, vended by `CreateWalletModel` and `ImportWalletViewModel` | — (no avatar surface) |
-| `GemBannerService` | — | — (a collaborator inside `GemAssetDetailsService` and `GemWalletHomeService`) | `BannersViewModel` |
+| `GemBannerService` | — | — (a collaborator inside `GemAssetDetailsService` and `GemWalletHomeService`) | — (the same two services carry `bannerContent` and `closeBanner`) |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
 | `GemChartService` | — | `ChartSceneViewModel` | `ChartViewModel` |
 | `GemCollectibleService` | — | `CollectibleViewModel`, `ReportNftViewModel` | `NftDetailsViewModel` (+ `GetNftAssetDetails` observed read) |

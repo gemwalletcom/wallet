@@ -74,7 +74,7 @@ class AssetDetailsViewModelTest {
         every { getChainAssetInfo(asset.id) } returns chainAssetInfoFlow
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
-        every { getActiveBanners(any(), any()) } returns banners
+        every { getActiveBanners(any()) } returns banners
         every { getPriceAlerts.assetPriceAlerts(asset.id) } returns priceAlerts
         every { service.details(any()) } answers { details(firstArg()) }
     }
@@ -138,5 +138,6 @@ class AssetDetailsViewModelTest {
         getActiveBanners = getActiveBanners,
         getPriceAlerts = getPriceAlerts,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(),
+        userConfig = mockk(relaxed = true),
     ).also(viewModels::add)
 }

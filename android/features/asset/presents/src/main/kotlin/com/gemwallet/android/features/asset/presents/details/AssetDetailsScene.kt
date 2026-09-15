@@ -114,9 +114,11 @@ internal fun AssetDetailsScene(
                     item {
                         BannerItem(
                             assetInfo = uiState.assetInfo,
+                            banners = uiState.banners,
                             onStake = { onAction(AssetDetailsAction.Stake(it)) },
                             onConfirm = { onAction(AssetDetailsAction.Confirm(it)) },
                             onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
+                            onClose = { onAction(AssetDetailsAction.CloseBanner(it)) },
                         )
                     }
                 }

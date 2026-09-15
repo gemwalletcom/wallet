@@ -9,6 +9,7 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemPercentageStyle
+import com.gemwallet.android.domains.banner.BannerRow
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
@@ -78,6 +80,9 @@ class GetWalletSummaryImpl(
                 isBalanceHidden = hideBalances,
                 headerActions = state.headerActions,
                 showCollections = state.showCollections,
+                banners = state.visibleBanners.map { banner ->
+                    BannerRow(banner.toPrimitives(), walletHomeService.bannerContent(banner.event, banner.asset))
+                },
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -135,6 +140,7 @@ internal class WalletSummaryAggregateImpl(
     override val isBalanceHidden: Boolean,
     override val headerActions: GemHeaderActions,
     override val showCollections: Boolean,
+    override val banners: List<BannerRow>,
 ) : WalletSummaryAggregate {
     override val walletTotalValue: String = displayState.totalValue
 

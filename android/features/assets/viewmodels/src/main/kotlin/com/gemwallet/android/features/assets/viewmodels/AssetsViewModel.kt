@@ -10,12 +10,14 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGemKey
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
 import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Banner
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -121,6 +123,11 @@ class AssetsViewModel @Inject constructor(
 
     fun hideBalances() {
         userConfig.hideBalances()
+    }
+
+    fun closeBanner(banner: Banner) = viewModelScope.launch(Dispatchers.IO) {
+        runCatchingCancellable { service.closeBanner(banner.toGemKey()) }
+            .onFailure { Log.e(TAG, "banner ${banner.event} close failed", it) }
     }
 
     private companion object {

@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import androidx.annotation.StringRes
+import com.gemwallet.android.domains.banner.BannerRow
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
@@ -32,6 +33,7 @@ class AssetInfoUIModel(
     val networkDestination: GemAssetNetworkDestination? = null,
     val shareUrl: String = "",
     val detailsState: GemAssetDetailsState,
+    val banners: List<BannerRow>,
 ) {
 
     val asset: Asset get() = assetInfo.asset

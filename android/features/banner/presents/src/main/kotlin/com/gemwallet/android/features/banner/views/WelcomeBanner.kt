@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,12 +20,12 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-fun WelcomeBanner(
+internal fun WelcomeBanner(
+    model: BannerItemUIModel,
     onBuy: () -> Unit,
     onReceive: () -> Unit,
     onClose: () -> Unit,
@@ -41,23 +40,22 @@ fun WelcomeBanner(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
-            Icon(
-                modifier = Modifier.size(listItemIconSize),
-                imageVector = AppIcons.CurrencyBitcoin,
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = stringResource(R.string.banner_onboarding_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = stringResource(R.string.banner_onboarding_description),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center,
-            )
+            model.icon?.let { BannerIconView(it, tint = MaterialTheme.colorScheme.onSurface) }
+            model.title?.let { title ->
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            model.subtitle?.let { subtitle ->
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -78,14 +76,16 @@ fun WelcomeBanner(
                 }
             }
         }
-        IconButton(
-            modifier = Modifier.align(Alignment.TopEnd),
-            onClick = onClose,
-        ) {
-            Icon(
-                imageVector = AppIcons.Close,
-                contentDescription = null,
-            )
+        if (model.canClose) {
+            IconButton(
+                modifier = Modifier.align(Alignment.TopEnd),
+                onClick = onClose,
+            ) {
+                Icon(
+                    imageVector = AppIcons.Close,
+                    contentDescription = null,
+                )
+            }
         }
     }
 }
