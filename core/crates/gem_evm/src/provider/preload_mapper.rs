@@ -12,6 +12,7 @@ use crate::fee_calculator::FeeCalculator;
 use crate::models::fee::EthereumFeeHistory;
 
 const GAS_LIMIT_PERCENT_INCREASE: u32 = 50;
+const BASE_FEE_MULTIPLIER: u8 = 2;
 
 pub use crate::transaction_params::TransactionParams;
 
@@ -34,15 +35,13 @@ pub fn map_transaction_preload(nonce_hex: String, chain_id: String) -> Result<Tr
 
 pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHistory) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
     let base_fee = fee_history.base_fee_per_gas.last().ok_or("No base fee available")?;
+    let max_base_fee = base_fee * BASE_FEE_MULTIPLIER;
     let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
     Ok(FeeCalculator::new()
-        .calculate_priority_fees(fee_history, &[FeePriority::Normal, FeePriority::Fast], min_priority_fee.clone())?
+        .calculate_priority_fees(fee_history, &[FeePriority::Normal, FeePriority::Fast], min_priority_fee)?
         .into_iter()
-        .map(|x| {
-            let priority_fee = BigInt::max(min_priority_fee.clone(), x.value);
-            FeeRate::new(x.priority, GasPriceType::eip1559(base_fee.clone(), priority_fee))
-        })
+        .map(|fee| FeeRate::new(fee.priority, GasPriceType::eip1559(max_base_fee.clone(), fee.value)))
         .collect())
 }
 
@@ -207,20 +206,34 @@ mod tests {
 
         let result = map_transaction_fee_rates(EVMChain::Ethereum, &fee_history)?;
 
-        assert_eq!(result.len(), 2);
-
-        let min_priority_fee = BigInt::from(EVMChain::Ethereum.min_priority_fee());
-        for fee_rate in &result {
-            match &fee_rate.gas_price_type {
-                GasPriceType::Eip1559 { gas_price, priority_fee } => {
-                    assert!(*gas_price >= min_priority_fee);
-                    assert!(*priority_fee >= min_priority_fee);
-                }
-                _ => panic!("Expected EIP-1559 gas price type"),
-            }
-        }
+        assert_eq!(
+            result.into_iter().map(|rate| (rate.priority, rate.gas_price_type)).collect::<Vec<_>>(),
+            vec![
+                (FeePriority::Normal, GasPriceType::eip1559(40_000_000_000u64, 200_000_000u64)),
+                (FeePriority::Fast, GasPriceType::eip1559(40_000_000_000u64, 600_000_000u64)),
+            ]
+        );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_map_transaction_fee_rates_covers_base_fee_increase_for_all_chains() {
+        let history = create_test_fee_history_for_mapper();
+        let inclusion_base_fee = BigInt::from(30_000_000_000u64);
+
+        for chain in EVMChain::all() {
+            let rates = map_transaction_fee_rates(chain, &history).unwrap();
+            assert_eq!(rates.len(), 2);
+
+            for rate in rates {
+                assert!(
+                    rate.gas_price_type.total_fee() >= &inclusion_base_fee + rate.gas_price_type.priority_fee(),
+                    "{chain:?} {:?}",
+                    rate.priority
+                );
+            }
+        }
     }
 
     #[test]
