@@ -9,7 +9,7 @@ use url::Url;
 
 use crate::PaymentTransaction;
 use crate::error::PaymentError;
-use crate::wallet_connect_pay::model::{Invoice, Options, PaymentAction, PaymentOption, PaymentOptionsResponse, PaymentPriceAmount, Quote};
+use crate::wallet_connect_pay::model::{Invoice, Options, PaymentOption, PaymentOptionsResponse, PaymentPriceAmount, PaymentSend, Quote};
 
 const CAIP19_PREFIX: &str = "caip19";
 const ISO4217_PREFIX: &str = "iso4217/";
@@ -72,8 +72,8 @@ pub(super) fn status_reason(status: PaymentStatus) -> String {
     .to_string()
 }
 
-pub(super) fn map_transaction(quote: &Quote, action: PaymentAction, invoice: PaymentInvoice) -> PaymentTransaction {
-    let transaction_type = if action.data.is_empty() {
+pub(super) fn map_transaction(quote: &Quote, send: PaymentSend, invoice: PaymentInvoice) -> PaymentTransaction {
+    let transaction_type = if send.data.is_empty() {
         TransactionType::Transfer
     } else {
         TransactionType::SmartContractCall
@@ -81,13 +81,13 @@ pub(super) fn map_transaction(quote: &Quote, action: PaymentAction, invoice: Pay
 
     PaymentTransaction {
         invoice,
-        account: action.account,
-        transaction: action.data,
+        account: quote.account.clone(),
+        transaction: send.data,
         transaction_type,
         memo: None,
         request: Some(PaymentRequest {
-            address: action.recipient,
-            amount: Some(PaymentAmount::AtomicValue { value: action.value }),
+            address: send.recipient,
+            amount: Some(PaymentAmount::AtomicValue { value: send.value }),
             memo: None,
             label: None,
             references: None,

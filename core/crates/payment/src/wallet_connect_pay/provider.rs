@@ -7,7 +7,7 @@ use std::sync::{Arc, LazyLock};
 use crate::PaymentLoad;
 use crate::error::PaymentError;
 use crate::provider::PaymentProvider;
-use crate::wallet_connect_pay::action_mapper::map_wallet_rpc;
+use crate::wallet_connect_pay::action_mapper::map_actions;
 use crate::wallet_connect_pay::client::{WALLET_CONNECT_PAY_API_URL, WalletConnectPayClient};
 use crate::wallet_connect_pay::config::WalletConnectPayAuth;
 use crate::wallet_connect_pay::model::{Options, PaymentAction, PaymentActions, Quote, WalletConnectPayAction, WalletRpcAction};
@@ -67,9 +67,14 @@ impl<C: Client> WalletConnectPayProvider<C> {
                 });
             }
         };
-        Ok(PaymentLoad::Sign {
-            transaction: map_transaction(quote, Self::get_action(quote, actions)?, payment_invoice),
-        })
+        match Self::get_action(quote, actions)? {
+            PaymentAction::Send(send) => Ok(PaymentLoad::Sign {
+                transaction: map_transaction(quote, send, payment_invoice),
+            }),
+            PaymentAction::Sign(_) | PaymentAction::ApproveAndSign { .. } => Err(PaymentError::InvalidRequest {
+                reason: "Token payments are not supported yet".to_string(),
+            }),
+        }
     }
 
     async fn get_actions(&self, quote: &Quote) -> Result<PaymentActions, PaymentError> {
@@ -82,12 +87,7 @@ impl<C: Client> WalletConnectPayProvider<C> {
 
     fn get_action(quote: &Quote, actions: Vec<WalletConnectPayAction>) -> Result<PaymentAction, PaymentError> {
         let actions: Vec<WalletRpcAction> = actions.into_iter().map(WalletRpcAction::try_from).collect::<Result<_, _>>()?;
-        match actions.as_slice() {
-            [action] => map_wallet_rpc(&quote.account, &quote.value, action),
-            actions => Err(PaymentError::InvalidRequest {
-                reason: format!("Payment asks for {} actions", actions.len()),
-            }),
-        }
+        map_actions(quote, &actions)
     }
 }
 

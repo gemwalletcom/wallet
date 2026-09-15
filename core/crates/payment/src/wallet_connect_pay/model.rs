@@ -1,4 +1,5 @@
 use num_bigint::BigUint;
+use primitives::swap::ApprovalData;
 use primitives::{AssetId, ChainAddress, PaymentStatus, PaymentPrice};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -6,11 +7,32 @@ use serde_json::Value;
 use crate::error::PaymentError;
 
 #[derive(Debug, Clone, PartialEq)]
-pub(super) struct PaymentAction {
-    pub account: ChainAddress,
+pub(super) enum PaymentAction {
+    Send(PaymentSend),
+    Sign(PaymentSign),
+    ApproveAndSign { approval: ApprovalData, sign: PaymentSign },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub(super) struct PaymentSend {
     pub recipient: String,
     pub value: BigUint,
     pub data: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub(super) struct PaymentSign {
+    pub recipient: String,
+    pub typed_data: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub(super) struct TypedDataTransfer {
+    pub token: String,
+    pub amount: BigUint,
+    pub from: Option<String>,
+    pub recipient: String,
+    pub typed_data: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]

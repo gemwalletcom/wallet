@@ -23,6 +23,12 @@ pub enum PaymentError {
     Network { reason: String },
 }
 
+impl PaymentError {
+    pub(crate) fn invalid_request(reason: impl ToString) -> Self {
+        Self::InvalidRequest { reason: reason.to_string() }
+    }
+}
+
 impl fmt::Display for PaymentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
