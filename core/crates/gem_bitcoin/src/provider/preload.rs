@@ -52,9 +52,9 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
             BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge => {
                 let priority = self.chain.get_blocks_fee_priority();
                 let (slow, normal, fast) = futures::try_join!(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast))?;
-                let mut rates = map_fee_rates(slow, normal, fast, self.chain);
+                let rates = map_fee_rates(slow, normal, fast, self.chain);
                 if input_type.is_contract_swap() {
-                    rates.retain(|rate| rate.priority == FeePriority::Normal);
+                    return Ok(rates.into_iter().filter(|rate| rate.priority == FeePriority::Normal).collect());
                 }
                 Ok(rates)
             }

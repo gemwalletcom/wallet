@@ -8,10 +8,10 @@ use primitives::{
 };
 
 use super::model::{
-    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressMarker, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows,
-    GemTransactionDetailSection, GemTransactionDetails, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind,
-    GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus,
-    GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection,
+    GemTransactionDetails, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant,
+    GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle,
+    GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
@@ -590,6 +590,7 @@ mod tests {
         assert_eq!(filter_transaction_types(GemTransactionFilter::Perpetuals).len(), 3);
     }
 
+    use super::super::model::GemSwapProgressMarker;
     use super::*;
     use chrono::Utc;
     use num_bigint::BigUint;
