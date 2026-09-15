@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use gem_bitcoin::signer::relay::is_order_id;
 use primitives::{ChainType, Transaction};
 
 use crate::SwapperProvider;
@@ -28,8 +29,13 @@ fn is_valid_swap_transaction(provider: &SwapperProvider, transaction: &Transacti
     match provider {
         SwapperProvider::Thorchain | SwapperProvider::Mayachain => transaction.memo.as_deref().is_some_and(ThorchainMemo::is_swap),
         SwapperProvider::Chainflip => is_valid_chainflip_swap(transaction),
+        SwapperProvider::Relay => is_valid_relay_swap(transaction),
         _ => true,
     }
+}
+
+fn is_valid_relay_swap(transaction: &Transaction) -> bool {
+    transaction.asset_id.chain.chain_type() != ChainType::Bitcoin || transaction.memo.as_deref().is_some_and(is_order_id)
 }
 
 fn is_valid_chainflip_swap(transaction: &Transaction) -> bool {
@@ -131,6 +137,28 @@ mod tests {
             ..Transaction::mock()
         };
         assert!(is_cross_chain_swap(&transaction, &deposit_addresses));
+    }
+
+    #[test]
+    fn test_relay_bitcoin_vault_requires_order_id_memo() {
+        let vault = "bc1qzmtn0q92ayejt2hpffvlktcpmyy7vvsd06sefu".to_string();
+        let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::Relay)]);
+        let transfer = Transaction {
+            to: vault.clone(),
+            asset_id: AssetId::from_chain(Chain::Bitcoin),
+            ..Transaction::mock()
+        };
+        assert_eq!(swap_provider_with_vault_addresses(&transfer, &deposit_addresses), None);
+        let swap = Transaction {
+            memo: Some(format!("0x{}", "f5".repeat(32))),
+            ..transfer.clone()
+        };
+        assert_eq!(swap_provider_with_vault_addresses(&swap, &deposit_addresses), Some(SwapperProvider::Relay));
+        let evm = Transaction {
+            asset_id: AssetId::from_chain(Chain::Base),
+            ..transfer
+        };
+        assert_eq!(swap_provider_with_vault_addresses(&evm, &deposit_addresses), Some(SwapperProvider::Relay));
     }
 
     #[test]

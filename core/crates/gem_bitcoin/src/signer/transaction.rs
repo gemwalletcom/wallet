@@ -17,7 +17,7 @@ use crate::signer::{
 };
 
 /// Wipes the secp256k1 `SecretKey` on drop (it is not `ZeroizeOnDrop`), covering early-return paths.
-struct ZeroizedSecretKey(SecretKey);
+pub(super) struct ZeroizedSecretKey(pub(super) SecretKey);
 
 impl Drop for ZeroizedSecretKey {
     fn drop(&mut self) {
