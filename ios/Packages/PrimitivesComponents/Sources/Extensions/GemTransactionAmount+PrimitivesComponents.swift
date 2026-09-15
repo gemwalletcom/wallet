@@ -12,14 +12,14 @@ import Primitives
 import Style
 
 public extension GemTransactionAmount {
-    func display(currency: String, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> AmountDisplay {
+    func display(currency: Currency, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> AmountDisplay {
         .numeric(
             data: AssetValuePrice(asset: asset.toPrimitives(), value: BigInt(value), price: price.map { $0.toPrimitives().mapToPrice() }),
-            style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency, textStyle: textStyle),
+            style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency.rawValue, textStyle: textStyle),
         )
     }
 
-    func swapAmountField(currency: String) -> SwapAmountField {
+    func swapAmountField(currency: Currency) -> SwapAmountField {
         let display = display(currency: currency, formatter: .auto)
         let assetId = asset.toPrimitives().id
         return SwapAmountField(
@@ -32,7 +32,7 @@ public extension GemTransactionAmount {
 }
 
 public extension GemTransactionRowValue {
-    func textValue(currency: String, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> TextValue? {
+    func textValue(currency: Currency, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> TextValue? {
         switch self {
         case .none:
             nil
@@ -52,7 +52,7 @@ public extension GemTransactionRowValue {
 }
 
 public extension GemTransactionHeader {
-    func headerType(currency: String) -> TransactionHeaderType {
+    func headerType(currency: Currency) -> TransactionHeaderType {
         switch self {
         case let .amount(amount, showsFiat):
             .amount(amount.display(currency: currency, formatter: .auto).fiatVisibility(showsFiat))

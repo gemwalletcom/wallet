@@ -84,26 +84,22 @@ struct CandlestickChartView: View {
                 AxisTick(stroke: StrokeStyle(lineWidth: ChartGridStyle.lineWidth))
                     .foregroundStyle(ChartGridStyle.color)
                 AxisValueLabel {
-                    if let price = value.as(Double.self) {
-                        Text(model.formattedPrice(price))
-                            .font(.caption2)
-                            .foregroundStyle(Colors.gray)
-                            .padding(.horizontal, .extraSmall)
-                    }
+                    Text(model.yAxisTickText(at: value.index))
+                        .font(.caption2)
+                        .foregroundStyle(Colors.gray)
+                        .padding(.horizontal, .extraSmall)
                 }
             }
             if let currentPrice = model.currentPrice {
-                AxisMarks(position: .trailing, values: [currentPrice]) { value in
+                AxisMarks(position: .trailing, values: [currentPrice]) { _ in
                     AxisValueLabel {
-                        if let price = value.as(Double.self) {
-                            Text(model.formattedPrice(price))
-                                .font(.caption2)
-                                .foregroundStyle(Colors.whiteSolid)
-                                .padding(.horizontal, .extraSmall)
-                                .padding(.vertical, .space1)
-                                .background(model.currentPriceColor)
-                                .clipShape(RoundedRectangle(cornerRadius: Spacing.tiny))
-                        }
+                        Text(model.currentPriceText)
+                            .font(.caption2)
+                            .foregroundStyle(Colors.whiteSolid)
+                            .padding(.horizontal, .extraSmall)
+                            .padding(.vertical, .space1)
+                            .background(model.currentPriceColor)
+                            .clipShape(RoundedRectangle(cornerRadius: Spacing.tiny))
                     }
                 }
             }

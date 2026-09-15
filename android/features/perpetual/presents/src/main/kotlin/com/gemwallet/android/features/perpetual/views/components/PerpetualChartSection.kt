@@ -15,11 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.getRelativeDate
-import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.NumericFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.chart.CandlestickTooltip
 import com.gemwallet.android.ui.components.chart.ChartStateView
@@ -28,12 +26,11 @@ import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.StateViewType
-import uniffi.gemstone.GemChartHeader
+import uniffi.gemstone.candlestickHeader
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualPosition
 import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
@@ -57,18 +54,11 @@ internal fun PerpetualChartSection(
     val lastCandle = data.lastOrNull()
     val isSelectedRightHalf = safeSelectedIndex?.let { it.toFloat() / data.size.toFloat() > 0.5f } ?: false
 
-    val currencyFormatter = remember { CurrencyFormatter(type = CurrencyFormatter.Type.Currency, currency = Currency.USD) }
-    val numericFormatter = remember { NumericFormatter() }
-    val volumeFormatter = remember { CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD) }
-    val currencyString: (Double) -> String = remember(currencyFormatter) { currencyFormatter::string }
-    val numericString: (Double) -> String = remember(numericFormatter) { { numericFormatter.string(it) } }
-    val volumeString: (Double) -> String = remember(volumeFormatter) { volumeFormatter::string }
-
     val entryLabel = stringResource(R.string.charts_entry)
     val liquidationLabel = stringResource(R.string.perpetual_liquidation)
     val stopLossLabel = stringResource(R.string.perpetual_stop_loss)
     val takeProfitLabel = stringResource(R.string.perpetual_take_profit)
-    val lineLabel: (GemPerpetualChartLine) -> String = remember(entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel, numericString) {
+    val lineLabel: (GemPerpetualChartLine) -> String = remember(entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel) {
         { line ->
             val label = when (line.kind) {
                 GemPerpetualChartLineKind.ENTRY -> entryLabel
@@ -76,35 +66,29 @@ internal fun PerpetualChartSection(
                 GemPerpetualChartLineKind.STOP_LOSS -> stopLossLabel
                 GemPerpetualChartLineKind.TAKE_PROFIT -> takeProfitLabel
             }
-            "$label | ${numericString(line.price)}"
+            "$label | ${line.price.text()}"
         }
     }
 
-    val chartUIModel = remember(data, position, lineLabel, numericString) {
+    val chartUIModel = remember(data, position, lineLabel) {
         if (data.isEmpty()) null
         else CandlestickChartUIModel.from(
             candles = data,
             layout = perpetualChartLayout(data.map { it.toGem() }, position?.toGem()),
-            yTickFormatter = numericString,
             lineLabel = lineLabel,
         )
     }
-    val headerUIModel = remember(selectedCandle, baseCandle, lastCandle, currencyString) {
+    val headerUIModel = remember(selectedCandle, baseCandle, lastCandle) {
         val target = selectedCandle ?: lastCandle ?: return@remember null
         val base = baseCandle ?: return@remember null
         ChartHeaderUIModel.build(
-            header = GemChartHeader(
-                value = target.close,
-                secondaryValue = null,
-                changePercentage = PriceChangeCalculator.percentage(from = base.close, to = target.close).takeIf { target.close != 0.0 },
-            ),
+            header = candlestickHeader(base.close, target.close),
             timestamp = selectedCandle?.date,
-            priceFormatter = currencyString,
             dateFormatter = ::getRelativeDate,
         )
     }
-    val tooltipUIModel = remember(selectedCandle, numericString, volumeString) {
-        selectedCandle?.let { CandlestickTooltipUIModel.from(it, numericString, volumeString) }
+    val tooltipUIModel = remember(selectedCandle) {
+        selectedCandle?.let(CandlestickTooltipUIModel::from)
     }
 
     ChartStateView(

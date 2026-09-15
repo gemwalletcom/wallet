@@ -67,7 +67,7 @@ class PriceAlertDataAggregateImplTest {
                 },
                 priceAlert = priceAlert,
             ).toGem(),
-            priceCurrency = (assetPrice?.currency ?: priceAlert.currency).string,
+            priceCurrency = (assetPrice?.currency ?: priceAlert.currency).toGem(),
         ),
     )
 

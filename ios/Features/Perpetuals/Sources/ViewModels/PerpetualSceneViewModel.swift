@@ -83,8 +83,8 @@ public final class PerpetualSceneViewModel {
         return name.isEmpty ? asset.symbol : name
     }
 
-    public var currency: String {
-        service.getCurrency()
+    public var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     public var hasOpenPosition: Bool {

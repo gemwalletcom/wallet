@@ -1,4 +1,5 @@
 remote:
+  - Currency
   - TransactionUtxoInput
   - TransactionExtended
   - TransactionDirection
@@ -207,7 +208,6 @@ remote:
   - FiatTransactionData
 codes:
   - Chain
-  - Currency
 identifiers:
   - AssetId
   - NFTAssetId

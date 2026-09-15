@@ -272,6 +272,64 @@ This is as far as a view model should move into Core, and the limits are the poi
 
 Core has no observation primitive and no lifecycle, which is why the reactive half stays in the app. The view model owns the task, the debounce, the cancellation and the navigation; the session owns the answers.
 
+### A screen's state is one phase enum, never a bag of flags
+
+`is_loading`, `error` and `data` describe eight combinations, half of them nonsense. Core collapses them into one enum with one variant per screen the user can actually see, and each app switches over it exhaustively.
+
+```rust
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemChartPhase {
+    Loading,
+    Data { data: GemChartData },
+    NoData,
+    Failed { error: GemServiceError },
+}
+
+impl GemChartSession {
+    pub fn view_state(&self) -> GemChartViewState {
+        GemChartViewState {
+            period: self.period,
+            phase: self.phase(),
+            is_refreshing: self.is_refreshing,
+        }
+    }
+}
+```
+
+```swift
+var chartState: StateViewType<ChartValuesViewModel> {
+    switch session.viewState().phase {
+    case .loading: .loading
+    case let .data(data): ChartValuesViewModel(period: selectedPeriod, chartData: data).map { .data($0) } ?? .noData
+    case .noData: .noData
+    case let .failed(error): .error(error)
+    }
+}
+```
+
+```kotlin
+val chartUIState = loaded.map { state ->
+    ChartUIModel.State(
+        period = state.period.toPrimitives(),
+        chart = when (val phase = state.phase) {
+            GemChartPhase.Loading -> StateViewType.Loading
+            is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
+            GemChartPhase.NoData -> StateViewType.NoData
+            is GemChartPhase.Failed -> StateViewType.Error
+        },
+    )
+}
+```
+
+Four rules keep the collapse honest:
+
+- **The phase is derived, never stored.** The session keeps the raw facts — the loaded chart, the last error, whether a first load is outstanding — and one private rule decides which phase they add up to. A stored phase is a second source of truth that drifts from the facts that produced it.
+- **Empty is not a failure.** `NoData` is its own variant, so a series with one point renders the empty state instead of an error, and neither app has to guess from an `Option`.
+- **A progress flag that coexists with content is a field, not a variant.** A refresh happens *while* data is on screen, so `is_refreshing` sits beside the phase; anything that replaces the screen is a variant.
+- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it — so no caller has to supply a value, and nobody can supply the wrong one. A `view_state` that takes what the screen already asked Core for is a parameter the session should own.
+
+The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
+
 ### A number crosses as a value and a style, never as a string or a callback
 
 The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, `abbreviation_threshold` and `dust_threshold`. Both apps ask for the precision and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.

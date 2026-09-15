@@ -51,7 +51,7 @@ class ChartViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { chartService.chartPeriod() } returns ChartPeriod.Day.toGem()
         every { chartService.newSession() } answers {
-            GemChartSession(chartService.chartPeriod(), chart = null, error = null, isLoading = true, isRefreshing = false)
+            GemChartSession(chartService.chartPeriod(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
         }
     }
 
@@ -77,7 +77,7 @@ class ChartViewModelTest {
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == prices.size }.chart.dataOrNull!!
 
         assertEquals(prices.size, uiModel.chart.values.size)
-        assertEquals(14.0, uiModel.chart.header?.value)
+        assertEquals(14.0, uiModel.chart.header?.value?.value)
         assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
     }
 
@@ -90,7 +90,7 @@ class ChartViewModelTest {
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == prices.size }.chart.dataOrNull!!
 
         assertEquals(prices.size, uiModel.chart.values.size)
-        assertEquals(110.0, uiModel.chart.header?.value)
+        assertEquals(110.0, uiModel.chart.header?.value?.value)
     }
 
     @Test

@@ -15,8 +15,8 @@ import SwiftUI
 struct PriceAlertItemViewModel: ListAssetItemViewable {
     private let row: GemPriceAlertRow
 
-    init(data: PriceAlertData, currency: String) {
-        row = PriceAlertFormatter.shared.row(data: data.toGem(), priceCurrency: currency)
+    init(data: PriceAlertData, currency: Currency) {
+        row = PriceAlertFormatter.shared.row(data: data.toGem(), priceCurrency: currency.toGem())
     }
 
     var name: String {

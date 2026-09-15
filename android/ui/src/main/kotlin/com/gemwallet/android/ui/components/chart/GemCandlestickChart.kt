@@ -338,7 +338,7 @@ private fun DrawScope.drawReferenceLines(
     textMeasurer: TextMeasurer,
 ) {
     val visible = referenceLines.mapNotNull { line ->
-        val y = valueToY(line.line.price)
+        val y = valueToY(line.line.price.value)
         if (y < plotTop || y > plotBottom) null else line to y
     }
     visible.forEach { (line, y) ->

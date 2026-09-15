@@ -58,7 +58,7 @@ extension DelegationViewModel {
                 ),
             ),
             asset: Chain.tron.asset,
-            currencyCode: "USD",
+            currency: .usd,
         )
     }
 }

@@ -54,7 +54,7 @@ public final class AmountSceneViewModel {
         self.wallet = wallet
         self.service = service
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency())
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency().toPrimitives().rawValue)
         provider = .make(from: input, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty)

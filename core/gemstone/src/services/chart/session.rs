@@ -1,4 +1,4 @@
-use primitives::ChartPeriod;
+use primitives::{ChartPeriod, Currency};
 
 use super::GemChart;
 use super::model::GemChartData;
@@ -23,6 +23,7 @@ pub struct GemChartViewState {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChartSession {
     pub period: ChartPeriod,
+    pub currency: Currency,
     pub chart: Option<GemChart>,
     pub error: Option<GemServiceError>,
     pub is_loading: bool,
@@ -30,13 +31,28 @@ pub struct GemChartSession {
 }
 
 impl GemChartSession {
-    pub fn new(period: ChartPeriod) -> Self {
+    pub fn new(period: ChartPeriod, currency: Currency) -> Self {
         Self {
             period,
+            currency,
             chart: None,
             error: None,
             is_loading: true,
             is_refreshing: false,
+        }
+    }
+
+    fn phase(&self) -> GemChartPhase {
+        if self.is_loading {
+            return GemChartPhase::Loading;
+        }
+        match (&self.chart, &self.error) {
+            (Some(chart), _) => match rules::price_chart_data(chart.clone(), self.currency.clone()) {
+                Some(data) => GemChartPhase::Data { data },
+                None => GemChartPhase::NoData,
+            },
+            (None, Some(error)) => GemChartPhase::Failed { error: error.clone() },
+            (None, None) => GemChartPhase::NoData,
         }
     }
 }
@@ -47,12 +63,14 @@ impl GemChartSession {
         if period == self.period {
             return self.clone();
         }
-        Self {
-            period,
-            chart: None,
-            error: None,
-            is_loading: true,
-            is_refreshing: false,
+        Self::new(period, self.currency.clone())
+    }
+
+    pub fn view_state(&self) -> GemChartViewState {
+        GemChartViewState {
+            period: self.period,
+            phase: self.phase(),
+            is_refreshing: self.is_refreshing,
         }
     }
 
@@ -82,30 +100,6 @@ impl GemChartSession {
             ..self.clone()
         }
     }
-
-    pub fn view_state(&self) -> GemChartViewState {
-        GemChartViewState {
-            period: self.period,
-            phase: self.phase(),
-            is_refreshing: self.is_refreshing,
-        }
-    }
-}
-
-impl GemChartSession {
-    fn phase(&self) -> GemChartPhase {
-        if self.is_loading {
-            return GemChartPhase::Loading;
-        }
-        match (&self.chart, &self.error) {
-            (Some(chart), _) => match rules::price_chart_data(chart.clone()) {
-                Some(data) => GemChartPhase::Data { data },
-                None => GemChartPhase::NoData,
-            },
-            (None, Some(error)) => GemChartPhase::Failed { error: error.clone() },
-            (None, None) => GemChartPhase::NoData,
-        }
-    }
 }
 
 #[cfg(test)]
@@ -127,14 +121,14 @@ mod tests {
 
     #[test]
     fn test_a_chart_with_no_points_reads_as_no_data_not_as_a_failure() {
-        let session = GemChartSession::new(ChartPeriod::Day).on_loaded(chart(0));
+        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(0));
 
         assert_eq!(session.view_state().phase, GemChartPhase::NoData);
     }
 
     #[test]
     fn test_selecting_the_same_period_keeps_the_chart_it_already_loaded() {
-        let loaded = GemChartSession::new(ChartPeriod::Day).on_loaded(chart(2));
+        let loaded = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(2));
 
         assert_eq!(loaded.on_select_period(ChartPeriod::Day), loaded, "reselecting a period is not a reload");
         assert_eq!(loaded.on_select_period(ChartPeriod::Week).view_state().phase, GemChartPhase::Loading);
@@ -142,19 +136,22 @@ mod tests {
 
     #[test]
     fn test_a_refresh_keeps_the_visible_chart_and_marks_itself_refreshing() {
-        let refreshing = GemChartSession::new(ChartPeriod::Day).on_loaded(chart(2)).on_refresh();
+        let refreshing = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(2)).on_refresh();
         let state = refreshing.view_state();
 
         assert!(state.is_refreshing);
         assert!(matches!(state.phase, GemChartPhase::Data { .. }), "the chart stays on screen while it refreshes");
-        assert_eq!(GemChartSession::new(ChartPeriod::Day).on_refresh().view_state().phase, GemChartPhase::Loading);
+        assert_eq!(
+            GemChartSession::new(ChartPeriod::Day, Currency::USD).on_refresh().view_state().phase,
+            GemChartPhase::Loading
+        );
     }
 
     #[test]
     fn test_a_failure_after_a_load_keeps_the_chart_and_a_first_failure_reports_it() {
         let error = GemServiceError::Core { msg: "offline".to_string() };
-        let first = GemChartSession::new(ChartPeriod::Day).on_failed(error.clone());
-        let after_load = GemChartSession::new(ChartPeriod::Day).on_loaded(chart(2)).on_failed(error);
+        let first = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_failed(error.clone());
+        let after_load = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(2)).on_failed(error);
 
         assert!(matches!(first.view_state().phase, GemChartPhase::Failed { .. }));
         assert!(matches!(after_load.view_state().phase, GemChartPhase::Data { .. }));

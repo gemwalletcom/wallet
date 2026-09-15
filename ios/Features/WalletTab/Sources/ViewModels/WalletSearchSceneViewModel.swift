@@ -104,8 +104,8 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         .milliseconds(service.searchDebounceMilliseconds())
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var showRecents: Bool {

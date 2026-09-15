@@ -7,9 +7,9 @@ import SwiftUI
 
 public struct TransactionView: View {
     private let model: TransactionViewModel
-    private let currency: String
+    private let currency: Currency
 
-    public init(model: TransactionViewModel, currency: String) {
+    public init(model: TransactionViewModel, currency: Currency) {
         self.model = model
         self.currency = currency
     }
@@ -65,5 +65,5 @@ public struct TransactionView: View {
         confirmationEtaSeconds: nil,
     )
 
-    TransactionView(model: TransactionViewModel(transaction: pendingTransactionExtendedMock), currency: Currency.usd.rawValue)
+    TransactionView(model: TransactionViewModel(transaction: pendingTransactionExtendedMock), currency: .usd)
 }

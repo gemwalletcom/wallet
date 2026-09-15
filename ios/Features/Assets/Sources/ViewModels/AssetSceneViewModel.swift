@@ -187,7 +187,7 @@ public final class AssetSceneViewModel: Sendable {
         AssetDataViewModel(
             assetData: assetData,
             formatter: .auto,
-            currencyCode: preferences.currency.rawValue,
+            currency: preferences.currency,
         )
     }
 
@@ -434,7 +434,7 @@ extension AssetSceneViewModel {
         AssetDataViewModel(
             assetData: chainAssetData.feeAssetData,
             formatter: .auto,
-            currencyCode: preferences.currency.rawValue,
+            currency: preferences.currency,
         )
     }
 

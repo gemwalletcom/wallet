@@ -47,8 +47,8 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         onSelectAssetAction = onSelectAsset
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var sections: WalletSearchSections {

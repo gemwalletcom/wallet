@@ -18,6 +18,19 @@ use session::GemChartSession;
 
 pub use model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
 
+#[uniffi::export]
+pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
+    GemChartData {
+        value_type: GemChartValueType::Price,
+        base,
+        shows_secondary_value: false,
+        currency: Currency::USD,
+        values: Vec::new(),
+        header: None,
+    }
+    .header_at(value)
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
     pub values: Vec<ChartDateValue>,
@@ -30,11 +43,6 @@ pub struct GemChartCurrent {
     pub date: DateTime<Utc>,
     pub value: f64,
     pub change_percentage: f64,
-}
-
-#[uniffi::export]
-pub fn chart_header(value_type: GemChartValueType, base: f64, value: f64, shows_secondary_value: bool) -> GemChartHeader {
-    rules::header(value_type, base, value, None, shows_secondary_value)
 }
 
 #[derive(uniffi::Object)]
@@ -71,7 +79,7 @@ impl GemChartService {
     }
 
     pub fn new_session(&self) -> GemChartSession {
-        GemChartSession::new(self.chart_period())
+        GemChartSession::new(self.chart_period(), self.get_currency())
     }
 
     pub fn get_currency(&self) -> Currency {

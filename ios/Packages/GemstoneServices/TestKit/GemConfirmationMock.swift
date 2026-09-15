@@ -56,7 +56,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func getCurrency() -> Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func authentication() -> GemKeystoreAuthentication {

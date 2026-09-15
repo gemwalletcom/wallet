@@ -42,7 +42,7 @@ struct CurrencySceneViewModelTests {
 
         try await viewModel.setCurrency(.ars)
 
-        #expect(service.setCurrencies == [Currency.ars.rawValue])
+        #expect(service.setCurrencies == [Currency.ars.toGem()])
         #expect(usdCurrencyStorage.currency == .ars)
         #expect(usdCurrencyStorage.currency == viewModel.currency)
     }

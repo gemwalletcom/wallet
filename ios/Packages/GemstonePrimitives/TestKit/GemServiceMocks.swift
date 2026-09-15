@@ -80,13 +80,13 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     }
 
     public func getCurrency() -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func setCurrency(currency _: Gemstone.Currency) throws {}
 
     public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func getChartPeriod() -> Gemstone.ChartPeriod {
@@ -235,7 +235,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
     public func deletePriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
 
     public func getCurrency() -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func setAutoAlert(assetId _: Gemstone.AssetId, enabled isEnabled: Bool) async throws {
@@ -394,7 +394,7 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
     }
 
     public func getCurrency() -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
@@ -453,7 +453,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     }
 
     public func getCurrency() -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func suggestedAmounts() -> [Int32] {
@@ -578,7 +578,7 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
     }
 
     public func currency(portfolioType _: Gemstone.PortfolioType) -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func portfolioData(wallet _: Gemstone.Wallet, portfolioType _: Gemstone.PortfolioType, period _: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioData {
@@ -664,7 +664,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func getCurrency() -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func validatorRow(validator: Gemstone.DelegationValidator) -> Gemstone.GemValidatorRow {
@@ -873,7 +873,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     public init() {}
 
     public func getCurrency() -> Gemstone.Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func assetRow() -> Gemstone.GemAssetRow {
@@ -939,7 +939,7 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
     }
 
     public func getCurrency() -> Gemstone.Currency {
-        setCurrencies.last ?? Primitives.Currency.usd.rawValue
+        setCurrencies.last ?? Primitives.Currency.usd.toGem()
     }
 
     public func setCurrency(currency: Gemstone.Currency) async throws {

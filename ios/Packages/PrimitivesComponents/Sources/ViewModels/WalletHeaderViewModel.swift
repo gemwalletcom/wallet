@@ -15,13 +15,13 @@ public struct WalletHeaderViewModel {
 
     public init(
         totalValue: TotalFiatValue,
-        currencyCode: String,
+        currency: Currency,
         showsPnl: Bool,
         actions: GemHeaderActions,
     ) {
         self.totalValue = totalValue
         self.actions = actions
-        let formatter = CurrencyFormatter(type: .fiat, currencyCode: currencyCode)
+        let formatter = CurrencyFormatter(type: .fiat, currencyCode: currency.rawValue)
         totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter, showsPnl: showsPnl)
     }
 }

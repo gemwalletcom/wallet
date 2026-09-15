@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.swap
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
@@ -321,7 +322,7 @@ class RequestSwapQuotesImplTest {
 
         override suspend fun addPrices(assetIds: List<String>) = Unit
 
-        override fun getCurrency(): String = "USD"
+        override fun getCurrency(): uniffi.gemstone.Currency = com.wallet.core.primitives.Currency.USD.toGem()
 
         override fun defaultSlippage(chain: String): SwapperSlippage = throw UnsupportedOperationException()
 

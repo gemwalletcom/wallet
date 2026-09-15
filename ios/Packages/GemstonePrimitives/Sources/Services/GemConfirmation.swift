@@ -7,7 +7,7 @@ import Primitives
 
 public extension GemConfirmationProtocol {
     var currency: Primitives.Currency {
-        Primitives.Currency(core: getCurrency())
+        getCurrency().toPrimitives()
     }
 
     func explorerLink(chain: Primitives.Chain, address: String) -> BlockExplorerLink {

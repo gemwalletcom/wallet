@@ -17,18 +17,18 @@ public struct AssetDataViewModel: Sendable {
     private let balanceViewModel: BalanceViewModel
 
     public let priceViewModel: PriceViewModel
-    public let currencyCode: String
+    public let currency: Currency
 
     public init(
         assetData: AssetData,
         formatter: ValueFormatter,
-        currencyCode: String,
+        currency: Currency,
         currencyFormatterType: GemCurrencyStyle = .currency,
     ) {
         self.assetData = assetData
         priceViewModel = PriceViewModel(
             price: assetData.price,
-            currencyCode: currencyCode,
+            currencyCode: currency.rawValue,
             currencyFormatterType: currencyFormatterType,
         )
         balanceViewModel = BalanceViewModel(
@@ -36,7 +36,7 @@ public struct AssetDataViewModel: Sendable {
             balance: assetData.balance,
             formatter: formatter,
         )
-        self.currencyCode = currencyCode
+        self.currency = currency
     }
 
     public var availableBalanceTitle: String {
@@ -141,7 +141,7 @@ public struct AssetDataViewModel: Sendable {
         }
         return CurrencyFormatter(
             type: .currency,
-            currencyCode: currencyCode,
+            currencyCode: currency.rawValue,
         ).string(Double(value) ?? .zero)
     }
 

@@ -2,7 +2,6 @@
 
 import Formatters
 import Foundation
-import func Gemstone.chartHeader
 import struct Gemstone.GemChartData
 import struct Gemstone.GemChartHeader
 import GemstonePrimitives
@@ -22,7 +21,6 @@ public struct ChartValuesViewModel: Sendable {
         period: ChartPeriod,
         chartData: GemChartData,
         lineColor: Color = Colors.blue,
-        formatter: CurrencyFormatter,
     ) {
         guard let values = try? ChartValues.from(charts: chartData.values.map { $0.toPrimitives() }) else {
             return nil
@@ -30,7 +28,7 @@ public struct ChartValuesViewModel: Sendable {
         self.period = period
         self.chartData = chartData
         self.lineColor = lineColor
-        self.formatter = formatter
+        formatter = CurrencyFormatter(currencyCode: chartData.currency.toPrimitives().rawValue)
         self.values = values
     }
 
@@ -51,16 +49,10 @@ public struct ChartValuesViewModel: Sendable {
     }
 
     func headerViewModel(for element: ChartDateValue) -> ChartHeaderViewModel {
-        let header = chartHeader(
-            valueType: chartData.valueType,
-            base: chartData.base,
-            value: element.value,
-            showsSecondaryValue: chartData.showsSecondaryValue,
-        )
-        return headerViewModel(header, date: element.date)
+        headerViewModel(chartData.headerAt(value: element.value), date: element.date)
     }
 
     private func headerViewModel(_ header: GemChartHeader, date: Date?) -> ChartHeaderViewModel {
-        ChartHeaderViewModel(period: period, date: date, header: header, valueType: chartData.valueType, formatter: formatter)
+        ChartHeaderViewModel(period: period, date: date, header: header, valueType: chartData.valueType)
     }
 }

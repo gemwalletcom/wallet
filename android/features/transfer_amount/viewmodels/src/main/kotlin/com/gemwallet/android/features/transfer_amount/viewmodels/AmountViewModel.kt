@@ -7,7 +7,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
@@ -60,7 +60,7 @@ class AmountViewModel @Inject constructor(
     val amountInputType = MutableStateFlow(GemAmountInputType.ASSET)
     val amountError = MutableStateFlow<AmountError>(AmountError.None)
 
-    val currency: Currency = service.getCurrency().toCurrency()
+    val currency: Currency = service.getCurrency().toPrimitives()
     private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
 
     private val entry: StateFlow<GemAmountEntry?> = combine(

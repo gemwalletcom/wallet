@@ -15,7 +15,7 @@ import SwiftUI
 
 public struct DelegationViewModel: Sendable {
     public let delegation: Delegation
-    public let currencyCode: String
+    public let currency: Currency
     private let asset: Asset
     private let formatter: ValueFormatter
     private let service: any GemStakeServiceProtocol
@@ -28,15 +28,15 @@ public struct DelegationViewModel: Sendable {
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,
-        currencyCode: String,
+        currency: Currency,
         destination: DelegationDestination = .details,
     ) {
         self.delegation = delegation
-        self.currencyCode = currencyCode
+        self.currency = currency
         self.asset = asset
         self.formatter = formatter
         self.service = service
-        priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
+        priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currency.rawValue)
         validatorModel = ValidatorViewModel(row: service.validatorRow(validator: delegation.validator.toGem()))
         self.destination = destination
     }

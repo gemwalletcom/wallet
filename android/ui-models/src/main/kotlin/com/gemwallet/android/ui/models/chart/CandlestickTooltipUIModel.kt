@@ -1,9 +1,9 @@
 package com.gemwallet.android.ui.models.chart
 
-import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import uniffi.gemstone.candleTooltip
 
@@ -17,20 +17,16 @@ data class CandlestickTooltipUIModel(
     val volumeText: String,
 ) {
     companion object {
-        fun from(
-            candle: ChartCandleStick,
-            priceFormatter: (Double) -> String,
-            volumeFormatter: (Double) -> String,
-        ): CandlestickTooltipUIModel {
+        fun from(candle: ChartCandleStick): CandlestickTooltipUIModel {
             val tooltip = candleTooltip(candle.toGem())
             return CandlestickTooltipUIModel(
-                open = priceFormatter(tooltip.open),
-                high = priceFormatter(tooltip.high),
-                low = priceFormatter(tooltip.low),
-                close = priceFormatter(tooltip.close),
-                changeText = tooltip.changePercentage.formatAsPercentage(),
-                changeDirection = tooltip.changePercentage.toValueDirection(),
-                volumeText = volumeFormatter(tooltip.volume),
+                open = tooltip.open.text(),
+                high = tooltip.high.text(),
+                low = tooltip.low.text(),
+                close = tooltip.close.text(),
+                changeText = tooltip.change.text(),
+                changeDirection = tooltip.change.value.toValueDirection(),
+                volumeText = tooltip.volume.text(),
             )
         }
     }

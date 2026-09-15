@@ -9,7 +9,7 @@ import struct Gemstone.GemTransferData
 
 public extension GemSwapQuoteServiceProtocol {
     var currency: Primitives.Currency {
-        Primitives.Currency(core: getCurrency())
+        getCurrency().toPrimitives()
     }
 
     var slippage: SwapSlippage {

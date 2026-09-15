@@ -130,7 +130,7 @@ public struct WalletSearchScene: View {
 
     private func assetItems(for items: [AssetData]) -> some View {
         AssetItemsView(
-            items: items,            currencyCode: model.currencyCode,
+            items: items,            currency: model.currency,
 
             row: model.assetRow,
             contextMenuItems: model.contextMenuItems,

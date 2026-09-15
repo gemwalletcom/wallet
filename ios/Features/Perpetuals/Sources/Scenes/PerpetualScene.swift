@@ -35,10 +35,6 @@ public struct PerpetualScene: View {
                                     candles: data,
                                     period: chart.currentPeriod,
                                     position: model.positions.first?.position,
-                                    formatter: CurrencyFormatter(
-                                        type: .currency,
-                                        currencyCode: Currency.usd.rawValue,
-                                    ),
                                 ),
                             )
                         case let .error(error):

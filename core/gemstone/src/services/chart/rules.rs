@@ -1,8 +1,11 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, PriceAlert, PriceChangeCalculator};
+use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, Currency, PriceAlert, PriceChangeCalculator};
 
 use super::model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
 use super::{GemChart, GemChartCurrent};
+use crate::formatted_number::GemFormattedNumber;
+use crate::percentage::GemPercentageStyle;
+use crate::precision::GemCurrencyStyle;
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::displayed_price_alert_ids;
 
@@ -113,7 +116,7 @@ fn available_rows<const N: usize>(rows: [Option<GemAssetMarketRow>; N]) -> Vec<G
     rows.into_iter().flatten().collect()
 }
 
-pub fn price_chart_data(chart: GemChart) -> Option<GemChartData> {
+pub fn price_chart_data(chart: GemChart, currency: Currency) -> Option<GemChartData> {
     let base = chart.base_value;
     let current = chart.current;
     let values: Vec<ChartDateValue> = chart
@@ -128,49 +131,62 @@ pub fn price_chart_data(chart: GemChart) -> Option<GemChartData> {
         return None;
     }
     let last = values.last()?.value;
-    let header = match current {
-        Some(current) => header(GemChartValueType::Price, base, current.value, Some(current.change_percentage), false),
-        None => header(GemChartValueType::Price, base, last, None, false),
-    };
-    Some(GemChartData {
+    let data = GemChartData {
         value_type: GemChartValueType::Price,
         base,
         shows_secondary_value: false,
+        currency,
         values,
-        header: Some(header),
-    })
+        header: None,
+    };
+    let header = match &current {
+        Some(current) => header(&data, current.value, Some(current.change_percentage)),
+        None => header(&data, last, None),
+    };
+    Some(GemChartData { header: Some(header), ..data })
 }
 
-pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: bool) -> Option<GemChartData> {
+pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: bool, currency: Currency) -> Option<GemChartData> {
     if values.len() < MIN_CHART_POINTS || !has_variation(&values) {
         return None;
     }
     let base = values.first()?.value;
     let last = values.last()?.value;
-    Some(GemChartData {
+    let data = GemChartData {
         value_type: GemChartValueType::PriceChange,
         base,
         shows_secondary_value,
+        currency,
         values,
-        header: Some(header(GemChartValueType::PriceChange, base, last, None, shows_secondary_value)),
-    })
+        header: None,
+    };
+    let header = header(&data, last, None);
+    Some(GemChartData { header: Some(header), ..data })
 }
 
-pub fn header(value_type: GemChartValueType, base: f64, value: f64, change_percentage: Option<f64>, shows_secondary_value: bool) -> GemChartHeader {
-    let change_percentage = change_percentage.unwrap_or_else(|| PriceChangeCalculator::percentage(base, value));
+pub fn header(data: &GemChartData, value: f64, change_percentage: Option<f64>) -> GemChartHeader {
+    let value_type = data.value_type;
+    let change_percentage = change_percentage.unwrap_or_else(|| PriceChangeCalculator::percentage(data.base, value));
     let (display_value, secondary_value) = match value_type {
         GemChartValueType::Price => (value, None),
-        GemChartValueType::PriceChange => (value - base, shows_secondary_value.then_some(value)),
+        GemChartValueType::PriceChange => (value - data.base, data.shows_secondary_value.then_some(value)),
     };
     let shows_change = display_value != 0.0
         && match value_type {
             GemChartValueType::Price => true,
             GemChartValueType::PriceChange => secondary_value.is_some() && change_percentage != 0.0,
         };
+    let price = |value: f64| GemFormattedNumber::currency(value, data.currency.clone(), GemCurrencyStyle::Currency);
     GemChartHeader {
-        value: display_value,
-        secondary_value,
-        change_percentage: shows_change.then_some(change_percentage),
+        value: match value_type {
+            GemChartValueType::Price => price(display_value),
+            GemChartValueType::PriceChange => GemFormattedNumber::signed_currency(display_value, data.currency.clone(), GemCurrencyStyle::Currency),
+        },
+        secondary_value: secondary_value.map(price),
+        change: shows_change.then(|| match value_type {
+            GemChartValueType::Price => GemFormattedNumber::percentage(change_percentage, GemPercentageStyle::Signed),
+            GemChartValueType::PriceChange => GemFormattedNumber::percentage(change_percentage, GemPercentageStyle::Unsigned).in_parentheses(),
+        }),
     }
 }
 
@@ -181,6 +197,14 @@ fn has_variation(values: &[ChartDateValue]) -> bool {
 
 #[cfg(test)]
 mod tests {
+    fn usd(value: f64) -> GemFormattedNumber {
+        GemFormattedNumber::currency(value, Currency::USD, GemCurrencyStyle::Currency)
+    }
+
+    fn signed_percent(value: f64) -> GemFormattedNumber {
+        GemFormattedNumber::percentage(value, GemPercentageStyle::Signed)
+    }
+
     use super::*;
     use primitives::{AssetId, ChartValuePercentage, LinkType, PriceAlertDirection, currency::Currency};
 
@@ -198,8 +222,8 @@ mod tests {
 
     #[test]
     fn test_price_chart_data_needs_two_points() {
-        assert_eq!(price_chart_data(chart(vec![point(1, 100.0)], None)), None);
-        assert_eq!(price_chart_data(chart(vec![], None)), None);
+        assert_eq!(price_chart_data(chart(vec![point(1, 100.0)], None), Currency::USD), None);
+        assert_eq!(price_chart_data(chart(vec![], None), Currency::USD), None);
     }
 
     #[test]
@@ -209,7 +233,7 @@ mod tests {
             value: 200.0,
             change_percentage: 4.2,
         };
-        let data = price_chart_data(chart(vec![point(1_000, 100.0)], Some(current))).expect("data");
+        let data = price_chart_data(chart(vec![point(1_000, 100.0)], Some(current)), Currency::USD).expect("data");
 
         assert_eq!(data.value_type, GemChartValueType::Price);
         assert_eq!(data.base, 100.0);
@@ -217,62 +241,65 @@ mod tests {
         assert_eq!(
             data.header,
             Some(GemChartHeader {
-                value: 200.0,
+                value: usd(200.0),
                 secondary_value: None,
-                change_percentage: Some(4.2),
+                change: Some(signed_percent(4.2)),
             })
         );
     }
 
     #[test]
     fn test_price_chart_data_header_falls_back_to_the_last_point() {
-        let data = price_chart_data(chart(vec![point(1, 100.0), point(2, 150.0)], None)).expect("data");
+        let data = price_chart_data(chart(vec![point(1, 100.0), point(2, 150.0)], None), Currency::USD).expect("data");
 
         assert_eq!(
             data.header,
             Some(GemChartHeader {
-                value: 150.0,
+                value: usd(150.0),
                 secondary_value: None,
-                change_percentage: Some(50.0),
+                change: Some(signed_percent(50.0)),
             })
         );
     }
 
     #[test]
     fn test_change_chart_data_needs_a_series_that_moves() {
-        assert_eq!(change_chart_data(vec![point(1, 5.0), point(2, 5.0), point(3, 5.0)], true), None);
-        assert_eq!(change_chart_data(vec![point(1, 5.0)], true), None);
+        assert_eq!(change_chart_data(vec![point(1, 5.0), point(2, 5.0), point(3, 5.0)], true, Currency::USD), None);
+        assert_eq!(change_chart_data(vec![point(1, 5.0)], true, Currency::USD), None);
     }
 
     #[test]
     fn test_change_chart_data_header_is_the_distance_from_the_first_value() {
-        let data = change_chart_data(vec![point(1, 10.0), point(2, 12.0), point(3, 15.0)], true).expect("data");
+        let data = change_chart_data(vec![point(1, 10.0), point(2, 12.0), point(3, 15.0)], true, Currency::USD).expect("data");
 
         assert_eq!(data.value_type, GemChartValueType::PriceChange);
         assert_eq!(data.base, 10.0);
         assert_eq!(
             data.header,
             Some(GemChartHeader {
-                value: 5.0,
-                secondary_value: Some(15.0),
-                change_percentage: Some(50.0),
+                value: GemFormattedNumber::signed_currency(5.0, Currency::USD, GemCurrencyStyle::Currency),
+                secondary_value: Some(usd(15.0)),
+                change: Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Unsigned).in_parentheses()),
             })
         );
-        assert_eq!(header(data.value_type, data.base, 12.0, None, true).value, 2.0);
+        assert_eq!(data.header_at(12.0).value.value, 2.0);
     }
 
     #[test]
     fn test_change_chart_data_hides_the_percentage_without_a_secondary_value() {
         let values = vec![point(1, 10.0), point(2, 12.0)];
 
-        assert_eq!(change_chart_data(values.clone(), false).unwrap().header.unwrap().change_percentage, None);
-        assert_eq!(change_chart_data(values, true).unwrap().header.unwrap().change_percentage, Some(20.0));
+        assert_eq!(change_chart_data(values.clone(), false, Currency::USD).unwrap().header.unwrap().change, None);
+        assert_eq!(
+            change_chart_data(values, true, Currency::USD).unwrap().header.unwrap().change,
+            Some(GemFormattedNumber::percentage(20.0, GemPercentageStyle::Unsigned).in_parentheses())
+        );
     }
 
     #[test]
     fn test_header_hides_the_percentage_of_a_zero_value() {
-        assert_eq!(header(GemChartValueType::Price, 100.0, 0.0, None, false).change_percentage, None);
-        assert_eq!(header(GemChartValueType::Price, 100.0, 150.0, None, false).change_percentage, Some(50.0));
+        assert_eq!(super::super::candlestick_header(100.0, 0.0).change, None);
+        assert_eq!(super::super::candlestick_header(100.0, 150.0).change, Some(signed_percent(50.0)));
     }
 
     #[test]

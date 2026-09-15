@@ -1,12 +1,14 @@
 package com.gemwallet.android.ui.models.chart
 
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemPerpetualChartLayout
 import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
+import uniffi.gemstone.formattedAdaptive
 
 class CandlestickChartUIModelTest {
 
@@ -19,9 +21,10 @@ class CandlestickChartUIModelTest {
     private val layout = GemPerpetualChartLayout(
         priceLow = 8.0,
         priceHigh = 14.0,
-        ticks = listOf(9.0, 11.0, 13.0),
+        ticks = listOf(9.0, 11.0, 13.0).map { formattedAdaptive(it, null) },
         xTickCount = 6u,
-        lines = listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, 10.5, 0u)),
+        lines = listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, formattedAdaptive(10.5, null), 0u)),
+        currentPrice = formattedAdaptive(10.0, null),
     )
 
     @Test
@@ -37,7 +40,7 @@ class CandlestickChartUIModelTest {
     fun yTicksAreFractionsOfTheLayoutRange() {
         val model = model()
 
-        assertEquals(listOf("9.0", "11.0", "13.0"), model.yTicks.map { it.label })
+        assertEquals(listOf("9.00", "11.00", "13.00"), model.yTicks.map { it.label })
         assertEquals(listOf(1f / 6f, 0.5f, 5f / 6f), model.yTicks.map { it.fraction })
         assertEquals(6.0, model.ySpan, 1e-9)
     }
@@ -46,7 +49,7 @@ class CandlestickChartUIModelTest {
     fun referenceLinesCarryTheirLabels() {
         val model = model()
 
-        assertEquals(listOf("Entry | 10.5"), model.referenceLines.map { it.label })
+        assertEquals(listOf("Entry | 10.50"), model.referenceLines.map { it.label })
         assertEquals(GemPerpetualChartLineKind.ENTRY, model.referenceLines.single().line.kind)
     }
 
@@ -60,7 +63,6 @@ class CandlestickChartUIModelTest {
     private fun model(layout: GemPerpetualChartLayout = this.layout) = CandlestickChartUIModel.from(
         candles = candles,
         layout = layout,
-        yTickFormatter = { "$it" },
-        lineLabel = { "Entry | ${it.price}" },
+        lineLabel = { "Entry | ${it.price.text()}" },
     )
 }

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import GemstonePrimitives
 @testable import Perpetuals
 import PerpetualsTestKit
@@ -18,7 +17,6 @@ struct CandlestickChartViewModelTests {
                 liquidationPrice: 120,
                 takeProfit: PerpetualTriggerOrder(price: 180, order_type: .limit, order_id: "tp"),
             ),
-            formatter: CurrencyFormatter(currencyCode: "USD"),
         )
 
         #expect(model.lines.map(\.price) == [120, 121, 180])

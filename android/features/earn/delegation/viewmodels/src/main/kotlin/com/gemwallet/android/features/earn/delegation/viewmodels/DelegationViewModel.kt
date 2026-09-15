@@ -2,7 +2,7 @@ package com.gemwallet.android.features.earn.delegation.viewmodels
 
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.delegationStatus
-import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import androidx.lifecycle.SavedStateHandle
@@ -113,7 +113,7 @@ class DelegationViewModel @Inject constructor(
         if (assetInfo == null || delegation == null) {
             return@combine null
         }
-        HeadDelegationInfo(delegation, assetInfo, stakeService.getCurrency().toCurrency(), stakeService.validatorRow(delegation.validator.toGem()))
+        HeadDelegationInfo(delegation, assetInfo, stakeService.getCurrency().toPrimitives(), stakeService.validatorRow(delegation.validator.toGem()))
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

@@ -2,6 +2,7 @@
 
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemNumberDisplay
+import enum Gemstone.GemNumberNotation
 import enum Gemstone.GemNumberUnit
 import enum Gemstone.GemPrecision
 
@@ -10,8 +11,8 @@ public extension GemFormattedNumber {
         value: Double = 1,
         unit: GemNumberUnit = .currency(code: "USD"),
         display: GemNumberDisplay = .number(precision: .fraction(min: 2, max: 2)),
-        showsSign: Bool = true,
+        notation: GemNumberNotation = .signed,
     ) -> GemFormattedNumber {
-        GemFormattedNumber(value: value, unit: unit, display: display, showsSign: showsSign)
+        GemFormattedNumber(value: value, unit: unit, display: display, notation: notation)
     }
 }

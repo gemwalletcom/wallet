@@ -48,7 +48,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         self.wallet = wallet
         self.service = service
         self.preferences = preferences
-        perpetualFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency(portfolioType: PortfolioType.perpetuals.toGem()))
+        perpetualFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency(portfolioType: PortfolioType.perpetuals.toGem()).toPrimitives().rawValue)
         let currencyCode = preferences.currency.rawValue
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
         priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
@@ -147,10 +147,16 @@ extension PortfolioSceneViewModel {
 
 extension PortfolioSceneViewModel {
     private func chartViewModel(from data: PortfolioData) -> ChartValuesViewModel? {
-        guard let chartData = portfolioChartData(data: data, portfolioType: state.selectedType.toGem(), chartType: state.selectedChartType.toGem()) else {
+        let portfolioType = state.selectedType.toGem()
+        guard let chartData = portfolioChartData(
+            data: data,
+            portfolioType: portfolioType,
+            chartType: state.selectedChartType.toGem(),
+            currency: service.currency(portfolioType: portfolioType),
+        ) else {
             return nil
         }
-        return ChartValuesViewModel(period: selectedPeriod, chartData: chartData, formatter: chartFormatter)
+        return ChartValuesViewModel(period: selectedPeriod, chartData: chartData)
     }
 
     private func allTimeModel(title: String, chartValue: ChartValuePercentage) -> ListItemModel {
@@ -167,9 +173,5 @@ extension PortfolioSceneViewModel {
         let value = perpetualFormatter.string(margin.accountValue * margin.usage)
         let percent = PercentFormatter.unsigned.string(margin.usage * 100)
         return ListItemModel(title: Localized.Perpetual.marginUsage, subtitle: "\(value) (\(percent))")
-    }
-
-    private var chartFormatter: CurrencyFormatter {
-        state.selectedType == .perpetuals ? perpetualFormatter : currencyFormatter
     }
 }

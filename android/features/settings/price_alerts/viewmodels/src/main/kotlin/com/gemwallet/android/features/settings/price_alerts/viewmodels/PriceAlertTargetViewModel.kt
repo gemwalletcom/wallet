@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -61,7 +60,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
     val assetInfo = getAssetInfo(assetId)
-    val currency = service.getCurrency().toCurrency()
+    val currency = service.getCurrency().toPrimitives()
     val currentPrice = assetInfo.map { info ->
         info?.price?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) } ?: ""
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")

@@ -4,11 +4,23 @@ import Foundation
 import Formatters
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemNumberDisplay
+import enum Gemstone.GemNumberNotation
 import enum Gemstone.GemNumberUnit
 import enum Gemstone.GemPrecision
 
 public extension GemFormattedNumber {
     func text(locale: Locale = .current) -> String {
+        switch notation {
+        case .parenthesised: "(\(body(locale: locale)))"
+        case .plain, .signed: body(locale: locale)
+        }
+    }
+}
+
+// MARK: - Private
+
+private extension GemFormattedNumber {
+    func body(locale: Locale) -> String {
         switch display {
         case let .number(precision):
             appendingSymbol(numberText(precision: precision, locale: locale))
@@ -18,11 +30,7 @@ public extension GemFormattedNumber {
             appendingSymbol("<\(thresholdText(threshold, places: places, locale: locale))")
         }
     }
-}
 
-// MARK: - Private
-
-private extension GemFormattedNumber {
     var currencyCode: String? {
         switch unit {
         case let .currency(code): code
@@ -44,12 +52,19 @@ private extension GemFormattedNumber {
         }
     }
 
+    var showsSign: Bool {
+        switch notation {
+        case .signed: true
+        case .plain, .parenthesised: false
+        }
+    }
+
     var numberSign: NumberFormatStyleConfiguration.SignDisplayStrategy {
-        showsSign ? .always(includingZero: false) : .automatic
+        showsSign ? .always(includingZero: true) : .automatic
     }
 
     var currencySign: CurrencyFormatStyleConfiguration.SignDisplayStrategy {
-        showsSign ? .always(showZero: false) : .automatic
+        showsSign ? .always(showZero: true) : .automatic
     }
 
     func numberText(precision: GemPrecision, locale: Locale) -> String {
@@ -57,7 +72,7 @@ private extension GemFormattedNumber {
             return value.formatted(
                 .percent.locale(locale)
                     .precision(precision.formatStyle)
-                    .sign(strategy: showsSign ? .always(includingZero: false) : .never)
+                    .sign(strategy: showsSign ? .always(includingZero: true) : .never)
                     .scale(1),
             )
         }

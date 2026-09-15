@@ -36,8 +36,8 @@ public final class PriceAlertsSceneViewModel: Sendable {
         Localized.Settings.PriceAlerts.title
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var enableTitle: String {

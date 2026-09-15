@@ -144,8 +144,8 @@ public final class SelectAssetViewModel {
         .milliseconds(service.searchDebounceMilliseconds())
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 }
 

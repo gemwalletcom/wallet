@@ -26,10 +26,6 @@ import SwiftUI
 public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
 
-    private var currencyCode: String {
-        service.getCurrency()
-    }
-
     let walletId: WalletId
     let assetModel: AssetViewModel
 
@@ -62,7 +58,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         switch session.viewState().phase {
         case .loading: .loading
         case let .data(data):
-            ChartValuesViewModel(period: selectedPeriod, chartData: data, formatter: CurrencyFormatter(currencyCode: currencyCode))
+            ChartValuesViewModel(period: selectedPeriod, chartData: data)
                 .map { .data($0) } ?? .noData
         case .noData: .noData
         case let .failed(error): .error(error)
@@ -99,7 +95,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     func marketValues(_ rows: [GemAssetMarketRow]) -> [MarketValueViewModel] {
-        AssetDetailsInfoViewModel(asset: asset, currency: currencyCode).marketValues(rows)
+        AssetDetailsInfoViewModel(asset: asset, currency: service.currency).marketValues(rows)
     }
 
 }

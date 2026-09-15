@@ -160,13 +160,13 @@ public final class StakeSceneViewModel {
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
-        let currencyCode = service.getCurrency()
+        let currency = service.getCurrency().toPrimitives()
         let delegationModels = delegations.map { delegation in
             DelegationViewModel(
                 service: service,
                 delegation: delegation,
                 asset: asset,
-                currencyCode: currencyCode,
+                currency: currency,
                 destination: destination(for: delegation),
             )
         }

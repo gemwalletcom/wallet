@@ -240,7 +240,7 @@ public final class SwapSceneViewModel {
                 AssetDataViewModel(
                     assetData: assetData,
                     formatter: .auto,
-                    currencyCode: service.currency.rawValue,
+                    currency: service.currency,
                     currencyFormatterType: .currency,
                 ),
             ),

@@ -6,11 +6,11 @@ import Primitives
 
 public extension GemPreferencesServiceProtocol {
     var currency: Primitives.Currency {
-        Primitives.Currency(core: getCurrency())
+        getCurrency().toPrimitives()
     }
 
     func setCurrencyValue(_ currency: Primitives.Currency) throws {
-        try setCurrency(currency: currency.rawValue)
+        try setCurrency(currency: currency.toGem())
     }
 
     var chartPeriodValue: ChartPeriod {

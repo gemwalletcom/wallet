@@ -2,7 +2,6 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
@@ -25,8 +24,8 @@ class GemstonePriceStore(
     override suspend fun getPrices(assetIds: List<String>): List<AssetPrice> =
         pricesDao.getByAssets(assetIds).map { it.toAssetPrice() }
 
-    override suspend fun getRate(currency: String): uniffi.gemstone.FiatRate? =
-        pricesDao.getRates(currency.toCurrency()).firstOrNull()?.toDTO()?.toGem()
+    override suspend fun getRate(currency: uniffi.gemstone.Currency): uniffi.gemstone.FiatRate? =
+        pricesDao.getRates(currency.toPrimitives()).firstOrNull()?.toDTO()?.toGem()
 
     override suspend fun getRates(): List<uniffi.gemstone.FiatRate> =
         pricesDao.getRates().toDTO().map { it.toGem() }
@@ -34,8 +33,8 @@ class GemstonePriceStore(
     override suspend fun saveRates(rates: List<uniffi.gemstone.FiatRate>) =
         pricesDao.setRates(rates.map { it.toPrimitives().toRecord() })
 
-    override suspend fun savePrices(currency: String, prices: List<GemPriceUpdate>) {
-        val currency = currency.toCurrency()
+    override suspend fun savePrices(currency: uniffi.gemstone.Currency, prices: List<GemPriceUpdate>) {
+        val currency = currency.toPrimitives()
         pricesDao.insert(
             prices.map {
                 DbPrice(
@@ -50,8 +49,8 @@ class GemstonePriceStore(
         )
     }
 
-    override suspend fun convertPrices(currency: String, rate: Double) =
-        pricesDao.updateValues(currency.toCurrency(), rate)
+    override suspend fun convertPrices(currency: uniffi.gemstone.Currency, rate: Double) =
+        pricesDao.updateValues(currency.toPrimitives(), rate)
 
     override suspend fun saveMarket(assetId: String, market: uniffi.gemstone.AssetMarket) {
         assetsDao.setMarket(market.toPrimitives().toRecord(AssetId(assetId)))

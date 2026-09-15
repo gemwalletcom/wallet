@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
-import GemstonePrimitives
+import struct Gemstone.GemChartData
 import struct Gemstone.GemChartHeader
 import enum Gemstone.GemChartValueType
+import GemstonePrimitives
 import Primitives
 @testable import PrimitivesComponents
 
@@ -20,7 +20,6 @@ public extension ChartHeaderViewModel {
             date: date,
             header: header,
             valueType: valueType,
-            formatter: CurrencyFormatter(type: .currency, currencyCode: "USD"),
         )
     }
 }
@@ -28,9 +27,17 @@ public extension ChartHeaderViewModel {
 public extension GemChartHeader {
     static func mock(
         value: Double = 100,
-        secondaryValue: Double? = nil,
-        changePercentage: Double? = 5,
+        base: Double = 95,
+        valueType: GemChartValueType = .price,
+        showsSecondaryValue: Bool = false,
     ) -> GemChartHeader {
-        GemChartHeader(value: value, secondaryValue: secondaryValue, changePercentage: changePercentage)
+        GemChartData.mock(
+            values: [],
+            header: nil,
+            valueType: valueType,
+            base: base,
+            showsSecondaryValue: showsSecondaryValue,
+        )
+        .headerAt(value: value)
     }
 }

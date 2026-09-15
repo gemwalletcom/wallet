@@ -9,6 +9,7 @@ import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSwapAgain
 import uniffi.gemstone.GemSwapProgress
 import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemSwapRate
 import uniffi.gemstone.formattedCurrency
 import uniffi.gemstone.GemTransactionAmount
@@ -64,7 +65,7 @@ fun mockGemTransactionDetailRows(
     memo = memo,
     resource = resource,
     rate = rate,
-    pnl = pnl?.let { formattedCurrency(it, currency.string, GemCurrencyStyle.CURRENCY).copy(showsSign = true) },
+    pnl = pnl?.let { formattedCurrency(it, currency.string, GemCurrencyStyle.CURRENCY).copy(notation = GemNumberNotation.SIGNED) },
     price = price?.let { formattedCurrency(it, currency.string, GemCurrencyStyle.CURRENCY) },
     fee = fee,
     explorer = explorer,

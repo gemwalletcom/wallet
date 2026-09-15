@@ -23,7 +23,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetPriceValue
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
 import uniffi.gemstone.GemConfirmButton
@@ -128,7 +127,7 @@ class ConfirmViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val currency = confirmation.filterNotNull()
-        .map { it.getCurrency().toCurrency() }
+        .map { it.getCurrency().toPrimitives() }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

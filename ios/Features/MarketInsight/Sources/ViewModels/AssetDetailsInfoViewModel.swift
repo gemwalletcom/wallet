@@ -17,11 +17,11 @@ struct AssetDetailsInfoViewModel {
     private let currencyFormatter: CurrencyFormatter
     private let allTime: AllTimeValueViewModel
 
-    init(asset: Asset, currency: String) {
+    init(asset: Asset, currency: Currency) {
         self.asset = asset
-        currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency)
+        currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency.rawValue)
         allTime = AllTimeValueViewModel(
-            priceFormatter: CurrencyFormatter(currencyCode: currency),
+            priceFormatter: CurrencyFormatter(currencyCode: currency.rawValue),
             percentFormatter: PercentFormatter.signed,
         )
     }

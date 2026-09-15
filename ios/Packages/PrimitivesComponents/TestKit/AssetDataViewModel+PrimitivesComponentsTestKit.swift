@@ -10,12 +10,12 @@ public extension AssetDataViewModel {
     static func mock(
         assetData: AssetData = .mock(),
         formatter: ValueFormatter = .short,
-        currencyCode: String = "USD",
+        currency: Currency = .usd,
     ) -> AssetDataViewModel {
         AssetDataViewModel(
             assetData: assetData,
             formatter: formatter,
-            currencyCode: currencyCode,
+            currency: currency,
         )
     }
 }

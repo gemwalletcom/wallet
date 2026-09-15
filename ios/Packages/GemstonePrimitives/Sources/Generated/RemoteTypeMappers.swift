@@ -372,16 +372,109 @@ public extension Primitives.CoreListItemIcon {
     }
 }
 
-public extension Primitives.Currency {
-    init(core: Gemstone.Currency) {
-        guard let value = Primitives.Currency(rawValue: core) else {
-            fatalError("Core returned a Currency this build does not know: \(core)")
+public extension Gemstone.Currency {
+    func toPrimitives() -> Primitives.Currency {
+        switch self {
+        case .mxn: .mxn
+        case .chf: .chf
+        case .cny: .cny
+        case .thb: .thb
+        case .huf: .huf
+        case .aud: .aud
+        case .idr: .idr
+        case .rub: .rub
+        case .zar: .zar
+        case .eur: .eur
+        case .nzd: .nzd
+        case .sar: .sar
+        case .sgd: .sgd
+        case .bmd: .bmd
+        case .kwd: .kwd
+        case .hkd: .hkd
+        case .jpy: .jpy
+        case .gbp: .gbp
+        case .dkk: .dkk
+        case .krw: .krw
+        case .php: .php
+        case .clp: .clp
+        case .twd: .twd
+        case .pkr: .pkr
+        case .brl: .brl
+        case .cad: .cad
+        case .bhd: .bhd
+        case .mmk: .mmk
+        case .vef: .vef
+        case .vnd: .vnd
+        case .czk: .czk
+        case .try: .try
+        case .inr: .inr
+        case .ars: .ars
+        case .bdt: .bdt
+        case .nok: .nok
+        case .usd: .usd
+        case .lkr: .lkr
+        case .ils: .ils
+        case .pln: .pln
+        case .ngn: .ngn
+        case .uah: .uah
+        case .xdr: .xdr
+        case .myr: .myr
+        case .aed: .aed
+        case .sek: .sek
         }
-        self = value
     }
+}
 
+public extension Primitives.Currency {
     func toGem() -> Gemstone.Currency {
-        rawValue
+        switch self {
+        case .mxn: .mxn
+        case .chf: .chf
+        case .cny: .cny
+        case .thb: .thb
+        case .huf: .huf
+        case .aud: .aud
+        case .idr: .idr
+        case .rub: .rub
+        case .zar: .zar
+        case .eur: .eur
+        case .nzd: .nzd
+        case .sar: .sar
+        case .sgd: .sgd
+        case .bmd: .bmd
+        case .kwd: .kwd
+        case .hkd: .hkd
+        case .jpy: .jpy
+        case .gbp: .gbp
+        case .dkk: .dkk
+        case .krw: .krw
+        case .php: .php
+        case .clp: .clp
+        case .twd: .twd
+        case .pkr: .pkr
+        case .brl: .brl
+        case .cad: .cad
+        case .bhd: .bhd
+        case .mmk: .mmk
+        case .vef: .vef
+        case .vnd: .vnd
+        case .czk: .czk
+        case .try: .try
+        case .inr: .inr
+        case .ars: .ars
+        case .bdt: .bdt
+        case .nok: .nok
+        case .usd: .usd
+        case .lkr: .lkr
+        case .ils: .ils
+        case .pln: .pln
+        case .ngn: .ngn
+        case .uah: .uah
+        case .xdr: .xdr
+        case .myr: .myr
+        case .aed: .aed
+        case .sek: .sek
+        }
     }
 }
 
@@ -2096,7 +2189,7 @@ public extension Gemstone.Device {
             token: token,
             locale: locale.toPrimitives(),
             version: version,
-            currency: Primitives.Currency(core: currency),
+            currency: currency.toPrimitives(),
             isPushEnabled: isPushEnabled,
             isPriceAlertsEnabled: isPriceAlertsEnabled,
             subscriptionsVersion: subscriptionsVersion,
@@ -2115,7 +2208,7 @@ public extension Primitives.Device {
             token: token,
             locale: locale.toGem(),
             version: version,
-            currency: currency.rawValue,
+            currency: currency.toGem(),
             isPushEnabled: isPushEnabled,
             isPriceAlertsEnabled: isPriceAlertsEnabled,
             subscriptionsVersion: subscriptionsVersion,
@@ -2144,7 +2237,7 @@ public extension Primitives.FiatAssets {
 public extension Gemstone.FiatRate {
     func toPrimitives() -> Primitives.FiatRate {
         Primitives.FiatRate(
-            symbol: Primitives.Currency(core: symbol),
+            symbol: symbol.toPrimitives(),
             rate: rate,
         )
     }
@@ -2153,7 +2246,7 @@ public extension Gemstone.FiatRate {
 public extension Primitives.FiatRate {
     func toGem() -> Gemstone.FiatRate {
         Gemstone.FiatRate(
-            symbol: symbol.rawValue,
+            symbol: symbol.toGem(),
             rate: rate,
         )
     }
@@ -2848,7 +2941,7 @@ public extension Gemstone.PriceAlert {
     func toPrimitives() -> Primitives.PriceAlert {
         Primitives.PriceAlert(
             assetId: Primitives.AssetId(core: assetId),
-            currency: Primitives.Currency(core: currency),
+            currency: currency.toPrimitives(),
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: priceDirection.map { $0.toPrimitives() },
@@ -2861,7 +2954,7 @@ public extension Primitives.PriceAlert {
     func toGem() -> Gemstone.PriceAlert {
         Gemstone.PriceAlert(
             assetId: assetId.identifier,
-            currency: currency.rawValue,
+            currency: currency.toGem(),
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: priceDirection.map { $0.toGem() },

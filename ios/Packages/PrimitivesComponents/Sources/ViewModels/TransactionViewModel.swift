@@ -124,11 +124,11 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         }
     }
 
-    public func subtitleTextValue(currency: String) -> TextValue? {
+    public func subtitleTextValue(currency: Currency) -> TextValue? {
         row.value.textValue(currency: currency, formatter: .short)
     }
 
-    public func subtitleExtraTextValue(currency: String) -> TextValue? {
+    public func subtitleExtraTextValue(currency: Currency) -> TextValue? {
         row.equivalentValue.textValue(currency: currency, formatter: .short, textStyle: .footnote)
     }
 

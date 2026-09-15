@@ -21,6 +21,7 @@ public final class SetPriceAlertViewModel {
     private let asset: Primitives.Asset
     private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
+    private let currency: Primitives.Currency
     private let currencyFormatter: CurrencyFormatter
 
     var state: SetPriceAlertViewModelState
@@ -40,7 +41,8 @@ public final class SetPriceAlertViewModel {
     ) {
         self.asset = asset
         self.service = service
-        currencyFormatter = CurrencyFormatter(currencyCode: service.getCurrency())
+        currency = service.getCurrency().toPrimitives()
+        currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)
         self.onComplete = onComplete
         state = SetPriceAlertViewModelState()
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
@@ -120,7 +122,7 @@ public final class SetPriceAlertViewModel {
             assetDataModel: AssetDataViewModel(
                 assetData: assetData,
                 formatter: .short,
-                currencyCode: currencyFormatter.currencyCode,
+                currency: currency,
             ),
             row: GemSelectAssetType.priceAlert.flow().row,
         )

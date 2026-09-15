@@ -125,10 +125,10 @@ pub enum GemPerpetualChartLineKind {
     Liquidation,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualChartLine {
     pub kind: GemPerpetualChartLineKind,
-    pub price: f64,
+    pub price: GemFormattedNumber,
     pub overlap_level: u32,
 }
 
@@ -136,19 +136,20 @@ pub struct GemPerpetualChartLine {
 pub struct GemPerpetualChartLayout {
     pub price_low: f64,
     pub price_high: f64,
-    pub ticks: Vec<f64>,
+    pub ticks: Vec<GemFormattedNumber>,
     pub x_tick_count: u32,
     pub lines: Vec<GemPerpetualChartLine>,
+    pub current_price: Option<GemFormattedNumber>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleTooltip {
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub close: f64,
-    pub change_percentage: f64,
-    pub volume: f64,
+    pub open: GemFormattedNumber,
+    pub high: GemFormattedNumber,
+    pub low: GemFormattedNumber,
+    pub close: GemFormattedNumber,
+    pub change: GemFormattedNumber,
+    pub volume: GemFormattedNumber,
 }
 
 #[uniffi::export]

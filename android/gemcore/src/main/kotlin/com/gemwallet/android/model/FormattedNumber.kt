@@ -8,9 +8,18 @@ import java.text.NumberFormat
 import java.util.Locale
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemNumberDisplay
+import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemNumberUnit
 
-fun GemFormattedNumber.text(locale: Locale = Locale.getDefault()): String = when (val display = display) {
+fun GemFormattedNumber.text(locale: Locale = Locale.getDefault()): String = when (notation) {
+    GemNumberNotation.PARENTHESISED -> "(${body(locale)})"
+    GemNumberNotation.PLAIN, GemNumberNotation.SIGNED -> body(locale)
+}
+
+private val GemFormattedNumber.showsSign: Boolean
+    get() = notation == GemNumberNotation.SIGNED
+
+private fun GemFormattedNumber.body(locale: Locale): String = when (val display = display) {
     is GemNumberDisplay.Number -> when (unit) {
         is GemNumberUnit.Percent -> percentText(BigDecimal.valueOf(value), display.precision.toPrecision(), showsSign, locale)
         else -> appendSymbol(numberText(BigDecimal.valueOf(value), display.precision.toPrecision(), locale))

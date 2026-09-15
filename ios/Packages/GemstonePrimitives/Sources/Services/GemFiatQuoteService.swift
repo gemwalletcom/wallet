@@ -10,7 +10,7 @@ import Primitives
 
 public extension GemFiatQuoteServiceProtocol {
     var currency: Primitives.Currency {
-        Primitives.Currency(core: getCurrency())
+        getCurrency().toPrimitives()
     }
 
     func newSession(type: FiatQuoteType, amount: Int?) -> GemFiatSession {

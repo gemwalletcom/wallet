@@ -66,7 +66,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 
     public func itemModel(for row: GemTransactionDetailRow) -> any ItemModelProvidable<TransactionItemModel> {
         switch row {
-        case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency())
+        case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency().toPrimitives())
         case .swapProgress: TransactionSwapProgressViewModel(progress: rows.swapProgress)
         case .swapAgain: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
         case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
@@ -85,7 +85,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .pnl: TransactionPnlViewModel(pnl: rows.pnl)
         case .price: TransactionPriceViewModel(price: rows.price)
         case .provider: TransactionProviderViewModel(name: rows.providerName)
-        case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency(), formatter: .auto), onInfoAction: onSelectFee)
+        case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency().toPrimitives(), formatter: .auto), onInfoAction: onSelectFee)
         case .explorer: explorerViewModel
         }
     }
@@ -166,7 +166,7 @@ extension TransactionSceneViewModel {
         let fee = rows.fee
         return NetworkFeeSceneViewModel(
             feeAsset: fee.asset.toPrimitives(),
-            currency: Currency(core: service.getCurrency()),
+            currency: service.getCurrency().toPrimitives(),
             selection: .priority(priority: .normal),
             feeAssetPrice: fee.price.map { $0.toPrimitives().mapToPrice() },
             feeAmount: BigInt(fee.value),

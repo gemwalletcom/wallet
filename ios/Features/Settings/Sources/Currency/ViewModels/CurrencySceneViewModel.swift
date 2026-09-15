@@ -54,7 +54,7 @@ public final class CurrencySceneViewModel {
     }
 
     func setCurrency(_ currency: Currency) async throws {
-        try await service.setCurrency(currency: currency.rawValue)
+        try await service.setCurrency(currency: currency.toGem())
         self.currency = currency
     }
 }
@@ -67,6 +67,6 @@ extension CurrencySceneViewModel {
     }
 
     private var currencies: GemCurrencies {
-        service.currencies(locale: localeCurrency?.rawValue)
+        service.currencies(locale: localeCurrency?.toGem())
     }
 }

@@ -56,7 +56,7 @@ class GetPriceAlertsImpl(
                                         },
                                         priceAlert = item.priceAlert,
                                     ).toGem(),
-                                    priceCurrency = (assetInfo.price?.currency ?: item.priceAlert.currency).string,
+                                    priceCurrency = (assetInfo.price?.currency ?: item.priceAlert.currency).toGem(),
                                 ),
                             )
                         }.orEmpty()

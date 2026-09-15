@@ -10,7 +10,6 @@ import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
@@ -65,7 +64,7 @@ class FiatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val currency = service.getCurrency().toCurrency()
+    private val currency = service.getCurrency().toPrimitives()
     private val currencySymbol = java.util.Currency.getInstance(currency.name).symbol
     private val assetId: AssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 

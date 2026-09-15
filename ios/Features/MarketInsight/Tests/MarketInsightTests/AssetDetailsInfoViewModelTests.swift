@@ -66,6 +66,6 @@ struct AssetDetailsInfoViewModelTests {
 
 private extension AssetDetailsInfoViewModel {
     static func mock(asset: Asset = .mockEthereumUSDT(), currency: Currency = .usd) -> AssetDetailsInfoViewModel {
-        AssetDetailsInfoViewModel(asset: asset, currency: currency.rawValue)
+        AssetDetailsInfoViewModel(asset: asset, currency: currency)
     }
 }

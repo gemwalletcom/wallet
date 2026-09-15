@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ext.toIdentifier
@@ -18,7 +17,6 @@ import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.GemServiceException
 import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,10 +48,10 @@ class ChartViewModel internal constructor(
         selectedPeriod,
         getCurrentCurrency.getCurrency(),
         refreshController.trigger,
-    ) { period, currency, _ -> period to currency }
-        .transformLatest { (period, currency) ->
+    ) { period, _, _ -> period }
+        .transformLatest { period ->
             val loading = chartService.newSession().onSelectPeriod(period)
-            emit(loading.viewState() to currency)
+            emit(loading.viewState())
             val next = try {
                 loading.onLoaded(chartService.syncCharts(assetId.toIdentifier(), period))
             } catch (e: Exception) {
@@ -61,22 +59,21 @@ class ChartViewModel internal constructor(
                 loading.onFailed(GemServiceException.Core(e.message.orEmpty()))
             }
             refreshController.stopRefreshing()
-            emit(next.viewState() to currency)
+            emit(next.viewState())
         }
         .flowOn(Dispatchers.IO)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(StopTimeoutMillis),
-            chartService.newSession().viewState() to Currency.USD,
+            chartService.newSession().viewState(),
         )
 
-    val chartUIState = loaded.map { (state, currency) ->
-        val currencyFormatter = CurrencyFormatter(currency = currency)
+    val chartUIState = loaded.map { state ->
         ChartUIModel.State(
             period = state.period.toPrimitives(),
             chart = when (val phase = state.phase) {
                 GemChartPhase.Loading -> StateViewType.Loading
-                is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data, currencyFormatter::string))
+                is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
                 GemChartPhase.NoData -> StateViewType.NoData
                 is GemChartPhase.Failed -> StateViewType.Error
             },

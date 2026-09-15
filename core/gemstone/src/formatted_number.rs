@@ -11,6 +11,13 @@ pub enum GemNumberUnit {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemNumberNotation {
+    Plain,
+    Signed,
+    Parenthesised,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemNumberDisplay {
     Number { precision: GemPrecision },
     Abbreviated,
@@ -22,7 +29,7 @@ pub struct GemFormattedNumber {
     pub value: f64,
     pub unit: GemNumberUnit,
     pub display: GemNumberDisplay,
-    pub shows_sign: bool,
+    pub notation: GemNumberNotation,
 }
 
 impl GemFormattedNumber {
@@ -30,11 +37,10 @@ impl GemFormattedNumber {
         Self::currency_code(value, currency.as_ref().to_string(), style)
     }
 
-    /// For a currency code that comes from outside, such as a quote a provider returned.
     pub fn currency_code(value: f64, code: String, style: GemCurrencyStyle) -> Self {
         Self {
             value,
-            shows_sign: false,
+            notation: GemNumberNotation::Plain,
             unit: GemNumberUnit::Currency { code },
             display: match style.abbreviates(value) {
                 true => GemNumberDisplay::Abbreviated,
@@ -45,7 +51,6 @@ impl GemFormattedNumber {
         }
     }
 
-    /// Perpetual and transaction values settle in USD, whatever currency the wallet displays.
     pub fn usd(value: f64) -> Self {
         Self::currency(value, Currency::USD, GemCurrencyStyle::Currency)
     }
@@ -58,9 +63,16 @@ impl GemFormattedNumber {
         Self::currency(value, Currency::USD, GemCurrencyStyle::Abbreviated)
     }
 
+    pub fn in_parentheses(self) -> Self {
+        Self {
+            notation: GemNumberNotation::Parenthesised,
+            ..self
+        }
+    }
+
     pub fn signed_currency(value: f64, currency: Currency, style: GemCurrencyStyle) -> Self {
         Self {
-            shows_sign: true,
+            notation: GemNumberNotation::Signed,
             ..Self::currency(value, currency, style)
         }
     }
@@ -68,7 +80,7 @@ impl GemFormattedNumber {
     pub fn adaptive(value: f64, symbol: Option<String>) -> Self {
         Self {
             value,
-            shows_sign: false,
+            notation: GemNumberNotation::Plain,
             unit: unit(symbol),
             display: GemNumberDisplay::Number {
                 precision: crate::precision::adaptive_precision(value),
@@ -80,7 +92,7 @@ impl GemFormattedNumber {
         let format = style.format();
         Self {
             value,
-            shows_sign: format.shows_sign,
+            notation: notation(format.shows_sign),
             unit: GemNumberUnit::Percent,
             display: GemNumberDisplay::Number { precision: format.precision },
         }
@@ -89,10 +101,17 @@ impl GemFormattedNumber {
     pub fn amount(value: f64, symbol: Option<String>, style: GemValueStyle) -> Self {
         Self {
             value,
-            shows_sign: false,
+            notation: GemNumberNotation::Plain,
             unit: unit(symbol),
             display: value_display(value, style),
         }
+    }
+}
+
+fn notation(shows_sign: bool) -> GemNumberNotation {
+    match shows_sign {
+        true => GemNumberNotation::Signed,
+        false => GemNumberNotation::Plain,
     }
 }
 
@@ -169,7 +188,7 @@ mod tests {
         let signed = GemFormattedNumber::percentage(-2.0, GemPercentageStyle::Signed);
         assert_eq!(signed.value, -2.0);
         assert_eq!(signed.unit, GemNumberUnit::Percent);
-        assert!(signed.shows_sign);
+        assert_eq!(signed.notation, GemNumberNotation::Signed);
         assert_eq!(
             signed.display,
             GemNumberDisplay::Number {
@@ -177,7 +196,7 @@ mod tests {
             }
         );
 
-        assert_eq!(GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned).shows_sign, false);
+        assert_eq!(GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned).notation, GemNumberNotation::Plain);
     }
 
     #[test]

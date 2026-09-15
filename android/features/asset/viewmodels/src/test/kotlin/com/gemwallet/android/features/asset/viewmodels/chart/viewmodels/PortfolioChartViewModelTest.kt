@@ -52,7 +52,7 @@ class PortfolioChartViewModelTest {
     }
     private val observePerpetualWallet = mockk<ObservePerpetualWallet>(relaxed = true)
     private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface> {
-        every { currency(any()) } returns Currency.USD.string
+        every { currency(any()) } returns Currency.USD.toGem()
     }
 
     private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {

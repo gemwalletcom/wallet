@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.Currency
 import class Gemstone.GemDeviceKeyService
 import struct Gemstone.GemDeviceInfo
 import protocol Gemstone.GemDevicePlatform
@@ -56,7 +57,7 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
         return await UNUserNotificationCenter.current().notificationSettings().authorizationStatus.isAuthorized
     }
 
-    public func getCurrency() async throws -> String {
+    public func getCurrency() async throws -> Gemstone.Currency {
         preferencesService.getCurrency()
     }
 }

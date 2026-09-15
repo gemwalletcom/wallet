@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
+import com.wallet.core.primitives.Currency
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
@@ -97,7 +99,7 @@ class SettingsViewModelTest {
     }
 
     private val currencyService = mockk<GemCurrencyServiceInterface> {
-        every { currencies(any()) } returns GemCurrencies(GemCurrencyRow("USD", "🇺🇸"), emptyList(), emptyList())
+        every { currencies(any()) } returns GemCurrencies(GemCurrencyRow(Currency.USD.toGem(), "🇺🇸"), emptyList(), emptyList())
     }
 
     private fun createViewModel() = SettingsViewModel(

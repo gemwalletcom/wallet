@@ -3,7 +3,7 @@
 import Foundation
 import typealias Gemstone.AssetId
 import struct Gemstone.AssetMarket
-import typealias Gemstone.Currency
+import enum Gemstone.Currency
 import struct Gemstone.FiatRate
 import struct Gemstone.AssetPrice
 import protocol Gemstone.GemPriceStore
@@ -26,7 +26,7 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
     }
 
     public func getRate(currency: Gemstone.Currency) async throws -> Gemstone.FiatRate? {
-        let currency = try Primitives.Currency(id: currency)
+        let currency = currency.toPrimitives()
         return try priceStore.getRate(currency: currency.rawValue).map { Primitives.FiatRate(symbol: currency, rate: $0.rate).toGem() }
     }
 

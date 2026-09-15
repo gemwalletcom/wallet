@@ -2,6 +2,7 @@
 
 import GemstonePrimitives
 import struct Gemstone.GemCandleTooltip
+import struct Gemstone.GemFormattedNumber
 import func Gemstone.candleTooltip
 import Components
 import Formatters
@@ -13,58 +14,48 @@ import SwiftUI
 public struct CandleTooltipViewModel {
     private static let titleStyle = TextStyle(font: .caption2, color: Colors.secondaryText, fontWeight: .medium)
     private static let subtitleStyle = TextStyle(font: .caption2.monospacedDigit(), color: Colors.black, fontWeight: .semibold)
-    private static let volumeFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: Currency.usd.rawValue)
 
-    private let candle: ChartCandleStick
     private let tooltip: GemCandleTooltip
-    private let formatter: NumericFormatter
 
-    public init(candle: ChartCandleStick, formatter: NumericFormatter = NumericFormatter()) {
-        self.candle = candle
+    public init(candle: ChartCandleStick) {
         tooltip = candleTooltip(candle: candle.toGem())
-        self.formatter = formatter
     }
 
     var openField: ListItemField {
-        ListItemField(
-            title: TextValue(text: Localized.Charts.Price.open, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(candle.open), style: Self.subtitleStyle, lineLimit: 1),
-        )
+        field(title: Localized.Charts.Price.open, value: tooltip.open)
     }
 
     var closeField: ListItemField {
-        ListItemField(
-            title: TextValue(text: Localized.Charts.Price.close, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(candle.close), style: Self.subtitleStyle, lineLimit: 1),
-        )
+        field(title: Localized.Charts.Price.close, value: tooltip.close)
     }
 
     var highField: ListItemField {
-        ListItemField(
-            title: TextValue(text: Localized.Charts.Price.high, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(candle.high), style: Self.subtitleStyle, lineLimit: 1),
-        )
+        field(title: Localized.Charts.Price.high, value: tooltip.high)
     }
 
     var lowField: ListItemField {
-        ListItemField(
-            title: TextValue(text: Localized.Charts.Price.low, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(candle.low), style: Self.subtitleStyle, lineLimit: 1),
-        )
+        field(title: Localized.Charts.Price.low, value: tooltip.low)
     }
 
     var changeField: ListItemField {
-        let change = tooltip.changePercentage
-        return ListItemField(
+        ListItemField(
             title: TextValue(text: Localized.Charts.Price.change, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: PercentFormatter.signed.string(change), style: TextStyle(font: .caption2.monospacedDigit(), color: PriceChangeColor.color(for: change), fontWeight: .semibold), lineLimit: 1),
+            value: TextValue(
+                text: tooltip.change.text(),
+                style: TextStyle(font: .caption2.monospacedDigit(), color: PriceChangeColor.color(for: tooltip.change.value), fontWeight: .semibold),
+                lineLimit: 1,
+            ),
         )
     }
 
     var volumeField: ListItemField {
+        field(title: Localized.Perpetual.volume, value: tooltip.volume)
+    }
+
+    private func field(title: String, value: GemFormattedNumber) -> ListItemField {
         ListItemField(
-            title: TextValue(text: Localized.Perpetual.volume, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: Self.volumeFormatter.string(tooltip.volume), style: Self.subtitleStyle, lineLimit: 1),
+            title: TextValue(text: title, style: Self.titleStyle, lineLimit: 1),
+            value: TextValue(text: value.text(), style: Self.subtitleStyle, lineLimit: 1),
         )
     }
 }
