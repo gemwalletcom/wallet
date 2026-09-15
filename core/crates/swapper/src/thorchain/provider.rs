@@ -113,7 +113,7 @@ where
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         let vaults = self.client.get_asgard_vaults().await?;
         let asgard_addresses: HashSet<String> = AsgardVault::all_addresses(self.network, &vaults).into_iter().collect();
-        let router_addresses: HashSet<String> = self.network.router_addresses().iter().map(|address| address.to_string()).collect();
+        let router_addresses: HashSet<String> = self.network.routers().iter().map(|(_, address)| address.to_string()).collect();
 
         let deposit: Vec<String> = asgard_addresses.union(&router_addresses).cloned().collect();
         let send: Vec<String> = asgard_addresses.into_iter().collect();
