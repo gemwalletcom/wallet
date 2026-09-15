@@ -2,6 +2,7 @@ use primitives::{BitcoinChain, ChainSigner, SignerError, SignerInput};
 
 use crate::signer::{
     planner::{SpendPlan, SpendRequest, UtxoPlanner},
+    relay,
     transaction::sign_plan,
 };
 
@@ -26,6 +27,9 @@ impl ChainSigner for BitcoinChainSigner {
     }
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
+        if input.input_type.is_contract_swap() {
+            return Ok(vec![relay::sign_swap(self.chain, input, private_key)?]);
+        }
         Ok(vec![self.sign_request(
             SpendRequest::swap(self.chain, input)?,
             private_key,

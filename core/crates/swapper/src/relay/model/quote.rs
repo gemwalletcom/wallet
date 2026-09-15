@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{EvmStepData, SolanaStepData, TonStepData, TronStepData};
+use super::{BitcoinStepData, EvmStepData, SolanaStepData, TonStepData, TronStepData};
 use crate::{SwapperError, error::ProviderErrorResponse};
 
 const STEP_SWAP: &str = "swap";
@@ -53,31 +53,40 @@ impl RelayQuoteResponse {
             .and_then(Step::step_data)
     }
 
+    pub fn get_bitcoin_step(&self) -> Option<&BitcoinStepData> {
+        let [step] = self.steps.as_slice() else { return None };
+        let [item] = step.items.as_deref()? else { return None };
+        match item.data.as_ref()? {
+            StepData::Bitcoin(bitcoin) => Some(bitcoin),
+            StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) => None,
+        }
+    }
+
     pub fn get_evm_step(&self) -> Option<&EvmStepData> {
         match self.step_data()? {
             StepData::Evm(evm) => Some(evm),
-            StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) => None,
+            StepData::Bitcoin(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) => None,
         }
     }
 
     pub fn get_tron_step(&self) -> Option<&TronStepData> {
         match self.step_data()? {
             StepData::Tron(tron) => Some(tron),
-            StepData::Evm(_) | StepData::Solana(_) | StepData::Ton(_) => None,
+            StepData::Bitcoin(_) | StepData::Evm(_) | StepData::Solana(_) | StepData::Ton(_) => None,
         }
     }
 
     pub fn get_solana_step(&self) -> Option<&SolanaStepData> {
         match self.step_data()? {
             StepData::Solana(solana) => Some(solana),
-            StepData::Evm(_) | StepData::Tron(_) | StepData::Ton(_) => None,
+            StepData::Bitcoin(_) | StepData::Evm(_) | StepData::Tron(_) | StepData::Ton(_) => None,
         }
     }
 
     pub fn get_ton_step(&self) -> Option<&TonStepData> {
         match self.step_data()? {
             StepData::Ton(ton) => Some(ton),
-            StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) => None,
+            StepData::Bitcoin(_) | StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) => None,
         }
     }
 
@@ -113,6 +122,7 @@ pub struct StepItem {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum StepData {
+    Bitcoin(BitcoinStepData),
     Evm(EvmStepData),
     Tron(TronStepData),
     Solana(SolanaStepData),
@@ -124,7 +134,7 @@ impl StepData {
         match self {
             Self::Evm(evm) => Some(evm.to.clone()),
             Self::Tron(tron) => Some(tron.trigger_smart_contract()?.contract_address.clone()),
-            Self::Solana(_) => None,
+            Self::Bitcoin(_) | Self::Solana(_) => None,
             Self::Ton(ton) => Some(ton.messages.first()?.to.clone()),
         }
     }

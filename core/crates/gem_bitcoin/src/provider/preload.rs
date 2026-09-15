@@ -47,12 +47,16 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
         Ok(TransactionLoadData { fee, metadata: input.metadata })
     }
 
-    async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
+    async fn get_transaction_fee_rates(&self, input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         match self.chain {
             BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge => {
                 let priority = self.chain.get_blocks_fee_priority();
                 let (slow, normal, fast) = futures::try_join!(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast))?;
-                Ok(map_fee_rates(slow, normal, fast, self.chain))
+                let mut rates = map_fee_rates(slow, normal, fast, self.chain);
+                if input_type.is_contract_swap() {
+                    rates.retain(|rate| rate.priority == FeePriority::Normal);
+                }
+                Ok(rates)
             }
             BitcoinChain::Zcash => Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(10_000)))]),
         }
@@ -98,7 +102,7 @@ mod tests {
 
     use crate::{
         rpc::client::BitcoinClient,
-        testkit::signer_mock::{mock_transfer_input, mock_utxo_with},
+        testkit::signer_mock::{mock_contract_swap_input, mock_transfer_input, mock_utxo_with},
     };
 
     #[test]
@@ -129,6 +133,16 @@ mod tests {
         let rates = map_fee_rates(BigInt::from(1000), BigInt::from(1000), BigInt::from(1000), BitcoinChain::Doge);
         assert_eq!(FeeRate::find(&rates, FeePriority::Normal).unwrap().gas_price_type.gas_price(), BigInt::from(20_000));
         assert_eq!(FeeRate::find(&rates, FeePriority::Fast).unwrap().gas_price_type.gas_price(), BigInt::from(30_000));
+    }
+
+    #[tokio::test]
+    async fn test_contract_swap_offers_single_fee_rate() {
+        let client = BitcoinClient::new(MockClient::new().with_get(|_| Ok(br#"{"result":"0.00004131"}"#.to_vec())), BitcoinChain::Bitcoin);
+        let swap = mock_contract_swap_input(BitcoinChain::Bitcoin, "", false).input.input_type;
+        let rates = client.get_transaction_fee_rates(swap).await.unwrap();
+        assert_eq!(rates.iter().map(|rate| rate.priority).collect::<Vec<_>>(), vec![FeePriority::Normal]);
+        let transfer = mock_transfer_input(BitcoinChain::Bitcoin).input.input_type;
+        assert_eq!(client.get_transaction_fee_rates(transfer).await.unwrap().len(), 2);
     }
 
     #[tokio::test]
