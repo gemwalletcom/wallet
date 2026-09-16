@@ -63,6 +63,30 @@ pub struct EIP712Message {
     pub message: Vec<EIP712Field>,
 }
 
+pub fn find_field_string(fields: &[EIP712Field], name: &str) -> Option<String> {
+    fields.iter().find(|field| field.name == name).and_then(|field| match &field.value {
+        EIP712TypedValue::Address { value } | EIP712TypedValue::Uint256 { value } | EIP712TypedValue::String { value } => Some(value.clone()),
+        EIP712TypedValue::Struct { .. }
+        | EIP712TypedValue::Int256 { .. }
+        | EIP712TypedValue::Bool { .. }
+        | EIP712TypedValue::Bytes { .. }
+        | EIP712TypedValue::Array { .. } => None,
+    })
+}
+
+pub fn find_field_struct<'a>(fields: &'a [EIP712Field], name: &str) -> Option<&'a [EIP712Field]> {
+    fields.iter().find(|field| field.name == name).and_then(|field| match &field.value {
+        EIP712TypedValue::Struct { fields } => Some(fields.as_slice()),
+        EIP712TypedValue::Address { .. }
+        | EIP712TypedValue::Uint256 { .. }
+        | EIP712TypedValue::Int256 { .. }
+        | EIP712TypedValue::String { .. }
+        | EIP712TypedValue::Bool { .. }
+        | EIP712TypedValue::Bytes { .. }
+        | EIP712TypedValue::Array { .. } => None,
+    })
+}
+
 pub fn eip712_domain_types() -> Vec<EIP712Type> {
     vec![
         EIP712Type {

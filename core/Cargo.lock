@@ -5955,6 +5955,7 @@ dependencies = [
  "gem_evm",
  "gem_jsonrpc",
  "gem_solana",
+ "gem_wallet_connect",
  "num-bigint 0.5.1",
  "number_formatter",
  "primitives",

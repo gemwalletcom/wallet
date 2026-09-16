@@ -5,7 +5,7 @@ mod ton;
 mod tron;
 
 use crate::actions::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
-use ethereum::EthereumRequestHandler;
+pub use ethereum::EthereumRequestHandler;
 use primitives::{Chain, ChainType, ValueAccess, WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods, hex};
 use serde_json::Value;
 use solana::SolanaRequestHandler;

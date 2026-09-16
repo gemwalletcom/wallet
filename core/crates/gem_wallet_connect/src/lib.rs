@@ -14,7 +14,7 @@ mod testkit;
 
 pub use actions::*;
 pub use decode::decode_sign_message;
-pub use request_handler::WalletConnectRequestHandler;
+pub use request_handler::{EthereumRequestHandler, WalletConnectRequestHandler};
 pub use response_handler::WalletConnectResponseHandler;
 pub use session::config_session_properties;
 pub use sign_type::SignDigestType;

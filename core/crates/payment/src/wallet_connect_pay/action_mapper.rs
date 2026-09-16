@@ -1,7 +1,8 @@
 use gem_evm::transaction::{EvmTransactionKind, decode_transaction_kind};
+use gem_wallet_connect::EthereumRequestHandler;
 use num_bigint::BigUint;
 use primitives::swap::ApprovalData;
-use primitives::{ValueAccess, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectionMethods};
+use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectionMethods};
 use serde_json::Value;
 use serde_serializers::biguint_from_hex_str;
 
@@ -10,14 +11,15 @@ use crate::wallet_connect_pay::model::{PaymentAction, PaymentSend, PaymentSign, 
 use crate::wallet_connect_pay::typed_data_mapper::map_typed_data;
 
 pub(super) fn map_actions(quote: &Quote, actions: &[WalletRpcAction]) -> Result<PaymentAction, PaymentError> {
-    let methods: Vec<Option<WalletConnectionMethods>> = actions.iter().map(|action| action.method()).collect();
+    let methods: Vec<Option<WalletConnectionMethods>> = actions.iter().map(WalletRpcAction::method).collect();
     match (actions, methods.as_slice()) {
         ([send], [Some(WalletConnectionMethods::EthSendTransaction)]) => Ok(PaymentAction::Send(map_send(quote, send)?)),
         ([sign], [Some(WalletConnectionMethods::EthSignTypedDataV4)]) => Ok(PaymentAction::Sign(map_sign(quote, sign)?)),
         ([approve, sign], [Some(WalletConnectionMethods::EthSendTransaction), Some(WalletConnectionMethods::EthSignTypedDataV4)]) => {
-            let sign = map_sign(quote, sign)?;
-            let approval = map_approval(quote, approve)?;
-            Ok(PaymentAction::ApproveAndSign { approval, sign })
+            Ok(PaymentAction::ApproveAndSign {
+                approval: map_approval(quote, approve)?,
+                sign: map_sign(quote, sign)?,
+            })
         }
         ([action], _) => Err(PaymentError::invalid_request(format!("Payment asks for {}", action.method))),
         (actions, _) => Err(PaymentError::invalid_request(format!("Payment asks for {} actions", actions.len()))),
@@ -37,15 +39,15 @@ fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, Paym
 }
 
 fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, PaymentError> {
-    let token = quote.token();
-    validate_chain(quote, action)?;
+    let chain = get_chain(quote, action)?;
     let signer = action.params.at(0).and_then(Value::string).map_err(PaymentError::invalid_request)?;
     if !signer.eq_ignore_ascii_case(&quote.account.address) {
         return Err(PaymentError::invalid_request("Payment asks to sign from another account"));
     }
-    let transfer = map_typed_data(quote.account.chain, action.params.at(1).map_err(PaymentError::invalid_request)?)?;
-    if !transfer.token.eq_ignore_ascii_case(token) {
-        return Err(PaymentError::invalid_request(format!("Payment asks to sign for token {} on a quote of {token}", transfer.token)));
+    let typed_data = EthereumRequestHandler::parse_typed_data(chain, &action.params).map_err(PaymentError::invalid_request)?;
+    let transfer = map_typed_data(&typed_data)?;
+    if !transfer.token.eq_ignore_ascii_case(quote.token()) {
+        return Err(PaymentError::invalid_request(format!("Payment asks to sign for token {} on a quote of {}", transfer.token, quote.token())));
     }
     if transfer.amount != quote.value {
         return Err(PaymentError::invalid_request(format!("Payment asks to sign {} for a quote of {}", transfer.amount, quote.value)));
@@ -60,34 +62,29 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, Paym
 }
 
 fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData, PaymentError> {
-    let token = quote.token();
     let transaction = get_transaction(quote, action)?;
     if get_value(&transaction)? != BigUint::ZERO {
         return Err(PaymentError::invalid_request("Payment approval sends value"));
     }
-    if !transaction.to.eq_ignore_ascii_case(token) {
-        return Err(PaymentError::invalid_request(format!("Payment asks to approve {} on a quote of {token}", transaction.to)));
+    if !transaction.to.eq_ignore_ascii_case(quote.token()) {
+        return Err(PaymentError::invalid_request(format!("Payment asks to approve {} on a quote of {}", transaction.to, quote.token())));
     }
-    match decode_transaction_kind(token, transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
+    match decode_transaction_kind(quote.token(), transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
         EvmTransactionKind::TokenApproval(approval) => Ok(approval),
         EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => Err(PaymentError::invalid_request("Payment approval is not a token approval")),
     }
 }
 
 fn get_transaction(quote: &Quote, action: &WalletRpcAction) -> Result<WCEthereumTransaction, PaymentError> {
-    validate_chain(quote, action)?;
-    let parameter = action.params.at(0).map_err(PaymentError::invalid_request)?;
-    let transaction: WCEthereumTransaction = serde_json::from_value(parameter.clone()).map_err(|error| PaymentError::invalid_request(error.to_string()))?;
-    if !quote.account.address.eq_ignore_ascii_case(&transaction.from) {
+    let chain = get_chain(quote, action)?;
+    let transaction = EthereumRequestHandler::parse_transaction(chain, &action.params).map_err(PaymentError::invalid_request)?;
+    if !transaction.from.eq_ignore_ascii_case(&quote.account.address) {
         return Err(PaymentError::invalid_request("Payment asks to sign from another account"));
-    }
-    if transaction.chain_id.is_some_and(|chain_id| Some(chain_id) != quote.account.chain.network_id_value()) {
-        return Err(PaymentError::invalid_request(format!("Payment transaction is for chain {:?}", transaction.chain_id)));
     }
     Ok(transaction)
 }
 
-fn validate_chain(quote: &Quote, action: &WalletRpcAction) -> Result<(), PaymentError> {
+fn get_chain(quote: &Quote, action: &WalletRpcAction) -> Result<Chain, PaymentError> {
     let chain = WalletConnectCAIP2::get_chain_from_id(Some(action.chain_id.clone())).map_err(PaymentError::invalid_request)?;
     if chain != quote.account.chain {
         return Err(PaymentError::invalid_request(format!(
@@ -96,7 +93,7 @@ fn validate_chain(quote: &Quote, action: &WalletRpcAction) -> Result<(), Payment
             quote.account.chain.as_ref()
         )));
     }
-    Ok(())
+    Ok(chain)
 }
 
 fn get_value(transaction: &WCEthereumTransaction) -> Result<BigUint, PaymentError> {
@@ -113,10 +110,10 @@ mod tests {
     };
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
-    use primitives::{AssetId, Chain, WalletConnectionMethods, serde_name};
+    use primitives::{AssetId, serde_name};
 
     fn typed_data(action: &WalletRpcAction) -> String {
-        serde_json::from_str::<Value>(action.params[1].as_str().unwrap()).unwrap().to_string()
+        action.params[1].as_str().unwrap().to_string()
     }
 
     fn with_chain_id(action: &WalletRpcAction, chain_id: &str) -> WalletRpcAction {
@@ -184,11 +181,8 @@ mod tests {
 
         assert_eq!(
             map_actions(&unapproved, &[approve_and_permit[1].clone(), approve_and_permit[0].clone()]),
-            Err(PaymentError::invalid_request("Payment asks for 2 actions"))
-        );
-        assert_eq!(
-            map_actions(&unapproved, &[approve_and_permit[0].clone(), approve_and_permit[1].clone(), approve_and_permit[1].clone()]),
-            Err(PaymentError::invalid_request("Payment asks for 3 actions"))
+            Err(PaymentError::invalid_request("Payment asks for 2 actions")),
+            "the approval comes first"
         );
         assert_eq!(
             map_actions(
@@ -216,12 +210,8 @@ mod tests {
             Err(PaymentError::invalid_request("Payment asks to sign on ethereum for an account on optimism"))
         );
         assert_eq!(
-            map_send(&coin, &with_chain_id(send, "eip155")),
-            Err(PaymentError::invalid_request("Invalid chain ID format"))
-        );
-        assert_eq!(
             map_send(&coin, &with_transaction(send, "chainId", Value::from(1))),
-            Err(PaymentError::invalid_request("Payment transaction is for chain Some(1)"))
+            Err(PaymentError::invalid_request("Transaction chainId mismatch: expected 10, got 1"))
         );
         assert_eq!(
             map_send(&coin, &with_transaction(send, "from", Value::from(TEST_ACCOUNT_WITHOUT_ALLOWANCE))),

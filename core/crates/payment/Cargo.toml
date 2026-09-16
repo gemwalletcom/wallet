@@ -10,6 +10,7 @@ gem_encoding = { path = "../gem_encoding" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_evm = { path = "../gem_evm" }
 gem_solana = { path = "../gem_solana" }
+gem_wallet_connect = { path = "../gem_wallet_connect" }
 number_formatter = { path = "../number_formatter" }
 async-trait = { workspace = true }
 futures = { workspace = true }
