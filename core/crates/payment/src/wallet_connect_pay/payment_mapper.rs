@@ -127,11 +127,12 @@ fn get_asset_id(unit: &str) -> Option<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::model::{Merchant, PaymentSend, PaymentSign};
+    use crate::wallet_connect_pay::model::{Merchant, PaymentSend, TypedDataTransfer};
     use crate::wallet_connect_pay::testkit::{
         OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, invoice, options, quote, quotes,
     };
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, SMARTCHAIN_USDC_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
+    use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
     use primitives::swap::ApprovalData;
     use num_bigint::BigUint;
     use primitives::{Chain, ChainAddress};
@@ -227,8 +228,12 @@ mod tests {
         assert_eq!(map_transaction(&coin, send(""), invoice.clone()).transaction_type, TransactionType::Transfer, "a value transfer has no calldata");
 
         let usdt = quote(OPTIONS, TEST_ACCOUNT, &ETHEREUM_USDT_ASSET_ID);
-        let sign = PaymentSign {
+        let sign = TypedDataTransfer {
+            token: ETHEREUM_USDT_TOKEN_ID.to_string(),
+            amount: usdt.value.clone(),
+            from: None,
             recipient: TEST_PERMIT_SPENDER.to_string(),
+            verifying_contract: UNISWAP_PERMIT2_CONTRACT.to_string(),
             typed_data: "{}".to_string(),
         };
         let signature = PaymentTransaction {

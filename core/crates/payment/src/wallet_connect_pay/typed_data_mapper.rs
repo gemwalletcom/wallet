@@ -16,13 +16,14 @@ pub(super) fn map_typed_data(typed_data: &str) -> Result<TypedDataTransfer, Paym
     if message.domain.chain_id.is_none() {
         return Err(PaymentError::invalid_request("Payment signature has no chain id"));
     }
+    let verifying_contract = message.domain.verifying_contract.clone().ok_or_else(|| missing("verifying contract"))?;
     let (token, amount, from, recipient) = match message.primary_type.as_str() {
         PRIMARY_TYPE_PERMIT_TRANSFER_FROM => {
             let permitted = find_field_struct(&message.message, "permitted").ok_or_else(|| missing("permitted"))?;
             (get_field(permitted, "token")?, get_amount(permitted, "amount")?, None, get_field(&message.message, "spender")?)
         }
         PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION | PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION => (
-            message.domain.verifying_contract.clone().ok_or_else(|| missing("verifying contract"))?,
+            verifying_contract.clone(),
             get_amount(&message.message, "value")?,
             Some(get_field(&message.message, "from")?),
             get_field(&message.message, "to")?,
@@ -34,6 +35,7 @@ pub(super) fn map_typed_data(typed_data: &str) -> Result<TypedDataTransfer, Paym
         amount,
         from,
         recipient,
+        verifying_contract,
         typed_data: typed_data.to_string(),
     })
 }
@@ -62,6 +64,7 @@ mod tests {
         PERMIT_TRANSFER_FROM, PYUSD_TOKEN_ID, RECEIVE_WITH_AUTHORIZATION, TEST_ACCOUNT_WITHOUT_ALLOWANCE, TEST_AUTHORIZATION_RECIPIENT, TEST_PERMIT_SPENDER,
     };
     use primitives::asset_constants::ETHEREUM_USDT_TOKEN_ID;
+    use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
 
     fn permit_transfer_from() -> Value {
         serde_json::from_str(PERMIT_TRANSFER_FROM).unwrap()
@@ -76,6 +79,7 @@ mod tests {
                 amount: BigUint::from(100_000u32),
                 from: None,
                 recipient: TEST_PERMIT_SPENDER.to_string(),
+                verifying_contract: UNISWAP_PERMIT2_CONTRACT.to_string(),
                 typed_data: PERMIT_TRANSFER_FROM.to_string(),
             })
         );
@@ -86,6 +90,7 @@ mod tests {
                 amount: BigUint::from(100_000u32),
                 from: Some(TEST_ACCOUNT_WITHOUT_ALLOWANCE.to_string()),
                 recipient: TEST_AUTHORIZATION_RECIPIENT.to_string(),
+                verifying_contract: PYUSD_TOKEN_ID.to_string(),
                 typed_data: RECEIVE_WITH_AUTHORIZATION.to_string(),
             })
         );

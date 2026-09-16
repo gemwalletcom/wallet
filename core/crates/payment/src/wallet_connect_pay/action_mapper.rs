@@ -7,7 +7,7 @@ use serde_json::Value;
 use serde_serializers::biguint_from_hex_str;
 
 use crate::error::PaymentError;
-use crate::wallet_connect_pay::model::{PaymentAction, PaymentSend, PaymentSign, Quote, WalletRpcAction};
+use crate::wallet_connect_pay::model::{PaymentAction, PaymentSend, Quote, TypedDataTransfer, WalletRpcAction};
 use crate::wallet_connect_pay::typed_data_mapper::map_typed_data;
 
 pub(super) fn map_actions(quote: &Quote, actions: &[WalletRpcAction]) -> Result<PaymentAction, PaymentError> {
@@ -16,10 +16,9 @@ pub(super) fn map_actions(quote: &Quote, actions: &[WalletRpcAction]) -> Result<
         ([send], [Some(WalletConnectionMethods::EthSendTransaction)]) => Ok(PaymentAction::Send(map_send(quote, send)?)),
         ([sign], [Some(WalletConnectionMethods::EthSignTypedDataV4)]) => Ok(PaymentAction::Sign(map_sign(quote, sign)?)),
         ([approve, sign], [Some(WalletConnectionMethods::EthSendTransaction), Some(WalletConnectionMethods::EthSignTypedDataV4)]) => {
-            Ok(PaymentAction::ApproveAndSign {
-                approval: map_approval(quote, approve)?,
-                sign: map_sign(quote, sign)?,
-            })
+            let sign = map_sign(quote, sign)?;
+            let approval = map_approval(quote, approve, &sign.verifying_contract)?;
+            Ok(PaymentAction::ApproveAndSign { approval, sign })
         }
         ([action], _) => Err(PaymentError::invalid_request(format!("Payment asks for {}", action.method))),
         (actions, _) => Err(PaymentError::invalid_request(format!("Payment asks for {} actions", actions.len()))),
@@ -38,7 +37,7 @@ fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, Paym
     })
 }
 
-fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, PaymentError> {
+fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<TypedDataTransfer, PaymentError> {
     let chain = get_chain(quote, action)?;
     let signer = action.params.at(0).and_then(Value::string).map_err(PaymentError::invalid_request)?;
     if !signer.eq_ignore_ascii_case(&quote.account.address) {
@@ -55,13 +54,10 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, Paym
     if transfer.from.as_deref().is_some_and(|from| !from.eq_ignore_ascii_case(&quote.account.address)) {
         return Err(PaymentError::invalid_request("Payment asks to transfer from another account"));
     }
-    Ok(PaymentSign {
-        recipient: transfer.recipient,
-        typed_data: transfer.typed_data,
-    })
+    Ok(transfer)
 }
 
-fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData, PaymentError> {
+fn map_approval(quote: &Quote, action: &WalletRpcAction, spender: &str) -> Result<ApprovalData, PaymentError> {
     let transaction = get_transaction(quote, action)?;
     if get_value(&transaction)? != BigUint::ZERO {
         return Err(PaymentError::invalid_request("Payment approval sends value"));
@@ -70,7 +66,11 @@ fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData,
         return Err(PaymentError::invalid_request(format!("Payment asks to approve {} on a quote of {}", transaction.to, quote.token())));
     }
     match decode_transaction_kind(quote.token(), transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
-        EvmTransactionKind::TokenApproval(approval) => Ok(approval),
+        EvmTransactionKind::TokenApproval(approval) if approval.spender.eq_ignore_ascii_case(spender) => Ok(approval),
+        EvmTransactionKind::TokenApproval(approval) => Err(PaymentError::invalid_request(format!(
+            "Payment approves {} for a permit verified by {spender}",
+            approval.spender
+        ))),
         EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => Err(PaymentError::invalid_request("Payment approval is not a token approval")),
     }
 }
@@ -108,12 +108,22 @@ mod tests {
         FETCH_RECEIVE_WITH_AUTHORIZATION, FETCH_SEND, OPTIONS, OPTIONS_WITHOUT_ALLOWANCE, PYUSD_TOKEN_ID, TEST_ACCOUNT, TEST_ACCOUNT_WITHOUT_ALLOWANCE,
         TEST_AUTHORIZATION_RECIPIENT, TEST_PERMIT_SPENDER, TEST_ROUTER, fetch_actions, quote, quote_actions,
     };
+    use gem_evm::address::ethereum_address_checksum;
+    use gem_evm::encode::encode_erc20_approve_max_value;
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
+    use primitives::hex::encode_with_0x;
     use primitives::{AssetId, serde_name};
 
-    fn typed_data(action: &WalletRpcAction) -> String {
-        action.params[1].as_str().unwrap().to_string()
+    fn permit(action: &WalletRpcAction) -> TypedDataTransfer {
+        TypedDataTransfer {
+            token: ETHEREUM_USDT_TOKEN_ID.to_string(),
+            amount: BigUint::from(100_000u32),
+            from: None,
+            recipient: TEST_PERMIT_SPENDER.to_string(),
+            verifying_contract: UNISWAP_PERMIT2_CONTRACT.to_string(),
+            typed_data: action.params[1].as_str().unwrap().to_string(),
+        }
     }
 
     fn with_chain_id(action: &WalletRpcAction, chain_id: &str) -> WalletRpcAction {
@@ -142,14 +152,8 @@ mod tests {
         );
 
         let usdt = quote(OPTIONS, TEST_ACCOUNT, &ETHEREUM_USDT_ASSET_ID);
-        let permit = quote_actions(&usdt);
-        assert_eq!(
-            map_actions(&usdt, &permit),
-            Ok(PaymentAction::Sign(PaymentSign {
-                recipient: TEST_PERMIT_SPENDER.to_string(),
-                typed_data: typed_data(&permit[0]),
-            }))
-        );
+        let permit_only = quote_actions(&usdt);
+        assert_eq!(map_actions(&usdt, &permit_only), Ok(PaymentAction::Sign(permit(&permit_only[0]))));
 
         let unapproved = quote(OPTIONS_WITHOUT_ALLOWANCE, TEST_ACCOUNT_WITHOUT_ALLOWANCE, &ETHEREUM_USDT_ASSET_ID);
         let approve_and_permit = quote_actions(&unapproved);
@@ -162,10 +166,7 @@ mod tests {
                     value: BigUint::from_bytes_be(&[0xff; 32]),
                     is_unlimited: true,
                 },
-                sign: PaymentSign {
-                    recipient: TEST_PERMIT_SPENDER.to_string(),
-                    typed_data: typed_data(&approve_and_permit[1]),
-                },
+                sign: permit(&approve_and_permit[1]),
             })
         );
 
@@ -173,9 +174,13 @@ mod tests {
         let authorization = fetch_actions(FETCH_RECEIVE_WITH_AUTHORIZATION);
         assert_eq!(
             map_actions(&pyusd, &authorization),
-            Ok(PaymentAction::Sign(PaymentSign {
+            Ok(PaymentAction::Sign(TypedDataTransfer {
+                token: PYUSD_TOKEN_ID.to_string(),
+                amount: BigUint::from(100_000u32),
+                from: Some(TEST_ACCOUNT_WITHOUT_ALLOWANCE.to_string()),
                 recipient: TEST_AUTHORIZATION_RECIPIENT.to_string(),
-                typed_data: typed_data(&authorization[0]),
+                verifying_contract: PYUSD_TOKEN_ID.to_string(),
+                typed_data: authorization[0].params[1].as_str().unwrap().to_string(),
             }))
         );
 
@@ -189,7 +194,7 @@ mod tests {
                 &usdt,
                 &[WalletRpcAction {
                     method: serde_name(&WalletConnectionMethods::PersonalSign).unwrap(),
-                    ..permit[0].clone()
+                    ..permit_only[0].clone()
                 }]
             ),
             Err(PaymentError::invalid_request("Payment asks for personal_sign"))
@@ -249,18 +254,27 @@ mod tests {
     fn test_map_approval() {
         let unapproved = quote(OPTIONS_WITHOUT_ALLOWANCE, TEST_ACCOUNT_WITHOUT_ALLOWANCE, &ETHEREUM_USDT_ASSET_ID);
         let approve = &quote_actions(&unapproved)[0];
+        let approve_router = encode_with_0x(&encode_erc20_approve_max_value(TEST_ROUTER).unwrap());
 
         assert_eq!(
-            map_approval(&unapproved, &with_transaction(approve, "value", Value::from("0x1"))),
+            map_approval(&unapproved, &with_transaction(approve, "value", Value::from("0x1")), UNISWAP_PERMIT2_CONTRACT),
             Err(PaymentError::invalid_request("Payment approval sends value"))
         );
         assert_eq!(
-            map_approval(&unapproved, &with_transaction(approve, "to", Value::from(TEST_ROUTER))),
+            map_approval(&unapproved, &with_transaction(approve, "to", Value::from(TEST_ROUTER)), UNISWAP_PERMIT2_CONTRACT),
             Err(PaymentError::invalid_request(format!("Payment asks to approve {TEST_ROUTER} on a quote of {ETHEREUM_USDT_TOKEN_ID}")))
         );
         assert_eq!(
-            map_approval(&unapproved, &with_transaction(approve, "data", Value::from("0x"))),
+            map_approval(&unapproved, &with_transaction(approve, "data", Value::from("0x")), UNISWAP_PERMIT2_CONTRACT),
             Err(PaymentError::invalid_request("Payment approval is not a token approval"))
+        );
+        assert_eq!(
+            map_approval(&unapproved, &with_transaction(approve, "data", Value::from(approve_router)), UNISWAP_PERMIT2_CONTRACT),
+            Err(PaymentError::invalid_request(format!(
+                "Payment approves {} for a permit verified by {UNISWAP_PERMIT2_CONTRACT}",
+                ethereum_address_checksum(TEST_ROUTER).unwrap()
+            ))),
+            "an unlimited approval goes only to the contract that verifies the permit"
         );
     }
 }

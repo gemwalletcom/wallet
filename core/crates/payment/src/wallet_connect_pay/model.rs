@@ -10,8 +10,8 @@ use crate::error::PaymentError;
 #[derive(Debug, Clone, PartialEq)]
 pub(super) enum PaymentAction {
     Send(PaymentSend),
-    Sign(PaymentSign),
-    ApproveAndSign { approval: ApprovalData, sign: PaymentSign },
+    Sign(TypedDataTransfer),
+    ApproveAndSign { approval: ApprovalData, sign: TypedDataTransfer },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -21,17 +21,12 @@ pub(super) struct PaymentSend {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub(super) struct PaymentSign {
-    pub recipient: String,
-    pub typed_data: String,
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub(super) struct TypedDataTransfer {
     pub token: String,
     pub amount: BigUint,
     pub from: Option<String>,
     pub recipient: String,
+    pub verifying_contract: String,
     pub typed_data: String,
 }
 
