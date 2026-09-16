@@ -17,6 +17,6 @@ struct TransactionResourceViewModel {
 extension TransactionResourceViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
         guard let resource else { return .empty }
-        return .listItem(ListItemModel(title: Localized.Stake.resource, subtitle: ResourceViewModel(resource: resource.map()).title))
+        return .listItem(ListItemModel(title: Localized.Stake.resource, subtitle: resource.toPrimitives().title))
     }
 }

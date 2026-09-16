@@ -6,9 +6,9 @@ import SwiftUI
 
 public struct TransactionsList: View {
     private let sections: [ListSection<TransactionViewModel>]
-    private let currency: String
+    private let currency: Currency
 
-    public init(sections: [ListSection<TransactionViewModel>], currency: String) {
+    public init(sections: [ListSection<TransactionViewModel>], currency: Currency) {
         self.sections = sections
         self.currency = currency
     }

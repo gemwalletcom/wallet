@@ -74,7 +74,7 @@ struct RecipientSceneViewModelTests {
         #expect(model.actionButtonState == .disabled)
 
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock().map())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
         #expect(model.actionButtonState == .normal)
     }
 
@@ -92,7 +92,7 @@ struct RecipientSceneViewModelTests {
 
         recipientData = nil
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).map())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
         model.onContinue()
 
         #expect(recipientData?.recipient.address == checksummed)
@@ -101,7 +101,7 @@ struct RecipientSceneViewModelTests {
     @Test
     func onHandleScanKeepsAmount() {
         let asset = Asset.mockEthereum()
-        let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.map()))
+        let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.toGem()))
 
         model.onHandleScan("ethereum:0x123?amount=1.5", for: .address)
         model.onChangeAddressText("", new: model.addressInputModel.text)
@@ -119,7 +119,7 @@ struct RecipientSceneViewModelTests {
         let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
         let model = RecipientSceneViewModel.mock(
             asset: asset,
-            type: .asset(asset: asset.map()),
+            type: .asset(asset: asset.toGem()),
             recipient: GemPaymentRecipient(
                 recipient: GemRecipient(address: address, memo: "12345"),
                 amount: "10",
@@ -139,7 +139,7 @@ struct RecipientSceneViewModelTests {
     func onHandleScanWithAmountGoesStraightToConfirm() {
         let asset = Asset.mockEthereum()
         var transfer: GemTransferData?
-        let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.map()), onTransferAction: { transfer = $0 })
+        let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.toGem()), onTransferAction: { transfer = $0 })
 
         model.onHandleScan("ethereum:0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326?amount=1.5", for: .address)
 
@@ -150,7 +150,7 @@ struct RecipientSceneViewModelTests {
     @Test
     func onHandleScanForAnNftOnlyFillsTheRecipient() {
         var transfer: GemTransferData?
-        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: NFTAsset.mock(chain: .ethereum).map()), onTransferAction: { transfer = $0 })
+        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: NFTAsset.mock(chain: .ethereum).toGem()), onTransferAction: { transfer = $0 })
 
         model.onHandleScan("ethereum:0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326?amount=1.5", for: .address)
 
@@ -162,7 +162,7 @@ struct RecipientSceneViewModelTests {
     func onContinueForAnNftConfirmsATransferOfTheAsset() {
         let nftAsset = NFTAsset.mock()
         var transfer: GemTransferData?
-        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: nftAsset.map()), onTransferAction: { transfer = $0 })
+        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: nftAsset.toGem()), onTransferAction: { transfer = $0 })
 
         model.addressInputModel.text = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
         model.onContinue()
@@ -171,7 +171,7 @@ struct RecipientSceneViewModelTests {
             Issue.record("Expected an nft transfer")
             return
         }
-        #expect(found.id == nftAsset.map().id)
+        #expect(found.id == nftAsset.toGem().id)
         #expect(transfer?.value == .zero)
         #expect(transfer?.recipient.address == "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326")
     }
@@ -190,7 +190,7 @@ extension RecipientSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         asset: Asset = .mockEthereum(),
-        type: GemRecipientType = .asset(asset: Asset.mock().map()),
+        type: GemRecipientType = .asset(asset: Asset.mock().toGem()),
         recipient: GemPaymentRecipient? = .none,
         onRecipientDataAction: RecipientDataAction = nil,
         onTransferAction: TransferDataAction = nil,

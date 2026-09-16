@@ -31,7 +31,7 @@ pub(super) fn simulate_sell(amount: &BigDecimal, bids: &[OrderbookLevel]) -> Res
         if remaining <= BigDecimal::zero() {
             return Ok(SimulationResult {
                 amount_out: quote_total,
-                limit_price: min_price.unwrap(),
+                limit_price: min_price.unwrap_or(price),
             });
         }
     }
@@ -64,13 +64,16 @@ pub(super) fn simulate_buy(amount: &BigDecimal, asks: &[OrderbookLevel]) -> Resu
         }
     }
 
+    let Some(limit_price) = max_price else {
+        return Err(SwapperError::NoQuoteAvailable);
+    };
     if remaining_quote > BigDecimal::zero() || base_total <= BigDecimal::zero() {
         return Err(SwapperError::NoQuoteAvailable);
     }
 
     Ok(SimulationResult {
         amount_out: base_total,
-        limit_price: max_price.unwrap(),
+        limit_price,
     })
 }
 

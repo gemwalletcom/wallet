@@ -58,7 +58,6 @@ common_token = トークン
 common_expiration = 有効期限
 common_suspicious_address = 不審なアドレス
 common_refresh = 更新
-common_no_thanks = 結構です
 common_grant_permission = 許可する
 common_required_field = %@は必須です
 
@@ -165,7 +164,6 @@ transfer_freeze_title = 凍結
 transfer_unfreeze_title = 凍結解除
 transfer_review_request = リクエストを確認
 transfer_amount = 金額
-transfer_amount_title = 金額
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = メッセージ
 
 # Errors
 
-errors_transfer = 送金エラー: %@
 errors_validation = 検証エラー: %@
 errors_create_wallet = ウォレット作成エラー: %@
 errors_invalid_address_name = 無効なアドレスまたはドメイン
@@ -228,7 +225,6 @@ errors_cancelled = キャンセルされました
 errors_connections_user_cancelled = ユーザーがキャンセルしました
 errors_not_supported = サポートされていません
 errors_permissions_not_granted = 許可が得られていません
-errors_decoding = デコードエラー
 errors_unknown = 不明
 errors_not_supported_qr = このデバイスではQRコードをスキャンできません。写真ライブラリからQRコード画像を選択してください。
 errors_camera_permissions_not_granted = カメラの権限が許可されていません。QRコードをスキャンするためには、設定でカメラへのアクセスを有効にしてください。
@@ -239,11 +235,8 @@ errors_invalid_asset_address = 無効な %@ アドレス
 errors_dust_threshold = 金額が%@ネットワークの最小要件（ダストしきい値）を満たしていないため、取引は失敗しました。この制限は、取引額が手数料と処理コストをカバーすることを保証するものです。
 errors_swap_no_quote_available = 見積もりを取得できません
 errors_swap_not_supported_asset = 未対応のアセットです。
-errors_connections_invalid_send_parameters = トランザクションの送信に無効なパラメータが指定されました。
-errors_connections_invalid_sign_parameters = 署名に無効なパラメータが指定されました。
 errors_connections_no_supported_wallets = サポートされているウォレットは利用できません。
 errors_connections_unsupported_chain = 選択されたチェーンはサポートされていません
-errors_connections_unsupported_method = 要求されたメソッドはサポートされていません。
 errors_swap_amount_too_small = 金額が小さすぎます
 errors_required = %@は必須です
 errors_scan_transaction_malicious_description = この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。
@@ -255,7 +248,6 @@ errors_dust_threshold_short = ネットワークはこの金額をダストと�
 errors_swap_minimum_amount = 最低取引金額は %@ です。これより大きい金額を入力してください。
 errors_perpetual_trigger_price_lower = トリガー価格は市場価格より低くする必要があります
 errors_perpetual_trigger_price_higher = トリガー価格は市場価格より高くする必要があります
-errors_token_unable_fetch_token_information = トークン情報を取得できません: %@
 errors_unknown_try_again = 不明なエラーが発生しました。もう一度お試しください。
 errors_network_error = ネットワークエラー: %@
 errors_network_offline = インターネット接続が切断されているようです。
@@ -279,7 +271,6 @@ update_app_action = アップデート
 update_app_permission_title = インストールを許可
 update_app_permission_description = 設定を開き、この提供元からのアプリのインストールを許可してください
 update_app_permission_open_settings = 設定に移動
-update_app_downloading = ダウンロード中...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = アカウントの有効化手数料
 banner_account_activation_description = %@ ネットワークでは、1回限りの有効化手数料 %@ が必要です。
 banner_stake_title = %@ のステーキングを開始
 banner_stake_description = %@ をステーキングして、寝ている間も報酬を獲得できます。
-banner_enable_notifications_title = 通知を有効にする
-banner_enable_notifications_description = ウォレットのアクティビティを常に把握しましょう。
 banner_activate_asset_description = %@ を利用するには、%@ ネットワーク固有の要件を満たして有効化する必要があります。
 banner_asset_status_title = 不審資産
 banner_asset_status_description = トークンは安全でないか、誤解を招く可能性があります。完全に信頼できる場合のみ続行してください。
@@ -690,8 +679,9 @@ perpetual_margin_isolated = 分離マージン
 # Perpetuals
 
 perpetuals_title = パーペチュアル
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = パーペチュアルを取引
 perpetuals_markets = 市場
-perpetuals_empty_state_no_markets = 市場がない
 perpetuals_empty_state_no_markets_found = 市場が見つかりません
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = QRコードをスキャンするにはカメラへのアクセスが必要です。\nアクセスを許可してください。
 
 # Notifications Permission
 
-notifications_permission_request_notification = 新しい取引の通知を受け取るには、通知の許可が必要です。\n通知を許可してください。
 
 # Confirm
 
-confirm_fee_error = 手数料計算エラー
 
 # Rootcheck
 

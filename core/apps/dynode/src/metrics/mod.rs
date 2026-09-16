@@ -1,3 +1,4 @@
+mod broadcast;
 mod traffic;
 
 use std::{
@@ -16,6 +17,7 @@ use prometheus_client::metrics::histogram::{Histogram, exponential_buckets};
 use prometheus_client::registry::Registry;
 
 use crate::config::MetricsConfig;
+use broadcast::BroadcastLabels;
 use traffic::{ClientResponseLabels, CooldownLabels, EndpointLabels, FailoverLabels, ProxyLabels, RequestLabels, TrafficLabels, UpstreamLabels};
 
 #[derive(Debug, Clone)]
@@ -40,6 +42,8 @@ pub struct Metrics {
     cache_hits: Family<CacheLabels, Counter>,
     cache_misses: Family<CacheLabels, Counter>,
     node_switches: Family<NodeSwitchLabels, Counter>,
+    transaction_broadcasts: Family<BroadcastLabels, Counter>,
+    transaction_broadcast_latency: Family<BroadcastLabels, Histogram>,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
@@ -154,6 +158,9 @@ impl Metrics {
         let cache_misses = Family::<CacheLabels, Counter>::default();
         let node_switches = Family::<NodeSwitchLabels, Counter>::default();
 
+        let transaction_broadcasts = Family::<BroadcastLabels, Counter>::default();
+        let transaction_broadcast_latency = Family::<BroadcastLabels, Histogram>::new_with_constructor(|| Histogram::new(exponential_buckets(50.0, 2.0, 12)));
+
         let mut metrics_registry = MetricsRegistry::with_prefix(&config.prefix);
         let registry = metrics_registry.registry_mut();
         registry.register("requests", "Upstream requests", requests.clone());
@@ -187,7 +194,20 @@ impl Metrics {
         registry.register("cache_misses", "Cache misses by host and path", cache_misses.clone());
         registry.register("node_switches", "Node switches by chain", node_switches.clone());
 
+        registry.register(
+            "transaction_broadcasts",
+            "Final broadcast outcomes after retries; success requires a decoded transaction identifier",
+            transaction_broadcasts.clone(),
+        );
+        registry.register(
+            "transaction_broadcast_latency_milliseconds",
+            "End-to-end broadcast duration including retries in milliseconds",
+            transaction_broadcast_latency.clone(),
+        );
+
         Self {
+            transaction_broadcasts,
+            transaction_broadcast_latency,
             registry: Arc::new(metrics_registry),
             source: config.source,
             requests,

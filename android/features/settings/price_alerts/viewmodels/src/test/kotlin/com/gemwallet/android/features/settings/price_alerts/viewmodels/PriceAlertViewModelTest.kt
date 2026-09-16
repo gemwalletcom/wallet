@@ -25,6 +25,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemServiceException
 
@@ -80,7 +81,7 @@ class PriceAlertViewModelTest {
         try {
             viewModel.toggleAutoAlert(true).join()
 
-            assertEquals("offline", viewModel.error.value)
+            assertEquals(GemErrorText.Message("offline"), viewModel.error.value)
             viewModel.clearError()
             assertEquals(null, viewModel.error.value)
         } finally {

@@ -16,6 +16,7 @@ import uniffi.gemstone.SwapPriceImpact
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 class SwapDetailsUIModelFactoryTest {
 
@@ -98,14 +99,13 @@ class SwapDetailsUIModelFactoryTest {
             SwapDetailsUIModelInput(
                 payAsset = eth,
                 receiveAsset = usdc,
-                rate = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc).rate,
+                summary = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc),
                 provider = provider(
                     toValue = "2000000000",
                     receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
                 ),
                 slippageBps = DEFAULT_SLIPPAGE_BPS,
                 selectedSlippage = DEFAULT_SLIPPAGE_BPS,
-                etaInSeconds = null,
                 isProviderSelectable = false,
             ),
         )
@@ -174,15 +174,13 @@ class SwapDetailsUIModelFactoryTest {
             SwapDetailsUIModelInput(
                 payAsset = payAsset,
                 receiveAsset = receiveAsset,
-                rate = summary.rate,
+                summary = summary,
                 provider = provider,
                 providers = providers,
                 slippageBps = slippageBps,
                 selectedSlippage = slippageBps,
-                etaInSeconds = etaInSeconds,
                 isProviderSelectable = isProviderSelectable,
                 priceImpact = priceImpact,
-                minReceiveValue = summary.minReceiveValue,
             ),
         )
     }
@@ -219,7 +217,7 @@ class SwapDetailsUIModelFactoryTest {
     )
 
     private fun formattedReceiveAmount(atomicValue: String) =
-        ValueFormatter(style = ValueFormatter.Style.Auto)
+        ValueFormatter(style = GemValueStyle.AUTO)
             .string(java.math.BigInteger(atomicValue), receiveAsset.asset)
 
     private companion object {

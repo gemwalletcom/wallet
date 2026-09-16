@@ -39,7 +39,6 @@ impl WalletConnectRequestHandler {
             | WalletConnectionMethods::EthSendTransaction) => {
                 EthereumRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ethereum)?, params, &domain)
             }
-            WalletConnectionMethods::EthSendRawTransaction => Ok(WalletConnectAction::Unsupported { method: method_name }),
             WalletConnectionMethods::EthChainId => Ok(WalletConnectAction::ChainOperation {
                 operation: WalletConnectChainOperation::GetChainId,
             }),

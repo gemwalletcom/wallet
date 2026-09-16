@@ -19,6 +19,20 @@ pub enum GemAddAssetPhase {
     Failed,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetInfoKind {
+    Name,
+    Symbol,
+    Decimals,
+    Kind,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetInfoRow {
+    pub kind: GemAssetInfoKind,
+    pub value: String,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddAssetViewState {
     pub phase: GemAddAssetPhase,
@@ -93,6 +107,19 @@ impl GemAddAssetSession {
 
     pub fn searches_token(&self) -> bool {
         self.chain.is_some() && !self.address.is_empty()
+    }
+
+    pub fn asset_rows(&self) -> Vec<GemAssetInfoRow> {
+        let Some(asset) = &self.asset else {
+            return Vec::new();
+        };
+        let row = |kind: GemAssetInfoKind, value: String| GemAssetInfoRow { kind, value };
+        vec![
+            row(GemAssetInfoKind::Name, asset.name.clone()),
+            row(GemAssetInfoKind::Symbol, asset.symbol.clone()),
+            row(GemAssetInfoKind::Decimals, asset.decimals.to_string()),
+            row(GemAssetInfoKind::Kind, asset.asset_type.as_ref().to_string()),
+        ]
     }
 
     pub fn view_state(&self) -> GemAddAssetViewState {
@@ -205,3 +232,21 @@ mod session_tests {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_asset_rows_describe_a_found_asset_and_nothing_before_it() {
+        let session = GemAddAssetSession::new(Some(Chain::Ethereum));
+        assert!(session.asset_rows().is_empty(), "there is nothing to describe until a token is found");
+
+        let rows = session.on_found(Asset::from_chain(Chain::Ethereum)).asset_rows();
+        assert_eq!(
+            rows.iter().map(|row| row.kind).collect::<Vec<_>>(),
+            vec![GemAssetInfoKind::Name, GemAssetInfoKind::Symbol, GemAssetInfoKind::Decimals, GemAssetInfoKind::Kind]
+        );
+        assert_eq!(rows[0].value, "Ethereum");
+        assert_eq!(rows[2].value, "18");
+    }
+}

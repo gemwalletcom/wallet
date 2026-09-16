@@ -20,20 +20,11 @@ struct AssetValueHeaderViewModel: ValueHeaderViewModel {
     let buttons: [HeaderButton] = []
 
     var assetImage: AssetImage? {
-        AssetViewModel(asset: data.asset.map()).assetImage
+        AssetViewModel(asset: data.asset.toPrimitives()).assetImage
     }
 
     var title: String {
-        switch data.value {
-        case .unlimited:
-            Localized.Simulation.Header.unlimitedAsset(data.asset.symbol)
-        case let .exact(value):
-            Self.formatter.string(
-                BigInt(value),
-                decimals: Int(data.asset.decimals),
-                currency: data.asset.symbol,
-            )
-        }
+        data.value.title(symbol: data.asset.symbol, formatter: Self.formatter, decimals: Int(data.asset.decimals))
     }
 
     var subtitle: String? {

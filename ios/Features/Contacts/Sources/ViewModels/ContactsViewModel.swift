@@ -98,7 +98,7 @@ public final class ContactsViewModel {
     }
 
     func listItemModel(for contact: ContactData) -> ListItemModel {
-        let row = contactRow(contact: contact.contact.map())
+        let row = contactRow(contact: contact.contact.toGem())
         return ListItemModel(
             title: row.title,
             titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),

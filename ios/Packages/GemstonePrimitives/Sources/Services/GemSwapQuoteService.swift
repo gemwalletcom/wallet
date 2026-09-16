@@ -9,7 +9,7 @@ import struct Gemstone.GemTransferData
 
 public extension GemSwapQuoteServiceProtocol {
     var currency: Primitives.Currency {
-        Primitives.Currency(core: getCurrency())
+        getCurrency().toPrimitives()
     }
 
     var slippage: SwapSlippage {
@@ -31,8 +31,8 @@ public extension GemSwapQuoteServiceProtocol {
         slippage: SwapSlippage,
     ) async throws -> [SwapperQuote] {
         let quotes = try await getQuotes(
-            fromAsset: fromAsset.map(),
-            toAsset: toAsset.map(),
+            fromAsset: fromAsset.toGem(),
+            toAsset: toAsset.toGem(),
             value: BigUInt(amount),
             useMaxAmount: useMaxAmount,
             slippageBps: slippage.exactBps,
@@ -42,7 +42,7 @@ public extension GemSwapQuoteServiceProtocol {
     }
 
     func getTransferData(fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> GemTransferData {
-        try await getTransfer(quote: quote).transferData(fromAsset: fromAsset.map(), toAsset: toAsset.map())
+        try await getTransfer(quote: quote).transferData(fromAsset: fromAsset.toGem(), toAsset: toAsset.toGem())
     }
 
     func updateBalances(assetIds: [Primitives.AssetId]) async throws {

@@ -49,6 +49,7 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.gemwallet.android.ui.theme.SceneSizing
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 
 @Composable
 internal fun AmountScene(
@@ -135,7 +136,7 @@ internal fun AmountScene(
     }
 
     LaunchedEffect(Unit) {
-        try { focusRequester.requestFocus() } catch (_: Throwable) {}
+        focusRequester.requestFocusIfAttached()
     }
 }
 

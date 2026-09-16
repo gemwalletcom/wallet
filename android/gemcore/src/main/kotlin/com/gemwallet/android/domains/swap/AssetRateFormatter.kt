@@ -1,6 +1,6 @@
 package com.gemwallet.android.domains.swap
 
-import com.gemwallet.android.model.NumericFormatter
+import com.gemwallet.android.model.text
 import uniffi.gemstone.GemAssetRate
 import uniffi.gemstone.GemSwapRate
 import java.util.Locale
@@ -11,11 +11,10 @@ data class AssetRatePair(
 )
 
 class AssetRateFormatter(
-    locale: Locale = Locale.getDefault(),
+    private val locale: Locale = Locale.getDefault(),
 ) {
-    private val formatter = NumericFormatter(locale)
 
     fun format(rate: GemSwapRate): AssetRatePair = AssetRatePair(forward = format(rate.direct), reverse = format(rate.inverse))
 
-    fun format(rate: GemAssetRate): String = rate.text(formatter.string(rate.value, rate.quoteSymbol))
+    fun format(rate: GemAssetRate): String = rate.text(rate.value.text(locale))
 }

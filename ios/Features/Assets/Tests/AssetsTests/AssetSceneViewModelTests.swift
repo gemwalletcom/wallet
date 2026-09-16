@@ -59,13 +59,6 @@ struct AssetSceneViewModelTests {
         #expect(ethereum.balanceText(BigUInt(4_000_000_000_000_000_000)) == "4 ETH")
         #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false))).balanceRows.isEmpty)
     }
-
-    @Test
-    func balanceTitle() {
-        let model = AssetSceneViewModel.mock()
-        #expect(model.balanceTitle(for: .stake).isEmpty == false)
-        #expect(model.balanceTitle(for: .earn).isEmpty == false)
-    }
 }
 
 // MARK: - Mock Extensions

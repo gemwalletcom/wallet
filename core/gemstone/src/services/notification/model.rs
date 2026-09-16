@@ -9,6 +9,11 @@ pub enum GemNotificationIcon {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNotificationRow {
+    pub title: String,
+    pub subtitle: Option<String>,
+    pub value: Option<String>,
+    pub subvalue: Option<String>,
+    pub url: Option<String>,
     pub is_unread: bool,
     pub icon: Option<GemNotificationIcon>,
 }
@@ -16,6 +21,11 @@ pub struct GemNotificationRow {
 #[uniffi::export]
 pub fn notification_row(notification: InAppNotification) -> GemNotificationRow {
     GemNotificationRow {
+        title: notification.item.title.clone(),
+        subtitle: notification.item.subtitle.clone(),
+        value: notification.item.value.clone(),
+        subvalue: notification.item.subvalue.clone(),
+        url: notification.item.url.clone(),
         is_unread: notification.read_at.is_none(),
         icon: notification.item.icon.map(|icon| match icon {
             CoreListItemIcon::Emoji(emoji) => GemNotificationIcon::Emoji { glyph: emoji.glyph().to_string() },
@@ -48,10 +58,15 @@ mod tests {
             created_at: chrono::Utc::now(),
             item,
         };
-        let read = InAppNotification { read_at: Some(chrono::Utc::now()), ..unread.clone() };
+        let read = InAppNotification {
+            read_at: Some(chrono::Utc::now()),
+            ..unread.clone()
+        };
 
         assert!(notification_row(unread.clone()).is_unread);
         assert!(!notification_row(read).is_unread);
-        assert_eq!(notification_row(unread).icon, Some(GemNotificationIcon::Emoji { glyph: "\u{1f381}".into() }));
+        let row = notification_row(unread);
+        assert_eq!(row.icon, Some(GemNotificationIcon::Emoji { glyph: "\u{1f381}".into() }));
+        assert_eq!(row.title, "Reward", "the row carries the text the screen shows");
     }
 }

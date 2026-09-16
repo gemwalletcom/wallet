@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 #[derive(Debug)]
 pub struct TestAlienProvider {
     response: Arc<AlienResponse>,
+    by_path: Vec<(String, Arc<AlienResponse>)>,
     requested: Mutex<Vec<String>>,
 }
 
@@ -12,7 +13,18 @@ impl TestAlienProvider {
     pub fn new(response: AlienResponse) -> Self {
         Self {
             response: Arc::new(response),
+            by_path: Vec::new(),
             requested: Mutex::new(Vec::new()),
+        }
+    }
+
+    pub fn with_json_by_path(status: u16, bodies: &[(&str, &str)]) -> Self {
+        Self {
+            by_path: bodies
+                .iter()
+                .map(|(path, body)| ((*path).to_string(), Arc::new(AlienResponse::new(Some(status), body.as_bytes().to_vec()))))
+                .collect(),
+            ..Self::with_json(status, "[]")
         }
     }
 
@@ -33,7 +45,8 @@ impl TestAlienProvider {
 impl AlienProvider for TestAlienProvider {
     async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
         let path = target.url.find("/v").map(|index| target.url[index..].to_string()).unwrap_or(target.url);
-        self.requested.lock().unwrap().push(path);
-        Ok(self.response.clone())
+        self.requested.lock().unwrap().push(path.clone());
+        let matched = self.by_path.iter().find(|(fragment, _)| path.contains(fragment.as_str()));
+        Ok(matched.map(|(_, response)| response.clone()).unwrap_or_else(|| self.response.clone()))
     }
 }

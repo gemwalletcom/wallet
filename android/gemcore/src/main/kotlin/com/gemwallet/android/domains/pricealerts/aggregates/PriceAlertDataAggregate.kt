@@ -4,6 +4,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PriceAlert
 import uniffi.gemstone.GemPriceAlertKind
+import uniffi.gemstone.GemPriceAlertText
 import uniffi.gemstone.PriceAlertDirection
 
 interface PriceAlertDataAggregate {
@@ -14,7 +15,7 @@ interface PriceAlertDataAggregate {
     val title: String
     val titleBadge: String
     val priceDirection: PriceAlertDirection?
-    val price: String
-    val percentage: String
+    val prefix: GemPriceAlertText
+    val suffix: GemPriceAlertText
     val kind: GemPriceAlertKind
 }

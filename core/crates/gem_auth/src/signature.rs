@@ -16,7 +16,7 @@ pub fn create_auth_hash(auth_message: &AuthMessage) -> AuthMessageData {
 pub fn verify_auth_signature(auth_message: &AuthMessage, signature: &str) -> bool {
     match auth_message.chain.chain_type() {
         ChainType::Ethereum => verify_ethereum_signature(auth_message, signature),
-        _ => false, // TODO: Add support for other chain types
+        _ => false,
     }
 }
 

@@ -2,7 +2,7 @@ pub mod model;
 pub mod rules;
 pub mod store;
 #[cfg(test)]
-pub(crate) mod testkit;
+pub mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
@@ -90,11 +90,8 @@ impl GemBalanceService {
             return Ok(());
         };
         let requests = rules::balance_requests(&wallet.accounts, &asset_ids);
-        let (balances, failures): (Vec<_>, Vec<_>) = join_all(requests.iter().map(|request| self.chain_balances(request)))
-            .await
-            .into_iter()
-            .partition(Result::is_ok);
-        let balances: Vec<(BalanceKind, AssetBalance)> = balances.into_iter().flatten().flatten().collect();
+        let results = join_all(requests.iter().map(|request| self.chain_balances(request))).await;
+        let (balances, failure) = rules::published_balances(results);
         if !balances.is_empty() {
             let assets = self
                 .asset_store
@@ -103,7 +100,7 @@ impl GemBalanceService {
                 .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
             self.write_balances(wallet_id, rules::balance_updates(balances), &assets).await?;
         }
-        match failures.into_iter().find_map(Result::err) {
+        match failure {
             Some(error) => Err(error),
             None => Ok(()),
         }
@@ -155,7 +152,9 @@ impl GemBalanceService {
         let asset_ids: Vec<AssetId> = rules::unique_asset_ids(updates.iter().map(|update| update.asset_id.clone()).collect());
         let stored = self.store.get_available_balances(wallet_id.clone(), asset_ids.clone()).await?;
         let stored_ids: Vec<AssetId> = stored.iter().map(|balance| balance.asset_id.clone()).collect();
-        self.assets.add_missing_balances(wallet_id.clone(), rules::missing_asset_ids(&asset_ids, &stored_ids)).await?;
+        self.assets
+            .add_missing_balances(wallet_id.clone(), rules::missing_asset_ids(&asset_ids, &stored_ids))
+            .await?;
         let records = rules::balance_records(rules::changed_balances(stored, updates), assets);
         if records.is_empty() {
             return Ok(());
@@ -205,7 +204,6 @@ impl GemBalanceService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures::executor::block_on;
     use crate::api::GemApiClient;
     use crate::gateway::{EmptyPreferences, GemGateway};
     use crate::services::assets::testkit::MemoryAssetStore;
@@ -216,6 +214,7 @@ mod tests {
     use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
     use crate::testkit::TestAlienProvider;
     use async_trait::async_trait;
+    use futures::executor::block_on;
     use primitives::{Account, Chain, WalletType};
     use std::sync::Mutex;
 
@@ -227,7 +226,15 @@ mod tests {
     #[async_trait]
     impl GemBalanceStore for MemoryBalanceStore {
         async fn get_available_balances(&self, _wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-            Ok(self.rows.lock().unwrap().iter().filter(|id| asset_ids.contains(id)).cloned().map(GemAssetBalance::zero).collect())
+            Ok(self
+                .rows
+                .lock()
+                .unwrap()
+                .iter()
+                .filter(|id| asset_ids.contains(id))
+                .cloned()
+                .map(GemAssetBalance::zero)
+                .collect())
         }
         async fn update_balances(&self, _wallet_id: WalletId, _balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
             *self.updates.lock().unwrap() += 1;
@@ -250,7 +257,10 @@ mod tests {
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
         let wallets = Arc::new(MemoryWalletStore::default());
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore { current: Mutex::new(None) }), wallets.clone()));
+        let session = Arc::new(GemWalletSessionService::new(
+            Arc::new(MemoryWalletSessionStore { current: Mutex::new(None) }),
+            wallets.clone(),
+        ));
         let asset_store = Arc::new(MemoryAssetStore::default());
         let assets = Arc::new(GemAssetsService::new(
             Arc::new(GemApiClient::new(provider)),
@@ -264,7 +274,14 @@ mod tests {
             rows: Mutex::new(rows),
             updates: Mutex::new(0),
         });
-        let service = GemBalanceService::new(gateway, wallets, asset_store.clone(), store.clone(), assets, Arc::new(SubscriptionTestkit::new(&[], &[]).service));
+        let service = GemBalanceService::new(
+            gateway,
+            wallets,
+            asset_store.clone(),
+            store.clone(),
+            assets,
+            Arc::new(SubscriptionTestkit::new(&[], &[]).service),
+        );
         (service, asset_store, store)
     }
 
@@ -318,7 +335,9 @@ mod tests {
                 .unwrap();
             let update = |asset_id: AssetId| GemBalanceUpdate {
                 asset_id,
-                update_type: GemBalanceUpdateType::Token { available: num_bigint::BigUint::ZERO },
+                update_type: GemBalanceUpdateType::Token {
+                    available: num_bigint::BigUint::ZERO,
+                },
                 is_active: true,
             };
 
@@ -335,7 +354,11 @@ mod tests {
             let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet());
             let missing_enabled = enabled[0].clone();
             let missing_disabled = disabled[0].clone();
-            let rows = [enabled, disabled].concat().into_iter().filter(|id| id != &missing_enabled && id != &missing_disabled).collect();
+            let rows = [enabled, disabled]
+                .concat()
+                .into_iter()
+                .filter(|id| id != &missing_enabled && id != &missing_disabled)
+                .collect();
             let (service, asset_store, _) = service(rows);
 
             service.setup_wallet(wallet()).await.unwrap();

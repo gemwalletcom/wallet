@@ -39,8 +39,8 @@ public final class SignMessageSceneViewModel {
         self.service = service
         self.payload = payload
         self.confirmTransferDelegate = confirmTransferDelegate
-        row = walletRow(wallet: payload.wallet.map())
-        preview = service.preview(message: payload.message, simulation: payload.simulation, assets: payload.assets.map { $0.map() })
+        row = walletRow(wallet: payload.wallet.toGem())
+        preview = service.preview(message: payload.message, simulation: payload.simulation, assets: payload.assets.map { $0.toGem() })
     }
 
     public var networkText: String {
@@ -48,11 +48,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var title: String {
-        switch preview.messageType {
-        case .siwe: Localized.Common.signInWith(Chain.ethereum.networkName)
-        case .siws: Localized.Common.signInWith(Chain.solana.networkName)
-        case .text, .eip712: Localized.Transfer.reviewRequest
-        }
+        preview.messageType.title
     }
 
     public var walletText: String {
@@ -63,16 +59,12 @@ public final class SignMessageSceneViewModel {
         Localized.Transfer.confirm
     }
 
-    public var connectionViewModel: WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: WalletConnection(session: payload.session, wallet: payload.wallet))
-    }
-
     public var appName: String {
         payload.session.metadata.shortName
     }
 
     public var appAssetImage: AssetImage {
-        AssetImage(imageURL: connectionViewModel.imageUrl)
+        AssetImage(imageURL: payload.session.metadata.iconURL)
     }
 
     public var walletAssetImage: AssetImage {
@@ -91,7 +83,7 @@ public final class SignMessageSceneViewModel {
         AppPreviewModel(
             assetImage: appAssetImage,
             name: appName,
-            subtitleSymbol: connectionViewModel.hostText,
+            subtitleSymbol: payload.session.metadata.host,
         )
     }
 
@@ -165,7 +157,7 @@ public extension SignMessageSceneViewModel {
     func fieldModels(for fields: [SimulationPayloadField]) -> [SimulationPayloadFieldViewModel] {
         payloadModel.fieldModels(
             for: fields,
-            explorerLink: { service.addressUrl(chain: payload.chain.rawValue, address: $0).map() },
+            explorerLink: { service.addressUrl(chain: payload.chain.rawValue, address: $0).toPrimitives() },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
     }

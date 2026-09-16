@@ -19,7 +19,7 @@ cd android
 just install
 ```
 
-`just install` installs Temurin JDK 17, Android Rust targets, cargo-ndk, and the NDK, using the shared Rust and TypeShare tools installed above. The JDK installer can require a password prompt; `just install-java` remains available separately.
+`just install` installs Temurin JDK 17, Android Rust targets, cargo-ndk, and the NDK, using the shared Rust and TypeShare tools installed above. Setup verifies Java by running `./gradlew --version`. The JDK installer can require a password prompt; `just install-java` remains available separately.
 
 From the repo root, `just install` installs shared tools once and then both platforms' dependencies. `just android install` installs only Android-specific dependencies and assumes shared tools are already installed. Run setup before `just generate`, which uses the installed TypeShare CLI.
 

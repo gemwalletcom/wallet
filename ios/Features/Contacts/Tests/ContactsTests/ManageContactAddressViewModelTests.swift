@@ -32,14 +32,14 @@ struct ManageContactAddressViewModelTests {
     }
 
     @Test
-    func showMemo() {
+    func memoFieldFollowsTheChain() {
         let model = ManageContactAddressViewModel.mock(mode: .add)
 
         model.addressInputModel.chain = .bitcoin
-        #expect(model.showMemo == false)
+        #expect(model.fields == [.network, .address])
 
         model.addressInputModel.chain = .cosmos
-        #expect(model.showMemo == true)
+        #expect(model.fields == [.network, .address, .memo])
     }
 
     @Test
@@ -53,7 +53,7 @@ struct ManageContactAddressViewModelTests {
         model.addressInputModel.nameRecordViewModel.state = .error
         #expect(model.buttonState == .disabled)
 
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh").map())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh").toGem())
         #expect(model.buttonState == .normal)
 
         model.onSelectChain(.bitcoin)

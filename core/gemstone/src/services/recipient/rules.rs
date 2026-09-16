@@ -1,7 +1,7 @@
 use primitives::name::NameRecord;
-use primitives::{Asset, Chain};
+use primitives::{Asset, Chain, Wallet, WalletType};
 
-use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientType, GemRecipientValidation};
+use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType, GemRecipientValidation};
 use crate::address::{checksum_address, validate_address};
 use crate::models::custom_types::GemBigInt;
 use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentRecipient};
@@ -94,6 +94,32 @@ pub fn next_step(recipient_type: GemRecipientType, payment: GemPaymentRecipient)
             },
         },
     }
+}
+
+pub fn recipient_sections(wallets: Vec<Wallet>, chain: Chain, has_contacts: bool) -> Vec<GemRecipientSection> {
+    let on_chain: Vec<Wallet> = wallets.into_iter().filter(|wallet| wallet.account(chain).is_some()).collect();
+    let of = |pinned: bool, view: bool| -> Vec<Wallet> {
+        on_chain
+            .iter()
+            .filter(|wallet| wallet.is_pinned == pinned && (wallet.wallet_type == WalletType::View) == view)
+            .cloned()
+            .collect()
+    };
+    let pinned: Vec<Wallet> = on_chain.iter().filter(|wallet| wallet.is_pinned).cloned().collect();
+
+    [
+        (!pinned.is_empty()).then_some(GemRecipientSection::Pinned { wallets: pinned }),
+        has_contacts.then_some(GemRecipientSection::Contacts),
+        Some(of(false, false))
+            .filter(|wallets| !wallets.is_empty())
+            .map(|wallets| GemRecipientSection::Wallets { wallets }),
+        Some(of(false, true))
+            .filter(|wallets| !wallets.is_empty())
+            .map(|wallets| GemRecipientSection::ViewWallets { wallets }),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
 }
 
 #[cfg(test)]
@@ -326,5 +352,58 @@ mod tests {
             }
             GemRecipientNext::Amount { .. } => panic!("an nft recipient goes straight to confirm"),
         }
+    }
+
+    fn recipient_wallet(name: &str, wallet_type: WalletType, is_pinned: bool, chain: Chain) -> Wallet {
+        Wallet {
+            name: name.to_string(),
+            wallet_type,
+            is_pinned,
+            ..Wallet::mock_with_accounts(vec![primitives::Account::mock(chain, "address")])
+        }
+    }
+
+    fn names(section: &GemRecipientSection) -> Vec<String> {
+        match section {
+            GemRecipientSection::Pinned { wallets } | GemRecipientSection::Wallets { wallets } | GemRecipientSection::ViewWallets { wallets } => {
+                wallets.iter().map(|wallet| wallet.name.clone()).collect()
+            }
+            GemRecipientSection::Contacts => vec![],
+        }
+    }
+
+    #[test]
+    fn test_a_private_key_wallet_is_offered_beside_the_other_wallets() {
+        let wallets = vec![
+            recipient_wallet("pinned", WalletType::Multicoin, true, Chain::Ethereum),
+            recipient_wallet("multicoin", WalletType::Multicoin, false, Chain::Ethereum),
+            recipient_wallet("private key", WalletType::PrivateKey, false, Chain::Ethereum),
+            recipient_wallet("single", WalletType::Single, false, Chain::Ethereum),
+            recipient_wallet("watching", WalletType::View, false, Chain::Ethereum),
+            recipient_wallet("other chain", WalletType::Multicoin, false, Chain::Bitcoin),
+        ];
+
+        let sections = recipient_sections(wallets, Chain::Ethereum, true);
+
+        assert_eq!(names(&sections[0]), vec!["pinned"]);
+        assert!(matches!(sections[1], GemRecipientSection::Contacts));
+        assert_eq!(names(&sections[2]), vec!["multicoin", "private key", "single"]);
+        assert_eq!(names(&sections[3]), vec!["watching"]);
+    }
+
+    #[test]
+    fn test_an_empty_section_is_left_out_and_contacts_only_appear_when_there_are_some() {
+        let sections = recipient_sections(vec![recipient_wallet("watching", WalletType::View, false, Chain::Ethereum)], Chain::Ethereum, false);
+
+        assert_eq!(sections.len(), 1);
+        assert!(matches!(sections[0], GemRecipientSection::ViewWallets { .. }));
+    }
+
+    #[test]
+    fn test_a_pinned_view_wallet_stays_in_the_pinned_section() {
+        let sections = recipient_sections(vec![recipient_wallet("watching", WalletType::View, true, Chain::Ethereum)], Chain::Ethereum, false);
+
+        assert_eq!(names(&sections[0]), vec!["watching"]);
+        assert_eq!(sections.len(), 1);
     }
 }

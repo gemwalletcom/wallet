@@ -4,6 +4,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.perpetual.formatPnlWithPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.model.text
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
@@ -29,5 +30,5 @@ class PerpetualPositionDataAggregateImpl(
     override val pnlWithPercentage: String = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
     override val pnlState: ValueDirection = data.position.pnl.toValueDirection()
 
-    val liquidationPrice: Double? = row.liquidationPrice
+    val liquidationPrice: String? = row.liquidationPrice?.text()
 }

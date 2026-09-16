@@ -151,7 +151,7 @@ internal fun SwapScene(
             }
 
             item {
-                SwapError(swapState, pay)
+                SwapError(swapState)
             }
         }
     }

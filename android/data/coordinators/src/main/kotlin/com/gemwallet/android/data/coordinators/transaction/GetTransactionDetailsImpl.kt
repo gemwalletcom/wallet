@@ -5,6 +5,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.model.text
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
@@ -22,7 +23,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.TransactionDirection
-import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
@@ -44,6 +44,7 @@ import uniffi.gemstone.GemTransactionParticipant
 import uniffi.gemstone.GemTransactionParticipantRole
 import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.transactionDetailSections
+import uniffi.gemstone.GemValueStyle
 
 class GetTransactionDetailsImpl(
     private val getSession: GetSession,
@@ -56,30 +57,28 @@ class GetTransactionDetailsImpl(
         getTransaction(id),
     ) { session, data -> Pair(session, data) }
         .mapNotNull { (session, data) ->
-            data?.let { TransactionDetailsAggregateImpl(it, transactionDetailsService.detailRows(it.toGem()), session.currency) }
+            data?.let { TransactionDetailsAggregateImpl(transactionDetailsService.detailRows(it.toGem()), session.currency) }
         }
         .flowOn(Dispatchers.IO)
 }
 
 @Stable
 class TransactionDetailsAggregateImpl(
-    private val data: TransactionExtended,
     private val rows: GemTransactionDetailRows,
     override val currency: Currency,
 ) : TransactionDetailsAggregate {
 
-    private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
-    private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
+    private val valueFormatter = ValueFormatter(style = GemValueStyle.AUTO)
     private val rateFormatter = AssetRateFormatter()
 
-    override val id: String = data.transaction.id.identifier
+    override val id: String = rows.id
 
-    override val asset: Asset = data.asset
+    override val asset: Asset = rows.asset.toPrimitives()
     override val title: GemTransactionTitle = rows.title
 
-    override val type: TransactionType = data.transaction.type
-    override val direction: TransactionDirection = data.transaction.direction
-    override val state: TransactionState = data.transaction.state
+    override val type: TransactionType = rows.transactionType.toPrimitives()
+    override val direction: TransactionDirection = rows.direction.toPrimitives()
+    override val state: TransactionState = rows.state.toPrimitives()
 
     val amount: TransactionDetailsValue.Amount = when (val header = rows.header) {
         is GemTransactionHeader.Amount -> header.amount.plain(showsFiat = header.showsFiat)
@@ -104,9 +103,9 @@ class TransactionDetailsAggregateImpl(
         TransactionDetailsValue.Fee(asset, valueFormatter.string(fee.value, asset), fee.fiat(asset).orEmpty())
     }
 
-    val date: TransactionDetailsValue.Date = TransactionDetailsValue.Date(getRelativeDate(data.transaction.createdAt))
+    val date: TransactionDetailsValue.Date = TransactionDetailsValue.Date(getRelativeDate(rows.createdAt))
 
-    val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(data.transaction.state, rows.status)
+    val status: TransactionDetailsValue.Status = TransactionDetailsValue.Status(state, rows.status)
 
     val estimatedConfirmation: TransactionDetailsValue.EstimatedConfirmation? = rows.estimatedConfirmationSeconds
         ?.let { TransactionDetailsValue.EstimatedConfirmation(it) }
@@ -119,9 +118,9 @@ class TransactionDetailsAggregateImpl(
     val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
 
     val pnl: TransactionDetailsValue.Pnl? = rows.pnl
-        ?.let { TransactionDetailsValue.Pnl(value = "${if (it >= 0) "+" else ""}${usdFormatter.string(it)}", direction = it.toValueDirection()) }
+        ?.let { TransactionDetailsValue.Pnl(value = it.text(), direction = it.value.toValueDirection()) }
 
-    val price: TransactionDetailsValue.Price? = rows.price?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
+    val price: TransactionDetailsValue.Price? = rows.price?.let { TransactionDetailsValue.Price(it.text()) }
 
     val participant: TransactionDetailsValue.Destination? = rows.participant?.destination()
 
@@ -185,7 +184,7 @@ class TransactionDetailsAggregateImpl(
     )
 
     private fun GemTransactionParticipant.destination(): TransactionDetailsValue.Destination {
-        val chain = data.asset.id.chain
+        val chain = asset.id.chain
         val name = name?.toPrimitives()
         val link = link.toPrimitives()
         return when (role) {

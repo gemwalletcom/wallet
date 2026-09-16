@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import GemstoneServices
 import Foundation
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Primitives
 import UIKit
 
@@ -48,7 +48,7 @@ public struct OnstartService: Sendable {
 
     public func setupWallets() async {
         do {
-            let failures = try await keystore.migrateV3Keystores(for: await session.getWallets())
+            let failures = try await keystore.migrateV3Keystores(for: session.getWallets())
             for failure in failures {
                 debugLog("v3 keystore migration failed for \(failure.walletId.id): \(failure.error)")
             }
@@ -92,7 +92,7 @@ extension OnstartService {
         guard ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil else { return }
         let currency = Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) } ?? .usd
         do {
-            try preferencesService.setCurrency(currency: currency.rawValue)
+            try preferencesService.setCurrencyValue(currency)
         } catch {
             debugLog("screenshots currency error: \(error)")
         }

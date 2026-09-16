@@ -71,7 +71,6 @@ class ProposalSceneViewModel @Inject constructor(
         onNotify: (BridgeRequestError) -> Unit,
     ) {
         if (!walletConnectService.shouldProcessMessage("proposal_${proposal.proposerPublicKey}")) {
-            Log.d(TAG, "Ignoring duplicate proposal")
             return
         }
         viewModelScope.launch {

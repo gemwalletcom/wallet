@@ -3,7 +3,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use gem_client::{Client, ClientExt};
-use primitives::Chain;
+use primitives::{Chain, ScanProvider};
 
 use super::models::{AddressSecurity, TokenSecurity};
 use super::target::TronscanTarget;
@@ -31,8 +31,8 @@ impl<C: Client> TronscanProvider<C> {
 
 #[async_trait]
 impl<C: Client> AddressScanProvider for TronscanProvider<C> {
-    fn name(&self) -> &'static str {
-        Self::NAME
+    fn provider(&self) -> ScanProvider {
+        ScanProvider::Tronscan
     }
 
     fn supports_chain(&self, chain: Chain) -> bool {

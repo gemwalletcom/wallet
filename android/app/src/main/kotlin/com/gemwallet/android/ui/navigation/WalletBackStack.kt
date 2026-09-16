@@ -11,7 +11,11 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import com.gemwallet.android.features.onboarding.OnboardingRoute
+import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
+import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
+import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 
 @Composable
 internal fun rememberWalletNavBackStack(startDestination: NavKey): NavBackStack<NavKey> {
@@ -49,12 +53,20 @@ private class WalletNavBackStackSerializer(
 internal fun List<NavKey>.dropNonRestorableRoutes(startDestination: NavKey): List<NavKey> {
     val restoredRoot = firstOrNull()
     val root = restoredRoot
-        ?.takeIf { it == startDestination && !it.isNonRestorableRoute() }
+        ?.takeIf { it.isRootRoute() && !it.isNonRestorableRoute() }
         ?: startDestination
     val restoredRoutes = if (restoredRoot == root) drop(1) else emptyList()
     return listOf(root) + restoredRoutes.filterNot { it.isNonRestorableRoute() }
 }
 
 private fun NavKey.isNonRestorableRoute(): Boolean {
-    return isPendingNavigationProtectedRoute() || this is WalletConnectRequestRoute
+    return isConfirmFlowSegmentRoute() ||
+        this is WalletSecurityReminderRoute ||
+        this is WalletPhraseRoute ||
+        this is CreateWalletRoute ||
+        this is WalletConnectRequestRoute
+}
+
+private fun NavKey.isRootRoute(): Boolean {
+    return this is WalletRootRoute || this is OnboardingRoute
 }

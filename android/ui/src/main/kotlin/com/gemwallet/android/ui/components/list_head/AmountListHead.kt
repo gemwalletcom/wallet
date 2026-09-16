@@ -62,6 +62,7 @@ import com.gemwallet.android.ui.components.mask
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
@@ -81,6 +82,8 @@ import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
+import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.style.icon
 import uniffi.gemstone.GemHeaderButtonKind
 import kotlin.math.floor
 
@@ -230,6 +233,9 @@ fun AssetHeadActions(
     onReceive: (() -> Unit)?,
     onBuy: (() -> Unit)?,
     onSwap: (() -> Unit)?,
+    onDeposit: (() -> Unit)? = null,
+    onWithdraw: (() -> Unit)? = null,
+    onMore: (() -> Unit)? = null,
 ) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
     val buttons = when (actions) {
@@ -240,12 +246,22 @@ fun AssetHeadActions(
         is GemHeaderActions.Buttons -> actions.buttons
     }
     val items = buttons.map { button ->
-        when (button.kind) {
-            GemHeaderButtonKind.SEND -> AssetHeadActionItem(R.string.wallet_send, AppIcons.Send, button.isEnabled, onTransfer)
-            GemHeaderButtonKind.RECEIVE -> AssetHeadActionItem(R.string.wallet_receive, AppIcons.Receive, button.isEnabled, onReceive)
-            GemHeaderButtonKind.BUY -> AssetHeadActionItem(R.string.wallet_buy, AppIcons.Buy, button.isEnabled, onBuy, testTag = "assetBuy")
-            GemHeaderButtonKind.SWAP -> AssetHeadActionItem(R.string.wallet_swap, AppIcons.SwapVert, button.isEnabled, onSwap)
+        val action = when (button.kind) {
+            GemHeaderButtonKind.SEND -> onTransfer
+            GemHeaderButtonKind.RECEIVE -> onReceive
+            GemHeaderButtonKind.BUY -> onBuy
+            GemHeaderButtonKind.SWAP -> onSwap
+            GemHeaderButtonKind.DEPOSIT -> onDeposit
+            GemHeaderButtonKind.WITHDRAW -> onWithdraw
+            GemHeaderButtonKind.MORE -> onMore
         }
+        AssetHeadActionItem(
+            title = button.kind.stringRes(),
+            imageVector = button.kind.icon(),
+            enabled = button.isEnabled,
+            onClick = action,
+            testTag = if (button.kind == GemHeaderButtonKind.BUY) "assetBuy" else null,
+        )
     }
     Row(
         modifier = Modifier.width(IntrinsicSize.Min),

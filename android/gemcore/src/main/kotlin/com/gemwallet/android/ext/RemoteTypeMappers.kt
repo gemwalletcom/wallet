@@ -242,10 +242,121 @@ fun com.wallet.core.primitives.CoreListItemIcon.toGem(): uniffi.gemstone.CoreLis
     is com.wallet.core.primitives.CoreListItemIcon.Image -> uniffi.gemstone.CoreListItemIcon.Image(value)
 }
 
-fun uniffi.gemstone.Currency.toCurrency(): com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.entries.firstOrNull { it.string == this }
-    ?: throw IllegalStateException("Core returned a Currency this build does not know: $this")
+fun uniffi.gemstone.Currency.toPrimitives(): com.wallet.core.primitives.Currency = when (this) {
+    uniffi.gemstone.Currency.MXN -> com.wallet.core.primitives.Currency.MXN
+    uniffi.gemstone.Currency.CHF -> com.wallet.core.primitives.Currency.CHF
+    uniffi.gemstone.Currency.CNY -> com.wallet.core.primitives.Currency.CNY
+    uniffi.gemstone.Currency.THB -> com.wallet.core.primitives.Currency.THB
+    uniffi.gemstone.Currency.HUF -> com.wallet.core.primitives.Currency.HUF
+    uniffi.gemstone.Currency.AUD -> com.wallet.core.primitives.Currency.AUD
+    uniffi.gemstone.Currency.IDR -> com.wallet.core.primitives.Currency.IDR
+    uniffi.gemstone.Currency.RUB -> com.wallet.core.primitives.Currency.RUB
+    uniffi.gemstone.Currency.ZAR -> com.wallet.core.primitives.Currency.ZAR
+    uniffi.gemstone.Currency.EUR -> com.wallet.core.primitives.Currency.EUR
+    uniffi.gemstone.Currency.NZD -> com.wallet.core.primitives.Currency.NZD
+    uniffi.gemstone.Currency.SAR -> com.wallet.core.primitives.Currency.SAR
+    uniffi.gemstone.Currency.SGD -> com.wallet.core.primitives.Currency.SGD
+    uniffi.gemstone.Currency.BMD -> com.wallet.core.primitives.Currency.BMD
+    uniffi.gemstone.Currency.KWD -> com.wallet.core.primitives.Currency.KWD
+    uniffi.gemstone.Currency.HKD -> com.wallet.core.primitives.Currency.HKD
+    uniffi.gemstone.Currency.JPY -> com.wallet.core.primitives.Currency.JPY
+    uniffi.gemstone.Currency.GBP -> com.wallet.core.primitives.Currency.GBP
+    uniffi.gemstone.Currency.DKK -> com.wallet.core.primitives.Currency.DKK
+    uniffi.gemstone.Currency.KRW -> com.wallet.core.primitives.Currency.KRW
+    uniffi.gemstone.Currency.PHP -> com.wallet.core.primitives.Currency.PHP
+    uniffi.gemstone.Currency.CLP -> com.wallet.core.primitives.Currency.CLP
+    uniffi.gemstone.Currency.TWD -> com.wallet.core.primitives.Currency.TWD
+    uniffi.gemstone.Currency.PKR -> com.wallet.core.primitives.Currency.PKR
+    uniffi.gemstone.Currency.BRL -> com.wallet.core.primitives.Currency.BRL
+    uniffi.gemstone.Currency.CAD -> com.wallet.core.primitives.Currency.CAD
+    uniffi.gemstone.Currency.BHD -> com.wallet.core.primitives.Currency.BHD
+    uniffi.gemstone.Currency.MMK -> com.wallet.core.primitives.Currency.MMK
+    uniffi.gemstone.Currency.VEF -> com.wallet.core.primitives.Currency.VEF
+    uniffi.gemstone.Currency.VND -> com.wallet.core.primitives.Currency.VND
+    uniffi.gemstone.Currency.CZK -> com.wallet.core.primitives.Currency.CZK
+    uniffi.gemstone.Currency.TRY -> com.wallet.core.primitives.Currency.TRY
+    uniffi.gemstone.Currency.INR -> com.wallet.core.primitives.Currency.INR
+    uniffi.gemstone.Currency.ARS -> com.wallet.core.primitives.Currency.ARS
+    uniffi.gemstone.Currency.BDT -> com.wallet.core.primitives.Currency.BDT
+    uniffi.gemstone.Currency.NOK -> com.wallet.core.primitives.Currency.NOK
+    uniffi.gemstone.Currency.USD -> com.wallet.core.primitives.Currency.USD
+    uniffi.gemstone.Currency.LKR -> com.wallet.core.primitives.Currency.LKR
+    uniffi.gemstone.Currency.ILS -> com.wallet.core.primitives.Currency.ILS
+    uniffi.gemstone.Currency.PLN -> com.wallet.core.primitives.Currency.PLN
+    uniffi.gemstone.Currency.NGN -> com.wallet.core.primitives.Currency.NGN
+    uniffi.gemstone.Currency.UAH -> com.wallet.core.primitives.Currency.UAH
+    uniffi.gemstone.Currency.XDR -> com.wallet.core.primitives.Currency.XDR
+    uniffi.gemstone.Currency.MYR -> com.wallet.core.primitives.Currency.MYR
+    uniffi.gemstone.Currency.AED -> com.wallet.core.primitives.Currency.AED
+    uniffi.gemstone.Currency.SEK -> com.wallet.core.primitives.Currency.SEK
+    uniffi.gemstone.Currency.BYN -> com.wallet.core.primitives.Currency.BYN
+    uniffi.gemstone.Currency.KZT -> com.wallet.core.primitives.Currency.KZT
+    uniffi.gemstone.Currency.UZS -> com.wallet.core.primitives.Currency.UZS
+    uniffi.gemstone.Currency.EGP -> com.wallet.core.primitives.Currency.EGP
+    uniffi.gemstone.Currency.KES -> com.wallet.core.primitives.Currency.KES
+    uniffi.gemstone.Currency.COP -> com.wallet.core.primitives.Currency.COP
+    uniffi.gemstone.Currency.MAD -> com.wallet.core.primitives.Currency.MAD
+    uniffi.gemstone.Currency.GHS -> com.wallet.core.primitives.Currency.GHS
+    uniffi.gemstone.Currency.PEN -> com.wallet.core.primitives.Currency.PEN
+}
 
-fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = string
+fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = when (this) {
+    com.wallet.core.primitives.Currency.MXN -> uniffi.gemstone.Currency.MXN
+    com.wallet.core.primitives.Currency.CHF -> uniffi.gemstone.Currency.CHF
+    com.wallet.core.primitives.Currency.CNY -> uniffi.gemstone.Currency.CNY
+    com.wallet.core.primitives.Currency.THB -> uniffi.gemstone.Currency.THB
+    com.wallet.core.primitives.Currency.HUF -> uniffi.gemstone.Currency.HUF
+    com.wallet.core.primitives.Currency.AUD -> uniffi.gemstone.Currency.AUD
+    com.wallet.core.primitives.Currency.IDR -> uniffi.gemstone.Currency.IDR
+    com.wallet.core.primitives.Currency.RUB -> uniffi.gemstone.Currency.RUB
+    com.wallet.core.primitives.Currency.ZAR -> uniffi.gemstone.Currency.ZAR
+    com.wallet.core.primitives.Currency.EUR -> uniffi.gemstone.Currency.EUR
+    com.wallet.core.primitives.Currency.NZD -> uniffi.gemstone.Currency.NZD
+    com.wallet.core.primitives.Currency.SAR -> uniffi.gemstone.Currency.SAR
+    com.wallet.core.primitives.Currency.SGD -> uniffi.gemstone.Currency.SGD
+    com.wallet.core.primitives.Currency.BMD -> uniffi.gemstone.Currency.BMD
+    com.wallet.core.primitives.Currency.KWD -> uniffi.gemstone.Currency.KWD
+    com.wallet.core.primitives.Currency.HKD -> uniffi.gemstone.Currency.HKD
+    com.wallet.core.primitives.Currency.JPY -> uniffi.gemstone.Currency.JPY
+    com.wallet.core.primitives.Currency.GBP -> uniffi.gemstone.Currency.GBP
+    com.wallet.core.primitives.Currency.DKK -> uniffi.gemstone.Currency.DKK
+    com.wallet.core.primitives.Currency.KRW -> uniffi.gemstone.Currency.KRW
+    com.wallet.core.primitives.Currency.PHP -> uniffi.gemstone.Currency.PHP
+    com.wallet.core.primitives.Currency.CLP -> uniffi.gemstone.Currency.CLP
+    com.wallet.core.primitives.Currency.TWD -> uniffi.gemstone.Currency.TWD
+    com.wallet.core.primitives.Currency.PKR -> uniffi.gemstone.Currency.PKR
+    com.wallet.core.primitives.Currency.BRL -> uniffi.gemstone.Currency.BRL
+    com.wallet.core.primitives.Currency.CAD -> uniffi.gemstone.Currency.CAD
+    com.wallet.core.primitives.Currency.BHD -> uniffi.gemstone.Currency.BHD
+    com.wallet.core.primitives.Currency.MMK -> uniffi.gemstone.Currency.MMK
+    com.wallet.core.primitives.Currency.VEF -> uniffi.gemstone.Currency.VEF
+    com.wallet.core.primitives.Currency.VND -> uniffi.gemstone.Currency.VND
+    com.wallet.core.primitives.Currency.CZK -> uniffi.gemstone.Currency.CZK
+    com.wallet.core.primitives.Currency.TRY -> uniffi.gemstone.Currency.TRY
+    com.wallet.core.primitives.Currency.INR -> uniffi.gemstone.Currency.INR
+    com.wallet.core.primitives.Currency.ARS -> uniffi.gemstone.Currency.ARS
+    com.wallet.core.primitives.Currency.BDT -> uniffi.gemstone.Currency.BDT
+    com.wallet.core.primitives.Currency.NOK -> uniffi.gemstone.Currency.NOK
+    com.wallet.core.primitives.Currency.USD -> uniffi.gemstone.Currency.USD
+    com.wallet.core.primitives.Currency.LKR -> uniffi.gemstone.Currency.LKR
+    com.wallet.core.primitives.Currency.ILS -> uniffi.gemstone.Currency.ILS
+    com.wallet.core.primitives.Currency.PLN -> uniffi.gemstone.Currency.PLN
+    com.wallet.core.primitives.Currency.NGN -> uniffi.gemstone.Currency.NGN
+    com.wallet.core.primitives.Currency.UAH -> uniffi.gemstone.Currency.UAH
+    com.wallet.core.primitives.Currency.XDR -> uniffi.gemstone.Currency.XDR
+    com.wallet.core.primitives.Currency.MYR -> uniffi.gemstone.Currency.MYR
+    com.wallet.core.primitives.Currency.AED -> uniffi.gemstone.Currency.AED
+    com.wallet.core.primitives.Currency.SEK -> uniffi.gemstone.Currency.SEK
+    com.wallet.core.primitives.Currency.BYN -> uniffi.gemstone.Currency.BYN
+    com.wallet.core.primitives.Currency.KZT -> uniffi.gemstone.Currency.KZT
+    com.wallet.core.primitives.Currency.UZS -> uniffi.gemstone.Currency.UZS
+    com.wallet.core.primitives.Currency.EGP -> uniffi.gemstone.Currency.EGP
+    com.wallet.core.primitives.Currency.KES -> uniffi.gemstone.Currency.KES
+    com.wallet.core.primitives.Currency.COP -> uniffi.gemstone.Currency.COP
+    com.wallet.core.primitives.Currency.MAD -> uniffi.gemstone.Currency.MAD
+    com.wallet.core.primitives.Currency.GHS -> uniffi.gemstone.Currency.GHS
+    com.wallet.core.primitives.Currency.PEN -> uniffi.gemstone.Currency.PEN
+}
 
 fun uniffi.gemstone.DelegationState.toPrimitives(): com.wallet.core.primitives.DelegationState = when (this) {
     uniffi.gemstone.DelegationState.ACTIVE -> com.wallet.core.primitives.DelegationState.Active
@@ -737,7 +848,6 @@ fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.Swap
     uniffi.gemstone.SwapProvider.MAYAN -> com.wallet.core.primitives.SwapProvider.Mayan
     uniffi.gemstone.SwapProvider.CHAINFLIP -> com.wallet.core.primitives.SwapProvider.Chainflip
     uniffi.gemstone.SwapProvider.NEAR_INTENTS -> com.wallet.core.primitives.SwapProvider.NearIntents
-    uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR -> com.wallet.core.primitives.SwapProvider.CetusAggregator
     uniffi.gemstone.SwapProvider.CETUS_CLMM -> com.wallet.core.primitives.SwapProvider.CetusClmm
     uniffi.gemstone.SwapProvider.RELAY -> com.wallet.core.primitives.SwapProvider.Relay
     uniffi.gemstone.SwapProvider.HYPERLIQUID -> com.wallet.core.primitives.SwapProvider.Hyperliquid
@@ -763,7 +873,6 @@ fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvide
     com.wallet.core.primitives.SwapProvider.Mayan -> uniffi.gemstone.SwapProvider.MAYAN
     com.wallet.core.primitives.SwapProvider.Chainflip -> uniffi.gemstone.SwapProvider.CHAINFLIP
     com.wallet.core.primitives.SwapProvider.NearIntents -> uniffi.gemstone.SwapProvider.NEAR_INTENTS
-    com.wallet.core.primitives.SwapProvider.CetusAggregator -> uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR
     com.wallet.core.primitives.SwapProvider.CetusClmm -> uniffi.gemstone.SwapProvider.CETUS_CLMM
     com.wallet.core.primitives.SwapProvider.Relay -> uniffi.gemstone.SwapProvider.RELAY
     com.wallet.core.primitives.SwapProvider.Hyperliquid -> uniffi.gemstone.SwapProvider.HYPERLIQUID
@@ -1388,7 +1497,7 @@ fun uniffi.gemstone.Device.toPrimitives(): com.wallet.core.primitives.Device = c
     token = token,
     locale = locale.toPrimitives(),
     version = version,
-    currency = currency.toCurrency(),
+    currency = currency.toPrimitives(),
     isPushEnabled = isPushEnabled,
     isPriceAlertsEnabled = isPriceAlertsEnabled,
     subscriptionsVersion = subscriptionsVersion,
@@ -1420,7 +1529,7 @@ fun com.wallet.core.primitives.FiatAssets.toGem(): uniffi.gemstone.FiatAssets = 
 )
 
 fun uniffi.gemstone.FiatRate.toPrimitives(): com.wallet.core.primitives.FiatRate = com.wallet.core.primitives.FiatRate(
-    symbol = symbol.toCurrency(),
+    symbol = symbol.toPrimitives(),
     rate = rate,
 )
 
@@ -1876,7 +1985,7 @@ fun com.wallet.core.primitives.Price.toGem(): uniffi.gemstone.Price = uniffi.gem
 
 fun uniffi.gemstone.PriceAlert.toPrimitives(): com.wallet.core.primitives.PriceAlert = com.wallet.core.primitives.PriceAlert(
     assetId = com.wallet.core.primitives.AssetId(assetId),
-    currency = currency.toCurrency(),
+    currency = currency.toPrimitives(),
     price = price,
     pricePercentChange = pricePercentChange,
     priceDirection = priceDirection?.let { it.toPrimitives() },
@@ -1891,6 +2000,18 @@ fun com.wallet.core.primitives.PriceAlert.toGem(): uniffi.gemstone.PriceAlert = 
     priceDirection = priceDirection?.let { it.toGem() },
     lastNotifiedAt = lastNotifiedAt,
     identifier = "",
+)
+
+fun uniffi.gemstone.PriceAlertData.toPrimitives(): com.wallet.core.primitives.PriceAlertData = com.wallet.core.primitives.PriceAlertData(
+    asset = asset.toPrimitives(),
+    price = price?.let { it.toPrimitives() },
+    priceAlert = priceAlert.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.PriceAlertData.toGem(): uniffi.gemstone.PriceAlertData = uniffi.gemstone.PriceAlertData(
+    asset = asset.toGem(),
+    price = price?.let { it.toGem() },
+    priceAlert = priceAlert.toGem(),
 )
 
 fun uniffi.gemstone.Release.toPrimitives(): com.wallet.core.primitives.Release = com.wallet.core.primitives.Release(

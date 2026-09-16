@@ -95,10 +95,7 @@ mod tests {
 
     #[test]
     fn test_an_estimate_reads_in_minutes_and_seconds() {
-        assert_eq!(
-            estimate_parts(90),
-            vec![part(1, GemDurationUnit::Minute), part(30, GemDurationUnit::Second)]
-        );
+        assert_eq!(estimate_parts(90), vec![part(1, GemDurationUnit::Minute), part(30, GemDurationUnit::Second)]);
         assert_eq!(estimate_parts(45), vec![part(45, GemDurationUnit::Second)]);
         assert_eq!(estimate_parts(720), vec![part(12, GemDurationUnit::Minute)]);
         assert_eq!(estimate_parts(0), vec![]);

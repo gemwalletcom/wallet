@@ -9,13 +9,13 @@ import Testing
 struct CurrencyViewModelTests {
     @Test
     func uSTitle() throws {
-        let viewModel = CurrencyViewModel(row: GemCurrencyRow(currency: "USD", flag: "🇺🇸"))
+        let viewModel = CurrencyViewModel(row: GemCurrencyRow(currency: Currency.usd.toGem(), flag: "🇺🇸"))
         #expect(viewModel.title == "🇺🇸 USD - US Dollar")
     }
 
     @Test
     func eUROTitle() throws {
-        let viewModel = CurrencyViewModel(row: GemCurrencyRow(currency: "EUR", flag: "🇪🇺"))
+        let viewModel = CurrencyViewModel(row: GemCurrencyRow(currency: Currency.eur.toGem(), flag: "🇪🇺"))
         #expect(viewModel.title == "🇪🇺 EUR - Euro")
     }
 }

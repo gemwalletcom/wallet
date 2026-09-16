@@ -10,15 +10,15 @@ import Primitives
 
 public extension GemFiatQuoteServiceProtocol {
     var currency: Primitives.Currency {
-        Primitives.Currency(core: getCurrency())
+        getCurrency().toPrimitives()
     }
 
     func newSession(type: FiatQuoteType, amount: Int?) -> GemFiatSession {
-        newSession(quoteType: type.map(), amount: amount.map { UInt32($0) })
+        newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) })
     }
 
     func amountCheck(type: FiatQuoteType, amount: Double, quote: FiatQuote?, available: BigInt) -> GemFiatAmountCheck {
-        amountCheck(quoteType: type.map(), amount: amount, quote: quote, available: BigUInt(available))
+        amountCheck(quoteType: type.toGem(), amount: amount, quote: quote, available: BigUInt(available))
     }
 
     func quoteUrl(asset: Asset, quoteId: String) async throws -> FiatQuoteUrl {
@@ -28,6 +28,6 @@ public extension GemFiatQuoteServiceProtocol {
 
 public extension GemFiatSession {
     var type: FiatQuoteType {
-        quoteType.map()
+        quoteType.toPrimitives()
     }
 }

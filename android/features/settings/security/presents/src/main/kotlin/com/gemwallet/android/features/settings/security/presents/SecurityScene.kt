@@ -36,6 +36,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import uniffi.gemstone.GemSecurityRow
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
@@ -49,6 +50,7 @@ fun SecurityScene(
     val hideBalances by viewModel.isHideBalances.collectAsStateWithLifecycle()
     val lockInterval by viewModel.lockInterval.collectAsStateWithLifecycle()
     val lockPeriods = remember { lockPeriods() }
+    val sections = remember(authRequired) { viewModel.sections(authRequired) }
     val currentLockPeriod = remember(lockInterval) { lockPeriodFromMinutes(lockInterval.toUInt()) }
 
     Scene(
@@ -56,14 +58,19 @@ fun SecurityScene(
         onClose = onCancel,
     ) {
         LazyColumn {
-            enablePasscode(authRequired) {
-                viewModel.setAuthRequired(it)
-                authRequired = it
+            sections.forEach { section ->
+                section.rows.forEach { row ->
+                    when (row) {
+                        GemSecurityRow.AUTHENTICATION -> enablePasscode(authRequired) {
+                            viewModel.setAuthRequired(it)
+                            authRequired = it
+                        }
+                        GemSecurityRow.LOCK_PERIOD -> requiredAuthDelay(lockPeriods, lockInterval, currentLockPeriod, viewModel::setLockInterval)
+                        GemSecurityRow.PRIVACY_LOCK -> Unit
+                        GemSecurityRow.HIDE_BALANCE -> hideBalanceItem(hideBalances, viewModel::setHideBalances)
+                    }
+                }
             }
-            if (authRequired) {
-                requiredAuthDelay(lockPeriods, lockInterval, currentLockPeriod, viewModel::setLockInterval)
-            }
-            hideBalanceItem(hideBalances, viewModel::setHideBalances)
         }
     }
 }

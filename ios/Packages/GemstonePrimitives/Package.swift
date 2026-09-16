@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "Formatters", path: "../Formatters"),
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
@@ -25,6 +26,7 @@ let package = Package(
             dependencies: [
                 "Gemstone",
                 "Primitives",
+                "Formatters",
                 .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",

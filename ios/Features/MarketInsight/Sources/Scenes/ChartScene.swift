@@ -25,20 +25,20 @@ public struct ChartScene: View {
                         NavigationLink(
                             value: Scenes.AssetPriceAlert(asset: model.asset),
                             label: {
-                                ListItemView(title: Localized.Settings.PriceAlerts.title, subtitle: "\(count)")
+                                ListItemView(title: section.title ?? "", subtitle: "\(count)")
                             },
                         )
                     }
                 case .setPriceAlert:
                     Section {
-                        NavigationCustomLink(with: ListItemView(title: Localized.PriceAlerts.SetAlert.title)) {
+                        NavigationCustomLink(with: ListItemView(title: section.title ?? "")) {
                             model.onSelectSetPriceAlerts()
                         }
                     }
                 case let .market(rows):
                     marketSection(model.marketValues(rows))
                 case let .links(links):
-                    Section(Localized.Social.links) {
+                    Section(section.title ?? "") {
                         SocialLinksView(model: model.socialLinksModel(links))
                     }
                 }

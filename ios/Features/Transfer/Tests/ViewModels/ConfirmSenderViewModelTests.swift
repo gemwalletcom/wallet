@@ -12,7 +12,7 @@ struct ConfirmSenderViewModelTests {
     @Test
     func wallet() {
         let wallet = Wallet.mock()
-        let model = ConfirmSenderViewModel(row: walletRow(wallet: wallet.map()))
+        let model = ConfirmSenderViewModel(row: walletRow(wallet: wallet.toGem()))
 
         guard case let .sender(item) = model.itemModel else { return }
         #expect(item.title == Localized.Common.wallet)

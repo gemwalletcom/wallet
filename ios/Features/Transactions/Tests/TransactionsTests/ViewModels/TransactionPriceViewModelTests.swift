@@ -1,3 +1,4 @@
+import GemstonePrimitivesTestKit
 import Primitives
 import Testing
 @testable import Transactions
@@ -5,7 +6,7 @@ import Testing
 struct TransactionPriceViewModelTests {
     @Test
     func priceValue() {
-        if case let .price(_, value) = TransactionPriceViewModel(price: 50000).itemModel {
+        if case let .price(_, value) = TransactionPriceViewModel(price: .mock(value: 50000, notation: .plain)).itemModel {
             #expect(value.contains("50"))
         } else {
             Issue.record("Expected price item")

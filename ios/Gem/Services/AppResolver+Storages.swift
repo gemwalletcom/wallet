@@ -7,11 +7,11 @@ import Store
 extension AppResolver {
     struct Storages {
         let db: DB = .init()
-        let storeManager: StoreManager
+        let stores: Stores
         let keystore = LocalKeystore()
 
         init() {
-            storeManager = StoreManager(db: db)
+            stores = Stores(db: db)
         }
     }
 }

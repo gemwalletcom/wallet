@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Test
 
 class GetActiveAssetsInfoImplTest {
@@ -34,11 +36,13 @@ class GetActiveAssetsInfoImplTest {
         mockAssetInfo(asset = mockAsset(Chain.Solana)),
     )
 
+    private val walletAssets = MutableStateFlow(assets)
+
     private val getWalletAssets = object : GetWalletAssets {
-        override fun invoke(): StateFlow<List<AssetInfo>> = MutableStateFlow(assets)
-        override fun invoke(walletId: WalletId): Flow<List<AssetInfo>> = flowOf(assets)
-        override fun invoke(assetIds: List<AssetId>): Flow<List<AssetInfo>> = flowOf(assets)
-        override fun byIdentifiers(assetIds: List<String>): Flow<List<AssetInfo>> = flowOf(assets)
+        override fun invoke(): StateFlow<List<AssetInfo>> = walletAssets
+        override fun invoke(walletId: WalletId): Flow<List<AssetInfo>> = walletAssets
+        override fun invoke(assetIds: List<AssetId>): Flow<List<AssetInfo>> = walletAssets
+        override fun byIdentifiers(assetIds: List<String>): Flow<List<AssetInfo>> = walletAssets
     }
 
     private val row = GemAssetRow(
@@ -48,9 +52,18 @@ class GetActiveAssetsInfoImplTest {
         trailing = GemAssetRowTrailing.BALANCE,
     )
 
+    private val hideBalances = MutableStateFlow(false)
+
     private fun subject(hideBalance: Boolean, scope: CoroutineScope) = GetActiveAssetsInfoImpl(
         getWalletAssets = getWalletAssets,
         userConfig = mockk<UserConfig> { every { isHideBalances() } returns flowOf(hideBalance) },
+        row = row,
+        scope = scope,
+    )
+
+    private fun observed(scope: CoroutineScope) = GetActiveAssetsInfoImpl(
+        getWalletAssets = getWalletAssets,
+        userConfig = mockk<UserConfig> { every { isHideBalances() } returns hideBalances },
         row = row,
         scope = scope,
     )
@@ -62,6 +75,47 @@ class GetActiveAssetsInfoImplTest {
         assertEquals(assets.toAssetInfoDataAggregates(naming = row.title, hideBalance = false), rows)
         assertEquals("\$50,000.00", rows.first().price?.valueFormatted)
         assertEquals("+2.50%", rows.first().price?.changePercentageFormatted)
+    }
+
+    @Test
+    fun onlyTheChangedRowIsRebuilt() = runTest {
+        val subject = observed(backgroundScope)
+        val first = subject.assetsInfo().first { it.isNotEmpty() }
+
+        walletAssets.value = assets.mapIndexed { index, item ->
+            if (index == 0) item.copy(price = mockAssetPriceInfo(price = 51000.0, priceChangePercentage24h = 2.5)) else item
+        }
+        val second = subject.assetsInfo().first { it.first().price?.valueFormatted == "\$51,000.00" }
+
+        assertNotSame(first[0], second[0])
+        assertSame(first[1], second[1])
+        assertSame(first[2], second[2])
+    }
+
+    @Test
+    fun aRemovedRowLeavesTheCache() = runTest {
+        val subject = observed(backgroundScope)
+        val first = subject.assetsInfo().first { it.isNotEmpty() }
+
+        walletAssets.value = assets.drop(1)
+        subject.assetsInfo().first { it.size == 2 }
+        walletAssets.value = assets
+        val restored = subject.assetsInfo().first { it.size == 3 }
+
+        assertNotSame(first[0], restored[0])
+        assertSame(first[1], restored[1])
+    }
+
+    @Test
+    fun hidingBalancesCannotReuseTheVisibleRows() = runTest {
+        val subject = observed(backgroundScope)
+        val visible = subject.assetsInfo().first { it.isNotEmpty() }
+
+        hideBalances.value = true
+        val hidden = subject.assetsInfo().first { it.first().balance == "*****" }
+
+        assertNotSame(visible[0], hidden[0])
+        assertEquals(listOf("*****", "*****", "*****"), hidden.map { it.balance })
     }
 
     @Test

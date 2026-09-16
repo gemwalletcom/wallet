@@ -48,7 +48,10 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.features.add_asset.localization.stringRes
 import uniffi.gemstone.GemAddAssetPhase
+import uniffi.gemstone.GemAssetInfoKind
+import uniffi.gemstone.GemAssetInfoRow
 import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
@@ -62,6 +65,7 @@ internal fun AddAssetScene(
     addressState: MutableState<String>,
     network: Asset?,
     token: Asset?,
+    assetRows: List<GemAssetInfoRow>,
     explorerLink: BlockExplorerLink?,
     buttonState: ButtonState,
     canSelectChain: Boolean,
@@ -138,7 +142,7 @@ internal fun AddAssetScene(
                 }
             }
         }
-        AssetInfoTable(token)
+        AssetInfoTable(token, assetRows)
         if (explorerLink != null && token != null) {
             PropertyItem(
                 modifier = Modifier.clickable { uriHandler.open(context, explorerLink.link) },
@@ -188,29 +192,21 @@ internal fun AddAssetScene(
 }
 
 @Composable
-private fun ColumnScope.AssetInfoTable(asset: Asset?) {
+private fun ColumnScope.AssetInfoTable(asset: Asset?, rows: List<GemAssetInfoRow>) {
     if (asset == null) {
         return
     }
-    PropertyItem(
-        title = { PropertyTitleText(R.string.asset_name) },
-        data = { PropertyDataText(asset.name, badge = { DataBadgeChevron(asset, false) }) },
-        listPosition = ListPosition.First,
-    )
-    PropertyItem(
-        R.string.asset_symbol,
-        asset.symbol,
-        listPosition = ListPosition.Middle,
-    )
-    PropertyItem(
-        R.string.asset_decimals,
-        asset.decimals.toString(),
-        listPosition = ListPosition.Middle,
-    )
-    PropertyItem(
-        R.string.common_type,
-        asset.type.string,
-        listPosition = ListPosition.Last,
-    )
+    rows.forEachIndexed { index, row ->
+        PropertyItem(
+            title = { PropertyTitleText(row.kind.stringRes()) },
+            data = {
+                when (row.kind) {
+                    GemAssetInfoKind.NAME -> PropertyDataText(row.value, badge = { DataBadgeChevron(asset, false) })
+                    else -> PropertyDataText(row.value)
+                }
+            },
+            listPosition = ListPosition.getPosition(index, rows.size),
+        )
+    }
 }
 

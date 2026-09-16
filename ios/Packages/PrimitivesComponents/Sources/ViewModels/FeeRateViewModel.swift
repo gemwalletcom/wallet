@@ -44,10 +44,7 @@ public struct FeeRateViewModel: Identifiable {
     }
 
     public var title: String {
-        switch priority {
-        case .normal: Localized.FeeRates.normal
-        case .fast: Localized.FeeRates.fast
-        }
+        priority.title
     }
 
     public var feeUnitModel: FeeUnitViewModel {

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -36,17 +37,22 @@ class AssetMarketUIModelFactoryTest {
         assertEquals(ChartSectionUIModel.PriceAlerts(2), model.sections[0])
         val marketRows = (model.sections[1] as ChartSectionUIModel.Market).rows.map { it as MarketInfoUIModel }
         assertEquals(
-            listOf(MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap, MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume),
-            marketRows.map { it.type },
+            listOf(R.string.asset_market_cap, R.string.asset_trading_volume),
+            marketRows.map { it.label },
+        )
+        assertEquals(
+            listOf(MarketInfoUIModel.Layout.Badge, MarketInfoUIModel.Layout.Plain),
+            marketRows.map { it.layout },
         )
         assertEquals("#7", marketRows.first().badge)
         assertNull(marketRows.last().badge)
         val contract = (model.sections[2] as ChartSectionUIModel.Market).rows.single() as MarketInfoUIModel
         assertEquals(tokenId, contract.value)
         assertEquals(explorer, contract.explorerLink)
+        assertEquals(MarketInfoUIModel.Layout.Address, contract.layout)
         assertEquals(
-            listOf(MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply),
-            (model.sections[3] as ChartSectionUIModel.Market).rows.map { (it as MarketInfoUIModel).type },
+            listOf(R.string.asset_circulating_supply),
+            (model.sections[3] as ChartSectionUIModel.Market).rows.map { (it as MarketInfoUIModel).label },
         )
         val high = (model.sections[4] as ChartSectionUIModel.Market).rows.single() as AllTimeUIModel.High
         assertEquals(1.5, high.value, 0.0)

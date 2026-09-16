@@ -475,6 +475,26 @@ struct SwapSceneViewModelTests {
         #expect(model.buttonViewModel.buttonAction == .swap)
     }
 
+    @Test
+    func pricesSubscribeOnceForThePairAndNotForEveryEdit() async {
+        let service = GemSwapQuoteServiceMock()
+        let model = SwapSceneViewModel.mock(service: service)
+
+        await model.onAssetIdsChange(assetIds: model.assetIds)
+        #expect(service.priceSubscriptions.count == 1)
+        #expect(Set(service.priceSubscriptions[0]) == Set([AssetId.mockEthereum(), AssetId.mockEthereumUSDT()].map(\.identifier)))
+
+        model.amountInputModel.text = "2"
+        model.onChangeFromValue("1", "2")
+        model.onSelectPercent(100)
+        model.onSelectSlippage(.manual(bps: 150))
+        #expect(service.priceSubscriptions.count == 1, "typing, Max and slippage do not touch the pair")
+
+        model.toAssetQuery.value = .mock(asset: .mockSolana())
+        await model.onAssetIdsChange(assetIds: model.assetIds)
+        #expect(service.priceSubscriptions.count == 2)
+    }
+
     // MARK: - Private methods
 
     private func model(

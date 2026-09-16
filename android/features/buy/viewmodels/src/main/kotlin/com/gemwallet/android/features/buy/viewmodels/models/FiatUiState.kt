@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.viewmodels.models
 
+import com.gemwallet.android.features.buy.localization.stringRes
 import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
@@ -20,10 +21,7 @@ data class FiatUiState(
 internal fun createFiatUiState(state: GemFiatViewState, errorText: String?) = FiatUiState(
     isLoading = state.phase is GemFiatQuotePhase.Loading,
     errorText = errorText,
-    actionTitle = when (state.buttonAction) {
-        GemFiatButtonAction.CONTINUE -> R.string.common_continue
-        GemFiatButtonAction.RETRY_QUOTE -> R.string.common_try_again
-    },
+    actionTitle = state.buttonAction.stringRes(),
     retries = state.buttonAction == GemFiatButtonAction.RETRY_QUOTE,
     buttonState = when (state.buttonState) {
         GemFiatButtonState.DISABLED -> ButtonState.Disabled

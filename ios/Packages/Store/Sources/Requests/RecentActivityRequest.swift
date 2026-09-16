@@ -38,7 +38,7 @@ public struct RecentActivityRequest: DatabaseQueryable {
             request = request.joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
         }
 
-        return try AssetsRequest.applyFilters(request: request, filters)
+        return try AssetsRequest.filtered(request: request, filters)
             .order(literal: "maxCreatedAt DESC")
             .limit(limit)
             .asRequest(of: RecentAssetRecordInfo.self)

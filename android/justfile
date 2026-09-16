@@ -6,6 +6,7 @@ install: install-java install-toolchains install-ndk
 install-java:
     @echo "==> Install Temurin JDK 17"
     @brew install --cask temurin@17
+    @./gradlew --version
 
 install-toolchains:
     @echo Install toolchains for uniffi

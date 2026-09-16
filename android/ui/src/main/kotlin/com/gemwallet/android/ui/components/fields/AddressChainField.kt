@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
@@ -37,6 +40,7 @@ fun ColumnScope.AddressChainField(
     editable: Boolean = true,
     onPaste: ((String) -> Unit)? = null,
     onQrScanner: (() -> Unit)? = null,
+    onSubmit: (() -> Unit)? = null,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalContext.current.clipboardManager()
@@ -52,6 +56,8 @@ fun ColumnScope.AddressChainField(
         readOnly = !editable,
         label = label,
         onValueChange = onValueChange,
+        keyboardOptions = if (onSubmit == null) KeyboardOptions.Default else KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = if (onSubmit == null) KeyboardActions.Default else KeyboardActions(onDone = { onSubmit() }),
         trailing = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

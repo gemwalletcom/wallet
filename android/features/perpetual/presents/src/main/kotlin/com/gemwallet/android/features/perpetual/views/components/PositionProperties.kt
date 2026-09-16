@@ -3,6 +3,7 @@ package com.gemwallet.android.features.perpetual.views.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,7 +13,6 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -20,66 +20,72 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.wallet.core.primitives.Currency
+import com.gemwallet.android.features.perpetual.localization.stringRes
 import com.wallet.core.primitives.PerpetualMarginType
 import com.gemwallet.android.ui.theme.Placeholder
+import uniffi.gemstone.PerpetualProvider
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.GemPerpetualPositionDetailRow
 
 private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
 
 internal fun LazyListScope.positionProperties(
     position: PerpetualPositionDetailsDataAggregate?,
+    rows: List<GemPerpetualPositionDetailRow>,
     onAutocloseClick: () -> Unit,
 ) {
     if (position == null) {
         return
     }
     item {
-        SubheaderItem(R.string.perpetual_position)
-    }
-    item {
         PerpetualPositionItem(position, listPosition = ListPosition.First)
-        PropertyItem(
-            title = stringResource(R.string.perpetual_pnl),
-            data = position.pnlWithPercentage,
-            dataColor = position.pnlState.color(),
-            listPosition = ListPosition.Middle,
-        )
-        AutocloseRow(position = position, onClick = onAutocloseClick)
-        PropertyItem(
-            title = stringResource(R.string.perpetual_size),
-            data = position.size,
-            listPosition = ListPosition.Middle,
-        )
-        PropertyItem(
-            title = stringResource(R.string.perpetual_entry_price),
-            data = position.entryPrice,
-            listPosition = ListPosition.Middle,
-        )
-        if (position.liquidationPrice.isNotBlank()) {
-            PropertyItem(
-                title = stringResource(R.string.info_perpetual_liquidation_price_title),
+    }
+    itemsIndexed(rows) { index, row ->
+        val listPosition = if (index == rows.lastIndex) ListPosition.Last else ListPosition.Middle
+        when (row) {
+            GemPerpetualPositionDetailRow.PNL -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = position.pnlWithPercentage,
+                dataColor = position.pnlState.color(),
+                listPosition = listPosition,
+            )
+            GemPerpetualPositionDetailRow.AUTOCLOSE -> AutocloseRow(position = position, listPosition = listPosition, onClick = onAutocloseClick)
+            GemPerpetualPositionDetailRow.SIZE -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = position.size,
+                listPosition = listPosition,
+            )
+            GemPerpetualPositionDetailRow.ENTRY_PRICE -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = position.entryPrice,
+                listPosition = listPosition,
+            )
+            GemPerpetualPositionDetailRow.LIQUIDATION_PRICE -> PropertyItem(
+                title = stringResource(row.stringRes()),
                 data = position.liquidationPrice,
                 info = InfoSheetEntity.LiquidationPriceInfo,
-                listPosition = ListPosition.Middle,
+                listPosition = listPosition,
+            )
+            GemPerpetualPositionDetailRow.MARGIN -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = position.marginText(),
+                listPosition = listPosition,
+            )
+            GemPerpetualPositionDetailRow.FUNDING_PAYMENTS -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = position.fundingPayments,
+                dataColor = position.fundingPaymentsDirection.color(),
+                info = InfoSheetEntity.FundingPayments,
+                listPosition = listPosition,
             )
         }
-        PropertyItem(
-            title = stringResource(R.string.perpetual_margin),
-            data = position.marginText(),
-            listPosition = ListPosition.Middle,
-        )
-        PropertyItem(
-            title = stringResource(R.string.info_perpetual_funding_payments_title),
-            data = position.fundingPayments,
-            dataColor = position.fundingPaymentsDirection.color(),
-            info = InfoSheetEntity.FundingPayments,
-            listPosition = ListPosition.Last,
-        )
     }
 }
 
 @Composable
 private fun AutocloseRow(
     position: PerpetualPositionDetailsDataAggregate,
+    listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
     val takeProfitText = position.takeProfit.formatTriggerOrder(stringResource(R.string.perpetual_take_profit))
@@ -106,23 +112,17 @@ private fun AutocloseRow(
             }
             DataBadgeChevron()
         },
-        listPosition = ListPosition.Middle,
+        listPosition = listPosition,
     )
 }
 
-@Composable
-private fun PerpetualPositionDetailsDataAggregate.marginText(): String {
-    return "$marginAmount (${marginType.title()})"
-}
+private val perpetual = GemPerpetual(PerpetualProvider.HYPERCORE)
 
 @Composable
-private fun PerpetualMarginType.title(): String {
-    return when (this) {
-        PerpetualMarginType.Cross -> stringResource(R.string.perpetual_margin_cross)
-        PerpetualMarginType.Isolated -> stringResource(R.string.perpetual_margin_isolated)
-    }
+private fun PerpetualPositionDetailsDataAggregate.marginText(): String {
+    return perpetual.marginText(marginAmount, stringResource(marginType.stringRes()))
 }
 
 private fun Double?.formatTriggerOrder(label: String): String? {
-    return this?.let { "$label: ${usdFormatter.string(it)}" }
+    return this?.let { perpetual.triggerOrderText(label, usdFormatter.string(it)) }
 }

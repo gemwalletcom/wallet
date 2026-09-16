@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable

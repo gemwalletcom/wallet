@@ -59,10 +59,7 @@ mod display_tests {
         assert_eq!(service.display(None, address.clone(), false), GemAddressDisplay::Address);
         assert_eq!(service.display(Some(address.clone()), address.clone(), false), GemAddressDisplay::Address);
         assert_eq!(service.display(Some(String::new()), address.clone(), false), GemAddressDisplay::Address);
-        assert_eq!(
-            service.display(Some("Ada".into()), address.clone(), true),
-            GemAddressDisplay::Name { name: "Ada".into() }
-        );
+        assert_eq!(service.display(Some("Ada".into()), address.clone(), true), GemAddressDisplay::Name { name: "Ada".into() });
         assert_eq!(
             service.display(Some("Ada".into()), address, false),
             GemAddressDisplay::NameWithAddress { name: "Ada".into() }

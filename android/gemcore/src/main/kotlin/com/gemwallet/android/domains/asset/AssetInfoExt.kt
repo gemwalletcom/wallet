@@ -7,6 +7,7 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Chain
 import java.math.BigDecimal
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 val AssetInfo.symbol: String
     get() = asset.symbol
@@ -21,7 +22,7 @@ val AssetInfo.chain: Chain
     get() = asset.chain
 
 val AssetInfo.availableBalanceAmount: String
-    get() = ValueFormatter(style = ValueFormatter.Style.Auto)
+    get() = ValueFormatter(style = GemValueStyle.AUTO)
         .string(balance.balance.available, decimals = asset.decimals)
 
 fun AssetInfo.calculateFiat(value: BigInteger): BigDecimal = toAssetPriceValue().calculateFiat(value)

@@ -50,7 +50,10 @@ import com.gemwallet.android.AppUrl
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
+import androidx.compose.ui.platform.LocalContext
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.string
+import uniffi.gemstone.GemLocalizedText
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -72,7 +75,8 @@ import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemWalletImportKind
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.localization.text
 
 private val loadingDialogSize = 100.dp
 
@@ -170,7 +174,7 @@ private fun ImportScene(
     inputState: MutableState<TextFieldValue>,
     importType: ImportType,
     tabs: List<GemWalletImportKind>,
-    defaultWalletName: String,
+    defaultWalletName: GemLocalizedText?,
     chainName: String,
     nameResolveState: GemNameRecordState,
     dataError: Throwable?,
@@ -186,7 +190,7 @@ private fun ImportScene(
         is ImportSceneTitle.Resource -> stringResource(sceneTitle.resId)
         is ImportSceneTitle.Text -> sceneTitle.value
     }
-    val generatedName = defaultWalletName
+    val generatedName = defaultWalletName?.string(LocalContext.current).orEmpty()
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
     Scene(
@@ -333,7 +337,7 @@ private fun ErrorMessage(error: Throwable?) {
         null -> return
         else -> stringResource(
             R.string.errors_create_wallet,
-            error.serviceMessage().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
+            error.errorText().text().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
         )
     }
     Text(text = text, color = MaterialTheme.colorScheme.error)
@@ -366,7 +370,7 @@ fun PreviewImportAddress() {
                 inputState = remember { mutableStateOf(TextFieldValue()) },
                 importType = ImportType(GemWalletImportKind.ADDRESS, Chain.Bitcoin),
                 tabs = listOf(GemWalletImportKind.PHRASE, GemWalletImportKind.ADDRESS),
-                defaultWalletName = "Wallet #1",
+                defaultWalletName = GemLocalizedText.WalletDefaultName(1),
                 chainName = "Ethereum",
                 nameResolveState = GemNameRecordState.None,
                 dataError = null,

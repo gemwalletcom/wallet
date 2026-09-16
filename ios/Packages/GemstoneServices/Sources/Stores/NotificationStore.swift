@@ -15,7 +15,7 @@ public final class GemstoneNotificationStore: GemNotificationStore, @unchecked S
     }
 
     public func saveNotifications(notifications: [Gemstone.InAppNotification]) async throws {
-        try store.addNotifications(notifications.map { $0.map() })
+        try store.addNotifications(notifications.map { $0.toPrimitives() })
     }
 
     public func hasUnreadNotifications(walletId: String) async throws -> Bool {

@@ -28,10 +28,6 @@ public final class CurrencySceneViewModel {
         self.service = service
     }
 
-    public var selectedCurrencyValue: String {
-        "\(currencies.selected.flag) \(currency.rawValue)"
-    }
-
     var title: String {
         Localized.Settings.currency
     }
@@ -54,7 +50,7 @@ public final class CurrencySceneViewModel {
     }
 
     func setCurrency(_ currency: Currency) async throws {
-        try await service.setCurrency(currency: currency.rawValue)
+        try await service.setCurrency(currency: currency.toGem())
         self.currency = currency
     }
 }
@@ -67,6 +63,6 @@ extension CurrencySceneViewModel {
     }
 
     private var currencies: GemCurrencies {
-        service.currencies(locale: localeCurrency?.rawValue)
+        service.currencies(locale: localeCurrency?.toGem())
     }
 }

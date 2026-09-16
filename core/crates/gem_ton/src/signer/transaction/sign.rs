@@ -69,7 +69,7 @@ impl TonSigner {
 
     pub(crate) fn sign_requests(&self, requests: Vec<TransferRequest>, sequence: u64, expire_at: Option<u32>) -> Result<String, SignerError> {
         let sequence = u32::try_from(sequence).map_err(|_| SignerError::invalid_input("TON sequence does not fit in u32"))?;
-        let expire_at = resolve_expire_at(sequence, expire_at)?;
+        let expire_at = expire_at_or_default(sequence, expire_at)?;
 
         let internal_messages: Vec<InternalMessage> = requests.iter().map(build_internal_message).collect::<Result<_, _>>()?;
         let external_body = self.wallet().build_external_body(expire_at, sequence, &internal_messages)?;
@@ -89,7 +89,7 @@ fn optional_ton_attachment(input: &SignerInput) -> Result<BigUint, SignerError> 
     value.to_biguint().ok_or_else(|| SignerError::invalid_input("invalid TON amount"))
 }
 
-fn resolve_expire_at(sequence: u32, expire_at: Option<u32>) -> Result<u32, SignerError> {
+fn expire_at_or_default(sequence: u32, expire_at: Option<u32>) -> Result<u32, SignerError> {
     match (sequence, expire_at) {
         (0, _) => Ok(STATE_INIT_EXPIRE_AT),
         (_, Some(value)) => Ok(value),

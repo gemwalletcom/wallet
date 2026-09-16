@@ -25,7 +25,9 @@ impl GemAvatarService {
     pub fn new(wallets: Arc<dyn GemWalletStore>, files: Arc<dyn GemFileStore>, provider: Arc<dyn AlienProvider>) -> Self {
         Self { wallets, files, provider }
     }
+}
 
+impl GemAvatarService {
     pub async fn set_image(&self, wallet_id: WalletId, image: Vec<u8>) -> Result<(), GemServiceError> {
         let file_name = self.files.save_file(image, IMAGE_EXTENSION.to_string())?;
         self.remove_previous(&wallet_id).await?;

@@ -61,7 +61,7 @@ struct SelectAssetSceneNavigationStack: View {
                             model: viewModelFactory.recipientScene(
                                 wallet: model.wallet,
                                 asset: input.asset,
-                                type: .asset(asset: input.asset.map()),
+                                type: .asset(asset: input.asset.toGem()),
                                 recipient: recipient,
                                 onRecipientDataAction: {
                                     navigationPath.append(AmountInput(type: .transfer(recipient: $0), asset: input.asset))

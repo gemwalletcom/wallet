@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space8
@@ -45,17 +45,14 @@ fun ChartHeader(
             Text(
                 text = model.priceText,
                 style = changeStyle,
-                color = when (model.type) {
-                    GemChartValueType.PRICE -> MaterialTheme.colorScheme.onSurface
-                    GemChartValueType.PRICE_CHANGE -> model.direction.color()
-                },
+                color = model.priceTone.color(),
             )
             model.changeText?.let { change ->
                 Spacer(modifier = Modifier.width(space8))
                 Text(
                     text = change,
                     style = if (model.headerValueText != null) changeStyle else MaterialTheme.typography.bodyLarge,
-                    color = model.direction.color(),
+                    color = model.changeTone.color(),
                 )
             }
         }

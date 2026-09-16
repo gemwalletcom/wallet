@@ -223,7 +223,6 @@ struct WalletIdMigrationTests {
     func updateChildTableReferences() throws {
         let userDefaults = UserDefaults.mock()
         let db = DB.mockWithChains([.ethereum])
-        let walletStore = WalletStore(db: db)
         let assetStore = AssetStore(db: db)
 
         let oldId = "uuid-with-balances"

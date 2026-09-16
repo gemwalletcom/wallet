@@ -2,15 +2,15 @@ pub mod model;
 pub mod permissions;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::{Asset, BannerEvent, BannerState, Wallet};
 
-pub use model::{
-    GemBannerAction, GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle,
-};
+pub use model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle};
 pub use permissions::GemNotificationPermissions;
 pub use store::GemBannerStore;
 
@@ -28,13 +28,6 @@ impl GemBannerService {
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
         self.add_missing_banners(rules::wallet_setup_keys(&wallet)).await
-    }
-
-    pub async fn apply_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
-        match action.is_dismissal() {
-            true => self.close(key).await,
-            false => Ok(()),
-        }
     }
 
     pub async fn close(&self, key: GemBannerKey) -> Result<(), GemServiceError> {
@@ -67,37 +60,10 @@ impl GemBannerService {
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::MemoryBannerStore;
     use super::*;
     use futures::executor::block_on;
-    use async_trait::async_trait;
     use primitives::{Account, WalletSource};
-    use std::collections::HashMap;
-    use std::sync::Mutex;
-
-    #[derive(Default)]
-    struct MemoryBannerStore {
-        states: Mutex<HashMap<String, BannerState>>,
-        writes: Mutex<Vec<Vec<GemBannerKey>>>,
-    }
-
-    #[async_trait]
-    impl GemBannerStore for MemoryBannerStore {
-        async fn get_state(&self, key: GemBannerKey) -> Result<Option<BannerState>, GemServiceError> {
-            Ok(self.states.lock().unwrap().get(&key.identifier()).copied())
-        }
-        async fn set_state(&self, key: GemBannerKey, state: BannerState) -> Result<(), GemServiceError> {
-            self.states.lock().unwrap().insert(key.identifier(), state);
-            Ok(())
-        }
-        async fn add_banners(&self, keys: Vec<GemBannerKey>, state: BannerState) -> Result<(), GemServiceError> {
-            let mut states = self.states.lock().unwrap();
-            for key in &keys {
-                states.entry(key.identifier()).or_insert(state);
-            }
-            self.writes.lock().unwrap().push(keys);
-            Ok(())
-        }
-    }
 
     fn wallet(source: WalletSource) -> Wallet {
         Wallet {

@@ -15,9 +15,9 @@ class AmountErrorMapperTest {
     private val asset = mockAssetCosmos().toGem()
 
     @Test
-    fun `insufficient balance error uses asset symbol`() {
+    fun `insufficient balance error names the asset`() {
         val error = GemAmountException.InsufficientBalance(asset, GemBalanceRequirement(BigInteger("200000000"), BigInteger("100000000"), BigInteger("100000000"))).toAmountError()
-        assertEquals("ATOM", (error as AmountError.InsufficientBalance).assetSymbol)
+        assertEquals("Cosmos (ATOM)", (error as AmountError.InsufficientBalance).assetTitle)
     }
 
     @Test

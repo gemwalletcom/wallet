@@ -23,7 +23,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetPriceValue
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
 import uniffi.gemstone.GemConfirmButton
@@ -97,7 +96,7 @@ class ConfirmViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
-    val screen = MutableStateFlow(GemConfirmScreen(phase = GemConfirmPhase.LOADING, amountFailed = false, hasCriticalWarning = false, failure = null))
+    val screen = MutableStateFlow(GemConfirmScreen(phase = GemConfirmPhase.LOADING, hasCriticalWarning = false, failure = null))
 
     val isNetworkFeeSheetVisible = MutableStateFlow(false)
     val feeSelection = MutableStateFlow<GemConfirmFeeSelection>(GemConfirmFeeSelection.Priority(FeePriority.Normal.toGem()))
@@ -107,6 +106,7 @@ class ConfirmViewModel @Inject constructor(
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
         .filterNotNull()
         .mapNotNull { paramsPack -> unpackTransferData(paramsPack) }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val title = request.map { it?.title() }
@@ -128,7 +128,7 @@ class ConfirmViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val currency = confirmation.filterNotNull()
-        .map { it.getCurrency().toCurrency() }
+        .map { it.getCurrency().toPrimitives() }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -170,6 +170,7 @@ class ConfirmViewModel @Inject constructor(
 
     val simulation = content
         .map { it?.load?.simulation?.toSimulation(it.session) ?: Simulation() }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
 
     val payloadAddressNames = content
@@ -196,10 +197,7 @@ class ConfirmViewModel @Inject constructor(
     private val transferAmount = content.map { content ->
         when (val amount = content?.load?.preload?.amount ?: return@map null) {
             is GemTransferAmountResult.Amount -> amount.amount.value
-            is GemTransferAmountResult.Error -> {
-                showError(amount.error)
-                null
-            }
+            is GemTransferAmountResult.Error -> null
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -234,6 +232,7 @@ class ConfirmViewModel @Inject constructor(
 
     val detailElements = combine(request, content, ::buildDetailElements)
         .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val transactionProperties = combine(request, session, content) { request, session, content ->
@@ -253,6 +252,7 @@ class ConfirmViewModel @Inject constructor(
             } else {
                 FeeUIModel.FeeInfo(
                     amount = confirmData.fee.fee,
+                    additionalFees = confirmData.additionalFees,
                     feeAsset = content.feeAssetUIModel.asset,
                     price = content.feeAssetUIModel.price?.price?.price,
                     currency = content.currency,
@@ -393,15 +393,13 @@ class ConfirmViewModel @Inject constructor(
             SwapDetailsUIModelInput(
                 payAsset = fromAsset,
                 receiveAsset = toAsset,
-                rate = summary.rate,
+                summary = summary,
                 provider = provider,
                 slippageBps = swapData.quote.slippageBps,
                 selectedSlippage = swapData.quote.slippageBps,
-                etaInSeconds = swapData.quote.etaInSeconds,
                 isProviderSelectable = false,
                 priceImpact = fromAsset.swapValue(transfer.value)
                     .priceImpact(toAsset.swapValue(swapData.quote.toValue)),
-                minReceiveValue = summary.minReceiveValue,
             ),
         ) ?: return null
 

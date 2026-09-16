@@ -10,7 +10,7 @@ struct CurrencyViewModel {
     let flag: String
 
     init(row: GemCurrencyRow) {
-        currency = Currency(core: row.currency)
+        currency = row.currency.toPrimitives()
         flag = row.flag
     }
 

@@ -12,28 +12,28 @@ import PrimitivesComponents
 import Style
 
 public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
-    private let item: CoreListItem
     private let row: GemNotificationRow
 
     public let id: String
-    public let url: URL?
 
     public init(notification: InAppNotification) {
         id = notification.id
-        item = notification.item
-        row = notificationRow(notification: notification.map())
-        url = notification.item.url?.asURL
+        row = notificationRow(notification: notification.toGem())
+    }
+
+    public var url: URL? {
+        row.url?.asURL
     }
 
     var listItemModel: ListItemModel {
         ListItemModel(
-            title: item.title,
+            title: row.title,
             titleTag: row.isUnread ? Localized.Assets.Tags.new : nil,
             titleTagStyle: TextStyle(font: .footnote.weight(.medium), color: .blue, background: Colors.blue.opacity(.light)),
-            titleExtra: item.subtitle,
-            subtitle: item.value,
+            titleExtra: row.subtitle,
+            subtitle: row.value,
             subtitleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
-            subtitleExtra: item.subvalue,
+            subtitleExtra: row.subvalue,
             imageStyle: imageStyle,
         )
     }

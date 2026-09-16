@@ -31,10 +31,10 @@ public struct RecipientScene: View {
                 Group {
                     switch model.type {
                     case let .asset(asset):
-                        AssetPreviewView(model: AssetViewModel(asset: asset.map()))
+                        AssetPreviewView(model: AssetViewModel(asset: asset.toPrimitives()))
                     case let .nft(nftAsset):
                         NftPreviewView(
-                            assetImage: model.nftAssetImage(for: nftAsset.map()),
+                            assetImage: model.nftAssetImage(for: nftAsset.toPrimitives()),
                             name: nftAsset.name,
                             size: .image.large,
                         )

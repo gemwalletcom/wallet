@@ -25,18 +25,18 @@ struct AddressInputViewModelTests {
         model.nameRecordViewModel.state = .error
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().map())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
         #expect(model.validate())
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "other.eth").map())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "other.eth").toGem())
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: "test.eth").map())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: "test.eth").toGem())
         #expect(model.validate() == false)
 
         model.chain = .near
         model.inputModel.text = "h3rman.near"
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "h3rman.near", chain: .near, address: "h3rman.near", provider: .near).map())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "h3rman.near", chain: .near, address: "h3rman.near", provider: .near).toGem())
         #expect(model.validate())
     }
 
@@ -50,7 +50,7 @@ struct AddressInputViewModelTests {
         #expect(model.validate() == false)
         #expect(model.inputModel.error == nil, "a name the resolver still owns must not read as a bad address")
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().map())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
         #expect(model.validate())
         #expect(model.inputModel.error == nil)
     }
@@ -77,7 +77,7 @@ struct AddressInputViewModelTests {
         let model = AddressInputViewModel.mock()
 
         model.inputModel.text = "sometext"
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().map())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
         model.chain = .bitcoin
 
         #expect(model.nameResolveState == .none)
@@ -93,7 +93,7 @@ struct AddressInputViewModelTests {
         model.inputModel.text = " \n\(address)\r "
         #expect(model.resolvedAddress == checksummed)
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).map())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
         #expect(model.resolvedAddress == checksummed)
     }
 }

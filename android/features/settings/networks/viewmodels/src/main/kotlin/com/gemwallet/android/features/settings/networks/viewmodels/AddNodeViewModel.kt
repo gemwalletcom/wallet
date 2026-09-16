@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.features.settings.networks.viewmodels.models.AddNodeUIModel
+import com.gemwallet.android.ext.requireChain
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -26,7 +27,7 @@ class AddNodeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val session = MutableStateFlow<GemAddNodeSession?>(null)
-    val uiModel = session.map { AddNodeUIModel(chain = it?.chain?.let(Chain::valueOf), state = it?.viewState()) }
+    val uiModel = session.map { AddNodeUIModel(chain = it?.chain?.requireChain(), state = it?.viewState()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AddNodeUIModel())
     val url = mutableStateOf("")
     private var checkUrlJob: Job? = null

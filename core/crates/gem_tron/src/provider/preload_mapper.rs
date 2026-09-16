@@ -157,7 +157,9 @@ pub fn map_stake_data(account: &TronAccount, stake_type: &StakeType, raw_amount:
                 .and_modify(|value| *value = value.saturating_sub(vote_amount));
             votes.retain(|_, value| *value > 0);
             if votes.is_empty() {
-                return Ok(TronStakeData::Unfreeze { unfreezes: calculate_unfreeze_amounts(account.frozen_v2.as_deref(), raw_amount) });
+                return Ok(TronStakeData::Unfreeze {
+                    unfreezes: calculate_unfreeze_amounts(account.frozen_v2.as_deref(), raw_amount),
+                });
             }
         }
         StakeType::Redelegate(data) => {
@@ -179,20 +181,22 @@ pub fn map_stake_data(account: &TronAccount, stake_type: &StakeType, raw_amount:
             if raw_amount > available {
                 return Err(format!("Insufficient frozen {} balance: requested {}, available {}", resource.as_ref(), raw_amount, available).into());
             }
-            return Ok(TronStakeData::Unfreeze { unfreezes: vec![TronUnfreeze {
-                resource: *resource,
-                amount: raw_amount,
-            }] });
+            return Ok(TronStakeData::Unfreeze {
+                unfreezes: vec![TronUnfreeze {
+                    resource: *resource,
+                    amount: raw_amount,
+                }],
+            });
         }
     }
 
-    Ok(TronStakeData::Votes { votes: 
-        votes
+    Ok(TronStakeData::Votes {
+        votes: votes
             .into_iter()
             .filter(|(_, count)| *count > 0)
             .map(|(validator, count)| TronVote { validator, count })
             .collect(),
-     })
+    })
 }
 
 impl TronAccountUsage {
@@ -515,20 +519,24 @@ mod tests {
 
         assert_eq!(
             result,
-            TronStakeData::Unfreeze { unfreezes: vec![TronUnfreeze {
-                resource: Resource::Bandwidth,
-                amount: 1_000_000,
-            }] }
+            TronStakeData::Unfreeze {
+                unfreezes: vec![TronUnfreeze {
+                    resource: Resource::Bandwidth,
+                    amount: 1_000_000,
+                }]
+            }
         );
 
         let result = map_stake_data(&account, &StakeType::Unfreeze(Resource::Bandwidth), 1_500_000, 1).unwrap();
 
         assert_eq!(
             result,
-            TronStakeData::Unfreeze { unfreezes: vec![TronUnfreeze {
-                resource: Resource::Bandwidth,
-                amount: 1_500_000,
-            }] }
+            TronStakeData::Unfreeze {
+                unfreezes: vec![TronUnfreeze {
+                    resource: Resource::Bandwidth,
+                    amount: 1_500_000,
+                }]
+            }
         );
     }
 
@@ -583,10 +591,12 @@ mod tests {
 
         assert_eq!(
             result,
-            TronStakeData::Votes { votes: vec![TronVote {
-                validator: "validator".to_string(),
-                count: 3,
-            }] }
+            TronStakeData::Votes {
+                votes: vec![TronVote {
+                    validator: "validator".to_string(),
+                    count: 3,
+                }]
+            }
         );
     }
 
@@ -617,16 +627,18 @@ mod tests {
 
         assert_eq!(
             result,
-            TronStakeData::Unfreeze { unfreezes: vec![
-                TronUnfreeze {
-                    resource: Resource::Energy,
-                    amount: 100,
-                },
-                TronUnfreeze {
-                    resource: Resource::Bandwidth,
-                    amount: 20,
-                },
-            ] }
+            TronStakeData::Unfreeze {
+                unfreezes: vec![
+                    TronUnfreeze {
+                        resource: Resource::Energy,
+                        amount: 100,
+                    },
+                    TronUnfreeze {
+                        resource: Resource::Bandwidth,
+                        amount: 20,
+                    },
+                ]
+            }
         );
     }
 }

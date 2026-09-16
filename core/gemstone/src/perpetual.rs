@@ -5,13 +5,14 @@ use gem_hypercore::{
     perpetual_formatter::PerpetualFormatter,
     provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},
 };
+use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::ARBITRUM_USDC;
 use primitives::{
     Asset, AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection,
     PerpetualProvider, PerpetualType, TpslType,
 };
 
-use crate::config::perpetual_config::{HYPERLIQUID_DEPOSIT_ADDRESS, LEVERAGE_OPTIONS, STOP_LOSS_PERCENT_OPTIONS, TAKE_PROFIT_PERCENT_OPTIONS, leverage_options};
+use crate::config::perpetual_config::{LEVERAGE_OPTIONS, STOP_LOSS_PERCENT_OPTIONS, TAKE_PROFIT_PERCENT_OPTIONS, leverage_options};
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
@@ -21,6 +22,7 @@ use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
 const HYPERLIQUID_NAME: &str = "Hyperliquid";
+const EMPTY_VALUE: &str = "-";
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemPerpetual {
@@ -34,9 +36,27 @@ impl GemPerpetual {
         Self { provider }
     }
 
+    pub fn margin_text(&self, formatted_amount: String, margin_type_name: String) -> String {
+        format!("{} ({})", formatted_amount, margin_type_name)
+    }
+
+    pub fn position_text(&self, direction_name: String, formatted_leverage: String) -> String {
+        format!("{} {}", direction_name.to_uppercase(), formatted_leverage)
+    }
+
+    pub fn trigger_order_text(&self, label: String, formatted_price: Option<String>) -> String {
+        format!("{}: {}", label, formatted_price.as_deref().unwrap_or(EMPTY_VALUE))
+    }
+
     pub fn format_price(&self, price: f64, decimals: i32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_price(price, decimals),
+        }
+    }
+
+    pub fn format_input_price(&self, price: f64, decimals: i32, decimal_separator: String) -> String {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::format_input_price(price, decimals, decimal_separator.chars().next().unwrap_or('.')),
         }
     }
 
@@ -86,7 +106,7 @@ impl GemPerpetual {
 impl GemPerpetual {
     pub fn deposit_recipient(&self) -> GemRecipient {
         let address = match self.provider {
-            PerpetualProvider::Hypercore => HYPERLIQUID_DEPOSIT_ADDRESS.to_string(),
+            PerpetualProvider::Hypercore => HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS.to_string(),
         };
         GemRecipient { address, ..self.recipient() }
     }
@@ -269,6 +289,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_the_margin_and_trigger_templates_read_the_same_on_both_apps() {
+        let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
+
+        assert_eq!(perpetual.margin_text("$12.50".to_string(), "Cross".to_string()), "$12.50 (Cross)");
+        assert_eq!(perpetual.trigger_order_text("Take Profit".to_string(), Some("$120.00".to_string())), "Take Profit: $120.00");
+        assert_eq!(perpetual.trigger_order_text("Stop Loss".to_string(), None), "Stop Loss: -");
+    }
+
+    #[test]
     fn test_autoclose_validator_treats_an_unset_price_as_valid() {
         let validator = AutocloseValidator::new(TpslType::TakeProfit, PerpetualDirection::Long, 100.0);
 
@@ -326,5 +355,12 @@ mod option_tests {
         assert_eq!(perpetual.autoclose_percent(0), None);
         assert_eq!(perpetual.autoclose_percent(25), Some(25));
         assert_eq!(perpetual.leverage_text(40), "40x");
+    }
+
+    #[test]
+    fn test_a_position_row_shouts_its_direction_beside_the_leverage() {
+        let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
+        assert_eq!(perpetual.position_text("Long".to_string(), perpetual.leverage_text(5)), "LONG 5x");
+        assert_eq!(perpetual.position_text("Short".to_string(), perpetual.leverage_text(40)), "SHORT 40x");
     }
 }

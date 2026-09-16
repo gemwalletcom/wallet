@@ -23,7 +23,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.TabsBar
-import com.gemwallet.android.ui.components.titleRes
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -92,7 +92,7 @@ private fun StakeResourceSection(provider: AmountStakeProvider) {
         selected = resource,
         onSelect = provider::setResource,
     ) { item ->
-        Text(stringResource(item.titleRes()))
+        Text(stringResource(item.stringRes()))
     }
 }
 

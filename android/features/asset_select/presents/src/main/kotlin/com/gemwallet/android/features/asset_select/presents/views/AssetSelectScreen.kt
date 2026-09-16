@@ -9,6 +9,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,6 +25,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.components.screen.SceneTitle
+import com.gemwallet.android.features.asset_select.presents.localization.stringRes
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.wallet.core.primitives.Asset
@@ -35,7 +37,6 @@ import uniffi.gemstone.GemAssetRowTrailing
 
 @Composable
 fun AssetSelectScreen(
-    title: String = "",
     titleContent: (@Composable () -> Unit)? = null,
     closeIcon: Boolean = false,
     onCancel: () -> Unit,
@@ -48,6 +49,7 @@ fun AssetSelectScreen(
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
     val flow = viewModel.flow
+    val title = stringResource(flow.title.stringRes())
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val support: (AssetInfoDataAggregate) -> (@Composable () -> Unit)? = when (flow.row.subtitle) {

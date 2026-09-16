@@ -59,6 +59,12 @@ pub struct GemSignedTransaction {
     pub transaction_type: TransactionType,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemFeeOptionItem {
+    pub option: GemFeeOption,
+    pub value: GemBigInt,
+}
+
 #[derive(Debug, Default, Clone, uniffi::Record)]
 pub struct GemFeeOptions {
     pub options: HashMap<GemFeeOption, GemBigInt>,
@@ -249,6 +255,19 @@ impl GemFeeOptions {
     pub fn total(&self) -> GemBigInt {
         self.options.values().sum()
     }
+
+    pub fn items(&self) -> Vec<GemFeeOptionItem> {
+        let mut items = self
+            .options
+            .iter()
+            .map(|(option, value)| GemFeeOptionItem {
+                option: option.clone(),
+                value: value.clone(),
+            })
+            .collect::<Vec<_>>();
+        items.sort_by(|left, right| left.option.as_ref().cmp(right.option.as_ref()));
+        items
+    }
 }
 
 impl From<GemTransactionLoadFee> for TransactionFee {
@@ -272,5 +291,40 @@ impl From<TransactionFee> for GemTransactionLoadFee {
             options: GemFeeOptions { options: value.options },
             fee_asset: value.fee_asset,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::Chain;
+
+    #[test]
+    fn test_fee_items_preserve_total() {
+        let fee = GemTransactionLoadFee {
+            fee: 1_495_940.into(),
+            gas_price_type: GasPriceType::solana(5_000u64, 2_500u64, 25_000u64),
+            gas_limit: 100_000.into(),
+            options: GemFeeOptions {
+                options: HashMap::from([(FeeOption::TokenAccountCreation, 1_488_440.into())]),
+            },
+            fee_asset: AssetId::from_chain(Chain::Solana),
+        };
+
+        assert_eq!(
+            fee.options.items(),
+            vec![GemFeeOptionItem {
+                option: FeeOption::TokenAccountCreation,
+                value: 1_488_440.into()
+            }]
+        );
+        assert_eq!(fee.fee, 1_495_940.into());
+
+        let fee = GemTransactionLoadFee {
+            fee: 7_500.into(),
+            options: GemFeeOptions::default(),
+            ..fee
+        };
+        assert_eq!(fee.options.items(), vec![]);
     }
 }

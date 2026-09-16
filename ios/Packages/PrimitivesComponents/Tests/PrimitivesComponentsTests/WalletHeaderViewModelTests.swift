@@ -10,7 +10,7 @@ struct WalletHeaderViewModelTests {
     func title() {
         let model = WalletHeaderViewModel(
             totalValue: .mock(value: 1000),
-            currencyCode: Currency.usd.rawValue,
+            currency: .usd,
             showsPnl: true,
             actions: .buttons(buttons: []),
         )
@@ -21,7 +21,7 @@ struct WalletHeaderViewModelTests {
     func titleSmallValue() {
         let model = WalletHeaderViewModel(
             totalValue: .mock(value: 0.1041, pnlAmount: 0),
-            currencyCode: Currency.usd.rawValue,
+            currency: .usd,
             showsPnl: true,
             actions: .buttons(buttons: []),
         )
@@ -32,7 +32,7 @@ struct WalletHeaderViewModelTests {
     func subtitle() {
         let model = WalletHeaderViewModel(
             totalValue: .mock(value: 1000, pnlAmount: 50, pnlPercentage: 5),
-            currencyCode: Currency.usd.rawValue,
+            currency: .usd,
             showsPnl: true,
             actions: .buttons(buttons: []),
         )
@@ -43,7 +43,7 @@ struct WalletHeaderViewModelTests {
     func subtitleSmallPnlAmount() {
         let model = WalletHeaderViewModel(
             totalValue: .mock(value: 61.40, pnlAmount: 0.1041, pnlPercentage: 0.17),
-            currencyCode: Currency.usd.rawValue,
+            currency: .usd,
             showsPnl: true,
             actions: .buttons(buttons: []),
         )
@@ -54,7 +54,7 @@ struct WalletHeaderViewModelTests {
     func buttonsDisabled() {
         let model = WalletHeaderViewModel(
             totalValue: .mock(),
-            currencyCode: Currency.usd.rawValue,
+            currency: .usd,
             showsPnl: true,
             actions: .buttons(buttons: [GemHeaderButton(kind: .send, isEnabled: false), GemHeaderButton(kind: .swap, isEnabled: false)]),
         )

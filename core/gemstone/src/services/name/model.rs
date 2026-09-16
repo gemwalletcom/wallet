@@ -13,7 +13,9 @@ impl GemNameRecordState {
     pub fn record(&self) -> Option<NameRecord> {
         self.record_ref().cloned()
     }
+}
 
+impl GemNameRecordState {
     pub fn requested_name(&self) -> Option<String> {
         match self {
             Self::Loading { name } => Some(name.clone()),
@@ -21,9 +23,7 @@ impl GemNameRecordState {
             Self::None | Self::Error => None,
         }
     }
-}
 
-impl GemNameRecordState {
     pub fn record_ref(&self) -> Option<&NameRecord> {
         match self {
             Self::Complete { record } => Some(record),

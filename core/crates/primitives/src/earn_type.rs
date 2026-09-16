@@ -1,4 +1,3 @@
-
 use crate::{Delegation, DelegationValidator};
 
 #[derive(Debug, Clone)]

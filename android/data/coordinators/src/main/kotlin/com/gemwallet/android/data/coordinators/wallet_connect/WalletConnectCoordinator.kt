@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -146,10 +147,25 @@ class WalletConnectCoordinator(
 
     override fun rejectConnection(
         proposal: WalletConnectSessionProposal,
+        reason: GemWalletConnectRejectionReason,
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        walletConnectClient.rejectSession(proposal, onSuccess, onError)
+        val rejection = walletConnectService.sessionRejection(reason)
+        walletConnectClient.rejectSession(
+            proposal = proposal,
+            rejection = rejection,
+            onSuccess = {
+                if (rejection.deletesSession) {
+                    scope.launch {
+                        runCatching { walletConnectService.deleteSession(proposal.pairingTopic) }
+                            .onFailure { Log.e("WalletConnect", "Delete rejected session failed", it) }
+                    }
+                }
+                onSuccess()
+            },
+            onError = onError,
+        )
     }
 
     override fun approveAuthentication(

@@ -87,7 +87,7 @@ impl MessagePayloadPreview {
 fn grouped_payload_preview(message_type: MessageType, preview_fields: Vec<MessagePayloadField>, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
     let merged_payload = merge_payload(simulation_payload.clone(), preview_fields);
     let grouped_payload = if simulation_payload.is_empty() {
-        apply_preview_display_grouping(merged_payload)
+        grouped_preview_fields(merged_payload)
     } else {
         merged_payload
     };
@@ -138,7 +138,7 @@ fn merge_payload(mut simulation_payload: Vec<SimulationPayloadField>, preview_fi
     simulation_payload
 }
 
-fn apply_preview_display_grouping(payload: Vec<SimulationPayloadField>) -> Vec<SimulationPayloadField> {
+fn grouped_preview_fields(payload: Vec<SimulationPayloadField>) -> Vec<SimulationPayloadField> {
     let primary_keys = preview_primary_keys(&payload);
 
     payload

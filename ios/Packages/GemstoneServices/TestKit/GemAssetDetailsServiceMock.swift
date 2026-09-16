@@ -10,7 +10,6 @@ import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import struct Gemstone.GemAssetDetailsState
 import struct Gemstone.GemAssetRefreshFailure
-import enum Gemstone.GemBannerAction
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.BlockExplorerLink
@@ -43,7 +42,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
     }
 
-    public func applyBannerAction(key _: GemBannerKey, action _: GemBannerAction) async throws {}
+    public func closeBanner(key _: GemBannerKey) async throws {}
 
     public func details(input: GemAssetDetailsInput) -> GemAssetDetails {
         GemAssetDetails(
@@ -55,7 +54,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 showsResources: false,
                 showsPriceAlerts: false,
                 priceAlertsCount: 0,
-                priceAlertEnabled: false,
+                priceAlert: .disabled,
                 showsEarn: false,
                 emptyTransactionsAction: nil,
             ),

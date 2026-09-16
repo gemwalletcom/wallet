@@ -113,5 +113,5 @@ private fun VerificationStatus.display(): VerificationStatusDisplay? = when (thi
 @Composable
 private fun VerificationStatus.color(): Color = when (this) {
     VerificationStatus.Suspicious -> MaterialTheme.colorScheme.error
-    else -> pendingColor
+    VerificationStatus.Unverified, VerificationStatus.Verified -> pendingColor
 }

@@ -23,18 +23,18 @@ extension TransactionSwapProgressViewModel: ItemModelProvidable {
         guard let progress else {
             return .empty
         }
-        let fromAsset = progress.fromAsset.map()
+        let fromAsset = progress.fromAsset.toPrimitives()
         let amount = ValueFormatter.auto.string(BigInt(progress.fromValue), asset: fromAsset)
         return .swapProgress(TransactionSwapProgressItemModel(
             transfer: .init(
                 title: Localized.Transfer.title,
                 subtitle: "\(amount) (\(fromAsset.id.chain.networkName))",
-                status: progress.transfer,
+                state: progress.transfer,
             ),
             swap: .init(
                 title: Localized.Wallet.swap,
                 subtitle: progress.providerName,
-                status: progress.swap,
+                state: progress.swap,
             ),
             estimatedTime: progress.etaSeconds.map { EstimatedConfirmationFormatter().string(seconds: $0) },
         ))

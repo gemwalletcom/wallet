@@ -66,8 +66,17 @@ public struct TransactionInputViewModel: Sendable {
 
     private var displayAsset: Asset {
         switch data.inputType {
-        case .withdrawal: GemPerpetual(provider: .hypercore).depositAsset().map()
-        default: data.asset
+        case .withdrawal: GemPerpetual(provider: .hypercore).depositAsset().toPrimitives()
+        case .transfer,
+             .deposit,
+             .swap,
+             .stake,
+             .tokenApprove,
+             .generic,
+             .transferNft,
+             .account,
+             .perpetual,
+             .earn: data.asset
         }
     }
 

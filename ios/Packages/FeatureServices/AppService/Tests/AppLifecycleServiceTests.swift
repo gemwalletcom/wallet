@@ -116,7 +116,7 @@ extension AppLifecycleServiceTests {
         if let current {
             try walletSessionService.setCurrent(walletId: current.id)
         }
-        let service = try AppLifecycleService.mock(
+        let service = AppLifecycleService.mock(
             hyperliquidObserverService: observer,
             perpetualService: perpetuals,
             walletSessionService: walletSessionService,

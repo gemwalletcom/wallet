@@ -6,7 +6,7 @@ import Gemstone
 import Primitives
 
 public extension Gemstone.AccountDataType {
-    func map() -> Primitives.AccountDataType {
+    func toPrimitives() -> Primitives.AccountDataType {
         switch self {
         case .activate: .activate
         }
@@ -14,7 +14,7 @@ public extension Gemstone.AccountDataType {
 }
 
 public extension Primitives.AccountDataType {
-    func map() -> Gemstone.AccountDataType {
+    func toGem() -> Gemstone.AccountDataType {
         switch self {
         case .activate: .activate
         }
@@ -22,7 +22,7 @@ public extension Primitives.AccountDataType {
 }
 
 public extension Gemstone.AddressType {
-    func map() -> Primitives.AddressType {
+    func toPrimitives() -> Primitives.AddressType {
         switch self {
         case .address: .address
         case .contract: .contract
@@ -34,7 +34,7 @@ public extension Gemstone.AddressType {
 }
 
 public extension Primitives.AddressType {
-    func map() -> Gemstone.AddressType {
+    func toGem() -> Gemstone.AddressType {
         switch self {
         case .address: .address
         case .contract: .contract
@@ -46,7 +46,7 @@ public extension Primitives.AddressType {
 }
 
 public extension Gemstone.Appearance {
-    func map() -> Primitives.Appearance {
+    func toPrimitives() -> Primitives.Appearance {
         switch self {
         case .system: .system
         case .light: .light
@@ -56,7 +56,7 @@ public extension Gemstone.Appearance {
 }
 
 public extension Primitives.Appearance {
-    func map() -> Gemstone.Appearance {
+    func toGem() -> Gemstone.Appearance {
         switch self {
         case .system: .system
         case .light: .light
@@ -66,7 +66,7 @@ public extension Primitives.Appearance {
 }
 
 public extension Gemstone.ApplicationMetadataSource {
-    func map() -> Primitives.ApplicationMetadataSource {
+    func toPrimitives() -> Primitives.ApplicationMetadataSource {
         switch self {
         case .walletConnect: .walletConnect
         case .payment: .payment
@@ -75,7 +75,7 @@ public extension Gemstone.ApplicationMetadataSource {
 }
 
 public extension Primitives.ApplicationMetadataSource {
-    func map() -> Gemstone.ApplicationMetadataSource {
+    func toGem() -> Gemstone.ApplicationMetadataSource {
         switch self {
         case .walletConnect: .walletConnect
         case .payment: .payment
@@ -84,7 +84,7 @@ public extension Primitives.ApplicationMetadataSource {
 }
 
 public extension Gemstone.AssetAssociationType {
-    func map() -> Primitives.AssetAssociationType {
+    func toPrimitives() -> Primitives.AssetAssociationType {
         switch self {
         case .official: .official
         case .bridged: .bridged
@@ -94,7 +94,7 @@ public extension Gemstone.AssetAssociationType {
 }
 
 public extension Primitives.AssetAssociationType {
-    func map() -> Gemstone.AssetAssociationType {
+    func toGem() -> Gemstone.AssetAssociationType {
         switch self {
         case .official: .official
         case .bridged: .bridged
@@ -104,7 +104,7 @@ public extension Primitives.AssetAssociationType {
 }
 
 public extension Gemstone.AssetType {
-    func map() -> Primitives.AssetType {
+    func toPrimitives() -> Primitives.AssetType {
         switch self {
         case .native: .native
         case .erc20: .erc20
@@ -125,7 +125,7 @@ public extension Gemstone.AssetType {
 }
 
 public extension Primitives.AssetType {
-    func map() -> Gemstone.AssetType {
+    func toGem() -> Gemstone.AssetType {
         switch self {
         case .native: .native
         case .erc20: .erc20
@@ -146,7 +146,7 @@ public extension Primitives.AssetType {
 }
 
 public extension Gemstone.BannerEvent {
-    func map() -> Primitives.BannerEvent {
+    func toPrimitives() -> Primitives.BannerEvent {
         switch self {
         case .stake: .stake
         case .accountActivation: .accountActivation
@@ -160,7 +160,7 @@ public extension Gemstone.BannerEvent {
 }
 
 public extension Primitives.BannerEvent {
-    func map() -> Gemstone.BannerEvent {
+    func toGem() -> Gemstone.BannerEvent {
         switch self {
         case .stake: .stake
         case .accountActivation: .accountActivation
@@ -174,7 +174,7 @@ public extension Primitives.BannerEvent {
 }
 
 public extension Gemstone.BannerState {
-    func map() -> Primitives.BannerState {
+    func toPrimitives() -> Primitives.BannerState {
         switch self {
         case .active: .active
         case .cancelled: .cancelled
@@ -184,7 +184,7 @@ public extension Gemstone.BannerState {
 }
 
 public extension Primitives.BannerState {
-    func map() -> Gemstone.BannerState {
+    func toGem() -> Gemstone.BannerState {
         switch self {
         case .active: .active
         case .cancelled: .cancelled
@@ -201,13 +201,13 @@ public extension Primitives.Chain {
         self = value
     }
 
-    func map() -> Gemstone.Chain {
+    func toGem() -> Gemstone.Chain {
         rawValue
     }
 }
 
 public extension Gemstone.ChainType {
-    func map() -> Primitives.ChainType {
+    func toPrimitives() -> Primitives.ChainType {
         switch self {
         case .ethereum: .ethereum
         case .bitcoin: .bitcoin
@@ -229,7 +229,7 @@ public extension Gemstone.ChainType {
 }
 
 public extension Primitives.ChainType {
-    func map() -> Gemstone.ChainType {
+    func toGem() -> Gemstone.ChainType {
         switch self {
         case .ethereum: .ethereum
         case .bitcoin: .bitcoin
@@ -251,7 +251,7 @@ public extension Primitives.ChainType {
 }
 
 public extension Gemstone.ChartPeriod {
-    func map() -> Primitives.ChartPeriod {
+    func toPrimitives() -> Primitives.ChartPeriod {
         switch self {
         case .hour: .hour
         case .day: .day
@@ -264,7 +264,7 @@ public extension Gemstone.ChartPeriod {
 }
 
 public extension Primitives.ChartPeriod {
-    func map() -> Gemstone.ChartPeriod {
+    func toGem() -> Gemstone.ChartPeriod {
         switch self {
         case .hour: .hour
         case .day: .day
@@ -277,7 +277,7 @@ public extension Primitives.ChartPeriod {
 }
 
 public extension Gemstone.ConnectionComponent {
-    func map() -> Primitives.ConnectionComponent {
+    func toPrimitives() -> Primitives.ConnectionComponent {
         switch self {
         case .internet: .internet
         case .stream: .stream
@@ -286,7 +286,7 @@ public extension Gemstone.ConnectionComponent {
 }
 
 public extension Primitives.ConnectionComponent {
-    func map() -> Gemstone.ConnectionComponent {
+    func toGem() -> Gemstone.ConnectionComponent {
         switch self {
         case .internet: .internet
         case .stream: .stream
@@ -295,7 +295,7 @@ public extension Primitives.ConnectionComponent {
 }
 
 public extension Gemstone.ConnectionStatus {
-    func map() -> Primitives.ConnectionStatus {
+    func toPrimitives() -> Primitives.ConnectionStatus {
         switch self {
         case .online: .online
         case .noInternet: .noInternet
@@ -305,7 +305,7 @@ public extension Gemstone.ConnectionStatus {
 }
 
 public extension Primitives.ConnectionStatus {
-    func map() -> Gemstone.ConnectionStatus {
+    func toGem() -> Gemstone.ConnectionStatus {
         switch self {
         case .online: .online
         case .noInternet: .noInternet
@@ -315,7 +315,7 @@ public extension Primitives.ConnectionStatus {
 }
 
 public extension Gemstone.CoreEmoji {
-    func map() -> Primitives.CoreEmoji {
+    func toPrimitives() -> Primitives.CoreEmoji {
         switch self {
         case .gift: .gift
         case .gem: .gem
@@ -326,7 +326,7 @@ public extension Gemstone.CoreEmoji {
 }
 
 public extension Primitives.CoreEmoji {
-    func map() -> Gemstone.CoreEmoji {
+    func toGem() -> Gemstone.CoreEmoji {
         switch self {
         case .gift: .gift
         case .gem: .gem
@@ -337,7 +337,7 @@ public extension Primitives.CoreEmoji {
 }
 
 public extension Gemstone.CoreListItemBadge {
-    func map() -> Primitives.CoreListItemBadge {
+    func toPrimitives() -> Primitives.CoreListItemBadge {
         switch self {
         case .new: .new
         }
@@ -345,7 +345,7 @@ public extension Gemstone.CoreListItemBadge {
 }
 
 public extension Primitives.CoreListItemBadge {
-    func map() -> Gemstone.CoreListItemBadge {
+    func toGem() -> Gemstone.CoreListItemBadge {
         switch self {
         case .new: .new
         }
@@ -353,9 +353,9 @@ public extension Primitives.CoreListItemBadge {
 }
 
 public extension Gemstone.CoreListItemIcon {
-    func map() -> Primitives.CoreListItemIcon {
+    func toPrimitives() -> Primitives.CoreListItemIcon {
         switch self {
-        case .emoji(let value): .emoji(value.map())
+        case .emoji(let value): .emoji(value.toPrimitives())
         case .asset(let value): .asset(Primitives.AssetId(core: value))
         case .image(let value): .image(value)
         }
@@ -363,30 +363,141 @@ public extension Gemstone.CoreListItemIcon {
 }
 
 public extension Primitives.CoreListItemIcon {
-    func map() -> Gemstone.CoreListItemIcon {
+    func toGem() -> Gemstone.CoreListItemIcon {
         switch self {
-        case .emoji(let value): .emoji(value.map())
+        case .emoji(let value): .emoji(value.toGem())
         case .asset(let value): .asset(value.identifier)
         case .image(let value): .image(value)
         }
     }
 }
 
-public extension Primitives.Currency {
-    init(core: Gemstone.Currency) {
-        guard let value = Primitives.Currency(rawValue: core) else {
-            fatalError("Core returned a Currency this build does not know: \(core)")
+public extension Gemstone.Currency {
+    func toPrimitives() -> Primitives.Currency {
+        switch self {
+        case .mxn: .mxn
+        case .chf: .chf
+        case .cny: .cny
+        case .thb: .thb
+        case .huf: .huf
+        case .aud: .aud
+        case .idr: .idr
+        case .rub: .rub
+        case .zar: .zar
+        case .eur: .eur
+        case .nzd: .nzd
+        case .sar: .sar
+        case .sgd: .sgd
+        case .bmd: .bmd
+        case .kwd: .kwd
+        case .hkd: .hkd
+        case .jpy: .jpy
+        case .gbp: .gbp
+        case .dkk: .dkk
+        case .krw: .krw
+        case .php: .php
+        case .clp: .clp
+        case .twd: .twd
+        case .pkr: .pkr
+        case .brl: .brl
+        case .cad: .cad
+        case .bhd: .bhd
+        case .mmk: .mmk
+        case .vef: .vef
+        case .vnd: .vnd
+        case .czk: .czk
+        case .try: .try
+        case .inr: .inr
+        case .ars: .ars
+        case .bdt: .bdt
+        case .nok: .nok
+        case .usd: .usd
+        case .lkr: .lkr
+        case .ils: .ils
+        case .pln: .pln
+        case .ngn: .ngn
+        case .uah: .uah
+        case .xdr: .xdr
+        case .myr: .myr
+        case .aed: .aed
+        case .sek: .sek
+        case .byn: .byn
+        case .kzt: .kzt
+        case .uzs: .uzs
+        case .egp: .egp
+        case .kes: .kes
+        case .cop: .cop
+        case .mad: .mad
+        case .ghs: .ghs
+        case .pen: .pen
         }
-        self = value
     }
+}
 
-    func map() -> Gemstone.Currency {
-        rawValue
+public extension Primitives.Currency {
+    func toGem() -> Gemstone.Currency {
+        switch self {
+        case .mxn: .mxn
+        case .chf: .chf
+        case .cny: .cny
+        case .thb: .thb
+        case .huf: .huf
+        case .aud: .aud
+        case .idr: .idr
+        case .rub: .rub
+        case .zar: .zar
+        case .eur: .eur
+        case .nzd: .nzd
+        case .sar: .sar
+        case .sgd: .sgd
+        case .bmd: .bmd
+        case .kwd: .kwd
+        case .hkd: .hkd
+        case .jpy: .jpy
+        case .gbp: .gbp
+        case .dkk: .dkk
+        case .krw: .krw
+        case .php: .php
+        case .clp: .clp
+        case .twd: .twd
+        case .pkr: .pkr
+        case .brl: .brl
+        case .cad: .cad
+        case .bhd: .bhd
+        case .mmk: .mmk
+        case .vef: .vef
+        case .vnd: .vnd
+        case .czk: .czk
+        case .try: .try
+        case .inr: .inr
+        case .ars: .ars
+        case .bdt: .bdt
+        case .nok: .nok
+        case .usd: .usd
+        case .lkr: .lkr
+        case .ils: .ils
+        case .pln: .pln
+        case .ngn: .ngn
+        case .uah: .uah
+        case .xdr: .xdr
+        case .myr: .myr
+        case .aed: .aed
+        case .sek: .sek
+        case .byn: .byn
+        case .kzt: .kzt
+        case .uzs: .uzs
+        case .egp: .egp
+        case .kes: .kes
+        case .cop: .cop
+        case .mad: .mad
+        case .ghs: .ghs
+        case .pen: .pen
+        }
     }
 }
 
 public extension Gemstone.DelegationState {
-    func map() -> Primitives.DelegationState {
+    func toPrimitives() -> Primitives.DelegationState {
         switch self {
         case .active: .active
         case .pending: .pending
@@ -399,7 +510,7 @@ public extension Gemstone.DelegationState {
 }
 
 public extension Primitives.DelegationState {
-    func map() -> Gemstone.DelegationState {
+    func toGem() -> Gemstone.DelegationState {
         switch self {
         case .active: .active
         case .pending: .pending
@@ -412,7 +523,7 @@ public extension Primitives.DelegationState {
 }
 
 public extension Gemstone.DeviceLocale {
-    func map() -> Primitives.DeviceLocale {
+    func toPrimitives() -> Primitives.DeviceLocale {
         switch self {
         case .ar: .ar
         case .bn: .bn
@@ -450,7 +561,7 @@ public extension Gemstone.DeviceLocale {
 }
 
 public extension Primitives.DeviceLocale {
-    func map() -> Gemstone.DeviceLocale {
+    func toGem() -> Gemstone.DeviceLocale {
         switch self {
         case .ar: .ar
         case .bn: .bn
@@ -488,7 +599,7 @@ public extension Primitives.DeviceLocale {
 }
 
 public extension Gemstone.FeePriority {
-    func map() -> Primitives.FeePriority {
+    func toPrimitives() -> Primitives.FeePriority {
         switch self {
         case .normal: .normal
         case .fast: .fast
@@ -497,7 +608,7 @@ public extension Gemstone.FeePriority {
 }
 
 public extension Primitives.FeePriority {
-    func map() -> Gemstone.FeePriority {
+    func toGem() -> Gemstone.FeePriority {
         switch self {
         case .normal: .normal
         case .fast: .fast
@@ -506,7 +617,7 @@ public extension Primitives.FeePriority {
 }
 
 public extension Gemstone.FeeUnitType {
-    func map() -> Primitives.FeeUnitType {
+    func toPrimitives() -> Primitives.FeeUnitType {
         switch self {
         case .satVb: .satVb
         case .gwei: .gwei
@@ -516,7 +627,7 @@ public extension Gemstone.FeeUnitType {
 }
 
 public extension Primitives.FeeUnitType {
-    func map() -> Gemstone.FeeUnitType {
+    func toGem() -> Gemstone.FeeUnitType {
         switch self {
         case .satVb: .satVb
         case .gwei: .gwei
@@ -526,7 +637,7 @@ public extension Primitives.FeeUnitType {
 }
 
 public extension Gemstone.FiatProviderName {
-    func map() -> Primitives.FiatProviderName {
+    func toPrimitives() -> Primitives.FiatProviderName {
         switch self {
         case .mercuryo: .mercuryo
         case .transak: .transak
@@ -539,7 +650,7 @@ public extension Gemstone.FiatProviderName {
 }
 
 public extension Primitives.FiatProviderName {
-    func map() -> Gemstone.FiatProviderName {
+    func toGem() -> Gemstone.FiatProviderName {
         switch self {
         case .mercuryo: .mercuryo
         case .transak: .transak
@@ -552,7 +663,7 @@ public extension Primitives.FiatProviderName {
 }
 
 public extension Gemstone.FiatQuoteType {
-    func map() -> Primitives.FiatQuoteType {
+    func toPrimitives() -> Primitives.FiatQuoteType {
         switch self {
         case .buy: .buy
         case .sell: .sell
@@ -561,7 +672,7 @@ public extension Gemstone.FiatQuoteType {
 }
 
 public extension Primitives.FiatQuoteType {
-    func map() -> Gemstone.FiatQuoteType {
+    func toGem() -> Gemstone.FiatQuoteType {
         switch self {
         case .buy: .buy
         case .sell: .sell
@@ -570,7 +681,7 @@ public extension Primitives.FiatQuoteType {
 }
 
 public extension Gemstone.FiatTransactionStatus {
-    func map() -> Primitives.FiatTransactionStatus {
+    func toPrimitives() -> Primitives.FiatTransactionStatus {
         switch self {
         case .complete: .complete
         case .pending: .pending
@@ -581,7 +692,7 @@ public extension Gemstone.FiatTransactionStatus {
 }
 
 public extension Primitives.FiatTransactionStatus {
-    func map() -> Gemstone.FiatTransactionStatus {
+    func toGem() -> Gemstone.FiatTransactionStatus {
         switch self {
         case .complete: .complete
         case .pending: .pending
@@ -592,7 +703,7 @@ public extension Primitives.FiatTransactionStatus {
 }
 
 public extension Gemstone.LatencyType {
-    func map() -> Primitives.LatencyType {
+    func toPrimitives() -> Primitives.LatencyType {
         switch self {
         case .fast: .fast
         case .normal: .normal
@@ -602,7 +713,7 @@ public extension Gemstone.LatencyType {
 }
 
 public extension Primitives.LatencyType {
-    func map() -> Gemstone.LatencyType {
+    func toGem() -> Gemstone.LatencyType {
         switch self {
         case .fast: .fast
         case .normal: .normal
@@ -612,7 +723,7 @@ public extension Primitives.LatencyType {
 }
 
 public extension Gemstone.LinkType {
-    func map() -> Primitives.LinkType {
+    func toPrimitives() -> Primitives.LinkType {
         switch self {
         case .x: .x
         case .discord: .discord
@@ -633,7 +744,7 @@ public extension Gemstone.LinkType {
 }
 
 public extension Primitives.LinkType {
-    func map() -> Gemstone.LinkType {
+    func toGem() -> Gemstone.LinkType {
         switch self {
         case .x: .x
         case .discord: .discord
@@ -654,7 +765,7 @@ public extension Primitives.LinkType {
 }
 
 public extension Gemstone.NftAttributeType {
-    func map() -> Primitives.NFTAttributeType {
+    func toPrimitives() -> Primitives.NFTAttributeType {
         switch self {
         case .string: .string
         case .timestamp: .timestamp
@@ -663,7 +774,7 @@ public extension Gemstone.NftAttributeType {
 }
 
 public extension Primitives.NFTAttributeType {
-    func map() -> Gemstone.NftAttributeType {
+    func toGem() -> Gemstone.NftAttributeType {
         switch self {
         case .string: .string
         case .timestamp: .timestamp
@@ -672,7 +783,7 @@ public extension Primitives.NFTAttributeType {
 }
 
 public extension Gemstone.NftType {
-    func map() -> Primitives.NFTType {
+    func toPrimitives() -> Primitives.NFTType {
         switch self {
         case .erc721: .erc721
         case .erc1155: .erc1155
@@ -683,7 +794,7 @@ public extension Gemstone.NftType {
 }
 
 public extension Primitives.NFTType {
-    func map() -> Gemstone.NftType {
+    func toGem() -> Gemstone.NftType {
         switch self {
         case .erc721: .erc721
         case .erc1155: .erc1155
@@ -694,7 +805,7 @@ public extension Primitives.NFTType {
 }
 
 public extension Gemstone.NameProvider {
-    func map() -> Primitives.NameProvider {
+    func toPrimitives() -> Primitives.NameProvider {
         switch self {
         case .ud: .ud
         case .ens: .ens
@@ -716,7 +827,7 @@ public extension Gemstone.NameProvider {
 }
 
 public extension Primitives.NameProvider {
-    func map() -> Gemstone.NameProvider {
+    func toGem() -> Gemstone.NameProvider {
         switch self {
         case .ud: .ud
         case .ens: .ens
@@ -738,7 +849,7 @@ public extension Primitives.NameProvider {
 }
 
 public extension Gemstone.NodeState {
-    func map() -> Primitives.NodeState {
+    func toPrimitives() -> Primitives.NodeState {
         switch self {
         case .active: .active
         case .inactive: .inactive
@@ -747,7 +858,7 @@ public extension Gemstone.NodeState {
 }
 
 public extension Primitives.NodeState {
-    func map() -> Gemstone.NodeState {
+    func toGem() -> Gemstone.NodeState {
         switch self {
         case .active: .active
         case .inactive: .inactive
@@ -756,7 +867,7 @@ public extension Primitives.NodeState {
 }
 
 public extension Gemstone.PerpetualAccountMode {
-    func map() -> Primitives.PerpetualAccountMode {
+    func toPrimitives() -> Primitives.PerpetualAccountMode {
         switch self {
         case .standard: .standard
         case .unified: .unified
@@ -765,7 +876,7 @@ public extension Gemstone.PerpetualAccountMode {
 }
 
 public extension Primitives.PerpetualAccountMode {
-    func map() -> Gemstone.PerpetualAccountMode {
+    func toGem() -> Gemstone.PerpetualAccountMode {
         switch self {
         case .standard: .standard
         case .unified: .unified
@@ -774,7 +885,7 @@ public extension Primitives.PerpetualAccountMode {
 }
 
 public extension Gemstone.PerpetualDirection {
-    func map() -> Primitives.PerpetualDirection {
+    func toPrimitives() -> Primitives.PerpetualDirection {
         switch self {
         case .short: .short
         case .long: .long
@@ -783,7 +894,7 @@ public extension Gemstone.PerpetualDirection {
 }
 
 public extension Primitives.PerpetualDirection {
-    func map() -> Gemstone.PerpetualDirection {
+    func toGem() -> Gemstone.PerpetualDirection {
         switch self {
         case .short: .short
         case .long: .long
@@ -792,7 +903,7 @@ public extension Primitives.PerpetualDirection {
 }
 
 public extension Gemstone.PerpetualMarginType {
-    func map() -> Primitives.PerpetualMarginType {
+    func toPrimitives() -> Primitives.PerpetualMarginType {
         switch self {
         case .cross: .cross
         case .isolated: .isolated
@@ -801,7 +912,7 @@ public extension Gemstone.PerpetualMarginType {
 }
 
 public extension Primitives.PerpetualMarginType {
-    func map() -> Gemstone.PerpetualMarginType {
+    func toGem() -> Gemstone.PerpetualMarginType {
         switch self {
         case .cross: .cross
         case .isolated: .isolated
@@ -810,7 +921,7 @@ public extension Primitives.PerpetualMarginType {
 }
 
 public extension Gemstone.PerpetualOrderType {
-    func map() -> Primitives.PerpetualOrderType {
+    func toPrimitives() -> Primitives.PerpetualOrderType {
         switch self {
         case .market: .market
         case .limit: .limit
@@ -819,7 +930,7 @@ public extension Gemstone.PerpetualOrderType {
 }
 
 public extension Primitives.PerpetualOrderType {
-    func map() -> Gemstone.PerpetualOrderType {
+    func toGem() -> Gemstone.PerpetualOrderType {
         switch self {
         case .market: .market
         case .limit: .limit
@@ -828,7 +939,7 @@ public extension Primitives.PerpetualOrderType {
 }
 
 public extension Gemstone.PerpetualProvider {
-    func map() -> Primitives.PerpetualProvider {
+    func toPrimitives() -> Primitives.PerpetualProvider {
         switch self {
         case .hypercore: .hypercore
         }
@@ -836,7 +947,7 @@ public extension Gemstone.PerpetualProvider {
 }
 
 public extension Primitives.PerpetualProvider {
-    func map() -> Gemstone.PerpetualProvider {
+    func toGem() -> Gemstone.PerpetualProvider {
         switch self {
         case .hypercore: .hypercore
         }
@@ -844,7 +955,7 @@ public extension Primitives.PerpetualProvider {
 }
 
 public extension Gemstone.Platform {
-    func map() -> Primitives.Platform {
+    func toPrimitives() -> Primitives.Platform {
         switch self {
         case .ios: .ios
         case .android: .android
@@ -853,7 +964,7 @@ public extension Gemstone.Platform {
 }
 
 public extension Primitives.Platform {
-    func map() -> Gemstone.Platform {
+    func toGem() -> Gemstone.Platform {
         switch self {
         case .ios: .ios
         case .android: .android
@@ -862,7 +973,7 @@ public extension Primitives.Platform {
 }
 
 public extension Gemstone.PlatformStore {
-    func map() -> Primitives.PlatformStore {
+    func toPrimitives() -> Primitives.PlatformStore {
         switch self {
         case .appStore: .appStore
         case .googlePlay: .googlePlay
@@ -878,7 +989,7 @@ public extension Gemstone.PlatformStore {
 }
 
 public extension Primitives.PlatformStore {
-    func map() -> Gemstone.PlatformStore {
+    func toGem() -> Gemstone.PlatformStore {
         switch self {
         case .appStore: .appStore
         case .googlePlay: .googlePlay
@@ -894,7 +1005,7 @@ public extension Primitives.PlatformStore {
 }
 
 public extension Gemstone.PortfolioChartType {
-    func map() -> Primitives.PortfolioChartType {
+    func toPrimitives() -> Primitives.PortfolioChartType {
         switch self {
         case .value: .value
         case .pnl: .pnl
@@ -903,7 +1014,7 @@ public extension Gemstone.PortfolioChartType {
 }
 
 public extension Primitives.PortfolioChartType {
-    func map() -> Gemstone.PortfolioChartType {
+    func toGem() -> Gemstone.PortfolioChartType {
         switch self {
         case .value: .value
         case .pnl: .pnl
@@ -912,7 +1023,7 @@ public extension Primitives.PortfolioChartType {
 }
 
 public extension Gemstone.PortfolioType {
-    func map() -> Primitives.PortfolioType {
+    func toPrimitives() -> Primitives.PortfolioType {
         switch self {
         case .wallet: .wallet
         case .perpetuals: .perpetuals
@@ -921,7 +1032,7 @@ public extension Gemstone.PortfolioType {
 }
 
 public extension Primitives.PortfolioType {
-    func map() -> Gemstone.PortfolioType {
+    func toGem() -> Gemstone.PortfolioType {
         switch self {
         case .wallet: .wallet
         case .perpetuals: .perpetuals
@@ -930,7 +1041,7 @@ public extension Primitives.PortfolioType {
 }
 
 public extension Gemstone.PriceAlertDirection {
-    func map() -> Primitives.PriceAlertDirection {
+    func toPrimitives() -> Primitives.PriceAlertDirection {
         switch self {
         case .up: .up
         case .down: .down
@@ -939,7 +1050,7 @@ public extension Gemstone.PriceAlertDirection {
 }
 
 public extension Primitives.PriceAlertDirection {
-    func map() -> Gemstone.PriceAlertDirection {
+    func toGem() -> Gemstone.PriceAlertDirection {
         switch self {
         case .up: .up
         case .down: .down
@@ -948,7 +1059,7 @@ public extension Primitives.PriceAlertDirection {
 }
 
 public extension Gemstone.PriceAlertNotificationType {
-    func map() -> Primitives.PriceAlertNotificationType {
+    func toPrimitives() -> Primitives.PriceAlertNotificationType {
         switch self {
         case .auto: .auto
         case .price: .price
@@ -958,7 +1069,7 @@ public extension Gemstone.PriceAlertNotificationType {
 }
 
 public extension Primitives.PriceAlertNotificationType {
-    func map() -> Gemstone.PriceAlertNotificationType {
+    func toGem() -> Gemstone.PriceAlertNotificationType {
         switch self {
         case .auto: .auto
         case .price: .price
@@ -968,7 +1079,7 @@ public extension Primitives.PriceAlertNotificationType {
 }
 
 public extension Gemstone.RecentActivityType {
-    func map() -> Primitives.RecentActivityType {
+    func toPrimitives() -> Primitives.RecentActivityType {
         switch self {
         case .search: .search
         case .transfer: .transfer
@@ -983,7 +1094,7 @@ public extension Gemstone.RecentActivityType {
 }
 
 public extension Primitives.RecentActivityType {
-    func map() -> Gemstone.RecentActivityType {
+    func toGem() -> Gemstone.RecentActivityType {
         switch self {
         case .search: .search
         case .transfer: .transfer
@@ -998,7 +1109,7 @@ public extension Primitives.RecentActivityType {
 }
 
 public extension Gemstone.Resource {
-    func map() -> Primitives.Resource {
+    func toPrimitives() -> Primitives.Resource {
         switch self {
         case .bandwidth: .bandwidth
         case .energy: .energy
@@ -1007,7 +1118,7 @@ public extension Gemstone.Resource {
 }
 
 public extension Primitives.Resource {
-    func map() -> Gemstone.Resource {
+    func toGem() -> Gemstone.Resource {
         switch self {
         case .bandwidth: .bandwidth
         case .energy: .energy
@@ -1016,7 +1127,7 @@ public extension Primitives.Resource {
 }
 
 public extension Gemstone.SolanaTokenProgramId {
-    func map() -> Primitives.SolanaTokenProgramId {
+    func toPrimitives() -> Primitives.SolanaTokenProgramId {
         switch self {
         case .token: .token
         case .token2022: .token2022
@@ -1025,7 +1136,7 @@ public extension Gemstone.SolanaTokenProgramId {
 }
 
 public extension Primitives.SolanaTokenProgramId {
-    func map() -> Gemstone.SolanaTokenProgramId {
+    func toGem() -> Gemstone.SolanaTokenProgramId {
         switch self {
         case .token: .token
         case .token2022: .token2022
@@ -1034,7 +1145,7 @@ public extension Primitives.SolanaTokenProgramId {
 }
 
 public extension Gemstone.StakeProviderType {
-    func map() -> Primitives.StakeProviderType {
+    func toPrimitives() -> Primitives.StakeProviderType {
         switch self {
         case .stake: .stake
         case .earn: .earn
@@ -1043,7 +1154,7 @@ public extension Gemstone.StakeProviderType {
 }
 
 public extension Primitives.StakeProviderType {
-    func map() -> Gemstone.StakeProviderType {
+    func toGem() -> Gemstone.StakeProviderType {
         switch self {
         case .stake: .stake
         case .earn: .earn
@@ -1052,25 +1163,25 @@ public extension Primitives.StakeProviderType {
 }
 
 public extension Gemstone.SupportMessageSender {
-    func map() -> Primitives.SupportMessageSender {
+    func toPrimitives() -> Primitives.SupportMessageSender {
         switch self {
         case .user: .user
-        case .agent(let value): .agent(value.map())
+        case .agent(let value): .agent(value.toPrimitives())
         }
     }
 }
 
 public extension Primitives.SupportMessageSender {
-    func map() -> Gemstone.SupportMessageSender {
+    func toGem() -> Gemstone.SupportMessageSender {
         switch self {
         case .user: .user
-        case .agent(let value): .agent(value.map())
+        case .agent(let value): .agent(value.toGem())
         }
     }
 }
 
 public extension Gemstone.SupportMessageStatus {
-    func map() -> Primitives.SupportMessageStatus {
+    func toPrimitives() -> Primitives.SupportMessageStatus {
         switch self {
         case .sending: .sending
         case .sent: .sent
@@ -1080,7 +1191,7 @@ public extension Gemstone.SupportMessageStatus {
 }
 
 public extension Primitives.SupportMessageStatus {
-    func map() -> Gemstone.SupportMessageStatus {
+    func toGem() -> Gemstone.SupportMessageStatus {
         switch self {
         case .sending: .sending
         case .sent: .sent
@@ -1090,7 +1201,7 @@ public extension Primitives.SupportMessageStatus {
 }
 
 public extension Gemstone.SupportTypingStatus {
-    func map() -> Primitives.SupportTypingStatus {
+    func toPrimitives() -> Primitives.SupportTypingStatus {
         switch self {
         case .on: .on
         case .off: .off
@@ -1099,7 +1210,7 @@ public extension Gemstone.SupportTypingStatus {
 }
 
 public extension Primitives.SupportTypingStatus {
-    func map() -> Gemstone.SupportTypingStatus {
+    func toGem() -> Gemstone.SupportTypingStatus {
         switch self {
         case .on: .on
         case .off: .off
@@ -1108,7 +1219,7 @@ public extension Primitives.SupportTypingStatus {
 }
 
 public extension Gemstone.SwapProvider {
-    func map() -> Primitives.SwapProvider {
+    func toPrimitives() -> Primitives.SwapProvider {
         switch self {
         case .uniswapV3: .uniswapV3
         case .uniswapV4: .uniswapV4
@@ -1125,7 +1236,6 @@ public extension Gemstone.SwapProvider {
         case .mayan: .mayan
         case .chainflip: .chainflip
         case .nearIntents: .nearIntents
-        case .cetusAggregator: .cetusAggregator
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid
@@ -1138,7 +1248,7 @@ public extension Gemstone.SwapProvider {
 }
 
 public extension Primitives.SwapProvider {
-    func map() -> Gemstone.SwapProvider {
+    func toGem() -> Gemstone.SwapProvider {
         switch self {
         case .uniswapV3: .uniswapV3
         case .uniswapV4: .uniswapV4
@@ -1155,7 +1265,6 @@ public extension Primitives.SwapProvider {
         case .mayan: .mayan
         case .chainflip: .chainflip
         case .nearIntents: .nearIntents
-        case .cetusAggregator: .cetusAggregator
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid
@@ -1168,7 +1277,7 @@ public extension Primitives.SwapProvider {
 }
 
 public extension Gemstone.TpslType {
-    func map() -> Primitives.TpslType {
+    func toPrimitives() -> Primitives.TpslType {
         switch self {
         case .takeProfit: .takeProfit
         case .stopLoss: .stopLoss
@@ -1177,7 +1286,7 @@ public extension Gemstone.TpslType {
 }
 
 public extension Primitives.TpslType {
-    func map() -> Gemstone.TpslType {
+    func toGem() -> Gemstone.TpslType {
         switch self {
         case .takeProfit: .takeProfit
         case .stopLoss: .stopLoss
@@ -1186,7 +1295,7 @@ public extension Primitives.TpslType {
 }
 
 public extension Gemstone.TransactionDirection {
-    func map() -> Primitives.TransactionDirection {
+    func toPrimitives() -> Primitives.TransactionDirection {
         switch self {
         case .selfTransfer: .selfTransfer
         case .outgoing: .outgoing
@@ -1196,7 +1305,7 @@ public extension Gemstone.TransactionDirection {
 }
 
 public extension Primitives.TransactionDirection {
-    func map() -> Gemstone.TransactionDirection {
+    func toGem() -> Gemstone.TransactionDirection {
         switch self {
         case .selfTransfer: .selfTransfer
         case .outgoing: .outgoing
@@ -1206,7 +1315,7 @@ public extension Primitives.TransactionDirection {
 }
 
 public extension Gemstone.TransactionState {
-    func map() -> Primitives.TransactionState {
+    func toPrimitives() -> Primitives.TransactionState {
         switch self {
         case .pending: .pending
         case .confirmed: .confirmed
@@ -1219,7 +1328,7 @@ public extension Gemstone.TransactionState {
 }
 
 public extension Primitives.TransactionState {
-    func map() -> Gemstone.TransactionState {
+    func toGem() -> Gemstone.TransactionState {
         switch self {
         case .pending: .pending
         case .confirmed: .confirmed
@@ -1232,7 +1341,7 @@ public extension Primitives.TransactionState {
 }
 
 public extension Gemstone.TransactionType {
-    func map() -> Primitives.TransactionType {
+    func toPrimitives() -> Primitives.TransactionType {
         switch self {
         case .transfer: .transfer
         case .transferNft: .transferNFT
@@ -1257,7 +1366,7 @@ public extension Gemstone.TransactionType {
 }
 
 public extension Primitives.TransactionType {
-    func map() -> Gemstone.TransactionType {
+    func toGem() -> Gemstone.TransactionType {
         switch self {
         case .transfer: .transfer
         case .transferNFT: .transferNft
@@ -1282,7 +1391,7 @@ public extension Primitives.TransactionType {
 }
 
 public extension Gemstone.TransferDataOutputAction {
-    func map() -> Primitives.TransferDataOutputAction {
+    func toPrimitives() -> Primitives.TransferDataOutputAction {
         switch self {
         case .sign: .sign
         case .send: .send
@@ -1291,7 +1400,7 @@ public extension Gemstone.TransferDataOutputAction {
 }
 
 public extension Primitives.TransferDataOutputAction {
-    func map() -> Gemstone.TransferDataOutputAction {
+    func toGem() -> Gemstone.TransferDataOutputAction {
         switch self {
         case .sign: .sign
         case .send: .send
@@ -1300,7 +1409,7 @@ public extension Primitives.TransferDataOutputAction {
 }
 
 public extension Gemstone.TransferDataOutputType {
-    func map() -> Primitives.TransferDataOutputType {
+    func toPrimitives() -> Primitives.TransferDataOutputType {
         switch self {
         case .encodedTransaction: .encodedTransaction
         case .signature: .signature
@@ -1309,7 +1418,7 @@ public extension Gemstone.TransferDataOutputType {
 }
 
 public extension Primitives.TransferDataOutputType {
-    func map() -> Gemstone.TransferDataOutputType {
+    func toGem() -> Gemstone.TransferDataOutputType {
         switch self {
         case .encodedTransaction: .encodedTransaction
         case .signature: .signature
@@ -1318,7 +1427,7 @@ public extension Primitives.TransferDataOutputType {
 }
 
 public extension Gemstone.VerificationStatus {
-    func map() -> Primitives.VerificationStatus {
+    func toPrimitives() -> Primitives.VerificationStatus {
         switch self {
         case .verified: .verified
         case .unverified: .unverified
@@ -1328,7 +1437,7 @@ public extension Gemstone.VerificationStatus {
 }
 
 public extension Primitives.VerificationStatus {
-    func map() -> Gemstone.VerificationStatus {
+    func toGem() -> Gemstone.VerificationStatus {
         switch self {
         case .verified: .verified
         case .unverified: .unverified
@@ -1338,7 +1447,7 @@ public extension Primitives.VerificationStatus {
 }
 
 public extension Gemstone.WalletConnectionState {
-    func map() -> Primitives.WalletConnectionState {
+    func toPrimitives() -> Primitives.WalletConnectionState {
         switch self {
         case .started: .started
         case .active: .active
@@ -1348,7 +1457,7 @@ public extension Gemstone.WalletConnectionState {
 }
 
 public extension Primitives.WalletConnectionState {
-    func map() -> Gemstone.WalletConnectionState {
+    func toGem() -> Gemstone.WalletConnectionState {
         switch self {
         case .started: .started
         case .active: .active
@@ -1358,7 +1467,7 @@ public extension Primitives.WalletConnectionState {
 }
 
 public extension Gemstone.WalletConnectionVerificationStatus {
-    func map() -> Primitives.WalletConnectionVerificationStatus {
+    func toPrimitives() -> Primitives.WalletConnectionVerificationStatus {
         switch self {
         case .verified: .verified
         case .unknown: .unknown
@@ -1369,7 +1478,7 @@ public extension Gemstone.WalletConnectionVerificationStatus {
 }
 
 public extension Primitives.WalletConnectionVerificationStatus {
-    func map() -> Gemstone.WalletConnectionVerificationStatus {
+    func toGem() -> Gemstone.WalletConnectionVerificationStatus {
         switch self {
         case .verified: .verified
         case .unknown: .unknown
@@ -1380,7 +1489,7 @@ public extension Primitives.WalletConnectionVerificationStatus {
 }
 
 public extension Gemstone.WalletSource {
-    func map() -> Primitives.WalletSource {
+    func toPrimitives() -> Primitives.WalletSource {
         switch self {
         case .create: .create
         case .import: .import
@@ -1389,7 +1498,7 @@ public extension Gemstone.WalletSource {
 }
 
 public extension Primitives.WalletSource {
-    func map() -> Gemstone.WalletSource {
+    func toGem() -> Gemstone.WalletSource {
         switch self {
         case .create: .create
         case .import: .import
@@ -1398,7 +1507,7 @@ public extension Primitives.WalletSource {
 }
 
 public extension Gemstone.WalletType {
-    func map() -> Primitives.WalletType {
+    func toPrimitives() -> Primitives.WalletType {
         switch self {
         case .multicoin: .multicoin
         case .single: .single
@@ -1409,7 +1518,7 @@ public extension Gemstone.WalletType {
 }
 
 public extension Primitives.WalletType {
-    func map() -> Gemstone.WalletType {
+    func toGem() -> Gemstone.WalletType {
         switch self {
         case .multicoin: .multicoin
         case .single: .single
@@ -1420,7 +1529,7 @@ public extension Primitives.WalletType {
 }
 
 public extension Gemstone.Account {
-    func map() -> Primitives.Account {
+    func toPrimitives() -> Primitives.Account {
         Primitives.Account(
             chain: Primitives.Chain(core: chain),
             address: address,
@@ -1431,7 +1540,7 @@ public extension Gemstone.Account {
 }
 
 public extension Primitives.Account {
-    func map() -> Gemstone.Account {
+    func toGem() -> Gemstone.Account {
         Gemstone.Account(
             chain: chain.rawValue,
             address: address,
@@ -1442,121 +1551,121 @@ public extension Primitives.Account {
 }
 
 public extension Gemstone.AddressName {
-    func map() -> Primitives.AddressName {
+    func toPrimitives() -> Primitives.AddressName {
         Primitives.AddressName(
             chain: Primitives.Chain(core: chain),
             address: address,
             name: name,
-            type: addressType.map(),
-            status: status.map(),
+            type: addressType.toPrimitives(),
+            status: status.toPrimitives(),
             imageUrl: imageUrl,
         )
     }
 }
 
 public extension Primitives.AddressName {
-    func map() -> Gemstone.AddressName {
+    func toGem() -> Gemstone.AddressName {
         Gemstone.AddressName(
             chain: chain.rawValue,
             address: address,
             name: name,
-            addressType: type.map(),
-            status: status.map(),
+            addressType: type.toGem(),
+            status: status.toGem(),
             imageUrl: imageUrl,
         )
     }
 }
 
 public extension Gemstone.ApplicationMetadata {
-    func map() -> Primitives.ApplicationMetadata {
+    func toPrimitives() -> Primitives.ApplicationMetadata {
         Primitives.ApplicationMetadata(
             name: name,
             description: description,
             url: url,
             icon: icon,
-            source: source.map(),
+            source: source.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.ApplicationMetadata {
-    func map() -> Gemstone.ApplicationMetadata {
+    func toGem() -> Gemstone.ApplicationMetadata {
         Gemstone.ApplicationMetadata(
             name: name,
             description: description,
             url: url,
             icon: icon,
-            source: source.map(),
+            source: source.toGem(),
         )
     }
 }
 
 public extension Gemstone.Asset {
-    func map() -> Primitives.Asset {
+    func toPrimitives() -> Primitives.Asset {
         Primitives.Asset(
             id: Primitives.AssetId(core: id),
             name: name,
             symbol: symbol,
             decimals: decimals,
-            type: assetType.map(),
+            type: assetType.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.Asset {
-    func map() -> Gemstone.Asset {
+    func toGem() -> Gemstone.Asset {
         Gemstone.Asset(
             id: id.identifier,
             name: name,
             symbol: symbol,
             decimals: decimals,
-            assetType: type.map(),
+            assetType: type.toGem(),
         )
     }
 }
 
 public extension Gemstone.AssetAssociation {
-    func map() -> Primitives.AssetAssociation {
+    func toPrimitives() -> Primitives.AssetAssociation {
         Primitives.AssetAssociation(
             assetId: Primitives.AssetId(core: assetId),
-            type: associationType.map(),
+            type: associationType.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.AssetAssociation {
-    func map() -> Gemstone.AssetAssociation {
+    func toGem() -> Gemstone.AssetAssociation {
         Gemstone.AssetAssociation(
             assetId: assetId.identifier,
-            associationType: type.map(),
+            associationType: type.toGem(),
         )
     }
 }
 
 public extension Gemstone.AssetBasic {
-    func map() -> Primitives.AssetBasic {
+    func toPrimitives() -> Primitives.AssetBasic {
         Primitives.AssetBasic(
-            asset: asset.map(),
-            properties: properties.map(),
-            score: score.map(),
-            price: price.map { $0.map() },
+            asset: asset.toPrimitives(),
+            properties: properties.toPrimitives(),
+            score: score.toPrimitives(),
+            price: price.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.AssetBasic {
-    func map() -> Gemstone.AssetBasic {
+    func toGem() -> Gemstone.AssetBasic {
         Gemstone.AssetBasic(
-            asset: asset.map(),
-            properties: properties.map(),
-            score: score.map(),
-            price: price.map { $0.map() },
+            asset: asset.toGem(),
+            properties: properties.toGem(),
+            score: score.toGem(),
+            price: price.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.AssetFiatValue {
-    func map() -> Primitives.AssetFiatValue {
+    func toPrimitives() -> Primitives.AssetFiatValue {
         Primitives.AssetFiatValue(
             amount: amount,
             price: price,
@@ -1566,7 +1675,7 @@ public extension Gemstone.AssetFiatValue {
 }
 
 public extension Primitives.AssetFiatValue {
-    func map() -> Gemstone.AssetFiatValue {
+    func toGem() -> Gemstone.AssetFiatValue {
         Gemstone.AssetFiatValue(
             amount: amount,
             price: price,
@@ -1576,39 +1685,39 @@ public extension Primitives.AssetFiatValue {
 }
 
 public extension Gemstone.AssetFull {
-    func map() -> Primitives.AssetFull {
+    func toPrimitives() -> Primitives.AssetFull {
         Primitives.AssetFull(
-            asset: asset.map(),
-            properties: properties.map(),
-            score: score.map(),
+            asset: asset.toPrimitives(),
+            properties: properties.toPrimitives(),
+            score: score.toPrimitives(),
             tags: tags,
-            links: links.map { $0.map() },
-            associations: associations.map { $0.map() },
-            perpetuals: perpetuals.map { $0.map() },
-            price: price.map { $0.map() },
-            market: market.map { $0.map() },
+            links: links.map { $0.toPrimitives() },
+            associations: associations.map { $0.toPrimitives() },
+            perpetuals: perpetuals.map { $0.toPrimitives() },
+            price: price.map { $0.toPrimitives() },
+            market: market.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.AssetFull {
-    func map() -> Gemstone.AssetFull {
+    func toGem() -> Gemstone.AssetFull {
         Gemstone.AssetFull(
-            asset: asset.map(),
-            properties: properties.map(),
-            score: score.map(),
+            asset: asset.toGem(),
+            properties: properties.toGem(),
+            score: score.toGem(),
             tags: tags,
-            links: links.map { $0.map() },
-            associations: associations.map { $0.map() },
-            perpetuals: perpetuals.map { $0.map() },
-            price: price.map { $0.map() },
-            market: market.map { $0.map() },
+            links: links.map { $0.toGem() },
+            associations: associations.map { $0.toGem() },
+            perpetuals: perpetuals.map { $0.toGem() },
+            price: price.map { $0.toGem() },
+            market: market.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.AssetLink {
-    func map() -> Primitives.AssetLink {
+    func toPrimitives() -> Primitives.AssetLink {
         Primitives.AssetLink(
             name: name,
             url: url,
@@ -1617,7 +1726,7 @@ public extension Gemstone.AssetLink {
 }
 
 public extension Primitives.AssetLink {
-    func map() -> Gemstone.AssetLink {
+    func toGem() -> Gemstone.AssetLink {
         Gemstone.AssetLink(
             name: name,
             url: url,
@@ -1626,7 +1735,7 @@ public extension Primitives.AssetLink {
 }
 
 public extension Gemstone.AssetList {
-    func map() -> Primitives.AssetList {
+    func toPrimitives() -> Primitives.AssetList {
         Primitives.AssetList(
             id: id,
             name: name,
@@ -1636,7 +1745,7 @@ public extension Gemstone.AssetList {
 }
 
 public extension Primitives.AssetList {
-    func map() -> Gemstone.AssetList {
+    func toGem() -> Gemstone.AssetList {
         Gemstone.AssetList(
             id: id,
             name: name,
@@ -1646,7 +1755,7 @@ public extension Primitives.AssetList {
 }
 
 public extension Gemstone.AssetMarket {
-    func map() -> Primitives.AssetMarket {
+    func toPrimitives() -> Primitives.AssetMarket {
         Primitives.AssetMarket(
             marketCap: marketCap,
             marketCapFdv: marketCapFdv,
@@ -1655,14 +1764,14 @@ public extension Gemstone.AssetMarket {
             circulatingSupply: circulatingSupply,
             totalSupply: totalSupply,
             maxSupply: maxSupply,
-            allTimeHighValue: allTimeHighValue.map { $0.map() },
-            allTimeLowValue: allTimeLowValue.map { $0.map() },
+            allTimeHighValue: allTimeHighValue.map { $0.toPrimitives() },
+            allTimeLowValue: allTimeLowValue.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.AssetMarket {
-    func map() -> Gemstone.AssetMarket {
+    func toGem() -> Gemstone.AssetMarket {
         Gemstone.AssetMarket(
             marketCap: marketCap,
             marketCapFdv: marketCapFdv,
@@ -1677,14 +1786,14 @@ public extension Primitives.AssetMarket {
             allTimeLow: nil,
             allTimeLowDate: nil,
             allTimeLowChangePercentage: nil,
-            allTimeHighValue: allTimeHighValue.map { $0.map() },
-            allTimeLowValue: allTimeLowValue.map { $0.map() },
+            allTimeHighValue: allTimeHighValue.map { $0.toGem() },
+            allTimeLowValue: allTimeLowValue.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.AssetMetaData {
-    func map() -> Primitives.AssetMetaData {
+    func toPrimitives() -> Primitives.AssetMetaData {
         Primitives.AssetMetaData(
             isEnabled: isEnabled,
             isBalanceEnabled: isBalanceEnabled,
@@ -1703,7 +1812,7 @@ public extension Gemstone.AssetMetaData {
 }
 
 public extension Primitives.AssetMetaData {
-    func map() -> Gemstone.AssetMetaData {
+    func toGem() -> Gemstone.AssetMetaData {
         Gemstone.AssetMetaData(
             isEnabled: isEnabled,
             isBalanceEnabled: isBalanceEnabled,
@@ -1722,7 +1831,7 @@ public extension Primitives.AssetMetaData {
 }
 
 public extension Gemstone.AssetPrice {
-    func map() -> Primitives.AssetPrice {
+    func toPrimitives() -> Primitives.AssetPrice {
         Primitives.AssetPrice(
             assetId: Primitives.AssetId(core: assetId),
             price: price,
@@ -1733,7 +1842,7 @@ public extension Gemstone.AssetPrice {
 }
 
 public extension Primitives.AssetPrice {
-    func map() -> Gemstone.AssetPrice {
+    func toGem() -> Gemstone.AssetPrice {
         Gemstone.AssetPrice(
             assetId: assetId.identifier,
             price: price,
@@ -1744,7 +1853,7 @@ public extension Primitives.AssetPrice {
 }
 
 public extension Gemstone.AssetProperties {
-    func map() -> Primitives.AssetProperties {
+    func toPrimitives() -> Primitives.AssetProperties {
         Primitives.AssetProperties(
             isEnabled: isEnabled,
             isBuyable: isBuyable,
@@ -1760,7 +1869,7 @@ public extension Gemstone.AssetProperties {
 }
 
 public extension Primitives.AssetProperties {
-    func map() -> Gemstone.AssetProperties {
+    func toGem() -> Gemstone.AssetProperties {
         Gemstone.AssetProperties(
             isEnabled: isEnabled,
             isBuyable: isBuyable,
@@ -1777,7 +1886,7 @@ public extension Primitives.AssetProperties {
 }
 
 public extension Gemstone.AssetScore {
-    func map() -> Primitives.AssetScore {
+    func toPrimitives() -> Primitives.AssetScore {
         Primitives.AssetScore(
             rank: rank,
         )
@@ -1785,7 +1894,7 @@ public extension Gemstone.AssetScore {
 }
 
 public extension Primitives.AssetScore {
-    func map() -> Gemstone.AssetScore {
+    func toGem() -> Gemstone.AssetScore {
         Gemstone.AssetScore(
             rank: rank,
             rankType: Gemstone.AssetRank.unknown,
@@ -1794,7 +1903,7 @@ public extension Primitives.AssetScore {
 }
 
 public extension Gemstone.BalanceMetadata {
-    func map() -> Primitives.BalanceMetadata {
+    func toPrimitives() -> Primitives.BalanceMetadata {
         Primitives.BalanceMetadata(
             votes: votes,
             energyAvailable: energyAvailable,
@@ -1806,7 +1915,7 @@ public extension Gemstone.BalanceMetadata {
 }
 
 public extension Primitives.BalanceMetadata {
-    func map() -> Gemstone.BalanceMetadata {
+    func toGem() -> Gemstone.BalanceMetadata {
         Gemstone.BalanceMetadata(
             votes: votes,
             energyAvailable: energyAvailable,
@@ -1818,29 +1927,29 @@ public extension Primitives.BalanceMetadata {
 }
 
 public extension Gemstone.Banner {
-    func map() -> Primitives.Banner {
+    func toPrimitives() -> Primitives.Banner {
         Primitives.Banner(
             walletId: walletId.map { Primitives.WalletId(core: $0) },
-            asset: asset.map { $0.map() },
-            event: event.map(),
-            state: state.map(),
+            asset: asset.map { $0.toPrimitives() },
+            event: event.toPrimitives(),
+            state: state.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.Banner {
-    func map() -> Gemstone.Banner {
+    func toGem() -> Gemstone.Banner {
         Gemstone.Banner(
             walletId: walletId.map { $0.identifier },
-            asset: asset.map { $0.map() },
-            event: event.map(),
-            state: state.map(),
+            asset: asset.map { $0.toGem() },
+            event: event.toGem(),
+            state: state.toGem(),
         )
     }
 }
 
 public extension Gemstone.BlockExplorerLink {
-    func map() -> Primitives.BlockExplorerLink {
+    func toPrimitives() -> Primitives.BlockExplorerLink {
         Primitives.BlockExplorerLink(
             name: name,
             link: link,
@@ -1849,7 +1958,7 @@ public extension Gemstone.BlockExplorerLink {
 }
 
 public extension Primitives.BlockExplorerLink {
-    func map() -> Gemstone.BlockExplorerLink {
+    func toGem() -> Gemstone.BlockExplorerLink {
         Gemstone.BlockExplorerLink(
             name: name,
             link: link,
@@ -1858,7 +1967,7 @@ public extension Primitives.BlockExplorerLink {
 }
 
 public extension Gemstone.ChainAddress {
-    func map() -> Primitives.ChainAddress {
+    func toPrimitives() -> Primitives.ChainAddress {
         Primitives.ChainAddress(
             chain: Primitives.Chain(core: chain),
             address: address,
@@ -1867,7 +1976,7 @@ public extension Gemstone.ChainAddress {
 }
 
 public extension Primitives.ChainAddress {
-    func map() -> Gemstone.ChainAddress {
+    func toGem() -> Gemstone.ChainAddress {
         Gemstone.ChainAddress(
             chain: chain.rawValue,
             address: address,
@@ -1876,25 +1985,25 @@ public extension Primitives.ChainAddress {
 }
 
 public extension Gemstone.ChainAsset {
-    func map() -> Primitives.ChainAsset {
+    func toPrimitives() -> Primitives.ChainAsset {
         Primitives.ChainAsset(
-            asset: asset.map(),
+            asset: asset.toPrimitives(),
             networkName: networkName,
         )
     }
 }
 
 public extension Primitives.ChainAsset {
-    func map() -> Gemstone.ChainAsset {
+    func toGem() -> Gemstone.ChainAsset {
         Gemstone.ChainAsset(
-            asset: asset.map(),
+            asset: asset.toGem(),
             networkName: networkName,
         )
     }
 }
 
 public extension Gemstone.ChartCandleStick {
-    func map() -> Primitives.ChartCandleStick {
+    func toPrimitives() -> Primitives.ChartCandleStick {
         Primitives.ChartCandleStick(
             date: date,
             open: open,
@@ -1907,7 +2016,7 @@ public extension Gemstone.ChartCandleStick {
 }
 
 public extension Primitives.ChartCandleStick {
-    func map() -> Gemstone.ChartCandleStick {
+    func toGem() -> Gemstone.ChartCandleStick {
         Gemstone.ChartCandleStick(
             date: date,
             open: open,
@@ -1920,27 +2029,27 @@ public extension Primitives.ChartCandleStick {
 }
 
 public extension Gemstone.ChartCandleUpdate {
-    func map() -> Primitives.ChartCandleUpdate {
+    func toPrimitives() -> Primitives.ChartCandleUpdate {
         Primitives.ChartCandleUpdate(
             coin: coin,
             interval: interval,
-            candle: candle.map(),
+            candle: candle.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.ChartCandleUpdate {
-    func map() -> Gemstone.ChartCandleUpdate {
+    func toGem() -> Gemstone.ChartCandleUpdate {
         Gemstone.ChartCandleUpdate(
             coin: coin,
             interval: interval,
-            candle: candle.map(),
+            candle: candle.toGem(),
         )
     }
 }
 
 public extension Gemstone.ChartDateValue {
-    func map() -> Primitives.ChartDateValue {
+    func toPrimitives() -> Primitives.ChartDateValue {
         Primitives.ChartDateValue(
             date: date,
             value: value,
@@ -1949,7 +2058,7 @@ public extension Gemstone.ChartDateValue {
 }
 
 public extension Primitives.ChartDateValue {
-    func map() -> Gemstone.ChartDateValue {
+    func toGem() -> Gemstone.ChartDateValue {
         Gemstone.ChartDateValue(
             date: date,
             value: value,
@@ -1958,7 +2067,7 @@ public extension Primitives.ChartDateValue {
 }
 
 public extension Gemstone.ChartValuePercentage {
-    func map() -> Primitives.ChartValuePercentage {
+    func toPrimitives() -> Primitives.ChartValuePercentage {
         Primitives.ChartValuePercentage(
             date: date,
             value: value,
@@ -1968,7 +2077,7 @@ public extension Gemstone.ChartValuePercentage {
 }
 
 public extension Primitives.ChartValuePercentage {
-    func map() -> Gemstone.ChartValuePercentage {
+    func toGem() -> Gemstone.ChartValuePercentage {
         Gemstone.ChartValuePercentage(
             date: date,
             value: value,
@@ -1978,7 +2087,7 @@ public extension Primitives.ChartValuePercentage {
 }
 
 public extension Gemstone.Contact {
-    func map() -> Primitives.Contact {
+    func toPrimitives() -> Primitives.Contact {
         Primitives.Contact(
             id: id,
             name: name,
@@ -1991,7 +2100,7 @@ public extension Gemstone.Contact {
 }
 
 public extension Primitives.Contact {
-    func map() -> Gemstone.Contact {
+    func toGem() -> Gemstone.Contact {
         Gemstone.Contact(
             id: id,
             name: name,
@@ -2004,7 +2113,7 @@ public extension Primitives.Contact {
 }
 
 public extension Gemstone.ContactAddress {
-    func map() -> Primitives.ContactAddress {
+    func toPrimitives() -> Primitives.ContactAddress {
         Primitives.ContactAddress(
             id: id,
             contactId: contactId,
@@ -2016,7 +2125,7 @@ public extension Gemstone.ContactAddress {
 }
 
 public extension Primitives.ContactAddress {
-    func map() -> Gemstone.ContactAddress {
+    func toGem() -> Gemstone.ContactAddress {
         Gemstone.ContactAddress(
             id: id,
             contactId: contactId,
@@ -2028,37 +2137,37 @@ public extension Primitives.ContactAddress {
 }
 
 public extension Gemstone.CoreListItem {
-    func map() -> Primitives.CoreListItem {
+    func toPrimitives() -> Primitives.CoreListItem {
         Primitives.CoreListItem(
             id: id,
             title: title,
             subtitle: subtitle,
             value: value,
             subvalue: subvalue,
-            icon: icon.map { $0.map() },
-            badge: badge.map { $0.map() },
+            icon: icon.map { $0.toPrimitives() },
+            badge: badge.map { $0.toPrimitives() },
             url: url,
         )
     }
 }
 
 public extension Primitives.CoreListItem {
-    func map() -> Gemstone.CoreListItem {
+    func toGem() -> Gemstone.CoreListItem {
         Gemstone.CoreListItem(
             id: id,
             title: title,
             subtitle: subtitle,
             value: value,
             subvalue: subvalue,
-            icon: icon.map { $0.map() },
-            badge: badge.map { $0.map() },
+            icon: icon.map { $0.toGem() },
+            badge: badge.map { $0.toGem() },
             url: url,
         )
     }
 }
 
 public extension Gemstone.DelegationValidator {
-    func map() -> Primitives.DelegationValidator {
+    func toPrimitives() -> Primitives.DelegationValidator {
         Primitives.DelegationValidator(
             chain: Primitives.Chain(core: chain),
             id: id,
@@ -2066,13 +2175,13 @@ public extension Gemstone.DelegationValidator {
             isActive: isActive,
             commission: commission,
             apr: apr,
-            providerType: providerType.map(),
+            providerType: providerType.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.DelegationValidator {
-    func map() -> Gemstone.DelegationValidator {
+    func toGem() -> Gemstone.DelegationValidator {
         Gemstone.DelegationValidator(
             chain: chain.rawValue,
             id: id,
@@ -2080,23 +2189,23 @@ public extension Primitives.DelegationValidator {
             isActive: isActive,
             commission: commission,
             apr: apr,
-            providerType: providerType.map(),
+            providerType: providerType.toGem(),
         )
     }
 }
 
 public extension Gemstone.Device {
-    func map() -> Primitives.Device {
+    func toPrimitives() -> Primitives.Device {
         Primitives.Device(
             id: id,
-            platform: platform.map(),
-            platformStore: platformStore.map(),
+            platform: platform.toPrimitives(),
+            platformStore: platformStore.toPrimitives(),
             os: os,
             model: model,
             token: token,
-            locale: locale.map(),
+            locale: locale.toPrimitives(),
             version: version,
-            currency: Primitives.Currency(core: currency),
+            currency: currency.toPrimitives(),
             isPushEnabled: isPushEnabled,
             isPriceAlertsEnabled: isPriceAlertsEnabled,
             subscriptionsVersion: subscriptionsVersion,
@@ -2105,17 +2214,17 @@ public extension Gemstone.Device {
 }
 
 public extension Primitives.Device {
-    func map() -> Gemstone.Device {
+    func toGem() -> Gemstone.Device {
         Gemstone.Device(
             id: id,
-            platform: platform.map(),
-            platformStore: platformStore.map(),
+            platform: platform.toGem(),
+            platformStore: platformStore.toGem(),
             os: os,
             model: model,
             token: token,
-            locale: locale.map(),
+            locale: locale.toGem(),
             version: version,
-            currency: currency.rawValue,
+            currency: currency.toGem(),
             isPushEnabled: isPushEnabled,
             isPriceAlertsEnabled: isPriceAlertsEnabled,
             subscriptionsVersion: subscriptionsVersion,
@@ -2124,7 +2233,7 @@ public extension Primitives.Device {
 }
 
 public extension Gemstone.FiatAssets {
-    func map() -> Primitives.FiatAssets {
+    func toPrimitives() -> Primitives.FiatAssets {
         Primitives.FiatAssets(
             version: version,
             assetIds: assetIds,
@@ -2133,7 +2242,7 @@ public extension Gemstone.FiatAssets {
 }
 
 public extension Primitives.FiatAssets {
-    func map() -> Gemstone.FiatAssets {
+    func toGem() -> Gemstone.FiatAssets {
         Gemstone.FiatAssets(
             version: version,
             assetIds: assetIds,
@@ -2142,31 +2251,31 @@ public extension Primitives.FiatAssets {
 }
 
 public extension Gemstone.FiatRate {
-    func map() -> Primitives.FiatRate {
+    func toPrimitives() -> Primitives.FiatRate {
         Primitives.FiatRate(
-            symbol: Primitives.Currency(core: symbol),
+            symbol: symbol.toPrimitives(),
             rate: rate,
         )
     }
 }
 
 public extension Primitives.FiatRate {
-    func map() -> Gemstone.FiatRate {
+    func toGem() -> Gemstone.FiatRate {
         Gemstone.FiatRate(
-            symbol: symbol.rawValue,
+            symbol: symbol.toGem(),
             rate: rate,
         )
     }
 }
 
 public extension Gemstone.FiatTransaction {
-    func map() -> Primitives.FiatTransaction {
+    func toPrimitives() -> Primitives.FiatTransaction {
         Primitives.FiatTransaction(
             id: id,
             assetId: Primitives.AssetId(core: assetId),
-            transactionType: transactionType.map(),
-            provider: provider.map(),
-            status: status.map(),
+            transactionType: transactionType.toPrimitives(),
+            provider: provider.toPrimitives(),
+            status: status.toPrimitives(),
             fiatAmount: fiatAmount,
             fiatCurrency: fiatCurrency,
             value: value.description,
@@ -2177,14 +2286,14 @@ public extension Gemstone.FiatTransaction {
 }
 
 public extension Primitives.FiatTransaction {
-    func map() -> Gemstone.FiatTransaction {
+    func toGem() -> Gemstone.FiatTransaction {
         Gemstone.FiatTransaction(
             id: id,
             assetId: assetId.identifier,
-            transactionType: transactionType.map(),
-            provider: provider.map(),
+            transactionType: transactionType.toGem(),
+            provider: provider.toGem(),
             providerTransactionId: nil,
-            status: status.map(),
+            status: status.toGem(),
             country: nil,
             fiatAmount: fiatAmount,
             fiatCurrency: fiatCurrency,
@@ -2197,65 +2306,65 @@ public extension Primitives.FiatTransaction {
 }
 
 public extension Gemstone.FiatTransactionData {
-    func map() -> Primitives.FiatTransactionData {
+    func toPrimitives() -> Primitives.FiatTransactionData {
         Primitives.FiatTransactionData(
-            transaction: transaction.map(),
+            transaction: transaction.toPrimitives(),
             detailsUrl: detailsUrl,
         )
     }
 }
 
 public extension Primitives.FiatTransactionData {
-    func map() -> Gemstone.FiatTransactionData {
+    func toGem() -> Gemstone.FiatTransactionData {
         Gemstone.FiatTransactionData(
-            transaction: transaction.map(),
+            transaction: transaction.toGem(),
             detailsUrl: detailsUrl,
         )
     }
 }
 
 public extension Gemstone.InAppNotification {
-    func map() -> Primitives.InAppNotification {
+    func toPrimitives() -> Primitives.InAppNotification {
         Primitives.InAppNotification(
             walletId: Primitives.WalletId(core: walletId),
             readAt: readAt,
             createdAt: createdAt,
-            item: item.map(),
+            item: item.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.InAppNotification {
-    func map() -> Gemstone.InAppNotification {
+    func toGem() -> Gemstone.InAppNotification {
         Gemstone.InAppNotification(
             walletId: walletId.identifier,
             readAt: readAt,
             createdAt: createdAt,
-            item: item.map(),
+            item: item.toGem(),
         )
     }
 }
 
 public extension Gemstone.Latency {
-    func map() -> Primitives.Latency {
+    func toPrimitives() -> Primitives.Latency {
         Primitives.Latency(
-            latencyType: latencyType.map(),
+            latencyType: latencyType.toPrimitives(),
             value: value,
         )
     }
 }
 
 public extension Primitives.Latency {
-    func map() -> Gemstone.Latency {
+    func toGem() -> Gemstone.Latency {
         Gemstone.Latency(
-            latencyType: latencyType.map(),
+            latencyType: latencyType.toGem(),
             value: value,
         )
     }
 }
 
 public extension Gemstone.MarketDominance {
-    func map() -> Primitives.MarketDominance {
+    func toPrimitives() -> Primitives.MarketDominance {
         Primitives.MarketDominance(
             assetId: assetId,
             dominance: dominance,
@@ -2264,7 +2373,7 @@ public extension Gemstone.MarketDominance {
 }
 
 public extension Primitives.MarketDominance {
-    func map() -> Gemstone.MarketDominance {
+    func toGem() -> Gemstone.MarketDominance {
         Gemstone.MarketDominance(
             assetId: assetId,
             dominance: dominance,
@@ -2273,31 +2382,31 @@ public extension Primitives.MarketDominance {
 }
 
 public extension Gemstone.Markets {
-    func map() -> Primitives.Markets {
+    func toPrimitives() -> Primitives.Markets {
         Primitives.Markets(
             marketCap: marketCap,
             marketCapChangePercentage24h: marketCapChangePercentage24h,
-            assets: assets.map(),
-            dominance: dominance.map { $0.map() },
+            assets: assets.toPrimitives(),
+            dominance: dominance.map { $0.toPrimitives() },
             totalVolume24h: totalVolume24h,
         )
     }
 }
 
 public extension Primitives.Markets {
-    func map() -> Gemstone.Markets {
+    func toGem() -> Gemstone.Markets {
         Gemstone.Markets(
             marketCap: marketCap,
             marketCapChangePercentage24h: marketCapChangePercentage24h,
-            assets: assets.map(),
-            dominance: dominance.map { $0.map() },
+            assets: assets.toGem(),
+            dominance: dominance.map { $0.toGem() },
             totalVolume24h: totalVolume24h,
         )
     }
 }
 
 public extension Gemstone.MarketsAssets {
-    func map() -> Primitives.MarketsAssets {
+    func toPrimitives() -> Primitives.MarketsAssets {
         Primitives.MarketsAssets(
             trending: trending.map { Primitives.AssetId(core: $0) },
             gainers: gainers.map { Primitives.AssetId(core: $0) },
@@ -2307,7 +2416,7 @@ public extension Gemstone.MarketsAssets {
 }
 
 public extension Primitives.MarketsAssets {
-    func map() -> Gemstone.MarketsAssets {
+    func toGem() -> Gemstone.MarketsAssets {
         Gemstone.MarketsAssets(
             trending: trending.map { $0.identifier },
             gainers: gainers.map { $0.identifier },
@@ -2317,98 +2426,98 @@ public extension Primitives.MarketsAssets {
 }
 
 public extension Gemstone.NftAsset {
-    func map() -> Primitives.NFTAsset {
+    func toPrimitives() -> Primitives.NFTAsset {
         Primitives.NFTAsset(
             id: Primitives.NFTAssetId(core: id),
             collectionId: Primitives.NFTCollectionId(core: collectionId),
             contractAddress: contractAddress,
             tokenId: tokenId,
-            tokenType: tokenType.map(),
+            tokenType: tokenType.toPrimitives(),
             name: name,
             description: description,
             chain: Primitives.Chain(core: chain),
-            resource: resource.map(),
-            images: images.map(),
-            attributes: attributes.map { $0.map() },
+            resource: resource.toPrimitives(),
+            images: images.toPrimitives(),
+            attributes: attributes.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.NFTAsset {
-    func map() -> Gemstone.NftAsset {
+    func toGem() -> Gemstone.NftAsset {
         Gemstone.NftAsset(
             id: id.identifier,
             collectionId: collectionId.identifier,
             contractAddress: contractAddress,
             tokenId: tokenId,
-            tokenType: tokenType.map(),
+            tokenType: tokenType.toGem(),
             name: name,
             description: description,
             chain: chain.rawValue,
-            resource: resource.map(),
-            images: images.map(),
-            attributes: attributes.map { $0.map() },
+            resource: resource.toGem(),
+            images: images.toGem(),
+            attributes: attributes.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.NftAssetData {
-    func map() -> Primitives.NFTAssetData {
+    func toPrimitives() -> Primitives.NFTAssetData {
         Primitives.NFTAssetData(
-            collection: collection.map(),
-            asset: asset.map(),
+            collection: collection.toPrimitives(),
+            asset: asset.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.NFTAssetData {
-    func map() -> Gemstone.NftAssetData {
+    func toGem() -> Gemstone.NftAssetData {
         Gemstone.NftAssetData(
-            collection: collection.map(),
-            asset: asset.map(),
+            collection: collection.toGem(),
+            asset: asset.toGem(),
         )
     }
 }
 
 public extension Gemstone.NftAttribute {
-    func map() -> Primitives.NFTAttribute {
+    func toPrimitives() -> Primitives.NFTAttribute {
         Primitives.NFTAttribute(
             name: name,
             value: value,
-            valueType: valueType.map { $0.map() },
+            valueType: valueType.map { $0.toPrimitives() },
             percentage: percentage,
         )
     }
 }
 
 public extension Primitives.NFTAttribute {
-    func map() -> Gemstone.NftAttribute {
+    func toGem() -> Gemstone.NftAttribute {
         Gemstone.NftAttribute(
             name: name,
             value: value,
-            valueType: valueType.map { $0.map() },
+            valueType: valueType.map { $0.toGem() },
             percentage: percentage,
         )
     }
 }
 
 public extension Gemstone.NftCollection {
-    func map() -> Primitives.NFTCollection {
+    func toPrimitives() -> Primitives.NFTCollection {
         Primitives.NFTCollection(
             id: Primitives.NFTCollectionId(core: id),
             name: name,
             description: description,
             chain: Primitives.Chain(core: chain),
             contractAddress: contractAddress,
-            images: images.map(),
-            status: status.map(),
-            links: links.map { $0.map() },
+            images: images.toPrimitives(),
+            status: status.toPrimitives(),
+            links: links.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.NFTCollection {
-    func map() -> Gemstone.NftCollection {
+    func toGem() -> Gemstone.NftCollection {
         Gemstone.NftCollection(
             id: id.identifier,
             name: name,
@@ -2416,49 +2525,49 @@ public extension Primitives.NFTCollection {
             description: description,
             chain: chain.rawValue,
             contractAddress: contractAddress,
-            images: images.map(),
-            status: status.map(),
-            links: links.map { $0.map() },
+            images: images.toGem(),
+            status: status.toGem(),
+            links: links.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.NftData {
-    func map() -> Primitives.NFTData {
+    func toPrimitives() -> Primitives.NFTData {
         Primitives.NFTData(
-            collection: collection.map(),
-            assets: assets.map { $0.map() },
+            collection: collection.toPrimitives(),
+            assets: assets.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.NFTData {
-    func map() -> Gemstone.NftData {
+    func toGem() -> Gemstone.NftData {
         Gemstone.NftData(
-            collection: collection.map(),
-            assets: assets.map { $0.map() },
+            collection: collection.toGem(),
+            assets: assets.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.NftImages {
-    func map() -> Primitives.NFTImages {
+    func toPrimitives() -> Primitives.NFTImages {
         Primitives.NFTImages(
-            preview: preview.map(),
+            preview: preview.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.NFTImages {
-    func map() -> Gemstone.NftImages {
+    func toGem() -> Gemstone.NftImages {
         Gemstone.NftImages(
-            preview: preview.map(),
+            preview: preview.toGem(),
         )
     }
 }
 
 public extension Gemstone.NftResource {
-    func map() -> Primitives.NFTResource {
+    func toPrimitives() -> Primitives.NFTResource {
         Primitives.NFTResource(
             url: url,
             mimeType: mimeType,
@@ -2467,7 +2576,7 @@ public extension Gemstone.NftResource {
 }
 
 public extension Primitives.NFTResource {
-    func map() -> Gemstone.NftResource {
+    func toGem() -> Gemstone.NftResource {
         Gemstone.NftResource(
             url: url,
             mimeType: mimeType,
@@ -2476,53 +2585,53 @@ public extension Primitives.NFTResource {
 }
 
 public extension Gemstone.NameRecord {
-    func map() -> Primitives.NameRecord {
+    func toPrimitives() -> Primitives.NameRecord {
         Primitives.NameRecord(
             name: name,
             chain: Primitives.Chain(core: chain),
             address: address,
-            provider: provider.map(),
+            provider: provider.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.NameRecord {
-    func map() -> Gemstone.NameRecord {
+    func toGem() -> Gemstone.NameRecord {
         Gemstone.NameRecord(
             name: name,
             chain: chain.rawValue,
             address: address,
-            provider: provider.map(),
+            provider: provider.toGem(),
         )
     }
 }
 
 public extension Gemstone.Node {
-    func map() -> Primitives.Node {
+    func toPrimitives() -> Primitives.Node {
         Primitives.Node(
             url: url,
-            status: status.map(),
+            status: status.toPrimitives(),
             priority: priority,
         )
     }
 }
 
 public extension Primitives.Node {
-    func map() -> Gemstone.Node {
+    func toGem() -> Gemstone.Node {
         Gemstone.Node(
             url: url,
-            status: status.map(),
+            status: status.toGem(),
             priority: priority,
         )
     }
 }
 
 public extension Gemstone.Perpetual {
-    func map() -> Primitives.Perpetual {
+    func toPrimitives() -> Primitives.Perpetual {
         Primitives.Perpetual(
             id: Primitives.PerpetualId(core: id),
             name: name,
-            provider: provider.map(),
+            provider: provider.toPrimitives(),
             assetId: Primitives.AssetId(core: assetId),
             identifier: identifier,
             price: price,
@@ -2537,11 +2646,11 @@ public extension Gemstone.Perpetual {
 }
 
 public extension Primitives.Perpetual {
-    func map() -> Gemstone.Perpetual {
+    func toGem() -> Gemstone.Perpetual {
         Gemstone.Perpetual(
             id: id.identifier,
             name: name,
-            provider: provider.map(),
+            provider: provider.toGem(),
             assetId: assetId.identifier,
             identifier: identifier,
             price: price,
@@ -2556,7 +2665,7 @@ public extension Primitives.Perpetual {
 }
 
 public extension Gemstone.PerpetualAccountSummary {
-    func map() -> Primitives.PerpetualAccountSummary {
+    func toPrimitives() -> Primitives.PerpetualAccountSummary {
         Primitives.PerpetualAccountSummary(
             accountValue: accountValue,
             accountLeverage: accountLeverage,
@@ -2567,7 +2676,7 @@ public extension Gemstone.PerpetualAccountSummary {
 }
 
 public extension Primitives.PerpetualAccountSummary {
-    func map() -> Gemstone.PerpetualAccountSummary {
+    func toGem() -> Gemstone.PerpetualAccountSummary {
         Gemstone.PerpetualAccountSummary(
             accountValue: accountValue,
             accountLeverage: accountLeverage,
@@ -2578,7 +2687,7 @@ public extension Primitives.PerpetualAccountSummary {
 }
 
 public extension Gemstone.PerpetualBalance {
-    func map() -> Primitives.PerpetualBalance {
+    func toPrimitives() -> Primitives.PerpetualBalance {
         Primitives.PerpetualBalance(
             available: available,
             reserved: reserved,
@@ -2588,7 +2697,7 @@ public extension Gemstone.PerpetualBalance {
 }
 
 public extension Primitives.PerpetualBalance {
-    func map() -> Gemstone.PerpetualBalance {
+    func toGem() -> Gemstone.PerpetualBalance {
         Gemstone.PerpetualBalance(
             available: available,
             reserved: reserved,
@@ -2598,47 +2707,47 @@ public extension Primitives.PerpetualBalance {
 }
 
 public extension Gemstone.PerpetualBasic {
-    func map() -> Primitives.PerpetualBasic {
+    func toPrimitives() -> Primitives.PerpetualBasic {
         Primitives.PerpetualBasic(
             assetId: Primitives.AssetId(core: assetId),
             perpetualId: Primitives.PerpetualId(core: perpetualId),
-            provider: provider.map(),
+            provider: provider.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.PerpetualBasic {
-    func map() -> Gemstone.PerpetualBasic {
+    func toGem() -> Gemstone.PerpetualBasic {
         Gemstone.PerpetualBasic(
             assetId: assetId.identifier,
             perpetualId: perpetualId.identifier,
-            provider: provider.map(),
+            provider: provider.toGem(),
         )
     }
 }
 
 public extension Gemstone.PerpetualData {
-    func map() -> Primitives.PerpetualData {
+    func toPrimitives() -> Primitives.PerpetualData {
         Primitives.PerpetualData(
-            perpetual: perpetual.map(),
-            asset: asset.map(),
-            metadata: metadata.map(),
+            perpetual: perpetual.toPrimitives(),
+            asset: asset.toPrimitives(),
+            metadata: metadata.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.PerpetualData {
-    func map() -> Gemstone.PerpetualData {
+    func toGem() -> Gemstone.PerpetualData {
         Gemstone.PerpetualData(
-            perpetual: perpetual.map(),
-            asset: asset.map(),
-            metadata: metadata.map(),
+            perpetual: perpetual.toGem(),
+            asset: asset.toGem(),
+            metadata: metadata.toGem(),
         )
     }
 }
 
 public extension Gemstone.PerpetualMarketData {
-    func map() -> Primitives.PerpetualMarketData {
+    func toPrimitives() -> Primitives.PerpetualMarketData {
         Primitives.PerpetualMarketData(
             coin: coin,
             price: price,
@@ -2651,7 +2760,7 @@ public extension Gemstone.PerpetualMarketData {
 }
 
 public extension Primitives.PerpetualMarketData {
-    func map() -> Gemstone.PerpetualMarketData {
+    func toGem() -> Gemstone.PerpetualMarketData {
         Gemstone.PerpetualMarketData(
             coin: coin,
             price: price,
@@ -2664,7 +2773,7 @@ public extension Primitives.PerpetualMarketData {
 }
 
 public extension Gemstone.PerpetualMetadata {
-    func map() -> Primitives.PerpetualMetadata {
+    func toPrimitives() -> Primitives.PerpetualMetadata {
         Primitives.PerpetualMetadata(
             isPinned: isPinned,
         )
@@ -2672,7 +2781,7 @@ public extension Gemstone.PerpetualMetadata {
 }
 
 public extension Primitives.PerpetualMetadata {
-    func map() -> Gemstone.PerpetualMetadata {
+    func toGem() -> Gemstone.PerpetualMetadata {
         Gemstone.PerpetualMetadata(
             isPinned: isPinned,
         )
@@ -2680,51 +2789,51 @@ public extension Primitives.PerpetualMetadata {
 }
 
 public extension Gemstone.PerpetualPortfolio {
-    func map() -> Primitives.PerpetualPortfolio {
+    func toPrimitives() -> Primitives.PerpetualPortfolio {
         Primitives.PerpetualPortfolio(
-            day: day.map { $0.map() },
-            week: week.map { $0.map() },
-            month: month.map { $0.map() },
-            allTime: allTime.map { $0.map() },
-            accountSummary: accountSummary.map { $0.map() },
+            day: day.map { $0.toPrimitives() },
+            week: week.map { $0.toPrimitives() },
+            month: month.map { $0.toPrimitives() },
+            allTime: allTime.map { $0.toPrimitives() },
+            accountSummary: accountSummary.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.PerpetualPortfolio {
-    func map() -> Gemstone.PerpetualPortfolio {
+    func toGem() -> Gemstone.PerpetualPortfolio {
         Gemstone.PerpetualPortfolio(
-            day: day.map { $0.map() },
-            week: week.map { $0.map() },
-            month: month.map { $0.map() },
-            allTime: allTime.map { $0.map() },
-            accountSummary: accountSummary.map { $0.map() },
+            day: day.map { $0.toGem() },
+            week: week.map { $0.toGem() },
+            month: month.map { $0.toGem() },
+            allTime: allTime.map { $0.toGem() },
+            accountSummary: accountSummary.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.PerpetualPortfolioTimeframeData {
-    func map() -> Primitives.PerpetualPortfolioTimeframeData {
+    func toPrimitives() -> Primitives.PerpetualPortfolioTimeframeData {
         Primitives.PerpetualPortfolioTimeframeData(
-            accountValueHistory: accountValueHistory.map { $0.map() },
-            pnlHistory: pnlHistory.map { $0.map() },
+            accountValueHistory: accountValueHistory.map { $0.toPrimitives() },
+            pnlHistory: pnlHistory.map { $0.toPrimitives() },
             volume: volume,
         )
     }
 }
 
 public extension Primitives.PerpetualPortfolioTimeframeData {
-    func map() -> Gemstone.PerpetualPortfolioTimeframeData {
+    func toGem() -> Gemstone.PerpetualPortfolioTimeframeData {
         Gemstone.PerpetualPortfolioTimeframeData(
-            accountValueHistory: accountValueHistory.map { $0.map() },
-            pnlHistory: pnlHistory.map { $0.map() },
+            accountValueHistory: accountValueHistory.map { $0.toGem() },
+            pnlHistory: pnlHistory.map { $0.toGem() },
             volume: volume,
         )
     }
 }
 
 public extension Gemstone.PerpetualPosition {
-    func map() -> Primitives.PerpetualPosition {
+    func toPrimitives() -> Primitives.PerpetualPosition {
         Primitives.PerpetualPosition(
             id: id,
             perpetualId: Primitives.PerpetualId(core: perpetualId),
@@ -2734,11 +2843,11 @@ public extension Gemstone.PerpetualPosition {
             leverage: leverage,
             entryPrice: entryPrice,
             liquidationPrice: liquidationPrice,
-            marginType: marginType.map(),
-            direction: direction.map(),
+            marginType: marginType.toPrimitives(),
+            direction: direction.toPrimitives(),
             marginAmount: marginAmount,
-            takeProfit: takeProfit.map { $0.map() },
-            stopLoss: stopLoss.map { $0.map() },
+            takeProfit: takeProfit.map { $0.toPrimitives() },
+            stopLoss: stopLoss.map { $0.toPrimitives() },
             pnl: pnl,
             funding: funding,
         )
@@ -2746,7 +2855,7 @@ public extension Gemstone.PerpetualPosition {
 }
 
 public extension Primitives.PerpetualPosition {
-    func map() -> Gemstone.PerpetualPosition {
+    func toGem() -> Gemstone.PerpetualPosition {
         Gemstone.PerpetualPosition(
             id: id,
             perpetualId: perpetualId.identifier,
@@ -2756,11 +2865,11 @@ public extension Primitives.PerpetualPosition {
             leverage: leverage,
             entryPrice: entryPrice,
             liquidationPrice: liquidationPrice,
-            marginType: marginType.map(),
-            direction: direction.map(),
+            marginType: marginType.toGem(),
+            direction: direction.toGem(),
             marginAmount: marginAmount,
-            takeProfit: takeProfit.map { $0.map() },
-            stopLoss: stopLoss.map { $0.map() },
+            takeProfit: takeProfit.map { $0.toGem() },
+            stopLoss: stopLoss.map { $0.toGem() },
             pnl: pnl,
             funding: funding,
         )
@@ -2768,63 +2877,63 @@ public extension Primitives.PerpetualPosition {
 }
 
 public extension Gemstone.PerpetualPositionsSummary {
-    func map() -> Primitives.PerpetualPositionsSummary {
+    func toPrimitives() -> Primitives.PerpetualPositionsSummary {
         Primitives.PerpetualPositionsSummary(
-            positions: positions.map { $0.map() },
-            balance: balance.map(),
+            positions: positions.map { $0.toPrimitives() },
+            balance: balance.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.PerpetualPositionsSummary {
-    func map() -> Gemstone.PerpetualPositionsSummary {
+    func toGem() -> Gemstone.PerpetualPositionsSummary {
         Gemstone.PerpetualPositionsSummary(
-            positions: positions.map { $0.map() },
-            balance: balance.map(),
+            positions: positions.map { $0.toGem() },
+            balance: balance.toGem(),
         )
     }
 }
 
 public extension Gemstone.PerpetualSearchData {
-    func map() -> Primitives.PerpetualSearchData {
+    func toPrimitives() -> Primitives.PerpetualSearchData {
         Primitives.PerpetualSearchData(
-            perpetual: perpetual.map(),
-            asset: asset.map(),
+            perpetual: perpetual.toPrimitives(),
+            asset: asset.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.PerpetualSearchData {
-    func map() -> Gemstone.PerpetualSearchData {
+    func toGem() -> Gemstone.PerpetualSearchData {
         Gemstone.PerpetualSearchData(
-            perpetual: perpetual.map(),
-            asset: asset.map(),
+            perpetual: perpetual.toGem(),
+            asset: asset.toGem(),
         )
     }
 }
 
 public extension Gemstone.PerpetualTriggerOrder {
-    func map() -> Primitives.PerpetualTriggerOrder {
+    func toPrimitives() -> Primitives.PerpetualTriggerOrder {
         Primitives.PerpetualTriggerOrder(
             price: price,
-            order_type: orderType.map(),
+            order_type: orderType.toPrimitives(),
             order_id: orderId,
         )
     }
 }
 
 public extension Primitives.PerpetualTriggerOrder {
-    func map() -> Gemstone.PerpetualTriggerOrder {
+    func toGem() -> Gemstone.PerpetualTriggerOrder {
         Gemstone.PerpetualTriggerOrder(
             price: price,
-            orderType: order_type.map(),
+            orderType: order_type.toGem(),
             orderId: order_id,
         )
     }
 }
 
 public extension Gemstone.Price {
-    func map() -> Primitives.Price {
+    func toPrimitives() -> Primitives.Price {
         Primitives.Price(
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
@@ -2834,7 +2943,7 @@ public extension Gemstone.Price {
 }
 
 public extension Primitives.Price {
-    func map() -> Gemstone.Price {
+    func toGem() -> Gemstone.Price {
         Gemstone.Price(
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
@@ -2845,54 +2954,74 @@ public extension Primitives.Price {
 }
 
 public extension Gemstone.PriceAlert {
-    func map() -> Primitives.PriceAlert {
+    func toPrimitives() -> Primitives.PriceAlert {
         Primitives.PriceAlert(
             assetId: Primitives.AssetId(core: assetId),
-            currency: Primitives.Currency(core: currency),
+            currency: currency.toPrimitives(),
             price: price,
             pricePercentChange: pricePercentChange,
-            priceDirection: priceDirection.map { $0.map() },
+            priceDirection: priceDirection.map { $0.toPrimitives() },
             lastNotifiedAt: lastNotifiedAt,
         )
     }
 }
 
 public extension Primitives.PriceAlert {
-    func map() -> Gemstone.PriceAlert {
+    func toGem() -> Gemstone.PriceAlert {
         Gemstone.PriceAlert(
             assetId: assetId.identifier,
-            currency: currency.rawValue,
+            currency: currency.toGem(),
             price: price,
             pricePercentChange: pricePercentChange,
-            priceDirection: priceDirection.map { $0.map() },
+            priceDirection: priceDirection.map { $0.toGem() },
             lastNotifiedAt: lastNotifiedAt,
             identifier: "",
         )
     }
 }
 
+public extension Gemstone.PriceAlertData {
+    func toPrimitives() -> Primitives.PriceAlertData {
+        Primitives.PriceAlertData(
+            asset: asset.toPrimitives(),
+            price: price.map { $0.toPrimitives() },
+            priceAlert: priceAlert.toPrimitives(),
+        )
+    }
+}
+
+public extension Primitives.PriceAlertData {
+    func toGem() -> Gemstone.PriceAlertData {
+        Gemstone.PriceAlertData(
+            asset: asset.toGem(),
+            price: price.map { $0.toGem() },
+            priceAlert: priceAlert.toGem(),
+        )
+    }
+}
+
 public extension Gemstone.Release {
-    func map() -> Primitives.Release {
+    func toPrimitives() -> Primitives.Release {
         Primitives.Release(
             version: version,
-            store: store.map(),
+            store: store.toPrimitives(),
             upgradeRequired: upgradeRequired,
         )
     }
 }
 
 public extension Primitives.Release {
-    func map() -> Gemstone.Release {
+    func toGem() -> Gemstone.Release {
         Gemstone.Release(
             version: version,
-            store: store.map(),
+            store: store.toGem(),
             upgradeRequired: upgradeRequired,
         )
     }
 }
 
 public extension Gemstone.ReportNft {
-    func map() -> Primitives.ReportNft {
+    func toPrimitives() -> Primitives.ReportNft {
         Primitives.ReportNft(
             collectionId: collectionId,
             assetId: assetId,
@@ -2902,7 +3031,7 @@ public extension Gemstone.ReportNft {
 }
 
 public extension Primitives.ReportNft {
-    func map() -> Gemstone.ReportNft {
+    func toGem() -> Gemstone.ReportNft {
         Gemstone.ReportNft(
             collectionId: collectionId,
             assetId: assetId,
@@ -2912,7 +3041,7 @@ public extension Primitives.ReportNft {
 }
 
 public extension Gemstone.SupportAgent {
-    func map() -> Primitives.SupportAgent {
+    func toPrimitives() -> Primitives.SupportAgent {
         Primitives.SupportAgent(
             name: name,
         )
@@ -2920,7 +3049,7 @@ public extension Gemstone.SupportAgent {
 }
 
 public extension Primitives.SupportAgent {
-    func map() -> Gemstone.SupportAgent {
+    func toGem() -> Gemstone.SupportAgent {
         Gemstone.SupportAgent(
             name: name,
         )
@@ -2928,33 +3057,33 @@ public extension Primitives.SupportAgent {
 }
 
 public extension Gemstone.SupportMessage {
-    func map() -> Primitives.SupportMessage {
+    func toPrimitives() -> Primitives.SupportMessage {
         Primitives.SupportMessage(
             id: id,
             content: content,
-            sender: sender.map(),
-            status: status.map(),
+            sender: sender.toPrimitives(),
+            status: status.toPrimitives(),
             createdAt: createdAt,
-            images: images.map { $0.map() },
+            images: images.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.SupportMessage {
-    func map() -> Gemstone.SupportMessage {
+    func toGem() -> Gemstone.SupportMessage {
         Gemstone.SupportMessage(
             id: id,
             content: content,
-            sender: sender.map(),
-            status: status.map(),
+            sender: sender.toGem(),
+            status: status.toGem(),
             createdAt: createdAt,
-            images: images.map { $0.map() },
+            images: images.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.SupportMessageImage {
-    func map() -> Primitives.SupportMessageImage {
+    func toPrimitives() -> Primitives.SupportMessageImage {
         Primitives.SupportMessageImage(
             id: id,
             url: url,
@@ -2968,7 +3097,7 @@ public extension Gemstone.SupportMessageImage {
 }
 
 public extension Primitives.SupportMessageImage {
-    func map() -> Gemstone.SupportMessageImage {
+    func toGem() -> Gemstone.SupportMessageImage {
         Gemstone.SupportMessageImage(
             id: id,
             url: url,
@@ -2982,25 +3111,25 @@ public extension Primitives.SupportMessageImage {
 }
 
 public extension Gemstone.SupportTyping {
-    func map() -> Primitives.SupportTyping {
+    func toPrimitives() -> Primitives.SupportTyping {
         Primitives.SupportTyping(
-            status: status.map(),
-            agent: agent.map(),
+            status: status.toPrimitives(),
+            agent: agent.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.SupportTyping {
-    func map() -> Gemstone.SupportTyping {
+    func toGem() -> Gemstone.SupportTyping {
         Gemstone.SupportTyping(
-            status: status.map(),
-            agent: agent.map(),
+            status: status.toGem(),
+            agent: agent.toGem(),
         )
     }
 }
 
 public extension Gemstone.TotalFiatValue {
-    func map() -> Primitives.TotalFiatValue {
+    func toPrimitives() -> Primitives.TotalFiatValue {
         Primitives.TotalFiatValue(
             value: value,
             pnlAmount: pnlAmount,
@@ -3010,7 +3139,7 @@ public extension Gemstone.TotalFiatValue {
 }
 
 public extension Primitives.TotalFiatValue {
-    func map() -> Gemstone.TotalFiatValue {
+    func toGem() -> Gemstone.TotalFiatValue {
         Gemstone.TotalFiatValue(
             value: value,
             pnlAmount: pnlAmount,
@@ -3020,24 +3149,24 @@ public extension Primitives.TotalFiatValue {
 }
 
 public extension Gemstone.Transaction {
-    func map() -> Primitives.Transaction {
+    func toPrimitives() -> Primitives.Transaction {
         Primitives.Transaction(
             id: Primitives.TransactionId(core: id),
             assetId: Primitives.AssetId(core: assetId),
             from: from,
             to: to,
             contract: contract,
-            type: transactionType.map(),
-            state: state.map(),
+            type: transactionType.toPrimitives(),
+            state: state.toPrimitives(),
             blockNumber: blockNumber,
             sequence: sequence,
             fee: fee.description,
             feeAssetId: Primitives.AssetId(core: feeAssetId),
             value: value.description,
             memo: memo,
-            direction: direction.map(),
-            utxoInputs: utxoInputs.map { $0.map { $0.map() } },
-            utxoOutputs: utxoOutputs.map { $0.map { $0.map() } },
+            direction: direction.toPrimitives(),
+            utxoInputs: utxoInputs.map { $0.map { $0.toPrimitives() } },
+            utxoOutputs: utxoOutputs.map { $0.map { $0.toPrimitives() } },
             metadata: metadata.map { AnyCodableValue(core: $0) },
             createdAt: createdAt,
         )
@@ -3045,24 +3174,24 @@ public extension Gemstone.Transaction {
 }
 
 public extension Primitives.Transaction {
-    func map() -> Gemstone.Transaction {
+    func toGem() -> Gemstone.Transaction {
         Gemstone.Transaction(
             id: id.identifier,
             assetId: assetId.identifier,
             from: from,
             to: to,
             contract: contract,
-            transactionType: type.map(),
-            state: state.map(),
+            transactionType: type.toGem(),
+            state: state.toGem(),
             blockNumber: blockNumber,
             sequence: sequence,
             fee: BigUInt(stringLiteral: fee),
             feeAssetId: feeAssetId.identifier,
             value: BigUInt(stringLiteral: value),
             memo: memo,
-            direction: direction.map(),
-            utxoInputs: utxoInputs.map { $0.map { $0.map() } },
-            utxoOutputs: utxoOutputs.map { $0.map { $0.map() } },
+            direction: direction.toGem(),
+            utxoInputs: utxoInputs.map { $0.map { $0.toGem() } },
+            utxoOutputs: utxoOutputs.map { $0.map { $0.toGem() } },
             metadata: metadata.map { $0.json() },
             data: nil,
             createdAt: createdAt,
@@ -3071,67 +3200,67 @@ public extension Primitives.Transaction {
 }
 
 public extension Gemstone.TransactionExtended {
-    func map() -> Primitives.TransactionExtended {
+    func toPrimitives() -> Primitives.TransactionExtended {
         Primitives.TransactionExtended(
             recordId: recordId,
-            transaction: transaction.map(),
-            asset: asset.map(),
-            feeAsset: feeAsset.map(),
-            price: price.map { $0.map() },
-            feePrice: feePrice.map { $0.map() },
-            assets: assets.map { $0.map() },
-            prices: prices.map { $0.map() },
-            fromAddress: fromAddress.map { $0.map() },
-            toAddress: toAddress.map { $0.map() },
+            transaction: transaction.toPrimitives(),
+            asset: asset.toPrimitives(),
+            feeAsset: feeAsset.toPrimitives(),
+            price: price.map { $0.toPrimitives() },
+            feePrice: feePrice.map { $0.toPrimitives() },
+            assets: assets.map { $0.toPrimitives() },
+            prices: prices.map { $0.toPrimitives() },
+            fromAddress: fromAddress.map { $0.toPrimitives() },
+            toAddress: toAddress.map { $0.toPrimitives() },
             confirmationEtaSeconds: confirmationEtaSeconds,
         )
     }
 }
 
 public extension Primitives.TransactionExtended {
-    func map() -> Gemstone.TransactionExtended {
+    func toGem() -> Gemstone.TransactionExtended {
         Gemstone.TransactionExtended(
             recordId: recordId,
-            transaction: transaction.map(),
-            asset: asset.map(),
-            feeAsset: feeAsset.map(),
-            price: price.map { $0.map() },
-            feePrice: feePrice.map { $0.map() },
-            assets: assets.map { $0.map() },
-            prices: prices.map { $0.map() },
-            fromAddress: fromAddress.map { $0.map() },
-            toAddress: toAddress.map { $0.map() },
+            transaction: transaction.toGem(),
+            asset: asset.toGem(),
+            feeAsset: feeAsset.toGem(),
+            price: price.map { $0.toGem() },
+            feePrice: feePrice.map { $0.toGem() },
+            assets: assets.map { $0.toGem() },
+            prices: prices.map { $0.toGem() },
+            fromAddress: fromAddress.map { $0.toGem() },
+            toAddress: toAddress.map { $0.toGem() },
             confirmationEtaSeconds: confirmationEtaSeconds,
         )
     }
 }
 
 public extension Gemstone.TransactionPerpetualMetadata {
-    func map() -> Primitives.TransactionPerpetualMetadata {
+    func toPrimitives() -> Primitives.TransactionPerpetualMetadata {
         Primitives.TransactionPerpetualMetadata(
             pnl: pnl,
             price: price,
-            direction: direction.map(),
+            direction: direction.toPrimitives(),
             isLiquidation: isLiquidation,
-            provider: provider.map { $0.map() },
+            provider: provider.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension Primitives.TransactionPerpetualMetadata {
-    func map() -> Gemstone.TransactionPerpetualMetadata {
+    func toGem() -> Gemstone.TransactionPerpetualMetadata {
         Gemstone.TransactionPerpetualMetadata(
             pnl: pnl,
             price: price,
-            direction: direction.map(),
+            direction: direction.toGem(),
             isLiquidation: isLiquidation,
-            provider: provider.map { $0.map() },
+            provider: provider.map { $0.toGem() },
         )
     }
 }
 
 public extension Gemstone.TransactionUtxoInput {
-    func map() -> Primitives.TransactionUtxoInput {
+    func toPrimitives() -> Primitives.TransactionUtxoInput {
         Primitives.TransactionUtxoInput(
             address: address,
             value: value.description,
@@ -3140,7 +3269,7 @@ public extension Gemstone.TransactionUtxoInput {
 }
 
 public extension Primitives.TransactionUtxoInput {
-    func map() -> Gemstone.TransactionUtxoInput {
+    func toGem() -> Gemstone.TransactionUtxoInput {
         Gemstone.TransactionUtxoInput(
             address: address,
             value: BigUInt(stringLiteral: value),
@@ -3149,7 +3278,7 @@ public extension Primitives.TransactionUtxoInput {
 }
 
 public extension Gemstone.TronVote {
-    func map() -> Primitives.TronVote {
+    func toPrimitives() -> Primitives.TronVote {
         Primitives.TronVote(
             validator: validator,
             count: count,
@@ -3158,7 +3287,7 @@ public extension Gemstone.TronVote {
 }
 
 public extension Primitives.TronVote {
-    func map() -> Gemstone.TronVote {
+    func toGem() -> Gemstone.TronVote {
         Gemstone.TronVote(
             validator: validator,
             count: count,
@@ -3167,7 +3296,7 @@ public extension Primitives.TronVote {
 }
 
 public extension Gemstone.Utxo {
-    func map() -> Primitives.UTXO {
+    func toPrimitives() -> Primitives.UTXO {
         Primitives.UTXO(
             transaction_id: transactionId,
             vout: vout,
@@ -3178,7 +3307,7 @@ public extension Gemstone.Utxo {
 }
 
 public extension Primitives.UTXO {
-    func map() -> Gemstone.Utxo {
+    func toGem() -> Gemstone.Utxo {
         Gemstone.Utxo(
             transactionId: transaction_id,
             vout: vout,
@@ -3189,99 +3318,99 @@ public extension Primitives.UTXO {
 }
 
 public extension Gemstone.Wallet {
-    func map() -> Primitives.Wallet {
+    func toPrimitives() -> Primitives.Wallet {
         Primitives.Wallet(
             id: Primitives.WalletId(core: id),
             externalId: externalId,
             name: name,
             index: index,
-            type: walletType.map(),
-            accounts: accounts.map { $0.map() },
+            type: walletType.toPrimitives(),
+            accounts: accounts.map { $0.toPrimitives() },
             isPinned: isPinned,
             imageUrl: imageUrl,
-            source: source.map(),
+            source: source.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.Wallet {
-    func map() -> Gemstone.Wallet {
+    func toGem() -> Gemstone.Wallet {
         Gemstone.Wallet(
             id: id.identifier,
             externalId: externalId,
             name: name,
             index: index,
-            walletType: type.map(),
-            accounts: accounts.map { $0.map() },
+            walletType: type.toGem(),
+            accounts: accounts.map { $0.toGem() },
             isPinned: isPinned,
             imageUrl: imageUrl,
-            source: source.map(),
+            source: source.toGem(),
         )
     }
 }
 
 public extension Gemstone.WalletConnection {
-    func map() -> Primitives.WalletConnection {
+    func toPrimitives() -> Primitives.WalletConnection {
         Primitives.WalletConnection(
-            session: session.map(),
-            wallet: wallet.map(),
+            session: session.toPrimitives(),
+            wallet: wallet.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.WalletConnection {
-    func map() -> Gemstone.WalletConnection {
+    func toGem() -> Gemstone.WalletConnection {
         Gemstone.WalletConnection(
-            session: session.map(),
-            wallet: wallet.map(),
+            session: session.toGem(),
+            wallet: wallet.toGem(),
         )
     }
 }
 
 public extension Gemstone.WalletConnectionSession {
-    func map() -> Primitives.WalletConnectionSession {
+    func toPrimitives() -> Primitives.WalletConnectionSession {
         Primitives.WalletConnectionSession(
             id: id,
             sessionId: sessionId,
-            state: state.map(),
+            state: state.toPrimitives(),
             chains: chains.map { Primitives.Chain(core: $0) },
             createdAt: createdAt,
             expireAt: expireAt,
-            metadata: metadata.map(),
+            metadata: metadata.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.WalletConnectionSession {
-    func map() -> Gemstone.WalletConnectionSession {
+    func toGem() -> Gemstone.WalletConnectionSession {
         Gemstone.WalletConnectionSession(
             id: id,
             sessionId: sessionId,
-            state: state.map(),
+            state: state.toGem(),
             chains: chains.map { $0.rawValue },
             createdAt: createdAt,
             expireAt: expireAt,
-            metadata: metadata.map(),
+            metadata: metadata.toGem(),
         )
     }
 }
 
 public extension Gemstone.WalletConnectionSessionProposal {
-    func map() -> Primitives.WalletConnectionSessionProposal {
+    func toPrimitives() -> Primitives.WalletConnectionSessionProposal {
         Primitives.WalletConnectionSessionProposal(
-            defaultWallet: defaultWallet.map(),
-            wallets: wallets.map { $0.map() },
-            metadata: metadata.map(),
+            defaultWallet: defaultWallet.toPrimitives(),
+            wallets: wallets.map { $0.toPrimitives() },
+            metadata: metadata.toPrimitives(),
         )
     }
 }
 
 public extension Primitives.WalletConnectionSessionProposal {
-    func map() -> Gemstone.WalletConnectionSessionProposal {
+    func toGem() -> Gemstone.WalletConnectionSessionProposal {
         Gemstone.WalletConnectionSessionProposal(
-            defaultWallet: defaultWallet.map(),
-            wallets: wallets.map { $0.map() },
-            metadata: metadata.map(),
+            defaultWallet: defaultWallet.toGem(),
+            wallets: wallets.map { $0.toGem() },
+            metadata: metadata.toGem(),
         )
     }
 }

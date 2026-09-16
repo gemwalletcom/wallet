@@ -40,14 +40,11 @@ public final class SetupWalletViewModel: Sendable {
     }
 
     var title: String {
-        switch wallet.source {
-        case .create: Localized.Wallet.New.title
-        case .import: Localized.Wallet.Import.title
-        }
+        wallet.source.title
     }
 
     var avatarAssetImage: AssetImage {
-        let avatar = walletRow(wallet: wallet.map()).avatarImage
+        let avatar = walletRow(wallet: wallet.toGem()).avatarImage
         return AssetImage(
             type: avatar.type,
             imageURL: avatar.imageURL,

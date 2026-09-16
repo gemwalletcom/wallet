@@ -1,14 +1,15 @@
 use std::time::{Duration, Instant};
 
-use primitives::Chain;
+use primitives::{Chain, ChainRequest, ChainRequestProtocol, ChainRequestType};
 use reqwest::Method;
 use reqwest::header::{HOST, HeaderMap, USER_AGENT};
 use rocket::http::Status;
+use settings_chain::BroadcastProviders;
 use url::Url;
 use uuid::Uuid;
 
 use crate::config::path::path_without_query;
-use crate::jsonrpc_types::RequestType;
+use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
 
 fn generate_request_id() -> String {
     format!("{:016x}", Uuid::new_v4().as_u128() as u64)
@@ -63,6 +64,15 @@ impl ProxyRequest {
         &self.request_type
     }
 
+    pub(crate) fn is_broadcast(&self, providers: &BroadcastProviders) -> bool {
+        let request = match self.request_type() {
+            RequestType::JsonRpc(JsonRpcRequest::Single(call)) => ChainRequest::new(ChainRequestProtocol::JsonRpc, &call.method, &self.path, &self.body),
+            RequestType::Regular { .. } => ChainRequest::new(ChainRequestProtocol::Http, self.method.as_str(), &self.path, &self.body),
+            RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => return false,
+        };
+        providers.classify_request(self.chain, request) == ChainRequestType::Broadcast
+    }
+
     fn prepare_paths(uri: &str) -> (String, String) {
         let path_with_query = Self::canonicalize_path(&Self::remove_chain_from_path(uri));
         let path = path_without_query(&path_with_query).to_string();
@@ -106,6 +116,53 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
+    fn make_request(chain: Chain, method: Method, path: &str, body: &[u8]) -> ProxyRequest {
+        ProxyRequest::new(
+            method,
+            HeaderMap::new(),
+            body.to_vec(),
+            path.to_string(),
+            path.to_string(),
+            "example.com".to_string(),
+            "test-agent".to_string(),
+            chain,
+        )
+    }
+
+    fn broadcast_providers() -> BroadcastProviders {
+        BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])
+    }
+
+    #[test]
+    fn test_detect_broadcast_jsonrpc_single() {
+        let request = make_request(
+            Chain::Ethereum,
+            Method::POST,
+            "/rpc",
+            br#"{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xdeadbeef"],"id":1}"#,
+        );
+
+        assert!(request.is_broadcast(&broadcast_providers()));
+    }
+
+    #[test]
+    fn test_detect_broadcast_batch_jsonrpc_skipped() {
+        let request = make_request(
+            Chain::Ethereum,
+            Method::POST,
+            "/rpc",
+            br#"[{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0x1"],"id":1},{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0x2"],"id":2}]"#,
+        );
+
+        assert!(!request.is_broadcast(&broadcast_providers()));
+    }
+
+    #[test]
+    fn test_detect_broadcast_http_path() {
+        let request = make_request(Chain::Tron, Method::POST, "/wallet/broadcasttransaction", br#"{"txID":"abc"}"#);
+
+        assert!(request.is_broadcast(&broadcast_providers()));
+    }
 
     #[test]
     fn test_request_creation() {

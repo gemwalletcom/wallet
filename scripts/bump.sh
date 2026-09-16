@@ -6,6 +6,7 @@ IOS_FILE="$ROOT_DIR/ios/Gem.xcodeproj/project.pbxproj"
 ANDROID_FILE="$ROOT_DIR/android/app/build.gradle.kts"
 CORE_FILE="$ROOT_DIR/core/Cargo.toml"
 CORE_LOCK_FILE="$ROOT_DIR/core/Cargo.lock"
+VERSION_FILES=("$IOS_FILE" "$ANDROID_FILE" "$CORE_FILE" "$CORE_LOCK_FILE")
 TARGET="${1:-patch}"
 REMOTE_NAME="${BUMP_REMOTE:-origin}"
 BRANCH_NAME="${BUMP_BRANCH:-main}"
@@ -19,12 +20,12 @@ fail() {
   exit 1
 }
 
-verify_clean_latest_branch() {
+verify_latest_branch() {
   local branch upstream_remote upstream_merge upstream_branch
 
   branch="$(git branch --show-current)"
   [[ "$branch" == "$BRANCH_NAME" ]] || fail "Run this from $BRANCH_NAME, not ${branch:-detached HEAD}."
-  [[ -z "$(git status --porcelain)" ]] || fail "Working tree must be clean before bumping."
+  [[ -z "$(git status --porcelain -- "${VERSION_FILES[@]}")" ]] || fail "Version files must be clean before bumping."
 
   upstream_remote="$(git config "branch.$branch.remote" || true)"
   upstream_merge="$(git config "branch.$branch.merge" || true)"
@@ -53,7 +54,7 @@ resolve_version() {
   esac
 }
 
-verify_clean_latest_branch
+verify_latest_branch
 
 current_ios_version=$(grep -oE "MARKETING_VERSION = [0-9]+\.[0-9]+\.[0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
 current_android_version=$(grep 'versionName = "' "$ANDROID_FILE" | sed 's/.*versionName = "//' | sed 's/".*//')
@@ -84,8 +85,7 @@ cargo metadata --manifest-path "$CORE_FILE" --format-version 1 >/dev/null
 core_versions="$(cargo metadata --manifest-path "$CORE_FILE" --format-version 1 --no-deps | grep -oE '"version":"[^"]+"' | sort -u)"
 [[ "$core_versions" == "\"version\":\"$new_core_version\"" ]] || fail "Core workspace packages do not all use version $new_core_version: $core_versions"
 
-git add "$IOS_FILE" "$ANDROID_FILE" "$CORE_FILE" "$CORE_LOCK_FILE"
-git commit -S -m "Bump to $new_version (iOS $new_ios_build, Android $new_android_build)"
+git commit --only -S -m "Bump to $new_version (iOS $new_ios_build, Android $new_android_build)" -- "${VERSION_FILES[@]}"
 git tag -s "$new_version" -m "$new_version"
 git push --atomic "$REMOTE_NAME" "HEAD:$BRANCH_REF" "refs/tags/$new_version:refs/tags/$new_version"
 

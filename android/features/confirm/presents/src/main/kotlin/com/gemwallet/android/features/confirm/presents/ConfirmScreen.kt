@@ -46,7 +46,6 @@ import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails
 import com.gemwallet.android.features.confirm.presents.components.PropertyDestination
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
-import com.gemwallet.android.features.confirm.viewmodels.reorderRequestProperties
 import com.gemwallet.android.model.AuthRequest
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemTransactionHeaderKind
@@ -77,7 +76,6 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsCon
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
-import com.gemwallet.android.ui.localizedDescription
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
@@ -116,7 +114,7 @@ fun ConfirmScreen(
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
     val isPayment by viewModel.isPaymentRequest.collectAsStateWithLifecycle()
     val headerAsset by viewModel.headerAsset.collectAsStateWithLifecycle()
-    val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
+    val displayTransactionProperties = transactionProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }

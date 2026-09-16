@@ -8,6 +8,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRateRow
+import uniffi.gemstone.GemValueStyle
 
 data class FeeRateUIModel(
     val row: GemFeeRateRow,
@@ -18,7 +19,7 @@ data class FeeRateUIModel(
     val priority: FeePriority = row.priority.toPrimitives()
 
     val price: String
-        get() = ValueFormatter(style = ValueFormatter.Style.Auto)
+        get() = ValueFormatter(style = GemValueStyle.AUTO)
             .string(row.displayValue, feeRateDecimals, unitSymbol)
 
     val fiatValue: String

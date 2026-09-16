@@ -1,4 +1,4 @@
-use std::str::FromStr;
+
 
 use crate::{QuoteRequest, Route, SwapperError, eth_address, fees::default_referral_fees, uniswap::uses_native_currency};
 use alloy_primitives::{Address, U256};
@@ -41,7 +41,7 @@ pub fn build_commands(
         if fee_token_is_input {
             // insert TRANSFER fee first
             let fee = amount_in * (fee_options.bps as u128) / 10000_u128;
-            let fee_recipient = Address::from_str(fee_options.address.as_str()).unwrap();
+            let fee_recipient = eth_address::parse_str(&fee_options.address)?;
             if input_is_native {
                 // if input is native ETH, we can transfer directly
                 commands.push(UniversalRouterCommand::TRANSFER(Transfer {
@@ -64,7 +64,7 @@ pub fn build_commands(
         } else {
             // insert V4 SWAP
             // if needs to pay fees, amount_out_min set to 0 and we will sweep the rest
-            let address_this = ADDRESS_THIS.parse().unwrap();
+            let address_this = eth_address::parse_str(ADDRESS_THIS)?;
             let amount_out_min = if pay_fees { 0 } else { amount_out };
             let command = build_v4_swap_command(token_in, token_out, amount_in, amount_out_min, swap_routes, &address_this, universal_router_abi)?;
             commands.push(command);
@@ -72,7 +72,7 @@ pub fn build_commands(
             // insert PAY_PORTION to fee_address
             commands.push(UniversalRouterCommand::PAY_PORTION(PayPortion {
                 token: *token_out,
-                recipient: Address::from_str(fee_options.address.as_str()).unwrap(),
+                recipient: eth_address::parse_str(&fee_options.address)?,
                 bips: U256::from(fee_options.bps),
             }));
 
@@ -148,6 +148,7 @@ mod tests {
         AssetId, Chain,
         asset_constants::{CELO_USDT_TOKEN_ID, CELO_WETH_TOKEN_ID},
     };
+    use std::str::FromStr;
 
     #[test]
     fn test_build_commands_celo_tokenized_native() {

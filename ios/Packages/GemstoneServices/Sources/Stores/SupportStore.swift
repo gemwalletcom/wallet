@@ -18,15 +18,15 @@ public final class GemstoneSupportStore: GemSupportStore, Sendable {
     }
 
     public func saveMessages(messages: [Gemstone.SupportMessage]) async throws {
-        try store.addMessages(messages.map { $0.map() })
+        try store.addMessages(messages.map { $0.toPrimitives() })
     }
 
     public func saveMessage(id: String, message: Gemstone.SupportMessage) async throws {
-        try store.replace(id: id, with: message.map())
+        try store.replace(id: id, with: message.toPrimitives())
     }
 
     public func updateTyping(typing: Gemstone.SupportTyping) throws {
-        self.typing.update(typing.map())
+        self.typing.update(typing.toPrimitives())
     }
 
     public func clearTyping() throws {

@@ -51,4 +51,13 @@ public enum Currency: String, Codable, CaseIterable, Equatable, Sendable {
 	case myr = "MYR"
 	case aed = "AED"
 	case sek = "SEK"
+	case byn = "BYN"
+	case kzt = "KZT"
+	case uzs = "UZS"
+	case egp = "EGP"
+	case kes = "KES"
+	case cop = "COP"
+	case mad = "MAD"
+	case ghs = "GHS"
+	case pen = "PEN"
 }

@@ -23,7 +23,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemTransactionsService
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -91,6 +90,5 @@ class TransactionsViewModelSyncTest {
         getSession = getSession,
         getTransactions = getTransactions,
         service = service,
-        assetConfig = GemAssetConfigService(),
     )
 }

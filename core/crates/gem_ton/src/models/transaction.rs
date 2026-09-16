@@ -208,5 +208,5 @@ pub struct ActionPhase {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BroadcastTransaction {
-    pub hash: String,
+    pub message_hash: String,
 }

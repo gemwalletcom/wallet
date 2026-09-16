@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.swap
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
@@ -321,7 +322,7 @@ class RequestSwapQuotesImplTest {
 
         override suspend fun addPrices(assetIds: List<String>) = Unit
 
-        override fun getCurrency(): String = "USD"
+        override fun getCurrency(): uniffi.gemstone.Currency = com.wallet.core.primitives.Currency.USD.toGem()
 
         override fun defaultSlippage(chain: String): SwapperSlippage = throw UnsupportedOperationException()
 
@@ -336,6 +337,9 @@ class RequestSwapQuotesImplTest {
         override fun slippageCheck(bps: UInt): GemSlippageCheck = throw UnsupportedOperationException()
 
         override fun newSlippageSession(selection: GemSlippageSelection): GemSlippageSession = throw UnsupportedOperationException()
+
+        override fun amountForPercent(available: java.math.BigInteger, percent: UInt): java.math.BigInteger =
+            available * percent.toInt().toBigInteger() / java.math.BigInteger.valueOf(100)
 
         override fun slippageBpsFromPercent(percent: Double): UInt? = throw UnsupportedOperationException()
 

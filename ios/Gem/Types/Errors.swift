@@ -4,6 +4,8 @@ import Foundation
 import Gemstone
 import Localization
 import Primitives
+import PrimitivesComponents
+import Swap
 
 extension KeystoreError: @retroactive LocalizedError {
     public var errorDescription: String? {
@@ -15,91 +17,48 @@ extension KeystoreError: @retroactive LocalizedError {
 
 extension Gemstone.GemServiceError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case let .Api(message),
-             let .Gateway(message),
-             let .Store(message),
-             let .Core(message),
-             let .Platform(message),
-             let .InvalidInput(message),
-             let .NotFound(message),
-             let .Unsupported(message): message
-        case .Cancelled: Localized.Errors.cancelled
-        }
+        text().text
     }
 }
 
 extension Gemstone.GatewayError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case .Offline: Localized.Errors.networkOffline
-        case let .NetworkError(string): string
-        case let .PlatformError(string): string
-        case .NetworkIdMismatch: Localized.Errors.invalidNetworkId
-        }
+        text().text
     }
 }
 
 extension Gemstone.GemAddNodeError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case .InvalidUrl: Localized.Errors.invalidUrl
-        case .InvalidNetworkId: Localized.Errors.invalidNetworkId
-        case let .Gateway(error): error.errorDescription
-        }
+        text().text
     }
 }
 
 extension Gemstone.GemstoneError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case let .AnyError(string): string
-        case let .SignerError(_, msg): msg
-        case .Cancelled: Localized.Errors.cancelled
-        }
+        text().text
     }
 }
 
 extension Gemstone.GemPaymentError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case .NoPaymentOptions: Localized.Errors.notSupported
-        case let .InvalidRequest(reason), let .Network(reason): reason
-        }
+        paymentErrorText(error: self).text
     }
 }
 
 extension Gemstone.GemWalletConnectError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case .UnsupportedChains: Localized.Errors.Connections.unsupportedChain
-        case .InvalidOrigin: Localized.Errors.Connections.maliciousOrigin
-        case .UnsupportedWallets: Localized.Errors.Connections.noSupportedWallets
-        case let .Service(msg): msg
-        }
+        text().text
     }
 }
 
 extension Gemstone.SwapperError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case .NotSupportedChain, .NotSupportedAsset:
-            Localized.Errors.Swap.notSupportedAsset
-        case .NoQuoteAvailable, .NoAvailableProvider, .InvalidRoute,
-             .ComputeQuoteError, .TransactionError:
-            Localized.Errors.Swap.noQuoteAvailable
-        case .InputAmountError: Localized.Errors.Swap.amountTooSmall
-        }
+        swapErrorDisplay(error: self, payAsset: nil).errorDescription
     }
 }
 
 extension Gemstone.AlienError: @retroactive LocalizedError {
     public var errorDescription: String? {
-        switch self {
-        case let .RequestError(msg: msg): msg
-        case let .ResponseError(msg: msg): msg
-        case let .Http(status, _): Localized.Errors.networkError(status)
-        case .Offline: Localized.Errors.networkOffline
-        }
+        alienErrorText(error: self).text
     }
 }

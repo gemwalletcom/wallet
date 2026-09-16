@@ -18,7 +18,7 @@ struct ConfirmInfoSheetBuilderTests {
         let asset = Asset.mock()
         let requirement = BalanceRequirement(required: 2, available: 1, shortfall: 1)
 
-        guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: GemConfirmError.InsufficientBalance(asset: asset.map(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))) else {
+        guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: GemConfirmError.InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))) else {
             Issue.record("Expected balanceRequired sheet")
             return
         }
@@ -28,7 +28,7 @@ struct ConfirmInfoSheetBuilderTests {
 
     @Test
     func minimumAccountBalanceSheet() {
-        guard case let .accountMinimalBalance(_, required) = build(for: GemConfirmError.MinimumAccountBalanceTooLow(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: 10, available: 0, shortfall: 10))) else {
+        guard case let .accountMinimalBalance(_, required) = build(for: GemConfirmError.MinimumAccountBalanceTooLow(asset: Asset.mock().toGem(), requirement: GemBalanceRequirement(required: 10, available: 0, shortfall: 10))) else {
             Issue.record("Expected accountMinimalBalance sheet")
             return
         }
@@ -39,7 +39,7 @@ struct ConfirmInfoSheetBuilderTests {
     func swapBelowMinimumSheetNamesTheProvider() {
         let asset = Asset.mock()
         let error = GemConfirmError.BelowSwapMinimum(
-            asset: asset.map(),
+            asset: asset.toGem(),
             provider: .nearIntents,
             providerName: "NEAR Intents",
             requirement: GemBalanceRequirement(required: 200, available: 150, shortfall: 50),

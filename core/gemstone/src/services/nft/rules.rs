@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use primitives::{Account, AddressFormatStyle, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, Wallet, WalletType};
 
 use super::model::{
-    GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem, GemNftRow,
-    GemNftList,
+    GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem, GemNftList,
+    GemNftRow,
 };
 use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
@@ -128,9 +128,7 @@ pub fn collectible_details(
     contract_explorer: Option<BlockExplorerLink>,
     token_explorer: Option<BlockExplorerLink>,
 ) -> GemCollectibleDetails {
-    let status = (data.collection.status != VerificationStatus::Verified).then_some(GemCollectibleSection::Status {
-        status: data.collection.status,
-    });
+    let status = (data.collection.status != VerificationStatus::Verified).then_some(GemCollectibleSection::Status { status: data.collection.status });
     let info = GemCollectibleSection::Info {
         rows: info_rows(data, contract_explorer, token_explorer),
     };
@@ -188,9 +186,9 @@ fn attribute(attribute: &NFTAttribute) -> GemCollectibleAttribute {
     };
     GemCollectibleAttribute {
         name: attribute.name.clone(),
-        value: date.map(|date| GemCollectibleAttributeValue::Date { date }).unwrap_or_else(|| GemCollectibleAttributeValue::Text {
-            value: attribute.value.clone(),
-        }),
+        value: date
+            .map(|date| GemCollectibleAttributeValue::Date { date })
+            .unwrap_or_else(|| GemCollectibleAttributeValue::Text { value: attribute.value.clone() }),
     }
 }
 
@@ -334,10 +332,7 @@ mod tests {
         suspicious.collection.links = vec![AssetLink::new("https://example.com", LinkType::Website)];
         suspicious.asset.attributes = vec![NFTAttribute::new("Color", "Blue", NFTAttributeType::String)];
 
-        assert_eq!(
-            section_names(&collectible_details(&WalletType::Multicoin, &verified, true, None, None)),
-            vec!["info"]
-        );
+        assert_eq!(section_names(&collectible_details(&WalletType::Multicoin, &verified, true, None, None)), vec!["info"]);
         assert_eq!(
             section_names(&collectible_details(&WalletType::Multicoin, &suspicious, true, None, None)),
             vec!["status", "info", "attributes", "links"]

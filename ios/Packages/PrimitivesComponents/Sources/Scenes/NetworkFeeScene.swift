@@ -42,7 +42,7 @@ public struct NetworkFeeScene: View {
                                 model: model.rowItem(for: feeRate),
                             ),
                         ) {
-                            model.select(.priority(priority: feeRate.priority.map()))
+                            model.select(.priority(priority: feeRate.priority.toGem()))
                             dismiss()
                         }
                     }
@@ -66,12 +66,26 @@ public struct NetworkFeeScene: View {
                 }
             }
 
-            ListItemView(
-                title: model.title,
-                subtitle: model.value,
-                subtitleExtra: model.fiatValue,
-                placeholders: [.subtitle],
-            )
+            if model.feeItems.isEmpty {
+                ListItemView(
+                    title: model.title,
+                    subtitle: model.value,
+                    subtitleExtra: model.fiatValue,
+                    placeholders: [.subtitle],
+                )
+            } else {
+                Section {
+                    ForEach(model.feeItems, id: \.title) {
+                        ListItemView(model: $0)
+                    }
+                    ListItemView(
+                        title: model.title,
+                        subtitle: model.value,
+                        subtitleExtra: model.fiatValue,
+                        placeholders: [.subtitle],
+                    )
+                }
+            }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .navigationTitle(model.title)

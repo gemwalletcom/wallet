@@ -37,21 +37,18 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
         case let .swap(fromAsset, toAsset, swapData):
             let quote = swapData.quote
             let summary = swapQuoteSummary(quote: quote, fromAsset: fromAsset, toAsset: toAsset)
-            let toAsset = toAsset.map()
-            let fromAssetPrice = AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice)
+            let toAsset = toAsset.toPrimitives()
+            let fromAssetPrice = AssetPriceValue(asset: fromAsset.toPrimitives(), price: metadata?.assetPrice)
             let toAssetPrice = AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id])
             return .swapDetails(
                 SwapDetailsViewModel(
                     fromAssetPrice: fromAssetPrice,
                     toAssetPrice: toAssetPrice,
-                    selectedQuote: quote,
-                    slippage: .manual(bps: quote.slippageBps),
-                    rate: summary.rate,
+                    summary: summary,
+                    slippagePercent: summary.slippagePercent(),
                     currency: confirmation.currency.rawValue,
                     swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
                         .priceImpact(receive: toAssetPrice.swapValue(quote.toValue)),
-                    minReceiveValue: BigInt(summary.minReceiveValue),
-                    etaSeconds: quote.etaInSeconds,
                 ),
             )
         case let .perpetual(_, perpetualType):

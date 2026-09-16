@@ -24,7 +24,6 @@ public import struct Gemstone.TransferDataExtra
 public import enum Gemstone.GemTransactionLoadMetadata
 public import struct Gemstone.GemTransactionLoadFee
 import Foundation
-import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -32,7 +31,7 @@ import struct Gemstone.GemTransferData
 
 public extension GemConfirmData {
     static func mock(
-        input: GemConfirmInput = GemConfirmInput(from: Primitives.Account.mock().map(), transfer: GemTransferData.mock()),
+        input: GemConfirmInput = GemConfirmInput(from: Primitives.Account.mock().toGem(), transfer: GemTransferData.mock()),
         fee: GemTransactionLoadFee = .mock(),
         selectedPriority: Gemstone.FeePriority = .normal,
         feeRates: [GemFeeRate] = [],
@@ -42,6 +41,7 @@ public extension GemConfirmData {
         GemConfirmData(
             input: input,
             fee: fee,
+            additionalFees: [],
             selectedPriority: selectedPriority,
             feeRates: feeRates,
             metadata: metadata,
@@ -123,9 +123,9 @@ public extension TransferDataExtra {
             gasLimit: gasLimit,
             gasPrice: gasPrice,
             data: data,
-            outputType: outputType.map(),
-            outputAction: outputAction.map(),
-            transactionType: transactionType.map(),
+            outputType: outputType.toGem(),
+            outputAction: outputAction.toGem(),
+            transactionType: transactionType.toGem(),
             approval: approval,
         )
     }
@@ -153,12 +153,12 @@ public extension GemConfirmLoad {
         preload: GemConfirmPreload? = .mock(),
     ) -> GemConfirmLoad {
         GemConfirmLoad(
-            sender: sender.map(),
-            feeAsset: feeAsset.map(),
+            sender: sender.toGem(),
+            feeAsset: feeAsset.toGem(),
             metadata: metadata,
             feeAssets: feeAssets,
             simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings, simulation: simulation, addressNames: []),
-            addressName: addressName?.map(),
+            addressName: addressName?.toGem(),
             preload: preload,
         )
     }

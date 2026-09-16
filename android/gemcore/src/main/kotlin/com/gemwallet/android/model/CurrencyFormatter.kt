@@ -12,21 +12,27 @@ import uniffi.gemstone.GemPrecision
 
 class CurrencyFormatter(
     private val type: Type = Type.Currency,
-    private val currency: Currency,
+    private val currencyCode: String,
     private val locale: Locale = Locale.getDefault(),
 ) {
+    constructor(
+        type: Type = Type.Currency,
+        currency: Currency,
+        locale: Locale = Locale.getDefault(),
+    ) : this(type, currency.string, locale)
+
     enum class Type { Currency, Fiat, Abbreviated }
 
     private val currencyFormatter: DecimalFormat by lazy {
         (NumberFormat.getCurrencyInstance(locale) as DecimalFormat).apply {
-            currency = java.util.Currency.getInstance(this@CurrencyFormatter.currency.string)
+            currency = java.util.Currency.getInstance(currencyCode)
             roundingMode = RoundingMode.HALF_EVEN
         }
     }
 
     private val abbreviatedFormatter: CompactDecimalFormat by lazy {
         CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT).apply {
-            currency = android.icu.util.Currency.getInstance(this@CurrencyFormatter.currency.string)
+            currency = android.icu.util.Currency.getInstance(currencyCode)
             setSignificantDigitsUsed(false)
             minimumFractionDigits = 0
             maximumFractionDigits = 2

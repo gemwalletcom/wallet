@@ -1,10 +1,12 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{FiatProviderName, FiatQuote, FiatQuoteType, FiatTransactionStatus};
+use primitives::{Currency, FiatProviderName, FiatQuote, FiatQuoteType, FiatTransactionStatus};
 use rand::RngExt;
 
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
+use crate::formatted_number::GemFormattedNumber;
+use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::swap::GemAssetRate;
 
@@ -19,15 +21,15 @@ pub fn random_amount(config: &FiatConfig) -> u32 {
     rand::rng().random_range(config.default_buy_amount as u32..config.random_max_amount as u32)
 }
 
-pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64, quote: Option<&FiatQuote>, available: &BigUint) -> GemFiatAmountCheck {
+pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64, quote: Option<&FiatQuote>, available: &BigUint, currency: Currency) -> GemFiatAmountCheck {
     if amount < config.minimum_amount as f64 {
         return GemFiatAmountCheck::BelowMinimum {
-            minimum: config.minimum_amount as u32,
+            minimum: GemFormattedNumber::currency(config.minimum_amount as f64, currency, GemCurrencyStyle::Currency),
         };
     }
     if amount > config.maximum_amount as f64 {
         return GemFiatAmountCheck::AboveMaximum {
-            maximum: config.maximum_amount as u32,
+            maximum: GemFormattedNumber::currency(config.maximum_amount as f64, currency, GemCurrencyStyle::Currency),
         };
     }
     match (quote_type, quote.and_then(quote_value)) {
@@ -74,12 +76,12 @@ pub fn quote_row(quote: &FiatQuote, asset_price: Option<f64>) -> GemFiatQuoteRow
         provider: quote.provider.id,
         provider_name: quote.provider.name.clone(),
         provider_image_url: quote.provider.image_url.clone(),
-        crypto_amount: quote.crypto_amount,
-        fiat_amount,
+        crypto_amount: GemFormattedNumber::amount(quote.crypto_amount, Some(quote.asset.symbol.clone()), GemValueStyle::Auto),
+        fiat_amount: GemFormattedNumber::currency_code(fiat_amount, quote.fiat_currency.clone(), GemCurrencyStyle::Fiat),
         rate: (quote.crypto_amount > 0.0).then(|| GemAssetRate {
             base_symbol: quote.asset.symbol.clone(),
             quote_symbol: quote.fiat_currency.clone(),
-            value: quote.fiat_amount / quote.crypto_amount,
+            value: GemFormattedNumber::currency_code(quote.fiat_amount / quote.crypto_amount, quote.fiat_currency.clone(), GemCurrencyStyle::Currency),
         }),
     }
 }
@@ -106,6 +108,8 @@ pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
 
 #[cfg(test)]
 mod tests {
+    use crate::formatted_number::GemNumberUnit;
+
     #[test]
     fn test_a_fiat_transaction_row_badges_pending_and_failed_and_dims_what_did_not_complete() {
         let status = transaction_status;
@@ -166,13 +170,17 @@ mod tests {
         buy.crypto_amount = 2.0;
         buy.fiat_amount = 100.0;
 
-        assert_eq!(quote_row(&buy, Some(30.0)).fiat_amount, 60.0);
-        assert_eq!(quote_row(&buy, Some(0.0)).fiat_amount, 100.0);
-        assert_eq!(quote_row(&buy, None).fiat_amount, 100.0);
+        assert_eq!(quote_row(&buy, Some(30.0)).fiat_amount.value, 60.0);
+        assert_eq!(quote_row(&buy, Some(0.0)).fiat_amount.value, 100.0);
+        assert_eq!(quote_row(&buy, None).fiat_amount.value, 100.0);
 
         let mut sell = buy.clone();
         sell.quote_type = FiatQuoteType::Sell;
-        assert_eq!(quote_row(&sell, Some(30.0)).fiat_amount, 100.0);
+        assert_eq!(quote_row(&sell, Some(30.0)).fiat_amount.value, 100.0);
+
+        let row = quote_row(&buy, Some(30.0));
+        assert_eq!(row.fiat_amount.unit, GemNumberUnit::Currency { code: buy.fiat_currency.clone() });
+        assert_eq!(row.crypto_amount.unit, GemNumberUnit::Symbol { symbol: buy.asset.symbol.clone() });
     }
 
     #[test]
@@ -185,7 +193,7 @@ mod tests {
             Some(GemAssetRate {
                 base_symbol: quote.asset.symbol.clone(),
                 quote_symbol: "USD".to_string(),
-                value: 25.0
+                value: GemFormattedNumber::currency(25.0, Currency::USD, GemCurrencyStyle::Currency)
             })
         );
 
@@ -205,26 +213,33 @@ mod tests {
     fn test_amount_check_orders_range_before_balance() {
         let config = get_fiat_config();
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Buy, 4.99, None, &BigUint::ZERO),
-            GemFiatAmountCheck::BelowMinimum { minimum: 5 }
+            amount_check(&config, FiatQuoteType::Buy, 4.99, None, &BigUint::ZERO, Currency::USD),
+            GemFiatAmountCheck::BelowMinimum {
+                minimum: GemFormattedNumber::currency(5.0, Currency::USD, GemCurrencyStyle::Currency)
+            }
         );
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Sell, 10_001.0, Some(&quote(1)), &BigUint::ZERO),
-            GemFiatAmountCheck::AboveMaximum { maximum: 10_000 }
+            amount_check(&config, FiatQuoteType::Sell, 10_001.0, Some(&quote(1)), &BigUint::ZERO, Currency::USD),
+            GemFiatAmountCheck::AboveMaximum {
+                maximum: GemFormattedNumber::currency(10_000.0, Currency::USD, GemCurrencyStyle::Currency)
+            }
         );
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(200)), &BigUint::from(100u32)),
+            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(200)), &BigUint::from(100u32), Currency::USD),
             GemFiatAmountCheck::InsufficientBalance {
                 requirement: GemBalanceRequirement::new(BigInt::from(200), BigInt::from(100))
             }
         );
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(100)), &BigUint::from(100u32)),
+            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(100)), &BigUint::from(100u32), Currency::USD),
             GemFiatAmountCheck::Valid
         );
-        assert_eq!(amount_check(&config, FiatQuoteType::Sell, 100.0, None, &BigUint::ZERO), GemFiatAmountCheck::Valid);
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Buy, 100.0, Some(&quote(200)), &BigUint::ZERO),
+            amount_check(&config, FiatQuoteType::Sell, 100.0, None, &BigUint::ZERO, Currency::USD),
+            GemFiatAmountCheck::Valid
+        );
+        assert_eq!(
+            amount_check(&config, FiatQuoteType::Buy, 100.0, Some(&quote(200)), &BigUint::ZERO, Currency::USD),
             GemFiatAmountCheck::Valid
         );
     }

@@ -44,13 +44,13 @@ class ImportViewModelTest {
 
         fun service(): GemNameServiceInterface = mockk(relaxed = true) {
             every { isNameSupported(any()) } answers { firstArg<String>().split(".").size >= 2 }
-            every { nameRecordDebounceMilliseconds() } returns 500u
             every { nameInputStep(any(), any(), any()) } answers {
                 val state = firstArg<GemNameRecordState>()
                 val name = secondArg<String>()
                 when {
                     name.isEmpty() -> GemNameInputStep.Reset
-                    state.requestedName() == name -> GemNameInputStep.Unchanged
+                    state is GemNameRecordState.Loading && state.name == name -> GemNameInputStep.Unchanged
+                    state is GemNameRecordState.Complete && state.record.name == name -> GemNameInputStep.Unchanged
                     !thirdArg<Boolean>() || name.split(".").size < 2 -> GemNameInputStep.Reset
                     else -> GemNameInputStep.Resolve(name, 500u)
                 }

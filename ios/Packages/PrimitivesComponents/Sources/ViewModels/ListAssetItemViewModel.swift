@@ -32,13 +32,13 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         showBalancePrivacy: Binding<Bool>,
         assetData: AssetData,
         formatter: ValueFormatter,
-        currencyCode: String,
+        currency: Currency,
         row: GemAssetRow,
     ) {
         let model = AssetDataViewModel(
             assetData: assetData,
             formatter: formatter,
-            currencyCode: currencyCode,
+            currency: currency,
         )
         self.init(
             showBalancePrivacy: showBalancePrivacy,

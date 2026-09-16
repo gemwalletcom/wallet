@@ -60,7 +60,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 2_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [DelegationValidator.mock().map()], validator: nil)),
+            type: .stake(.stake(validators: [DelegationValidator.mock().toGem()], validator: nil)),
             assetData: assetData,
         )
 
@@ -80,7 +80,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [DelegationValidator.mock().map()], validator: nil)),
+            type: .stake(.stake(validators: [DelegationValidator.mock().toGem()], validator: nil)),
             assetData: assetData,
         )
 
@@ -120,7 +120,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(frozen: 0, locked: 5_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.unfreeze(resource: Resource.bandwidth.map())),
+            type: .stake(.unfreeze(resource: Resource.bandwidth.toGem())),
             assetData: assetData,
         )
 
@@ -149,7 +149,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [validator1.map(), validator2.map()], validator: nil)),
+            type: .stake(.stake(validators: [validator1.toGem(), validator2.toGem()], validator: nil)),
             assetData: assetData,
         )
 
@@ -180,7 +180,7 @@ struct AmountSceneViewModelTests {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: 1_000_000))
         let assetData = AssetData.mock(asset: .mockBNB())
         let model = AmountSceneViewModel.mock(
-            type: .stake(.withdraw(delegation: delegation.map())),
+            type: .stake(.withdraw(delegation: delegation.toGem())),
             assetData: assetData,
         )
 

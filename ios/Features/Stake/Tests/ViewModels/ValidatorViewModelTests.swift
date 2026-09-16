@@ -16,7 +16,7 @@ struct ValidatorViewModelTests {
     private func mock(_ validator: DelegationValidator) -> ValidatorViewModel {
         ValidatorViewModel(
             row: GemValidatorRow(
-                validator: validator.map(),
+                validator: validator.toGem(),
                 name: "",
                 imageUrl: "https://assets.gemwallet.com/validator.png",
                 placeholder: "",

@@ -58,7 +58,6 @@
   <string name="common_expiration">Muda wa kuisha</string>
   <string name="common_suspicious_address">Anwani ya kutiliwa shaka</string>
   <string name="common_refresh">Onyesha upya</string>
-  <string name="common_no_thanks">Hapana, asante</string>
   <string name="common_grant_permission">Toa ruhusa</string>
   <string name="common_required_field">%1$s inahitajika</string>
   <string name="welcome_title">Karibu kwenye Gem Family</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">Ondoa kuganda</string>
   <string name="transfer_review_request">Ombi la Uhakiki</string>
   <string name="transfer_amount">Kiasi</string>
-  <string name="transfer_amount_title">Kiasi</string>
   <string name="settings_terms_of_services">Masharti ya Huduma</string>
   <string name="settings_privacy_policy">Sera ya Faragha</string>
   <string name="settings_title">Mipangilio</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">Tunawezaje kukusaidia?</string>
   <string name="support_state_empty_description">Tuulize chochote. Tupo hapa kukusaidia.</string>
   <string name="support_message_placeholder">Ujumbe</string>
-  <string name="errors_transfer">Hitilafu ya Kuhamisha: %1$s</string>
   <string name="errors_validation">Hitilafu ya Uthibitishaji: %1$s</string>
   <string name="errors_create_wallet">Hitilafu ya kuunda Wallet: %1$s</string>
   <string name="errors_invalid_address_name">Anwani au jina si sahihi</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Mtumiaji ameghairi</string>
   <string name="errors_not_supported">Haitumiki</string>
   <string name="errors_permissions_not_granted">Ruhusa Hazijatolewa</string>
-  <string name="errors_decoding">Hitilafu ya Kusimbua</string>
   <string name="errors_unknown">Haijulikani</string>
   <string name="errors_not_supported_qr">Kifaa hiki hakitumii uchanganuzi wa msimbo wa QR. Unaweza tu kuchagua picha ya msimbo wa QR kutoka maktaba.</string>
   <string name="errors_camera_permissions_not_granted">Ruhusa ya kamera haijatolewa. Tafadhali washa ufikiaji wa kamera katika mipangilio ili kuchanganua msimbo wa QR.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">Muamala haukufaulu kwa sababu kiasi hicho ni kidogo sana kutosheleza mahitaji ya chini ya mtandao %1$s (kiwango cha juu cha vumbi). Kikomo hiki kinahakikisha thamani ya muamala inashughulikia ada na gharama za usindikaji.</string>
   <string name="errors_swap_no_quote_available">Hakuna nukuu inayopatikana.</string>
   <string name="errors_swap_not_supported_asset">Kipengee hakitumiki.</string>
-  <string name="errors_connections_invalid_send_parameters">Vigezo batili vimetolewa kwa ajili ya kutuma muamala.</string>
-  <string name="errors_connections_invalid_sign_parameters">Vigezo batili vimetolewa kwa ajili ya kusaini.</string>
   <string name="errors_connections_no_supported_wallets">Hakuna pochi zinazotumika zinazopatikana.</string>
   <string name="errors_connections_unsupported_chain">Msururu uliotolewa hautumiki.</string>
-  <string name="errors_connections_unsupported_method">Mbinu iliyoombwa haitumiki.</string>
   <string name="errors_swap_amount_too_small">Kiasi kidogo sana</string>
   <string name="errors_required">%1$s inahitajika</string>
   <string name="errors_scan_transaction_malicious_description">Muamala huu hauwezi kukamilika - anwani ya pochi lengwa imeunganishwa na shughuli za kutiliwa shaka au hatari.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Kiwango cha chini cha biashara ni %1$s. Tafadhali weka kiasi cha juu zaidi.</string>
   <string name="errors_perpetual_trigger_price_lower">Bei ya kichochezi inapaswa kuwa chini ya bei ya soko</string>
   <string name="errors_perpetual_trigger_price_higher">Bei ya kichochezi inapaswa kuwa juu ya bei ya soko</string>
-  <string name="errors_token_unable_fetch_token_information">Imeshindwa kuleta maelezo ya tokeni: %1$s</string>
   <string name="errors_unknown_try_again">Hitilafu isiyojulikana imetokea. Tafadhali jaribu tena.</string>
   <string name="errors_network_error">Hitilafu ya mtandao: %1$s</string>
   <string name="errors_network_offline">Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">Ruhusu usakinishaji</string>
   <string name="update_app_permission_description">Nenda kwa mipangilio na uruhusu usakinishaji kutoka kwa vyanzo vya nje</string>
   <string name="update_app_permission_open_settings">Nenda kwa mipangilio</string>
-  <string name="update_app_downloading">Inapakua...</string>
   <string name="transaction_recipient">Mpokeaji</string>
   <string name="transaction_sender">Mtumaji</string>
   <string name="transaction_date">Tarehe</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">Mtandao wa %1$s unahitaji ada ya mara moja ya %2$s.</string>
   <string name="banner_stake_title">Anza kugoma %1$s</string>
   <string name="banner_stake_description">Pata zawadi %1$s kwenye hisa yako unapolala.</string>
-  <string name="banner_enable_notifications_title">Washa Arifa</string>
-  <string name="banner_enable_notifications_description">Endelea kufuatilia shughuli zako za pochi.</string>
   <string name="banner_activate_asset_description">Ili kutumia kipengee %1$s, lazima kwanza uiwashe kwenye mtandao wa %2$s kwa kutimiza mahitaji mahususi ya mtandao.</string>
   <string name="banner_asset_status_title">Mali Inayotiliwa Shaka</string>
   <string name="banner_asset_status_description">Ishara inaweza kuwa si salama au inapotosha. Endelea tu ikiwa unaiamini kikamilifu.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">Msalaba</string>
   <string name="perpetual_margin_isolated">Imetengwa</string>
   <string name="perpetuals_title">Perpetuals</string>
+  <string name="perpetuals_trade">Fanya biashara ya Perpetuals</string>
   <string name="perpetuals_markets">Masoko</string>
-  <string name="perpetuals_empty_state_no_markets">Hakuna masoko</string>
   <string name="perpetuals_empty_state_no_markets_found">Hakuna masoko yaliyopatikana</string>
   <string name="rewards_title">Zawadi</string>
   <string name="rewards_share_text">Jiunge Gem Wallet kwa kutumia kiungo changu cha rufaa na upate zawadi: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Ufikiaji kamili wa ukusanyaji wa NFT umeombwa</string>
   <string name="simulation_warning_unlimited_token_approval_title">Idhini ya tokeni isiyo na kikomo</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Ruhusa ya kamera inahitajika ili kuchanganua Msimbo wa QR.\nTafadhali toa ruhusa.</string>
-  <string name="notifications_permission_request_notification">Ruhusa ya Arifa za Machapisho inahitajika ili kupata arifa kuhusu miamala mipya.\nTafadhali toa ruhusa.</string>
-  <string name="confirm_fee_error">Hitilafu ya kuhesabu ada</string>
   <string name="rootcheck_security_alert">Onyo la Usalama</string>
   <string name="rootcheck_body">Kifaa chako kinaonekana kuwa na ufikiaji wa mizizi, ambayo inaweza kuongeza hatari za usalama kwa kiasi kikubwa. Kutumia programu hii kwenye kifaa kilichozinduliwa kunaweza kufichua mali yako kwa ufikiaji usioidhinishwa na uwezekano wa hasara. Kwa usalama wa pesa zako, tunapendekeza sana kutumia kifaa kisicho na mizizi.</string>
   <string name="rootcheck_ignore">Puuza</string>

@@ -101,7 +101,7 @@ public actor StreamObserverService: Sendable {
                 await service.disconnected()
             }
         } catch {
-            debugLog("stream event handler error: \(error)")
+            debugLog("stream dropped an event: \(error)")
         }
     }
 }

@@ -23,7 +23,7 @@ public struct FiatTransactionViewModel: Sendable {
     }
 
     public var listItemModel: ListItemModel {
-        let status = fiatTransactionStatus(status: info.status.map())
+        let status = fiatTransactionStatus(status: info.status.toGem())
         return ListItemModel(
             title: typeTitle,
             titleStyle: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
@@ -48,26 +48,15 @@ public struct FiatTransactionViewModel: Sendable {
 
 extension FiatTransactionViewModel {
     private var typeTitle: String {
-        switch info.transactionType {
-        case .buy: Localized.Wallet.buy
-        case .sell: Localized.Wallet.sell
-        }
+        info.transactionType.action
     }
 
     private var providerImage: AssetImage {
         .image(info.provider.image)
     }
 
-    private func badgeColor(_ badge: GemFiatTransactionBadge) -> Color {
-        switch badge {
-        case .pending: Colors.orange
-        case .failed: Colors.red
-        }
-    }
-
     private func badgeStyle(_ badge: GemFiatTransactionBadge) -> TextStyle {
-        let color = badgeColor(badge)
-        return TextStyle(font: Font.system(.footnote, weight: .medium), color: color, background: color.opacity(.light))
+        badge.textStyle
     }
 
     private var amount: String {

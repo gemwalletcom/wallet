@@ -2,6 +2,7 @@ package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.banner.BannerRow
 import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
@@ -22,10 +23,11 @@ import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemBalanceRow
 import javax.inject.Inject
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 class AssetInfoUIModelFactory @Inject constructor() {
 
-    fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails): AssetInfoUIModel {
+    fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails, banners: List<BannerRow>): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
         val asset = assetInfo.asset
@@ -33,7 +35,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
         val price = assetInfo.price?.price?.price ?: 0.0
         val currency = assetInfo.price?.currency ?: Currency.USD
         val currencyFormatter = CurrencyFormatter(currency = currency)
-        val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
+        val valueFormatter = ValueFormatter(style = GemValueStyle.AUTO)
         val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
         return AssetInfoUIModel(
             assetInfo = assetInfo,
@@ -54,6 +56,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
             networkDestination = details.networkDestination,
             shareUrl = details.shareUrl,
             detailsState = details.state,
+            banners = banners,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
                 totalFiat = fiatTotal,

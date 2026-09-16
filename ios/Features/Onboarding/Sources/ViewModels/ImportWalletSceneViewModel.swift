@@ -88,7 +88,7 @@ final class ImportWalletSceneViewModel {
     }
 
     var importTypes: [GemWalletImportKind] {
-        service.importKinds(chain: chain?.map())
+        service.importKinds(chain: chain?.toGem())
     }
 
     var footerText: String? {
@@ -168,23 +168,21 @@ extension ImportWalletSceneViewModel {
 extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
         let nameRecord = nameRecordViewModel?.state.record()
-        let defaultName = try await service.defaultWalletName(chain: chain?.map()).name
+        let defaultName = try await service.defaultWalletName(chain: chain?.toGem()).text.text
         try await importWallet(
             name: service.importName(nameRecord: nameRecord, defaultName: defaultName),
-            type: try service.importRequest(kind: importType, chain: chain?.map(), input: input, nameRecord: nameRecord),
+            type: try service.importRequest(kind: importType, chain: chain?.toGem(), input: input, nameRecord: nameRecord),
         )
     }
 
     private func importWallet(name: String, type: GemWalletImportType) async throws {
         let result = try await service.importWallet(name: name, type: type, source: .import)
 
+        let wallet = result.wallet
+        await activateWallet(wallet)
         switch result {
-        case let .new(wallet):
-            await activateWallet(wallet)
-            onComplete?(.new(wallet))
-        case let .existing(wallet):
-            await activateWallet(wallet)
-            isPresentingExistingWalletName = wallet.name
+        case .new: onComplete?(.new(wallet))
+        case .existing: isPresentingExistingWalletName = wallet.name
         }
     }
 

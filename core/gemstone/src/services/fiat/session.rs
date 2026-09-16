@@ -183,7 +183,14 @@ impl GemFiatSession {
     fn amount_check(&self) -> GemFiatAmountCheck {
         let operation = self.current();
         match operation.parsed_amount() {
-            Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available),
+            Some(amount) => rules::amount_check(
+                &get_fiat_config(),
+                operation.quote_type,
+                amount,
+                operation.selected_quote().as_ref(),
+                &self.available,
+                super::quote::CURRENCY,
+            ),
             None => GemFiatAmountCheck::Valid,
         }
     }
@@ -223,7 +230,7 @@ impl GemFiatOperation {
         match rules::parse_amount(amount) {
             rules::FiatAmountInput::Empty => GemFiatQuotePhase::NoInput,
             rules::FiatAmountInput::Invalid => GemFiatQuotePhase::InvalidInput,
-            rules::FiatAmountInput::Value(value) => match rules::amount_check(&get_fiat_config(), quote_type, value, None, &Default::default()) {
+            rules::FiatAmountInput::Value(value) => match rules::amount_check(&get_fiat_config(), quote_type, value, None, &Default::default(), super::quote::CURRENCY) {
                 GemFiatAmountCheck::Valid => GemFiatQuotePhase::Loading { amount: value },
                 check => GemFiatQuotePhase::Invalid { check },
             },
@@ -366,7 +373,9 @@ mod tests {
         assert_eq!(
             session.on_amount_changed("4".to_string()).current().phase,
             GemFiatQuotePhase::Invalid {
-                check: GemFiatAmountCheck::BelowMinimum { minimum: 5 }
+                check: GemFiatAmountCheck::BelowMinimum {
+                    minimum: crate::formatted_number::GemFormattedNumber::currency(5.0, primitives::Currency::USD, crate::precision::GemCurrencyStyle::Currency)
+                }
             }
         );
         assert_eq!(session.on_amount_changed("4".to_string()).quote_request(), None);
@@ -511,7 +520,11 @@ mod tests {
                 quote_type: FiatQuoteType::Buy,
                 amount: 100.0,
             })
-            .on_quote_results(results(FiatQuoteType::Buy, 100.0, vec![quote(FiatProviderName::Banxa, 2.0), quote(FiatProviderName::MoonPay, 1.0)]));
+            .on_quote_results(results(
+                FiatQuoteType::Buy,
+                100.0,
+                vec![quote(FiatProviderName::Banxa, 2.0), quote(FiatProviderName::MoonPay, 1.0)],
+            ));
 
         let state = session.view_state(Some(50.0), false);
         assert_eq!(state.quote_type, FiatQuoteType::Buy);

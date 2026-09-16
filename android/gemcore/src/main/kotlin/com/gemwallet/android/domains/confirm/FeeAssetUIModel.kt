@@ -13,6 +13,7 @@ import uniffi.gemstone.AssetPrice
 import uniffi.gemstone.GemFeeAsset
 import java.math.BigDecimal
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 data class FeeAssetUIModel(
     val asset: Asset,
@@ -21,7 +22,7 @@ data class FeeAssetUIModel(
 ) {
     val priceValue: AssetPriceValue by lazy { AssetPriceValue(asset, price) }
     val isZeroBalance: Boolean get() = available.signum() == 0
-    val balance: String by lazy { ValueFormatter(style = ValueFormatter.Style.Short).string(amount, asset.symbol) }
+    val balance: String by lazy { ValueFormatter(style = GemValueStyle.SHORT).string(amount, asset.symbol) }
     val equivalent: String by lazy { priceValue.formatFiat(priceValue.calculateFiat(amount)) }
 
     private val amount: BigDecimal by lazy { Crypto(available).value(asset.decimals) }

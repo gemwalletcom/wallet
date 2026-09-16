@@ -1,5 +1,7 @@
 package com.gemwallet.android.ui.components
 
+import android.util.Log
+import com.gemwallet.android.ui.localization.stringRes
 import android.Manifest
 import android.content.ContentResolver
 import android.content.Context
@@ -71,6 +73,8 @@ import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space24
+import com.gemwallet.android.ui.theme.paddingLarge
+import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.QRScanType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -88,10 +92,10 @@ private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
 private const val SCAN_FROM_GALLERY_TAG = "scanFromGallery"
 private const val FINDER_SCALE = 0.66f
 private val HINT_SPACING = space24
-private val HINT_HORIZONTAL_PADDING = 32.dp
+private val HINT_HORIZONTAL_PADDING = paddingLarge
 private val FINDER_CORNER_RADIUS = 25.dp
 private val FINDER_CORNER_LENGTH = 25.dp
-private val FINDER_STROKE_WIDTH = 4.dp
+private val FINDER_STROKE_WIDTH = space4
 private const val FINDER_DIM_ALPHA = 0.33f
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -192,7 +196,7 @@ fun QRScannerScene(
         if (isCameraGranted) {
             Box(modifier = Modifier.fillMaxSize()) {
                 QRScanner(listener = onResult)
-                ScannerHint(hint = stringResource(id = scanType.hintRes()))
+                ScannerHint(hint = stringResource(id = scanType.stringRes()))
             }
         } else {
             EmptyStateView(
@@ -279,7 +283,9 @@ fun QRScanner(listener: (String) -> Unit) {
                 preview,
                 imageAnalyzer,
             )
-        } catch (_: Throwable) { }
+        } catch (error: Throwable) {
+            Log.e(TAG, "Camera preview did not start", error)
+        }
     }
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
@@ -309,16 +315,6 @@ private fun ScanQrCodeTitle() {
 }
 
 @StringRes
-private fun QRScanType.hintRes(): Int = when (this) {
-    QRScanType.Universal -> R.string.wallet_scan_hint
-    QRScanType.WalletConnect -> R.string.wallet_connect_title
-    QRScanType.Address -> R.string.wallet_scan_hint_address
-    QRScanType.Memo -> R.string.transfer_memo
-    QRScanType.Url -> R.string.common_url
-    QRScanType.TokenContract -> R.string.wallet_import_contract_address_field
-    QRScanType.SecretPhrase -> R.string.common_secret_phrase
-    QRScanType.PrivateKey -> R.string.common_private_key
-}
 
 @Composable
 private fun ScannerHint(hint: String) {
@@ -402,3 +398,5 @@ private fun ByteBuffer.toByteArray(): ByteArray {
         get(it)
     }
 }
+
+private const val TAG = "QRScanner"

@@ -37,7 +37,7 @@ extension TransactionParticipantViewModel: ItemModelProvidable {
 
 extension TransactionParticipantViewModel {
     private func participantItemModel(_ participant: GemTransactionParticipant) -> TransactionItemModel {
-        let name = participant.name?.map()
+        let name = participant.name?.toPrimitives()
         let account = SimpleAccount(
             name: name?.name,
             chain: chain,
@@ -48,21 +48,12 @@ extension TransactionParticipantViewModel {
         )
         return .participant(
             TransactionParticipantItemModel(
-                title: title(for: participant.role),
+                title: participant.role.title,
                 account: account,
-                addressLink: participant.link.map(),
+                addressLink: participant.link.toPrimitives(),
                 onAddContact: participant.canAddContact ? onAddContact : nil,
             ),
         )
     }
 
-    private func title(for role: GemTransactionParticipantRole) -> String {
-        switch role {
-        case .sender: Localized.Transaction.sender
-        case .recipient: Localized.Transaction.recipient
-        case .contract: Localized.Asset.contract
-        case .validator: Localized.Stake.validator
-        case .provider: Localized.Common.provider
-        }
-    }
 }

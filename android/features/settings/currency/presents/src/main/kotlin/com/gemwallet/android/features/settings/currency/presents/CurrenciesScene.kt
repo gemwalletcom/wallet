@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.screen.Scene
@@ -40,7 +40,7 @@ fun CurrenciesScene(
                     isSelected = item.currency == selected,
                     listPosition = ListPosition.getPosition(index, recommended.size),
                     onSelect = {
-                        viewModel.setCurrency(it.currency.toCurrency())
+                        viewModel.setCurrency(it.currency.toPrimitives())
                         onCancel()
                     }
                 )
@@ -55,7 +55,7 @@ fun CurrenciesScene(
                     isSelected = item.currency == selected,
                     listPosition = ListPosition.getPosition(index, other.size),
                     onSelect = {
-                        viewModel.setCurrency(it.currency.toCurrency())
+                        viewModel.setCurrency(it.currency.toPrimitives())
                         onCancel()
                     }
                 )

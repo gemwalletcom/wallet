@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemAssetDetailsState
 import uniffi.gemstone.GemHeaderActions
@@ -101,7 +102,7 @@ class AssetInfoUIModelFactoryTest {
                     showsResources = false,
                     showsPriceAlerts = false,
                     priceAlertsCount = 0u,
-                    priceAlertEnabled = false,
+                    priceAlert = GemPriceAlertToggle.DISABLED,
                     showsEarn = false,
                     emptyTransactionsAction = null,
                 ),
@@ -113,6 +114,7 @@ class AssetInfoUIModelFactoryTest {
                 shareUrl = "",
                 swapPair = GemSwapPairSuggestion(asset.id.toIdentifier(), null),
             ),
+            banners = emptyList(),
         )
     }
 }

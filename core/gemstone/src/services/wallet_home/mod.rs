@@ -1,4 +1,6 @@
 mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
@@ -9,7 +11,7 @@ use crate::services::assets::model::{GemAssetRow, GemHeaderActions};
 use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
-use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerContext, GemBannerKey, GemBannerService};
+use crate::services::banner::{GemBannerContent, GemBannerContext, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService};
@@ -111,8 +113,8 @@ impl GemWalletHomeService {
         self.banners.banner_content(event, asset)
     }
 
-    pub async fn apply_banner_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
-        self.banners.apply_action(key, action).await
+    pub async fn close_banner(&self, key: GemBannerKey) -> Result<(), GemServiceError> {
+        self.banners.close(key).await
     }
 }
 
@@ -127,5 +129,63 @@ impl GemWalletHomeService {
             .ok()
             .flatten()
             .is_some_and(|wallet_id| self.wallet_preferences.includes_perpetual_collateral(wallet_id))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+    use primitives::{AssetId, Chain};
+
+    use super::testkit::WalletHomeTestkit;
+    use crate::services::wallet_preferences::GemDiscoveryStep;
+
+    #[test]
+    fn test_refresh_runs_discovery_even_when_the_balance_update_fails() {
+        block_on(async {
+            let testkit = WalletHomeTestkit::with_status(503);
+            testkit.balances.enabled_asset_ids.lock().unwrap().push(AssetId::from_chain(Chain::Ethereum));
+
+            assert!(testkit.service.refresh().await.is_err());
+
+            let paths = testkit.provider.requested_paths();
+            assert!(
+                paths.iter().any(|path| path.contains("gemnodes.com")),
+                "the balance branch never reached the gateway: {paths:?}"
+            );
+            assert!(paths.iter().any(|path| path.contains("devices/assets")), "the discovery branch never ran: {paths:?}");
+        })
+    }
+
+    #[test]
+    fn test_refresh_leaves_the_discovery_steps_incomplete_when_the_api_fails() {
+        block_on(async {
+            let testkit = WalletHomeTestkit::with_status(503);
+
+            assert!(testkit.service.refresh().await.is_err());
+
+            for step in [GemDiscoveryStep::Assets, GemDiscoveryStep::Transactions, GemDiscoveryStep::Nfts] {
+                assert!(
+                    !testkit.wallet_preferences.is_initial_load_completed(testkit.wallet_id.clone(), step).unwrap(),
+                    "{step:?} was marked complete after a failed refresh"
+                );
+            }
+        })
+    }
+
+    #[test]
+    fn test_shows_initial_loading_until_the_assets_step_completes() {
+        block_on(async {
+            let testkit = WalletHomeTestkit::with_status(503);
+
+            assert!(testkit.service.shows_initial_loading().unwrap());
+
+            testkit
+                .wallet_preferences
+                .set_initial_load_completed(testkit.wallet_id.clone(), GemDiscoveryStep::Assets)
+                .unwrap();
+
+            assert!(!testkit.service.shows_initial_loading().unwrap());
+        })
     }
 }

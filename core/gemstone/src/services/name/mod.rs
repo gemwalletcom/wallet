@@ -39,10 +39,6 @@ impl GemNameService {
         rules::is_name_supported(&name)
     }
 
-    pub fn name_record_debounce_milliseconds(&self) -> u64 {
-        rules::name_record_debounce_milliseconds()
-    }
-
     pub fn name_input_step(&self, state: GemNameRecordState, name: String, has_chain: bool) -> GemNameInputStep {
         rules::name_input_step(&state, &name, has_chain)
     }

@@ -18,7 +18,6 @@ pub const TEST_SMARTCHAIN_STAKING_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a
 
 pub fn mock_undelegation(unlock_time: Option<u64>) -> BscUndelegation {
     BscUndelegation {
-        delegator_address: TEST_SMARTCHAIN_STAKING_ADDRESS.to_string(),
         validator_address: "0x773760b0708a5Cc369c346993a0c225D8e4043B1".to_string(),
         amount: BigUint::from(1_000_000_000_000_000_000u64),
         shares: BigUint::from(1_000_000_000_000_000_000u64),

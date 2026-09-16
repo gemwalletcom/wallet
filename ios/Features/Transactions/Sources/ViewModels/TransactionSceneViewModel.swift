@@ -4,6 +4,7 @@ import BigInt
 import Components
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
 import enum Gemstone.GemTransactionDetailRow
+import enum Gemstone.GemTransactionHeaderAction
 import struct Gemstone.GemTransactionDetailRows
 import func Gemstone.transactionDetailSections
 import GemstonePrimitives
@@ -19,7 +20,7 @@ import SwiftUI
 @MainActor
 public final class TransactionSceneViewModel {
     private let service: any GemTransactionDetailsServiceProtocol
-    private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
+    private let onHeaderAction: ((GemTransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
 
     public let query: ObservableQuery<TransactionRequest>
@@ -34,7 +35,7 @@ public final class TransactionSceneViewModel {
         transaction: TransactionExtended,
         walletId: WalletId,
         service: any GemTransactionDetailsServiceProtocol,
-        onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
+        onHeaderAction: ((GemTransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.service = service
@@ -52,7 +53,7 @@ public final class TransactionSceneViewModel {
     }
 
     var onTransactionHeaderTap: TransactionHeaderActionHandler? {
-        guard onHeaderAction != nil, headerAction != nil else { return nil }
+        guard onHeaderAction != nil, rows.headerAction != nil else { return nil }
         return { [weak self] tap in self?.handleHeaderTap(tap) }
     }
 }
@@ -66,7 +67,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 
     public func itemModel(for row: GemTransactionDetailRow) -> any ItemModelProvidable<TransactionItemModel> {
         switch row {
-        case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency())
+        case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency().toPrimitives())
         case .swapProgress: TransactionSwapProgressViewModel(progress: rows.swapProgress)
         case .swapAgain: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
         case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
@@ -85,7 +86,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .pnl: TransactionPnlViewModel(pnl: rows.pnl)
         case .price: TransactionPriceViewModel(price: rows.price)
         case .provider: TransactionProviderViewModel(name: rows.providerName)
-        case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency(), formatter: .auto), onInfoAction: onSelectFee)
+        case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency().toPrimitives(), formatter: .auto), onInfoAction: onSelectFee)
         case .explorer: explorerViewModel
         }
     }
@@ -95,17 +96,17 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 
 extension TransactionSceneViewModel {
     private func handleHeaderTap(_ tap: TransactionHeaderTap) {
-        guard let onHeaderAction, let headerAction else { return }
+        guard let onHeaderAction, let headerAction = rows.headerAction else { return }
         switch tap {
         case .header:
             onHeaderAction(headerAction)
         case let .asset(assetId):
-            onHeaderAction(.asset(assetId: assetId))
+            onHeaderAction(.asset(assetId: assetId.identifier))
         }
     }
 
     func onSelectSwapAgain() {
-        guard let onHeaderAction, case let .swap(fromAssetId, toAssetId) = headerAction else {
+        guard let onHeaderAction, case let .swap(fromAssetId, toAssetId) = rows.headerAction else {
             return
         }
         onHeaderAction(.swap(fromAssetId: fromAssetId, toAssetId: toAssetId))
@@ -145,30 +146,20 @@ extension TransactionSceneViewModel {
 
 extension TransactionSceneViewModel {
     private var rows: GemTransactionDetailRows {
-        service.detailRows(transaction: transactionExtended.map())
+        service.detailRows(transaction: transactionExtended.toGem())
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {
-        TransactionExplorerViewModel(transactionLink: rows.explorer.map())
-    }
-
-    private var headerAction: TransactionHeaderAction? {
-        switch rows.headerAction {
-        case let .asset(assetId): .asset(assetId: Primitives.AssetId(core: assetId))
-        case let .nft(assetId): .nft(assetId: Primitives.NFTAssetId(core: assetId))
-        case let .swap(fromAssetId, toAssetId): .swap(fromAssetId: Primitives.AssetId(core: fromAssetId), toAssetId: Primitives.AssetId(core: toAssetId))
-        case let .perpetual(assetId): .perpetual(assetId: Primitives.AssetId(core: assetId))
-        case .none: nil
-        }
+        TransactionExplorerViewModel(transactionLink: rows.explorer.toPrimitives())
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         let fee = rows.fee
         return NetworkFeeSceneViewModel(
-            feeAsset: fee.asset.map(),
-            currency: Currency(core: service.getCurrency()),
+            feeAsset: fee.asset.toPrimitives(),
+            currency: service.getCurrency().toPrimitives(),
             selection: .priority(priority: .normal),
-            feeAssetPrice: fee.price.map { $0.map().mapToPrice() },
+            feeAssetPrice: fee.price.map { $0.toPrimitives().mapToPrice() },
             feeAmount: BigInt(fee.value),
         )
     }

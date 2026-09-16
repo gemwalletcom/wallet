@@ -5,7 +5,6 @@ use gem_evm::uniswap::{
 };
 
 use alloy_primitives::{Address, Bytes, U256};
-use std::str::FromStr;
 
 pub fn build_commands(
     request: &QuoteRequest,
@@ -31,7 +30,7 @@ pub fn build_commands(
     if wrap_input_eth {
         // Wrap ETH, recipient is this_address
         commands.push(UniversalRouterCommand::WRAP_ETH(WrapEth {
-            recipient: Address::from_str(ADDRESS_THIS).unwrap(),
+            recipient: eth_address::parse_str(ADDRESS_THIS)?,
             amount_min: amount_in,
         }));
     } else if let Some(permit) = permit {
@@ -44,7 +43,7 @@ pub fn build_commands(
         if fee_token_is_input {
             // insert TRANSFER fee first
             let fee = amount_in * U256::from(fee_options.bps) / U256::from(10000);
-            let fee_recipient = Address::from_str(fee_options.address.as_str()).unwrap();
+            let fee_recipient = eth_address::parse_str(&fee_options.address)?;
             if wrap_input_eth {
                 // if input is native ETH, we can transfer directly because of WRAP_ETH command
                 commands.push(UniversalRouterCommand::TRANSFER(Transfer {
@@ -74,7 +73,7 @@ pub fn build_commands(
             // insert V3_SWAP_EXACT_IN
             // amount_out_min: if needs to pay fees, amount_out_min set to 0 and we will sweep the rest
             commands.push(build_v3_swap_exact_in_command(
-                Address::from_str(ADDRESS_THIS).unwrap(),
+                eth_address::parse_str(ADDRESS_THIS)?,
                 amount_in,
                 if pay_fees { U256::from(0) } else { amount_out },
                 path.clone(),
@@ -85,7 +84,7 @@ pub fn build_commands(
             // insert PAY_PORTION to fee_address
             commands.push(UniversalRouterCommand::PAY_PORTION(PayPortion {
                 token: *token_out,
-                recipient: Address::from_str(fee_options.address.as_str()).unwrap(),
+                recipient: eth_address::parse_str(&fee_options.address)?,
                 bips: U256::from(fee_options.bps),
             }));
 
@@ -160,6 +159,7 @@ mod tests {
         asset_constants::{ETHEREUM_USDC_TOKEN_ID, ETHEREUM_WETH_TOKEN_ID, OPTIMISM_USDC_E_TOKEN_ID, OPTIMISM_USDC_TOKEN_ID, OPTIMISM_USDT_TOKEN_ID, OPTIMISM_WETH_TOKEN_ID},
         contract_constants::OPTIMISM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT,
     };
+    use std::str::FromStr;
 
     #[test]
     fn test_build_commands_eth_to_token() {
@@ -254,7 +254,7 @@ mod tests {
             amount_in,
             U256::from(250_000_000_000u64),
             &path,
-            Some(permit2_data.into()),
+            Some(permit2_data.try_into().unwrap()),
             false,
             deployment.universal_router_abi,
         )
@@ -310,7 +310,7 @@ mod tests {
             amount_in,
             U256::from(6507936),
             &path,
-            Some(permit2_data.into()),
+            Some(permit2_data.try_into().unwrap()),
             false,
             UniversalRouterAbi::V2,
         )
@@ -428,7 +428,7 @@ mod tests {
             amount_in,
             U256::from(3997001989341576u64),
             &path,
-            Some(permit2_data.into()),
+            Some(permit2_data.try_into().unwrap()),
             false,
             UniversalRouterAbi::V2,
         )

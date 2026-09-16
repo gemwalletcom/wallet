@@ -20,7 +20,7 @@ public enum PaymentDestinationBuilder {
     ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment, asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
-            return .confirm(paymentService.transferData(transfer: transfer, asset: asset.map()))
+            return .confirm(paymentService.transferData(transfer: transfer, asset: asset.toGem()))
         case let .recipient(_, payment):
             return .recipient(payment)
         case .selectAsset, .unsupported:
@@ -38,14 +38,14 @@ public enum PaymentDestinationBuilder {
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
             }
-            return .confirm(paymentService.transferData(transfer: transfer, asset: assetData.asset.map()))
+            return .confirm(paymentService.transferData(transfer: transfer, asset: assetData.asset.toGem()))
         case let .recipient(assetId, payment):
             guard let assetData = assetData(for: assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
             }
             return .recipient(
                 SelectedAssetInput(
-                    type: .send(.asset(asset: assetData.asset.map())),
+                    type: .send(.asset(asset: assetData.asset.toGem())),
                     assetData: assetData,
                     recipient: payment,
                 ),
@@ -62,7 +62,7 @@ public enum PaymentDestinationBuilder {
         asset: Primitives.Asset,
         paymentService: GemPaymentService,
     ) -> PaymentDestination {
-        .confirm(paymentService.transactionTransferData(transaction: transaction, asset: asset.map()))
+        .confirm(paymentService.transactionTransferData(transaction: transaction, asset: asset.toGem()))
     }
 
     private static func assetData(for assetId: String, in assets: [AssetData]) -> AssetData? {

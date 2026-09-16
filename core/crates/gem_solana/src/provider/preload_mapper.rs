@@ -353,10 +353,10 @@ mod tests {
 
         let fee = calculate_transaction_fee(&input_type, &gas_price_type, None);
 
-        assert_eq!(fee.fee, BigInt::from(2_059_280u64)); // 20_000 gas + 2_039_280 token account creation
+        assert_eq!(fee.fee, BigInt::from(1_508_440u64));
         assert_eq!(fee.options.len(), 1);
         assert!(fee.options.contains_key(&FeeOption::TokenAccountCreation));
-        assert_eq!(fee.options[&FeeOption::TokenAccountCreation], BigInt::from(2_039_280u64));
+        assert_eq!(fee.options[&FeeOption::TokenAccountCreation], BigInt::from(1_488_440u64));
     }
 
     #[test]

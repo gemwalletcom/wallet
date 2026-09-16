@@ -6,7 +6,6 @@ import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -14,6 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -36,8 +37,6 @@ class AmountEarnProvider(
     private val service: GemAmountServiceInterface,
     scope: CoroutineScope,
 ) : AmountDataProvider(scope) {
-
-    override val title: AmountTitle = AmountTitle.Earn(params)
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)
@@ -65,7 +64,7 @@ class AmountEarnProvider(
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
-        val current = assetInfo.value ?: error("assetInfo not loaded")
+        val current = assetInfo.filterNotNull().first()
         val type = earnType.value ?: throw AmountError.NoValidatorSelected
         return service.earnTransferData(current.asset.toGem(), type, amount.atomicValue, isMax)
     }

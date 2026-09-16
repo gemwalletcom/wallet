@@ -12,7 +12,9 @@ const QUERY_MEMO: &str = "memo";
 const QUERY_LABEL: &str = "label";
 
 pub fn decode(chain: Option<Chain>, path: &str) -> Result<Payment> {
-    Ok(Payment::Request { request: get_request(chain, path)? })
+    Ok(Payment::Request {
+        request: get_request(chain, path)?,
+    })
 }
 
 pub fn get_request(chain: Option<Chain>, path: &str) -> Result<PaymentRequest> {
@@ -49,11 +51,13 @@ mod tests {
 
     #[test]
     fn test_decode() {
-        let bitcoin = Payment::Request { request: PaymentRequest {
-            address: BITCOIN_ADDRESS.to_string(),
-            asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
-            ..PaymentRequest::mock()
-        } };
+        let bitcoin = Payment::Request {
+            request: PaymentRequest {
+                address: BITCOIN_ADDRESS.to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+                ..PaymentRequest::mock()
+            },
+        };
 
         assert_eq!(decode(Some(Chain::Bitcoin), BITCOIN_ADDRESS).unwrap(), bitcoin);
         assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?dontexist=")).unwrap(), bitcoin);
@@ -61,39 +65,47 @@ mod tests {
 
         assert_eq!(
             decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?amount=50&label=Luke-Jr&message=Donation%20for%20xyz")).unwrap(),
-            Payment::Request { request: PaymentRequest {
-                address: BITCOIN_ADDRESS.to_string(),
-                amount: Some(PaymentAmount::ExactValue { value: "50".to_string() }),
-                label: Some("Luke-Jr".to_string()),
-                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
-                ..PaymentRequest::mock()
-            } }
+            Payment::Request {
+                request: PaymentRequest {
+                    address: BITCOIN_ADDRESS.to_string(),
+                    amount: Some(PaymentAmount::ExactValue { value: "50".to_string() }),
+                    label: Some("Luke-Jr".to_string()),
+                    asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+                    ..PaymentRequest::mock()
+                }
+            }
         );
         assert_eq!(
             decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?memo=see%20http%3A%2F%2Fx.com")).unwrap(),
-            Payment::Request { request: PaymentRequest {
-                address: BITCOIN_ADDRESS.to_string(),
-                memo: Some("see http://x.com".to_string()),
-                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
-                ..PaymentRequest::mock()
-            } }
+            Payment::Request {
+                request: PaymentRequest {
+                    address: BITCOIN_ADDRESS.to_string(),
+                    memo: Some("see http://x.com".to_string()),
+                    asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+                    ..PaymentRequest::mock()
+                }
+            }
         );
         assert_eq!(
             decode(Some(Chain::Doge), "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L?amount=42").unwrap(),
-            Payment::Request { request: PaymentRequest {
-                address: "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L".to_string(),
-                amount: Some(PaymentAmount::ExactValue { value: "42".to_string() }),
-                asset_id: Some(AssetId::from_chain(Chain::Doge)),
-                ..PaymentRequest::mock()
-            } }
+            Payment::Request {
+                request: PaymentRequest {
+                    address: "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L".to_string(),
+                    amount: Some(PaymentAmount::ExactValue { value: "42".to_string() }),
+                    asset_id: Some(AssetId::from_chain(Chain::Doge)),
+                    ..PaymentRequest::mock()
+                }
+            }
         );
         assert_eq!(
             decode(None, &format!("{BITCOIN_ADDRESS}?amount=50.72")).unwrap(),
-            Payment::Request { request: PaymentRequest {
-                address: BITCOIN_ADDRESS.to_string(),
-                amount: Some(PaymentAmount::ExactValue { value: "50.72".to_string() }),
-                ..PaymentRequest::mock()
-            } }
+            Payment::Request {
+                request: PaymentRequest {
+                    address: BITCOIN_ADDRESS.to_string(),
+                    amount: Some(PaymentAmount::ExactValue { value: "50.72".to_string() }),
+                    ..PaymentRequest::mock()
+                }
+            }
         );
     }
 

@@ -10,11 +10,11 @@ import Primitives
 
 public extension GemContactServiceProtocol {
     func updateContact(_ contact: Contact, addresses: [ContactAddress]) async throws {
-        try await updateContact(contact: contact.map(), addresses: addresses.map { $0.map() })
+        try await updateContact(contact: contact.toGem(), addresses: addresses.map { $0.toGem() })
     }
 
     func deleteContact(_ contact: Contact) async throws {
-        try await deleteContact(contact: contact.map())
+        try await deleteContact(contact: contact.toGem())
     }
 }
 
@@ -30,13 +30,13 @@ public extension GemManageContactServiceProtocol {
         try await saveContact(
             input: GemContactInput(
                 id: id,
-                existing: existing?.map(),
+                existing: existing?.toGem(),
                 name: name,
                 description: description,
                 avatar: avatar,
-                addresses: addresses.map { $0.map() },
+                addresses: addresses.map { $0.toGem() },
             )
-        ).map()
+        ).toPrimitives()
     }
 
     var defaultContactChain: Chain {
@@ -50,6 +50,6 @@ public extension GemContactAddressInput {
     }
 
     func addAddress(_ addresses: [ContactAddress]) -> [ContactAddress] {
-        addAddress(addresses: addresses.map { $0.map() }).map { $0.map() }
+        addAddress(addresses: addresses.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 }

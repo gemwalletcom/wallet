@@ -13,6 +13,6 @@ public extension EnvironmentValues {
 
 public extension ConnectionStatus {
     func refreshInterval(for kind: GemRefreshKind) -> TimeInterval {
-        GemConnectionService.shared.refreshInterval(kind: kind, status: map())
+        GemConnectionService.shared.refreshInterval(kind: kind, status: toGem())
     }
 }

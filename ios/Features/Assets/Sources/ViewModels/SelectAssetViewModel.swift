@@ -6,6 +6,7 @@ import class Gemstone.GemAssetConfigService
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
+import enum Gemstone.GemSelectAssetState
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -23,7 +24,6 @@ public final class SelectAssetViewModel {
     private let service: any GemAssetSelectionServiceProtocol
     let selectType: SelectAssetType
     let flow: GemSelectAssetFlow
-    let presentation: SelectAssetPresentation
 
     public let wallet: Wallet
 
@@ -57,13 +57,12 @@ public final class SelectAssetViewModel {
         self.wallet = wallet
         self.selectType = selectType
         flow = service.flow(selectType: selectType.flowType)
-        presentation = selectType.presentation()
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
             flow: flow,
             model: ChainsFilterViewModel(
-                chains: service.filterChains(wallet: wallet.map()).map { Chain(core: $0) },
+                chains: service.filterChains(wallet: wallet.toGem()).map { Chain(core: $0) },
                 selected: chains,
             ),
         )
@@ -72,14 +71,14 @@ public final class SelectAssetViewModel {
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters), initialValue: [])
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
-            types: flow.action?.recentActivityTypes().map { $0.map() } ?? RecentActivityType.allCases,
+            types: flow.action?.recentActivityTypes().map { $0.toPrimitives() } ?? RecentActivityType.allCases,
             filters: flow.requestFilters,
             service: recentAssetsService,
         )
     }
 
     var title: String {
-        presentation.title
+        flow.title.text
     }
 
     var sections: AssetsSections {
@@ -108,11 +107,11 @@ public final class SelectAssetViewModel {
     }
 
     var assetsTitle: String {
-        presentation.assetsSectionTitle
+        flow.assetsSection.text
     }
 
     public var showAddToken: Bool {
-        flow.showsAddToken(supportsTokens: service.supportsTokens(wallet: wallet.map()), hasChains: filterModel.chainsFilter.hasChains)
+        flow.showsAddToken(supportsTokens: service.supportsTokens(wallet: wallet.toGem()), hasChains: filterModel.chainsFilter.hasChains)
     }
 
     public var showFilter: Bool {
@@ -123,12 +122,16 @@ public final class SelectAssetViewModel {
         flow.networkSearch
     }
 
+    var listState: GemSelectAssetState {
+        flow.state(hasItems: sections.pinned.isNotEmpty || sections.assets.isNotEmpty, isSearching: state.isLoading)
+    }
+
     var showLoading: Bool {
-        state.isLoading && showEmpty
+        listState == .loading
     }
 
     var showEmpty: Bool {
-        sections.pinned.isEmpty && sections.assets.isEmpty
+        listState != .idle
     }
 
     var showRecents: Bool {
@@ -139,8 +142,8 @@ public final class SelectAssetViewModel {
         .milliseconds(service.searchDebounceMilliseconds())
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 }
 
@@ -148,16 +151,15 @@ public final class SelectAssetViewModel {
 
 extension SelectAssetViewModel {
     func selectAsset(asset: Asset) {
-        applySelectionEffect(asset: asset)
+        recordSelection(asset: asset)
         onSelectAssetAction?(asset)
     }
 
     func search(query: String) async {
-        let query = query.trim()
-        if query.isEmpty {
-            return
+        switch flow.searchStep(query: query) {
+        case .idle: break
+        case let .search(query): await searchAssets(query: query)
         }
-        await searchAssets(query: query)
     }
 
     func handleAction(assetId: AssetId, enabled: Bool) async {
@@ -207,14 +209,14 @@ extension SelectAssetViewModel {
     }
 
     func onSelectAsset(_ assetData: AssetData) {
-        applySelectionEffect(asset: assetData.asset)
+        recordSelection(asset: assetData.asset)
         assetSelection = SelectAssetInput(type: selectType, assetData: assetData)
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
         guard flow.depositAssetDisplay else { return assetData }
         return AssetData(
-            asset: GemPerpetual(provider: .hypercore).depositAsset().map(),
+            asset: GemPerpetual(provider: .hypercore).depositAsset().toPrimitives(),
             balance: assetData.balance,
             account: assetData.account,
             price: assetData.price,
@@ -244,7 +246,7 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
-    private func applySelectionEffect(asset: Asset) {
+    private func recordSelection(asset: Asset) {
         if flow.enablesPriceAlert {
             Task {
                 await setPriceAlert(assetId: asset.id, enabled: true)
@@ -253,7 +255,7 @@ extension SelectAssetViewModel {
         if let action = flow.action {
             Task { [service] in
                 do {
-                    try await service.addRecent(action: action, asset: asset.map())
+                    try await service.addRecent(action: action, asset: asset.toGem())
                 } catch {
                     debugLog("Failed to update recent activity: \(error)")
                 }
@@ -273,7 +275,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await service.searchAssets(query: query).map { $0.map() }
+            let assets = try await service.searchAssets(query: query).map { $0.toPrimitives() }
             state = .data(assets)
         } catch {
             handle(error: error)

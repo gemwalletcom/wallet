@@ -3,7 +3,6 @@
 import Foundation
 import struct Gemstone.GemDayBoundaries
 import GemstonePrimitives
-import Localization
 
 public struct TransactionDateFormatter {
     private static let sectionFormatter: DateFormatter = {
@@ -50,10 +49,6 @@ public struct TransactionDateFormatter {
     }
 
     private var dayLabel: String? {
-        switch date.gemDay {
-        case boundaries.today: Localized.Date.today
-        case boundaries.yesterday: Localized.Date.yesterday
-        default: nil
-        }
+        boundaries.label(day: date.gemDay).title
     }
 }

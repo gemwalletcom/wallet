@@ -12,16 +12,16 @@ import Primitives
 import Style
 
 public extension GemTransactionAmount {
-    func display(currency: String, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> AmountDisplay {
+    func display(currency: Currency, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> AmountDisplay {
         .numeric(
-            data: AssetValuePrice(asset: asset.map(), value: BigInt(value), price: price.map { $0.map().mapToPrice() }),
-            style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency, textStyle: textStyle),
+            data: AssetValuePrice(asset: asset.toPrimitives(), value: BigInt(value), price: price.map { $0.toPrimitives().mapToPrice() }),
+            style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency.rawValue, textStyle: textStyle),
         )
     }
 
-    func swapAmountField(currency: String) -> SwapAmountField {
+    func swapAmountField(currency: Currency) -> SwapAmountField {
         let display = display(currency: currency, formatter: .auto)
-        let assetId = asset.map().id
+        let assetId = asset.toPrimitives().id
         return SwapAmountField(
             assetId: assetId,
             assetImage: AssetIdViewModel(assetId: assetId).assetImage,
@@ -32,12 +32,12 @@ public extension GemTransactionAmount {
 }
 
 public extension GemTransactionRowValue {
-    func textValue(currency: String, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> TextValue? {
+    func textValue(currency: Currency, formatter: ValueFormatter, textStyle: TextStyle? = nil) -> TextValue? {
         switch self {
         case .none:
             nil
         case let .assetSymbol(asset):
-            AmountDisplay.symbol(asset: asset.map()).amount
+            AmountDisplay.symbol(asset: asset.toPrimitives()).amount
         case let .amount(amount):
             amount.display(currency: currency, formatter: formatter, textStyle: textStyle).amount
         case let .fiat(value):
@@ -52,7 +52,7 @@ public extension GemTransactionRowValue {
 }
 
 public extension GemTransactionHeader {
-    func headerType(currency: String) -> TransactionHeaderType {
+    func headerType(currency: Currency) -> TransactionHeaderType {
         switch self {
         case let .amount(amount, showsFiat):
             .amount(amount.display(currency: currency, formatter: .auto).fiatVisibility(showsFiat))
@@ -69,9 +69,9 @@ public extension GemTransactionHeader {
                 ),
             )
         case let .symbol(asset):
-            .amount(.symbol(asset: asset.map()))
+            .amount(.symbol(asset: asset.toPrimitives()))
         case let .assetImage(asset):
-            .asset(image: AssetViewModel(asset: asset.map()).assetImage)
+            .asset(image: AssetViewModel(asset: asset.toPrimitives()).assetImage)
         }
     }
 }

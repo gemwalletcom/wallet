@@ -16,18 +16,18 @@ public final class GemstoneContactStore: GemContactStore, @unchecked Sendable {
     }
 
     public func getAddresses(contactId: String) async throws -> [Gemstone.ContactAddress] {
-        try store.getAddresses(contactId: contactId).map { $0.map() }
+        try store.getAddresses(contactId: contactId).map { $0.toGem() }
     }
 
     public func saveContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
-        try store.addContact(contact.map(), addresses: addresses.map { $0.map() })
+        try store.addContact(contact.toPrimitives(), addresses: addresses.map { $0.toPrimitives() })
     }
 
     public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress], deleteAddressIds: [String]) async throws {
         try store.updateContact(
-            contact.map(),
+            contact.toPrimitives(),
             deleteAddressIds: deleteAddressIds,
-            addresses: addresses.map { $0.map() },
+            addresses: addresses.map { $0.toPrimitives() },
         )
     }
 

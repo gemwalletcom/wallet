@@ -15,18 +15,15 @@ pub struct GemAutocloseField {
     pub order_id: Option<u64>,
 }
 
-#[uniffi::export]
 impl GemAutocloseField {
-    pub fn has_pending_change(&self) -> bool {
+    fn has_pending_change(&self) -> bool {
         self.is_cleared() || (self.price.is_some() && self.has_changed())
     }
 
-    pub fn is_valid(&self) -> bool {
+    fn is_valid(&self) -> bool {
         self.price.is_some() && self.validation == AutocloseValidation::Valid
     }
-}
 
-impl GemAutocloseField {
     fn has_changed(&self) -> bool {
         self.price != self.original_price
     }
@@ -73,10 +70,6 @@ pub struct GemAutocloseModify {
 
 #[uniffi::export]
 impl GemAutocloseModify {
-    pub fn can_build(&self) -> bool {
-        self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
-    }
-
     pub fn transfer(&self, provider: PerpetualProvider, asset: Asset) -> GemTransferData {
         let data = PerpetualModifyConfirmData {
             base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
@@ -87,8 +80,14 @@ impl GemAutocloseModify {
         };
         GemPerpetual::new(provider).transfer_data(asset, PerpetualType::Modify { data }, GemBigInt::ZERO, false)
     }
+}
 
-    pub fn build(&self) -> Vec<PerpetualModifyPositionType> {
+impl GemAutocloseModify {
+    fn can_build(&self) -> bool {
+        self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
+    }
+
+    fn build(&self) -> Vec<PerpetualModifyPositionType> {
         let cancels: Vec<CancelOrderData> = [&self.take_profit, &self.stop_loss]
             .into_iter()
             .filter_map(|field| field.cancel(self.asset_index))
@@ -132,10 +131,6 @@ pub struct GemAutocloseSession {
 
 #[uniffi::export]
 impl GemAutocloseSession {
-    pub fn on_modify(&self, modify: GemAutocloseModify) -> Self {
-        Self { modify, ..self.clone() }
-    }
-
     pub fn on_submit_attempt(&self) -> Self {
         Self {
             submit_attempted: true,
@@ -148,9 +143,7 @@ impl GemAutocloseSession {
         GemAutocloseViewState {
             confirm_enabled: match (self.policy, self.submit_attempted) {
                 (GemAutocloseConfirmPolicy::WhenBuildable, _) | (GemAutocloseConfirmPolicy::UntilSubmitted, true) => can_build,
-                (GemAutocloseConfirmPolicy::UntilSubmitted, false) => {
-                    self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change()
-                }
+                (GemAutocloseConfirmPolicy::UntilSubmitted, false) => self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change(),
             },
             shows_errors: self.submit_attempted,
         }
@@ -261,7 +254,9 @@ mod tests {
         assert!(matches!(&set_only[..], [PerpetualModifyPositionType::Tpsl { order }] if order.take_profit.as_deref() == Some("110.0") && order.stop_loss.is_none()));
 
         let cancel_only = modify(field(None, Some(100.0), false, Some(12345)), none.clone()).build();
-        assert!(matches!(&cancel_only[..], [PerpetualModifyPositionType::Cancel { orders: cancels }] if cancels.len() == 1 && cancels[0].order_id == 12345 && cancels[0].asset_index == 5));
+        assert!(
+            matches!(&cancel_only[..], [PerpetualModifyPositionType::Cancel { orders: cancels }] if cancels.len() == 1 && cancels[0].order_id == 12345 && cancels[0].asset_index == 5)
+        );
 
         let both = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(80.0), Some(90.0), true, Some(67890))).build();
         assert_eq!(both.len(), 2);

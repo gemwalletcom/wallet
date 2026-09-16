@@ -7,6 +7,7 @@ import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemBannerAmount
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerTitle
+import uniffi.gemstone.GemValueStyle
 
 @Composable
 internal fun bannerTitle(title: GemBannerTitle): String = when (title) {
@@ -38,5 +39,5 @@ internal fun bannerDescription(description: GemBannerDescription): String = when
     GemBannerDescription.TradePerpetuals -> stringResource(R.string.banner_perpetuals_description)
 }
 
-private fun formatAmount(amount: GemBannerAmount): String = ValueFormatter(style = ValueFormatter.Style.Auto)
+private fun formatAmount(amount: GemBannerAmount): String = ValueFormatter(style = GemValueStyle.AUTO)
     .string(amount.value, decimals = amount.decimals, currency = amount.symbol)

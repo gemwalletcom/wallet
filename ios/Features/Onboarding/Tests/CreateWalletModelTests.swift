@@ -17,7 +17,6 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             service: GemWalletService.mock(db: .mockWithChains(AssetConfiguration.allChains)),
             preferences: .mock(),
-            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 
@@ -31,7 +30,6 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             service: GemWalletService.mock(),
             preferences: .mock(),
-            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 

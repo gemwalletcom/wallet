@@ -5,6 +5,7 @@ import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
 import java.util.Locale
+import uniffi.gemstone.GemValueStyle
 
 class ValueFormatterTest {
 
@@ -15,7 +16,7 @@ class ValueFormatterTest {
 
     @Test
     fun short() {
-        val f = ValueFormatter(style = ValueFormatter.Style.Short, locale = Locale.US)
+        val f = ValueFormatter(style = GemValueStyle.SHORT, locale = Locale.US)
 
         assertEquals("0", f.string(BigInteger.ZERO, decimals = 8))
         assertEquals("1 BTC", f.string(BigInteger.valueOf(100_000_000L), decimals = 8, currency = "BTC"))
@@ -30,7 +31,7 @@ class ValueFormatterTest {
 
     @Test
     fun auto() {
-        val f = ValueFormatter(style = ValueFormatter.Style.Auto, locale = Locale.US)
+        val f = ValueFormatter(style = GemValueStyle.AUTO, locale = Locale.US)
 
         assertEquals("1", f.string(BigInteger("1000000000000000000"), decimals = 18))
         assertEquals("0.1234", f.string(BigInteger("123456789012345678"), decimals = 18))
@@ -42,7 +43,7 @@ class ValueFormatterTest {
 
     @Test
     fun full() {
-        val f = ValueFormatter(style = ValueFormatter.Style.Full, locale = Locale.US)
+        val f = ValueFormatter(style = GemValueStyle.FULL, locale = Locale.US)
 
         assertEquals("1 ETH", f.string(BigInteger("1000000000000000000"), decimals = 18, currency = "ETH"))
         assertEquals("1.5 ETH", f.string(BigInteger("1500000000000000000"), decimals = 18, currency = "ETH"))

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 use std::time::Duration;
 
 use async_trait::async_trait;
@@ -33,8 +33,12 @@ pub struct TrackedTransactions<'a> {
 }
 
 impl Tracking {
+    fn state(&self) -> MutexGuard<'_, TrackingState> {
+        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
     pub fn start(&self, transaction_id: &TransactionId) -> Option<TrackedTransactions<'_>> {
-        let mut state = self.state.lock().unwrap();
+        let mut state = self.state();
         if state.polls.contains_key(transaction_id) {
             return None;
         }
@@ -45,23 +49,23 @@ impl Tracking {
     }
 
     pub fn cancel(&self) {
-        self.state.lock().unwrap().polls.clear();
+        self.state().polls.clear();
     }
 }
 
 impl TrackedTransactions<'_> {
     fn is_tracking(&self) -> bool {
-        self.tracking.state.lock().unwrap().polls.values().any(|poll| *poll == self.poll)
+        self.tracking.state().polls.values().any(|poll| *poll == self.poll)
     }
 
     fn follow(&self, transaction_id: &TransactionId) {
-        self.tracking.state.lock().unwrap().polls.insert(transaction_id.clone(), self.poll);
+        self.tracking.state().polls.insert(transaction_id.clone(), self.poll);
     }
 }
 
 impl Drop for TrackedTransactions<'_> {
     fn drop(&mut self) {
-        self.tracking.state.lock().unwrap().polls.retain(|_, poll| *poll != self.poll);
+        self.tracking.state().polls.retain(|_, poll| *poll != self.poll);
     }
 }
 

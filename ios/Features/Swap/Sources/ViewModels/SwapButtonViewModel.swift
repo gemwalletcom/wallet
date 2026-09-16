@@ -30,12 +30,7 @@ struct SwapButtonViewModel: StateButtonViewable {
     }
 
     var title: String {
-        switch buttonAction {
-        case .retryQuote, .retryTransfer: Localized.Common.tryAgain
-        case .insufficientBalance: Localized.Transfer.insufficientBalance(fromAsset?.asset.symbol ?? .empty)
-        case .useMinimumAmount: Localized.Swap.useMinimumAmount
-        case .swap: Localized.Wallet.swap
-        }
+        buttonAction.title(symbol: fromAsset?.asset.symbol ?? .empty)
     }
 
     var icon: Image? {

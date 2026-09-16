@@ -40,5 +40,6 @@ public struct AddressInputView: View {
         .autocorrectionDisabled()
         .onChange(of: model.text, model.onTextChange)
         .onChange(of: model.nameResolveState, model.onNameResolveStateChange)
+        .onSubmit { model.validate() }
     }
 }

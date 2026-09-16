@@ -3,8 +3,10 @@ use bigdecimal::{BigDecimal, num_bigint::Sign};
 use crate::big_number_formatter::{BigNumberFormatter, NumberFormatterError};
 use crate::currency::add_thousands_separator;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ValueStyle {
     Full,
+    Short,
     Auto,
 }
 
@@ -15,7 +17,7 @@ impl ValueFormatter {
         let decimal = BigNumberFormatter::big_decimal_value(value, decimals as u32)?;
         match style {
             ValueStyle::Full => Ok(format_full(&decimal)),
-            ValueStyle::Auto => Ok(format_auto(&decimal)),
+            ValueStyle::Short | ValueStyle::Auto => Ok(format_auto(&decimal)),
         }
     }
 
@@ -23,7 +25,7 @@ impl ValueFormatter {
         let decimal: BigDecimal = value.to_string().parse().unwrap_or_default();
         match style {
             ValueStyle::Full => format_full(&decimal),
-            ValueStyle::Auto => format_auto(&decimal),
+            ValueStyle::Short | ValueStyle::Auto => format_auto(&decimal),
         }
     }
 

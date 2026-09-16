@@ -66,7 +66,6 @@ pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigUint;
     use crate::{
         models::{
             Embedded,
@@ -74,6 +73,7 @@ mod tests {
         },
         provider::testkit::TEST_TRANSACTION_ID,
     };
+    use num_bigint::BigUint;
     use primitives::Chain;
 
     #[test]

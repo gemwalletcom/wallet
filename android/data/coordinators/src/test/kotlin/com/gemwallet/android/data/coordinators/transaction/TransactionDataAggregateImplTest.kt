@@ -99,6 +99,7 @@ class TransactionDataAggregateImplTest {
         direction: TransactionDirection = TransactionDirection.Outgoing,
         value: String = "100000000",
         metadata: String? = null,
+        createdAt: Long = 1_700_000_000_000L,
     ) = mockTransaction(
         assetId = assetId,
         id = TransactionId(assetId.chain, id),
@@ -109,6 +110,7 @@ class TransactionDataAggregateImplTest {
         value = value,
         direction = direction,
         metadata = metadata,
+        createdAt = createdAt,
     )
 
     private fun createTransactionExtended(
@@ -127,7 +129,7 @@ class TransactionDataAggregateImplTest {
     )
 
     private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate =
-        TransactionDataAggregateImpl(transaction, transactionRow(transaction.toGem()))
+        TransactionDataAggregateImpl(transactionRow(transaction.toGem()))
 
     @Test
     fun testBasicPropertyDelegation() {

@@ -34,11 +34,11 @@ public final class ValidatorSelectSceneViewModel {
 
         let all = recommended + validators
         rowsById = Dictionary(
-            zip(all.map(\.id), service.validatorRows(validators: all.map { $0.map() })),
+            zip(all.map(\.id), service.validatorRows(validators: all.map { $0.toGem() })),
             uniquingKeysWith: { first, _ in first },
         )
         explorerLinksById = Dictionary(
-            all.compactMap { validator in service.validatorUrl(validator: validator.map()).map { (validator.id, $0.map()) } },
+            all.compactMap { validator in service.validatorUrl(validator: validator.toGem()).map { (validator.id, $0.toPrimitives()) } },
             uniquingKeysWith: { first, _ in first },
         )
     }
@@ -81,6 +81,6 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func validatorRow(for validator: DelegationValidator) -> GemValidatorRow {
-        rowsById[validator.id] ?? service.validatorRow(validator: validator.map())
+        rowsById[validator.id] ?? service.validatorRow(validator: validator.toGem())
     }
 }

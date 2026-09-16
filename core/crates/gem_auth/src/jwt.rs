@@ -22,7 +22,7 @@ fn get_secret(secret: &str) -> Result<&str, Error> {
 
 pub fn create_device_token(device_id: &str, secret: &str, expiry: Duration) -> Result<(String, u64), jsonwebtoken::errors::Error> {
     let secret = get_secret(secret)?;
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
     let expires_at = now + expiry.as_secs();
     let claims = JwtClaims {
         sub: device_id.to_string(),

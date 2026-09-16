@@ -75,7 +75,7 @@ public struct TransactionsRequest: DatabaseQueryable {
         }
 
         for filter in filters {
-            request = Self.applyFilter(request: request, filter)
+            request = Self.filtered(request: request, filter)
         }
 
         return request
@@ -85,7 +85,7 @@ public struct TransactionsRequest: DatabaseQueryable {
 // MARK: - Private
 
 extension TransactionsRequest {
-    static func applyFilter(request: QueryInterfaceRequest<TransactionRecord>, _ filter: TransactionsRequestFilter) -> QueryInterfaceRequest<TransactionRecord> {
+    static func filtered(request: QueryInterfaceRequest<TransactionRecord>, _ filter: TransactionsRequestFilter) -> QueryInterfaceRequest<TransactionRecord> {
         switch filter {
         case let .chains(chains):
             guard !chains.isEmpty else { return request }

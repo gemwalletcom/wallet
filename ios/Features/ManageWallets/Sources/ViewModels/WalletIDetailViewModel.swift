@@ -7,13 +7,12 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import struct Gemstone.GemWalletDetails
 import struct Gemstone.GemWalletRow
-import func Gemstone.walletRow
 import enum Gemstone.GemWalletSecret
-import struct Gemstone.GemWalletRow
-import func Gemstone.walletRow
 import enum Gemstone.GemWalletSecretKind
-import func Gemstone.walletSecretKind
+import func Gemstone.walletDetails
+import func Gemstone.walletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 
@@ -50,8 +49,12 @@ public final class WalletDetailViewModel {
         walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
     }
 
+    var details: GemWalletDetails {
+        walletDetails(wallet: wallet.toGem())
+    }
+
     var row: GemWalletRow {
-        walletRow(wallet: wallet.map())
+        details.row
     }
 
     var name: String {
@@ -63,19 +66,19 @@ public final class WalletDetailViewModel {
     }
 
     var secretKind: GemWalletSecretKind? {
-        walletSecretKind(wallet: wallet.map())
+        details.secretKind
     }
 
     var address: WalletDetailAddress? {
-        guard let account = wallet.accounts.first, wallet.type != .multicoin else { return .none }
+        guard let account = details.address?.toPrimitives() else { return .none }
         return .account(
             SimpleAccount(name: .none, chain: account.chain, address: account.address, assetImage: .none),
-            link: service.addressUrl(chain: account.chain.rawValue, address: account.address).map(),
+            link: service.addressUrl(chain: account.chain.rawValue, address: account.address).toPrimitives(),
         )
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
-        let avatar = walletRow(wallet: wallet.map()).avatarImage
+        let avatar = walletRow(wallet: wallet.toGem()).avatarImage
         return AssetImage(
             type: avatar.type,
             imageURL: avatar.imageURL,

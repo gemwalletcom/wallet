@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.valueTone
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemChartHeader
+import func Gemstone.candlestickHeader
 import struct Gemstone.GemPerpetualChartLayout
 import func Gemstone.perpetualChartLayout
 import class Gemstone.PriceChangeCalculator
@@ -23,21 +24,15 @@ struct CandlestickChartViewModel {
 
     private let layout: GemPerpetualChartLayout
     private let period: ChartPeriod
-    private let formatter: CurrencyFormatter
-    private let numericFormatter: NumericFormatter
 
     init(
         candles: [ChartCandleStick],
         period: ChartPeriod = .day,
         position: PerpetualPosition? = nil,
-        formatter: CurrencyFormatter,
-        numericFormatter: NumericFormatter = NumericFormatter(),
     ) {
         self.candles = candles
-        layout = perpetualChartLayout(candles: candles.map { $0.map() }, position: position?.map())
+        layout = perpetualChartLayout(candles: candles.map { $0.toGem() }, position: position?.toGem())
         self.period = period
-        self.formatter = formatter
-        self.numericFormatter = numericFormatter
     }
 
     var xAxisRange: ClosedRange<Date> {
@@ -49,19 +44,19 @@ struct CandlestickChartViewModel {
     }
 
     var lines: [ChartLineViewModel] {
-        layout.lines.map { ChartLineViewModel(line: $0, formatter: numericFormatter) }
+        layout.lines.map { ChartLineViewModel(line: $0) }
     }
 
     var yAxisTicks: [Double] {
-        layout.ticks
+        layout.ticks.map(\.value)
+    }
+
+    func yAxisTickText(at index: Int) -> String {
+        layout.ticks[safe: index]?.text() ?? ""
     }
 
     var xAxisTickCount: Int {
         Int(layout.xTickCount)
-    }
-
-    func formattedPrice(_ price: Double) -> String {
-        numericFormatter.string(price)
     }
 
     var lineLabelOffsets: [CGFloat] {
@@ -69,7 +64,11 @@ struct CandlestickChartViewModel {
     }
 
     var currentPrice: Double? {
-        candles.last?.close
+        layout.currentPrice?.value
+    }
+
+    var currentPriceText: String {
+        layout.currentPrice?.text() ?? ""
     }
 
     var currentPriceColor: Color {
@@ -78,21 +77,19 @@ struct CandlestickChartViewModel {
 
     func headerModel(for selectedCandle: ChartCandleStick?) -> ChartHeaderViewModel? {
         guard let target = selectedCandle ?? candles.last, let base = candles.first?.close else { return nil }
-        let changePercentage = priceChangeCalculator.percentage(from: base, to: target.close)
         return ChartHeaderViewModel(
             period: period,
             date: selectedCandle?.date,
-            header: GemChartHeader(value: target.close, secondaryValue: nil, changePercentage: target.close == 0 ? nil : changePercentage),
-            formatter: formatter,
+            header: candlestickHeader(base: base, value: target.close),
         )
     }
 
     func tooltipModel(for candle: ChartCandleStick) -> CandleTooltipViewModel {
-        CandleTooltipViewModel(candle: candle, formatter: numericFormatter)
+        CandleTooltipViewModel(candle: candle)
     }
 
     func candleColor(for candle: ChartCandleStick) -> Color {
-        PriceChangeColor.color(for: candle.close - candle.open)
+        valueTone(value: candle.close - candle.open).color
     }
 
     func candle(for date: Date) -> ChartCandleStick? {

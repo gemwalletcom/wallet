@@ -24,8 +24,8 @@ struct WidgetContentView: View {
                     SmallCoinView(
                         model: CoinPriceRowViewModel(
                             coin: bitcoin,
-                            currencyFormatter: CurrencyFormatter(
-                                type: .abbreviated,
+                            currencyFormatter: PriceWidgetFormatter(
+                                style: .abbreviated,
                                 currencyCode: viewModel.entry.currency,
                             ),
                             percentFormatter: PercentFormatter(),
@@ -37,7 +37,7 @@ struct WidgetContentView: View {
                     CoinPriceRow(
                         model: CoinPriceRowViewModel(
                             coin: coin,
-                            currencyFormatter: CurrencyFormatter(
+                            currencyFormatter: PriceWidgetFormatter(
                                 currencyCode: viewModel.entry.currency,
                             ),
                             percentFormatter: PercentFormatter(),

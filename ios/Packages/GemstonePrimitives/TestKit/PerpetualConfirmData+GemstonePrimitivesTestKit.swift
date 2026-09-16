@@ -29,7 +29,7 @@ public extension PerpetualConfirmData {
         PerpetualConfirmData(
             direction: direction,
             marginType: marginType,
-            baseAsset: baseAsset.map(),
+            baseAsset: baseAsset.toGem(),
             assetIndex: assetIndex,
             price: price,
             fiatValue: fiatValue,

@@ -19,18 +19,11 @@ struct ServiceStatusItemViewModel: Identifiable {
     }
 
     var id: String { endpoint.url }
-    var title: String { "\(name) \(endpoint.flag)" }
+    var title: String { endpoint.title(name: endpoint.endpointType.name) }
     var subtitle: String { endpoint.host }
     var titleTag: String? { statusTag.text }
     var titleTagType: TitleTagType { statusTag.type }
     var titleTagStyle: TextStyle { statusTag.style }
-
-    private var name: String {
-        switch endpoint.endpointType {
-        case .api: "API"
-        case .gemNode: Localized.Nodes.gemWalletNode
-        }
-    }
 
     private var statusTag: LatencyStatusViewModel {
         LatencyStatusViewModel(status: status)

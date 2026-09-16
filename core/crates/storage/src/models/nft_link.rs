@@ -23,11 +23,11 @@ impl NftLinkRow {
         }
     }
 
-    pub fn from_primitive(collection_id: i32, link: AssetLink) -> Self {
-        Self {
+    pub fn from_primitive(collection_id: i32, link: AssetLink) -> Option<Self> {
+        Some(Self {
             collection_id,
-            link_type: primitives::LinkType::from_str(&link.name).unwrap().into(),
+            link_type: primitives::LinkType::from_str(&link.name).ok()?.into(),
             url: link.url.clone(),
-        }
+        })
     }
 }

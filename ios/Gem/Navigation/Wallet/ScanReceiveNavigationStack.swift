@@ -39,7 +39,7 @@ struct ScanReceiveNavigationStack: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 200)
+                    .frame(width: Sizing.picker.segmentedWidth)
                 }
             }
             .onChange(of: model.selectAssetModel.assetSelection, model.onChangeAssetSelection)

@@ -14,8 +14,8 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationStatus, GemDelegationTone, GemStakeAction,
-    GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow, GemDelegationStatus, GemDelegationTone,
+    GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -125,12 +125,20 @@ impl GemStakeService {
         rules::can_change_amount_on_unstake(chain)
     }
 
-    pub fn uses_freeze(&self, chain: Chain) -> bool {
-        rules::uses_freeze(chain)
-    }
-
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
         rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
+    }
+
+    pub fn stake_sections(&self, chain: Chain, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
+        rules::stake_sections(rules::uses_freeze(chain), has_actions, has_delegations)
+    }
+
+    pub fn stake_info_rows(&self, chain: Chain, staking_apr: Option<f64>) -> Vec<GemStakeInfoRow> {
+        rules::stake_info_rows(chain, staking_apr)
+    }
+
+    pub fn delegation_rows(&self, delegation: Delegation) -> Vec<GemDelegationRow> {
+        rules::delegation_rows(&delegation)
     }
 
     pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
@@ -208,7 +216,7 @@ impl GemStakeService {
             validators.extend(missing.into_iter().map(|validator| (validator.id.clone(), validator)));
         }
 
-        let incoming = rules::apply_validator_state(delegations, &validators);
+        let incoming = rules::delegations_with_state(delegations, &validators);
         let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Stake).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &incoming);
         self.store.update_delegations(wallet_id, incoming, delete_ids).await
@@ -278,7 +286,7 @@ mod tests {
     #[test]
     fn test_delegations_on_inactive_validators_become_inactive() {
         let validators: HashMap<_, _> = [("v".to_string(), validator("v", false))].into();
-        let delegations = apply_validator_state(vec![delegation("v", DelegationState::Active), delegation("other", DelegationState::Active)], &validators);
+        let delegations = delegations_with_state(vec![delegation("v", DelegationState::Active), delegation("other", DelegationState::Active)], &validators);
         assert_eq!(delegations[0].state, DelegationState::Inactive);
         assert_eq!(delegations[1].state, DelegationState::Active);
     }

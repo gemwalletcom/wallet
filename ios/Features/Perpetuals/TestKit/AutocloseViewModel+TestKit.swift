@@ -23,7 +23,7 @@ public extension AutocloseViewModel {
             estimator: GemAutocloseEstimator(
                 entryPrice: 100.0,
                 positionSize: positionSize,
-                direction: Primitives.PerpetualDirection.long.map(),
+                direction: Primitives.PerpetualDirection.long.toGem(),
                 leverage: leverage,
             ),
             currencyFormatter: currencyFormatter,

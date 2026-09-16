@@ -13,6 +13,24 @@ pub struct GemDayBoundaries {
     pub yesterday: GemDay,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemDayLabel {
+    Today,
+    Yesterday,
+    Date,
+}
+
+#[uniffi::export]
+impl GemDayBoundaries {
+    pub fn label(&self, day: GemDay) -> GemDayLabel {
+        match day {
+            day if day == self.today => GemDayLabel::Today,
+            day if day == self.yesterday => GemDayLabel::Yesterday,
+            _ => GemDayLabel::Date,
+        }
+    }
+}
+
 #[uniffi::export]
 impl GemDay {
     pub fn boundaries(&self) -> GemDayBoundaries {
@@ -54,6 +72,16 @@ mod tests {
         assert_eq!(day(2026, 3, 1).boundaries().yesterday, day(2026, 2, 28));
         assert_eq!(day(2026, 1, 1).boundaries().yesterday, day(2025, 12, 31));
         assert_eq!(day(2024, 3, 1).boundaries().yesterday, day(2024, 2, 29));
+    }
+
+    #[test]
+    fn test_a_day_is_named_today_or_yesterday_before_it_is_dated() {
+        let boundaries = day(2026, 3, 1).boundaries();
+
+        assert_eq!(boundaries.label(day(2026, 3, 1)), GemDayLabel::Today);
+        assert_eq!(boundaries.label(day(2026, 2, 28)), GemDayLabel::Yesterday);
+        assert_eq!(boundaries.label(day(2026, 2, 27)), GemDayLabel::Date);
+        assert_eq!(boundaries.label(day(2026, 3, 2)), GemDayLabel::Date, "a future day is dated, not named");
     }
 
     #[test]

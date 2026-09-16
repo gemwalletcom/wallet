@@ -69,7 +69,7 @@ impl HyperCoreSpot {
         Ok(meta)
     }
 
-    fn resolve_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
+    fn spot_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
         let asset_id = asset.asset_id();
         let components = asset_id.token_components().or_else(|| {
             if asset_id == HYPERCORE_HYPE.id {
@@ -134,8 +134,8 @@ impl Swapper for HyperCoreSpot {
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let client = self.client()?;
         let meta = self.get_spot_meta(&client).await?;
-        let from_token = self.resolve_token(&meta, &request.from_asset)?;
-        let to_token = self.resolve_token(&meta, &request.to_asset)?;
+        let from_token = self.spot_token(&meta, &request.from_asset)?;
+        let to_token = self.spot_token(&meta, &request.to_asset)?;
 
         let amount_in = BigNumberFormatter::big_decimal_value(&request.value.to_string(), request.from_asset.decimals)?;
         if amount_in <= BigDecimal::zero() {

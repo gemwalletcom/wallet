@@ -11,7 +11,7 @@ use primitives::{AssetId, NFTAssetId, Transaction, TransactionNFTTransferMetadat
 use std::error::Error;
 
 pub fn map_transaction_broadcast(broadcast_result: BroadcastTransaction) -> Result<String, Box<dyn Error + Sync + Send>> {
-    let hash_bytes = decode_base64(&broadcast_result.hash)?;
+    let hash_bytes = decode_base64(&broadcast_result.message_hash)?;
     Ok(hex::encode(hash_bytes))
 }
 

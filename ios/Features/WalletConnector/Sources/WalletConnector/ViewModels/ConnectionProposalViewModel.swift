@@ -26,8 +26,8 @@ public struct ConnectionProposalViewModel {
         self.confirmTransferDelegate = confirmTransferDelegate
         self.pairingProposal = pairingProposal
         walletSelectorModel = SelectWalletViewModel(
-            rows: walletRows(wallets: pairingProposal.proposal.wallets.map { $0.map() }),
-            selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.map()),
+            rows: walletRows(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }),
+            selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
         )
     }
 
@@ -73,31 +73,19 @@ public struct ConnectionProposalViewModel {
     }
 
     private var verification: GemVerificationLevel {
-        verificationLevel(status: pairingProposal.verificationStatus.map())
+        verificationLevel(status: pairingProposal.verificationStatus.toGem())
     }
 
     var verificationImage: Image {
-        switch verification {
-        case .verified: Images.Transaction.State.success
-        case .unverified: Images.TokenStatus.warning
-        case .suspicious: Images.TokenStatus.risk
-        }
+        verification.image
     }
 
     var statusText: String {
-        switch verification {
-        case .verified: Localized.Asset.Verification.verified
-        case .unverified: Localized.Asset.Verification.unverified
-        case .suspicious: Localized.Asset.Verification.suspicious
-        }
+        verification.title
     }
 
     var statusTextStyle: TextStyle {
-        switch verification {
-        case .verified: TextStyle(font: .callout, color: Colors.green)
-        case .unverified: TextStyle(font: .callout, color: Colors.orange)
-        case .suspicious: TextStyle(font: .callout, color: Colors.red)
-        }
+        verification.textStyle
     }
 
     var statusAssetImage: AssetImage {

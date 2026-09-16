@@ -22,8 +22,12 @@ const QUOTE_INTERVAL: i64 = 1;
 const QUOTE_QUANTITY: i64 = 0;
 const DUST_THRESHOLD_MULTIPLIER: i64 = 2;
 
-// FIXME: estimate gas limit with memo x bytes
-const DEFAULT_DEPOSIT_GAS_LIMIT: u64 = 90_000;
+const DEPOSIT_GAS_LIMIT_BASE: u64 = 90_000;
+const CALLDATA_GAS_PER_BYTE: u64 = 16;
+
+pub fn deposit_gas_limit(memo: &str) -> u64 {
+    DEPOSIT_GAS_LIMIT_BASE + memo.len() as u64 * CALLDATA_GAS_PER_BYTE
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Display)]
 #[strum(serialize_all = "lowercase")]

@@ -85,10 +85,10 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        service.nftSearchItems = (0 ..< 3).map { _ in .asset(data: NFTAssetData.mock().map()) }
+        service.nftSearchItems = (0 ..< 3).map { _ in .asset(data: NFTAssetData.mock().toGem()) }
         #expect(model.hasMoreNFTs == false)
 
-        service.nftSearchItems = (0 ..< 4).map { _ in .asset(data: NFTAssetData.mock().map()) }
+        service.nftSearchItems = (0 ..< 4).map { _ in .asset(data: NFTAssetData.mock().toGem()) }
         #expect(model.hasMoreNFTs == true)
     }
 
@@ -100,8 +100,8 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.showNFTs == false)
 
         service.nftSearchItems = [
-            .collection(data: NFTData(collection: .mock(), assets: [.mock(), .mock()]).map()),
-            .asset(data: NFTAssetData.mock().map()),
+            .collection(data: NFTData(collection: .mock(), assets: [.mock(), .mock()]).toGem()),
+            .asset(data: NFTAssetData.mock().toGem()),
         ]
 
         #expect(model.showNFTs == true)

@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import struct Gemstone.GemChartHeader
 import enum Gemstone.GemChartValueType
 import Primitives
@@ -15,7 +16,6 @@ public struct ChartHeaderViewModel {
     public let header: GemChartHeader
     public let valueType: GemChartValueType
 
-    private let formatter: CurrencyFormatter
     private let dateFormatter: ChartDateFormatter
 
     public init(
@@ -23,19 +23,13 @@ public struct ChartHeaderViewModel {
         date: Date?,
         header: GemChartHeader,
         valueType: GemChartValueType = .price,
-        formatter: CurrencyFormatter,
         dateFormatter: ChartDateFormatter = ChartDateFormatter(),
     ) {
         self.period = period
         self.date = date
         self.header = header
         self.valueType = valueType
-        self.formatter = formatter
         self.dateFormatter = dateFormatter
-    }
-
-    private var valueChange: PriceChangeViewModel? {
-        valueType == .priceChange ? PriceChangeViewModel(value: header.value, currencyFormatter: formatter) : nil
     }
 
     public var dateText: String? {
@@ -43,28 +37,23 @@ public struct ChartHeaderViewModel {
     }
 
     public var headerValueText: String? {
-        header.secondaryValue.map { formatter.string($0) }
+        header.secondaryValue?.text()
     }
 
     public var priceText: String {
-        valueChange?.text ?? formatter.string(header.value)
+        header.value.text()
     }
 
     public var priceColor: Color {
-        valueChange?.color ?? Colors.black
+        header.value.tone.color
     }
 
     public var priceChangeText: String? {
-        header.changePercentage.map {
-            switch valueType {
-            case .priceChange: "(\(PercentFormatter.unsigned.string($0)))"
-            case .price: PercentFormatter.signed.string($0)
-            }
-        }
+        header.change?.text()
     }
 
     public var priceChangeTextColor: Color {
-        PriceChangeColor.color(for: header.changePercentage ?? 0)
+        header.change?.tone.color ?? Colors.gray
     }
 
     public var priceFont: Font {

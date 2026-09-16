@@ -17,17 +17,17 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
 
     public func getState(key: GemBannerKey) async throws -> Gemstone.BannerState? {
         try store.getBanner(id: key.identifier())
-            .map { $0.state.map() }
+            .map { $0.state.toGem() }
     }
 
     public func setState(key: GemBannerKey, state: Gemstone.BannerState) async throws {
-        let state = state.map()
+        let state = state.toPrimitives()
         try store.addBanners([newBanner(key: key, state: state)])
         try store.updateState(key.identifier(), state: state)
     }
 
     public func addBanners(keys: [GemBannerKey], state: Gemstone.BannerState) async throws {
-        let state = state.map()
+        let state = state.toPrimitives()
         try store.addBanners(keys.map { try newBanner(key: $0, state: state) })
     }
 
@@ -36,7 +36,7 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
             id: key.identifier(),
             walletId: key.walletId,
             assetId: key.assetId.map { try Primitives.AssetId(id: $0) },
-            event: key.event.map(),
+            event: key.event.toPrimitives(),
             state: state,
         )
     }

@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import struct Gemstone.GemRewardsRedemption
 import struct Gemstone.RewardRedemptionOption
-import BigInt
 import Components
-import Formatters
 import Foundation
 import Localization
 import Primitives
@@ -44,11 +43,7 @@ struct RewardRedemptionOptionViewModel: Identifiable {
     }
 
     var valueText: String {
-        switch option.redemptionType {
-        case .asset, .giftAsset:
-            guard let asset = option.asset else { return option.value.description }
-            return ValueFormatter.short.string(BigInt(option.value), asset: asset.map())
-        }
+        redemption.value.text()
     }
 
     var confirmationMessage: String {

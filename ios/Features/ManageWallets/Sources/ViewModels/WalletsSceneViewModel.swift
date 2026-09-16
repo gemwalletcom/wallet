@@ -61,7 +61,7 @@ public final class WalletsSceneViewModel {
     }
 
     func row(for wallet: Wallet) -> GemWalletRow {
-        walletRow(wallet: wallet.map())
+        walletRow(wallet: wallet.toGem())
     }
 }
 

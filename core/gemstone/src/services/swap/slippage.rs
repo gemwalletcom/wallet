@@ -43,17 +43,6 @@ impl GemSlippageSession {
         Self { is_auto, ..self.clone() }
     }
 
-    pub fn on_input_bps(&self, bps: Option<u32>) -> Self {
-        Self {
-            is_auto: false,
-            bps: bps.unwrap_or(0),
-        }
-    }
-
-    pub fn percent(&self, bps: u32) -> f64 {
-        rules::slippage_percent(bps)
-    }
-
     pub fn view_state(&self) -> GemSlippageViewState {
         let config = get_swap_config();
         let check = rules::slippage_check(self.bps, &config);
@@ -110,13 +99,5 @@ mod tests {
 
         assert_eq!(state.maximum_integer_digits, maximum_percent.trunc().to_string().len() as u32);
         assert_eq!(state.maximum_fraction_digits, 2);
-    }
-
-    #[test]
-    fn test_typing_over_auto_leaves_auto() {
-        let auto = session(150).on_auto(true);
-
-        assert!(!auto.on_input_bps(Some(200)).is_auto);
-        assert_eq!(auto.on_input_bps(Some(200)).view_state().selection, GemSlippageSelection::Manual { bps: 200 });
     }
 }

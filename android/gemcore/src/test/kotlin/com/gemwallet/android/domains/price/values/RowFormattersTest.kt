@@ -48,7 +48,6 @@ class RowFormattersTest {
         val formatters = RowFormatters()
 
         assertSame(formatters.currency(Currency.USD), formatters.currency(Currency.USD))
-        assertSame(formatters.abbreviated(Currency.USD), formatters.abbreviated(Currency.USD))
         assertEquals("$1,234.50", formatters.currency(Currency.USD).string(1234.5))
     }
 }

@@ -8,7 +8,6 @@ import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ext.chainConfig
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetIconImage
-import uniffi.gemstone.GemLocalTokenIcon
 import uniffi.gemstone.GemImage
 import java.util.concurrent.ConcurrentHashMap
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
@@ -23,12 +22,6 @@ fun Chain.iconChain(): Chain = chainConfig().iconChain.toChain()
 fun AssetId.iconChain(): Chain? = when (val image = icon().image) {
     is GemAssetIconImage.Local -> image.chain.toChain()
     is GemAssetIconImage.LocalToken,
-    is GemAssetIconImage.Remote -> null
-}
-
-fun AssetId.localTokenIcon(): GemLocalTokenIcon? = when (val image = icon().image) {
-    is GemAssetIconImage.LocalToken -> image.token
-    is GemAssetIconImage.Local,
     is GemAssetIconImage.Remote -> null
 }
 

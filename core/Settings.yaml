@@ -159,7 +159,7 @@ name:
   ud:
     url: https://api.unstoppabledomains.com
   sns:
-    url: https://sdk-proxy.sns.id
+    url: https://sdk-proxy-v2.sns.id
   ton:
     url: https://toncenter.com
   spaceid:

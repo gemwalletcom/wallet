@@ -44,12 +44,11 @@ fun NotificationItem(
     onOpenUrl: (String) -> Unit,
 ) {
     val row = notificationRow(notification.toGem())
-    val item = notification.item
     val icon = row.icon
-    val url = item.url
-    val subtitle = item.subtitle
-    val value = item.value
-    val subvalue = item.subvalue
+    val url = row.url
+    val subtitle = row.subtitle
+    val value = row.value
+    val subvalue = row.subvalue
     ListItem(
         modifier = if (url != null) Modifier.clickable { onOpenUrl(url) } else Modifier,
         listPosition = listPosition,
@@ -62,7 +61,7 @@ fun NotificationItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     modifier = Modifier.weight(1f, fill = false),
-                    text = item.title,
+                    text = row.title,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,

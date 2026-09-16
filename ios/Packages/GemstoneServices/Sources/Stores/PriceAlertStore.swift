@@ -17,13 +17,13 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
 
     public func getPriceAlerts(assetId: String?) async throws -> [Gemstone.PriceAlert] {
         let alerts = try assetId.map { try store.getPriceAlerts(for: $0) } ?? store.getPriceAlerts()
-        return alerts.map { $0.map() }
+        return alerts.map { $0.toGem() }
     }
 
     public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
         try store.diffPriceAlerts(
             deleteIds: deleteIds,
-            alerts: alerts.map { (id: PriceAlertFormatter.shared.alertId(alert: $0), alert: $0.map()) },
+            alerts: alerts.map { (id: PriceAlertFormatter.shared.alertId(alert: $0), alert: $0.toPrimitives()) },
         )
     }
 }

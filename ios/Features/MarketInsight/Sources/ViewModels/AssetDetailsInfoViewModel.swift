@@ -17,11 +17,11 @@ struct AssetDetailsInfoViewModel {
     private let currencyFormatter: CurrencyFormatter
     private let allTime: AllTimeValueViewModel
 
-    init(asset: Asset, currency: String) {
+    init(asset: Asset, currency: Currency) {
         self.asset = asset
-        currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency)
+        currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency.rawValue)
         allTime = AllTimeValueViewModel(
-            priceFormatter: CurrencyFormatter(currencyCode: currency),
+            priceFormatter: CurrencyFormatter(currencyCode: currency.rawValue),
             percentFormatter: PercentFormatter.signed,
         )
     }
@@ -36,37 +36,33 @@ struct AssetDetailsInfoViewModel {
         switch row {
         case let .marketCap(value, rank):
             MarketValueViewModel(
-                title: Localized.Asset.marketCap,
+                title: row.title,
                 subtitle: currencyFormatter.string(value),
                 titleTag: rank.map { " #\($0) " },
                 titleTagStyle: rank.map { _ in TextStyle(font: .system(.body), color: Colors.grayLight, background: Colors.grayVeryLight) },
             )
         case let .fullyDilutedValuation(value):
-            MarketValueViewModel(
-                title: Localized.Info.FullyDilutedValuation.title,
-                subtitle: currencyFormatter.string(value),
-                action: .info(.fullyDilutedValuation),
-            )
+            MarketValueViewModel(title: row.title, subtitle: currencyFormatter.string(value), action: .info(.fullyDilutedValuation))
         case let .tradingVolume(value):
-            MarketValueViewModel(title: Localized.Asset.tradingVolume, subtitle: currencyFormatter.string(value))
+            MarketValueViewModel(title: row.title, subtitle: currencyFormatter.string(value))
         case let .contract(tokenId, explorer):
             MarketValueViewModel(
-                title: Localized.Asset.contract,
+                title: row.title,
                 subtitle: GemAddressService.shared.format(address: tokenId, chain: asset.chain),
                 action: explorer.map {
-                    .explorer(ExplorerContextData(copyValue: .address(value: tokenId, chain: asset.chain), explorerLink: $0.map()))
+                    .explorer(ExplorerContextData(copyValue: .address(value: tokenId, chain: asset.chain), explorerLink: $0.toPrimitives()))
                 } ?? .none,
             )
         case let .circulatingSupply(value):
-            MarketValueViewModel(title: Localized.Asset.circulatingSupply, subtitle: supply(value), action: .info(.circulatingSupply))
+            MarketValueViewModel(title: row.title, subtitle: supply(value), action: .info(.circulatingSupply))
         case let .totalSupply(value):
-            MarketValueViewModel(title: Localized.Asset.totalSupply, subtitle: supply(value), action: .info(.totalSupply))
+            MarketValueViewModel(title: row.title, subtitle: supply(value), action: .info(.totalSupply))
         case let .maxSupply(value):
-            MarketValueViewModel(title: Localized.Info.MaxSupply.title, subtitle: supply(value), action: .info(.maxSupply))
+            MarketValueViewModel(title: row.title, subtitle: supply(value), action: .info(.maxSupply))
         case let .allTimeHigh(value):
-            allTimeValue(Localized.Asset.allTimeHigh, chartValue: value.map())
+            allTimeValue(row.title, chartValue: value.toPrimitives())
         case let .allTimeLow(value):
-            allTimeValue(Localized.Asset.allTimeLow, chartValue: value.map())
+            allTimeValue(row.title, chartValue: value.toPrimitives())
         }
     }
 

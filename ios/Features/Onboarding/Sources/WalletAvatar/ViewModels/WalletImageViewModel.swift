@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemWalletServiceProtocol
 import Components
 import Foundation
 import func Gemstone.walletAvatarEmojis
@@ -26,7 +26,7 @@ public final class WalletImageViewModel: Sendable {
     }
 
     public let source: Source
-    private let avatarService: any GemAvatarServiceProtocol
+    private let service: any GemWalletServiceProtocol
 
     public let walletQuery: ObservableQuery<WalletRequest>
     public let nftQuery: ObservableQuery<NFTRequest>
@@ -46,10 +46,10 @@ public final class WalletImageViewModel: Sendable {
     public init(
         wallet: Wallet,
         source: Source = .wallet,
-        avatarService: any GemAvatarServiceProtocol,
+        service: any GemWalletServiceProtocol,
     ) {
         self.source = source
-        self.avatarService = avatarService
+        self.service = service
         walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
         nftQuery = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
@@ -66,11 +66,11 @@ public final class WalletImageViewModel: Sendable {
     }
 
     var hasAvatar: Bool {
-        walletRow(wallet: wallet.map()).hasAvatar
+        walletRow(wallet: wallet.toGem()).hasAvatar
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
-        walletRow(wallet: wallet.map()).avatarImage
+        walletRow(wallet: wallet.toGem()).avatarImage
     }
 
     func buildNftAssetsItems(from list: [NFTData]) -> [NFTAssetImageItem] {
@@ -98,7 +98,7 @@ public final class WalletImageViewModel: Sendable {
 
     public func setImage(from url: URL) async {
         do {
-            try await avatarService.setImage(url: url, for: wallet)
+            try await service.setImage(url: url, for: wallet)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
@@ -107,7 +107,7 @@ public final class WalletImageViewModel: Sendable {
     public func onRemoveAvatar() {
         Task {
             do {
-                try await avatarService.removeImage(for: wallet)
+                try await service.removeImage(for: wallet)
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
             }
@@ -132,7 +132,7 @@ public final class WalletImageViewModel: Sendable {
                 guard let data = image.compress() else {
                     throw AnyError("Compression image failed")
                 }
-                try await avatarService.setImage(data: data, for: wallet)
+                try await service.setImage(data: data, for: wallet)
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
             }

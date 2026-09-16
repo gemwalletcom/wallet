@@ -4,8 +4,8 @@ import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Components
-import struct Gemstone.GemRecentsCounts
 import struct Gemstone.GemRecentsSections
+import struct Gemstone.GemRecentsViewState
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -57,11 +57,12 @@ public final class RecentsSceneViewModel {
         recentsSections.showsClear
     }
 
+    private var viewState: GemRecentsViewState {
+        service.viewState(assets: recentAssets.map { $0.asset.toGem() }, query: searchQuery)
+    }
+
     private var recentsSections: GemRecentsSections {
-        GemRecentsCounts(
-            recents: UInt32(recentAssets.count),
-            matching: UInt32(filteredAssets.count),
-        ).sections(isSearching: !searchQuery.isEmpty)
+        viewState.sections
     }
 
     var sections: [ListSection<RecentAsset>] {
@@ -73,7 +74,7 @@ public final class RecentsSceneViewModel {
     }
 
     private var filteredAssets: [RecentAsset] {
-        let matching = Set(recentAssets.map(\.asset).matchingIds(query: searchQuery))
+        let matching = Set(viewState.matchingAssetIds)
         return recentAssets.filter { matching.contains($0.asset.id.identifier) }
     }
 }
@@ -84,7 +85,7 @@ extension RecentsSceneViewModel {
     func onSelectClear() {
         Task { [service, types = query.request.types] in
             do {
-                try await service.clear(types: types.map { $0.map() })
+                try await service.clear(types: types.map { $0.toGem() })
             } catch {
                 debugLog("RecentsSceneViewModel clear error: \(error)")
             }

@@ -2,7 +2,7 @@ use std::error::Error;
 
 use gem_evm::ethereum_address_checksum;
 use primitives::name::NameRecord;
-use primitives::{Chain, EVMChain};
+use primitives::{Chain, EVMChain, NameProvider};
 
 use crate::model::NameQuery;
 use crate::resolver::NameResolver;
@@ -23,11 +23,11 @@ impl NameClient {
 
     pub async fn resolve(&self, name: &str, chain: Chain) -> Result<Option<NameRecord>, Box<dyn Error + Send + Sync>> {
         let query = NameQuery::new(name);
-        if query.name.len() > self.config.max_name_length {
+        let provider = self.matched_provider(name, chain)?;
+        if provider.provider() != NameProvider::Sns && query.name.len() > self.config.max_name_length {
             return Err(format!("name '{}' exceeds maximum length of {}", query.name, self.config.max_name_length).into());
         }
 
-        let provider = self.matched_provider(name, chain)?;
         let Some(address) = provider.resolve(&query, chain).await? else {
             return Ok(None);
         };
@@ -83,9 +83,11 @@ fn domain_match_len(name: &str, domain: &str) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Chain, NameProvider};
+    use gem_client::testkit::MockClient;
+    use primitives::{Chain, NameProvider, name::NameRecord};
 
     use super::{NameClient, NameConfig};
+    use crate::providers::sns::SnsProvider;
     use crate::testkit::MockNameResolver;
 
     #[tokio::test]
@@ -139,6 +141,86 @@ mod tests {
 
         assert_eq!(record.provider, NameProvider::Basenames);
         assert_eq!(record.address, "0x0000000000000000000000000000000000000002");
+    }
+
+    #[tokio::test]
+    async fn test_resolve_long_sns_names() {
+        for name in [
+            "fatherstretchmyhandspt2.sol",
+            "fatherstretchmyhandspt2.sns",
+            "abcdefghijklmnopqrst.sol",
+            "abcdefghijklmnopqrstu.sol",
+            "abcdefghijklmnopqrstu.sns",
+            "sub.fatherstretchmyhandspt2.sns",
+        ] {
+            let transport = MockClient::new().with_get(move |path| {
+                assert_eq!(path, format!("/resolve/{name}"));
+                Ok(br#"{"s":"ok","result":"GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"}"#.to_vec())
+            });
+            let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
+
+            assert_eq!(
+                client.resolve(name, Chain::Solana).await.unwrap(),
+                Some(NameRecord {
+                    provider: NameProvider::Sns,
+                    address: "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2".to_string(),
+                    name: name.to_string(),
+                    chain: Chain::Solana,
+                })
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn test_resolve_long_sns_name_preserves_provider_error() {
+        let transport = MockClient::new().with_get(|path| {
+            assert_eq!(path, "/resolve/fatherstretchmyhandspt2.sol");
+            Ok(br#"{"s":"error","result":"Domain not found"}"#.to_vec())
+        });
+        let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
+
+        let error = client.resolve("fatherstretchmyhandspt2.sol", Chain::Solana).await.unwrap_err();
+
+        assert_eq!(error.to_string(), "SNS request failed with status: error");
+    }
+
+    #[tokio::test]
+    async fn test_resolve_sns_bsc_record() {
+        for name in ["fatherstretchmyhandspt2.sol", "fatherstretchmyhandspt2.sns", "sub.fatherstretchmyhandspt2.sns"] {
+            let transport = MockClient::new().with_get(move |path| {
+                let domain = name.rsplit_once('.').unwrap().0;
+                assert_eq!(path, format!("/record-v2/{domain}/BSC"));
+                Ok(br#"{"s":"ok","result":{"deserialized":"0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a","stale":false}}"#.to_vec())
+            });
+            let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
+
+            assert_eq!(
+                client.resolve(name, Chain::SmartChain).await.unwrap(),
+                Some(NameRecord {
+                    provider: NameProvider::Sns,
+                    address: "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a".to_string(),
+                    name: name.to_string(),
+                    chain: Chain::SmartChain,
+                })
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn test_resolve_rejects_long_non_sns_solana_name() {
+        let client = NameClient::new(
+            vec![Box::new(MockNameResolver::new(
+                NameProvider::AllDomains,
+                vec!["solana"],
+                vec![Chain::Solana],
+                Err("provider called"),
+            ))],
+            NameConfig { max_name_length: 20 },
+        );
+
+        let error = client.resolve("abcdefghijklmnopqrstu.solana", Chain::Solana).await.unwrap_err();
+
+        assert_eq!(error.to_string(), "name 'abcdefghijklmnopqrstu' exceeds maximum length of 20");
     }
 
     #[tokio::test]

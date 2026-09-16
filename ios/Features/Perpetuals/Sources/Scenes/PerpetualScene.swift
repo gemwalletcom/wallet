@@ -1,5 +1,9 @@
 import Components
+import enum Gemstone.GemPerpetualButton
+import enum Gemstone.GemPerpetualPositionDetailRow
+import enum Gemstone.GemPerpetualSection
 import Formatters
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import GemstoneServices
@@ -34,10 +38,6 @@ public struct PerpetualScene: View {
                                     candles: data,
                                     period: chart.currentPeriod,
                                     position: model.positions.first?.position,
-                                    formatter: CurrencyFormatter(
-                                        type: .currency,
-                                        currencyCode: Currency.usd.rawValue,
-                                    ),
                                 ),
                             )
                         case let .error(error):
@@ -47,7 +47,7 @@ public struct PerpetualScene: View {
                             )
                         }
                     }
-                    .frame(height: 320)
+                    .frame(height: Sizing.chart.height)
 
                     PeriodSelectorView(selectedPeriod: $chart.currentPeriod)
                         .padding(.horizontal, Spacing.medium)
@@ -55,82 +55,27 @@ public struct PerpetualScene: View {
             }
             .fullWidthSection()
 
-            ForEach(model.positionViewModels) { position in
-                Section {
-                    ListAssetItemView(
-                        model: PerpetualPositionItemViewModel(model: position),
-                    )
-
-                    ListItemView(field: position.pnlField)
-                        .numericTransition(for: position.pnlWithPercentText)
-
-                    NavigationCustomLink(
-                        with: ListItemView(
-                            title: position.autocloseTitle,
-                            subtitle: position.autocloseText.subtitle,
-                            subtitleExtra: position.autocloseText.subtitleExtra,
-                            infoAction: model.onSelectAutocloseInfo,
-                        ),
-                        action: model.onSelectAutoclose,
-                    )
-
-                    ListItemView(field: position.sizeField)
-                    ListItemView(field: position.entryPriceField)
-
-                    if let liquidationPriceField = position.liquidationPriceField {
-                        ListItemView(
-                            field: liquidationPriceField,
-                            infoAction: model.onSelectLiquidationPriceInfo,
-                        )
+            ForEach(model.sections, id: \.self) { section in
+                switch section {
+                case .position:
+                    ForEach(model.positionViewModels) { position in
+                        Section {
+                            positionContent(position)
+                        } header: {
+                            Text(section.title)
+                        }
                     }
-
-                    ListItemView(field: position.marginField)
-
-                    ListItemView(
-                        field: position.fundingPaymentsField,
-                        infoAction: model.onSelectFundingPaymentsInfo,
-                    )
-                } header: {
-                    Text(model.positionSectionTitle)
-                }
-            }
-
-            Section {
-                if model.hasOpenPosition {
-                    HStack(spacing: Spacing.medium) {
-                        Button(model.modifyPositionTitle, action: model.onModifyPosition)
-                            .frame(maxWidth: .infinity)
-                            .buttonStyle(.blue())
-
-                        Button(model.closePositionTitle, action: model.onClosePosition)
-                            .frame(maxWidth: .infinity)
-                            .buttonStyle(.red())
-                    }
-                } else {
-                    HStack(spacing: Spacing.medium) {
-                        Button(model.longButtonTitle, action: model.onOpenLongPosition)
-                            .frame(maxWidth: .infinity)
-                            .buttonStyle(.green())
-
-                        Button(model.shortButtonTitle, action: model.onOpenShortPosition)
-                            .frame(maxWidth: .infinity)
-                            .buttonStyle(.red())
+                case .info:
+                    buttonsSection
+                    Section(header: Text(section.title)) {
+                        ForEach(model.infoRows, id: \.self) { row in
+                            ListItemView(
+                                field: model.perpetualViewModel.infoField(for: row),
+                                infoAction: model.infoAction(for: row),
+                            )
+                        }
                     }
                 }
-            }
-
-            Section(header: Text(model.infoSectionTitle)) {
-                ListItemView(field: model.perpetualViewModel.volumeField)
-
-                ListItemView(
-                    field: model.perpetualViewModel.openInterestField,
-                    infoAction: model.onSelectOpenInterestInfo,
-                )
-
-                ListItemView(
-                    field: model.perpetualViewModel.fundingRateField,
-                    infoAction: model.onSelectFundingRateInfo,
-                )
             }
 
             if !model.transactionSections.isEmpty {
@@ -145,12 +90,15 @@ public struct PerpetualScene: View {
             InfoSheetScene(type: $0)
         }
         .alert(
-            model.modifyPositionTitle,
+            GemPerpetualButton.modify.title,
             presenting: $model.isPresentingModifyAlert,
             sensoryFeedback: .warning,
             actions: { _ in
-                Button(model.increasePositionTitle, action: model.onIncreasePosition)
-                Button(model.reducePositionTitle, role: .destructive, action: model.onReducePosition)
+                ForEach(model.modifyButtons, id: \.self) { button in
+                    Button(button.title, role: button == .reduce ? .destructive : nil) {
+                        model.onSelectButton(button)
+                    }
+                }
                 Button(Localized.Common.cancel, role: .cancel) {}
             },
         )
@@ -165,5 +113,54 @@ public struct PerpetualScene: View {
         }
         .onChange(of: scenePhase, model.onScenePhaseChange)
         .onChange(of: chart.currentPeriod, model.onPeriodChange)
+    }
+
+    @ViewBuilder
+    private var buttonsSection: some View {
+        Section {
+            HStack(spacing: Spacing.medium) {
+                ForEach(model.buttons, id: \.self) { button in
+                    Button(button.title) { model.onSelectButton(button) }
+                        .frame(maxWidth: .infinity)
+                        .buttonStyle(style(for: button))
+                }
+            }
+        }
+    }
+
+    private func style(for button: GemPerpetualButton) -> ColorButtonStyle {
+        switch button {
+        case .long: .green()
+        case .short, .close: .red()
+        case .modify, .increase, .reduce: .blue()
+        }
+    }
+
+    @ViewBuilder
+    private func positionContent(_ position: PerpetualPositionViewModel) -> some View {
+        ListAssetItemView(model: PerpetualPositionItemViewModel(model: position))
+
+        ForEach(model.positionRows(position), id: \.self) { row in
+            switch row {
+            case .pnl:
+                ListItemView(field: position.detailField(for: row))
+                    .numericTransition(for: position.pnlWithPercentText)
+            case .autoclose:
+                NavigationCustomLink(
+                    with: ListItemView(
+                        title: row.title,
+                        subtitle: position.autocloseText.subtitle,
+                        subtitleExtra: position.autocloseText.subtitleExtra,
+                        infoAction: model.infoAction(for: row),
+                    ),
+                    action: model.onSelectAutoclose,
+                )
+            case .size, .entryPrice, .liquidationPrice, .margin, .fundingPayments:
+                ListItemView(
+                    field: position.detailField(for: row),
+                    infoAction: model.infoAction(for: row),
+                )
+            }
+        }
     }
 }

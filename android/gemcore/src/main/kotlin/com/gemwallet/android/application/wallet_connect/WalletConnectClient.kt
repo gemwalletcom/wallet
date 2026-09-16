@@ -2,6 +2,7 @@ package com.gemwallet.android.application.wallet_connect
 
 import com.wallet.core.primitives.ApplicationMetadata
 import kotlinx.coroutines.flow.Flow
+import uniffi.gemstone.GemWalletConnectRejection
 
 interface WalletConnectClient {
     val isEnabled: Boolean
@@ -25,7 +26,7 @@ interface WalletConnectClient {
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     )
-    fun rejectSession(proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (String) -> Unit)
+    fun rejectSession(proposal: WalletConnectSessionProposal, rejection: GemWalletConnectRejection, onSuccess: () -> Unit, onError: (String) -> Unit)
     fun approveAuthentication(
         request: WalletConnectAuthenticationRequest,
         auths: List<WalletConnectAuthObject>,
@@ -79,6 +80,7 @@ data class WalletConnectSessionProposal(
     val requiredNamespaces: Map<String, WalletConnectProposalNamespace>,
     val optionalNamespaces: Map<String, WalletConnectProposalNamespace>,
     val proposerPublicKey: String,
+    val pairingTopic: String,
     val properties: Map<String, String>?,
 )
 

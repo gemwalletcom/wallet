@@ -47,8 +47,8 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         onSelectAssetAction = onSelectAsset
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var sections: WalletSearchSections {
@@ -72,7 +72,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var showPerpetuals: Bool {
-        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.map(), chains: wallet.chains.map(\.rawValue))
+        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 
     var showEmpty: Bool {
@@ -123,7 +123,7 @@ extension AssetsResultsSceneViewModel {
         onSelectAssetAction?(asset)
         Task { [service] in
             do {
-                try await service.addRecent(action: .open, asset: asset.map())
+                try await service.addRecent(action: .open, asset: asset.toGem())
             } catch {
                 debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
             }

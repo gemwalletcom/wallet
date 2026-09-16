@@ -58,7 +58,6 @@
   <string name="common_expiration">Ablauf</string>
   <string name="common_suspicious_address">Verdächtige Adresse</string>
   <string name="common_refresh">Aktualisieren</string>
-  <string name="common_no_thanks">Nein danke</string>
   <string name="common_grant_permission">Erlaubnis erteilen</string>
   <string name="common_required_field">%1$s ist erforderlich</string>
   <string name="welcome_title">Willkommen zur Gem Familie</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">Auftauen</string>
   <string name="transfer_review_request">Überprüfungsanfrage</string>
   <string name="transfer_amount">Betrag</string>
-  <string name="transfer_amount_title">Betrag</string>
   <string name="settings_terms_of_services">Nutzungsbedingungen</string>
   <string name="settings_privacy_policy">Datenschutzbestimmungen</string>
   <string name="settings_title">Einstellungen</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">Wie können wir helfen?</string>
   <string name="support_state_empty_description">Fragen Sie uns alles. Wir sind für Sie da.</string>
   <string name="support_message_placeholder">Nachricht</string>
-  <string name="errors_transfer">Übertragungsfehler: %1$s</string>
   <string name="errors_validation">Validierungsfehler: %1$s</string>
   <string name="errors_create_wallet">Fehler beim Erstellen der Wallet: %1$s</string>
   <string name="errors_invalid_address_name">Ungültige Adresse oder ungültiger Name</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Benutzer hat abgebrochen</string>
   <string name="errors_not_supported">Nicht unterstützt</string>
   <string name="errors_permissions_not_granted">Berechtigungen nicht erteilt</string>
-  <string name="errors_decoding">Dekodierungsfehler</string>
   <string name="errors_unknown">Unbekannt</string>
   <string name="errors_not_supported_qr">Dieses Gerät unterstützt keine QR-Code-Scans. Sie können nur QR-Code-Bilder aus der Bibliothek auswählen.</string>
   <string name="errors_camera_permissions_not_granted">Kameraerlaubnis nicht erteilt. Bitte aktivieren Sie den Kamerazugriff in den Einstellungen, um den QR-Code zu scannen.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">Die Transaktion ist fehlgeschlagen, da der Betrag zu gering ist, um die Mindestanforderung des %1$s -Netzwerks (Dust-Schwellenwert) zu erfüllen. Dieses Limit stellt sicher, dass der Transaktionswert die Gebühren und Bearbeitungskosten deckt.</string>
   <string name="errors_swap_no_quote_available">Kein Angebot verfügbar.</string>
   <string name="errors_swap_not_supported_asset">Nicht unterstütztes Asset.</string>
-  <string name="errors_connections_invalid_send_parameters">Zum Senden einer Transaktion wurden ungültige Parameter angegeben.</string>
-  <string name="errors_connections_invalid_sign_parameters">Für die Signierung wurden ungültige Parameter angegeben.</string>
   <string name="errors_connections_no_supported_wallets">Es sind keine unterstützten Wallets verfügbar.</string>
   <string name="errors_connections_unsupported_chain">Die bereitgestellte Kette wird nicht unterstützt.</string>
-  <string name="errors_connections_unsupported_method">Die angeforderte Methode wird nicht unterstützt.</string>
   <string name="errors_swap_amount_too_small">Menge zu gering</string>
   <string name="errors_required">%1$s ist erforderlich</string>
   <string name="errors_scan_transaction_malicious_description">Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Der Mindesthandelsbetrag beträgt %1$s. Bitte geben Sie einen höheren Betrag ein.</string>
   <string name="errors_perpetual_trigger_price_lower">Der Triggerpreis muss unter dem Marktpreis liegen</string>
   <string name="errors_perpetual_trigger_price_higher">Der Triggerpreis muss über dem Marktpreis liegen</string>
-  <string name="errors_token_unable_fetch_token_information">Token-Informationen konnten nicht abgerufen werden: %1$s</string>
   <string name="errors_unknown_try_again">Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.</string>
   <string name="errors_network_error">Netzwerkfehler: %1$s</string>
   <string name="errors_network_offline">Die Internetverbindung scheint unterbrochen zu sein.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">Installation zulassen</string>
   <string name="update_app_permission_description">Gehen Sie zu den Einstellungen und erlauben Sie die Installation aus externen Quellen</string>
   <string name="update_app_permission_open_settings">Zu den Einstellungen</string>
-  <string name="update_app_downloading">Herunterladen...</string>
   <string name="transaction_recipient">Empfänger</string>
   <string name="transaction_sender">Absender</string>
   <string name="transaction_date">Datum</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">Das %1$s Netzwerk erfordert eine einmalige Gebühr von %2$s.</string>
   <string name="banner_stake_title">Starten Sie mit %1$s Staking</string>
   <string name="banner_stake_description">Verdienen Sie %1$s Prämien mit Ihrem Stake, während Sie schlafen</string>
-  <string name="banner_enable_notifications_title">Benachrichtigungen aktivieren</string>
-  <string name="banner_enable_notifications_description">Behalten Sie den Überblick über Ihre Wallet-Aktivitäten.</string>
   <string name="banner_activate_asset_description">Um das %1$s -Asset zu verwenden, müssen Sie es zuerst im %2$s -Netzwerk aktivieren, indem Sie die spezifischen Anforderungen des Netzwerks erfüllen.</string>
   <string name="banner_asset_status_title">Verdächtiger Vermögenswert</string>
   <string name="banner_asset_status_description">Token kann unsicher oder irreführend sein. Fahren Sie nur fort, wenn Sie ihm voll und ganz vertrauen.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">Kreuz</string>
   <string name="perpetual_margin_isolated">Isoliert</string>
   <string name="perpetuals_title">Perpetuals</string>
+  <string name="perpetuals_trade">Perpetuals handeln</string>
   <string name="perpetuals_markets">Märkte</string>
-  <string name="perpetuals_empty_state_no_markets">Keine Märkte</string>
   <string name="perpetuals_empty_state_no_markets_found">Keine Märkte gefunden</string>
   <string name="rewards_title">Prämien</string>
   <string name="rewards_share_text">Treten Sie Gem Wallet mit meinem Empfehlungslink bei und verdienen Sie Prämien: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Vollständiger Zugriff auf die NFT-Sammlung angefordert</string>
   <string name="simulation_warning_unlimited_token_approval_title">Unbegrenzte Token-Genehmigung</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Kameraberechtigung für QR-Code-Scan erforderlich.\nBitte erteilen Sie die Berechtigung.</string>
-  <string name="notifications_permission_request_notification">Berechtigung für Push-Benachrichtigungen erforderlich, um Benachrichtigungen über neue Transaktionen zu erhalten.\nBitte erteilen Sie die Berechtigung.</string>
-  <string name="confirm_fee_error">Fehler bei der Gebührenberechnung</string>
   <string name="rootcheck_security_alert">Sicherheitswarnung</string>
   <string name="rootcheck_body">Ihr Gerät scheint Root-Zugriff zu haben, was die Sicherheitsrisiken erheblich erhöhen kann. Die Verwendung dieser App auf einem gerooteten Gerät kann Ihre Vermögenswerte einem unbefugten Zugriff und einem möglichen Verlust aussetzen. Zur Sicherheit Ihrer Gelder empfehlen wir dringend die Verwendung eines nicht gerooteten Geräts.</string>
   <string name="rootcheck_ignore">Ignorieren</string>

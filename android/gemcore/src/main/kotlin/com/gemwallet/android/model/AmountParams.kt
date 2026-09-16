@@ -18,7 +18,6 @@ import kotlinx.serialization.Contextual
 @Serializable
 sealed interface AmountParams {
     val assetId: AssetId
-    val amount: String? get() = null
 
     fun pack(): String? = packRoutePayload()
 
@@ -29,7 +28,7 @@ sealed interface AmountParams {
         val destination: @Contextual GemRecipient,
         val memo: String? = null,
         val references: List<String> = emptyList(),
-        override val amount: String? = null,
+        val amount: String? = null,
     ) : AmountParams
 
     @Serializable

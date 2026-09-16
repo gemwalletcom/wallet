@@ -5,7 +5,7 @@ use primitives::{Asset, AutocloseEstimator, Chain, EarnType, PerpetualDirection,
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
-    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+    GemAmountTitle, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
 };
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
@@ -164,6 +164,32 @@ pub fn earn_amount_type(earn_type: EarnType) -> GemAmountType {
         earn_type: match earn_type {
             EarnType::Deposit(_) => GemAmountEarnType::Deposit,
             EarnType::Withdraw(delegation) => GemAmountEarnType::Withdraw { delegation },
+        },
+    }
+}
+
+pub fn amount_title(amount_type: &GemAmountType) -> GemAmountTitle {
+    match amount_type {
+        GemAmountType::Transfer => GemAmountTitle::Send,
+        GemAmountType::Deposit => GemAmountTitle::Deposit,
+        GemAmountType::Withdraw => GemAmountTitle::Withdraw,
+        GemAmountType::Stake { stake_type } => match stake_type {
+            GemAmountStakeType::Stake => GemAmountTitle::Stake,
+            GemAmountStakeType::Unstake { .. } => GemAmountTitle::Unstake,
+            GemAmountStakeType::Redelegate { .. } => GemAmountTitle::Redelegate,
+            GemAmountStakeType::Withdraw { .. } => GemAmountTitle::Withdraw,
+            GemAmountStakeType::Rewards { .. } => GemAmountTitle::Rewards,
+            GemAmountStakeType::Freeze { .. } => GemAmountTitle::Freeze,
+            GemAmountStakeType::Unfreeze { .. } => GemAmountTitle::Unfreeze,
+        },
+        GemAmountType::Earn { earn_type } => match earn_type {
+            GemAmountEarnType::Deposit => GemAmountTitle::Deposit,
+            GemAmountEarnType::Withdraw { .. } => GemAmountTitle::Withdraw,
+        },
+        GemAmountType::Perpetual { position, direction, .. } => match position {
+            GemAmountPerpetualPosition::Open => GemAmountTitle::PerpetualOpen { direction: direction.clone() },
+            GemAmountPerpetualPosition::Increase => GemAmountTitle::PerpetualIncrease { direction: direction.clone() },
+            GemAmountPerpetualPosition::Reduce { .. } => GemAmountTitle::PerpetualReduce { direction: direction.clone() },
         },
     }
 }
@@ -348,7 +374,12 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 const SEPARATORS: [char; 2] = ['.', ','];
 const GROUPING_SYMBOLS: [char; 5] = [' ', '\'', '\u{2019}', '\u{202F}', '\u{00A0}'];
 const ARABIC_DECIMAL: char = '\u{066B}';
-const DIGIT_ZEROS: [char; 2] = ['\u{0660}', '\u{06F0}'];
+const DIGIT_ZEROS: [u32; 76] = [
+    0x0030, 0x0660, 0x06F0, 0x07C0, 0x0966, 0x09E6, 0x0A66, 0x0AE6, 0x0B66, 0x0BE6, 0x0C66, 0x0CE6, 0x0D66, 0x0DE6, 0x0E50, 0x0ED0, 0x0F20, 0x1040, 0x1090, 0x17E0, 0x1810, 0x1946,
+    0x19D0, 0x1A80, 0x1A90, 0x1B50, 0x1BB0, 0x1C40, 0x1C50, 0xA620, 0xA8D0, 0xA900, 0xA9D0, 0xA9F0, 0xAA50, 0xABF0, 0xFF10, 0x104A0, 0x10D30, 0x10D40, 0x11066, 0x110F0, 0x11136,
+    0x111D0, 0x112F0, 0x11450, 0x114D0, 0x11650, 0x116C0, 0x116D0, 0x116DA, 0x11730, 0x118E0, 0x11950, 0x11BF0, 0x11C50, 0x11D50, 0x11DA0, 0x11F50, 0x16130, 0x16A60, 0x16AC0,
+    0x16B50, 0x16D70, 0x1CCF0, 0x1D7CE, 0x1D7D8, 0x1D7E2, 0x1D7EC, 0x1D7F6, 0x1E140, 0x1E2F0, 0x1E4F0, 0x1E5F1, 0x1E950, 0x1FBF0,
+];
 const ARABIC_GROUPING: char = '\u{066C}';
 
 pub fn sanitize_number_input(decimal_separator: &str, text: &str, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
@@ -363,9 +394,21 @@ pub fn sanitize_number_input(decimal_separator: &str, text: &str, maximum_fracti
         Some(position) => {
             let integer: String = typed.chars().take(position).collect();
             let fraction: String = typed.chars().skip(position + 1).filter(|character| !is_separator(character)).collect();
-            format!("{}{}{}", limit(&integer, maximum_integer_digits), decimal_separator, limit(&fraction, maximum_fraction_digits))
+            format!(
+                "{}{}{}",
+                limit(&integer, maximum_integer_digits),
+                decimal_separator,
+                limit(&fraction, maximum_fraction_digits)
+            )
         }
     }
+}
+
+pub fn value_from_input(decimal_separator: &str, text: &str, decimals: u32) -> Result<BigInt, GemAmountError> {
+    let plain = plain_number(decimal_separator, text);
+    let value = BigNumberFormatter::value_from_amount_truncated(&plain, decimals).map_err(invalid_number)?;
+
+    BigInt::from_str(&value).map_err(invalid_number)
 }
 
 pub fn plain_number(decimal_separator: &str, text: &str) -> String {
@@ -394,13 +437,11 @@ fn latin_digits(text: &str) -> String {
 }
 
 fn latin_digit(character: char) -> Option<char> {
-    if let Some(digit) = character.to_digit(10) {
-        return char::from_digit(digit, 10);
-    }
-    DIGIT_ZEROS.iter().find_map(|zero| {
-        let offset = (character as u32).checked_sub(*zero as u32)?;
-        (offset < 10).then(|| char::from_digit(offset, 10)).flatten()
-    })
+    let code = character as u32;
+    let index = DIGIT_ZEROS.partition_point(|zero| *zero <= code);
+    let digit = code - DIGIT_ZEROS.get(index.checked_sub(1)?)?;
+
+    (digit <= 9).then(|| char::from_digit(digit, 10)).flatten()
 }
 
 fn standard_decimal(decimal_separator: &str, text: &str) -> String {
@@ -420,10 +461,7 @@ fn standard_decimal(decimal_separator: &str, text: &str) -> String {
 fn is_grouping_dot(text: &str) -> bool {
     match text.split_once('.') {
         Some((before, after)) => {
-            !before.is_empty()
-                && before.chars().all(|character| character.is_ascii_digit())
-                && after.len() == 3
-                && after.chars().all(|character| character.is_ascii_digit())
+            !before.is_empty() && before.chars().all(|character| character.is_ascii_digit()) && after.len() == 3 && after.chars().all(|character| character.is_ascii_digit())
         }
         None => false,
     }
@@ -453,6 +491,38 @@ fn without_leading_zeros(text: &str) -> String {
 mod tests {
 
     #[test]
+    fn test_the_amount_screen_title_follows_the_amount_type() {
+        assert_eq!(amount_title(&GemAmountType::Transfer), GemAmountTitle::Send);
+        assert_eq!(
+            amount_title(&GemAmountType::Earn {
+                earn_type: GemAmountEarnType::Withdraw {
+                    delegation: primitives::Delegation::mock()
+                }
+            }),
+            GemAmountTitle::Withdraw,
+            "earning and staking withdrawals share the wallet's withdraw title"
+        );
+        assert_eq!(
+            amount_title(&GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Rewards { delegations: vec![] }
+            }),
+            GemAmountTitle::Rewards
+        );
+        assert_eq!(
+            amount_title(&GemAmountType::Perpetual {
+                position: GemAmountPerpetualPosition::Increase,
+                direction: primitives::PerpetualDirection::Short,
+                price: 1.0,
+                leverage: 1,
+                size_decimals: 2,
+            }),
+            GemAmountTitle::PerpetualIncrease {
+                direction: primitives::PerpetualDirection::Short
+            }
+        );
+    }
+
+    #[test]
     fn test_an_amount_confirms_only_when_it_is_positive_and_has_no_error() {
         let entry = |value: Option<i32>, error: Option<GemAmountError>| GemAmountEntry {
             value: value.map(num_bigint::BigInt::from),
@@ -468,11 +538,11 @@ mod tests {
         assert!(!entry(Some(1), Some(GemAmountError::Zero)).allows_confirm());
     }
     use super::*;
-    use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
     use crate::models::custom_types::GemBigUint;
     use crate::payment::GemPaymentRecipient;
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
+    use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
 
     #[test]
@@ -536,6 +606,33 @@ mod tests {
         for (separator, input, expected) in cases {
             assert_eq!(plain_number(separator, input), expected);
         }
+    }
+
+    #[test]
+    fn test_plain_number_reads_every_script_that_has_digits() {
+        let cases = [
+            ("\u{6f1}\u{6f2}\u{6f3}.\u{6f4}\u{6f5}", "123.45"),
+            ("\u{967}\u{968}\u{969}.\u{96a}\u{96b}", "123.45"),
+            ("\u{9e7}\u{9e8}\u{9e9}.\u{9ea}\u{9eb}", "123.45"),
+            ("\u{e51}\u{e52}\u{e53}.\u{e54}\u{e55}", "123.45"),
+            ("\u{17e1}\u{17e2}\u{17e3}.\u{17e4}\u{17e5}", "123.45"),
+            ("\u{ff11}\u{ff12}\u{ff13}.\u{ff14}\u{ff15}", "123.45"),
+            ("\u{1d7d9}\u{1d7da}\u{1d7db}.\u{1d7dc}\u{1d7dd}", "123.45"),
+        ];
+
+        for (input, expected) in cases {
+            assert_eq!(plain_number(".", input), expected);
+        }
+    }
+
+    #[test]
+    fn test_value_from_input_scales_by_decimals() {
+        assert_eq!(value_from_input(".", "1,234.56", 2).unwrap(), BigInt::from(123_456));
+        assert_eq!(value_from_input(",", "1.234,56", 6).unwrap(), BigInt::from(1_234_560_000u64));
+        assert_eq!(value_from_input(".", "0.1234567", 4).unwrap(), BigInt::from(1234));
+        assert_eq!(value_from_input(".", "\u{661}\u{662}\u{663}\u{66b}\u{665}", 2).unwrap(), BigInt::from(12_350));
+        assert!(value_from_input(".", "abc", 8).is_err());
+        assert!(value_from_input(".", "-5", 8).is_err());
     }
 
     #[test]
@@ -1117,7 +1214,7 @@ mod tests {
 
         let deposit = transfer_data(usdc(), GemAmountTransfer::Deposit, None, GemBigInt::from(2), true).unwrap();
         assert!(matches!(deposit.input_type, TransactionInputType::Deposit { .. }));
-        assert_eq!(deposit.recipient.address, HYPERLIQUID_DEPOSIT_ADDRESS);
+        assert_eq!(deposit.recipient.address, HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS);
         assert!(deposit.use_max_amount);
 
         let withdraw = transfer_data(usdc(), GemAmountTransfer::Withdraw, Some(owner.clone()), GemBigInt::from(3), false).unwrap();

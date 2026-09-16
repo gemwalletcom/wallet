@@ -17,37 +17,19 @@ public struct TransactionStateViewModel: Equatable, Sendable {
     }
 
     public var title: String {
-        switch state {
-        case .confirmed: Localized.Transaction.Status.confirmed
-        case .pending, .inTransit: Localized.Transaction.Status.pending
-        case .failed: Localized.Transaction.Status.failed
-        case .reverted: Localized.Transaction.Status.reverted
-        case .refunded: Localized.Transaction.Status.refunded
-        }
+        state.statusTitle
     }
 
     public var description: String {
-        switch tone {
-        case .pending: Localized.Info.Transaction.Pending.description
-        case .success: Localized.Info.Transaction.Success.description
-        case .error, .refunded: Localized.Info.Transaction.Error.description
-        }
+        tone.infoDescription
     }
 
     public var stateImage: Image {
-        switch tone {
-        case .pending: Images.Transaction.State.pending
-        case .success: Images.Transaction.State.success
-        case .error, .refunded: Images.Transaction.State.error
-        }
+        tone.image
     }
 
     public var color: Color {
-        switch tone {
-        case .success: Colors.green
-        case .pending, .refunded: Colors.orange
-        case .error: Colors.red
-        }
+        tone.color
     }
 
     public var background: Color {

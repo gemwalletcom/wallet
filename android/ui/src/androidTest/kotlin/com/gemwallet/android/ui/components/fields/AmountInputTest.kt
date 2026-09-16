@@ -18,6 +18,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.text.TextRange
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.Currency
+import java.text.DecimalFormatSymbols
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -26,22 +27,41 @@ class AmountInputTest {
     @get:Rule
     val composeRule = createComposeRule()
 
+    private val separator = DecimalFormatSymbols.getInstance().decimalSeparator
+
     private var amount by mutableStateOf("")
     private lateinit var swapAmount: TextFieldState
 
     @Test
     fun acceptsDecimalInput() {
         setContent()
-        listOf("0.", ".5", "12,5", "1234.56", "١٢.٥", "0.000000000000000001").forEach { input ->
+        listOf(
+            "0${separator}",
+            "${separator}5",
+            "12${separator}5",
+            "1234${separator}56",
+            "١٢${separator}٥",
+            "0${separator}000000000000000001",
+        ).forEach { input ->
             fields.forEach { composeRule.onNodeWithTag(it).performTextReplacement(input) }
             assertAmounts(input)
         }
     }
 
     @Test
+    fun rejectsTheSeparatorTheDeviceDoesNotUse() {
+        setContent("6${separator}3")
+        val other = if (separator == '.') ',' else '.'
+        listOf("12${other}5", "1${other}2${other}3").forEach { input ->
+            fields.forEach { composeRule.onNodeWithTag(it).performTextReplacement(input) }
+            assertAmounts("6${separator}3")
+        }
+    }
+
+    @Test
     fun rejectsMalformedReplacementWithoutChangingAmount() {
         setContent("6")
-        listOf("6-3", "-1", "1e3", "1.2.3", "1,234.56", "1 234", "$12", "abc").forEach { input ->
+        listOf("6-3", "-1", "1e3", "1 234", "$12", "abc").forEach { input ->
             fields.forEach { composeRule.onNodeWithTag(it).performTextReplacement(input) }
             assertAmounts("6")
         }
@@ -49,10 +69,10 @@ class AmountInputTest {
 
     @Test
     fun rejectsInvalidInsertion() {
-        setContent("6.3")
+        setContent("6${separator}3")
         listOf("-", ".", ",").forEach { input ->
             fields.forEach { composeRule.onNodeWithTag(it).performTextInput(input) }
-            assertAmounts("6.3")
+            assertAmounts("6${separator}3")
         }
     }
 

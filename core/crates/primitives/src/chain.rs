@@ -194,6 +194,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn every_chain_type_resolves_to_its_sub_chain() {
+        for chain in Chain::all() {
+            match chain.chain_type() {
+                ChainType::Bitcoin => assert!(crate::BitcoinChain::from_chain(chain).is_some(), "{chain} has no BitcoinChain"),
+                ChainType::Ethereum => assert!(crate::EVMChain::from_chain(chain).is_some(), "{chain} has no EVMChain"),
+                ChainType::Cosmos => assert!(crate::chain_cosmos::CosmosChain::from_chain(chain).is_some(), "{chain} has no CosmosChain"),
+                _ => {}
+            }
+        }
+    }
+
+    #[test]
     fn test_mayachain_swap_not_supported() {
         assert!(!Chain::Mayachain.is_swap_supported());
     }

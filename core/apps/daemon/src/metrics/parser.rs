@@ -40,7 +40,7 @@ impl ParserMetrics {
     }
 
     pub fn update_state(&self, chain: &str, current_block: i64, latest_block: i64, is_enabled: bool) {
-        let mut chains = self.chains.lock().unwrap();
+        let mut chains = super::locked(&self.chains);
         let state = chains.entry(chain.to_string()).or_default();
         state.current_block = current_block;
         state.latest_block = latest_block;
@@ -49,7 +49,7 @@ impl ParserMetrics {
     }
 
     pub fn record_transactions(&self, chain: &str, transactions: &[(String, u64)]) {
-        let mut chains = self.chains.lock().unwrap();
+        let mut chains = super::locked(&self.chains);
         let state = chains.entry(chain.to_string()).or_default();
         for (transaction_type, count) in transactions {
             *state.transactions.entry(transaction_type.clone()).or_default() += count;
@@ -65,7 +65,7 @@ impl MetricsProvider for ParserMetrics {
         let updated_at = Family::<ParserLabels, Gauge>::default();
         let transactions = Family::<TransactionTypeLabels, Gauge>::default();
 
-        let chains = self.chains.lock().unwrap();
+        let chains = super::locked(&self.chains);
         for (chain, state) in chains.iter() {
             let labels = ParserLabels { chain: chain.clone() };
 

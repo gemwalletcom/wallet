@@ -19,17 +19,18 @@ struct AssetNavigationView: View {
     }
 
     var body: some View {
-        AssetScene(model: model)
+        let details = model.details
+        return AssetScene(model: model)
         .bindQuery(model.assetQuery, model.bannersQuery, model.transactionsQuery)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: model.onTogglePriceAlert) {
-                    model.priceAlertsImage
+                    model.priceAlertsImage(details)
                 }
 
                 AdaptiveActionMenu(
-                    title: model.title,
-                    items: model.menuItems,
+                    title: details.title,
+                    items: model.menuItems(details),
                     label: { model.optionsImage },
                 )
             }
@@ -46,7 +47,7 @@ struct AssetNavigationView: View {
                     onComplete: model.onTransferComplete,
                 )
             case .share:
-                ShareSheet(activityItems: [model.shareAssetUrl.absoluteString])
+                ShareSheet(activityItems: [model.shareAssetUrl(details).absoluteString])
             case let .url(url):
                 SFSafariView(url: url)
             }

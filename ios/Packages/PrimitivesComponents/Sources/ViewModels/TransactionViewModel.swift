@@ -18,7 +18,7 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     private let row: GemTransactionRow
 
     public init(transaction: TransactionExtended) {
-        self.init(transaction: transaction, row: transactionRow(transaction: transaction.map()))
+        self.init(transaction: transaction, row: transactionRow(transaction: transaction.toGem()))
     }
 
     public init(transaction: TransactionExtended, row: GemTransactionRow) {
@@ -31,7 +31,7 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     }
 
     public static func sections(_ transactions: [TransactionExtended]) -> [ListSection<TransactionViewModel>] {
-        let models = zip(transactions, transactionRows(transactions: transactions.map { $0.map() }))
+        let models = zip(transactions, transactionRows(transactions: transactions.map { $0.toGem() }))
             .map { TransactionViewModel(transaction: $0, row: $1) }
         return DateSectionBuilder(items: models, dateKeyPath: \.transaction.transaction.createdAt).build()
     }
@@ -106,13 +106,12 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     }
 
     public var titleExtraTextValue: TextValue? {
+        let prefix = row.subtitle.prefix ?? ""
         let title: String? = switch row.subtitle {
-        case let .toAddress(participant): participantTitle(prefix: Localized.Transfer.to, participant: participant)
-        case let .fromAddress(participant): participantTitle(prefix: Localized.Transfer.from, participant: participant)
-        case let .toResource(resource): resourceTitle(prefix: Localized.Transfer.to, resource: resource)
-        case let .fromResource(resource): resourceTitle(prefix: Localized.Transfer.from, resource: resource)
+        case let .toAddress(participant), let .fromAddress(participant): participantTitle(prefix: prefix, participant: participant)
+        case let .toResource(resource), let .fromResource(resource): resourceTitle(prefix: prefix, resource: resource)
         case let .price(value):
-            String(format: "%@: %@", Localized.Asset.price, AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue, showSign: false).text)
+            String(format: "%@: %@", prefix, AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue, showSign: false).text)
         case .none: .none
         }
 
@@ -124,11 +123,11 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         }
     }
 
-    public func subtitleTextValue(currency: String) -> TextValue? {
+    public func subtitleTextValue(currency: Currency) -> TextValue? {
         row.value.textValue(currency: currency, formatter: .short)
     }
 
-    public func subtitleExtraTextValue(currency: String) -> TextValue? {
+    public func subtitleExtraTextValue(currency: Currency) -> TextValue? {
         row.equivalentValue.textValue(currency: currency, formatter: .short, textStyle: .footnote)
     }
 
@@ -142,6 +141,6 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     }
 
     private func resourceTitle(prefix: String, resource: Gemstone.Resource) -> String {
-        String(format: "%@ %@", prefix, ResourceViewModel(resource: resource.map()).title)
+        String(format: "%@ %@", prefix, resource.toPrimitives().title)
     }
 }

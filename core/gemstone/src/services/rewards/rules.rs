@@ -1,7 +1,11 @@
+use crate::formatted_number::GemFormattedNumber;
+use crate::precision::GemValueStyle;
 use chrono::{DateTime, Utc};
+use number_formatter::BigNumberFormatter;
 use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards};
 
 use super::model::{GemRewardsRedemption, GemRewardsState};
+use crate::config::rewards::get_referral_url;
 
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let Some(rewards) = rewards else {
@@ -13,6 +17,7 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let has_referral_code = has_value(rewards.code.as_deref());
     let has_used_referral_code = has_value(rewards.used_referral_code.as_deref());
     let has_pending_referral = has_used_referral_code && rewards.verify_after.is_some();
+    let referral_code = rewards.code.clone().filter(|code| !code.is_empty());
     GemRewardsState {
         has_referral_code,
         has_used_referral_code,
@@ -23,7 +28,8 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
         has_pending_referral,
         can_activate_pending_referral: has_pending_referral && rewards.verify_after.is_some_and(|verify_after| now >= verify_after),
         invite_reward_points: rewards.invite_reward_points,
-        referral_code: rewards.code.clone().filter(|code| !code.is_empty()),
+        referral_code: referral_code.clone(),
+        referral_link: referral_code.as_deref().map(get_referral_url),
         used_referral_code: rewards.used_referral_code.clone().filter(|code| !code.is_empty()),
         verify_after: rewards.verify_after,
         disable_reason: rewards.disable_reason.clone(),
@@ -41,11 +47,15 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
     rewards
         .redemption_options
         .iter()
-        .filter(|option| option.asset.is_some())
-        .map(|option| GemRewardsRedemption {
-            points_text: points_text(option.points),
-            option: option.clone(),
-            can_redeem: can_redeem(rewards, option),
+        .filter_map(|option| {
+            let asset = option.asset.as_ref()?;
+            let value = BigNumberFormatter::value_as_f64(&option.value.to_string(), asset.decimals as u32).ok()?;
+            Some(GemRewardsRedemption {
+                points_text: points_text(option.points),
+                value: GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short),
+                option: option.clone(),
+                can_redeem: can_redeem(rewards, option),
+            })
         })
         .collect()
 }
@@ -60,6 +70,22 @@ fn has_value(code: Option<&str>) -> bool {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_state_carries_the_referral_link() {
+        let rewards = Rewards {
+            code: Some("abc123".to_string()),
+            ..Rewards::default()
+        };
+        let with_code = super::state(Some(&rewards), Utc::now());
+        assert_eq!(with_code.referral_code.as_deref(), Some("abc123"));
+        assert_eq!(with_code.referral_link, Some(get_referral_url("abc123")));
+
+        let without_code = super::state(Some(&Rewards::default()), Utc::now());
+        assert_eq!(without_code.referral_code, None);
+        assert_eq!(without_code.referral_link, None);
+    }
+
     #[test]
     fn test_points_read_with_the_gem_glyph() {
         assert_eq!(points_text(250), "250 \u{1f48e}");
@@ -99,6 +125,23 @@ mod tests {
             value: BigUint::from(1u32),
             remaining,
         }
+    }
+
+    #[test]
+    fn test_a_redemption_carries_its_payout_as_a_short_amount_in_the_assets_symbol() {
+        let asset = Asset::mock_eth();
+        let rewards = Rewards {
+            points: 1000,
+            redemption_options: vec![RewardRedemptionOption {
+                value: BigUint::from(25_000_000_000_000_000u64),
+                ..option("one", 10, None, Some(asset.clone()))
+            }],
+            ..Rewards::default()
+        };
+
+        let redemption = redemptions(&rewards).pop().expect("an option with an asset is offered");
+        assert_eq!(redemption.value.value, 0.025);
+        assert_eq!(redemption.value.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: asset.symbol });
     }
 
     #[test]

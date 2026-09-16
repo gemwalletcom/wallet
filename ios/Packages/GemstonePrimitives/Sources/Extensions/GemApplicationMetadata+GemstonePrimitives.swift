@@ -6,14 +6,14 @@ import Primitives
 
 public extension Primitives.ApplicationMetadata {
     var iconURL: URL? {
-        GemApplicationMetadataService.shared.iconUrl(metadata: map()).flatMap(URL.init(string:))
+        GemApplicationMetadataService.shared.iconUrl(metadata: toGem()).flatMap(URL.init(string:))
     }
 
     var shortName: String {
-        GemApplicationMetadataService.shared.shortName(metadata: map())
+        GemApplicationMetadataService.shared.shortName(metadata: toGem())
     }
 
     var host: String {
-        GemApplicationMetadataService.shared.host(metadata: map())
+        GemApplicationMetadataService.shared.host(metadata: toGem())
     }
 }

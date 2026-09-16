@@ -28,7 +28,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.subtitleSymbol
+import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.paddingLarge
@@ -47,11 +47,15 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import uniffi.gemstone.GemStakeActionItem
+import uniffi.gemstone.GemStakeInfoRow
+import uniffi.gemstone.GemStakeSection
+import com.gemwallet.android.features.stake.presents.localization.stringRes
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
 import uniffi.gemstone.GemValidatorRow
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 @Composable
 internal fun StakeScene(
@@ -64,7 +68,8 @@ internal fun StakeScene(
     stakeInfoUrl: String?,
     lockTimeDays: Int?,
     minStakeAmount: BigInteger,
-    usesFreeze: Boolean,
+    sections: List<GemStakeSection>,
+    infoRows: List<GemStakeInfoRow>,
     amountAction: AmountTransactionAction,
     onAction: (StakeSceneAction) -> Unit,
 ) {
@@ -95,35 +100,35 @@ internal fun StakeScene(
                     )
                 }
 
-                stakeInfoSection(assetInfo, lockTimeDays, minStakeAmount)
+                stakeInfoSection(assetInfo, infoRows, lockTimeDays, minStakeAmount)
 
-                stakeActions(
-                    actions = actions,
-                    rewardsText = rewardsText,
-                    assetId = assetInfo.id(),
-                    amountAction = amountAction,
-                    onRewards = { onAction(StakeSceneAction.ClaimRewards) },
-                )
-
-                if (usesFreeze) {
-                    energyItem(assetInfo.balance.metadata)
+                sections.forEach { section ->
+                    item { SubheaderItem(section.stringRes()) }
+                    when (section) {
+                        GemStakeSection.MANAGE -> stakeActions(
+                            actions = actions,
+                            rewardsText = rewardsText,
+                            assetId = assetInfo.id(),
+                            amountAction = amountAction,
+                            onRewards = { onAction(StakeSceneAction.ClaimRewards) },
+                        )
+                        GemStakeSection.RESOURCES -> energyItem(assetInfo.balance.metadata)
+                        GemStakeSection.DELEGATIONS -> itemsIndexed(delegations) { index, item ->
+                            DelegationItem(
+                                assetInfo = assetInfo,
+                                delegation = item,
+                                validator = validatorRows[item.validator.id] ?: return@itemsIndexed,
+                                listPosition = ListPosition.getPosition(index, delegations.size),
+                                onClick = { onAction(StakeSceneAction.OpenDelegation(item)) }
+                            )
+                        }
+                    }
                 }
 
-                if (delegations.isEmpty()) {
+                if (!sections.contains(GemStakeSection.DELEGATIONS)) {
                     item {
                         Spacer(modifier = Modifier.height(paddingLarge))
                         EmptyContentView(type = EmptyContentType.Stake(symbol = assetInfo.asset.symbol))
-                    }
-                } else {
-                    item { SubheaderItem(R.string.stake_delegations) }
-                    itemsIndexed(delegations) { index, item ->
-                        DelegationItem(
-                            assetInfo = assetInfo,
-                            delegation = item,
-                            validator = validatorRows[item.validator.id] ?: return@itemsIndexed,
-                            listPosition = ListPosition.getPosition(index, delegations.size),
-                            onClick = { onAction(StakeSceneAction.OpenDelegation(item)) }
-                        )
                     }
                 }
             }
@@ -131,38 +136,26 @@ internal fun StakeScene(
     }
 }
 
-private sealed interface StakeInfoRow {
-    data class MinAmount(val value: BigInteger, val chain: Chain) : StakeInfoRow
-    data class Apr(val value: Double, val iconUrl: Any?) : StakeInfoRow
-    data class LockTime(val days: Int, val iconUrl: Any?) : StakeInfoRow
-}
-
-private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo, lockTimeDays: Int?, minStakeAmount: BigInteger) {
+private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo, rows: List<GemStakeInfoRow>, lockTimeDays: Int?, minStakeAmount: BigInteger) {
     val iconUrl = assetInfo.id().iconModel()
-    val rows = listOfNotNull(
-        StakeInfoRow.Apr(assetInfo.metadata.stakingApr ?: 0.0, iconUrl),
-        lockTimeDays?.let { StakeInfoRow.LockTime(it, iconUrl) },
-        minStakeAmount.takeIf { it > BigInteger.ZERO }?.let { StakeInfoRow.MinAmount(it, assetInfo.asset.chain) },
-    )
     itemsPositioned(rows) { position, row ->
         when (row) {
-            is StakeInfoRow.MinAmount -> PropertyItem(
-                title = stringResource(id = R.string.stake_minimum_amount, ""),
-                data = ValueFormatter(style = ValueFormatter.Style.Auto)
-                    .string(row.value, row.chain.asset()),
+            GemStakeInfoRow.MINIMUM_AMOUNT -> PropertyItem(
+                title = stringResource(row.stringRes(), ""),
+                data = ValueFormatter(style = GemValueStyle.AUTO).string(minStakeAmount, assetInfo.asset.chain.asset()),
                 listPosition = position,
             )
-            is StakeInfoRow.Apr -> PropertyItem(
-                title = stringResource(id = R.string.stake_apr, ""),
-                data = row.value.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
+            GemStakeInfoRow.APR -> PropertyItem(
+                title = stringResource(row.stringRes(), ""),
+                data = (assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
                 dataColor = MaterialTheme.colorScheme.tertiary,
-                info = InfoSheetEntity.StakeAprInfo(icon = row.iconUrl),
+                info = InfoSheetEntity.StakeAprInfo(icon = iconUrl),
                 listPosition = position,
             )
-            is StakeInfoRow.LockTime -> PropertyItem(
-                title = stringResource(id = R.string.stake_lock_time),
-                data = formatDuration(Measure(row.days, MeasureUnit.DAY)),
-                info = InfoSheetEntity.StakeLockTimeInfo(icon = row.iconUrl),
+            GemStakeInfoRow.LOCK_TIME -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = formatDuration(Measure(lockTimeDays ?: 0, MeasureUnit.DAY)),
+                info = InfoSheetEntity.StakeLockTimeInfo(icon = iconUrl),
                 listPosition = position,
             )
         }

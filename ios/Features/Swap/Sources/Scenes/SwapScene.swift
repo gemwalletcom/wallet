@@ -27,7 +27,7 @@ public struct SwapScene: View {
                 Section {
                     ListItemErrorView(
                         errorTitle: model.errorTitle,
-                        error: error.asAnyError(asset: model.fromAsset?.asset),
+                        error: error,
                         infoAction: model.errorInfoAction,
                     )
                 }

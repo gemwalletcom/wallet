@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import com.gemwallet.android.ext.toGem
 import kotlinx.coroutines.flow.Flow
 import uniffi.gemstone.perpetualMarketRow
+import com.gemwallet.android.model.text
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -46,7 +47,7 @@ class GetPerpetualsImpl @Inject constructor(
 
         override val showsPrice: Boolean = row.showsPrice
 
-        override val volume: String = formatters.abbreviated(price.currency).string(data.perpetual.volume24h)
+        override val volume: String = row.volume24h.text()
 
         override val isPinned: Boolean = data.metadata.isPinned
     }

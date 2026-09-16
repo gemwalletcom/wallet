@@ -30,7 +30,6 @@ import com.gemwallet.android.features.swap.viewmodels.models.QuoteState
 import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
 import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
-import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.toAssetPriceValue
 import uniffi.gemstone.GemTransferData
@@ -211,16 +210,14 @@ class SwapViewModel @Inject constructor(
                 SwapDetailsUIModelInput(
                     payAsset = quote.pay.toAssetPriceValue(),
                     receiveAsset = quote.receive.toAssetPriceValue(),
-                    rate = summary.rate,
+                    summary = summary,
                     provider = provider,
                     providers = providers,
                     slippageBps = quote.quote.data.slippageBps,
                     selectedSlippage = selectedSlippageBps.value,
-                    etaInSeconds = quote.quote.etaInSeconds,
                     isProviderSelectable = providers.size > 1,
                     priceImpact = quote.pay.swapValue(quote.quote.fromValue)
                         .priceImpact(quote.receive.swapValue(quote.quote.toValue)),
-                    minReceiveValue = summary.minReceiveValue,
                 ),
             )
         }
@@ -229,7 +226,7 @@ class SwapViewModel @Inject constructor(
     val uiState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
             val available = pay?.balance?.balance?.available ?: BigInteger.ZERO
             val atomic = pay?.let { Crypto(value, it.asset.decimals).atomicValue } ?: BigInteger.ZERO
-            createSwapUiState(quoteSession.viewState(atomic, available))
+            createSwapUiState(quoteSession.viewState(atomic, available, pay?.asset?.toGem()))
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
 
@@ -297,7 +294,7 @@ class SwapViewModel @Inject constructor(
 
     fun onSelectPercent(percent: Int) {
         val asset = payAsset.value ?: return
-        val value = asset.balance.balance.available.multiplyByPercent(percent)
+        val value = swapQuoteService.amountForPercent(asset.balance.balance.available, percent.toUInt())
         payValue.clearText()
         payValue.setTextAndPlaceCursorAtEnd(
             Crypto(value).value(asset.asset.decimals).stripTrailingZeros().toPlainString()
@@ -329,7 +326,7 @@ class SwapViewModel @Inject constructor(
             }
             GemSwapButtonAction.RetryTransfer -> authorize { swap(onConfirm) }
             GemSwapButtonAction.RetryQuote -> refresh()
-            is GemSwapButtonAction.UseMinimumAmount -> applyMinimumAmount(action.value)
+            is GemSwapButtonAction.UseMinimumAmount -> setPayValue(action.value)
             GemSwapButtonAction.InsufficientBalance -> Unit
         }
     }
@@ -381,7 +378,7 @@ class SwapViewModel @Inject constructor(
         session.update { it.onQuoteResults(results.toGem()) }
     }
 
-    private fun applyMinimumAmount(amount: BigInteger) {
+    private fun setPayValue(amount: BigInteger) {
         val asset = payAsset.value?.asset ?: return
         payValue.clearText()
         payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).stripTrailingZeros().toPlainString())

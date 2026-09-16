@@ -43,29 +43,6 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
-    func connectionViewModelUsesPayloadWallet() {
-        let wallet = Wallet.mock(id: .multicoin(address: "0xspecific"), name: "Test Wallet")
-        let session = WalletConnectionSession.mock(sessionId: "test-session")
-        let payload = SignMessagePayload.mock(
-            chain: .ethereum,
-            session: session,
-            wallet: wallet,
-            message: .mock(),
-            simulation: .mock(),
-        )
-
-        let viewModel = SignMessageSceneViewModel(
-            service: GemSignMessageService.mock(),
-            payload: payload,
-            confirmTransferDelegate: { _ in },
-        )
-
-        #expect(viewModel.connectionViewModel.connection.wallet.id == .multicoin(address: "0xspecific"))
-        #expect(viewModel.connectionViewModel.connection.wallet.name == "Test Wallet")
-    }
-
-    @Test
-    @MainActor
     func appTextUsesShortNameWithoutDomain() {
         let payload = SignMessagePayload.mock(
             session: .mock(metadata: .mock(
@@ -155,7 +132,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.walletAssetImage == walletRow(wallet: payload.wallet.map()).avatarImage)
+        #expect(viewModel.walletAssetImage == walletRow(wallet: payload.wallet.toGem()).avatarImage)
         #expect(viewModel.networkAssetImage == AssetIdViewModel(assetId: payload.chain.asset.id).networkAssetImage)
     }
 
@@ -393,7 +370,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.headerData == GemSimulationValue(asset: asset.map(), value: .unlimited))
+        #expect(viewModel.headerData == GemSimulationValue(asset: asset.toGem(), value: .unlimited))
         #expect(!(viewModel.payloadModel.primaryFields + viewModel.payloadModel.secondaryFields).contains { $0.kind == .value })
     }
 

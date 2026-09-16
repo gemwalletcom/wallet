@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import GemstonePrimitives
 import enum Gemstone.GemAmountSign
 import Primitives
 @testable import PrimitivesComponents

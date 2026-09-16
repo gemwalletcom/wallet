@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Components
 import Primitives
@@ -21,12 +22,12 @@ final class TransactionViewModelTests {
     func autoValueFormatter() {
         let fromAsset = Asset.mockEthereum()
         let toAsset = Asset.mockEthereumUSDT()
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue(currency: "USD")?.text == "+1 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue(currency: "USD")?.text == "+0.01 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue(currency: "USD")?.text == "+0.001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue(currency: "USD")?.text == "+0.0001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue(currency: "USD")?.text == "+<0.0001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue(currency: "USD")?.text == "+<0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue(currency: .usd)?.text == "+1 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue(currency: .usd)?.text == "+0.01 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue(currency: .usd)?.text == "+0.001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue(currency: .usd)?.text == "+0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue(currency: .usd)?.text == "+<0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue(currency: .usd)?.text == "+<0.0001 USDT")
     }
 
     @Test
@@ -98,7 +99,7 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock()),
         )
-        #expect(model.subtitleTextValue(currency: "USD")?.text == "$1.00")
+        #expect(model.subtitleTextValue(currency: .usd)?.text == "$1.00")
     }
 
     @Test
@@ -108,14 +109,14 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 125.50)),
         )
-        #expect(profitModel.subtitleTextValue(currency: "USD")?.text == "+$125.50")
+        #expect(profitModel.subtitleTextValue(currency: .usd)?.text == "+$125.50")
 
         let lossModel = TransactionViewModel.mock(
             type: .perpetualClosePosition,
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: -75.25)),
         )
-        #expect(lossModel.subtitleTextValue(currency: "USD")?.text == "-$75.25")
+        #expect(lossModel.subtitleTextValue(currency: .usd)?.text == "-$75.25")
     }
 
     @Test
@@ -125,7 +126,7 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 0)),
         )
-        #expect(model.subtitleTextValue(currency: "USD") == nil)
+        #expect(model.subtitleTextValue(currency: .usd) == nil)
     }
 
     @Test

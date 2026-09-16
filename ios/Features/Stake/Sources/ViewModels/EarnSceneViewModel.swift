@@ -60,7 +60,7 @@ public final class EarnSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        service.selectableValidators(validators: validators.map { $0.map() }).map { $0.map() }
+        service.selectableValidators(validators: validators.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
     var assetModel: AssetViewModel {
@@ -68,7 +68,7 @@ public final class EarnSceneViewModel {
     }
 
     var aprModel: AprViewModel {
-        AprViewModel(apr: service.earnApr(providers: providers.map { $0.map() }, assetApr: assetData.metadata.earnApr))
+        AprViewModel(apr: service.earnApr(providers: providers.map { $0.toGem() }, assetApr: assetData.metadata.earnApr))
     }
 
     var showDeposit: Bool {
@@ -78,7 +78,7 @@ public final class EarnSceneViewModel {
     var depositDestination: AmountInput? {
         guard let provider = providers.first else { return nil }
         return AmountInput(
-            type: .earn(.deposit(provider.map())),
+            type: .earn(.deposit(provider.toGem())),
             asset: asset,
         )
     }
@@ -90,7 +90,7 @@ public final class EarnSceneViewModel {
     var positionModels: [DelegationViewModel] {
         positions
             .filter { (BigInt($0.base.balance)) > 0 }
-            .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currencyCode: service.getCurrency()) }
+            .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currency: service.getCurrency().toPrimitives()) }
     }
 
     var hasPositions: Bool {

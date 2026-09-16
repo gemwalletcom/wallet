@@ -35,6 +35,7 @@ import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemRecipientNext
 import uniffi.gemstone.GemRecipientScan
+import uniffi.gemstone.GemRecipientSection
 import uniffi.gemstone.GemRecipientType
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientServiceInterface
@@ -111,11 +112,9 @@ class RecipientViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
 
-    val wallets = combine(session, getWallets()) { _, wallets ->
-        service.recipientWallets(wallets.map { it.toGem() }).map { it.toPrimitives() }
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val wallets = combine(session, getWallets()) { _, wallets -> wallets.map { it.toGem() } }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val contacts: StateFlow<List<ContactRecipient>> = state
         .flatMapLatest { state ->
@@ -124,6 +123,15 @@ class RecipientViewModel @Inject constructor(
                 is RecipientState.Ready -> getContacts.getContactRecipients(state.asset.chain)
             }
         }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val sections: StateFlow<List<GemRecipientSection>> = combine(wallets, contacts, state) { wallets, contacts, state ->
+        when (state) {
+            RecipientState.Loading -> emptyList()
+            is RecipientState.Ready -> service.recipientSections(wallets, state.asset.chain.string, contacts.isNotEmpty())
+        }
+    }
+        .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val memoErrorState = MutableStateFlow<RecipientError>(RecipientError.None)
@@ -150,6 +158,10 @@ class RecipientViewModel @Inject constructor(
 
     init {
         savedStateHandle.optionalPaymentRecipient(RouteArgument.Payment)?.let(::updateFrom)
+    }
+
+    fun onValidateAddress() {
+        addressInput.validate()
     }
 
     fun onNext(
@@ -228,7 +240,7 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun updateFrom(payment: GemPaymentRecipient) {
-        addressInput.applyExternalAddress(payment.recipient.address)
+        addressInput.setScannedAddress(payment.recipient.address)
         payment.recipient.memo?.let { _memo.value = it }
         references = payment.recipient.references
         requestedAmount = payment.amount

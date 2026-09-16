@@ -123,7 +123,7 @@ struct ConfirmNetworkFeeViewModelTests {
             feeAsset: .mockEthereum(),
             currency: .usd,
             selection: .priority(priority: .normal),
-            feeRates: GemConfirmData.mock().feeRateRows(selection: .priority(priority: .normal), feeAsset: Asset.mockEthereum().map()),
+            feeRates: GemConfirmData.mock().feeRateRows(selection: .priority(priority: .normal), feeAsset: Asset.mockEthereum().toGem()),
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
         )

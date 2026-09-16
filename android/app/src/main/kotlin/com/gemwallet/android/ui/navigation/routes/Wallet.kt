@@ -15,7 +15,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.ui.requestAuth
 import com.wallet.core.primitives.WalletId
-import com.gemwallet.android.ui.components.list_item.titleRes
+import com.gemwallet.android.ui.localization.stringRes
 import uniffi.gemstone.GemWalletSecretKind
 import kotlinx.serialization.Serializable
 
@@ -65,7 +65,7 @@ fun EntryProviderScope<NavKey>.walletScreen(
 
     entry<WalletSecurityReminderRoute> { key ->
         PhraseAlertDialog(
-            title = stringResource(key.secretKind.titleRes),
+            title = stringResource(key.secretKind.stringRes()),
             onAccept = { onSecurityReminderAccepted(key.walletId, key.secretKind) },
             onCancel = onCancel,
         )

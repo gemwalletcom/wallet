@@ -43,7 +43,7 @@ struct PerpetualsPreviewView: View {
 
     private var tradePerpetualsItem: some View {
         HStack {
-            Text("Trade Perpetuals")
+            Text(viewModel.tradePerpetualsTitle)
                 .textStyle(ListItemModel.StyleDefaults.titleStyle)
                 .lineLimit(1)
                 .truncationMode(.tail)

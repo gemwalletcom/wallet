@@ -53,4 +53,8 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.lifecycle.viewmodel)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk.android)
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
+import com.gemwallet.android.ui.localization.stringRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ColumnScope
@@ -68,7 +69,7 @@ fun rememberAssetContextMenuItems(
             when (action) {
                 is GemAssetMenuAction.Pin -> actions.onTogglePin?.let { cb ->
                     AssetContextMenuItem(
-                        titleRes = if (action.isPinned) R.string.common_unpin else R.string.common_pin,
+                        titleRes = action.stringRes(),
                         icon = {
                             if (action.isPinned) Icon(painterResource(R.drawable.keep_off), null)
                             else Icon(AppIcons.PushPin, null)
@@ -78,20 +79,20 @@ fun rememberAssetContextMenuItems(
                 }
                 GemAssetMenuAction.Hide -> actions.onHide?.let { cb ->
                     AssetContextMenuItem(
-                        titleRes = R.string.common_hide,
+                        titleRes = action.stringRes(),
                         icon = { Icon(AppIcons.VisibilityOff, null) },
                         onClick = { cb(assetId) },
                     )
                 }
                 GemAssetMenuAction.AddToWallet -> actions.onAddToWallet?.let { cb ->
                     AssetContextMenuItem(
-                        titleRes = R.string.asset_add_to_wallet,
+                        titleRes = action.stringRes(),
                         icon = { Icon(AppIcons.AddCircleOutlined, null) },
                         onClick = { cb(assetId) },
                     )
                 }
                 is GemAssetMenuAction.CopyAddress -> AssetContextMenuItem(
-                    titleRes = R.string.wallet_copy_address,
+                    titleRes = action.stringRes(),
                     icon = { Icon(AppIcons.ContentCopy, null) },
                     onClick = { clipboard.setPlainText(context, action.address) },
                 )

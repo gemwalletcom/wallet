@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.features.confirm.presents.localization.suffix
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ext.toGem
 import androidx.compose.foundation.background
@@ -43,7 +45,6 @@ import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemConfirmFeeSelection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
-import com.gemwallet.android.ui.components.title
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.AssetListItem
@@ -69,6 +70,8 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.title
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,7 +201,7 @@ private fun FeeRates(
             itemsPositioned(feeRateModels, totalCount = totalCount) { position, feeRate ->
                 FeeRow(
                     emoji = feeRate.emoji,
-                    title = feeRate.priority.title(),
+                    title = stringResource(feeRate.priority.stringRes()),
                     rate = feeRate.price,
                     fiat = feeRate.fiatValue,
                     isSelected = selection.selectedPriority()?.toPrimitives() == feeRate.priority,
@@ -227,6 +230,13 @@ private fun FeeRates(
                     color = MaterialTheme.colorScheme.secondary,
                 )
             }
+        }
+        itemsIndexed(currentFee.feeItems) { index, (option, info) ->
+            PropertyItem(
+                title = option.title(),
+                data = info.cryptoAmount,
+                listPosition = ListPosition.getPosition(index, currentFee.feeItems.size + 1),
+            )
         }
         item {
             PropertyNetworkFee(
@@ -415,11 +425,8 @@ private fun EmojiCircle(emoji: String, size: Dp, isSelected: Boolean = false) {
 }
 
 @Composable
-private fun feeUnitSuffix(feeUnitType: FeeUnitType?, assetSymbol: String): String = when (feeUnitType) {
-    FeeUnitType.SatVb -> stringResource(R.string.fee_rate_satvB)
-    FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei)
-    else -> assetSymbol
-}
+private fun feeUnitSuffix(feeUnitType: FeeUnitType?, assetSymbol: String): String =
+    feeUnitType?.suffix(assetSymbol) ?: assetSymbol
 
 private enum class FeeDetailsPage {
     Details,

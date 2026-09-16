@@ -461,10 +461,12 @@ mod tests {
             "0",
             TransactionFee::mock(),
             None,
-            metadata(TronStakeData::Votes { votes: vec![TronVote {
-                validator: RECIPIENT.to_string(),
-                count: 3,
-            }] }),
+            metadata(TronStakeData::Votes {
+                votes: vec![TronVote {
+                    validator: RECIPIENT.to_string(),
+                    count: 3,
+                }],
+            }),
         );
         let output = signed_json(TronChainSigner.sign_stake(&input, &private_key()).unwrap().remove(0));
 
@@ -487,16 +489,18 @@ mod tests {
             "0",
             fee(10, 0),
             None,
-            metadata(TronStakeData::Votes { votes: vec![
-                TronVote {
-                    validator: "TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH".to_string(),
-                    count: 1,
-                },
-                TronVote {
-                    validator: "TCEo1hMAdaJrQmvnGTCcGT2LqrGU4N7Jqf".to_string(),
-                    count: 2,
-                },
-            ] }),
+            metadata(TronStakeData::Votes {
+                votes: vec![
+                    TronVote {
+                        validator: "TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH".to_string(),
+                        count: 1,
+                    },
+                    TronVote {
+                        validator: "TCEo1hMAdaJrQmvnGTCcGT2LqrGU4N7Jqf".to_string(),
+                        count: 2,
+                    },
+                ],
+            }),
         );
         let output = signed_json(TronChainSigner.sign_stake(&input, &private_key()).unwrap().remove(0));
         let votes = output["raw_data"]["contract"][0]["parameter"]["value"]["votes"].as_array().unwrap();
@@ -520,10 +524,12 @@ mod tests {
             "0",
             TransactionFee::mock(),
             None,
-            metadata(TronStakeData::Votes { votes: vec![TronVote {
-                validator: RECIPIENT.to_string(),
-                count: 2,
-            }] }),
+            metadata(TronStakeData::Votes {
+                votes: vec![TronVote {
+                    validator: RECIPIENT.to_string(),
+                    count: 2,
+                }],
+            }),
         );
         let output = signed_json(TronChainSigner.sign_stake(&input, &private_key()).unwrap().remove(0));
         let contract = &output["raw_data"]["contract"][0];
@@ -643,16 +649,18 @@ mod tests {
             "0",
             TransactionFee::mock(),
             None,
-            metadata(TronStakeData::Unfreeze { unfreezes: vec![
-                TronUnfreeze {
-                    resource: Resource::Bandwidth,
-                    amount: 1,
-                },
-                TronUnfreeze {
-                    resource: Resource::Energy,
-                    amount: 2,
-                },
-            ] }),
+            metadata(TronStakeData::Unfreeze {
+                unfreezes: vec![
+                    TronUnfreeze {
+                        resource: Resource::Bandwidth,
+                        amount: 1,
+                    },
+                    TronUnfreeze {
+                        resource: Resource::Energy,
+                        amount: 2,
+                    },
+                ],
+            }),
         );
         let mut outputs = TronChainSigner.sign_stake(&input, &private_key()).unwrap();
 

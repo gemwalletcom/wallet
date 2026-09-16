@@ -8,6 +8,10 @@ import uniffi.gemstone.FiatProvider
 import uniffi.gemstone.FiatQuote
 import uniffi.gemstone.GemAssetRate
 import uniffi.gemstone.GemFiatQuoteRow
+import uniffi.gemstone.formattedCurrency
+import uniffi.gemstone.formattedAmount
+import uniffi.gemstone.GemValueStyle
+import uniffi.gemstone.GemCurrencyStyle
 
 fun mockFiatProvider(
     id: FiatProviderName = FiatProviderName.Mercuryo,
@@ -58,7 +62,7 @@ fun mockFiatQuoteRow(
     provider = provider.toGem(),
     providerName = providerName,
     providerImageUrl = providerImageUrl,
-    cryptoAmount = cryptoAmount,
-    fiatAmount = fiatAmount,
+    cryptoAmount = formattedAmount(cryptoAmount, "BTC", GemValueStyle.AUTO),
+    fiatAmount = formattedCurrency(fiatAmount, "USD", GemCurrencyStyle.FIAT),
     rate = rate,
 )

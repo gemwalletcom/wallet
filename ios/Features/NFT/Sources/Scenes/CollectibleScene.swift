@@ -24,7 +24,7 @@ public struct CollectibleScene: View {
                 switch section {
                 case let .status(status):
                     Section {
-                        AssetStatusView(model: VerificationStatusViewModel(status: status.map()), action: model.onSelectStatus)
+                        AssetStatusView(model: VerificationStatusViewModel(status: status.toPrimitives()), action: model.onSelectStatus)
                     }
                 case let .info(rows):
                     Section {

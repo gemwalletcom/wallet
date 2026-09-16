@@ -25,6 +25,16 @@ enum GeneratorType {
     TypeScript,
 }
 
+impl GeneratorType {
+    fn ignored_files(&self) -> Vec<&'static str> {
+        match self {
+            Self::Swift => vec!["quote_asset.rs"],
+            Self::Kotlin => vec!["asset_data.rs", "quote_asset.rs"],
+            Self::TypeScript => vec!["transaction_input_type.rs"],
+        }
+    }
+}
+
 fn main() {
     let folders = vec!["crates/primitives"];
 
@@ -62,7 +72,7 @@ fn main() {
         "slippage.rs",
     ]
     .to_vec();
-    let mut platform_ignored = ignored_files_by_generator(&generator_type);
+    let mut platform_ignored = generator_type.ignored_files();
     ignored_files.append(&mut platform_ignored);
 
     for folder in folders {
@@ -218,15 +228,6 @@ fn get_paths(_folder: &str, path: String) -> Vec<String> {
     }
 
     result
-}
-
-//TODO: Pass from the command
-fn ignored_files_by_generator(generator_type: &GeneratorType) -> Vec<&'static str> {
-    match generator_type {
-        GeneratorType::Swift => vec!["quote_asset.rs"],
-        GeneratorType::Kotlin => vec!["asset_data.rs", "quote_asset.rs"],
-        GeneratorType::TypeScript => vec!["transaction_input_type.rs"],
-    }
 }
 
 fn clear_path(path: DirEntry) -> String {

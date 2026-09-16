@@ -27,13 +27,13 @@ struct PerpetualPositionViewModelTests {
 
     @Test
     func marginField() {
-        #expect(createPositionViewModel(.mock(marginAmount: 1000)).marginField.value.text == "$1,000.00 (Isolated)")
+        #expect(createPositionViewModel(.mock(marginAmount: 1000)).detailField(for: .margin).value.text == "$1,000.00 (Isolated)")
     }
 
     @Test
     func pnlField() {
-        #expect(createPositionViewModel(.mock(marginAmount: 1000, pnl: 500)).pnlField.value.text == "+$500.00 (+50.00%)")
-        #expect(createPositionViewModel(.mock(marginAmount: 1000, pnl: -200)).pnlField.value.text == "-$200.00 (-20.00%)")
+        #expect(createPositionViewModel(.mock(marginAmount: 1000, pnl: 500)).detailField(for: .pnl).value.text == "+$500.00 (+50.00%)")
+        #expect(createPositionViewModel(.mock(marginAmount: 1000, pnl: -200)).detailField(for: .pnl).value.text == "-$200.00 (-20.00%)")
     }
 
     @Test
@@ -43,14 +43,12 @@ struct PerpetualPositionViewModelTests {
 
     @Test
     func entryPriceField() {
-        #expect(createPositionViewModel(.mock(entryPrice: 42000)).entryPriceField.value.text == "$42,000.00")
+        #expect(createPositionViewModel(.mock(entryPrice: 42000)).detailField(for: .entryPrice).value.text == "$42,000.00")
     }
 
     @Test
     func liquidationPriceField() {
-        #expect(createPositionViewModel(.mock(liquidationPrice: 35000)).liquidationPriceField?.value.text == "$35,000.00")
-        #expect(createPositionViewModel(.mock(liquidationPrice: 0)).liquidationPriceField == nil)
-        #expect(createPositionViewModel(.mock(liquidationPrice: nil)).liquidationPriceField == nil)
+        #expect(createPositionViewModel(.mock(liquidationPrice: 35000)).detailField(for: .liquidationPrice).value.text == "$35,000.00")
     }
 
     @Test

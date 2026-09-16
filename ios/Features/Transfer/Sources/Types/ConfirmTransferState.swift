@@ -25,13 +25,13 @@ struct ConfirmTransferState {
     var metadata: GemConfirmMetadata? { load?.metadata }
     var feeAssets: [GemFeeAsset] { load?.feeAssets ?? [] }
     var confirmData: GemConfirmData? { load?.preload?.confirmData }
-    var addressName: AddressName? { load?.addressName.map { $0.map() } }
+    var addressName: AddressName? { load?.addressName.map { $0.toPrimitives() } }
 }
 
 extension ConfirmTransferState {
     init(transfer: GemTransferData, simulation: ConfirmSimulationState, screen: GemConfirmScreen) {
         self.init(
-            feeAsset: transfer.feeAsset().map(),
+            feeAsset: transfer.feeAsset().toPrimitives(),
             load: nil,
             simulation: simulation,
             screen: screen,
@@ -40,7 +40,7 @@ extension ConfirmTransferState {
 
     init(_ load: GemConfirmLoad, screen: GemConfirmScreen) throws {
         self.init(
-            feeAsset: load.feeAsset.map(),
+            feeAsset: load.feeAsset.toPrimitives(),
             load: load,
             simulation: try ConfirmSimulationState(load.simulation),
             screen: screen,
@@ -52,7 +52,7 @@ extension ConfirmTransferState {
     }
 
     var transferAmount: TransferAmountValidation? {
-        preload?.amount.map()
+        preload?.amount.toPrimitives()
     }
 
     var fee: GemTransactionLoadFee? {
@@ -60,7 +60,7 @@ extension ConfirmTransferState {
     }
 
     func feeRateRows(selection: GemConfirmFeeSelection) -> GemFeeRateRows? {
-        confirmData?.feeRateRows(selection: selection, feeAsset: feeAsset.map())
+        confirmData?.feeRateRows(selection: selection, feeAsset: feeAsset.toGem())
     }
 
     var transactionError: ConfirmTransferError? {

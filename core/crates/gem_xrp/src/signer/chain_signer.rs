@@ -6,7 +6,7 @@ use crate::address::XrpAddress;
 use crate::signer::amount::XrpAmount;
 use crate::signer::transaction::{XrpPaymentMemo, XrpTransaction, XrpTransactionParams};
 
-const LEDGER_SEQUENCE_OFFSET: u64 = 12;
+const LEDGER_SEQUENCE_OFFSET: u64 = 24;
 const TRUST_LINE_LIMIT: &str = "690000000000";
 
 #[derive(Default)]
@@ -164,7 +164,7 @@ mod tests {
             "0",
             500,
             93_674_950,
-            187_349_938,
+            187_349_950 - LEDGER_SEQUENCE_OFFSET,
             None,
         )
     }
@@ -181,7 +181,7 @@ mod tests {
             "10",
             10,
             32_268_248,
-            32_268_257,
+            32_268_269 - LEDGER_SEQUENCE_OFFSET,
             None,
         );
 
@@ -204,7 +204,7 @@ mod tests {
             "1000000000000000",
             12,
             93_674_951,
-            187_349_938,
+            187_349_950 - LEDGER_SEQUENCE_OFFSET,
             None,
         );
 
@@ -280,7 +280,7 @@ mod tests {
             "999",
             10,
             32_268_248,
-            32_268_257,
+            32_268_269 - LEDGER_SEQUENCE_OFFSET,
             None,
         );
 

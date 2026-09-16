@@ -1,6 +1,11 @@
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigUint;
 use crate::services::swap::model::GemSwapRate;
-use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, TransactionExtended, TransactionType};
+use chrono::{DateTime, Utc};
+use primitives::{
+    AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, TransactionDirection, TransactionExtended, TransactionId, TransactionState,
+    TransactionType,
+};
 
 use super::rules;
 use primitives::BlockExplorerLink;
@@ -25,6 +30,18 @@ impl GemTransactionFilter {
 #[uniffi::export]
 pub fn transaction_filters() -> Vec<GemTransactionFilter> {
     rules::transaction_filters()
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemActivityFilters {
+    pub asset_rank_greater_than: i32,
+    pub chains: Vec<Chain>,
+    pub transaction_types: Vec<TransactionType>,
+}
+
+#[uniffi::export]
+pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemActivityFilters {
+    rules::activity_filters(chains, filters)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -150,6 +167,12 @@ pub struct GemTransactionStatus {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionRow {
+    pub id: TransactionId,
+    pub asset: Asset,
+    pub transaction_type: TransactionType,
+    pub direction: TransactionDirection,
+    pub state: TransactionState,
+    pub created_at: DateTime<Utc>,
     pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub subtitle: GemTransactionRowSubtitle,
@@ -236,6 +259,12 @@ pub fn transaction_detail_sections(rows: GemTransactionDetailRows) -> Vec<GemTra
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionDetailRows {
+    pub id: TransactionId,
+    pub asset: Asset,
+    pub transaction_type: TransactionType,
+    pub direction: TransactionDirection,
+    pub state: TransactionState,
+    pub created_at: DateTime<Utc>,
     pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub header: GemTransactionHeader,
@@ -248,8 +277,8 @@ pub struct GemTransactionDetailRows {
     pub memo: Option<String>,
     pub resource: Option<Resource>,
     pub rate: Option<GemSwapRate>,
-    pub pnl: Option<f64>,
-    pub price: Option<f64>,
+    pub pnl: Option<GemFormattedNumber>,
+    pub price: Option<GemFormattedNumber>,
     pub fee: GemTransactionAmount,
     pub explorer: BlockExplorerLink,
 }
@@ -278,9 +307,15 @@ pub struct GemSwapProgress {
     pub from_asset: Asset,
     pub from_value: GemBigUint,
     pub provider_name: String,
-    pub transfer: GemSwapProgressStep,
-    pub swap: GemSwapProgressStep,
+    pub transfer: GemSwapProgressState,
+    pub swap: GemSwapProgressState,
     pub eta_seconds: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemSwapProgressState {
+    pub step: GemSwapProgressStep,
+    pub marker: GemSwapProgressMarker,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -291,6 +326,34 @@ pub enum GemSwapProgressStep {
     Failed,
     Reverted,
     Refunded,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSwapProgressMarker {
+    Check,
+    Spinner,
+    Dots,
+    Cross,
+    Swap,
+}
+
+impl GemSwapProgressStep {
+    pub fn state(self) -> GemSwapProgressState {
+        GemSwapProgressState {
+            step: self,
+            marker: self.marker(),
+        }
+    }
+
+    fn marker(self) -> GemSwapProgressMarker {
+        match self {
+            Self::Completed => GemSwapProgressMarker::Check,
+            Self::Pending => GemSwapProgressMarker::Spinner,
+            Self::Waiting => GemSwapProgressMarker::Dots,
+            Self::Failed | Self::Reverted => GemSwapProgressMarker::Cross,
+            Self::Refunded => GemSwapProgressMarker::Swap,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

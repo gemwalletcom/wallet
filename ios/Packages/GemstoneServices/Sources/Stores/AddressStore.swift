@@ -16,14 +16,14 @@ public final class GemstoneAddressStore: GemAddressStore, @unchecked Sendable {
     }
 
     public func getAddressName(chain: Gemstone.Chain, address: String) throws -> Gemstone.AddressName? {
-        try store.getAddressName(chain: Primitives.Chain(id: chain), address: address).map { $0.map() }
+        try store.getAddressName(chain: Primitives.Chain(id: chain), address: address).map { $0.toGem() }
     }
 
     public func saveAddressNames(names: [Gemstone.AddressName]) async throws {
-        try store.updateAddressNames(names.map { $0.map() })
+        try store.updateAddressNames(names.map { $0.toPrimitives() })
     }
 
     public func deleteAddressNames(names: [Gemstone.AddressName]) async throws {
-        try store.deleteAddressNames(names.map { $0.map() })
+        try store.deleteAddressNames(names.map { $0.toPrimitives() })
     }
 }

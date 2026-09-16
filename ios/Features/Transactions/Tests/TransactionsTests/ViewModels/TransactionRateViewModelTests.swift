@@ -2,6 +2,7 @@
 
 import struct Gemstone.GemAssetRate
 import struct Gemstone.GemSwapRate
+import func Gemstone.formattedAdaptive
 import Testing
 @testable import Transactions
 
@@ -9,8 +10,8 @@ struct TransactionRateViewModelTests {
     @Test
     func itemModel() {
         let rate = GemSwapRate(
-            direct: GemAssetRate(baseSymbol: "ETH", quoteSymbol: "USDT", value: 3000),
-            inverse: GemAssetRate(baseSymbol: "USDT", quoteSymbol: "ETH", value: 1 / 3000),
+            direct: GemAssetRate(baseSymbol: "ETH", quoteSymbol: "USDT", value: formattedAdaptive(value: 3000, symbol: "USDT")),
+            inverse: GemAssetRate(baseSymbol: "USDT", quoteSymbol: "ETH", value: formattedAdaptive(value: 1 / 3000, symbol: "ETH")),
         )
 
         guard

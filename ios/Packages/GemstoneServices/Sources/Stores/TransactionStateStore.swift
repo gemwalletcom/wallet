@@ -24,7 +24,7 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
         let wallets = Dictionary(uniqueKeysWithValues: try walletStore.getWallets().map { ($0.id, $0) })
         return try store.getTransactions(states: [.pending, .inTransit]).flatMap { (walletId, transactions) -> [GemPendingTransaction] in
             guard let wallet = wallets[walletId] else { return [] }
-            return transactions.map { GemPendingTransaction(wallet: wallet.map(), transaction: $0.map()) }
+            return transactions.map { GemPendingTransaction(wallet: wallet.toGem(), transaction: $0.toGem()) }
         }
     }
 
@@ -36,15 +36,15 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
             try store.getTransactionState(walletId: walletId, transactionId: transactionId) != nil
         else { return nil }
         let transaction = try store.getTransaction(walletId: walletId, transactionId: transactionId).transaction
-        return GemPendingTransaction(wallet: wallet.map(), transaction: transaction.map())
+        return GemPendingTransaction(wallet: wallet.toGem(), transaction: transaction.toGem())
     }
 
     public func addTransactions(walletId: String, transactions: [Gemstone.Transaction]) async throws {
-        try store.addTransactions(walletId: WalletId.from(id: walletId), transactions: transactions.map { $0.map() })
+        try store.addTransactions(walletId: WalletId.from(id: walletId), transactions: transactions.map { $0.toPrimitives() })
     }
 
     public func getState(walletId: String, transactionId: Gemstone.TransactionId) async throws -> Gemstone.TransactionState? {
-        try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(id: transactionId)).map { $0.map() }
+        try store.getTransactionState(walletId: WalletId.from(id: walletId), transactionId: Primitives.TransactionId(id: transactionId)).map { $0.toGem() }
     }
 
     public func updateTransactionHash(walletId: String, transactionId: Gemstone.TransactionId, hash: String) async throws {
@@ -63,7 +63,7 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
         try store.updateTransaction(
             walletId: WalletId.from(id: walletId),
             transactionId: Primitives.TransactionId(id: transactionId),
-            state: update.state.map(),
+            state: update.state.toPrimitives(),
             fee: update.fee?.description,
             blockNumber: update.blockNumber.flatMap { Int($0) },
             metadata: update.metadata,

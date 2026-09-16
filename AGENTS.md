@@ -41,6 +41,7 @@ Cross-platform subsystem references live in [docs/](docs). Read the relevant one
 - [Architecture](docs/ARCHITECTURE.md) — Current ownership contracts and a task-based index of implementation examples
 - [Open work](docs/TODO.md) — Every open item, ordered, with the exemplar to copy for each; delete an item's line in the commit that lands it
 - [Services](docs/SERVICES.md) — how a Gemstone service is built, its store trait, and the screen-service map
+- [Performance](docs/PERFORMANCE.md) — responsiveness principles, budgets, and testing for wallet, asset, transaction, confirmation, and swap screens on both apps
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
 - [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
 - [Payments](docs/PAYMENTS.md) — payment decoding flow, implementation map, and QR test cases

@@ -6,6 +6,7 @@ mod access_token_cacher;
 pub use self::access_token_cacher::{AccessTokenCacher, AccessTokenFuture};
 
 #[macro_use]
+pub mod known_entries;
 pub mod string_serde;
 
 mod async_result;
@@ -117,6 +118,8 @@ pub mod fiat_quote_request;
 pub use self::fiat_quote_request::FiatQuoteRequest;
 pub mod fiat_rate;
 pub use self::fiat_rate::FiatRate;
+pub mod fiat_rate_provider;
+pub use self::fiat_rate_provider::FiatRateProvider;
 pub mod fiat_provider_id;
 pub use self::fiat_provider_id::FiatProviderId;
 pub mod platform;
@@ -191,7 +194,7 @@ pub use self::gorush::{FailedNotification, GorushNotification, GorushNotificatio
 pub mod admin;
 pub use self::admin::{AdminDevice, AdminWalletOverview};
 pub mod scan;
-pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanTransaction, ScanTransactionPayload};
+pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload};
 pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
@@ -225,9 +228,12 @@ pub use self::wallet_connector::{
 pub mod nft;
 pub use self::nft::{NFTAsset, NFTAssetData, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};
 pub mod price_alert;
-pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertDirection, PriceAlertNotificationType, PriceAlertType, PriceAlerts};
+pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceAlertType, PriceAlerts};
 pub mod rewards;
-pub use self::rewards::{RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards};
+pub use self::rewards::{
+    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel,
+    RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards,
+};
 pub mod tag;
 pub use self::tag::AssetTag;
 pub mod chain_cosmos;
@@ -394,6 +400,8 @@ pub mod connection_status;
 pub use self::connection_status::ConnectionStatus;
 pub mod metrics;
 pub use self::metrics::{ConsumerStatus, ParserStatus, ReportedError};
+pub mod version;
+pub use self::version::{Version, is_version_higher};
 pub mod value_access;
 pub use self::value_access::{JsonDecode, ValueAccess};
 

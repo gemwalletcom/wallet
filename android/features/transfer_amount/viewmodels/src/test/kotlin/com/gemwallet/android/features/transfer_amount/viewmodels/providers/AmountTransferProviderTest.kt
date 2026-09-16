@@ -4,7 +4,7 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
+import uniffi.gemstone.GemAmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import uniffi.gemstone.TransactionInputType
@@ -57,13 +57,21 @@ class AmountTransferProviderTest {
 
     @Test
     fun `title is Send`() {
-        assertEquals(AmountTitle.Send, makeProvider().title)
+        assertEquals(GemAmountTitle.Send, makeProvider().title.value)
     }
 
     @Test
     fun `only a send switches the input type`() {
         assertTrue(makeProvider().amountType.value?.canSwitchInputType() == true)
         assertEquals(false, makeProvider(AmountParams.Deposit(asset.id)).amountType.value?.canSwitchInputType())
+    }
+
+    @Test
+    fun `Core decides the prefilled amount`() {
+        assertEquals("1.5", makeProvider(params.copy(amount = "1.5")).prefilledAmount)
+        assertEquals(null, makeProvider().prefilledAmount)
+        assertEquals(null, makeProvider(AmountParams.Deposit(asset.id)).prefilledAmount)
+        assertEquals(null, makeProvider(AmountParams.Withdraw(asset.id)).prefilledAmount)
     }
 
     @Test
@@ -79,12 +87,12 @@ class AmountTransferProviderTest {
 
     @Test
     fun `deposit has Deposit title`() {
-        assertEquals(AmountTitle.Deposit, makeProvider(AmountParams.Deposit(asset.id)).title)
+        assertEquals(GemAmountTitle.Deposit, makeProvider(AmountParams.Deposit(asset.id)).title.value)
     }
 
     @Test
     fun `withdraw has Withdraw title`() {
-        assertEquals(AmountTitle.Withdraw, makeProvider(AmountParams.Withdraw(asset.id)).title)
+        assertEquals(GemAmountTitle.Withdraw, makeProvider(AmountParams.Withdraw(asset.id)).title.value)
     }
 
     @Test

@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemMemoWarning
+import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemReceiveServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -69,7 +69,7 @@ class ReceiveViewModel @AssistedInject constructor(
         }
     }
 
-    fun memoWarning(chain: Chain): GemMemoWarning = service.memoWarning(chain.string)
+    fun warnings(chain: Chain): List<GemReceiveWarning> = service.warnings(chain.string)
 
     fun selectAsset(assetId: AssetId) {
         selectedAssetId.value = assetId

@@ -8,7 +8,7 @@ use primitives::{Asset, AssetId, Chain, Wallet, WalletId};
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
-pub use model::GemMemoWarning;
+pub use model::GemReceiveWarning;
 
 #[derive(uniffi::Object)]
 pub struct GemReceiveService {
@@ -23,8 +23,8 @@ impl GemReceiveService {
         Self { balances, assets }
     }
 
-    pub fn memo_warning(&self, chain: Chain) -> GemMemoWarning {
-        rules::memo_warning(chain)
+    pub fn warnings(&self, chain: Chain) -> Vec<GemReceiveWarning> {
+        rules::warnings(chain)
     }
 
     pub fn network_asset_ids(&self, asset_id: AssetId, associations: Vec<AssetId>, wallet: Wallet) -> Vec<AssetId> {

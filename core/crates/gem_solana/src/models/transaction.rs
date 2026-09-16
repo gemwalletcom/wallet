@@ -238,6 +238,34 @@ mod tests {
     }
 
     #[test]
+    fn test_version_one_transaction_parses_without_lookup_addresses() {
+        let json = r#"{
+            "meta": {
+                "err": null,
+                "fee": 5000,
+                "preBalances": [100000, 0],
+                "postBalances": [85000, 10000],
+                "preTokenBalances": [],
+                "postTokenBalances": []
+            },
+            "version": 1,
+            "transaction": {
+                "message": {
+                    "accountKeys": ["sender", "program"],
+                    "instructions": [],
+                    "transactionConfig": {"computeUnitLimit": 200000, "loadedAccountsDataSizePages": 1}
+                },
+                "signatures": ["signature"]
+            }
+        }"#;
+
+        let transaction: BlockTransaction = serde_json::from_str(json).unwrap();
+
+        assert_eq!(transaction.account_key(0).map(String::as_str), Some("sender"));
+        assert_eq!(transaction.get_balance_change("sender"), 10000);
+    }
+
+    #[test]
     fn test_account_key() {
         let mut transaction = block_transaction(5000, vec!["sender", "program"], vec![], vec![]);
         assert_eq!(transaction.account_key(0).map(String::as_str), Some("sender"));

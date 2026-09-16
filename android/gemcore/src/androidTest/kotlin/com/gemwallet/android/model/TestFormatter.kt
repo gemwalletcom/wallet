@@ -8,6 +8,7 @@ import org.junit.Test
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Locale
+import uniffi.gemstone.GemValueStyle
 
 class TestFormatter {
     @Test
@@ -29,14 +30,14 @@ class TestFormatter {
 
     @Test
     fun testCompactBalance_Usd() {
-        val formatter = ValueFormatter(style = ValueFormatter.Style.Short, locale = Locale.US)
+        val formatter = ValueFormatter(style = GemValueStyle.SHORT, locale = Locale.US)
         assertEquals("123.45K USDC", formatter.string(BigInteger.valueOf(123_456_789_100L), decimals = 6, currency = "USDC"))
         assertEquals("1.5M USDC", formatter.string(BigInteger.valueOf(1_500_000_000_000L), decimals = 6, currency = "USDC"))
     }
 
     @Test
     fun testCompactKeepsDigitsWithoutRounding() {
-        val formatter = ValueFormatter(style = ValueFormatter.Style.Short, locale = Locale.US)
+        val formatter = ValueFormatter(style = GemValueStyle.SHORT, locale = Locale.US)
         assertEquals("267.12K BTC", formatter.string(BigDecimal("267123.456"), currency = "BTC"))
         assertEquals("20.07M BTC", formatter.string(BigDecimal("20070000"), currency = "BTC"))
         assertEquals("19.87M BTC", formatter.string(BigDecimal("19876725"), currency = "BTC"))

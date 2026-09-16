@@ -1,6 +1,8 @@
 package com.gemwallet.android.ui.models.chart
 
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import uniffi.gemstone.GemPerpetualChartLayout
 import uniffi.gemstone.GemPerpetualChartLine
@@ -36,7 +38,6 @@ data class CandlestickChartUIModel(
         fun from(
             candles: List<ChartCandleStick>,
             layout: GemPerpetualChartLayout,
-            yTickFormatter: (Double) -> String,
             lineLabel: (GemPerpetualChartLine) -> String,
         ): CandlestickChartUIModel {
             val span = layout.priceHigh - layout.priceLow
@@ -44,12 +45,12 @@ data class CandlestickChartUIModel(
                 candles = candles.map(::candleUIModel),
                 yMin = layout.priceLow,
                 yMax = layout.priceHigh,
-                yTicks = layout.ticks.map { value ->
-                    ChartAxisTick(value = value, fraction = ((value - layout.priceLow) / span).toFloat(), label = yTickFormatter(value))
+                yTicks = layout.ticks.map { tick ->
+                    ChartAxisTick(value = tick.value, fraction = ((tick.value - layout.priceLow) / span).toFloat(), label = tick.text())
                 },
                 xGridlineFractions = buildXGridlineFractions(layout.xTickCount.toInt()),
                 referenceLines = layout.lines.map { ChartReferenceLineUIModel(it, lineLabel(it)) },
-                currentPriceLabel = candles.lastOrNull()?.close?.let(yTickFormatter).orEmpty(),
+                currentPriceLabel = layout.currentPrice?.text().orEmpty(),
             )
         }
 
@@ -63,11 +64,7 @@ data class CandlestickChartUIModel(
             high = candle.high,
             low = candle.low,
             close = candle.close,
-            direction = when {
-                candle.close > candle.open -> ValueDirection.Up
-                candle.close < candle.open -> ValueDirection.Down
-                else -> ValueDirection.None
-            },
+            direction = (candle.close - candle.open).toValueDirection(),
         )
     }
 }

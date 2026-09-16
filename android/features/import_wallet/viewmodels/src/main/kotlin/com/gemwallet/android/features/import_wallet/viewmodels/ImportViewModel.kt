@@ -9,6 +9,7 @@ import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemNameServiceInterface
 import com.gemwallet.android.ext.words
 import uniffi.gemstone.GemMnemonicInterface
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletImportResult
 import com.gemwallet.android.ext.toGem
@@ -76,7 +77,7 @@ class ImportViewModel @Inject constructor(
         state.update {
             it.copy(
                 importType = importType,
-                defaultWalletName = defaultName.name,
+                defaultWalletName = defaultName.text,
                 chainName = chainName,
                 tabs = tabs,
             )
@@ -128,7 +129,7 @@ data class ImportViewModelState(
     val loading: Boolean = false,
     val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
-    val defaultWalletName: String = "",
+    val defaultWalletName: GemLocalizedText? = null,
     val chainName: String = "",
     val tabs: List<GemWalletImportKind> = emptyList(),
     val data: String = "",
@@ -153,7 +154,7 @@ data class ImportUIState(
     val loading: Boolean = false,
     val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
-    val defaultWalletName: String = "",
+    val defaultWalletName: GemLocalizedText? = null,
     val chainName: String = "",
     val tabs: List<GemWalletImportKind> = emptyList(),
     val dataError: Throwable? = null,

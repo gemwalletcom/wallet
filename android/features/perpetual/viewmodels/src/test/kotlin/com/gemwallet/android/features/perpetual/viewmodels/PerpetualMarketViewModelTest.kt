@@ -83,7 +83,6 @@ class PerpetualMarketViewModelTest {
             getBalance = getBalance,
             recentAssetsService = recentAssetsService,
             service = service,
-            recentActivity = mockk(),
             perpetualObserver = perpetualObserver,
         ).also { model = it }
     }

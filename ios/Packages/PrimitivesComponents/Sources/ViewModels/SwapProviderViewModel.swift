@@ -20,7 +20,7 @@ public struct SwapProviderViewModel {
     public var providerImage: AssetImage {
         AssetImage(
             imageURL: .none,
-            placeholder: providerData.provider.map().image,
+            placeholder: providerData.provider.toPrimitives().image,
             chainPlaceholder: .none,
         )
     }

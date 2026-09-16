@@ -176,16 +176,19 @@ impl Transaction {
             return self.project_asset_transfer(metadata, &addresses).unwrap_or_else(|| self.clone());
         }
 
-        let inputs_addresses = self.input_addresses();
-        let outputs_addresses = self.output_addresses();
-
-        if addresses.is_empty() || inputs_addresses.is_empty() || outputs_addresses.is_empty() {
+        let (Some(utxo_inputs), Some(utxo_outputs)) = (self.utxo_inputs.as_deref(), self.utxo_outputs.as_deref()) else {
+            return self.clone();
+        };
+        let Some(first_input) = utxo_inputs.first() else {
+            return self.clone();
+        };
+        if addresses.is_empty() || utxo_outputs.is_empty() {
             return self.clone();
         }
 
         let user_set: HashSet<String> = HashSet::from_iter(addresses);
-        let input_set: HashSet<String> = HashSet::from_iter(inputs_addresses);
-        let output_set: HashSet<String> = HashSet::from_iter(outputs_addresses.clone());
+        let input_set: HashSet<String> = utxo_inputs.iter().map(|input| input.address.clone()).collect();
+        let output_set: HashSet<String> = utxo_outputs.iter().map(|output| output.address.clone()).collect();
 
         if user_set.is_disjoint(&input_set) && user_set.is_disjoint(&output_set) {
             return self.clone();
@@ -201,27 +204,23 @@ impl Transaction {
             TransactionDirection::Incoming
         };
 
-        let utxo_inputs = self.utxo_inputs.as_ref().unwrap();
-        let utxo_outputs = self.utxo_outputs.as_ref().unwrap();
-
-        let from = utxo_inputs.first().unwrap().address.clone();
-        let (to, value) = match direction {
-            TransactionDirection::Incoming => {
-                let to = outputs_addresses.iter().find(|x| user_set.contains(*x)).unwrap().clone();
-                let value = Self::utxo_calculate_value(utxo_outputs, &user_set);
-                (to, value)
-            }
-            TransactionDirection::Outgoing => {
-                let to = outputs_addresses.iter().find(|x| !user_set.contains(*x)).unwrap().clone();
-                let value = utxo_outputs.iter().find(|x| x.address == to).unwrap().value.clone();
-                (to, value)
-            }
-            TransactionDirection::SelfTransfer => {
-                let to = utxo_outputs.first().unwrap().address.clone();
-                let value = Self::utxo_calculate_value(utxo_outputs, &user_set);
-                (to, value)
-            }
+        let recipient = match direction {
+            TransactionDirection::Incoming => utxo_outputs
+                .iter()
+                .find(|output| user_set.contains(&output.address))
+                .map(|output| (output.address.clone(), Self::utxo_calculate_value(utxo_outputs, &user_set))),
+            TransactionDirection::Outgoing => utxo_outputs
+                .iter()
+                .find(|output| !user_set.contains(&output.address))
+                .map(|output| (output.address.clone(), output.value.clone())),
+            TransactionDirection::SelfTransfer => utxo_outputs
+                .first()
+                .map(|output| (output.address.clone(), Self::utxo_calculate_value(utxo_outputs, &user_set))),
         };
+        let Some((to, value)) = recipient else {
+            return self.clone();
+        };
+        let from = first_input.address.clone();
         Self {
             from,
             to,

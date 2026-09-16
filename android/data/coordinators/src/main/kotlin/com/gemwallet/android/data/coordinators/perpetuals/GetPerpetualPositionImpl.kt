@@ -40,7 +40,7 @@ class PerpetualPositionDetailsDataAggregateImpl(
 
     override val entryPrice: String = priceFormatter.string(data.position.entryPrice)
 
-    override val liquidationPrice: String = positionData.liquidationPrice?.let { priceFormatter.string(it) } ?: ""
+    override val liquidationPrice: String = positionData.liquidationPrice.orEmpty()
 
     override val marginType: PerpetualMarginType = data.position.marginType
 

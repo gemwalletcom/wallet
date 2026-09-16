@@ -46,10 +46,9 @@ extension ConfirmTransferState {
 extension GemConfirmScreen {
     static func mock(
         phase: GemConfirmPhase = .loading,
-        amountFailed: Bool = false,
         hasCriticalWarning: Bool = false,
         failure: GemConfirmFailure? = nil,
     ) -> GemConfirmScreen {
-        GemConfirmScreen(phase: phase, amountFailed: amountFailed, hasCriticalWarning: hasCriticalWarning, failure: failure)
+        GemConfirmScreen(phase: phase, hasCriticalWarning: hasCriticalWarning, failure: failure)
     }
 }

@@ -10,7 +10,13 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
+import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
+import com.wallet.core.primitives.PriceAlertData
+import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPriceAlertText
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -48,13 +54,20 @@ class PriceAlertDataAggregateImplTest {
     ) = PriceAlertDataAggregateImpl(
         id = id,
         asset = asset,
-        assetPrice = assetPrice,
         priceAlert = priceAlert,
         row = PriceAlertFormatter().row(
-            alert = priceAlert.toGem(),
-            currentPrice = assetPrice?.price?.price,
-            priceChangePercentage24h = assetPrice?.price?.priceChangePercentage24h,
-            priceCurrency = (assetPrice?.currency ?: priceAlert.currency).string,
+            data = PriceAlertData(
+                asset = asset,
+                price = assetPrice?.price?.let {
+                    Price(
+                        price = it.price,
+                        priceChangePercentage24h = it.priceChangePercentage24h,
+                        updatedAt = it.updatedAt,
+                    )
+                },
+                priceAlert = priceAlert,
+            ).toGem(),
+            priceCurrency = (assetPrice?.currency ?: priceAlert.currency).toGem(),
         ),
     )
 
@@ -78,130 +91,79 @@ class PriceAlertDataAggregateImplTest {
         assertEquals("SOL", aggregate.titleBadge)
     }
 
+    private fun PriceAlertDataAggregate.number(currency: Boolean): GemFormattedNumber? =
+        listOf(prefix, suffix)
+            .mapNotNull { (it as? GemPriceAlertText.Number)?.value }
+            .firstOrNull { (it.unit is GemNumberUnit.Currency) == currency }
+
+    private fun PriceAlertDataAggregate.price(): GemFormattedNumber? = number(currency = true)
+
+    private fun PriceAlertDataAggregate.percent(): GemFormattedNumber? = number(currency = false)
+
     @Test
     fun testPrice_fromPriceAlert() {
-        val priceAlert = mockPriceAlert(
-            price = 50000.0,
-            currency = Currency.USD,
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
+        val aggregate = createAggregate(priceAlert = mockPriceAlert(price = 50000.0, currency = Currency.USD))
 
-        assertEquals("$50,000.00", aggregate.price)
+        assertEquals(50000.0, aggregate.price()?.value)
+        assertEquals(Currency.USD.string, (aggregate.price()?.unit as GemNumberUnit.Currency).code)
     }
 
     @Test
     fun testPrice_fromAssetPrice_whenAlertPriceNull() {
-        val assetPrice = mockAssetPriceInfo(
-            price = 45234.50,
-            currency = Currency.USD,
-        )
-        val priceAlert = mockPriceAlert(price = null)
         val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
+            assetPrice = mockAssetPriceInfo(price = 45234.50, currency = Currency.USD),
+            priceAlert = mockPriceAlert(price = null),
         )
 
-        assertEquals("$45,234.50", aggregate.price)
+        assertEquals(45234.50, aggregate.price()?.value)
     }
 
     @Test
-    fun testPrice_fromAssetPrice_whenSmallValue_usesDynamicFormatting() {
-        val assetPrice = mockAssetPriceInfo(
-            price = 0.0000111,
-            currency = Currency.USD,
-        )
-        val priceAlert = mockPriceAlert(price = null)
+    fun testPrice_takesTheAlertCurrencyOverTheDisplayCurrency() {
         val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
+            assetPrice = mockAssetPriceInfo(price = 42000.0, currency = Currency.EUR),
+            priceAlert = mockPriceAlert(price = null, currency = Currency.EUR),
         )
 
-        assertEquals("$0.0000111", aggregate.price)
+        assertEquals(Currency.EUR.string, (aggregate.price()?.unit as GemNumberUnit.Currency).code)
     }
 
     @Test
-    fun testPrice_withEuroCurrency() {
-        val assetPrice = mockAssetPriceInfo(
-            price = 42000.0,
-            currency = Currency.EUR,
-        )
-        val priceAlert = mockPriceAlert(
-            price = null,
-            currency = Currency.EUR,
-        )
-        val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
-        )
-
-        assertEquals("€42,000.00", aggregate.price)
-    }
-
-    @Test
-    fun testPrice_fromPriceAlert_whenSmallValue_usesDynamicFormatting() {
-        val priceAlert = mockPriceAlert(
-            price = 0.006333,
-            currency = Currency.USD,
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
-
-        assertEquals("$0.006333", aggregate.price)
-    }
-
-    @Test
-    fun testPrice_withoutAssetPrice_returnsEmpty() {
+    fun testPrice_withoutAnyPrice_hasNoNumber() {
         val aggregate = createAggregate(
             assetPrice = null,
             priceAlert = mockPriceAlert(price = null),
         )
 
-        assertEquals("", aggregate.price)
+        assertEquals(null, aggregate.price())
+        assertEquals(GemPriceAlertText.Empty, aggregate.prefix)
     }
 
     @Test
     fun testPercentage_fromPriceAlert() {
-        val priceAlert = mockPriceAlert(
-            pricePercentChange = 3.5,
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
+        val aggregate = createAggregate(priceAlert = mockPriceAlert(pricePercentChange = 3.5))
 
-        assertEquals("3.50%", aggregate.percentage)
+        assertEquals(3.5, aggregate.percent()?.value)
     }
 
     @Test
     fun testPercentage_fromAssetPrice_whenAlertPercentNull() {
-        val assetPrice = mockAssetPriceInfo(
-            priceChangePercentage24h = -2.15,
-        )
-        val priceAlert = mockPriceAlert(
-            pricePercentChange = null,
-        )
         val aggregate = createAggregate(
-            assetPrice = assetPrice,
-            priceAlert = priceAlert,
+            assetPrice = mockAssetPriceInfo(priceChangePercentage24h = -2.15),
+            priceAlert = mockPriceAlert(pricePercentChange = null),
         )
 
-        assertEquals("-2.15%", aggregate.percentage)
+        assertEquals(-2.15, aggregate.percent()?.value)
     }
 
     @Test
-    fun testPercentage_largeValue() {
-        val priceAlert = mockPriceAlert(
-            pricePercentChange = 125.67,
-        )
-        val aggregate = createAggregate(priceAlert = priceAlert)
-
-        assertEquals("125.67%", aggregate.percentage)
-    }
-
-    @Test
-    fun testPercentage_withoutAssetPrice_returnsEmpty() {
+    fun testPercentage_withoutAnyPercent_hasNoNumber() {
         val aggregate = createAggregate(
             assetPrice = null,
             priceAlert = mockPriceAlert(pricePercentChange = null),
         )
 
-        assertEquals("", aggregate.percentage)
+        assertEquals(null, aggregate.percent())
     }
 
     @Test

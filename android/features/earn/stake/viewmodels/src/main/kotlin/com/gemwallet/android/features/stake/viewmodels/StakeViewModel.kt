@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.update
 import com.gemwallet.android.ext.secondsToDays
 import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemValueStyle
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -80,13 +81,13 @@ class StakeViewModel @Inject constructor(
         .mapLatest { seconds -> seconds?.takeIf { it > 0uL }?.let { it.toLong().secondsToDays() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val usesFreeze = assetInfo
-        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.usesFreeze(chain) } ?: false }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
     val minStakeAmount = assetInfo
         .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.minStakeAmount(chain) } ?: BigInteger.ZERO }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
+
+    val infoRows = assetInfo
+        .mapLatest { info -> info?.let { stakeService.stakeInfoRows(it.asset.chain.string, it.metadata.stakingApr) } ?: emptyList() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -115,7 +116,7 @@ class StakeViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val rewardsText = combine(claimRewards.filterNotNull(), assetInfo.filterNotNull()) { claimRewards, assetInfo ->
-        ValueFormatter(style = ValueFormatter.Style.Auto).string(claimRewards.value, assetInfo.asset)
+        ValueFormatter(style = GemValueStyle.AUTO).string(claimRewards.value, assetInfo.asset)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val actions = combine(
@@ -131,6 +132,10 @@ class StakeViewModel @Inject constructor(
             balance = assetInfo.balance.toGem(),
             delegations = delegations.map { it.toGem() },
         )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val sections = combine(assetInfo, actions, delegations) { assetInfo, actions, delegations ->
+        assetInfo?.let { stakeService.stakeSections(it.asset.chain.string, actions.isNotEmpty(), delegations.isNotEmpty()) } ?: emptyList()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)

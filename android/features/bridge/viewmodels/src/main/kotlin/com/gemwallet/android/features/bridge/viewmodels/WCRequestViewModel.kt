@@ -34,8 +34,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectFailure
+import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletConnectSessionRequest
 import javax.inject.Inject
@@ -44,9 +44,9 @@ import javax.inject.Inject
 @HiltViewModel
 class WCRequestViewModel @Inject constructor(
     private val service: GemWalletConnectServiceInterface,
+    private val signMessageService: GemSignMessageServiceInterface,
     private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val pendingRequests: WalletConnectPendingRequests,
-    private val signMessageService: GemSignMessageServiceInterface,
     private val activeRequest: ActiveWalletConnectRequest,
 ) : ViewModel() {
 
@@ -87,7 +87,6 @@ class WCRequestViewModel @Inject constructor(
         requestJob?.cancel()
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
-        Log.d(TAG, "Resolving request method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
         val job = viewModelScope.launch {
             val outcome = withContext(Dispatchers.IO) {
                 service.processRequest(
@@ -130,7 +129,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
         viewModelScope.launch(Dispatchers.IO) {
             val signature = try {
-                signMessageService.sign(request.wallet.id.id, request.signMessage)
+                service.signMessage(request.wallet.id.id, request.signMessage)
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {

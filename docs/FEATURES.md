@@ -78,6 +78,8 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 
 <sub>Reviewed 2026-09-02. Sources: [chain list](../core/crates/primitives/src/chain.rs), [feature configuration](../core/crates/primitives/src/chain_config.rs), [Squid chain coverage](../core/crates/swapper/src/squid/mod.rs), [address-history contract](../core/crates/chain_traits/src/lib.rs), [simulation implementations](../core/crates/gem_evm/src/provider/simulation.rs), [Solana](../core/crates/gem_solana/src/provider/simulation.rs), [Sui](../core/crates/gem_sui/src/provider/simulation.rs), [TON](../core/crates/gem_ton/src/provider/simulation.rs), [Tron](../core/crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../core/gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../core/crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
 
+The Cetus package-version guard is not a stub: it turns one on-chain failure into a message the swap screen can show, and it clears itself when the built-in version catches up.
+
 ## WalletConnect
 
 The status is based on both the chains returned by Core configuration and the methods accepted by the Core request dispatcher. Method-set links open the chain-specific handler.
@@ -95,7 +97,7 @@ In this section, `➖` means WalletConnect does not publish an ecosystem method-
 | [TON](../core/crates/gem_wallet_connect/src/request_handler/ton.rs) | `ton` | `ton_sendMessage`<br>`ton_signData` | ➖ | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/ton)</sub> |
 | [Tron](../core/crates/gem_wallet_connect/src/request_handler/tron.rs) | `tron` | `tron_signMessage`<br>`tron_signTransaction`<br>`tron_sendTransaction` | `tron_getBalance` (optional) | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/tron)</sub> |
 
-Core's session-wide method list, consumed by both platform approval paths, includes `eth_sendRawTransaction`, but the request handler explicitly rejects it. Android's one-click-auth namespace includes it too. The TODO table tracks this advertised/accepted mismatch separately from methods that are simply absent.
+Core's session-wide method list, consumed by both platform approval paths and by the one-click-auth namespace, advertises only the methods the request handler accepts. A method the handler cannot serve is absent from the method enum, so an incoming request for it reads as unsupported. `solana_signAllTransactions` is advertised and served for a single transaction; a batch is answered with an unsupported error rather than dropped from the session.
 
 ### Chain coverage
 
@@ -162,7 +164,7 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 
 ## Security providers
 
-Security checks cover malicious addresses, address poisoning, websites, and tokens. Staking transactions use local security checks only.
+Security checks cover malicious addresses, address poisoning, websites, and tokens. Core confirmation requests transaction scans only for `Transfer`, `Swap`, `TokenApprove`, and `Generic` inputs. All other input types skip the scan API entirely. Staking requests from older clients still use local security checks only on the backend. Setting the backend `scanEnable` config to `false` bypasses both local and provider transaction checks and returns a non-malicious, incomplete scan without memo requirements. The API reads this flag directly from the database on every scan request, so changes apply to subsequent requests without a cache delay or API restart. A locally verified destination on the matching chain skips provider checks after local fraud and token checks pass. Cross-chain address-name fallbacks do not carry verification. Transaction providers have independent `scanProviderEnable.goplus`, `scanProviderEnable.hashdit`, and `scanProviderEnable.tronscan` flags (default `true`), also read per request.
 
 | Provider | Address security | Address poisoning | Website security | Token security |
 | --- | --- | --- | :---: | --- |
@@ -308,6 +310,10 @@ On-chain swaps use normal transaction tracking; cross-chain providers may also t
 `Omnichain` providers may be eligible for selected same-chain routes as well as cross-chain routes. Chainflip allows same-chain swaps on Tron (USDT ↔ TRX), subject to broker liquidity. `Bridge` and `Cross-chain` providers require different source and destination chains.
 
 <sub>Reviewed 2026-09-02. Source: [active swap providers](../core/crates/swapper/src/swapper.rs). Cetus Aggregator and Orca are inactive.</sub>
+
+## Fiat exchange rates
+
+CoinGecko and CoinMarketCap provide USD-based rates with a provider assigned per currency. BYN, KZT, UZS, EGP, KES, COP, MAD, GHS, and PEN require app 2.114.32+ and remain disabled pending rollout.
 
 ## Fiat providers
 

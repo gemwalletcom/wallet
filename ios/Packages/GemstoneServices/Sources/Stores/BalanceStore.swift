@@ -37,7 +37,7 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
                 reserved: value(balance.reserved),
                 withdrawable: value(balance.withdrawable),
                 earn: value(balance.earn),
-                metadata: balance.metadata.map { $0.map() },
+                metadata: balance.metadata.map { $0.toPrimitives() },
                 updatedAt: .now,
                 isActive: balance.isActive,
             )

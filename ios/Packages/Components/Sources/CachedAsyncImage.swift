@@ -49,8 +49,11 @@ public struct CachedAsyncImage<Content: View>: View {
         }
         phase = .empty
         do {
-            phase = try .success(Image(uiImage: await ImageLoader.shared.image(for: request)))
+            let image = try await ImageLoader.shared.image(for: request)
+            guard !Task.isCancelled else { return }
+            phase = .success(Image(uiImage: image))
         } catch {
+            guard !Task.isCancelled else { return }
             phase = .failure(error)
         }
     }

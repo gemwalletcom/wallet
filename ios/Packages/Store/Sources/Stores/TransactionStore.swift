@@ -137,14 +137,6 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    public func deleteTransactionId(ids: [String]) throws -> Int {
-        try db.write { db in
-            try TransactionRecord
-                .filter(ids.contains(TransactionRecord.Columns.transactionId))
-                .deleteAll(db)
-        }
-    }
-
     private func updateAssetAssociations(_ db: Database, record: TransactionRecord) throws {
         guard let id = record.id else {
             return

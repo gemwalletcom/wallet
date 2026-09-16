@@ -1,0 +1,47 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Foundation
+import enum Gemstone.GemSwapButtonAction
+import enum Gemstone.GemSwapDetailRow
+import enum Gemstone.GemSwapErrorDisplay
+import GemstonePrimitives
+import Localization
+import Primitives
+
+extension GemSwapButtonAction {
+    func title(symbol: String) -> String {
+        switch self {
+        case .retryQuote, .retryTransfer: Localized.Common.tryAgain
+        case .insufficientBalance: Localized.Transfer.insufficientBalance(symbol)
+        case .useMinimumAmount: Localized.Swap.useMinimumAmount
+        case .swap: Localized.Wallet.swap
+        }
+    }
+}
+
+extension GemSwapDetailRow {
+    var title: String {
+        switch self {
+        case .provider: Localized.Common.provider
+        case .rate: Localized.Buy.rate
+        case .estimatedTime: Localized.Swap.EstimatedTime.title
+        case .priceImpact: Localized.Swap.priceImpact
+        case .minimumReceive: Localized.Swap.minReceive
+        case .slippage: Localized.Swap.slippage
+        }
+    }
+}
+
+extension GemSwapErrorDisplay: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .notSupportedAsset: Localized.Errors.Swap.notSupportedAsset
+        case .noQuote: Localized.Errors.Swap.noQuoteAvailable
+        case let .minimumAmount(asset, minAmount):
+            Localized.Errors.Swap.minimumAmount(
+                ValueFormatter(style: .auto).string(minAmount, asset: asset.toPrimitives()).boldMarkdown()
+            )
+        case .amountTooSmall: Localized.Errors.Swap.amountTooSmall
+        }
+    }
+}

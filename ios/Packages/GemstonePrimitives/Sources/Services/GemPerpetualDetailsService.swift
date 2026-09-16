@@ -7,23 +7,23 @@ import Primitives
 
 public extension GemPerpetualDetailsServiceProtocol {
     var chartPeriodValue: ChartPeriod {
-        chartPeriod().map()
+        chartPeriod().toPrimitives()
     }
 
     func setChartPeriodValue(_ period: ChartPeriod) {
-        try? setChartPeriod(period: period.map())
+        try? setChartPeriod(period: period.toGem())
     }
 
     func candleSubscription(perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
-        candleSubscription(perpetual: perpetual.map(), period: period.map())
+        candleSubscription(perpetual: perpetual.toGem(), period: period.toGem())
     }
 
     func candlesticks(perpetual: Perpetual, period: ChartPeriod) async throws -> [ChartCandleStick] {
-        try await candlesticks(perpetual: perpetual.map(), period: period.map()).map { $0.map() }
+        try await candlesticks(perpetual: perpetual.toGem(), period: period.toGem()).map { $0.toPrimitives() }
     }
 
     func apply(update: ChartCandleUpdate, to candlesticks: [ChartCandleStick], perpetual: Perpetual, period: ChartPeriod) -> [ChartCandleStick]? {
-        applyCandleUpdate(candles: candlesticks.map { $0.map() }, update: update.map(), perpetual: perpetual.map(), period: period.map())?
-            .map { $0.map() }
+        mergedCandles(candles: candlesticks.map { $0.toGem() }, update: update.toGem(), perpetual: perpetual.toGem(), period: period.toGem())?
+            .map { $0.toPrimitives() }
     }
 }

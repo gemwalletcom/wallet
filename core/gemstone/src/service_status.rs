@@ -26,6 +26,13 @@ pub struct GemServiceEndpoint {
     pub flag: String,
 }
 
+#[uniffi::export]
+impl GemServiceEndpoint {
+    pub fn title(&self, name: String) -> String {
+        format!("{} {}", name, self.flag)
+    }
+}
+
 impl GemServiceEndpoint {
     fn new(endpoint_type: GemServiceEndpointType, host: &str, flag: &str) -> Self {
         Self {
@@ -98,6 +105,14 @@ mod tests {
     use async_trait::async_trait;
     use futures::executor::block_on;
     use primitives::LatencyType;
+
+    #[test]
+    fn test_an_endpoint_titles_itself_with_its_region_flag() {
+        let endpoint = GemServiceEndpoint::new(GemServiceEndpointType::Api, "api.gemwallet.com", "🇺🇸");
+
+        assert_eq!(endpoint.title("API".to_string()), "API 🇺🇸");
+        assert_eq!(endpoint.host, "api.gemwallet.com");
+    }
 
     #[derive(Debug)]
     struct OfflineProvider;

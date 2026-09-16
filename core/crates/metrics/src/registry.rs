@@ -23,8 +23,7 @@ impl MetricsRegistry {
 
     pub fn encode(&self) -> String {
         let mut buffer = String::new();
-        encode(&mut buffer, &self.registry).unwrap();
-        buffer
+        encode(&mut buffer, &self.registry).map(|_| buffer).unwrap_or_default()
     }
 }
 

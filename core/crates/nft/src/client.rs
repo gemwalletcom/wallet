@@ -109,7 +109,7 @@ impl NFTClient {
             .links
             .into_iter()
             .filter(|link| !link.url.is_empty())
-            .map(|link| NftLinkRow::from_primitive(row.id, link))
+            .filter_map(|link| NftLinkRow::from_primitive(row.id, link))
             .collect();
         self.database.nft()?.set_nft_collection_links(row.id, links)?;
         Ok(row)
@@ -150,7 +150,7 @@ impl NFTClient {
                     .links
                     .into_iter()
                     .filter(|link| !link.url.is_empty())
-                    .filter_map(move |link| pk.map(|pk| NftLinkRow::from_primitive(pk, link)))
+                    .filter_map(move |link| pk.and_then(|pk| NftLinkRow::from_primitive(pk, link)))
             })
             .collect();
         self.database.nft()?.add_nft_collections_links(links)?;

@@ -2,7 +2,9 @@
 
 import Components
 import Formatters
+import GemstonePrimitives
 import enum Gemstone.GemHeaderActions
+import class Gemstone.PriceChangeCalculator
 import Primitives
 import Style
 import SwiftUI
@@ -14,13 +16,13 @@ public struct WalletHeaderViewModel {
 
     public init(
         totalValue: TotalFiatValue,
-        currencyCode: String,
+        currency: Currency,
         showsPnl: Bool,
         actions: GemHeaderActions,
     ) {
         self.totalValue = totalValue
         self.actions = actions
-        let formatter = CurrencyFormatter(type: .fiat, currencyCode: currencyCode)
+        let formatter = CurrencyFormatter(type: .fiat, currencyCode: currency.rawValue)
         totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter, showsPnl: showsPnl)
     }
 }
@@ -42,8 +44,7 @@ extension WalletHeaderViewModel: ValueHeaderViewModel {
 
     public var subtitle: String? {
         guard let amount = totalValueViewModel.pnlAmountText else { return nil }
-        guard let percentage = totalValueViewModel.pnlPercentageText else { return amount }
-        return "\(amount) (\(percentage))"
+        return PriceChangeCalculator().pnlText(formattedAmount: amount, formattedPercentage: totalValueViewModel.pnlPercentageText)
     }
 
     public var subtitleColor: Color {
@@ -57,7 +58,7 @@ extension WalletHeaderViewModel: ValueHeaderViewModel {
     public var buttons: [HeaderButton] {
         switch actions {
         case .watchOnly: []
-        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind.headerButtonType, isEnabled: $0.isEnabled) }
+        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind, isEnabled: $0.isEnabled) }
         }
     }
 }

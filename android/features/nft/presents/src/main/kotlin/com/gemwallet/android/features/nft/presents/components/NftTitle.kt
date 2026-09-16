@@ -14,12 +14,11 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.tinyIconSize
-import com.wallet.core.primitives.VerificationStatus
 
 @Composable
 fun NftTitle(
     name: String,
-    status: VerificationStatus,
+    isVerified: Boolean,
     modifier: Modifier = Modifier,
     iconSize: Dp = tinyIconSize,
 ) {
@@ -34,7 +33,7 @@ fun NftTitle(
             text = name,
             modifier = Modifier.weight(1f, fill = false),
         )
-        if (status == VerificationStatus.Verified) {
+        if (isVerified) {
             Icon(
                 imageVector = AppIcons.Verified,
                 contentDescription = null,

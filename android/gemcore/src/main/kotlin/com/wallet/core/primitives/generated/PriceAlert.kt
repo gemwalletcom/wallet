@@ -26,6 +26,13 @@ data class PriceAlert (
 )
 
 @Serializable
+data class PriceAlertData (
+	val asset: Asset,
+	val price: Price? = null,
+	val priceAlert: PriceAlert
+)
+
+@Serializable
 enum class PriceAlertNotificationType(val string: String) {
 	@SerialName("auto")
 	Auto("auto"),

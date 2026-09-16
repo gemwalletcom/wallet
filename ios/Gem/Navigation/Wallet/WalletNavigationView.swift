@@ -2,6 +2,7 @@
 
 import Assets
 import enum Gemstone.GemPerpetualPositionAction
+import enum Gemstone.GemTransactionHeaderAction
 import Components
 import InfoSheet
 import Localization
@@ -110,7 +111,7 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Collection.self) { scene in
             CollectionsScene(
-                model: viewModelFactory.collectionScene(wallet: model.wallet, collectionId: scene.id, collectionName: scene.name),
+                model: viewModelFactory.collectionScene(wallet: model.wallet, collectionId: scene.id),
             )
         }
         .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
@@ -217,7 +218,7 @@ extension WalletNavigationView {
         Task { await navigationHandler.handle(code: code) }
     }
 
-    private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
+    private func onSelectTransactionHeaderAction(_ action: GemTransactionHeaderAction) {
         Task {
             do {
                 try await presenter.handleTransactionHeaderAction(

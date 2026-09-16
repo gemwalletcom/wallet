@@ -14,7 +14,7 @@ public struct TransactionTypesFilterViewModel: Equatable {
     }
 
     public var requestFilters: [TransactionType] {
-        selectedTypes.flatMap { $0.transactionTypes().map { $0.map() } }
+        selectedTypes.flatMap { $0.transactionTypes().map { $0.toPrimitives() } }
     }
 
     public var typeModel: TransactionsFilterTypeViewModel {

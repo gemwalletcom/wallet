@@ -171,9 +171,14 @@ pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -
     banners.sort_by_key(|item| (state_priority(item.state), event_priority(item.event)));
     banners
         .into_iter()
-        .map(|item| match stored.iter().find(|banner| banner.event == item.event && banner.asset.as_ref().map(|asset| &asset.id) == item.asset_id.as_ref()) {
-            Some(banner) => banner.clone(),
-            None => context.banner(item),
+        .map(|item| {
+            match stored
+                .iter()
+                .find(|banner| banner.event == item.event && banner.asset.as_ref().map(|asset| &asset.id) == item.asset_id.as_ref())
+            {
+                Some(banner) => banner.clone(),
+                None => context.banner(item),
+            }
         })
         .collect()
 }
@@ -373,10 +378,7 @@ mod tests {
         for wallet_type in [WalletType::Multicoin, WalletType::Single, WalletType::PrivateKey, WalletType::View] {
             for asset in [None, Some(tron.clone()), Some(token.clone())] {
                 let context = GemBannerContext {
-                    wallet: Some(Wallet {
-                        wallet_type,
-                        ..Wallet::mock()
-                    }),
+                    wallet: Some(Wallet { wallet_type, ..Wallet::mock() }),
                     asset,
                     ..context(true)
                 };

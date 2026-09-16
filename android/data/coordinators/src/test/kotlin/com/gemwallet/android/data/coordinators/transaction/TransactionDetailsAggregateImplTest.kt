@@ -27,8 +27,11 @@ import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSwapAgain
 import uniffi.gemstone.GemSwapProgress
+import uniffi.gemstone.GemSwapProgressMarker
+import uniffi.gemstone.GemSwapProgressState
 import uniffi.gemstone.GemSwapProgressStep
 import uniffi.gemstone.GemAssetRate
+import uniffi.gemstone.formattedAdaptive
 import uniffi.gemstone.GemSwapRate
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionHeader
@@ -63,14 +66,15 @@ class TransactionDetailsAggregateImplTest {
     )
 
     private fun createAggregate(
-        data: TransactionExtended = createExtended(),
-        rows: GemTransactionDetailRows = mockGemTransactionDetailRows(),
+        rows: GemTransactionDetailRows = mockGemTransactionDetailRows(transaction = createExtended()),
         currency: Currency = Currency.USD,
-    ) = TransactionDetailsAggregateImpl(data = data, rows = rows, currency = currency)
+    ) = TransactionDetailsAggregateImpl(rows = rows, currency = currency)
 
     @Test
     fun testBasicProperties() {
-        val aggregate = createAggregate(rows = mockGemTransactionDetailRows(explorer = BlockExplorerLink("Mempool", "https://mempool.space/tx/1")))
+        val aggregate = createAggregate(
+            rows = mockGemTransactionDetailRows(transaction = createExtended(), explorer = BlockExplorerLink("Mempool", "https://mempool.space/tx/1")),
+        )
 
         Assert.assertEquals("bitcoin_tx123", aggregate.id)
         Assert.assertEquals(btcAsset, aggregate.asset)
@@ -165,7 +169,7 @@ class TransactionDetailsAggregateImplTest {
     @Test
     fun testDate() {
         val data = createExtended()
-        val date = createAggregate(data).date
+        val date = createAggregate(rows = mockGemTransactionDetailRows(transaction = data)).date
 
         Assert.assertTrue(date.data.contains("January 6, 2026"))
         Assert.assertTrue(date.data.contains(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(data.transaction.createdAt))))
@@ -173,7 +177,7 @@ class TransactionDetailsAggregateImplTest {
 
     @Test
     fun testStatusAndNetwork() {
-        val aggregate = createAggregate(createExtended(state = TransactionState.Pending))
+        val aggregate = createAggregate(rows = mockGemTransactionDetailRows(transaction = createExtended(state = TransactionState.Pending)))
 
         Assert.assertEquals(TransactionState.Pending, aggregate.status.data)
         Assert.assertEquals(btcAsset, aggregate.network.data)
@@ -182,8 +186,8 @@ class TransactionDetailsAggregateImplTest {
     @Test
     fun testRate_formatsBothDirectionsFromTheCoreRate() {
         val rate = GemSwapRate(
-            direct = GemAssetRate(baseSymbol = "ETH", quoteSymbol = "USDT", value = 3000.0),
-            inverse = GemAssetRate(baseSymbol = "USDT", quoteSymbol = "ETH", value = 1 / 3000.0),
+            direct = GemAssetRate(baseSymbol = "ETH", quoteSymbol = "USDT", value = formattedAdaptive(3000.0, null)),
+            inverse = GemAssetRate(baseSymbol = "USDT", quoteSymbol = "ETH", value = formattedAdaptive(1 / 3000.0, null)),
         )
 
         val formatted = createAggregate(rows = mockGemTransactionDetailRows(rate = rate)).rate
@@ -232,7 +236,9 @@ class TransactionDetailsAggregateImplTest {
 
     @Test
     fun testProvider_namesTheCoreProvider() {
-        val aggregate = createAggregate(createExtended(type = TransactionType.Swap), rows = mockGemTransactionDetailRows(providerName = "unswap"))
+        val aggregate = createAggregate(
+            rows = mockGemTransactionDetailRows(transaction = createExtended(type = TransactionType.Swap), providerName = "unswap"),
+        )
 
         Assert.assertEquals("unswap", aggregate.provider?.data)
         Assert.assertNull(createAggregate().provider)
@@ -246,8 +252,8 @@ class TransactionDetailsAggregateImplTest {
                     fromAsset = ethAsset.toGem(),
                     fromValue = BigInteger("1000000000000000000"),
                     providerName = "NEAR Intents",
-                    transfer = GemSwapProgressStep.PENDING,
-                    swap = GemSwapProgressStep.WAITING,
+                    transfer = GemSwapProgressState(GemSwapProgressStep.PENDING, GemSwapProgressMarker.SPINNER),
+                    swap = GemSwapProgressState(GemSwapProgressStep.WAITING, GemSwapProgressMarker.DOTS),
                     etaSeconds = 720u,
                 ),
             ),
@@ -256,8 +262,8 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(ethAsset, swapProgress?.fromAsset)
         Assert.assertEquals(BigInteger("1000000000000000000"), swapProgress?.fromValue)
         Assert.assertEquals("NEAR Intents", swapProgress?.providerName)
-        Assert.assertEquals(GemSwapProgressStep.PENDING, swapProgress?.transfer)
-        Assert.assertEquals(GemSwapProgressStep.WAITING, swapProgress?.swap)
+        Assert.assertEquals(GemSwapProgressStep.PENDING, swapProgress?.transfer?.step)
+        Assert.assertEquals(GemSwapProgressStep.WAITING, swapProgress?.swap?.step)
         Assert.assertEquals(720u, swapProgress?.etaInSeconds)
 
         val again = createAggregate(

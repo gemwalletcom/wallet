@@ -2,24 +2,22 @@
 
 import Components
 import Formatters
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 
 public struct PerpetualListItem: View {
     let perpetualData: PerpetualData
-    let currencyStyle: CurrencyFormatterType
     let onPin: (PerpetualData) -> Void
     let onSelect: (Asset) -> Void
 
     public init(
         perpetualData: PerpetualData,
-        currencyStyle: CurrencyFormatterType = .abbreviated,
         onPin: @escaping (PerpetualData) -> Void,
         onSelect: @escaping (Asset) -> Void,
     ) {
         self.perpetualData = perpetualData
-        self.currencyStyle = currencyStyle
         self.onPin = onPin
         self.onSelect = onSelect
     }
@@ -28,10 +26,7 @@ public struct PerpetualListItem: View {
         NavigationCustomLink(
             with: ListAssetItemView(
                 model: PerpetualItemViewModel(
-                    model: PerpetualViewModel(
-                        perpetual: perpetualData.perpetual,
-                        currencyStyle: currencyStyle,
-                    ),
+                    model: PerpetualViewModel(perpetual: perpetualData.perpetual),
                 ),
             ),
             action: { onSelect(perpetualData.asset) },

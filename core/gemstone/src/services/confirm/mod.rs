@@ -13,10 +13,10 @@ mod transfer;
 use std::sync::Arc;
 use std::time::Duration;
 
+pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
 pub use model::*;
 pub use rules::acquire_asset_flow;
-pub use confirmation::GemConfirmation;
 pub use signer::GemTransactionSigner;
 pub use transfer::GemConfirmTransferService;
 
@@ -100,7 +100,10 @@ impl GemConfirmService {
         };
 
         // A scanner outage fails open by design: the send continues without a verdict.
-        let scan_future = async { self.scanner.scan_transaction(rules::scan_payload(preload_input.clone())).await.ok() };
+        let scan_future = async {
+            let payload = rules::scan_payload(preload_input.clone())?;
+            self.scanner.scan_transaction(payload).await.ok()
+        };
         let (metadata, fee_rates, scan, simulation) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input.clone()),
             self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
@@ -108,7 +111,7 @@ impl GemConfirmService {
             self.simulate(chain, &input),
         );
         let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = rules::displayed_fee_rates(fee_rates.map_err(error::load_error)?);
+        let fee_rates = rules::confirmation_fee_rates(chain, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
         let simulation = simulation?;
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
@@ -140,6 +143,7 @@ impl GemConfirmService {
         }
 
         Ok(GemConfirmData {
+            additional_fees: fee.options.items(),
             input,
             fee,
             selected_priority: selected.priority,
@@ -334,5 +338,73 @@ impl GemConfirmService {
 impl GemConfirmService {
     async fn input_metadata(&self, wallet_id: WalletId, input_type: &TransactionInputType, fee_asset_id: AssetId) -> Result<GemConfirmMetadata, GemConfirmError> {
         self.metadata(wallet_id, input_type.transaction_asset().id, fee_asset_id, input_type.asset_ids()).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use futures::executor::block_on;
+    use primitives::{Account, Asset, Chain, FeePriority, TransactionInputType, Wallet, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, swap::SwapData};
+
+    use super::testkit::ConfirmTestkit;
+    use super::{GemConfirmData, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoadOptions};
+    use crate::services::transfer::{GemRecipient, GemTransferData};
+    use crate::testkit::TestAlienProvider;
+
+    fn spot_swap_transfer() -> GemTransferData {
+        GemTransferData {
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::HyperCore),
+                to_asset: Asset {
+                    id: HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
+                    ..Asset::from_chain(Chain::HyperCore)
+                },
+                swap_data: SwapData::mock(),
+            },
+            recipient: GemRecipient::address("0xrecipient".into()),
+            value: 0.into(),
+            use_max_amount: false,
+        }
+    }
+
+    fn load_with_scan(scan: &str) -> (Result<GemConfirmData, GemConfirmError>, Vec<String>) {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::HyperCore, "0xsender")]);
+            let provider = Arc::new(TestAlienProvider::with_json(200, scan));
+            let testkit = ConfirmTestkit::with_provider(wallet.clone(), wallet.clone(), provider.clone());
+            let input = testkit.service.confirm_input(wallet, spot_swap_transfer()).unwrap();
+            let options = GemConfirmLoadOptions {
+                fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
+                fee_asset_id: None,
+            };
+
+            let result = testkit.confirm.load(input, options).await;
+            (result, provider.requested_paths())
+        })
+    }
+
+    #[test]
+    fn test_a_malicious_verdict_stops_the_load_before_it_asks_the_chain() {
+        let (result, requests) = load_with_scan(r#"{"isMalicious":true,"isScanComplete":true}"#);
+
+        assert!(matches!(result, Err(GemConfirmError::ScanMalicious)));
+        assert_eq!(
+            requests,
+            vec!["/v2/devices/scan/transaction"],
+            "a rejected input never reaches the transaction load, so the chain is never asked and no agent credential is created for it"
+        );
+    }
+
+    #[test]
+    fn test_a_clean_verdict_lets_the_load_ask_the_chain() {
+        let (_, requests) = load_with_scan(r#"{"isMalicious":false,"isScanComplete":true}"#);
+
+        assert_eq!(
+            requests,
+            vec!["/v2/devices/scan/transaction", "https://gemnodes.com/hypercore/info"],
+            "the transaction load runs once the scan clears, and only then"
+        );
     }
 }

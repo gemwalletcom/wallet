@@ -1,5 +1,23 @@
 use serde::Deserialize;
 use serde_json::Value;
+use std::collections::HashMap;
+
+pub(crate) const USD_ID: u64 = 2781;
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct PriceConversionResponse {
+    pub data: PriceConversion,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct PriceConversion {
+    pub quote: HashMap<String, ConversionQuote>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct ConversionQuote {
+    pub price: f64,
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ListingsResponse {

@@ -1,5 +1,4 @@
 use crate::services::chain::rules::chain_matches_query;
-use crate::services::collections::unique_by;
 
 use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
 use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, Wallet, WalletType};
@@ -82,10 +81,6 @@ pub fn wallet_chains(wallet: &Wallet) -> Vec<Chain> {
     }
 }
 
-pub fn merge_assets(assets: Vec<AssetBasic>, tokens: Vec<AssetBasic>) -> Vec<AssetBasic> {
-    unique_by(assets.into_iter().chain(tokens), |asset| asset.asset.id.clone())
-}
-
 pub fn prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
     crate::services::assets::rules::asset_prices(assets)
 }
@@ -132,15 +127,6 @@ mod tests {
         assert_eq!(list.search_key(""), "tag:stocks");
         assert_eq!(list.search_key("eth"), "eth");
         assert_eq!(list.api_tags(), vec!["stocks".to_string()]);
-    }
-
-    #[test]
-    fn test_merge_assets_dedupes_by_id() {
-        let merged = merge_assets(
-            vec![asset(Chain::Ethereum, None), asset(Chain::Ethereum, Some("0x1"))],
-            vec![asset(Chain::Ethereum, Some("0x1")), asset(Chain::Solana, None)],
-        );
-        assert_eq!(merged.len(), 3);
     }
 
     #[test]

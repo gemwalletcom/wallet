@@ -17,10 +17,16 @@ import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggre
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetual.views.components.PerpetualModifyBottomSheet
-import com.gemwallet.android.features.perpetual.views.components.PerpetualPositionActions
 import com.gemwallet.android.features.perpetual.views.components.perpetualInfo
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.perpetual.localization.stringRes
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
+import uniffi.gemstone.GemPerpetualButton
+import uniffi.gemstone.GemPerpetualInfoRow
+import uniffi.gemstone.GemPerpetualPositionDetailRow
+import uniffi.gemstone.GemPerpetualSection
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
@@ -51,6 +57,11 @@ internal fun PerpetualPositionScene(
     chart: StateViewType<List<ChartCandleStick>>,
     period: ChartPeriod,
     isRefreshing: Boolean,
+    sections: List<GemPerpetualSection>,
+    positionRows: List<GemPerpetualPositionDetailRow>,
+    infoRows: List<GemPerpetualInfoRow>,
+    buttons: List<GemPerpetualButton>,
+    modifyButtons: List<GemPerpetualButton>,
     snackbar: SnackbarHostState? = null,
     onAction: (PerpetualDetailsAction) -> Unit,
 ) {
@@ -61,6 +72,7 @@ internal fun PerpetualPositionScene(
         onClose = { onAction(PerpetualDetailsAction.Close) },
         snackbar = snackbar,
     ) {
+        val transactionSections = rememberDateSections(transactions) { it.createdAt }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualDetailsAction.Refresh) },
@@ -76,22 +88,38 @@ internal fun PerpetualPositionScene(
                         onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
                     )
                 }
-                positionProperties(position, onAutocloseClick = { onAction(PerpetualDetailsAction.Autoclose) })
-                item {
-                    if (perpetual != null) {
-                        if (position == null) {
-                            PerpetualActions { onAction(PerpetualDetailsAction.OpenPosition(it)) }
-                        } else {
-                            PerpetualPositionActions(
-                                onModify = { showModifyDialog = true },
-                                onClose = { onAction(PerpetualDetailsAction.ClosePosition) },
+                sections.forEach { section ->
+                    when (section) {
+                        GemPerpetualSection.POSITION -> {
+                            item { SubheaderItem(section.stringRes()) }
+                            positionProperties(
+                                position = position,
+                                rows = positionRows,
+                                onAutocloseClick = { onAction(PerpetualDetailsAction.Autoclose) },
                             )
+                        }
+                        GemPerpetualSection.INFO -> {
+                            item {
+                                if (perpetual != null) {
+                                    PerpetualActions(buttons) { button ->
+                                        when (button) {
+                                            GemPerpetualButton.LONG -> onAction(PerpetualDetailsAction.OpenPosition(PerpetualDirection.Long))
+                                            GemPerpetualButton.SHORT -> onAction(PerpetualDetailsAction.OpenPosition(PerpetualDirection.Short))
+                                            GemPerpetualButton.MODIFY -> showModifyDialog = true
+                                            GemPerpetualButton.CLOSE -> onAction(PerpetualDetailsAction.ClosePosition)
+                                            GemPerpetualButton.INCREASE -> onAction(PerpetualDetailsAction.IncreasePosition)
+                                            GemPerpetualButton.REDUCE -> onAction(PerpetualDetailsAction.ReducePosition)
+                                        }
+                                    }
+                                }
+                            }
+                            item { SubheaderItem(section.stringRes()) }
+                            perpetual?.let { perpetualInfo(it, infoRows) }
                         }
                     }
                 }
-                perpetual?.let { perpetualInfo(it) }
                 if (transactions.isNotEmpty()) {
-                    transactionsList(transactions) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
+                    transactionsList(transactionSections) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
                 }
             }
         }
@@ -99,9 +127,15 @@ internal fun PerpetualPositionScene(
 
     PerpetualModifyBottomSheet(
         isVisible = showModifyDialog,
+        buttons = modifyButtons,
         onDismiss = { showModifyDialog = false },
-        onIncreasePosition = { onAction(PerpetualDetailsAction.IncreasePosition) },
-        onReducePosition = { onAction(PerpetualDetailsAction.ReducePosition) },
+        onSelect = { button ->
+            when (button) {
+                GemPerpetualButton.INCREASE -> onAction(PerpetualDetailsAction.IncreasePosition)
+                GemPerpetualButton.REDUCE -> onAction(PerpetualDetailsAction.ReducePosition)
+                GemPerpetualButton.LONG, GemPerpetualButton.SHORT, GemPerpetualButton.MODIFY, GemPerpetualButton.CLOSE -> Unit
+            }
+        },
     )
 }
 
@@ -203,6 +237,11 @@ private fun PerpetualPositionScenePreview() {
             chart = StateViewType.Data(chartData),
             period = ChartPeriod.Day,
             isRefreshing = false,
+            sections = listOf(GemPerpetualSection.POSITION, GemPerpetualSection.INFO),
+            positionRows = GemPerpetualPositionDetailRow.entries,
+            infoRows = GemPerpetualInfoRow.entries,
+            buttons = listOf(GemPerpetualButton.MODIFY, GemPerpetualButton.CLOSE),
+            modifyButtons = listOf(GemPerpetualButton.INCREASE, GemPerpetualButton.REDUCE),
             onAction = {},
         )
     }

@@ -15,7 +15,7 @@ public struct ConfirmBalanceChangeViewModel {
 
     init(balanceChange: GemSimulationBalanceChange) {
         self.balanceChange = balanceChange
-        asset = balanceChange.asset.map()
+        asset = balanceChange.asset.toPrimitives()
     }
 
     public var assetTitle: String {

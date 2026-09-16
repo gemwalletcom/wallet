@@ -3,6 +3,7 @@ use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{self, Output, ToSql};
 use primitives::AssetId as PrimitiveAssetId;
+use primitives::FiatRateProvider as PrimitiveFiatRateProvider;
 use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::nft::NFTType as PrimitiveNFTType;
 use primitives::rewards::{
@@ -26,11 +27,11 @@ use std::str::FromStr;
 
 use crate::schema::sql_types::{
     AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql,
-    FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql,
-    NftType as NftTypeSql, NotificationType as NotificationTypeSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql,
-    RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, TagVisibility as TagVisibilitySql,
-    TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql,
-    WalletType as WalletTypeSql,
+    FiatRateProvider as FiatRateProviderSql, FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql,
+    LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql,
+    RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql,
+    TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql,
+    WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
@@ -175,6 +176,7 @@ diesel_enum!(UsernameStatus, PrimitiveUsernameStatus, UsernameStatusSql, [Unveri
 diesel_enum!(Platform, PrimitivePlatform, PlatformSql, [IOS, Android]);
 
 diesel_enum!(Currency, PrimitiveCurrency, CurrencySql);
+diesel_enum!(FiatRateProviderRow, PrimitiveFiatRateProvider, FiatRateProviderSql);
 
 diesel_enum!(
     DeviceLocale,

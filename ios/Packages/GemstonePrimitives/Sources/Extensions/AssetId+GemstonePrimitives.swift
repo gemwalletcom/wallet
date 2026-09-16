@@ -5,6 +5,6 @@ import Primitives
 
 public extension Primitives.AssetId {
     var assetType: AssetType? {
-        ChainConfig.config(chain: chain).defaultAssetType?.map()
+        ChainConfig.config(chain: chain).defaultAssetType?.toPrimitives()
     }
 }

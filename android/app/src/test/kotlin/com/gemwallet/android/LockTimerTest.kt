@@ -99,6 +99,7 @@ class LockTimerTest {
             icons = emptyList(),
             requiredNamespaces = emptyMap(),
             optionalNamespaces = emptyMap(),
+            pairingTopic = "pairing",
             proposerPublicKey = "key",
             properties = null,
         ),

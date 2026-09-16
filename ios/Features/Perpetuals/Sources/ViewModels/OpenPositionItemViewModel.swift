@@ -2,7 +2,9 @@
 
 import Components
 import Formatters
+import class Gemstone.GemPerpetual
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -11,6 +13,7 @@ import SwiftUI
 struct OpenPositionItemViewModel: ListAssetItemViewable {
     private let data: AutocloseOpenData
     private let currencyFormatter: CurrencyFormatter
+    private let perpetual = GemPerpetual(provider: .hypercore)
 
     var action: ((ListAssetItemAction) -> Void)?
 
@@ -60,6 +63,9 @@ extension OpenPositionItemViewModel {
     }
 
     private var positionTypeText: String {
-        "\(directionViewModel.title.uppercased()) \(Int(data.leverage))x"
+        perpetual.positionText(
+            directionName: directionViewModel.title,
+            formattedLeverage: perpetual.leverageText(value: data.leverage),
+        )
     }
 }

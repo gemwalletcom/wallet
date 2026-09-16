@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import GemstonePrimitives
 import class Gemstone.PriceChangeCalculator
 import Foundation
 import Style

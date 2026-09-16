@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use primitives::{Asset, RecentActivityType, WalletId};
+use primitives::{Asset, AssetId, RecentActivityType, WalletId};
 
 use crate::services::assets::GemAssetAction;
 use crate::services::error::GemServiceError;
+use crate::services::search::rules::matching_assets;
 use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -41,6 +42,18 @@ impl GemRecentActivityService {
 
     pub async fn clear(&self, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
         self.store.clear(self.session.current_wallet_id()?, types).await
+    }
+
+    pub fn view_state(&self, assets: Vec<Asset>, query: String) -> GemRecentsViewState {
+        let matching = matching_assets(assets.clone(), &query);
+        GemRecentsViewState {
+            sections: GemRecentsCounts {
+                recents: assets.len() as u32,
+                matching: matching.len() as u32,
+            }
+            .sections(!query.trim().is_empty()),
+            matching_asset_ids: matching.into_iter().map(|asset| asset.id).collect(),
+        }
     }
 }
 
@@ -87,6 +100,25 @@ mod tests {
     }
 
     #[test]
+    fn test_a_view_state_matches_the_query_and_names_the_sections() {
+        let service = service(Arc::new(MemoryRecentActivityStore::default()), None);
+        let assets = vec![Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Bitcoin)];
+
+        let listed = service.view_state(assets.clone(), String::new());
+        assert_eq!(listed.matching_asset_ids.len(), 2);
+        assert!(listed.sections.shows_items && listed.sections.shows_clear);
+
+        let searched = service.view_state(assets.clone(), "bitcoin".to_string());
+        assert_eq!(searched.matching_asset_ids, vec![Asset::from_chain(Chain::Bitcoin).id]);
+        assert!(!searched.sections.shows_clear, "a search hides the clear action");
+
+        let missed = service.view_state(assets, "  nothing  ".to_string());
+        assert!(missed.sections.shows_no_results && !missed.sections.shows_empty);
+
+        assert!(service.view_state(vec![], String::new()).sections.shows_empty);
+    }
+
+    #[test]
     fn test_an_input_type_without_recent_activity_writes_nothing() {
         let store = Arc::new(MemoryRecentActivityStore::default());
         let service = service(store.clone(), None);
@@ -112,6 +144,12 @@ mod tests {
 pub struct GemRecentsCounts {
     pub recents: u32,
     pub matching: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRecentsViewState {
+    pub matching_asset_ids: Vec<AssetId>,
+    pub sections: GemRecentsSections,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

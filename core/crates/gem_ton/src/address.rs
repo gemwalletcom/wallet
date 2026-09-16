@@ -67,7 +67,7 @@ impl Address {
     }
 
     pub fn hash_part(&self) -> &HashPart {
-        self.bytes[1..].try_into().unwrap()
+        self.bytes.last_chunk().unwrap_or(&[0; 32])
     }
 
     pub fn try_parse_base64(base64: &str) -> Option<Self> {

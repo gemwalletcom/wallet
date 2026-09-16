@@ -86,7 +86,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
-        every { confirmation.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, false, null)
+        every { confirmation.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, null)
         coEvery { confirmation.state() } returns mockGemConfirmLoad(asset, preload = null)
         coEvery { confirmation.load(any()) } answers {
             throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null)

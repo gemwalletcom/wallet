@@ -1,5 +1,4 @@
 use crate::block_explorer::BlockExplorer;
-use std::collections::HashMap;
 
 pub const TX_PATH: &str = "/tx";
 pub const TXN_PATH: &str = "/txn";
@@ -142,30 +141,9 @@ impl BlockExplorer for Explorer {
     }
 }
 
-pub struct MultiChainExplorer {
-    configs: HashMap<&'static str, Metadata>,
-}
-
-impl Default for MultiChainExplorer {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl MultiChainExplorer {
-    pub fn new() -> Self {
-        Self { configs: HashMap::new() }
-    }
-
-    pub fn add_chain(mut self, chain: &'static str, config: Metadata) -> Self {
-        self.configs.insert(chain, config);
-        self
-    }
-
-    pub fn for_chain(&self, chain: &'static str) -> Option<Box<dyn BlockExplorer>> {
-        self.configs
-            .get(chain)
-            .map(|config| Box::new(Explorer { config: config.clone() }) as Box<dyn BlockExplorer>)
+impl Metadata {
+    pub fn explorer(self) -> Box<dyn BlockExplorer> {
+        Box::new(Explorer { config: self })
     }
 }
 
@@ -250,43 +228,5 @@ mod tests {
         assert_eq!(cosmos_style.token_path, Some(ASSETS_PATH));
         assert_eq!(cosmos_style.nft_path, None);
         assert_eq!(cosmos_style.validator_path, Some(VALIDATORS_PATH));
-    }
-
-    #[test]
-    fn test_multi_chain_explorer() {
-        let multi_explorer = MultiChainExplorer::new()
-            .add_chain(
-                "chain1",
-                Metadata {
-                    name: "MultiTest",
-                    base_url: "https://chain1.com",
-                    tx_path: TX_PATH,
-                    address_path: ADDRESS_PATH,
-                    token_path: None,
-                    nft_path: None,
-                    validator_path: None,
-                },
-            )
-            .add_chain(
-                "chain2",
-                Metadata {
-                    name: "MultiTest",
-                    base_url: "https://chain2.com",
-                    tx_path: TRANSACTION_PATH,
-                    address_path: ACCOUNT_PATH,
-                    token_path: Some(TOKEN_PATH),
-                    nft_path: None,
-                    validator_path: None,
-                },
-            );
-
-        let chain1_explorer = multi_explorer.for_chain("chain1").unwrap();
-        let chain2_explorer = multi_explorer.for_chain("chain2").unwrap();
-
-        assert_eq!(chain1_explorer.get_tx_url("hash"), "https://chain1.com/tx/hash");
-        assert_eq!(chain2_explorer.get_tx_url("hash"), "https://chain2.com/transaction/hash");
-        assert_eq!(chain2_explorer.get_token_url("token"), Some("https://chain2.com/token/token".to_string()));
-
-        assert!(multi_explorer.for_chain("nonexistent").is_none());
     }
 }

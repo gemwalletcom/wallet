@@ -33,7 +33,7 @@ struct TransactionInputViewModelTests {
             data: .mock(value: 100),
             fee: nil,
             metaData: nil,
-            transferAmount: .failure(GemConfirmError.InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: 1, available: 0, shortfall: 1))),
+            transferAmount: .failure(GemConfirmError.InsufficientBalance(asset: Asset.mock().toGem(), requirement: GemBalanceRequirement(required: 1, available: 0, shortfall: 1))),
             feeAsset: .mock(),
             currency: Currency.usd.rawValue,
         )
@@ -90,7 +90,7 @@ struct TransactionInputViewModelTests {
         let metaData = GemConfirmMetadata(
             assetBalance: .mock(assetId: assetId.identifier),
             feeAssetBalance: .mock(assetId: assetId.identifier),
-            prices: [AssetPrice.mock(assetId: assetId, price: Price.mock().price, priceChangePercentage24h: 0).map()],
+            prices: [AssetPrice.mock(assetId: assetId, price: Price.mock().price, priceChangePercentage24h: 0).toGem()],
         )
         let viewModel = TransactionInputViewModel(
             data: .mock(),

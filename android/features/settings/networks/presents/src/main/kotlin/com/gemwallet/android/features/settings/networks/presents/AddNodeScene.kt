@@ -24,6 +24,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.settings.networks.presents.localization.stringRes
+import com.gemwallet.android.features.settings.networks.presents.localization.text
+import com.gemwallet.android.features.settings.networks.presents.style.icon
+import com.gemwallet.android.features.settings.networks.presents.style.tint
+import uniffi.gemstone.GemNodeCheckRow
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.wallet.core.primitives.QRScanType
@@ -39,10 +44,8 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Placeholder
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
-import java.text.NumberFormat
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.localization.string
 
@@ -89,41 +92,8 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
             }
         )
         Spacer16()
-        if (uiModel.canImport) {
-            val nf = NumberFormat.getInstance()
-            val status = requireNotNull(uiModel.status)
-
-            PropertyItem(R.string.nodes_import_node_chain_id, status.chainId ?: Placeholder.empty)
-            PropertyItem(
-                title = {
-                    PropertyTitleText(R.string.nodes_import_node_in_sync)
-                },
-                data = {
-                    PropertyDataText(
-                        "",
-                        badge = {
-                            if (status.isInSync) {
-                                Icon(
-                                    imageVector = AppIcons.CheckCircleOutlined,
-                                    tint = MaterialTheme.colorScheme.tertiary,
-                                    contentDescription = ""
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = AppIcons.Cancel,
-                                    tint = MaterialTheme.colorScheme.error,
-                                    contentDescription = ""
-                                )
-                            }
-                        }
-                    )
-                },
-            )
-            PropertyItem(R.string.nodes_import_node_latest_block, nf.format(status.latestBlockNumber.toLong()))
-            PropertyItem(
-                R.string.nodes_import_node_latency,
-                stringResource(R.string.common_latency_in_ms, status.latency.value.toLong())
-            )
+        uiModel.status?.let { status ->
+            status.rows().forEach { NodeCheckRow(it) }
             WarningItem()
         }
     }
@@ -195,4 +165,26 @@ private fun WarningItem() {
             )
         },
     )
+}
+
+@Composable
+private fun NodeCheckRow(row: GemNodeCheckRow) {
+    when (row) {
+        is GemNodeCheckRow.InSync -> PropertyItem(
+            title = { PropertyTitleText(row.stringRes()) },
+            data = {
+                PropertyDataText(
+                    "",
+                    badge = {
+                        Icon(
+                            imageVector = row.state.icon(),
+                            tint = row.state.tint(),
+                            contentDescription = "",
+                        )
+                    },
+                )
+            },
+        )
+        else -> PropertyItem(row.stringRes(), row.text())
+    }
 }

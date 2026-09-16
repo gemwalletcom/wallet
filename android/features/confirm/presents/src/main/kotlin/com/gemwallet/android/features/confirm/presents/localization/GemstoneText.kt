@@ -1,22 +1,35 @@
 package com.gemwallet.android.features.confirm.presents.localization
 
+import com.wallet.core.primitives.FeeUnitType
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.title
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ext.toGemNetworkError
+import com.gemwallet.android.ext.toGemErrorText
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.GemNetworkError
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.localizedDescription
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.components.perpetual.title
+import com.wallet.core.primitives.Asset
+import java.math.BigInteger
 import uniffi.gemstone.GemConfirmButtonKind
+import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
-import uniffi.gemstone.GemSignerError
+import uniffi.gemstone.GemValueStyle
+
+internal fun GemConfirmDestination.title(): Int = when (this) {
+    is GemConfirmDestination.Recipient -> R.string.transfer_recipient_title
+    is GemConfirmDestination.Contract -> R.string.asset_contract
+    is GemConfirmDestination.Validator -> R.string.stake_validator
+    is GemConfirmDestination.Resource -> R.string.stake_resource
+    is GemConfirmDestination.Provider -> R.string.common_provider
+}
 
 @Composable
 internal fun GemConfirmTitle.string(): String = when (this) {
@@ -48,74 +61,62 @@ internal fun GemConfirmScreen.buttonLabel(kind: GemConfirmButtonKind): String = 
 }
 
 @Composable
-internal fun Throwable.toPreloadLabel(): String = toConfirmLabel()
-    ?: toGemNetworkError()?.localizedDescription()
-    ?: "${stringResource(R.string.confirm_fee_error)}: ${stringResource(R.string.errors_unable_estimate_network_fee)}"
-
-@Composable
-internal fun Throwable.toBroadcastLabel(): String = toConfirmLabel()
-    ?: toGemNetworkError()?.localizedDescription()
+internal fun Throwable.toBroadcastLabel(): String = (this as? GemConfirmException)?.display()?.text()
+    ?: toGemErrorText()?.text(LocalContext.current)
     ?: "${stringResource(R.string.errors_transfer_error)}: ${message ?: toString()}"
 
 @Composable
-private fun Throwable.toConfirmLabel(): String? = (this as? GemConfirmException)?.string()
-
-@Composable
-private fun GemConfirmException.string(): String = when (this) {
-    is GemConfirmException.ScanMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
-    is GemConfirmException.ScanMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
-    is GemConfirmException.FeeRatesMissing -> stringResource(R.string.errors_unable_estimate_network_fee)
-    is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
-    is GemConfirmException.Cancelled -> stringResource(R.string.errors_cancelled)
-    is GemConfirmException.AccountMissing -> stringResource(R.string.errors_wallet_account_missing)
-    is GemConfirmException.SenderMismatch -> stringResource(R.string.errors_unknown)
-    is GemConfirmException.BalanceMissing -> toString()
-    is GemConfirmException.InsufficientBalance -> {
-        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+internal fun GemConfirmErrorDisplay.text(): String = when (this) {
+    is GemConfirmErrorDisplay.Offline -> stringResource(R.string.errors_network_offline)
+    is GemConfirmErrorDisplay.Malicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
+    is GemConfirmErrorDisplay.MemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
+    is GemConfirmErrorDisplay.FeeRatesMissing -> stringResource(R.string.errors_unable_estimate_network_fee)
+    is GemConfirmErrorDisplay.Cancelled -> stringResource(R.string.errors_cancelled)
+    is GemConfirmErrorDisplay.AccountMissing -> stringResource(R.string.errors_wallet_account_missing)
+    is GemConfirmErrorDisplay.Unknown -> stringResource(R.string.errors_unknown)
+    is GemConfirmErrorDisplay.BalanceRequired -> {
         val asset = asset.toPrimitives()
         stringResource(
             R.string.info_balance_required_description,
-            formatter.string(requirement.required, asset).boldMarkdown(),
-            formatter.string(requirement.available, asset),
-            formatter.string(requirement.shortfall, asset),
+            amount(requirement.required, asset).boldMarkdown(),
+            amount(requirement.available, asset).boldMarkdown(),
+            amount(requirement.shortfall, asset).boldMarkdown(),
         )
     }
-    is GemConfirmException.InsufficientNetworkFee -> {
-        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+    is GemConfirmErrorDisplay.NetworkFeeRequired -> {
         val asset = asset.toPrimitives()
-        requirement?.let {
-            stringResource(
-                R.string.info_insufficient_network_fee_balance_description,
-                formatter.string(it.required, asset).boldMarkdown(),
-                asset.id.chain.networkName().boldMarkdown(),
-                formatter.string(it.available, asset),
-                formatter.string(it.shortfall, asset),
-            )
-        } ?: stringResource(R.string.transfer_insufficient_network_fee_balance, asset.title.boldMarkdown())
+        stringResource(
+            R.string.info_insufficient_network_fee_balance_description,
+            amount(requirement.required, asset).boldMarkdown(),
+            asset.id.chain.networkName().boldMarkdown(),
+            amount(requirement.available, asset).boldMarkdown(),
+            amount(requirement.shortfall, asset).boldMarkdown(),
+        )
     }
-    is GemConfirmException.MinimumAccountBalanceTooLow -> stringResource(
-        R.string.transfer_minimum_account_balance,
-        ValueFormatter(style = ValueFormatter.Style.Full).string(requirement.required, asset.toPrimitives()).boldMarkdown(),
-    )
-    is GemConfirmException.BelowSwapMinimum -> {
-        val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+    is GemConfirmErrorDisplay.NetworkFeeMissing ->
+        stringResource(R.string.transfer_insufficient_network_fee_balance, asset.toPrimitives().title.boldMarkdown())
+    is GemConfirmErrorDisplay.MinimumAccountBalance ->
+        stringResource(R.string.transfer_minimum_account_balance, amount(required, asset.toPrimitives()).boldMarkdown())
+    is GemConfirmErrorDisplay.SwapMinimum -> {
         val asset = asset.toPrimitives()
         stringResource(
             R.string.info_swap_minimum_amount_description,
             providerName.boldMarkdown(),
-            formatter.string(requirement.required, asset).boldMarkdown(),
-            formatter.string(requirement.available, asset),
-            formatter.string(requirement.shortfall, asset),
+            amount(requirement.required, asset).boldMarkdown(),
+            amount(requirement.available, asset).boldMarkdown(),
+            amount(requirement.shortfall, asset).boldMarkdown(),
         )
     }
-    is GemConfirmException.Sign -> when (error) {
-        GemSignerError.DustThreshold -> stringResource(R.string.errors_dust_threshold_short)
-        GemSignerError.InsufficientFunds -> stringResource(R.string.info_insufficient_balance_title)
-        else -> msg
-    }
-    is GemConfirmException.Network -> msg
-    is GemConfirmException.Load -> msg
-    is GemConfirmException.Broadcast -> msg
-    is GemConfirmException.Record -> msg
-    is GemConfirmException.ApprovalInvalid -> msg
+    is GemConfirmErrorDisplay.DustThreshold -> stringResource(R.string.errors_dust_threshold_short)
+    is GemConfirmErrorDisplay.InsufficientFunds -> stringResource(R.string.info_insufficient_balance_title)
+    is GemConfirmErrorDisplay.Message -> msg
+}
+
+private fun amount(value: BigInteger, asset: Asset): String = ValueFormatter(style = GemValueStyle.FULL).string(value, asset)
+
+@Composable
+internal fun FeeUnitType.suffix(assetSymbol: String): String = when (this) {
+    FeeUnitType.SatVb -> stringResource(R.string.fee_rate_satvB)
+    FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei)
+    FeeUnitType.Native -> assetSymbol
 }

@@ -8,7 +8,7 @@ use crate::services::error::GemServiceError;
 
 #[derive(Default)]
 pub struct MemoryAssetStore {
-    assets: Mutex<Vec<Asset>>,
+    pub assets: Mutex<Vec<AssetBasic>>,
     pub added_balances: Mutex<Vec<(WalletId, Vec<AssetId>, bool)>>,
 }
 
@@ -18,14 +18,21 @@ impl GemAssetStore for MemoryAssetStore {
         Ok(self.get_assets(asset_ids).await?.into_iter().map(|asset| asset.id).collect())
     }
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
-        Ok(self.assets.lock().unwrap().iter().filter(|asset| asset_ids.contains(&asset.id)).cloned().collect())
+        Ok(self
+            .assets
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|basic| asset_ids.contains(&basic.asset.id))
+            .map(|basic| basic.asset.clone())
+            .collect())
     }
     async fn save_assets(&self, assets: Vec<AssetBasic>) -> Result<(), GemServiceError> {
-        self.assets.lock().unwrap().extend(assets.into_iter().map(|asset| asset.asset));
+        self.assets.lock().unwrap().extend(assets);
         Ok(())
     }
     async fn save_asset(&self, asset: AssetFull) -> Result<(), GemServiceError> {
-        self.assets.lock().unwrap().push(asset.asset);
+        self.assets.lock().unwrap().push(AssetBasic::new(asset.asset, asset.properties, asset.score));
         Ok(())
     }
     async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {

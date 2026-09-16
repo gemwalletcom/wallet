@@ -14,6 +14,29 @@ pub enum GemDelegationTone {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemStakeSection {
+    Manage,
+    Resources,
+    Delegations,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemStakeInfoRow {
+    Apr,
+    LockTime,
+    MinimumAmount,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemDelegationRow {
+    Provider,
+    Apr,
+    Status,
+    CompletionDate,
+    Rewards,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemDelegationCompletion {
     ActiveIn,
     AvailableIn,

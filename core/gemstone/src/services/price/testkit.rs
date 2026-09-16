@@ -40,10 +40,11 @@ impl GemPriceStore for MemoryPriceStore {
         Ok(())
     }
     async fn save_prices(&self, currency: Currency, prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError> {
-        self.prices
-            .lock()
-            .unwrap()
-            .extend(prices.iter().map(|price| AssetPrice::new(price.asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at)));
+        self.prices.lock().unwrap().extend(
+            prices
+                .iter()
+                .map(|price| AssetPrice::new(price.asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at)),
+        );
         self.saved.lock().unwrap().push((currency, prices));
         Ok(())
     }

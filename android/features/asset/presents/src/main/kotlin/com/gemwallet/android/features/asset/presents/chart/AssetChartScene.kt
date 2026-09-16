@@ -1,10 +1,10 @@
 package com.gemwallet.android.features.asset.presents.chart
 
-import com.gemwallet.android.ui.LocalAddressService
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
-import com.gemwallet.android.ui.format.rememberFormattedAddress
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -23,7 +23,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.features.asset.presents.localization.stringRes
+import com.gemwallet.android.features.asset.viewmodels.chart.models.AllTimeUIModel
+import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartSectionUIModel
+import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketInfoUIModel
+import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketRowUIModel
+import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.AssetChartViewModel
+import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.ui.LocalAddressService
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.ChipBadge
@@ -42,16 +50,10 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.format.rememberFormattedAddress
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.smallIconSize
-import androidx.annotation.StringRes
-import com.gemwallet.android.features.asset.viewmodels.chart.models.AllTimeUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartSectionUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketInfoUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketRowUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.AssetChartViewModel
-import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -92,19 +94,19 @@ fun AssetChartScene(
             },
             containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { Chart(chartViewModel) }
                 marketModel?.let { model ->
                     model.sections.forEach { section ->
                         when (section) {
-                            is ChartSectionUIModel.PriceAlerts -> item {
-                                PriceAlertsItem(R.string.settings_price_alerts_title, section.count.toString()) { onPriceAlerts(viewModel.assetId) }
+                            is ChartSectionUIModel.PriceAlerts -> section.stringRes()?.let { title ->
+                                item { PriceAlertsItem(title, section.count.toString()) { onPriceAlerts(viewModel.assetId) } }
                             }
-                            ChartSectionUIModel.SetPriceAlert -> item {
-                                PriceAlertsItem(R.string.price_alerts_set_alert_title, "") { onAddPriceAlertTarget(viewModel.assetId) }
+                            ChartSectionUIModel.SetPriceAlert -> section.stringRes()?.let { title ->
+                                item { PriceAlertsItem(title, "") { onAddPriceAlertTarget(viewModel.assetId) } }
                             }
                             is ChartSectionUIModel.Market -> marketRows(model.chain, model.currency, section.rows)
-                            is ChartSectionUIModel.Links -> links(section.links, uriHandler, context)
+                            is ChartSectionUIModel.Links -> links(section.stringRes(), section.links, uriHandler, context)
                         }
                     }
                 }
@@ -125,9 +127,9 @@ private fun PriceAlertsItem(@StringRes title: Int, data: String, onClick: () -> 
     )
 }
 
-private fun LazyListScope.links(links: List<SocialLinkUIModel>, uriHandler: UriHandler, context: Context) {
-    if (links.isEmpty()) return
-    item { SubheaderItem(R.string.social_links) }
+private fun LazyListScope.links(@StringRes title: Int?, links: List<SocialLinkUIModel>, uriHandler: UriHandler, context: Context) {
+    if (links.isEmpty() || title == null) return
+    item { SubheaderItem(title) }
     itemsIndexed(links) { index, item ->
         PropertyItem(
             modifier = Modifier.clickable { uriHandler.open(context, item.url) },
@@ -149,24 +151,20 @@ private fun LazyListScope.marketRows(chain: Chain, currency: Currency, items: Li
 
 @Composable
 private fun MarketProperty(chain: Chain, item: MarketInfoUIModel, position: ListPosition) {
-    when (item.type) {
-        MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
-        MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
-        MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply,
-        MarketInfoUIModel.MarketInfoTypeUIModel.TotalSupply,
-        MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply -> PropertyItem(item.type.label, item.value, listPosition = position, info = item.info)
-        MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap -> PropertyItem(
+    when (item.layout) {
+        MarketInfoUIModel.Layout.Plain -> PropertyItem(item.label, item.value, listPosition = position, info = item.info)
+        MarketInfoUIModel.Layout.Badge -> PropertyItem(
             title = {
                 PropertyTitleText(
-                    text = item.type.label,
-                    badge = item.badge?.let { { ChipBadge(it) } }
+                    text = item.label,
+                    badge = item.badge?.let { { ChipBadge(it) } },
                 )
             },
             data = { PropertyDataText(item.value) },
-            listPosition = position
+            listPosition = position,
         )
-        MarketInfoUIModel.MarketInfoTypeUIModel.Contract -> AddressPropertyItem(
-            title = R.string.asset_contract,
+        MarketInfoUIModel.Layout.Address -> AddressPropertyItem(
+            title = item.label,
             displayText = rememberFormattedAddress(item.value, chain),
             copyValue = item.value,
             explorerLink = item.explorerLink,

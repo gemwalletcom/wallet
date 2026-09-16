@@ -1,34 +1,26 @@
 use crate::block_explorer::BlockExplorer;
-use crate::explorers::metadata::{Metadata, MultiChainExplorer};
-use std::sync::LazyLock;
+use crate::explorers::metadata::Metadata;
 
-static THREE_XPL_FACTORY: LazyLock<MultiChainExplorer> = LazyLock::new(|| {
-    MultiChainExplorer::new()
-        .add_chain("bitcoin", Metadata::blockchair("3xpl", "https://3xpl.com/bitcoin"))
-        .add_chain("bitcoin_cash", Metadata::blockchair("3xpl", "https://3xpl.com/bitcoin-cash"))
-        .add_chain("litecoin", Metadata::blockchair("3xpl", "https://3xpl.com/litecoin"))
-        .add_chain("dogecoin", Metadata::blockchair("3xpl", "https://3xpl.com/dogecoin"))
-        .add_chain("zcash", Metadata::blockchair("3xpl", "https://3xpl.com/zcash"))
-});
+const NAME: &str = "3xpl";
 
 pub fn new_bitcoin() -> Box<dyn BlockExplorer> {
-    THREE_XPL_FACTORY.for_chain("bitcoin").unwrap()
+    Metadata::blockchair(NAME, "https://3xpl.com/bitcoin").explorer()
 }
 
 pub fn new_bitcoin_cash() -> Box<dyn BlockExplorer> {
-    THREE_XPL_FACTORY.for_chain("bitcoin_cash").unwrap()
+    Metadata::blockchair(NAME, "https://3xpl.com/bitcoin-cash").explorer()
 }
 
 pub fn new_litecoin() -> Box<dyn BlockExplorer> {
-    THREE_XPL_FACTORY.for_chain("litecoin").unwrap()
+    Metadata::blockchair(NAME, "https://3xpl.com/litecoin").explorer()
 }
 
 pub fn new_doge() -> Box<dyn BlockExplorer> {
-    THREE_XPL_FACTORY.for_chain("dogecoin").unwrap()
+    Metadata::blockchair(NAME, "https://3xpl.com/dogecoin").explorer()
 }
 
 pub fn new_zcash() -> Box<dyn BlockExplorer> {
-    THREE_XPL_FACTORY.for_chain("zcash").unwrap()
+    Metadata::blockchair(NAME, "https://3xpl.com/zcash").explorer()
 }
 
 #[cfg(test)]

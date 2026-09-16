@@ -34,11 +34,11 @@ public struct SignMessagePayload: Sendable {
     public init(_ request: GemWalletConnectMessageRequest) throws {
         self.init(
             chain: Primitives.Chain(core: request.chain),
-            session: request.session.map(),
-            wallet: request.wallet.map(),
+            session: request.session.toPrimitives(),
+            wallet: request.wallet.toPrimitives(),
             message: request.message,
             simulation: request.simulation,
-            assets: request.assets.map { $0.map() },
+            assets: request.assets.map { $0.toPrimitives() },
         )
     }
 }

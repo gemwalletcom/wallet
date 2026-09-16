@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
+import struct Gemstone.GemFormattedNumber
+import GemstonePrimitives
 import Localization
 import Primitives
 
 struct TransactionPriceViewModel {
-    private let price: Double?
-    private let currencyFormatter: CurrencyFormatter
+    private let price: GemFormattedNumber?
 
-    init(price: Double?, currencyFormatter: CurrencyFormatter = .usd) {
+    init(price: GemFormattedNumber?) {
         self.price = price
-        self.currencyFormatter = currencyFormatter
     }
 }
 
@@ -21,10 +20,9 @@ extension TransactionPriceViewModel: ItemModelProvidable {
         guard let price else {
             return .empty
         }
-
         return .price(
             title: Localized.Asset.price,
-            value: currencyFormatter.string(price),
+            value: price.text(),
         )
     }
 }

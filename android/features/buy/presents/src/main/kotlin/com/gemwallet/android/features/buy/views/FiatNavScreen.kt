@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.features.buy.localization.titleRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
@@ -59,13 +60,7 @@ fun FiatNavScreen(
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     val errorOccurred = stringResource(R.string.errors_error_occurred)
-    val title = stringResource(
-        when (type) {
-            FiatQuoteType.Buy -> R.string.buy_title
-            FiatQuoteType.Sell -> R.string.sell_title
-        },
-        "",
-    )
+    val title = stringResource(type.titleRes(), "")
     val currentAssetInfo = asset ?: return LoadingScene(title = title, onCancel = { cancelAction() })
     val currentAsset = currentAssetInfo.asset
 
@@ -112,25 +107,11 @@ private fun FiatTitle(
 ) {
     if (showFiatTypePicker) {
         TabsBar(FiatQuoteType.entries, type, onTypeClick) { item ->
-            Text(
-                stringResource(
-                    when (item) {
-                        FiatQuoteType.Buy -> R.string.buy_title
-                        FiatQuoteType.Sell -> R.string.sell_title
-                    },
-                    "",
-                ),
-            )
+            Text(stringResource(item.titleRes(), ""))
         }
     } else {
         Text(
-            text = stringResource(
-                when (type) {
-                    FiatQuoteType.Buy -> R.string.buy_title
-                    FiatQuoteType.Sell -> R.string.sell_title
-                },
-                asset.name,
-            ),
+            text = stringResource(type.titleRes(), asset.name),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

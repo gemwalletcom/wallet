@@ -6,7 +6,7 @@ import PrimitivesComponents
 struct WalletHomeState {
     let sections: AssetsSections
     let header: WalletHeaderViewModel
-    let currencyCode: String
+    let currency: Currency
     let showPerpetuals: Bool
     let showCollections: Bool
     let visibleBanners: [Banner]

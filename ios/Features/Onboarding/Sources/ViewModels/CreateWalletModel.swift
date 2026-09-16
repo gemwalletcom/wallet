@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAvatarServiceProtocol
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 import Foundation
@@ -16,7 +15,6 @@ import PrimitivesComponents
 public final class CreateWalletModel {
     private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
-    private let avatarService: any GemAvatarServiceProtocol
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
@@ -25,12 +23,10 @@ public final class CreateWalletModel {
     public init(
         service: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
-        avatarService: any GemAvatarServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.service = service
         self.preferences = preferences
-        self.avatarService = avatarService
         self.onComplete = onComplete
     }
 
@@ -48,7 +44,7 @@ public final class CreateWalletModel {
     }
 
     func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: avatarService)
+        WalletImageViewModel(wallet: wallet, source: .onboarding, service: service)
     }
 
     func dismiss() {
@@ -74,7 +70,7 @@ extension CreateWalletModel {
     func createWallet(words: [String]) async throws -> CreatedWallet {
         let name = try await service.defaultWalletName(chain: .none)
         let result = try await service.importWallet(
-            name: name.name,
+            name: name.text.text,
             type: try service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
             source: .create,
         )

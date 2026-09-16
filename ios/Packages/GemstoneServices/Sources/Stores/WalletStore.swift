@@ -16,15 +16,15 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
     }
 
     public func getWallets() throws -> [Gemstone.Wallet] {
-        try store.getWallets().map { $0.map() }
+        try store.getWallets().map { $0.toGem() }
     }
 
     public func getWallet(walletId: Gemstone.WalletId) throws -> Gemstone.Wallet? {
-        try store.getWallet(id: Primitives.WalletId.from(id: walletId)).map { $0.map() }
+        try store.getWallet(id: Primitives.WalletId.from(id: walletId)).map { $0.toGem() }
     }
 
     public func addWallet(wallet: Gemstone.Wallet) async throws {
-        try store.addWallet(wallet.map())
+        try store.addWallet(wallet.toPrimitives())
     }
 
     public func deleteWallet(walletId: Gemstone.WalletId) async throws -> Bool {

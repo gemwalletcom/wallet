@@ -42,6 +42,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemSlippageSession
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,9 +145,7 @@ fun SwapSlippageBottomSheet(
 
         LaunchedEffect(isAuto) {
             if (!isAuto) {
-                try {
-                    focusRequester.requestFocus()
-                } catch (_: Throwable) {}
+                focusRequester.requestFocusIfAttached()
             }
         }
     }

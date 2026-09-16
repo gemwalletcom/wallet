@@ -19,8 +19,8 @@ pub use model::GemPortfolioValues;
 pub use store::GemPortfolioStore;
 
 #[uniffi::export]
-pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType) -> Option<GemChartData> {
-    rules::portfolio_chart_data(data, portfolio_type, chart_type)
+pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, currency: Currency) -> Option<GemChartData> {
+    rules::portfolio_chart_data(data, portfolio_type, chart_type, currency)
 }
 
 #[derive(uniffi::Object)]

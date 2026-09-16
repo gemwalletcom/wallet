@@ -19,7 +19,7 @@ struct SwapDetailsViewModelTests {
     @Test
     func swapEstimationField() throws {
         #expect(
-            try SwapDetailsViewModel
+            SwapDetailsViewModel
                 .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).swapQuote).swapEstimationField == nil,
         )
         #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField?.value.text == "≈ 30 sec")
@@ -47,17 +47,14 @@ struct SwapDetailsViewModelTests {
 
 extension SwapDetailsViewModel {
     static func mock(selectedQuote: Gemstone.SwapQuote = SwapperQuote.mock().swapQuote) -> SwapDetailsViewModel {
-        let summary = swapQuoteSummary(quote: selectedQuote, fromAsset: Asset.mockEthereum().map(), toAsset: Asset.mockEthereumUSDT().map())
+        let summary = swapQuoteSummary(quote: selectedQuote, fromAsset: Asset.mockEthereum().toGem(), toAsset: Asset.mockEthereumUSDT().toGem())
         return SwapDetailsViewModel(
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
-            selectedQuote: selectedQuote,
-            slippage: .auto,
-            rate: summary.rate,
+            summary: summary,
+            slippagePercent: nil,
             currency: Currency.usd.rawValue,
             swapPriceImpact: nil,
-            minReceiveValue: BigInt(summary.minReceiveValue),
-            etaSeconds: selectedQuote.etaInSeconds,
             swapProviderSelectAction: nil,
         )
     }

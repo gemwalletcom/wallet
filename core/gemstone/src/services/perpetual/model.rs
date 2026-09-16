@@ -1,4 +1,5 @@
 use super::rules;
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::failures::StepFailure;
@@ -64,8 +65,8 @@ pub struct GemPerpetualConnection {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseSummary {
-    pub take_profit: Option<f64>,
-    pub stop_loss: Option<f64>,
+    pub take_profit: Option<GemFormattedNumber>,
+    pub stop_loss: Option<GemFormattedNumber>,
     pub take_profit_cleared: bool,
     pub stop_loss_cleared: bool,
 }
@@ -95,7 +96,7 @@ pub struct GemPerpetualPositionRow {
     pub title: String,
     pub leverage: String,
     pub direction: PerpetualDirection,
-    pub liquidation_price: Option<f64>,
+    pub liquidation_price: Option<GemFormattedNumber>,
 }
 
 #[uniffi::export]
@@ -107,6 +108,8 @@ pub fn perpetual_position_row(perpetual: Perpetual, asset: Asset, position: Perp
 pub struct GemPerpetualMarketRow {
     pub title: String,
     pub shows_price: bool,
+    pub volume_24h: GemFormattedNumber,
+    pub open_interest: GemFormattedNumber,
 }
 
 #[uniffi::export]
@@ -122,10 +125,10 @@ pub enum GemPerpetualChartLineKind {
     Liquidation,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualChartLine {
     pub kind: GemPerpetualChartLineKind,
-    pub price: f64,
+    pub price: GemFormattedNumber,
     pub overlap_level: u32,
 }
 
@@ -133,19 +136,32 @@ pub struct GemPerpetualChartLine {
 pub struct GemPerpetualChartLayout {
     pub price_low: f64,
     pub price_high: f64,
-    pub ticks: Vec<f64>,
+    pub ticks: Vec<GemFormattedNumber>,
     pub x_tick_count: u32,
     pub lines: Vec<GemPerpetualChartLine>,
+    pub current_price: Option<GemFormattedNumber>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCandleTooltipRow {
+    Open,
+    High,
+    Low,
+    Close,
+    Change,
+    Volume,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleTooltipCell {
+    pub row: GemCandleTooltipRow,
+    pub value: GemFormattedNumber,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleTooltip {
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub close: f64,
-    pub change_percentage: f64,
-    pub volume: f64,
+    pub prices: Vec<GemCandleTooltipCell>,
+    pub summary: Vec<GemCandleTooltipCell>,
 }
 
 #[uniffi::export]
@@ -182,6 +198,40 @@ impl StepFailure for GemPerpetualRefreshFailure {
     fn new(step: GemPerpetualRefreshStep, message: String) -> Self {
         Self { step, message }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualSection {
+    Position,
+    Info,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualPositionDetailRow {
+    Pnl,
+    Autoclose,
+    Size,
+    EntryPrice,
+    LiquidationPrice,
+    Margin,
+    FundingPayments,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualInfoRow {
+    DailyVolume,
+    OpenInterest,
+    FundingRate,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualButton {
+    Long,
+    Short,
+    Modify,
+    Close,
+    Increase,
+    Reduce,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
@@ -241,6 +291,22 @@ pub struct GemPerpetualMarketSections {
     pub shows_pinned: bool,
     pub shows_markets: bool,
     pub shows_empty: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualMarketSection {
+    Positions,
+    Recents,
+    Pinned,
+    Markets,
+    Empty,
+}
+
+#[uniffi::export]
+impl GemPerpetualMarketSections {
+    pub fn list(&self) -> Vec<GemPerpetualMarketSection> {
+        super::rules::market_section_list(self)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

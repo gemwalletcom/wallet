@@ -50,7 +50,7 @@ public final class ConnectionStatusObserver {
     }
 
     func update(component: ConnectionComponent, isHealthy: Bool) {
-        if connectionService.resetsComponentHealth(component: component.map(), isHealthy: isHealthy, wasHealthy: isHealthyByComponent[component]) {
+        if connectionService.resetsComponentHealth(component: component.toGem(), isHealthy: isHealthy, wasHealthy: isHealthyByComponent[component]) {
             isHealthyByComponent = [:]
         }
         isHealthyByComponent[component] = isHealthy

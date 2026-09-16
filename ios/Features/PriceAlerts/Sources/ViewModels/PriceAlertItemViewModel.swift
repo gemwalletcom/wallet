@@ -13,27 +13,18 @@ import Style
 import SwiftUI
 
 struct PriceAlertItemViewModel: ListAssetItemViewable {
-    let data: PriceAlertData
-    private let priceModel: PriceViewModel
     private let row: GemPriceAlertRow
 
-    init(data: PriceAlertData, currency: String) {
-        self.data = data
-        row = PriceAlertFormatter.shared.row(
-            alert: data.priceAlert.map(),
-            currentPrice: data.price?.price,
-            priceChangePercentage24h: data.price?.priceChangePercentage24h,
-            priceCurrency: currency,
-        )
-        priceModel = PriceViewModel(price: data.price, currencyCode: row.priceCurrency)
+    init(data: PriceAlertData, currency: Currency) {
+        row = PriceAlertFormatter.shared.row(data: data.toGem(), priceCurrency: currency.toGem())
     }
 
     var name: String {
-        data.asset.name
+        row.title
     }
 
     var symbol: String? {
-        data.asset.symbol
+        row.symbol
     }
 
     var rightView: ListAssetItemRightView {
@@ -43,7 +34,7 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
     var action: ((ListAssetItemAction) -> Void)?
 
     var assetImage: AssetImage {
-        AssetViewModel(asset: data.asset).assetImage
+        AssetIdViewModel(assetId: AssetId(core: row.assetId)).assetImage
     }
 
     var subtitleView: ListAssetItemSubtitleView {
@@ -57,41 +48,16 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
 
     private var prefixTextValue: TextValue {
         TextValue(
-            text: prefixText,
+            text: row.prefixText,
             style: TextStyle(font: .footnote, color: Colors.gray),
         )
     }
 
     private var suffixTextValue: TextValue {
         TextValue(
-            text: suffixText,
-            style: TextStyle(font: .footnote, color: directionColor),
+            text: row.suffixText,
+            style: TextStyle(font: .footnote, color: row.directionColor),
         )
     }
 
-    private var prefixText: String {
-        switch row.kind {
-        case .auto: priceModel.fiatAmountText(amount: row.price ?? .zero)
-        case .over: Localized.PriceAlerts.Direction.over
-        case .under: Localized.PriceAlerts.Direction.under
-        case .increase: Localized.PriceAlerts.Direction.increasesBy
-        case .decrease: Localized.PriceAlerts.Direction.decreasesBy
-        }
-    }
-
-    private var suffixText: String {
-        switch row.kind {
-        case .auto: priceModel.priceChangeText
-        case .over, .under: priceModel.fiatAmountText(amount: row.price ?? .zero)
-        case .increase, .decrease: PercentFormatter.unsigned.string(row.percent ?? .zero)
-        }
-    }
-
-    private var directionColor: Color {
-        switch row.direction {
-        case .up: Colors.green
-        case .down: Colors.red
-        case .none: priceModel.priceChangeTextColor
-        }
-    }
 }

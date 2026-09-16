@@ -20,9 +20,6 @@ impl DefiProviderFactory {
             .jupiter
             .configure_client(client)
             .with_default_headers(HashMap::from([("x-api-key".to_string(), config.jupiter.key)]));
-        vec![
-            Arc::new(ZerionClient::new(zerion_client)),
-            Arc::new(JupiterClient::new_with_client(jupiter_client)),
-        ]
+        vec![Arc::new(ZerionClient::new(zerion_client)), Arc::new(JupiterClient::new_with_client(jupiter_client))]
     }
 }

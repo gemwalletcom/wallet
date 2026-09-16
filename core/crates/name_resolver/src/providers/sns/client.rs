@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::{Client, ClientExt};
 use serde::de::DeserializeOwned;
 
 use super::model::{RecordResult, Response};
@@ -8,12 +8,12 @@ use super::target::SnsTarget;
 
 const STATUS_OK: &str = "ok";
 
-pub struct SnsClient {
-    client: ReqwestClient,
+pub struct SnsClient<C> {
+    client: C,
 }
 
-impl SnsClient {
-    pub fn new(client: ReqwestClient) -> Self {
+impl<C: Client> SnsClient<C> {
+    pub fn new(client: C) -> Self {
         Self { client }
     }
 

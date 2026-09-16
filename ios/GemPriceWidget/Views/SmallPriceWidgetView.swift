@@ -12,7 +12,7 @@ struct SmallPriceWidgetView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: .zero) {
             WidgetContentView(viewModel: viewModel, showErrorMessage: false)
         }
         .padding(Spacing.small)

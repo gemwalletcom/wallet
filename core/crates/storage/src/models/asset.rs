@@ -152,12 +152,12 @@ impl AssetLinkRow {
         }
     }
 
-    pub fn from_primitive(asset_id: &PrimitiveAssetId, link: AssetLink) -> Self {
-        Self {
+    pub fn from_primitive(asset_id: &PrimitiveAssetId, link: AssetLink) -> Option<Self> {
+        Some(Self {
             asset_id: asset_id.into(),
-            link_type: primitives::LinkType::from_str(&link.name).unwrap().into(),
+            link_type: primitives::LinkType::from_str(&link.name).ok()?.into(),
             url: link.url.clone(),
-        }
+        })
     }
 }
 

@@ -40,7 +40,7 @@ extension AssetHeaderViewModel: ValueHeaderViewModel {
     var buttons: [HeaderButton] {
         switch state.headerActions {
         case .watchOnly: []
-        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind.headerButtonType, isEnabled: $0.isEnabled) }
+        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind, isEnabled: $0.isEnabled) }
         }
     }
 }

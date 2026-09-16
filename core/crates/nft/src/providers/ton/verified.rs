@@ -2,9 +2,6 @@ use gem_ton::address::Address;
 use gem_ton::models::TokenInfo;
 use primitives::Address as _;
 
-// TODO: replace this hardcoded allowlist with a proper spam filter — e.g. a DB-backed verified
-// collections table populated from an authoritative source (Getgems / Fragment / TonScan),
-// or a heuristic based on collection age / holder count / on-chain verification signals.
 const VERIFIED_MARKETPLACES: &[&str] = &["getgems.io"];
 const VERIFIED_COLLECTIONS: &[&str] = &[
     "EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi", // Telegram Usernames

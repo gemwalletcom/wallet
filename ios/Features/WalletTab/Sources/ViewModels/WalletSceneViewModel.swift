@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemHeaderButtonKind
 import Components
 import Formatters
 import Foundation
@@ -109,7 +110,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
 
     public var walletBarModel: WalletBarViewViewModel {
-        let row = walletRow(wallet: wallet.map())
+        let row = walletRow(wallet: wallet.toGem())
         return WalletBarViewViewModel(
             name: row.name,
             image: row.avatarImage,
@@ -117,7 +118,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var homeState: WalletHomeState {
-        let currencyCode = observablePreferences.currency.rawValue
+        let currency = observablePreferences.currency
         let viewState = service.viewState(
             wallet: wallet,
             balances: fiatValuesQuery.value,
@@ -128,15 +129,15 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         return WalletHomeState(
             sections: AssetsSections.from(assets),
             header: WalletHeaderViewModel(
-                totalValue: viewState.totalValue.map(),
-                currencyCode: currencyCode,
+                totalValue: viewState.totalValue.toPrimitives(),
+                currency: currency,
                 showsPnl: viewState.showsPnl,
                 actions: viewState.headerActions,
             ),
-            currencyCode: currencyCode,
+            currency: currency,
             showPerpetuals: observablePreferences.showPerpetuals(for: wallet),
             showCollections: viewState.showCollections,
-            visibleBanners: viewState.visibleBanners.map { $0.map() },
+            visibleBanners: viewState.visibleBanners.map { $0.toPrimitives() },
         )
     }
 
@@ -180,13 +181,13 @@ public extension WalletSceneViewModel {
         isPresentingSheet = .portfolio(.wallet)
     }
 
-    internal func onHeaderAction(type: HeaderButtonType) {
+    internal func onHeaderAction(type: GemHeaderButtonKind) {
         switch type {
         case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
         case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
         case .swap: isPresentingSheet = .swap
-        case .sell, .more, .stake, .deposit, .withdraw: break
+        case .more, .deposit, .withdraw: break
         }
     }
 
@@ -196,9 +197,14 @@ public extension WalletSceneViewModel {
 
     internal func onBanner(action: BannerAction) {
         switch action.type {
-        case .event, .closeBanner:
+        case .event: break
+        case .closeBanner:
             Task {
-                try await handleBanner(action: action)
+                do {
+                    try await service.close(action.banner)
+                } catch {
+                    isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
+                }
             }
         case let .button(bannerButton):
             switch bannerButton {
@@ -249,10 +255,6 @@ extension WalletSceneViewModel {
 
     private var shouldShowInitialLoadingAssets: Bool {
         (try? service.showsInitialLoading()) ?? false
-    }
-
-    private func handleBanner(action: BannerAction) async throws {
-        try await service.applyAction(action)
     }
 
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {

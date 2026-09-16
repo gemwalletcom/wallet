@@ -21,7 +21,7 @@ public enum AmountStakeSelection {
 
 public extension SelectionState where T == GemValidatorRow {
     var selectedValidator: DelegationValidator {
-        selected.validator.map()
+        selected.validator.toPrimitives()
     }
 }
 
@@ -37,7 +37,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         self.service = service
         switch type {
         case let .freeze(resource), let .unfreeze(resource):
-            selection = .resource(SelectionState(options: [.bandwidth, .energy], selected: resource.map(), isEnabled: true, title: Localized.Stake.resource))
+            selection = .resource(SelectionState(options: [.bandwidth, .energy], selected: resource.toPrimitives(), isEnabled: true, title: Localized.Stake.resource))
             recommendedValidators = []
             action = type
         case .stake, .unstake, .redelegate, .withdraw, .rewards:
@@ -46,21 +46,13 @@ public final class AmountStakeViewModel: AmountDataProvidable {
                 preconditionFailure("Stake action \(type) requires at least one validator")
             }
             selection = .validator(SelectionState(options: validators.options, selected: selected, isEnabled: validators.canSelect, title: Localized.Stake.validator))
-            recommendedValidators = validators.recommended.map { $0.validator.map() }
+            recommendedValidators = validators.recommended.map { $0.validator.toPrimitives() }
             action = type.withValidator(validator: selected.validator)
         }
     }
 
     var title: String {
-        switch action {
-        case .stake: Localized.Transfer.Stake.title
-        case .unstake: Localized.Transfer.Unstake.title
-        case .redelegate: Localized.Transfer.Redelegate.title
-        case .withdraw: Localized.Transfer.Withdraw.title
-        case .rewards: Localized.Transfer.ClaimRewards.title
-        case .freeze: Localized.Transfer.Freeze.title
-        case .unfreeze: Localized.Transfer.Unfreeze.title
-        }
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {
@@ -68,18 +60,18 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
-        service.stakeTransferData(asset: asset.map(), stakeType: try action.stakeType(), value: value, useMaxAmount: useMaxAmount)
+        service.stakeTransferData(asset: asset.toGem(), stakeType: try action.stakeType(), value: value, useMaxAmount: useMaxAmount)
     }
 
     func select(_ validator: DelegationValidator) {
         guard case let .validator(state) = selection else { return }
-        state.selected = service.validatorRow(validator: validator.map())
-        action = action.withValidator(validator: validator.map())
+        state.selected = service.validatorRow(validator: validator.toGem())
+        action = action.withValidator(validator: validator.toGem())
     }
 
     func select(_ resource: Resource) {
         guard case let .resource(state) = selection else { return }
         state.selected = resource
-        action = action.withResource(resource: resource.map())
+        action = action.withResource(resource: resource.toGem())
     }
 }

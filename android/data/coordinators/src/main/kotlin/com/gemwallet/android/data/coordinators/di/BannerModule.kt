@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.data.coordinators.banner.GetActiveBannersImpl
@@ -21,7 +20,6 @@ object BannerModule {
     fun provideGetActiveBanners(
         getSession: GetSession,
         getAssetInfo: GetAssetInfo,
-        getWalletAssets: GetWalletAssets,
         bannerStore: GemstoneBannerStore,
-    ): GetActiveBanners = GetActiveBannersImpl(getSession, getAssetInfo, getWalletAssets, bannerStore)
+    ): GetActiveBanners = GetActiveBannersImpl(getSession, getAssetInfo, bannerStore)
 }

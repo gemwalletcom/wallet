@@ -310,9 +310,9 @@ impl Generator {
                                 (false, _) => language.enum_arm.to_string(),
                                 (true, []) => language.sealed_arm.to_string(),
                                 (true, [field]) if field.rust.is_empty() => {
-                                    let content = content.as_deref().unwrap_or_else(|| {
-                                        panic!("{name}::{} carries a payload but {name} has no serde content name", variant.name)
-                                    });
+                                    let content = content
+                                        .as_deref()
+                                        .unwrap_or_else(|| panic!("{name}::{} carries a payload but {name} has no serde content name", variant.name));
                                     let payload = language.payloads[index].replace("{content}", content);
                                     let value = language.convert(&self.config, &field.type_name, &payload, index);
                                     language.sealed_arm_data.replace("{payload}", &payload).replace("{value}", &value)
@@ -322,7 +322,12 @@ impl Generator {
                                     variant.name
                                 ),
                             };
-                            out.push_str(&arm.replace("{from_type}", from).replace("{from_case}", &from_case).replace("{to_type}", to).replace("{to_case}", &to_case));
+                            out.push_str(
+                                &arm.replace("{from_type}", from)
+                                    .replace("{from_case}", &from_case)
+                                    .replace("{to_type}", to)
+                                    .replace("{to_case}", &to_case),
+                            );
                         }
                         out.push_str(language.enum_close);
                     }
@@ -615,11 +620,11 @@ const SWIFT: Language = Language {
     core_module: "Gemstone",
     app_module: "Primitives",
     app_modules: false,
-    functions: ["map", "map"],
+    functions: ["toPrimitives", "toGem"],
     cases: [uniffi_swift_case, swift_case],
     sealed_cases: [uniffi_swift_case, swift_case],
     payloads: ["value", "value"],
-    code_mapper: "\npublic extension Primitives.{name} {\n    init(core: Gemstone.{name}) {\n        guard let value = Primitives.{name}(rawValue: core) else {\n            fatalError(\"Core returned a {name} this build does not know: \\(core)\")\n        }\n        self = value\n    }\n\n    func map() -> Gemstone.{name} {\n        rawValue\n    }\n}\n",
+    code_mapper: "\npublic extension Primitives.{name} {\n    init(core: Gemstone.{name}) {\n        guard let value = Primitives.{name}(rawValue: core) else {\n            fatalError(\"Core returned a {name} this build does not know: \\(core)\")\n        }\n        self = value\n    }\n\n    func toGem() -> Gemstone.{name} {\n        rawValue\n    }\n}\n",
     open: "\npublic extension {from} {\n    func {function}() -> {to} {\n",
     close: "    }\n}\n",
     enum_open: "        switch self {\n",

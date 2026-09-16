@@ -92,7 +92,7 @@ impl TrafficLabels {
     }
 }
 
-fn chain_group(chain: Chain) -> &'static str {
+pub(super) fn chain_group(chain: Chain) -> &'static str {
     match chain.chain_type() {
         ChainType::Ethereum => "evm",
         ChainType::Bitcoin => "bitcoin",

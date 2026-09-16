@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import Gemstone
+import GemstonePrimitives
 import struct Gemstone.GemPriceAlertSession
 import struct Gemstone.GemPriceAlertViewState
 import protocol Gemstone.GemPriceAlertServiceProtocol
@@ -20,8 +21,8 @@ public final class SetPriceAlertViewModel {
     private let asset: Primitives.Asset
     private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
+    private let currency: Primitives.Currency
     private let currencyFormatter: CurrencyFormatter
-    private let numericFormatter = NumericFormatter()
 
     var state: SetPriceAlertViewModelState
     var isPresentingAlertMessage: AlertMessage?
@@ -40,7 +41,8 @@ public final class SetPriceAlertViewModel {
     ) {
         self.asset = asset
         self.service = service
-        currencyFormatter = CurrencyFormatter(currencyCode: service.getCurrency())
+        currency = service.getCurrency().toPrimitives()
+        currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)
         self.onComplete = onComplete
         state = SetPriceAlertViewModelState()
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
@@ -62,8 +64,8 @@ public final class SetPriceAlertViewModel {
 
     private var session: GemPriceAlertSession {
         service.newAlertSession(assetId: asset.id.identifier)
-            .onType(notificationType: state.type.notificationType.map())
-            .onDirection(selectedDirection: state.selectedDirection.map())
+            .onType(notificationType: state.type.notificationType.toGem())
+            .onDirection(selectedDirection: state.selectedDirection.toGem())
             .onInput(input: amountValue)
             .onPrice(currentPrice: assetData.price?.price)
             .onSaving(isSaving: isSaving)
@@ -74,23 +76,11 @@ public final class SetPriceAlertViewModel {
     }
 
     var alertDirection: Primitives.PriceAlertDirection? {
-        session.viewState().direction.map { $0.map() }
+        session.viewState().direction.map { $0.toPrimitives() }
     }
 
     var alertDirectionTitle: String {
-        switch state.type {
-        case .price:
-            switch alertDirection {
-            case .up: Localized.PriceAlerts.SetAlert.priceOver
-            case .down: Localized.PriceAlerts.SetAlert.priceUnder
-            case .none: Localized.PriceAlerts.SetAlert.setTargetPrice
-            }
-        case .percentage:
-            switch state.selectedDirection {
-            case .up: Localized.PriceAlerts.SetAlert.priceIncreasesBy
-            case .down: Localized.PriceAlerts.SetAlert.priceDecreasesBy
-            }
-        }
+        session.viewState().prompt.title
     }
 
     var isEnabledConfirmButton: Bool {
@@ -120,7 +110,7 @@ public final class SetPriceAlertViewModel {
             assetDataModel: AssetDataViewModel(
                 assetData: assetData,
                 formatter: .short,
-                currencyCode: currencyFormatter.currencyCode,
+                currency: currency,
             ),
             row: GemSelectAssetType.priceAlert.flow().row,
         )
@@ -133,7 +123,7 @@ public final class SetPriceAlertViewModel {
     // MARK: - Private
 
     private var amountValue: Double? {
-        numericFormatter.double(from: state.amount)
+        NumberInput.double(state.amount)
     }
 
     private var completeMessage: String {
@@ -147,7 +137,7 @@ public final class SetPriceAlertViewModel {
     }
 
     private func priceAlert() -> Primitives.PriceAlert? {
-        session.alert().map { $0.map() }
+        session.alert().map { $0.toPrimitives() }
     }
 
     private func toggleAlertDirection() {

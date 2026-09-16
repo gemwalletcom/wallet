@@ -1,17 +1,15 @@
 import Foundation
-import protocol Gemstone.GemChainServiceProtocol
+import class Gemstone.GemChainService
 import GemstonePrimitives
 import Localization
 import Primitives
 import SwiftUI
 
 public struct ImportWalletTypeViewModel {
-    private let service: any GemChainServiceProtocol
     private let allChains: [Chain]
 
-    public init(service: any GemChainServiceProtocol) {
-        self.service = service
-        allChains = service.getChains(query: .empty).map { Chain(core: $0) }
+    public init() {
+        allChains = GemChainService.shared.getChains(query: .empty).map { Chain(core: $0) }
     }
 
     var title: String {
@@ -19,7 +17,7 @@ public struct ImportWalletTypeViewModel {
     }
 
     func items(for searchText: String) -> [Chain] {
-        searchText.isEmpty ? allChains : service.getChains(query: searchText).map { Chain(core: $0) }
+        searchText.isEmpty ? allChains : GemChainService.shared.getChains(query: searchText).map { Chain(core: $0) }
     }
 }
 

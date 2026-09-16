@@ -62,7 +62,7 @@ pub struct GemTransferData {
     pub use_max_amount: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemTransferOutput {
     pub output_type: TransferDataOutputType,
     pub output_action: TransferDataOutputAction,
@@ -102,6 +102,16 @@ pub enum GemConfirmTitle {
     PerpetualReduce { direction: PerpetualDirection },
     PerpetualClose,
     PerpetualModify,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConfirmRow {
+    App,
+    Sender,
+    Recipient,
+    Network,
+    Memo,
+    Details,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

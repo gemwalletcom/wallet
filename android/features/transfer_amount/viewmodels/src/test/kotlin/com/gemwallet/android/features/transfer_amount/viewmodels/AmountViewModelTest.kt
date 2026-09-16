@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemRecipient
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
@@ -71,7 +72,7 @@ class AmountViewModelTest {
         coEvery { buildTransfer(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
-    private val service = mockk<GemAmountServiceInterface> { every { getCurrency() } returns Currency.USD.string }
+    private val service = mockk<GemAmountServiceInterface> { every { getCurrency() } returns Currency.USD.toGem() }
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)

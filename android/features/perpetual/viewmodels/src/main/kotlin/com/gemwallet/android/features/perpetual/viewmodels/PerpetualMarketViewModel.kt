@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
-import uniffi.gemstone.GemRecentActivityServiceInterface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +45,6 @@ class PerpetualMarketViewModel @Inject constructor(
     private val getBalance: GetPerpetualBalance,
     private val recentAssetsService: RecentAssetsService,
     private val service: GemPerpetualServiceInterface,
-    private val recentActivity: GemRecentActivityServiceInterface,
     private val perpetualObserver: PerpetualObserver,
 ) : ViewModel() {
 
@@ -105,7 +103,7 @@ class PerpetualMarketViewModel @Inject constructor(
 
     fun onOpenPerpetual(asset: Asset) {
         viewModelScope.launch(Dispatchers.IO) {
-            runCatchingCancellable { recentActivity.addRecent(GemAssetAction.OPEN, asset.toGem()) }
+            runCatchingCancellable { service.addRecent(GemAssetAction.OPEN, asset.toGem()) }
                 .onFailure { Log.e(TAG, "recording recent perpetual ${asset.id.toIdentifier()} failed", it) }
         }
     }

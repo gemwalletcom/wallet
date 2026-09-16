@@ -112,7 +112,10 @@ mod tests {
         };
         assert!(header_buttons_enabled(&[]));
         assert!(header_buttons_enabled(&[banner(BannerEvent::Onboarding)]));
-        assert!(!header_buttons_enabled(&[banner(BannerEvent::Onboarding), banner(BannerEvent::AccountBlockedMultiSignature)]));
+        assert!(!header_buttons_enabled(&[
+            banner(BannerEvent::Onboarding),
+            banner(BannerEvent::AccountBlockedMultiSignature)
+        ]));
     }
 
     #[test]

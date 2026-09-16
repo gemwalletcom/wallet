@@ -19,7 +19,7 @@ public struct ValidatorViewModel: Sendable {
     }
 
     public var validator: DelegationValidator {
-        row.validator.map()
+        row.validator.toPrimitives()
     }
 
     public var name: String {

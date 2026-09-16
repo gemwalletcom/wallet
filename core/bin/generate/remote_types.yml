@@ -1,4 +1,5 @@
 remote:
+  - Currency
   - TransactionUtxoInput
   - TransactionExtended
   - TransactionDirection
@@ -160,6 +161,7 @@ remote:
   - PortfolioStatistic
   - PortfolioData
   - PriceAlert
+  - PriceAlertData
   - PriceAlertDirection
   - PriceAlertNotificationType
   - ReportNft
@@ -206,7 +208,6 @@ remote:
   - FiatTransactionData
 codes:
   - Chain
-  - Currency
 identifiers:
   - AssetId
   - NFTAssetId

@@ -2,6 +2,8 @@ pub mod details;
 pub mod model;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;

@@ -12,10 +12,11 @@ data class AssetPriceValue(
 ) {
     val currency: Currency? get() = price?.currency
 
-    fun calculateFiat(value: BigInteger): BigDecimal = calculateFiat(Crypto(value).value(asset.decimals))
+    fun calculateFiat(value: BigInteger): BigDecimal =
+        swapValue(value).fiatValue()?.toBigDecimal() ?: BigDecimal.ZERO
 
     fun calculateFiat(value: BigDecimal): BigDecimal =
-        price?.takeIf { it.price.price > 0.0 }?.let { value * it.price.price.toBigDecimal() } ?: BigDecimal.ZERO
+        calculateFiat(Crypto(value, asset.decimals).atomicValue)
 
     fun formatFiat(value: BigDecimal): String {
         if (value <= BigDecimal.ZERO) return ""

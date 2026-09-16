@@ -17,11 +17,7 @@ public struct ConnectionStatusViewModel {
     }
 
     public var title: String? {
-        switch status {
-        case .online: .none
-        case .noInternet: Localized.Errors.noInternetConnection
-        case .noService: Localized.Errors.noServiceConnection
-        }
+        status.bannerTitle
     }
 
     public var subtitle: String {

@@ -30,9 +30,9 @@ where
 }
 
 impl Stonfi<RpcClient> {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let endpoint = rpc_provider.get_endpoint(Chain::Ton).expect("failed to get TON endpoint for STON.fi");
-        Self::new_with_client(TonClient::new(RpcClient::new(endpoint, rpc_provider)))
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
+        let endpoint = rpc_provider.get_endpoint(Chain::Ton).ok()?;
+        Some(Self::new_with_client(TonClient::new(RpcClient::new(endpoint, rpc_provider))))
     }
 }
 
@@ -562,7 +562,10 @@ mod tests {
     use super::super::constants::STATIC_POOLS;
     use super::*;
     use crate::Options;
-    use gem_ton::constants::TON_PROXY_JETTON_ADDRESS;
+    use gem_ton::{
+        constants::TON_PROXY_JETTON_ADDRESS,
+        models::{RunGetMethodResult, StackEntry},
+    };
     use primitives::{asset_constants::TON_USDT_TOKEN_ID, testkit::signer_mock::TEST_TON_SENDER};
     use std::sync::{
         Arc, Mutex,
@@ -587,56 +590,49 @@ mod tests {
         }
     }
 
-    fn get_method_response(stack: serde_json::Value) -> Vec<u8> {
-        serde_json::to_vec(&serde_json::json!({
-            "ok": true,
-            "result": {
-                "exit_code": 0,
-                "stack": stack
-            }
-        }))
-        .unwrap()
+    fn get_method_response(stack: Vec<StackEntry>) -> Vec<u8> {
+        serde_json::to_vec(&RunGetMethodResult { exit_code: 0, stack }).unwrap()
     }
 
     fn cell_response(address: &str) -> Vec<u8> {
         let bytes = Address::parse(address).unwrap().to_boc_base64().unwrap();
-        get_method_response(serde_json::json!([["cell", { "bytes": bytes }]]))
+        get_method_response(vec![StackEntry::Cell(bytes)])
     }
 
     fn get_pool_data_response(is_locked: bool, reserve0: u64, reserve1: u64, token0_wallet: &str, token1_wallet: &str, lp_fee_bps: u32) -> Vec<u8> {
         let token0 = Address::parse(token0_wallet).unwrap().to_boc_base64().unwrap();
         let token1 = Address::parse(token1_wallet).unwrap().to_boc_base64().unwrap();
-        get_method_response(serde_json::json!([
-            ["num", if is_locked { "0x1" } else { "0x0" }],
-            ["num", "0x0"],
-            ["num", "0x0"],
-            ["num", reserve0.to_string()],
-            ["num", reserve1.to_string()],
-            ["cell", { "bytes": token0 }],
-            ["cell", { "bytes": token1 }],
-            ["num", lp_fee_bps.to_string()],
-            ["num", "0x3"],
-            ["num", "0x0"],
-            ["num", "0x0"],
-            ["cell", { "bytes": token1 }]
-        ]))
+        get_method_response(vec![
+            StackEntry::Num(if is_locked { "0x1" } else { "0x0" }.into()),
+            StackEntry::Num("0x0".into()),
+            StackEntry::Num("0x0".into()),
+            StackEntry::Num(reserve0.to_string()),
+            StackEntry::Num(reserve1.to_string()),
+            StackEntry::Cell(token0),
+            StackEntry::Cell(token1.clone()),
+            StackEntry::Num(lp_fee_bps.to_string()),
+            StackEntry::Num("0x3".into()),
+            StackEntry::Num("0x0".into()),
+            StackEntry::Num("0x0".into()),
+            StackEntry::Cell(token1),
+        ])
     }
 
     fn get_v1_pool_data_response(reserve0: u64, reserve1: u64, token0_wallet: &str, token1_wallet: &str, lp_fee_bps: u32) -> Vec<u8> {
         let token0 = Address::parse(token0_wallet).unwrap().to_boc_base64().unwrap();
         let token1 = Address::parse(token1_wallet).unwrap().to_boc_base64().unwrap();
-        get_method_response(serde_json::json!([
-            ["num", reserve0.to_string()],
-            ["num", reserve1.to_string()],
-            ["cell", { "bytes": token0 }],
-            ["cell", { "bytes": token1 }],
-            ["num", lp_fee_bps.to_string()],
-            ["num", "0xa"],
-            ["num", "0xa"],
-            ["cell", { "bytes": token1 }],
-            ["num", "0x0"],
-            ["num", "0x0"]
-        ]))
+        get_method_response(vec![
+            StackEntry::Num(reserve0.to_string()),
+            StackEntry::Num(reserve1.to_string()),
+            StackEntry::Cell(token0),
+            StackEntry::Cell(token1.clone()),
+            StackEntry::Num(lp_fee_bps.to_string()),
+            StackEntry::Num("0xa".into()),
+            StackEntry::Num("0xa".into()),
+            StackEntry::Cell(token1),
+            StackEntry::Num("0x0".into()),
+            StackEntry::Num("0x0".into()),
+        ])
     }
 
     fn v1_ton_usdt_pool() -> &'static super::super::constants::StaticPool {
@@ -693,7 +689,7 @@ mod tests {
             match method {
                 "get_wallet_address" => cell_response(USDT_WALLET),
                 "get_pool_address" => cell_response(DISCOVERED_POOL),
-                "get_pool_data" => serde_json::to_vec(&serde_json::json!({ "ok": false, "result": "node unavailable" })).unwrap(),
+                "get_pool_data" => br#"{"error":"node unavailable"}"#.to_vec(),
                 _ => unreachable!("{method}"),
             }
         });
@@ -744,9 +740,7 @@ mod tests {
             match method {
                 "get_wallet_address" => cell_response(USDT_WALLET),
                 "get_pool_address" if address == FALLBACK_ROUTERS[0].address => cell_response(DISCOVERED_POOL),
-                "get_pool_address" if address == FALLBACK_ROUTERS[1].address && v1_attempts_ref.fetch_add(1, Ordering::Relaxed) == 0 => {
-                    serde_json::to_vec(&serde_json::json!({ "ok": true, "result": { "exit_code": 1, "stack": [] } })).unwrap()
-                }
+                "get_pool_address" if address == FALLBACK_ROUTERS[1].address && v1_attempts_ref.fetch_add(1, Ordering::Relaxed) == 0 => br#"{"exit_code":1,"stack":[]}"#.to_vec(),
                 "get_pool_address" if address == FALLBACK_ROUTERS[1].address => cell_response(V1_POOL),
                 "get_pool_data" => get_pool_data_response(false, 1, 1, USDT_WALLET, PTON_WALLET, 7),
                 _ => unreachable!("{method} {address}"),
@@ -782,7 +776,7 @@ mod tests {
             match method {
                 "get_wallet_address" => cell_response(USDT_WALLET),
                 "get_pool_address" => cell_response(DISCOVERED_POOL),
-                "get_pool_data" => serde_json::to_vec(&serde_json::json!({ "ok": true, "result": { "exit_code": 1, "stack": [] } })).unwrap(),
+                "get_pool_data" => br#"{"exit_code":1,"stack":[]}"#.to_vec(),
                 _ => unreachable!("{method}"),
             }
         });

@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 
-extension AutocloseOpenData {
+public extension AutocloseOpenData {
     static func mock(
         assetId: AssetId = .mock(.bitcoin),
         symbol: String = "BTC",

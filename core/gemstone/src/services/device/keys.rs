@@ -4,8 +4,8 @@ use gem_api::DeviceKey;
 use gem_client::ClientError;
 
 use crate::device::{GemDeviceKeyPair, device_public_key, generate_device_key_pair};
-use crate::services::error::GemServiceError;
 use crate::services::device::signer::{GemDeviceRequestSigner, GemDeviceStreamRequest};
+use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
 
 const DEVICE_PRIVATE_KEY: &str = "device_private_key";

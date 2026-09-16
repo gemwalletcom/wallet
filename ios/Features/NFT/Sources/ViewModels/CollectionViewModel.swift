@@ -13,7 +13,6 @@ import SwiftUI
 @MainActor
 public final class CollectionViewModel: CollectionsViewable, Sendable {
     private let service: any GemNftServiceProtocol
-    private let collectionName: String
 
     public let query: ObservableQuery<NFTRequest>
 
@@ -23,18 +22,16 @@ public final class CollectionViewModel: CollectionsViewable, Sendable {
         service: any GemNftServiceProtocol,
         wallet: Wallet,
         collectionId: String,
-        collectionName: String,
     ) {
         self.service = service
-        self.collectionName = collectionName
         query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .collection(id: collectionId)), initialValue: [])
     }
 
     public var title: String {
-        collectionName
+        query.value.first?.collection.name ?? ""
     }
 
     public var content: CollectionsContent {
-        CollectionsContent(items: NFTGridPosterBuilder.items(service.listItems(data: query.value.map { $0.map() }, list: .collection)))
+        CollectionsContent(items: NFTGridPosterBuilder.items(service.listItems(data: query.value.map { $0.toGem() }, list: .collection)))
     }
 }

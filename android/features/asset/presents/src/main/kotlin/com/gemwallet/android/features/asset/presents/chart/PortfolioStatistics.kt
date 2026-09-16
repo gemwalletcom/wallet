@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.presents.chart
 
+import com.gemwallet.android.features.asset.presents.localization.stringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -31,15 +32,15 @@ private fun LazyListScope.perpetualStatistics(currency: Currency, statistics: Li
     itemsPositioned(statistics) { position, statistic ->
         when (statistic) {
             is PortfolioStatistic.UnrealizedPnl ->
-                PnlPropertyItem(R.string.perpetual_unrealized_pnl, statistic.value, priceChangeFormatter, position)
+                PnlPropertyItem(statistic.stringRes(), statistic.value, priceChangeFormatter, position)
             is PortfolioStatistic.AllTimePnl ->
-                PnlPropertyItem(R.string.perpetual_all_time_pnl, statistic.value, priceChangeFormatter, position)
+                PnlPropertyItem(statistic.stringRes(), statistic.value, priceChangeFormatter, position)
             is PortfolioStatistic.AccountLeverage ->
-                PropertyItem(R.string.perpetual_account_leverage, statistic.value.formatLeverage(), listPosition = position)
+                PropertyItem(statistic.stringRes(), statistic.value.formatLeverage(), listPosition = position)
             is PortfolioStatistic.MarginUsage ->
-                PropertyItem(R.string.perpetual_margin_usage, statistic.value.marginText(currencyFormatter), listPosition = position)
+                PropertyItem(statistic.stringRes(), statistic.value.marginText(currencyFormatter), listPosition = position)
             is PortfolioStatistic.Volume ->
-                PropertyItem(R.string.perpetual_volume, currencyFormatter.string(statistic.value), listPosition = position)
+                PropertyItem(statistic.stringRes(), currencyFormatter.string(statistic.value), listPosition = position)
             is PortfolioStatistic.AllTimeHigh, is PortfolioStatistic.AllTimeLow -> Unit
         }
     }
@@ -52,4 +53,4 @@ private fun PortfolioStatistic.asAllTimeUIModel(): AllTimeUIModel? = when (this)
 }
 
 private fun PortfolioMarginUsage.marginText(formatter: CurrencyFormatter): String =
-    "${formatter.string(accountValue * usage)} (${(usage * 100).formatAsPercentage(GemPercentageStyle.UNSIGNED)})"
+    "${formatter.string(usedValue)} (${usagePercent.formatAsPercentage(GemPercentageStyle.UNSIGNED)})"

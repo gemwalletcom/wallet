@@ -56,7 +56,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public func getCurrency() -> Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {

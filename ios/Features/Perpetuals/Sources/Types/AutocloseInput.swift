@@ -18,8 +18,8 @@ struct AutocloseInput {
     private let stopLossValidator: AutocloseValidator
 
     init(type: AutocloseType, takeProfitText: String?, stopLossText: String?) {
-        takeProfitValidator = AutocloseValidator(triggerType: TpslType.takeProfit.map(), direction: type.direction.map(), marketPrice: type.marketPrice)
-        stopLossValidator = AutocloseValidator(triggerType: TpslType.stopLoss.map(), direction: type.direction.map(), marketPrice: type.marketPrice)
+        takeProfitValidator = AutocloseValidator(triggerType: TpslType.takeProfit.toGem(), direction: type.direction.toGem(), marketPrice: type.marketPrice)
+        stopLossValidator = AutocloseValidator(triggerType: TpslType.stopLoss.toGem(), direction: type.direction.toGem(), marketPrice: type.marketPrice)
         takeProfit = InputValidationViewModel(
             mode: .manual,
             validators: [AutocloseTextValidator(type: .takeProfit, direction: type.direction, marketPrice: type.marketPrice)],
@@ -72,7 +72,7 @@ struct AutocloseInput {
     ) -> GemAutocloseField {
         let validator = type == .takeProfit ? takeProfitValidator : stopLossValidator
         return GemAutocloseField(
-            tpslType: type.map(),
+            tpslType: type.toGem(),
             price: price,
             originalPrice: originalPrice,
             formattedPrice: formattedPrice,

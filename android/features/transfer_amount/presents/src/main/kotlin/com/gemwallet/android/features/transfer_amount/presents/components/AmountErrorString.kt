@@ -15,7 +15,7 @@ fun amountErrorString(error: AmountError): String = when (error) {
     )
     is AmountError.InsufficientBalance -> stringResource(
         id = R.string.transfer_insufficient_balance,
-        error.assetSymbol
+        error.assetTitle
     )
     is AmountError.MinimumValue -> stringResource(
         id = R.string.transfer_minimum_amount,

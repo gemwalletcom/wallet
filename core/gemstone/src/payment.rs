@@ -350,7 +350,12 @@ mod tests {
             destination => panic!("expected asset selection, got {destination:?}"),
         }
 
-        let tagged_xrp = request(XRP_ADDRESS, Some(GemPaymentAmount::ExactValue { value: "10".to_string() }), Some("12345"), Some(xrp.asset_id.clone()));
+        let tagged_xrp = request(
+            XRP_ADDRESS,
+            Some(GemPaymentAmount::ExactValue { value: "10".to_string() }),
+            Some("12345"),
+            Some(xrp.asset_id.clone()),
+        );
         match payment_destination(&tagged_xrp, vec![xrp.clone()]) {
             GemPaymentDestination::Confirm { transfer } => {
                 assert_eq!(transfer.value, BigUint::from(10_000_000u32));
@@ -359,7 +364,12 @@ mod tests {
             destination => panic!("expected confirm, got {destination:?}"),
         }
 
-        let untagged_xrp = request(XRP_ADDRESS, Some(GemPaymentAmount::ExactValue { value: "10".to_string() }), None, Some(xrp.asset_id.clone()));
+        let untagged_xrp = request(
+            XRP_ADDRESS,
+            Some(GemPaymentAmount::ExactValue { value: "10".to_string() }),
+            None,
+            Some(xrp.asset_id.clone()),
+        );
         match payment_destination(&untagged_xrp, vec![xrp]) {
             GemPaymentDestination::Recipient { payment, .. } => {
                 assert_eq!(payment.recipient.memo, None);
@@ -404,7 +414,12 @@ mod tests {
             destination => panic!("expected recipient review for an invalid address, got {destination:?}"),
         }
 
-        let lowercase = request(&ETHEREUM_ADDRESS.to_lowercase(), Some(GemPaymentAmount::AtomicValue { value: BigUint::from(1u32) }), None, None);
+        let lowercase = request(
+            &ETHEREUM_ADDRESS.to_lowercase(),
+            Some(GemPaymentAmount::AtomicValue { value: BigUint::from(1u32) }),
+            None,
+            None,
+        );
         match payment_transfer_destination(&lowercase, ethereum.clone()) {
             GemPaymentDestination::Confirm { transfer } => assert_eq!(transfer.address, ETHEREUM_ADDRESS),
             destination => panic!("expected confirm, got {destination:?}"),
@@ -537,14 +552,16 @@ mod tests {
         let decode_url = |url: &str| GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200))).decode_url(url.to_string());
         assert_eq!(
             decode_url("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
-            GemPayment::Request { request: GemPaymentRequest {
-                address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
-                amount: Some(GemPaymentAmount::ExactValue { value: "0.42301".to_string() }),
-                memo: None,
-                label: None,
-                asset_id: Some(AssetId::from_chain(Chain::Solana)),
-                references: None,
-            } }
+            GemPayment::Request {
+                request: GemPaymentRequest {
+                    address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
+                    amount: Some(GemPaymentAmount::ExactValue { value: "0.42301".to_string() }),
+                    memo: None,
+                    label: None,
+                    asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                    references: None,
+                }
+            }
         );
     }
 
@@ -555,9 +572,11 @@ mod tests {
 
         assert_eq!(
             decode_url("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1").unwrap(),
-            GemPayment::Link { link: GemPaymentLink::SolanaPay {
-                url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string(),
-            } }
+            GemPayment::Link {
+                link: GemPaymentLink::SolanaPay {
+                    url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string(),
+                }
+            }
         );
         assert_eq!(
             decode_url("solana:https%3A%2F%2Fwww.constant-k.com%2Fck-txreq%2F%3Ftok%3DMjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4").unwrap(),

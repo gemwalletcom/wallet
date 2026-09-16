@@ -74,7 +74,7 @@ extension SwapButtonViewModel {
         fromAsset: AssetData? = .mock(),
     ) -> SwapButtonViewModel {
         SwapButtonViewModel(
-            state: session.viewState(value: value, availableBalance: availableBalance),
+            state: session.viewState(value: value, availableBalance: availableBalance, payAsset: nil),
             fromAsset: fromAsset,
             onAction: {},
         )

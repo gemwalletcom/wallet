@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import protocol Gemstone.GemWalletSessionServiceProtocol
+import protocol Gemstone.GemSettingsServiceProtocol
+import enum Gemstone.GemSettingsRow
+import struct Gemstone.GemSettingsSection
 import struct Gemstone.Rewards
 import Foundation
 import GemstonePrimitives
@@ -15,104 +17,33 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class SettingsViewModel {
-    private let service: any GemWalletSessionServiceProtocol
+    private let service: any GemSettingsServiceProtocol
     private let observablePreferences: ObservablePreferences
 
     public let walletsQuery = ObservableQuery(WalletsRequest(isPinned: .none), initialValue: [Wallet]())
 
     public init(
-        service: any GemWalletSessionServiceProtocol,
+        service: any GemSettingsServiceProtocol,
         observablePreferences: ObservablePreferences,
     ) {
         self.service = service
         self.observablePreferences = observablePreferences
     }
 
-    var isDeveloperEnabled: Bool {
-        observablePreferences.isDeveloperEnabled
-    }
-
     var title: String {
         Localized.Settings.title
     }
 
-    var walletsTitle: String {
-        Localized.Wallets.title
+    var sections: [GemSettingsSection] {
+        service.sections(
+            wallets: walletsQuery.value.map { $0.toGem() },
+            notificationsAvailable: true,
+            walletConnectAvailable: true,
+        )
     }
 
     var walletsValue: String {
         "\(walletsQuery.value.count)"
     }
 
-    var walletsImage: AssetImage {
-        AssetImage.image(Images.Settings.wallets)
-    }
-
-    var securityTitle: String {
-        Localized.Settings.security
-    }
-
-    var securityImage: AssetImage {
-        AssetImage.image(Images.Settings.security)
-    }
-
-    var notificationsTitle: String {
-        Localized.Settings.Notifications.title
-    }
-
-    var notificationsImage: AssetImage {
-        AssetImage.image(Images.Settings.notifications)
-    }
-
-    var preferencesTitle: String {
-        Localized.Settings.Preferences.title
-    }
-
-    var preferencesImage: AssetImage {
-        AssetImage.image(Images.Settings.preferences)
-    }
-
-    var walletConnectTitle: String {
-        Localized.WalletConnect.title
-    }
-
-    var walletConnectImage: AssetImage {
-        AssetImage.image(Images.Settings.walletConnect)
-    }
-
-    var rewardsTitle: String {
-        Localized.Rewards.title
-    }
-
-    var rewardsImage: AssetImage {
-        AssetImage.image(Images.Settings.gem)
-    }
-
-    var showsRewards: Bool {
-        service.showsRewards(wallets: walletsQuery.value)
-    }
-
-    var aboutUsTitle: String {
-        Localized.Settings.aboutus
-    }
-
-    var aboutUsImage: AssetImage {
-        AssetImage.image(Images.Settings.aboutUs)
-    }
-
-    var supportTitle: String {
-        Localized.Settings.support
-    }
-
-    var supportImage: AssetImage {
-        AssetImage.image(Images.Settings.support)
-    }
-
-    var developerModeTitle: String {
-        Localized.Settings.developer
-    }
-
-    var developerModeImage: AssetImage {
-        AssetImage.image(Images.Settings.developer)
-    }
 }

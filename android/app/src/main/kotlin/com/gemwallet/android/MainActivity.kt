@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.localization.stringRes
 import android.content.Intent
 import android.Manifest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -109,7 +110,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
             }
             val connectionBannerState = remember { ConnectionBannerState() }
             LaunchedEffect(connectionStatus) {
-                connectionBannerState.update(connectionStatus.bannerTitleRes()?.let(::getString))
+                connectionBannerState.update(connectionStatus.stringRes()?.let(::getString))
             }
             val appearance by viewModel.appearance.collectAsStateWithLifecycle()
             val darkTheme = when (appearance) {
@@ -117,7 +118,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 Appearance.Light -> false
                 Appearance.Dark -> true
             }
-            LaunchedEffect(darkTheme) { applySystemBarsAppearance(darkTheme) }
+            LaunchedEffect(darkTheme) { setSystemBarsAppearance(darkTheme) }
 
             CompositionLocalProvider(
                 LocalConnectionBannerState provides connectionBannerState,
@@ -148,7 +149,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
         }
     }
 
-    private fun applySystemBarsAppearance(darkTheme: Boolean) {
+    private fun setSystemBarsAppearance(darkTheme: Boolean) {
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = !darkTheme
             isAppearanceLightNavigationBars = !darkTheme
@@ -181,8 +182,3 @@ class MainActivity : FragmentActivity(), AuthRequester {
     }
 }
 
-private fun ConnectionStatus.bannerTitleRes(): Int? = when (this) {
-    ConnectionStatus.Online -> null
-    ConnectionStatus.NoInternet -> R.string.errors_no_internet_connection
-    ConnectionStatus.NoService -> R.string.errors_no_service_connection
-}

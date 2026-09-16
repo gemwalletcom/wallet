@@ -53,7 +53,7 @@ public struct TransactionsFilterScene: View {
                 model: model.typesModel,
                 onFinishSelection: { if model.onFinishTypesSelection($0) { dismiss() } },
                 listContent: {
-                    ListItemView(title: TransactionFilterTypeViewModel(type: $0).title)
+                    ListItemView(title: $0.title)
                 },
             )
         }

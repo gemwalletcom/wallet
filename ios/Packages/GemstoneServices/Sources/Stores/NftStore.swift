@@ -17,7 +17,7 @@ public final class GemstoneNftStore: GemNftStore, @unchecked Sendable {
     }
 
     public func saveNfts(walletId: String, data: [Gemstone.NftData]) async throws {
-        try store.save(data.map { $0.map() }, for: WalletId.from(id: walletId))
+        try store.save(data.map { $0.toPrimitives() }, for: WalletId.from(id: walletId))
     }
 
     public func getAssetData(assetId: Gemstone.NftAssetId) async throws -> Gemstone.NftAssetData? {
@@ -26,11 +26,11 @@ public final class GemstoneNftStore: GemNftStore, @unchecked Sendable {
         else {
             return nil
         }
-        return NFTAssetData(collection: collection, asset: asset).map()
+        return NFTAssetData(collection: collection, asset: asset).toGem()
     }
 
     public func saveAsset(data: Gemstone.NftAssetData) async throws {
-        let data = data.map()
+        let data = data.toPrimitives()
         try store.add(asset: data.asset, collection: data.collection)
     }
 }

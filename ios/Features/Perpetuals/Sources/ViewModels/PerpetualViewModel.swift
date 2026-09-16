@@ -3,7 +3,11 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import class Gemstone.GemPerpetual
+import struct Gemstone.GemPerpetualMarketRow
+import enum Gemstone.GemPerpetualInfoRow
+import func Gemstone.perpetualMarketRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -12,39 +16,34 @@ import SwiftUI
 
 public struct PerpetualViewModel {
     public let perpetual: Perpetual
-    private let marketValueFormatter: CurrencyFormatter
+    public let row: GemPerpetualMarketRow
     private let priceFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
 
     public init(
         perpetual: Perpetual,
-        currencyStyle: CurrencyFormatterType = .abbreviated,
         priceFormatter: CurrencyFormatter = .usd,
     ) {
         self.perpetual = perpetual
         self.priceFormatter = priceFormatter
-        marketValueFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
+        row = perpetualMarketRow(perpetual: perpetual.toGem())
     }
 
     public var name: String {
-        perpetual.name
+        row.title
     }
 
     public var assetImage: AssetImage {
         AssetIdViewModel(assetId: perpetual.assetId).assetImage
     }
 
-    public var volumeField: ListItemField {
-        ListItemField(title: Localized.Markets.dailyVolume, value: marketValueFormatter.string(perpetual.volume24h))
-    }
-
-    public var openInterestField: ListItemField {
-        ListItemField(title: Localized.Info.Perpetual.OpenInterest.title, value: marketValueFormatter.string(perpetual.openInterest))
-    }
-
-    public var fundingRateField: ListItemField {
-        let annualized = GemPerpetual(provider: perpetual.provider.map()).fundingApr(funding: perpetual.funding)
-        return ListItemField(title: Localized.Info.Perpetual.FundingApr.title, value: percentFormatter.string(annualized))
+    public func infoField(for infoRow: GemPerpetualInfoRow) -> ListItemField {
+        let value = switch infoRow {
+        case .dailyVolume: row.volume24h.text()
+        case .openInterest: row.openInterest.text()
+        case .fundingRate: percentFormatter.string(GemPerpetual(provider: perpetual.provider.toGem()).fundingApr(funding: perpetual.funding))
+        }
+        return ListItemField(title: infoRow.title, value: value)
     }
 
     public var priceText: String {

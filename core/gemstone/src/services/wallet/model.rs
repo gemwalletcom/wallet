@@ -1,4 +1,5 @@
-use primitives::{Chain, Wallet};
+use crate::services::localization::GemLocalizedText;
+use primitives::{Chain, ChainAddress, Wallet};
 
 use super::rules;
 
@@ -38,7 +39,7 @@ impl GemWalletImportKind {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletDefaultName {
-    pub name: String,
+    pub text: GemLocalizedText,
     pub has_existing_wallets: bool,
 }
 
@@ -94,13 +95,20 @@ pub fn wallet_rows(wallets: Vec<Wallet>) -> Vec<GemWalletRow> {
     rules::rows(&wallets)
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletDetails {
+    pub row: GemWalletRow,
+    pub secret_kind: Option<GemWalletSecretKind>,
+    pub address: Option<ChainAddress>,
+}
+
+#[uniffi::export]
+pub fn wallet_details(wallet: Wallet) -> GemWalletDetails {
+    rules::details(&wallet)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemWalletSecretKind {
     Phrase,
     PrivateKey,
-}
-
-#[uniffi::export]
-pub fn wallet_secret_kind(wallet: Wallet) -> Option<GemWalletSecretKind> {
-    rules::secret_kind(&wallet)
 }

@@ -9,5 +9,5 @@ interface WalletDetailsAggregate {
     val id: WalletId
     val secretKind: GemWalletSecretKind?
     val row: GemWalletRow
-    val accounts: List<ChainAddress>
+    val address: ChainAddress?
 }

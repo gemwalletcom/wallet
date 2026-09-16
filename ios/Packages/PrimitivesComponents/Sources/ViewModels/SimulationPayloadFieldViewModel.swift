@@ -35,26 +35,7 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
     }
 
     public var title: String {
-        if field.kind == .custom {
-            return field.label ?? ""
-        }
-
-        switch field.kind {
-        case .contract:
-            return Localized.Asset.contract
-        case .method:
-            return Localized.Common.method
-        case .token:
-            return Localized.Common.token
-        case .spender:
-            return Localized.Transfer.to
-        case .value:
-            return Localized.Perpetual.value
-        case .expiration:
-            return Localized.Common.expiration
-        case .custom:
-            return field.label ?? ""
-        }
+        field.kind.title ?? field.label ?? ""
     }
 
     public var subtitle: String {

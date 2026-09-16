@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.setup_wallet.views
 
+import com.gemwallet.android.localization.stringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.WalletSource
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun SetupWalletScreen(
@@ -35,14 +37,11 @@ fun SetupWalletScreen(
     viewModel: SetupWalletViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = uiState.error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackbar = rememberSnackbarState(message = uiState.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val handleDone = { onComplete() }
 
-    val title = when (uiState.walletSource) {
-        WalletSource.Create -> stringResource(id = R.string.wallet_new_title)
-        WalletSource.Import -> stringResource(id = R.string.wallet_import_title)
-    }
+    val title = stringResource(uiState.walletSource.stringRes())
 
     Scene(
         title = title,

@@ -1,24 +1,22 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceAlertStore
-import uniffi.gemstone.GemPercentageStyle
-import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.id
-import com.gemwallet.android.model.AssetPriceInfo
-import com.gemwallet.android.model.CurrencyFormatter
 import uniffi.gemstone.PriceAlertFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PriceAlert
+import com.wallet.core.primitives.Price
+import com.wallet.core.primitives.PriceAlertData
 import uniffi.gemstone.GemPriceAlertKind
 import uniffi.gemstone.GemPriceAlertRow
+import uniffi.gemstone.GemPriceAlertText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -45,13 +43,20 @@ class GetPriceAlertsImpl(
                             PriceAlertDataAggregateImpl(
                                 id = item.id,
                                 asset = assetInfo.asset,
-                                assetPrice = assetInfo.price,
                                 priceAlert = item.priceAlert,
                                 row = priceAlertFormatter.row(
-                                    alert = item.priceAlert.toGem(),
-                                    currentPrice = assetInfo.price?.price?.price,
-                                    priceChangePercentage24h = assetInfo.price?.price?.priceChangePercentage24h,
-                                    priceCurrency = (assetInfo.price?.currency ?: item.priceAlert.currency).string,
+                                    data = PriceAlertData(
+                                        asset = assetInfo.asset,
+                                        price = assetInfo.price?.price?.let {
+                                            Price(
+                                                price = it.price,
+                                                priceChangePercentage24h = it.priceChangePercentage24h,
+                                                updatedAt = it.updatedAt,
+                                            )
+                                        },
+                                        priceAlert = item.priceAlert,
+                                    ).toGem(),
+                                    priceCurrency = (assetInfo.price?.currency ?: item.priceAlert.currency).toGem(),
                                 ),
                             )
                         }.orEmpty()
@@ -65,26 +70,18 @@ class GetPriceAlertsImpl(
 class PriceAlertDataAggregateImpl(
     override val id: String,
     override val asset: Asset,
-    val assetPrice: AssetPriceInfo?,
     override val priceAlert: PriceAlert,
     private val row: GemPriceAlertRow,
 ) : PriceAlertDataAggregate {
     override val assetId: AssetId = asset.id
-    override val title: String = asset.name
-    override val titleBadge: String = asset.symbol.uppercase()
+    override val title: String = row.title
+    override val titleBadge: String = row.symbol.uppercase()
 
     override val priceDirection = row.direction
 
-    override val price: String
-        get() = row.price?.let { CurrencyFormatter(currency = row.priceCurrency.toCurrency()).string(it) }.orEmpty()
+    override val prefix: GemPriceAlertText = row.prefix
 
-    override val percentage: String
-        get() = row.percent?.let { percent ->
-            when (priceAlert.pricePercentChange) {
-                null -> percent.formatAsPercentage()
-                else -> percent.formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
-            }
-        }.orEmpty()
+    override val suffix: GemPriceAlertText = row.suffix
 
     override val kind: GemPriceAlertKind = row.kind
 

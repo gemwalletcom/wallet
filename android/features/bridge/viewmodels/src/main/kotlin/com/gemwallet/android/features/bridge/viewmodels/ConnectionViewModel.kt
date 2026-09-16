@@ -8,7 +8,6 @@ import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnectio
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionRowModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.mapLatest
@@ -29,12 +28,12 @@ class ConnectionViewModel @Inject constructor(
 
     private val connectionId = savedState.requireString(RouteArgument.ConnectionId)
 
-    val connection = getWalletConnections.observeConnection(connectionId)
-        .mapLatest { connection -> connection?.let { ConnectionRowModel(it, service.connectionRow(it.session.metadata.toGem())) } }
+    val details = getWalletConnections.observeConnection(connectionId)
+        .mapLatest { connection -> connection?.let { service.connectionDetails(it.toGem()) } }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
 
     fun disconnect(onSuccess: () -> Unit) {
-        connection.value?.connection?.session?.id?.let {
+        details.value?.connection?.connection?.session?.id?.let {
             viewModelScope.launch(Dispatchers.IO) {
                 disconnectWalletConnection.disconnect(
                     connectionId = it,

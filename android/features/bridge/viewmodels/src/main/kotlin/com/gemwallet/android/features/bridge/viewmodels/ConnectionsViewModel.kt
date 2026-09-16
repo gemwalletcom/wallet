@@ -6,7 +6,6 @@ import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnectio
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionRowModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.mapLatest
@@ -24,8 +23,8 @@ class ConnectionsViewModel @Inject constructor(
     private val service: GemWalletConnectServiceInterface,
 ) : ViewModel() {
 
-    val connections = getWalletConnections.observeConnections()
-        .mapLatest { connections -> connections.map { ConnectionRowModel(it, service.connectionRow(it.session.metadata.toGem())) } }
+    val sections = getWalletConnections.observeConnections()
+        .mapLatest { connections -> service.connectionSections(connections.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, emptyList())
 
     fun addPairing(uri: String, onSuccess: () -> Unit, onError: (String) -> Unit) {

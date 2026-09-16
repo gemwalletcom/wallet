@@ -97,15 +97,15 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     private var nftSearchItems: [GemNftItem] {
-        service.searchCollections(data: searchResult.collections.map { $0.map() }, query: searchQuery.request.searchBy)
+        service.searchCollections(data: searchResult.collections.map { $0.toGem() }, query: searchQuery.request.searchBy)
     }
 
     var searchDebounce: Duration {
         .milliseconds(service.searchDebounceMilliseconds())
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var showRecents: Bool {
@@ -113,7 +113,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPerpetuals: Bool {
-        sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.map(), chains: wallet.chains.map(\.rawValue))
+        sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 
     var searchState: SearchContentState {
@@ -146,7 +146,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showPinnedPerpetuals: Bool {
-        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.map(), chains: wallet.chains.map(\.rawValue))
+        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 
     var showAssets: Bool {
@@ -162,7 +162,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showAddToken: Bool {
-        service.supportsTokens(wallet: wallet.map())
+        service.supportsTokens(wallet: wallet.toGem())
     }
 
     private var limits: GemWalletSearchLimits {
@@ -281,7 +281,7 @@ extension WalletSearchSceneViewModel {
     private func updateRecent(_ asset: Asset) {
         Task { [service] in
             do {
-                try await service.addRecent(action: .open, asset: asset.map())
+                try await service.addRecent(action: .open, asset: asset.toGem())
             } catch {
                 debugLog("UpdateRecent error: \(error)")
             }

@@ -3,6 +3,7 @@
 import BigInt
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI

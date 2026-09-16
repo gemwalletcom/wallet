@@ -89,7 +89,6 @@ impl DeviceLocale {
         }
 
         match locale {
-            // TODO: Remove legacy locale compatibility after clients send DeviceLocale.
             "in" => Ok(Self::ID),
             "iw" => Ok(Self::HE),
             "pt" => Ok(Self::PtBR),
@@ -141,6 +140,30 @@ mod tests {
         for locale in ["", "zz", "aus", "null", "EN", "en-US", "en_US", "pt-PT", "zh-CN"] {
             assert!(serde_json::from_str::<DeviceLocale>(&format!("\"{locale}\"")).is_err());
         }
+    }
+
+    #[test]
+    fn test_the_normalizer_depends_on_the_bare_language_arms() {
+        for (identifier, bare, expected) in [
+            ("pt-PT", "pt", DeviceLocale::PtBR),
+            ("sv-SE", "sv", DeviceLocale::EN),
+            ("hu-HU", "hu", DeviceLocale::EN),
+            ("in-ID", "in", DeviceLocale::ID),
+            ("iw-IL", "iw", DeviceLocale::HE),
+            ("tl-PH", "tl", DeviceLocale::FIL),
+        ] {
+            assert_eq!(DeviceLocale::from_client(bare).unwrap(), expected, "bare: {bare}");
+            assert_eq!(
+                DeviceLocale::from_locale_identifier(identifier),
+                expected,
+                "{identifier} reaches the {bare} arm through the normalizer, so the arm is not legacy"
+            );
+        }
+        assert_eq!(
+            DeviceLocale::from_locale_identifier("zh-CN"),
+            DeviceLocale::ZhHans,
+            "the normalizer always names the script, so the bare zh arm only catches a raw wire value"
+        );
     }
 
     #[test]

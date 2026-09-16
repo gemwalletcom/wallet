@@ -25,7 +25,7 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
     let effects = transaction.effects.clone();
     let hash = transaction.digest.clone();
     let fee = get_fee(effects.gas_used.clone());
-    let created_at = Utc.timestamp_millis_opt(transaction.timestamp_ms as i64).unwrap();
+    let created_at = Utc.timestamp_millis_opt(transaction.timestamp_ms as i64).single()?;
     let state = if effects.status.status == STATUS_SUCCESS {
         TransactionState::Confirmed
     } else {

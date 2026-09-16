@@ -58,7 +58,6 @@ common_token = Jeton
 common_expiration = Son kullanma
 common_suspicious_address = Şüpheli adres
 common_refresh = Yenile
-common_no_thanks = Hayır, teşekkürler
 common_grant_permission = İzin ver
 common_required_field = %@ gerekli
 
@@ -165,7 +164,6 @@ transfer_freeze_title = Dondur
 transfer_unfreeze_title = Çöz
 transfer_review_request = İnceleme Talebi
 transfer_amount = Miktar
-transfer_amount_title = Miktar
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = Mesaj
 
 # Errors
 
-errors_transfer = Transfer Hatası: %@
 errors_validation = Doğrulama Hatası: %@
 errors_create_wallet = Cüzdan Oluşturma Hatası: %@
 errors_invalid_address_name = Geçersiz adres veya ad
@@ -228,7 +225,6 @@ errors_cancelled = İptal edildi
 errors_connections_user_cancelled = Kullanıcı iptal etti
 errors_not_supported = Desteklenmiyor
 errors_permissions_not_granted = İzinler Verilmedi
-errors_decoding = Çözme Hatası
 errors_unknown = Bilinmeyen
 errors_not_supported_qr = Bu cihaz QR kod taramasını desteklemiyor. Kütüphaneden yalnızca QR kod görüntüsünü seçebilirsiniz.
 errors_camera_permissions_not_granted = Kamera izni verilmedi. Lütfen QR kodunu taramak için ayarlarda kamera erişimini etkinleştirin.
@@ -239,11 +235,8 @@ errors_invalid_asset_address = Geçersiz %@ adresi
 errors_dust_threshold = İşlem, tutarın %@ ağının minimum gereksinimini (toz eşiği) karşılamak için çok küçük olması nedeniyle başarısız oldu. Bu sınır, işlem değerinin ücretleri ve işlem maliyetlerini karşılamasını sağlar.
 errors_swap_no_quote_available = Kullanılabilir teklif yok.
 errors_swap_not_supported_asset = Desteklenmeyen varlık.
-errors_connections_invalid_send_parameters = Bir işlem göndermek için geçersiz parametreler sağlandı.
-errors_connections_invalid_sign_parameters = İmzalama için geçersiz parametreler sağlandı.
 errors_connections_no_supported_wallets = Desteklenen cüzdan yok.
 errors_connections_unsupported_chain = Sağlanan zincir desteklenmiyor.
-errors_connections_unsupported_method = İstenen yöntem desteklenmiyor.
 errors_swap_amount_too_small = Miktar çok küçük
 errors_required = %@ gereklidir
 errors_scan_transaction_malicious_description = Bu işlem tamamlanamıyor; hedef cüzdan adresi şüpheli veya zararlı bir etkinlikle bağlantılı.
@@ -255,7 +248,6 @@ errors_dust_threshold_short = Ağ bu miktarı toz olarak değerlendiriyor; ücre
 errors_swap_minimum_amount = Minimum işlem tutarı %@. Lütfen daha yüksek bir tutar girin.
 errors_perpetual_trigger_price_lower = Tetikleme fiyatı piyasa fiyatından düşük olmalıdır
 errors_perpetual_trigger_price_higher = Tetikleme fiyatı piyasa fiyatından yüksek olmalıdır
-errors_token_unable_fetch_token_information = Jeton bilgileri getirilemiyor: %@
 errors_unknown_try_again = Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.
 errors_network_error = Ağ hatası: %@
 errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
@@ -279,7 +271,6 @@ update_app_action = Güncelleme
 update_app_permission_title = Kuruluma izin ver
 update_app_permission_description = Ayarlara gidin ve harici kaynaklardan yüklemeye izin verin
 update_app_permission_open_settings = Ayarlara git
-update_app_downloading = İndiriliyor...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = Hesap Aktivasyon Ücreti
 banner_account_activation_description = %@ ağı, tek seferlik bir ücret gerektirir %@.
 banner_stake_title = %@ bahisine başla
 banner_stake_description = Uyurken %@ ödül kazanın.
-banner_enable_notifications_title = Bildirimleri Etkinleştir
-banner_enable_notifications_description = Cüzdan aktivitenizin başında olun.
 banner_activate_asset_description = %@ varlığını kullanmak için, öncelikle ağın özel gereksinimlerini karşılayarak %@ ağında etkinleştirmeniz gerekir.
 banner_asset_status_title = Şüpheli Öğe
 banner_asset_status_description = Token güvenli olmayabilir veya yanıltıcı olabilir. Yalnızca tamamen güveniyorsanız devam edin.
@@ -690,8 +679,9 @@ perpetual_margin_isolated = İzole
 # Perpetuals
 
 perpetuals_title = Sürekliler
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Süreklileri al-sat
 perpetuals_markets = Piyasalar
-perpetuals_empty_state_no_markets = Pazar yok
 perpetuals_empty_state_no_markets_found = Hiçbir pazar bulunamadı
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = QR Kod taraması için kamera izni gereklidir.\n Lütfen izin verin.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Yeni işlemlerle ilgili bildirim almak için Bildirim Gönderme izni gereklidir.\n Lütfen izin verin.
 
 # Confirm
 
-confirm_fee_error = Ücret hesaplama hatası
 
 # Rootcheck
 

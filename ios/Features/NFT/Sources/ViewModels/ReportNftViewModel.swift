@@ -17,7 +17,7 @@ public final class ReportNftViewModel {
 
     var state: StateViewType<Bool> = .noData
 
-    let reasons = ReportReasonViewModel.allCases
+    let reasons = ReportReason.allCases
 
     init(service: any GemCollectibleServiceProtocol, assetData: NFTAssetData, onComplete: VoidAction) {
         self.service = service
@@ -41,7 +41,7 @@ public final class ReportNftViewModel {
                     collectionId: assetData.collection.id.identifier,
                     assetId: assetData.asset.id.identifier,
                     reason: reason,
-                ).map())
+                ).toGem())
                 state = .data(true)
                 onComplete?()
             } catch {

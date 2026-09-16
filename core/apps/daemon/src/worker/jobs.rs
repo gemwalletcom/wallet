@@ -1,5 +1,5 @@
 use crate::model::WorkerService;
-use primitives::{Chain, ConfigKey, ConfigParamKey, FiatProviderName, ListProviderName, PlatformStore, PriceProvider};
+use primitives::{Chain, ConfigKey, ConfigParamKey, FiatProviderName, FiatRateProvider, ListProviderName, PlatformStore, PriceProvider};
 use std::error::Error;
 use std::time::Duration;
 use storage::ConfigCacher;
@@ -85,6 +85,12 @@ impl JobLabel for primitives::SwapProvider {
 impl JobLabel for PriceProvider {
     fn job_label(&self) -> String {
         self.id().to_string()
+    }
+}
+
+impl JobLabel for FiatRateProvider {
+    fn job_label(&self) -> String {
+        self.as_ref().to_string()
     }
 }
 

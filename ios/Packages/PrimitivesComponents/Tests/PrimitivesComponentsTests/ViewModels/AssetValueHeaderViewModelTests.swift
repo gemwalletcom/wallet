@@ -13,7 +13,7 @@ struct AssetValueHeaderViewModelTests {
     @Test
     func unlimitedTitle() {
         let model = AssetValueHeaderViewModel(
-            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().map(), value: .unlimited),
+            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .unlimited),
         )
 
         #expect(model.title == Localized.Simulation.Header.unlimitedAsset("USDT"))
@@ -23,7 +23,7 @@ struct AssetValueHeaderViewModelTests {
     @Test
     func formattedNumericTitle() {
         let model = AssetValueHeaderViewModel(
-            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().map(), value: .exact(value: BigUInt(1_000_000))),
+            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .exact(value: BigUInt(1_000_000))),
         )
 
         #expect(model.title == "1 USDT")

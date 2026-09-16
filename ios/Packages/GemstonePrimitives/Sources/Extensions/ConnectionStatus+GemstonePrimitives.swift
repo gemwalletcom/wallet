@@ -6,6 +6,6 @@ import Primitives
 
 public extension [Primitives.ConnectionComponent] {
     var connectionStatus: Primitives.ConnectionStatus {
-        Gemstone.connectionStatus(unhealthyComponents: map { $0.map() }).map()
+        Gemstone.connectionStatus(unhealthyComponents: map { $0.toGem() }).toPrimitives()
     }
 }

@@ -1,5 +1,9 @@
 package com.gemwallet.android.features.create_wallet.views
 
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletDefaultName
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -112,13 +116,13 @@ fun CreateWalletScreen(
 private fun UI(
     defaultName: GemWalletDefaultName?,
     data: List<String>,
-    dataError: String?,
+    dataError: GemErrorText?,
     onCreate: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val name = defaultName?.name.orEmpty()
+    val name = defaultName?.text?.string(context).orEmpty()
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
         onClose = onCancel,
@@ -137,7 +141,7 @@ private fun UI(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (dataError != null) {
-                Text(text = dataError.ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
+                Text(text = dataError.text().ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
             } else {
                 Text(
                     text = stringResource(id = R.string.secret_phrase_save_phrase_safely),
@@ -168,7 +172,7 @@ fun PreviewCreateUI() {
     WalletTheme {
         Column {
             UI(
-                defaultName = GemWalletDefaultName("Wallet #2", true),
+                defaultName = GemWalletDefaultName(GemLocalizedText.WalletDefaultName(2), true),
                 data = listOf(
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve"

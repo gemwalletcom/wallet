@@ -18,11 +18,11 @@ struct NameRecordViewModelTests {
         model.getNameRecord(name: record.name, chain: record.chain)
         await model.nameRecordTask?.value
 
-        #expect(model.state == .complete(record: record.map()))
+        #expect(model.state == .complete(record: record.toGem()))
 
         model.getNameRecord(name: record.name, chain: record.chain)
 
-        #expect(model.state == .complete(record: record.map()))
+        #expect(model.state == .complete(record: record.toGem()))
         #expect(nameService.requestedNames == [record.name])
     }
 

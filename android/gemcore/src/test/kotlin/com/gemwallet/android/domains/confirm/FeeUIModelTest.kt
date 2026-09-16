@@ -9,6 +9,8 @@ import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
 import java.util.Locale
+import uniffi.gemstone.GemFeeOptionItem
+import uniffi.gemstone.FeeOption
 
 class FeeUIModelTest {
 
@@ -30,6 +32,27 @@ class FeeUIModelTest {
         currency = Currency.USD,
         priority = FeePriority.Normal,
     )
+
+    @Test fun additionalFeesKeepNetworkFeeTotal() {
+        val fee = FeeUIModel.FeeInfo(
+            amount = BigInteger("1495940"),
+            feeAsset = mockAssetSolana(),
+            price = null,
+            currency = Currency.USD,
+            priority = FeePriority.Normal,
+            additionalFees = listOf(
+                GemFeeOptionItem(FeeOption.TOKEN_ACCOUNT_CREATION, BigInteger("1488440")),
+                GemFeeOptionItem(FeeOption.TOKEN_ACCOUNT_CREATION, BigInteger("1000")),
+            ),
+        )
+
+        assertEquals(BigInteger("1495940"), fee.amount)
+        assertEquals("0.001495 SOL", fee.cryptoAmount)
+        assertEquals(listOf(FeeOption.TOKEN_ACCOUNT_CREATION, FeeOption.TOKEN_ACCOUNT_CREATION), fee.feeItems.map { it.first })
+        assertEquals(BigInteger("1488440"), fee.feeItems.first().second.amount)
+        assertEquals("0.001488 SOL", fee.feeItems.first().second.cryptoAmount)
+        assertEquals(emptyList<Pair<FeeOption, FeeUIModel.FeeInfo>>(), feeInfo(price = null).feeItems)
+    }
 
     @Test fun formatsCryptoAndFiat() {
         val noPrice = feeInfo(price = null)

@@ -4,6 +4,7 @@ import Components
 import func Gemstone.delegationStatus
 import struct Gemstone.GemDelegationStatus
 import protocol Gemstone.GemStakeServiceProtocol
+import enum Gemstone.GemDelegationDestination
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Formatters
@@ -15,34 +16,34 @@ import SwiftUI
 
 public struct DelegationViewModel: Sendable {
     public let delegation: Delegation
-    public let currencyCode: String
+    public let currency: Currency
     private let asset: Asset
     private let formatter: ValueFormatter
     private let service: any GemStakeServiceProtocol
-    private let priceFormatter: CurrencyFormatter
+    private let priceViewModel: PriceViewModel
     public let validatorModel: ValidatorViewModel
-    public let destination: DelegationDestination
+    public let destination: GemDelegationDestination
 
     public init(
         service: any GemStakeServiceProtocol,
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,
-        currencyCode: String,
-        destination: DelegationDestination = .details,
+        currency: Currency,
+        destination: GemDelegationDestination = .details,
     ) {
         self.delegation = delegation
-        self.currencyCode = currencyCode
+        self.currency = currency
         self.asset = asset
         self.formatter = formatter
         self.service = service
-        priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
-        validatorModel = ValidatorViewModel(row: service.validatorRow(validator: delegation.validator.map()))
+        priceViewModel = PriceViewModel(price: delegation.price, currencyCode: currency.rawValue)
+        validatorModel = ValidatorViewModel(row: service.validatorRow(validator: delegation.validator.toGem()))
         self.destination = destination
     }
 
     public var status: GemDelegationStatus {
-        delegationStatus(delegation: delegation.map())
+        delegationStatus(delegation: delegation.toGem())
     }
 
     public var stateModel: DelegationStateViewModel {
@@ -66,15 +67,11 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var fiatValueText: String? {
-        guard
-            let price = delegation.price,
-            let balance = try? formatter.double(from: delegation.base.balance, decimals: asset.decimals.asInt)
-        else { return nil }
-        return priceFormatter.string(price.price * balance)
+        priceViewModel.fiatValueText(value: delegation.base.balance, decimals: asset.decimals.asInt)
     }
 
     private var showsRewards: Bool {
-        service.showsRewards(delegation: delegation.base.map())
+        service.showsRewards(delegation: delegation.base.toGem())
     }
 
     public var rewardsText: String? {
@@ -83,12 +80,8 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var rewardsFiatValueText: String? {
-        guard
-            showsRewards,
-            let price = delegation.price,
-            let rewards = try? formatter.double(from: delegation.base.rewards, decimals: asset.decimals.asInt)
-        else { return nil }
-        return priceFormatter.string(price.price * rewards)
+        guard showsRewards else { return nil }
+        return priceViewModel.fiatValueText(value: delegation.base.rewards, decimals: asset.decimals.asInt)
     }
 
     public var validatorText: String {
@@ -100,7 +93,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        service.validatorUrl(validator: delegation.validator.map()).map { $0.map() }?.url
+        service.validatorUrl(validator: delegation.validator.toGem()).map { $0.toPrimitives() }?.url
     }
 
     public var completionDateText: String? {
@@ -146,9 +139,4 @@ extension DelegationViewModel: ValueHeaderViewModel {
     public var subtitleColor: Color {
         .secondary
     }
-}
-
-public enum DelegationDestination: Hashable, Sendable {
-    case details
-    case withdraw(GemTransferData)
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.features.buy.localization.actionRes
 import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
@@ -38,6 +38,7 @@ import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.fiatProviderName
 import uniffi.gemstone.fiatTransactionStatus
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 @Composable
 fun FiatTransactionItem(
@@ -47,16 +48,12 @@ fun FiatTransactionItem(
 ) {
     val asset = info.asset
 
-    val typeTitle = when (info.transactionType) {
-        FiatQuoteType.Buy -> stringResource(R.string.wallet_buy)
-        FiatQuoteType.Sell -> stringResource(R.string.wallet_sell)
-    }
+    val typeTitle = stringResource(info.transactionType.actionRes())
 
-    val cryptoAmount = ValueFormatter(style = ValueFormatter.Style.Short)
+    val cryptoAmount = ValueFormatter(style = GemValueStyle.SHORT)
         .string(BigInteger(info.value), asset)
 
-    val fiatCurrency = info.fiatCurrency.toCurrency()
-    val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = fiatCurrency).string(info.fiatAmount)
+    val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currencyCode = info.fiatCurrency).string(info.fiatAmount)
 
     val status = remember(info.status) { fiatTransactionStatus(info.status.toGem()) }
 

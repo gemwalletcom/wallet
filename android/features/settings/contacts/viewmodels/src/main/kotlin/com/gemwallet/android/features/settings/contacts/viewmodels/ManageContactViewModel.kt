@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactInput
@@ -38,7 +39,7 @@ import uniffi.gemstone.GemManageContactServiceInterface
 import uniffi.gemstone.GemNameServiceInterface
 import java.util.UUID
 import javax.inject.Inject
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
 
 @HiltViewModel
 class ManageContactViewModel @Inject constructor(
@@ -164,13 +165,13 @@ class ManageContactViewModel @Inject constructor(
 
     fun setMemo(value: String) = updateInput { it.copy(memo = value) }
 
-    fun scanAddress(data: String) = applyExternalAddress(data)
+    fun scanAddress(data: String) = setScannedAddress(data)
 
-    fun pasteAddress(data: String) = applyExternalAddress(data)
+    fun pasteAddress(data: String) = setScannedAddress(data)
 
-    private fun applyExternalAddress(data: String) {
+    private fun setScannedAddress(data: String) {
         val scan = service.scannedAddress(data)
-        addressInput.applyExternalAddress(scan.address)
+        addressInput.setScannedAddress(scan.address)
         updateInput { it.copy(memo = scan.memo ?: it.memo) }
     }
 
@@ -233,7 +234,7 @@ class ManageContactViewModel @Inject constructor(
             runCatchingCancellable { service.saveContact(input) }
                 .onSuccess { state.update { it.copy(saved = true) } }
                 .onFailure { error ->
-                    state.update { it.copy(isSaving = false, error = error.serviceMessage()) }
+                    state.update { it.copy(isSaving = false, error = error.errorText()) }
                 }
         }
     }

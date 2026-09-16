@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemRecentsCounts
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
@@ -19,7 +18,6 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemRecentActivityServiceInterface
 import kotlinx.collections.immutable.toImmutableList
 import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
@@ -42,7 +40,6 @@ import javax.inject.Inject
 class RecentsSheetViewModel @Inject constructor(
     private val recentAssetsService: RecentAssetsService,
     private val recentActivityService: GemRecentActivityServiceInterface,
-    private val assetConfig: GemAssetConfigServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -81,14 +78,11 @@ class RecentsSheetViewModel @Inject constructor(
     }
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {
-        val matching = assetConfig.matchingAssetIds(items.map { it.asset.toGem() }, searchText).toSet()
-        val filtered = items.filter { it.asset.id.toIdentifier() in matching }
+        val state = recentActivityService.viewState(items.map { it.asset.toGem() }, searchText)
+        val matching = state.matchingAssetIds.toSet()
         return RecentsSheetUIModel(
-            items = filtered.toImmutableList(),
-            sections = GemRecentsCounts(
-                recents = items.size.toUInt(),
-                matching = filtered.size.toUInt(),
-            ).sections(searchText.isNotBlank()),
+            items = items.filter { it.asset.id.toIdentifier() in matching }.toImmutableList(),
+            sections = state.sections,
         )
     }
 

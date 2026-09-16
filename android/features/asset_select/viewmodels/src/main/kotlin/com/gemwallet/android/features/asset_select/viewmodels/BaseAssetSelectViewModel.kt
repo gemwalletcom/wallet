@@ -38,6 +38,8 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.requireChain
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
+import uniffi.gemstone.GemAssetSearchStep
+import uniffi.gemstone.GemSelectAssetState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -183,10 +185,10 @@ open class BaseAssetSelectViewModel(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
     val uiState = combine(assetsContent, isSearching) { assets, isSearching ->
-        when {
-            assets.isNotEmpty() -> UIState.Idle
-            isSearching -> UIState.Loading
-            else -> UIState.Empty
+        when (flow.state(assets.isNotEmpty(), isSearching)) {
+            GemSelectAssetState.IDLE -> UIState.Idle
+            GemSelectAssetState.LOADING -> UIState.Loading
+            GemSelectAssetState.EMPTY -> UIState.Empty
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
@@ -260,11 +262,12 @@ open class BaseAssetSelectViewModel(
     init {
         if (flow.networkSearch) {
             viewModelScope.launch(Dispatchers.IO) {
-                searchRequests.collectLatest { query ->
-                    if (query.isEmpty()) return@collectLatest
+                searchRequests.collectLatest { input ->
+                    val step = flow.searchStep(input)
+                    if (step !is GemAssetSearchStep.Search) return@collectLatest
                     isSearching.value = true
                     try {
-                        runCatchingCancellable { searchRemote(query) }
+                        runCatchingCancellable { searchRemote(step.query) }
                             .onFailure { Log.e(TAG, "search failed", it) }
                     } finally {
                         isSearching.value = false

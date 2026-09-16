@@ -17,7 +17,7 @@ internal fun ServiceStatusItem(
     ListItem(
         title = {
             ListItemTitleText(
-                text = "${model.type.string()} ${model.flag}",
+                text = model.endpoint.title(model.endpoint.endpointType.string()),
                 titleBadge = {
                     LatencyStatusBadge(status = model.statusState)
                 },
@@ -25,7 +25,7 @@ internal fun ServiceStatusItem(
         },
         subtitle = {
             ListItemSupportText(
-                text = model.host,
+                text = model.endpoint.host,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         },

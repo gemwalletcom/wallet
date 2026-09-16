@@ -22,12 +22,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.contacts.values.ContactRecipient
+import com.gemwallet.android.ext.toPrimitives
+import com.wallet.core.primitives.Account
+import uniffi.gemstone.GemRecipientSection
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.recipient.presents.components.RecipientHead
-import com.gemwallet.android.features.recipient.presents.components.contactsDestination
+import com.gemwallet.android.features.recipient.presents.components.contactsSection
 import com.gemwallet.android.features.recipient.presents.components.destinationView
 import uniffi.gemstone.GemNameRecordState
-import com.gemwallet.android.features.recipient.presents.components.walletsDestination
+import com.gemwallet.android.features.recipient.presents.components.walletsSection
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
@@ -58,7 +61,7 @@ fun RecipientScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val hasMemo by viewModel.hasMemo.collectAsStateWithLifecycle()
-    val wallets by viewModel.wallets.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressError by viewModel.addressError.collectAsStateWithLifecycle()
     val memoError by viewModel.memoErrorState.collectAsStateWithLifecycle()
@@ -81,7 +84,7 @@ fun RecipientScreen(
                 addressError = addressError,
                 nameResolveState = nameResolveState,
                 memoError = memoError,
-                wallets = wallets,
+                sections = sections,
                 contacts = contacts,
                 buttonState = buttonState,
                 onAction = { action ->
@@ -90,6 +93,7 @@ fun RecipientScreen(
                         is RecipientAction.SetMemo -> viewModel.onMemo(action.memo)
                         is RecipientAction.Scan -> scan = action.field
                         RecipientAction.Next -> viewModel.onNext(currentState, amountAction, confirmAction)
+                        RecipientAction.ValidateAddress -> viewModel.onValidateAddress()
                         is RecipientAction.Select -> viewModel.onDestination(currentState, action.destination, amountAction, confirmAction)
                         RecipientAction.Cancel -> cancelAction()
                     }
@@ -122,17 +126,21 @@ internal fun RecipientScreen(
     addressError: Boolean,
     nameResolveState: GemNameRecordState,
     memoError: RecipientError,
-    wallets: List<Wallet>,
+    sections: List<GemRecipientSection>,
     contacts: List<ContactRecipient>,
     buttonState: ButtonState,
     onAction: (RecipientAction) -> Unit,
 ) {
     val contactAddresses = rememberContactAddresses(contacts)
-    val walletAddresses = rememberWalletAddresses(wallets, asset.chain)
+    val walletAddresses = rememberWalletAddresses(sections.flatMap { it.wallets() }, asset.chain)
     val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
     val isSmallScreen = with(density) {
         LocalWindowInfo.current.containerSize.height.toDp() < SceneSizing.compactContentHeight
+    }
+
+    val onSelectWallet: (Wallet, Account) -> Unit = { wallet, account ->
+        onAction(RecipientAction.Select(GemRecipient(address = account.address, name = wallet.name)))
     }
 
     Scene(
@@ -173,28 +181,26 @@ internal fun RecipientScreen(
                 onAddress = { onAction(RecipientAction.SetAddress(it)) },
                 onMemo = { onAction(RecipientAction.SetMemo(it)) },
                 onQrScan = { onAction(RecipientAction.Scan(it)) },
+                onSubmitAddress = { onAction(RecipientAction.ValidateAddress) },
             )
-            contactsDestination(contacts = contacts, addresses = contactAddresses) { contact ->
-                onAction(RecipientAction.SetMemo(contact.memo ?: ""))
-                onAction(
-                    RecipientAction.Select(
-                        GemRecipient(
-                            address = contact.address,
-                            name = contact.name,
-                        )
-                    )
-                )
-            }
-            walletsDestination(toChain = asset.chain, items = wallets, addresses = walletAddresses) { wallet, account ->
-                onAction(
-                    RecipientAction.Select(
-                        GemRecipient(
-                            address = account.address,
-                            name = wallet.name,
-                        )
-                    )
-                )
+            sections.forEach { section ->
+                when (section) {
+                    is GemRecipientSection.Contacts -> contactsSection(section, contacts, contactAddresses) { contact ->
+                        onAction(RecipientAction.SetMemo(contact.memo ?: ""))
+                        onAction(RecipientAction.Select(GemRecipient(address = contact.address, name = contact.name)))
+                    }
+                    is GemRecipientSection.Pinned -> walletsSection(section, section.wallets.map { it.toPrimitives() }, asset.chain, walletAddresses, onSelectWallet)
+                    is GemRecipientSection.Wallets -> walletsSection(section, section.wallets.map { it.toPrimitives() }, asset.chain, walletAddresses, onSelectWallet)
+                    is GemRecipientSection.ViewWallets -> walletsSection(section, section.wallets.map { it.toPrimitives() }, asset.chain, walletAddresses, onSelectWallet)
+                }
             }
         }
     }
+}
+
+private fun GemRecipientSection.wallets(): List<Wallet> = when (this) {
+    is GemRecipientSection.Pinned -> wallets.map { it.toPrimitives() }
+    is GemRecipientSection.Wallets -> wallets.map { it.toPrimitives() }
+    is GemRecipientSection.ViewWallets -> wallets.map { it.toPrimitives() }
+    is GemRecipientSection.Contacts -> emptyList()
 }

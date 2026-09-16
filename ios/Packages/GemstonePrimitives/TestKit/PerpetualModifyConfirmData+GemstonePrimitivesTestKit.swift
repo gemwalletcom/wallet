@@ -16,7 +16,7 @@ public extension PerpetualModifyConfirmData {
         stopLossOrderId: UInt64? = nil,
     ) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData(
-            baseAsset: baseAsset.map(),
+            baseAsset: baseAsset.toGem(),
             assetIndex: assetIndex,
             modifyTypes: modifyTypes,
             takeProfitOrderId: takeProfitOrderId,

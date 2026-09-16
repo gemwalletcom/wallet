@@ -30,7 +30,7 @@ pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, value: Big
 }
 
 pub(super) async fn get_solana_blockhash(provider: Arc<dyn RpcProvider>) -> Result<[u8; 32], SwapperError> {
-    let client = SolanaClient::new(create_client_with_chain(provider, Chain::Solana));
+    let client = SolanaClient::new(create_client_with_chain(provider, Chain::Solana)?);
     let blockhash_response = client.get_latest_blockhash().await?;
     try_decode_blockhash(&blockhash_response.value.blockhash).ok_or_else(|| SwapperError::transaction_error("Invalid Solana blockhash"))
 }

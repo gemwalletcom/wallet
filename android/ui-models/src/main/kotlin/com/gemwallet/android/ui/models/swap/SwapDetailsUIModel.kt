@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.models.swap
 import com.gemwallet.android.domains.swap.AssetRatePair
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.GemSwapDetailRow
 
 data class SwapProviderUIModel(
     val id: SwapProvider,
@@ -21,6 +22,7 @@ data class SwapPriceImpactUIModel(
 )
 
 data class SwapDetailsUIModel(
+    val rows: List<GemSwapDetailRow>,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val rate: AssetRatePair,

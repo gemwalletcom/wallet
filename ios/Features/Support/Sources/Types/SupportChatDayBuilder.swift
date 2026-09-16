@@ -30,10 +30,10 @@ struct SupportChatDayBuilder {
 
 private extension SupportChatDayBuilder {
     func groups(from messages: [SupportMessage]) -> [SupportChatGroup] {
-        supportChatGroups(messages: messages.map { $0.map() }).map { group in
+        supportChatGroups(messages: messages.map { $0.toGem() }).map { group in
             SupportChatGroup(
-                sender: group.sender.map(),
-                messages: group.messages.map { SupportMessageBubbleViewModel(message: $0.map(), retryAction: retryAction, imageAction: imageAction) },
+                sender: group.sender.toPrimitives(),
+                messages: group.messages.map { SupportMessageBubbleViewModel(message: $0.toPrimitives(), retryAction: retryAction, imageAction: imageAction) },
             )
         }
     }

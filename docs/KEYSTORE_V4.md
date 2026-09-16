@@ -264,3 +264,9 @@ v4 files are plaintext JSON, so `cat`/`jq` work directly for debugging. The meta
 
 - Migration failures are logged and retried on next launch; decide whether they also need durable telemetry or user-visible recovery.
 - Adding another platform backend (web over IndexedDB): implement the `Keystore` trait over that platform's record storage, reusing `storage/secret.rs` to seal and open the v4 envelope and the `SecretPayload` constructors to validate input. The trait is synchronous today, so a browser backend needs an in-memory mirror or an async variant.
+
+## Migration failures
+
+A v3 keystore that will not migrate is not destructive: Core leaves that wallet on its legacy password and it keeps working, so there is nothing for the user to recover and no recovery screen to show. iOS records migration failures at startup through `debugLog`, only in debug builds.
+
+The synchronous `Keystore` trait is shaped for a platform that stores a secret behind a blocking call. A browser backend would need an in-memory mirror to satisfy it; reopen that when there is a browser backend to satisfy, not before.

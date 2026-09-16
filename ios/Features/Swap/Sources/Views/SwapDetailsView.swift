@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemSwapDetailRow
 import Foundation
 import InfoSheet
 import Localization
@@ -24,7 +25,7 @@ public struct SwapDetailsView: View {
         VStack {
             switch model.state {
             case .data: listView
-            case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error.asAnyError(asset: model.fromAsset)) }
+            case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error) }
             case .loading: LoadingView()
             case .noData: List { ListItemErrorView(errorTitle: nil, error: AnyError(Localized.Errors.errorOccurred)) }
             }
@@ -67,34 +68,41 @@ public struct SwapDetailsView: View {
                     view
                 }
             } header: {
-                Text(Localized.Common.provider)
+                Text(GemSwapDetailRow.provider.title)
                     .listRowInsets(.horizontalMediumInsets)
             }
 
             Section {
-                if let rateText = model.rateText {
-                    ListItemRotateView(
-                        title: model.rateTitle,
-                        subtitle: rateText,
-                        action: model.switchRateDirection,
-                    )
+                ForEach(model.detailRows, id: \.self) { row in
+                    switch row {
+                    case .provider:
+                        EmptyView()
+                    case .rate:
+                        if let rateText = model.rateText {
+                            ListItemRotateView(
+                                title: model.rateTitle,
+                                subtitle: rateText,
+                                action: model.switchRateDirection,
+                            )
+                        }
+                    case .estimatedTime:
+                        if let swapEstimationField = model.swapEstimationField {
+                            ListItemView(field: swapEstimationField)
+                        }
+                    case .priceImpact:
+                        PriceImpactView(
+                            model: model.priceImpactModel,
+                            infoAction: { infoSheet = .priceImpact },
+                        )
+                    case .minimumReceive:
+                        ListItemView(field: model.minReceiveField)
+                    case .slippage:
+                        ListItemView(
+                            field: model.slippageField,
+                            infoAction: { infoSheet = .slippage },
+                        )
+                    }
                 }
-
-                if let swapEstimationField = model.swapEstimationField {
-                    ListItemView(field: swapEstimationField)
-                }
-
-                PriceImpactView(
-                    model: model.priceImpactModel,
-                    infoAction: { infoSheet = .priceImpact },
-                )
-
-                ListItemView(field: model.minReceiveField)
-
-                ListItemView(
-                    field: model.slippageField,
-                    infoAction: { infoSheet = .slippage },
-                )
             }
         }
     }

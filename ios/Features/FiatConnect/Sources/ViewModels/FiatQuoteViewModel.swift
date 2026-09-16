@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
+import Foundation
+import GemstonePrimitives
 import struct Gemstone.GemFiatQuoteRow
 import Primitives
 import PrimitivesComponents
@@ -13,18 +14,18 @@ struct FiatQuoteViewModel {
     let isSelected: Bool
 
     private let asset: Asset
-    private let formatter: CurrencyFormatter
+    private let locale: Locale
 
     init(
         asset: Asset,
         row: GemFiatQuoteRow,
         isSelected: Bool = false,
-        formatter: CurrencyFormatter,
+        locale: Locale = .current,
     ) {
         self.asset = asset
         self.row = row
         self.isSelected = isSelected
-        self.formatter = formatter
+        self.locale = locale
     }
 
     var title: String {
@@ -32,18 +33,18 @@ struct FiatQuoteViewModel {
     }
 
     var amountText: String {
-        NumericFormatter().string(row.cryptoAmount, symbol: asset.symbol)
+        row.cryptoAmount.text(locale: locale)
     }
 
     var rateText: String {
         guard let rate = row.rate else { return "" }
-        return rate.text(formattedValue: formatter.string(rate.value))
+        return rate.text(formattedValue: rate.value.text(locale: locale))
     }
 }
 
 extension FiatQuoteViewModel: Identifiable {
     var id: String {
-        "\(asset.id.identifier)\(row.provider.map().rawValue)\(row.cryptoAmount)"
+        "\(asset.id.identifier)\(row.provider.toPrimitives().rawValue)\(row.cryptoAmount.value)"
     }
 }
 
@@ -56,7 +57,7 @@ extension FiatQuoteViewModel: SimpleListItemViewable {
 
     var assetImage: AssetImage {
         AssetImage(
-            placeholder: row.provider.map().image,
+            placeholder: row.provider.toPrimitives().image,
             chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
         )
     }
@@ -66,7 +67,7 @@ extension FiatQuoteViewModel: SimpleListItemViewable {
     }
 
     var subtitleExtra: String? {
-        formatter.string(row.fiatAmount)
+        row.fiatAmount.text(locale: locale)
     }
 
     var subtitleStyle: TextStyle {

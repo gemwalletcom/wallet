@@ -36,8 +36,8 @@ public final class PriceAlertsSceneViewModel: Sendable {
         Localized.Settings.PriceAlerts.title
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var enableTitle: String {
@@ -50,7 +50,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
         let (autoAlerts, manualGroups) = alerts.displayedAlerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
-            switch PriceAlertFormatter.shared.alertKind(alert: alert.priceAlert.map()).groupsByAsset() {
+            switch PriceAlertFormatter.shared.alertKind(alert: alert.priceAlert.toGem()).groupsByAsset() {
             case false:
                 result.0.append(alert)
             case true:

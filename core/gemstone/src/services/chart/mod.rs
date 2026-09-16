@@ -1,6 +1,6 @@
-pub mod session;
 pub mod model;
 pub mod rules;
+pub mod session;
 
 use std::sync::Arc;
 
@@ -18,6 +18,19 @@ use session::GemChartSession;
 
 pub use model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
 
+#[uniffi::export]
+pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
+    GemChartData {
+        value_type: GemChartValueType::Price,
+        base,
+        shows_secondary_value: false,
+        currency: Currency::USD,
+        values: Vec::new(),
+        header: None,
+    }
+    .header_at(value)
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
     pub values: Vec<ChartDateValue>,
@@ -30,16 +43,6 @@ pub struct GemChartCurrent {
     pub date: DateTime<Utc>,
     pub value: f64,
     pub change_percentage: f64,
-}
-
-#[uniffi::export]
-pub fn price_chart_data(chart: GemChart) -> Option<GemChartData> {
-    rules::price_chart_data(chart)
-}
-
-#[uniffi::export]
-pub fn chart_header(value_type: GemChartValueType, base: f64, value: f64, shows_secondary_value: bool) -> GemChartHeader {
-    rules::header(value_type, base, value, None, shows_secondary_value)
 }
 
 #[derive(uniffi::Object)]
@@ -70,20 +73,13 @@ impl GemChartService {
         }
     }
 
-    pub fn sections(
-        &self,
-        asset: Asset,
-        price: Option<f64>,
-        market: Option<AssetMarket>,
-        price_alerts: Vec<PriceAlert>,
-        links: Vec<AssetLink>,
-    ) -> Vec<GemChartSection> {
+    pub fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Vec<GemChartSection> {
         let contract_explorer = asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(asset.id.chain, token_id));
         rules::chart_sections(&asset, price, market.as_ref(), price_alerts, links, contract_explorer)
     }
 
     pub fn new_session(&self) -> GemChartSession {
-        GemChartSession::new(self.chart_period())
+        GemChartSession::new(self.chart_period(), self.get_currency())
     }
 
     pub fn get_currency(&self) -> Currency {

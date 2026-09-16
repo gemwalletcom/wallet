@@ -362,7 +362,9 @@ mod tests {
         assert_eq!(
             TransactionInputType::Perpetual {
                 asset: Asset::mock(),
-                perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) }
+                perpetual_type: PerpetualType::Open {
+                    data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+                }
             }
             .transaction_type(),
             TransactionType::PerpetualOpenPosition
@@ -380,7 +382,9 @@ mod tests {
             }
         }
 
-        let perpetual_type = PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None) };
+        let perpetual_type = PerpetualType::Open {
+            data: PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None),
+        };
         let perpetual_input = TransactionInputType::Perpetual {
             asset: Asset::mock(),
             perpetual_type,

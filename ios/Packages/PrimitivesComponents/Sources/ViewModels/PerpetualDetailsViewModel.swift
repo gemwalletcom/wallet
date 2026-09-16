@@ -6,6 +6,7 @@ import Foundation
 import struct Gemstone.GemPerpetualDetails
 import enum Gemstone.GemPerpetualDetailsAction
 import struct Gemstone.PerpetualConfirmData
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -18,7 +19,6 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 
     private let details: GemPerpetualDetails
     private let currencyFormatter: CurrencyFormatter
-    private let numericFormatter = NumericFormatter()
     private let percentFormatter = PercentFormatter.signed
     private let percentSignLessFormatter = PercentFormatter.unsigned
     private let autocloseFormatter = AutocloseFormatter(
@@ -59,7 +59,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 
     var directionViewModel: PerpetualDirectionViewModel {
-        PerpetualDirectionViewModel(direction: details.direction.map())
+        PerpetualDirectionViewModel(direction: details.direction.toPrimitives())
     }
 
     var leverageText: String {
@@ -118,8 +118,8 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
-            takeProfit: data.takeProfit.flatMap { numericFormatter.double(from: $0) },
-            stopLoss: data.stopLoss.flatMap { numericFormatter.double(from: $0) },
+            takeProfit: data.takeProfit.flatMap { NumberInput.double($0) },
+            stopLoss: data.stopLoss.flatMap { NumberInput.double($0) },
         )
     }
 

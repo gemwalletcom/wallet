@@ -16,19 +16,19 @@ public final class GemstoneConnectionStore: GemConnectionStore, @unchecked Senda
     }
 
     public func getConnection(sessionId: String) async throws -> Gemstone.WalletConnection? {
-        try store.getConnection(sessionId: sessionId).map { $0.map() }
+        try store.getConnection(sessionId: sessionId).map { $0.toGem() }
     }
 
     public func getSessions() async throws -> [Gemstone.WalletConnectionSession] {
-        try store.getSessions().map { $0.map() }
+        try store.getSessions().map { $0.toGem() }
     }
 
     public func addConnection(connection: Gemstone.WalletConnection) async throws {
-        try store.addConnection(connection.map())
+        try store.addConnection(connection.toPrimitives())
     }
 
     public func updateSession(session: Gemstone.WalletConnectionSession) async throws {
-        try store.updateConnectionSession(session.map())
+        try store.updateConnectionSession(session.toPrimitives())
     }
 
     public func deleteSessions(sessionIds: [String]) async throws {

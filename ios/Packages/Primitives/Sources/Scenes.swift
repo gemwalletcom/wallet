@@ -149,11 +149,9 @@ public enum Scenes {
 
     public struct Collection: Hashable, Codable, Sendable {
         public let id: String
-        public let name: String
 
-        public init(id: String, name: String) {
+        public init(id: String) {
             self.id = id
-            self.name = name
         }
     }
 

@@ -11,7 +11,7 @@ use primitives::{AssetBasic, Wallet};
 pub use model::GemSearchScope;
 pub use store::GemSearchStore;
 
-use crate::services::assets::{GemAssetStore, GemAssetsService};
+use crate::services::assets::{GemAssetStore, GemAssetsService, rules as assets_rules};
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::{GemPerpetualStore, rules as perpetual_rules};
 use crate::services::price::GemPriceService;
@@ -55,7 +55,7 @@ impl GemSearchService {
             self.assets.search_tokens(query.clone(), scope.token_chains(&wallet_chains)),
         );
         let response = response?;
-        let assets = rules::merge_assets(response.assets, tokens);
+        let assets = assets_rules::merge_assets(response.assets, tokens);
         let key = scope.search_key(&query);
         self.save_assets(&wallet, &assets, currency, &key).await?;
         self.save_perpetuals(&response.perpetuals, &key).await?;

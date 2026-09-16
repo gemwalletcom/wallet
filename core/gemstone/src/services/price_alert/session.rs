@@ -5,8 +5,18 @@ use number_formatter::price_suggestion;
 
 const SUGGESTION_OFFSET_PERCENT: f64 = 5.0;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPriceAlertPrompt {
+    TargetPrice,
+    PriceOver,
+    PriceUnder,
+    IncreasesBy,
+    DecreasesBy,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPriceAlertViewState {
+    pub prompt: GemPriceAlertPrompt,
     pub notification_type: PriceAlertNotificationType,
     pub selected_direction: PriceAlertDirection,
     pub direction: Option<PriceAlertDirection>,
@@ -50,16 +60,6 @@ impl GemPriceAlertSession {
         }
     }
 
-    pub fn on_toggle_direction(&self) -> Self {
-        Self {
-            selected_direction: match self.selected_direction {
-                PriceAlertDirection::Up => PriceAlertDirection::Down,
-                PriceAlertDirection::Down => PriceAlertDirection::Up,
-            },
-            ..self.clone()
-        }
-    }
-
     pub fn on_direction(&self, selected_direction: PriceAlertDirection) -> Self {
         Self {
             selected_direction,
@@ -72,10 +72,7 @@ impl GemPriceAlertSession {
     }
 
     pub fn on_price(&self, current_price: Option<f64>) -> Self {
-        Self {
-            current_price,
-            ..self.clone()
-        }
+        Self { current_price, ..self.clone() }
     }
 
     pub fn on_saving(&self, is_saving: bool) -> Self {
@@ -103,6 +100,7 @@ impl GemPriceAlertSession {
     pub fn view_state(&self) -> GemPriceAlertViewState {
         let price = self.current_price.filter(|price| *price > 0.0);
         GemPriceAlertViewState {
+            prompt: self.prompt(),
             notification_type: self.notification_type.clone(),
             selected_direction: self.selected_direction.clone(),
             direction: self.direction(),
@@ -117,19 +115,58 @@ impl GemPriceAlertSession {
 }
 
 impl GemPriceAlertSession {
+    fn prompt(&self) -> GemPriceAlertPrompt {
+        match self.notification_type {
+            PriceAlertNotificationType::PricePercentChange => match self.selected_direction {
+                PriceAlertDirection::Up => GemPriceAlertPrompt::IncreasesBy,
+                PriceAlertDirection::Down => GemPriceAlertPrompt::DecreasesBy,
+            },
+            PriceAlertNotificationType::Price | PriceAlertNotificationType::Auto => match self.direction() {
+                Some(PriceAlertDirection::Up) => GemPriceAlertPrompt::PriceOver,
+                Some(PriceAlertDirection::Down) => GemPriceAlertPrompt::PriceUnder,
+                None => GemPriceAlertPrompt::TargetPrice,
+            },
+        }
+    }
+
     fn direction(&self) -> Option<PriceAlertDirection> {
-        rules::alert_direction(
-            self.notification_type.clone(),
-            self.input,
-            self.current_price,
-            self.selected_direction.clone(),
-        )
+        rules::alert_direction(self.notification_type.clone(), self.input, self.current_price, self.selected_direction.clone())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_the_prompt_follows_the_type_and_the_resolved_direction() {
+        let session = GemPriceAlertSession::new(AssetId::from_chain(primitives::Chain::Ethereum), Currency::USD);
+        assert_eq!(
+            session.view_state().prompt,
+            GemPriceAlertPrompt::TargetPrice,
+            "a price alert with no input asks for a target"
+        );
+
+        let priced = GemPriceAlertSession {
+            current_price: Some(100.0),
+            input: Some(120.0),
+            ..session.clone()
+        };
+        assert_eq!(priced.view_state().prompt, GemPriceAlertPrompt::PriceOver);
+        assert_eq!(
+            GemPriceAlertSession {
+                input: Some(80.0),
+                ..priced.clone()
+            }
+            .view_state()
+            .prompt,
+            GemPriceAlertPrompt::PriceUnder
+        );
+
+        let percentage = priced.on_type(PriceAlertNotificationType::PricePercentChange);
+        assert_eq!(percentage.view_state().prompt, GemPriceAlertPrompt::IncreasesBy);
+        assert_eq!(percentage.on_direction(PriceAlertDirection::Down).view_state().prompt, GemPriceAlertPrompt::DecreasesBy);
+    }
 
     fn session() -> GemPriceAlertSession {
         GemPriceAlertSession::new(AssetId::from_chain(primitives::Chain::Ethereum), Currency::USD).on_price(Some(100.0))
@@ -147,11 +184,7 @@ mod tests {
     #[test]
     fn test_a_price_alert_carries_the_price_and_a_percentage_alert_the_percentage() {
         let price = session().on_input(Some(120.0)).alert().unwrap();
-        let percent = session()
-            .on_type(PriceAlertNotificationType::PricePercentChange)
-            .on_input(Some(5.0))
-            .alert()
-            .unwrap();
+        let percent = session().on_type(PriceAlertNotificationType::PricePercentChange).on_input(Some(5.0)).alert().unwrap();
 
         assert_eq!((price.price, price.price_percent_change), (Some(120.0), None));
         assert_eq!((percent.price, percent.price_percent_change), (None, Some(5.0)));
@@ -172,11 +205,5 @@ mod tests {
         assert!(without_price.view_state().price_suggestions.is_empty());
         assert!(without_price.on_price(Some(0.0)).view_state().percentage_suggestions.is_empty());
         assert!(!session().view_state().price_suggestions.is_empty());
-    }
-
-    #[test]
-    fn test_toggling_flips_the_selected_direction() {
-        assert_eq!(session().on_toggle_direction().selected_direction, PriceAlertDirection::Down);
-        assert_eq!(session().on_toggle_direction().on_toggle_direction().selected_direction, PriceAlertDirection::Up);
     }
 }

@@ -26,6 +26,18 @@ pub struct GemContactScannedAddress {
     pub memo: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemContactAddressField {
+    Network,
+    Address,
+    Memo,
+}
+
+#[uniffi::export]
+pub fn contact_address_fields(chain: Chain) -> Vec<GemContactAddressField> {
+    rules::contact_address_fields(chain)
+}
+
 #[derive(uniffi::Record)]
 pub struct GemContactAddressInput {
     pub contact_id: String,

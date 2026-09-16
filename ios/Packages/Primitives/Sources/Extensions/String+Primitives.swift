@@ -39,10 +39,6 @@ public extension String {
         replacingOccurrences(of: dropFirst(first).dropLast(last), with: connector)
     }
 
-    func numberOfOccurrencesOf(string: String) -> Int {
-        components(separatedBy: string).count - 1
-    }
-
     func trim() -> String {
         trimmingCharacters(in: .whitespacesAndNewlines)
     }

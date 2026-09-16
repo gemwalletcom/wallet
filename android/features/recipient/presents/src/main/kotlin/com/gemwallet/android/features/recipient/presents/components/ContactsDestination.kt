@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.localization.stringRes
+import uniffi.gemstone.GemRecipientSection
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -22,7 +24,8 @@ fun rememberContactAddresses(contacts: List<ContactRecipient>): Map<String, Stri
     remember(contacts) { contacts.map { ChainAddress(chain = it.chain, address = it.address) } }
 )
 
-fun LazyListScope.contactsDestination(
+fun LazyListScope.contactsSection(
+    section: GemRecipientSection,
     contacts: List<ContactRecipient>,
     addresses: Map<String, String>,
     onSelect: (ContactRecipient) -> Unit,
@@ -31,7 +34,7 @@ fun LazyListScope.contactsDestination(
         return
     }
     item {
-        SubheaderItem(R.string.contacts_title)
+        SubheaderItem(section.stringRes())
     }
     itemsIndexed(contacts) { index, contact ->
         ContactRecipientItem(contact, addresses[contact.address].orEmpty(), ListPosition.getPosition(index, contacts.size)) {

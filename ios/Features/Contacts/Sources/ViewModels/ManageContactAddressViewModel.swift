@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.contactAddressFields
+import enum Gemstone.GemContactAddressField
 import protocol Gemstone.GemManageContactServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
@@ -73,24 +75,13 @@ public final class ManageContactAddressViewModel {
     }
 
     let title: String
-    var buttonTitle: String {
-        Localized.Transfer.confirm
-    }
-
-    var networkTitle: String {
-        Localized.Transfer.network
-    }
-
-    var memoTitle: String {
-        Localized.Transfer.memo
-    }
 
     var chain: Chain {
         addressInputModel.chain
     }
 
-    var showMemo: Bool {
-        chain.isMemoSupported
+    var fields: [GemContactAddressField] {
+        contactAddressFields(chain: chain.rawValue)
     }
 
     var networkSelectorModel: NetworkSelectorViewModel {
@@ -98,7 +89,7 @@ public final class ManageContactAddressViewModel {
             state: .data(.plain(Chain.allCases)),
             selectedItems: [chain],
             selectionType: .checkmark,
-            title: networkTitle,
+            title: GemContactAddressField.network.title,
         )
     }
 

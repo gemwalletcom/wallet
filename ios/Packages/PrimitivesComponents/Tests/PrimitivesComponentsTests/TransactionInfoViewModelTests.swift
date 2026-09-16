@@ -83,9 +83,9 @@ struct TransactionInfoModelTests {
             sign: .incoming,
         )
 
-        #expect(model.feeDisplay != nil)
-        #expect(try #require(model.feeDisplay?.amount.text.contains(feeAsset.symbol)))
-        #expect(model.feeDisplay?.amount.text == "0.1 BTC")
+        let feeDisplay = try #require(model.feeDisplay)
+        #expect(feeDisplay.amount.text.contains(feeAsset.symbol))
+        #expect(feeDisplay.amount.text == "0.1 BTC")
     }
 
     @Test

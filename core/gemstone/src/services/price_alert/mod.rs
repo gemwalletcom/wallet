@@ -1,5 +1,5 @@
-pub mod session;
 pub mod rules;
+pub mod session;
 pub mod store;
 
 use crate::services::error::GemServiceError;

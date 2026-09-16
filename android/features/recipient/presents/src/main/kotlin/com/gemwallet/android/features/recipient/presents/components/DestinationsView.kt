@@ -21,6 +21,7 @@ fun LazyListScope.destinationView(
     onAddress: (String) -> Unit,
     onMemo: (String) -> Unit,
     onQrScan: (QrScanField) -> Unit,
+    onSubmitAddress: () -> Unit,
 ) {
     item {
         Column {
@@ -30,7 +31,8 @@ fun LazyListScope.destinationView(
                 state = nameResolveState,
                 error = if (addressError) stringResource(R.string.errors_invalid_asset_address, assetName) else "",
                 onValueChange = onAddress,
-                onQrScanner = { onQrScan(QrScanField.Address) }
+                onQrScanner = { onQrScan(QrScanField.Address) },
+                onSubmit = onSubmitAddress,
             )
             if (hasMemo) {
                 MemoTextField(

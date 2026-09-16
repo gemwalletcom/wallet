@@ -24,7 +24,7 @@ public struct AbbreviatedFormatter {
         string(from: Decimal(double), currency: currency)
     }
 
-    func string(from decimal: Decimal) -> String? {
+    public func string(from decimal: Decimal) -> String? {
         guard abs(decimal) >= threshold, #available(iOS 18, *) else {
             return nil
         }
@@ -38,7 +38,7 @@ public struct AbbreviatedFormatter {
         )
     }
 
-    func string(from decimal: Decimal, currency: String) -> String? {
+    public func string(from decimal: Decimal, currency: String) -> String? {
         guard abs(decimal) >= threshold, #available(iOS 18, *) else {
             return nil
         }

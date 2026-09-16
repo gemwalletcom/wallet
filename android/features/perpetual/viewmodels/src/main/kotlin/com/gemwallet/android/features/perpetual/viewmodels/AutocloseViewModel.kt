@@ -11,6 +11,7 @@ import uniffi.gemstone.GemAutocloseModify
 import uniffi.gemstone.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
 import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
@@ -31,8 +32,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
-import java.text.DecimalFormatSymbols
-import java.util.Locale
 import javax.inject.Inject
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toGem
@@ -84,12 +83,12 @@ class AutocloseViewModel @Inject constructor(
 
     fun onTakeProfitChanged(text: String) {
         submitAttempted.value = false
-        userTakeProfitText.value = text.filterNumeric()
+        userTakeProfitText.value = numberFormat().sanitize(text, null, null)
     }
 
     fun onStopLossChanged(text: String) {
         submitAttempted.value = false
-        userStopLossText.value = text.filterNumeric()
+        userStopLossText.value = numberFormat().sanitize(text, null, null)
     }
 
     fun onPercentSelected(type: TpslType, percent: Int) {
@@ -183,10 +182,5 @@ class AutocloseViewModel @Inject constructor(
             price = trigger.price,
             decimals = position.asset.decimals,
         )
-    }
-
-    private fun String.filterNumeric(locale: Locale = Locale.getDefault()): String {
-        val separator = DecimalFormatSymbols.getInstance(locale).decimalSeparator
-        return filter { it.isDigit() || it == separator || it == '.' }
     }
 }

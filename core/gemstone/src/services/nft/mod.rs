@@ -13,8 +13,7 @@ use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, Wallet, 
 
 pub use collectible::GemCollectibleService;
 pub use model::{
-    GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem,
-    GemNftList,
+    GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem, GemNftList,
 };
 pub use store::GemNftStore;
 

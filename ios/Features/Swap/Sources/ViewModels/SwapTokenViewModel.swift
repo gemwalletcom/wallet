@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -36,7 +37,6 @@ struct SwapTokenInteraction {
 
 struct SwapTokenViewModel {
     private let type: SwapTokenViewType
-    private let formatter = ValueFormatter(style: .auto)
     let interaction: SwapTokenInteraction
 
     init(
@@ -82,15 +82,8 @@ struct SwapTokenViewModel {
     func fiatBalance(amount: String) -> String? {
         switch type {
         case let .selected(model):
-            guard
-                let value = try? formatter.inputNumber(from: amount, decimals: model.asset.decimals.asInt),
-                let amount = try? formatter.double(from: value, decimals: model.asset.decimals.asInt),
-                amount > 0,
-                let price = model.priceViewModel.price
-            else {
-                return nil
-            }
-            return model.priceViewModel.fiatAmountText(amount: price.price * amount)
+            guard let value = try? NumberInput.value(amount, decimals: model.asset.decimals.asInt) else { return nil }
+            return model.priceViewModel.fiatValueText(value: value, decimals: model.asset.decimals.asInt)
         case .placeholder:
             return nil
         }

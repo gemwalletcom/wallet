@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -77,7 +77,7 @@ private fun RewardRedemptionOptionItem(
             .clickable { showConfirm = true },
         title = {
             PropertyTitleText(
-                text = stringResource(R.string.rewards_ways_spend_asset_title, option.valueText),
+                text = stringResource(R.string.rewards_ways_spend_asset_title, redemption.value.text()),
                 trailing = { AssetIcon(asset.toPrimitives()) },
             )
         },
@@ -97,7 +97,7 @@ private fun RewardRedemptionOptionItem(
         containerColor = MaterialTheme.colorScheme.background,
         text = {
             Text(
-                text = option.confirmationMessage(redemption.pointsText),
+                text = redemption.confirmationMessage(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         },
@@ -120,11 +120,6 @@ private fun RewardRedemptionOptionItem(
 }
 
 @Composable
-private fun RewardRedemptionOption.confirmationMessage(pointsText: String): String {
-    return stringResource(R.string.rewards_confirm_redeem, valueText, pointsText)
-}
+private fun GemRewardsRedemption.confirmationMessage(): String =
+    stringResource(R.string.rewards_confirm_redeem, value.text(), pointsText)
 
-private val RewardRedemptionOption.valueText: String
-    get() = asset?.let {
-        ValueFormatter(style = ValueFormatter.Style.Short).string(value, it.toPrimitives())
-    } ?: ""

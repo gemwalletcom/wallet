@@ -56,6 +56,7 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.NFTAssetId
+import com.gemwallet.android.features.nft.presents.localization.stringRes
 import com.wallet.core.primitives.ReportReason
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemCollectibleAttributeValue
@@ -65,6 +66,7 @@ import uniffi.gemstone.GemCollectibleSection
 import java.text.DateFormat
 import java.util.Date
 import com.gemwallet.android.ui.components.list_item.property.SocialLinkUIModel
+import com.wallet.core.primitives.VerificationStatus
 
 @Composable
 fun NFTDetailsScene(
@@ -92,7 +94,7 @@ fun NFTDetailsScene(
         titleContent = {
             NftTitle(
                 name = model.asset.name,
-                status = model.collection.status,
+                isVerified = model.collection.status == VerificationStatus.Verified,
                 iconSize = compactIconSize,
             )
         },
@@ -186,7 +188,7 @@ private fun ReportReasonSheet(
                         onDismiss()
                     },
                     minHeight = ListItemDefaults.plainMinHeight,
-                    title = { ListItemTitleText(stringResource(reason.titleRes)) },
+                    title = { ListItemTitleText(stringResource(reason.stringRes())) },
                     listPosition = position,
                 )
             }
@@ -194,22 +196,14 @@ private fun ReportReasonSheet(
     }
 }
 
-private val ReportReason.titleRes: Int
-    get() = when (this) {
-        ReportReason.Spam -> R.string.nft_report_reason_spam
-        ReportReason.Malicious -> R.string.nft_report_reason_malicious
-        ReportReason.Inappropriate -> R.string.nft_report_reason_inappropriate
-        ReportReason.Copyright -> R.string.nft_report_reason_copyright
-        ReportReason.Other -> R.string.nft_report_reason_other
-    }
 
 @Composable
 private fun InfoRow(row: GemCollectibleRow, position: ListPosition) {
     when (row) {
-        is GemCollectibleRow.Collection -> PropertyItem(R.string.nft_collection, row.name, listPosition = position)
+        is GemCollectibleRow.Collection -> PropertyItem(row.stringRes(), row.name, listPosition = position)
         is GemCollectibleRow.Network -> PropertyNetworkItem(row.chain.toChain(), listPosition = position)
-        is GemCollectibleRow.Contract -> IdentifierRow(R.string.asset_contract, row.identifier, position)
-        is GemCollectibleRow.TokenId -> IdentifierRow(R.string.asset_token_id, row.identifier, position)
+        is GemCollectibleRow.Contract -> IdentifierRow(row.stringRes(), row.identifier, position)
+        is GemCollectibleRow.TokenId -> IdentifierRow(row.stringRes(), row.identifier, position)
     }
 }
 

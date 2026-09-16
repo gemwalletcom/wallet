@@ -2,6 +2,7 @@
 
 import Localization
 import Primitives
+import Style
 import SwiftUI
 
 struct FiatTypeToolbar: ToolbarContent {
@@ -20,7 +21,7 @@ struct FiatTypeToolbar: ToolbarContent {
                     .tag(FiatQuoteType.sell)
             }
             .pickerStyle(.segmented)
-            .frame(width: 200)
+            .frame(width: Sizing.picker.segmentedWidth)
         }
     }
 }

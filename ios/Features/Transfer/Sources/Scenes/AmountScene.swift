@@ -78,12 +78,12 @@ public struct AmountScene: View {
                     Section {
                         Picker("", selection: $resourceSelection.selected) {
                             ForEach(resourceSelection.options) { resource in
-                                Text(ResourceViewModel(resource: resource).title)
+                                Text(resource.title)
                                     .tag(resource)
                             }
                         }
                         .pickerStyle(.segmented)
-                        .frame(width: 200)
+                        .frame(width: Sizing.picker.segmentedWidth)
                         .onChange(of: resourceSelection.selected, model.onChangeResource)
                     }
                     .cleanListRow()

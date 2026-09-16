@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -16,7 +17,7 @@ import uniffi.gemstone.GemRefreshKind
 fun RefreshOnTimer(kind: GemRefreshKind, onRefresh: () -> Unit) {
     val status by LocalConnectionStatus.current.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
-    val interval = status.refreshInterval(kind).toMillis()
+    val interval = remember(status, kind) { status.refreshInterval(kind).toMillis() }
 
     LaunchedEffect(lifecycleOwner, interval) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {

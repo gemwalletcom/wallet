@@ -88,7 +88,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func sanitize(_ text: String) -> String {
-        GemNumberFormat(decimalSeparator: Locale.current.decimalSeparator ?? ".").sanitize(input: text, maximumFractionDigits: UInt32(decimals), maximumIntegerDigits: nil)
+        NumberInput.format().sanitize(input: text, maximumFractionDigits: UInt32(decimals), maximumIntegerDigits: nil)
     }
 
     public func confirm() {
@@ -97,7 +97,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     private var rate: BigInt? {
-        guard let value = try? ValueFormatter.full.inputNumber(from: input, decimals: decimals), value > .zero else { return nil }
+        guard let value = try? NumberInput.value(input, decimals: decimals), value > .zero else { return nil }
         return value
     }
 

@@ -48,6 +48,45 @@ let package = Package(
             path: "Sources",
         ),
         .testTarget(
+            name: "ChainSettingsTests",
+            dependencies: [
+                "Settings",
+                "Primitives",
+                "Gemstone",
+                "GemstonePrimitives",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+        ),
+        .testTarget(
+            name: "SettingsTests",
+            dependencies: [
+                "Settings",
+                "Primitives",
+                "PrimitivesComponents",
+                "Gemstone",
+                "GemstonePrimitives",
+                "Components",
+                "Localization",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+        ),
+        .testTarget(
+            name: "RewardsTests",
+            dependencies: [
+                "Settings",
+                "Primitives",
+                "Gemstone",
+                "GemstonePrimitives",
+                "Components",
+                "Localization",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+        ),
+        .testTarget(
             name: "CurrencyTests",
             dependencies: [
                 "Settings",

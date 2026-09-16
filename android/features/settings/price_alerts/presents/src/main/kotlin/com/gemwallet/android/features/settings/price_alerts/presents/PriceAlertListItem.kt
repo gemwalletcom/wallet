@@ -15,64 +15,17 @@ import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.features.settings.price_alerts.presents.localization.string
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.models.ListPosition
-import uniffi.gemstone.GemPriceAlertKind
 
-internal data class PriceAlertSupportContent(
-    @param:StringRes val labelRes: Int? = null,
-    val primaryText: String = "",
-    val secondaryText: String = "",
-) {
-    val hasContent: Boolean
-        get() = labelRes != null || primaryText.isNotEmpty() || secondaryText.isNotEmpty()
-}
-
-internal fun priceAlertSupportContent(
-    kind: GemPriceAlertKind,
-    price: String,
-    percentage: String,
-): PriceAlertSupportContent = when (kind) {
-    GemPriceAlertKind.AUTO -> PriceAlertSupportContent(
-        primaryText = price,
-        secondaryText = percentage,
+internal fun priceAlertSupport(item: PriceAlertDataAggregate): (@Composable () -> Unit)? = {
+    PriceInfo(
+        price = item.prefix.string(),
+        changes = item.suffix.string(),
+        state = item.priceDirection.toValueDirection(),
+        style = MaterialTheme.typography.bodyMedium,
     )
-    GemPriceAlertKind.OVER -> PriceAlertSupportContent(
-        labelRes = R.string.price_alerts_direction_over,
-        secondaryText = price,
-    )
-    GemPriceAlertKind.UNDER -> PriceAlertSupportContent(
-        labelRes = R.string.price_alerts_direction_under,
-        secondaryText = price,
-    )
-    GemPriceAlertKind.INCREASE -> PriceAlertSupportContent(
-        labelRes = R.string.price_alerts_direction_increases_by,
-        secondaryText = percentage,
-    )
-    GemPriceAlertKind.DECREASE -> PriceAlertSupportContent(
-        labelRes = R.string.price_alerts_direction_decreases_by,
-        secondaryText = percentage,
-    )
-}
-
-internal fun priceAlertSupport(item: PriceAlertDataAggregate): (@Composable () -> Unit)? {
-    val content = priceAlertSupportContent(
-        kind = item.kind,
-        price = item.price,
-        percentage = item.percentage,
-    )
-    if (!content.hasContent) {
-        return null
-    }
-    return {
-        val primaryText = content.labelRes?.let { stringResource(it) } ?: content.primaryText
-        PriceInfo(
-            price = primaryText,
-            changes = content.secondaryText,
-            state = item.priceDirection.toValueDirection(),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    }
 }
 
 @Composable

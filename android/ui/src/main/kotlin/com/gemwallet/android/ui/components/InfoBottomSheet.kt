@@ -1,5 +1,7 @@
 package com.gemwallet.android.ui.components
 
+import com.gemwallet.android.ui.localization.infoDescriptionRes
+import com.gemwallet.android.ui.localization.statusLabelRes
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.annotation.StringRes
 import androidx.compose.foundation.rememberScrollState
@@ -24,7 +26,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import uniffi.gemstone.SwapProvider
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
@@ -37,6 +38,7 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.domains.asset.title
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
@@ -44,8 +46,9 @@ import com.wallet.core.primitives.TransactionState
 import uniffi.gemstone.GemTransactionStateTone
 import com.gemwallet.android.AppUrl
 import com.wallet.core.primitives.StakeChain
+import com.gemwallet.android.ui.style.badgeIconRes
 
-internal val infoSheetIconSize = 120.dp
+internal val infoSheetIconSize = extraLargeIconSize
 
 sealed class InfoSheetEntity(
     val icon: Any?,
@@ -227,6 +230,19 @@ sealed class InfoSheetEntity(
         title = R.string.errors_swap_no_quote_available,
         description = R.string.info_no_quote_description,
         infoUrl = { AppUrl.noQuotes },
+    )
+
+    object MaliciousTransactionInfo : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.errors_scan_transaction_malicious_title,
+        description = R.string.errors_scan_transaction_malicious_description,
+    )
+
+    class MemoRequiredInfo(symbol: String) : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.common_warning,
+        description = R.string.errors_scan_transaction_memo_required,
+        descriptionArgs = listOf("**$symbol**"),
     )
 
     object AssetStatusSuspiciousInfo : InfoSheetEntity(

@@ -46,8 +46,8 @@ fun TransactionsNavScreen(
             when (action) {
                 TransactionsListAction.Refresh -> viewModel.refresh()
                 is TransactionsListAction.OpenTransaction -> onTransaction(action.transactionId)
-                is TransactionsListAction.ApplyChainsFilter -> viewModel.applyChainsFilter(action.chains)
-                is TransactionsListAction.ApplyTypesFilter -> viewModel.applyTypesFilter(action.types)
+                is TransactionsListAction.SelectChainsFilter -> viewModel.setChainsFilter(action.chains)
+                is TransactionsListAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types)
                 TransactionsListAction.ClearChainsFilter -> viewModel.clearChainsFilter()
                 TransactionsListAction.ClearTypesFilter -> viewModel.clearTypeFilter()
                 TransactionsListAction.Buy -> onBuy?.invoke()

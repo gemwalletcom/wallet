@@ -54,7 +54,7 @@ public final class AmountSceneViewModel {
         self.wallet = wallet
         self.service = service
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency())
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency().toPrimitives().rawValue)
         provider = .make(from: input, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty)
@@ -134,7 +134,7 @@ public final class AmountSceneViewModel {
             inputType: amountInputType,
             asset: asset,
             currencyFormatter: currencyFormatter,
-            numberFormat: GemNumberFormat(decimalSeparator: Locale.current.decimalSeparator ?? "."),
+            numberFormat: NumberInput.format(),
             secondaryText: secondaryText,
             onTapActionButton: onSelectInputButton,
             usesWholeAmounts: input.usesWholeAmounts,
@@ -172,7 +172,7 @@ extension AmountSceneViewModel {
     }
 
     func onSelectInputButton() {
-        amountInputType = amountInputType == .asset ? .fiat : .asset
+        amountInputType = amountInputType.toggled()
         cleanInput()
     }
 
@@ -188,7 +188,7 @@ extension AmountSceneViewModel {
 
     func onSelectAutoclose() {
         guard case let .perpetual(perpetual) = provider else { return }
-        let amount = NumericFormatter().double(from: amountInputModel.text) ?? .zero
+        let amount = NumberInput.double(amountInputModel.text) ?? .zero
         isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
     }
 
@@ -227,7 +227,7 @@ extension AmountSceneViewModel {
         }
         return { [weak self] in
             guard let self else { return }
-            isPresentingSheet = .infoAction(.minimumAmount(asset.map(), required: required, action: onSelectBuy))
+            isPresentingSheet = .infoAction(.minimumAmount(asset.toPrimitives(), required: required, action: onSelectBuy))
         }
     }
 }
@@ -241,8 +241,7 @@ private extension AmountSceneViewModel {
     }
 
     func refreshEntry() {
-        let text = amountInputModel.text
-        entry = provider.entry(from: assetData, inputType: amountInputType, text: text.isEmpty ? text : formatter.plainInputNumber(text))
+        entry = provider.entry(from: assetData, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text))
         amountInputModel.update(error: entryError)
     }
 

@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.titleRes
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -21,7 +21,7 @@ internal fun ShowSecretDataProperty(
     onClick: (WalletId, GemWalletSecretKind) -> Unit,
 ) {
     secretKind ?: return
-    val secretDataLabel = stringResource(secretKind.titleRes)
+    val secretDataLabel = stringResource(secretKind.stringRes())
     PropertyItem(
         modifier = Modifier.clickable { onClick(walletId, secretKind) },
         title = {

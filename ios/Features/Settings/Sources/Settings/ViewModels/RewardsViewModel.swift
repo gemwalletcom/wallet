@@ -44,12 +44,12 @@ public final class RewardsViewModel: Sendable {
         currentWallet: Wallet?,
         activateCode: String? = nil,
     ) {
-        let core = wallets.map { $0.map() }
-        guard let wallet = service.selectedWallet(current: currentWallet?.map(), wallets: core).map({ $0.map() }) else { return nil }
+        let core = wallets.map { $0.toGem() }
+        guard let wallet = service.selectedWallet(current: currentWallet?.toGem(), wallets: core).map({ $0.toPrimitives() }) else { return nil }
         self.service = service
         emptyState = service.state(rewards: nil)
         selectedWallet = wallet
-        self.wallets = service.wallets(wallets: core).map { $0.map() }
+        self.wallets = service.wallets(wallets: core).map { $0.toPrimitives() }
         self.activateCode = activateCode
     }
 
@@ -109,20 +109,17 @@ public final class RewardsViewModel: Sendable {
 
     var walletSelectorModel: SelectWalletViewModel {
         SelectWalletViewModel(
-            rows: walletRows(wallets: wallets.map { $0.map() }),
+            rows: walletRows(wallets: wallets.map { $0.toGem() }),
             selectedRow: selectedWalletRow,
         )
     }
 
     var shareText: String? {
-        guard let code = rewardsState.referralCode else { return nil }
-        let link = (try? service.referralLink(code: code).absoluteString) ?? ""
-        return Localized.Rewards.shareText(link)
+        referralLink.map { Localized.Rewards.shareText($0) }
     }
 
     var referralLink: String? {
-        guard let code = rewardsState.referralCode else { return nil }
-        return (try? service.referralLink(code: code).absoluteString) ?? ""
+        rewardsState.referralLink
     }
 
     var redemptions: [GemRewardsRedemption] {
@@ -190,7 +187,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var selectedWalletRow: GemWalletRow {
-        walletRow(wallet: selectedWallet.map())
+        walletRow(wallet: selectedWallet.toGem())
     }
 
     var walletBarViewModel: WalletBarViewViewModel {

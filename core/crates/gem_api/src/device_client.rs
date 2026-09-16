@@ -8,10 +8,9 @@ use gem_jsonrpc::{RpcClientError, RpcProvider, Target};
 use primitives::name::NameRecord;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{
-    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
-    NFTAssetData, NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction,
-    ScanTransactionPayload, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
-    transactions_page_limit,
+    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, NFTAssetData,
+    NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction, ScanTransactionPayload, SupportMessage,
+    SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains, transactions_page_limit,
 };
 use serde::de::DeserializeOwned;
 

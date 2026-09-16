@@ -54,7 +54,4 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":features:banner:viewmodels"))
-
-    implementation(libs.hilt.lifecycle.viewmodel.compose)
 }

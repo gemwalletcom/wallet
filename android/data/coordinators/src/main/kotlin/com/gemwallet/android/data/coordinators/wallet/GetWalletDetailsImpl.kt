@@ -5,12 +5,12 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.ChainAddress
-import com.wallet.core.primitives.Wallet
+import uniffi.gemstone.GemWalletDetails
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSecretKind
-import uniffi.gemstone.walletRow
-import uniffi.gemstone.walletSecretKind
+import uniffi.gemstone.walletDetails
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -23,15 +23,14 @@ class GetWalletDetailsImpl(
 
     override fun getWallet(walletId: WalletId): Flow<WalletDetailsAggregate?> {
         return  walletStore.observeWallet(walletId)
-            .mapLatest { dto -> dto?.let { WalletDetailsAggregateImpl(it, walletRow(it.toGem())) } }
+            .mapLatest { dto -> dto?.let { WalletDetailsAggregateImpl(walletDetails(it.toGem())) } }
     }
 }
 
 @Stable
-class WalletDetailsAggregateImpl(wallet: Wallet, override val row: GemWalletRow) : WalletDetailsAggregate {
-    override val id: WalletId = wallet.id
-    override val secretKind: GemWalletSecretKind? = walletSecretKind(wallet.toGem())
-    override val accounts: List<ChainAddress> = wallet.accounts.map {
-        ChainAddress(chain = it.chain, address = it.address)
-    }
+class WalletDetailsAggregateImpl(details: GemWalletDetails) : WalletDetailsAggregate {
+    override val row: GemWalletRow = details.row
+    override val id: WalletId = WalletId(details.row.id)
+    override val secretKind: GemWalletSecretKind? = details.secretKind
+    override val address: ChainAddress? = details.address?.toPrimitives()
 }

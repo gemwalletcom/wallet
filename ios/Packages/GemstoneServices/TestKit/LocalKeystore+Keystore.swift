@@ -79,7 +79,7 @@ private extension GemStoredWallet {
             externalId: nil,
             name: name,
             index: 0,
-            type: walletType.map(),
+            type: walletType.toPrimitives(),
             accounts: accounts.map { $0.mapToAccount() },
             isPinned: false,
             imageUrl: nil,

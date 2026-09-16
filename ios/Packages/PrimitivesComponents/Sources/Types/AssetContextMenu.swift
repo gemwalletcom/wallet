@@ -33,13 +33,13 @@ public enum AssetContextMenu {
             case .addToWallet:
                 onAddToWallet.map {
                     ContextMenuItemType.custom(
-                        title: Localized.Asset.addToWallet,
+                        title: action.title ?? "",
                         systemImage: SystemImage.plusCircle,
                         action: $0,
                     )
                 }
             case let .copyAddress(address):
-                .copy(title: Localized.Wallet.copyAddress, value: address, onCopy: onCopy)
+                .copy(title: action.title, value: address, onCopy: onCopy)
             }
         }
     }

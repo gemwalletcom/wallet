@@ -1,6 +1,6 @@
-#[derive(Clone, Copy, Debug, PartialEq, uniffi::Enum)]
-pub enum GemMemoWarning {
-    NotSupported,
-    DestinationTag,
-    Memo,
+#[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
+pub enum GemReceiveWarning {
+    AssetNetwork,
+    NoDestinationTagRequired,
+    NoMemoRequired,
 }

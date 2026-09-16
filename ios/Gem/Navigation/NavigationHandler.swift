@@ -177,7 +177,7 @@ extension NavigationHandler {
             presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets, paymentService: paymentService)
         case let .link(link):
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
-            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address).map() }
+            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address).toGem() }
             let transaction = try await paymentService.load(link: link, addresses: addresses)
             let asset = try await assetsService.ensureTokenAsset(for: Primitives.AssetId(core: paymentService.transactionAssetId(transaction: transaction)))
             toastPresenter.toastMessage = nil
@@ -223,7 +223,7 @@ extension NavigationHandler {
             try await navigateToTransaction(
                 walletId: Primitives.WalletId.from(id: walletId),
                 assetId: Primitives.AssetId(id: assetId),
-                transaction: transaction.map(),
+                transaction: transaction.toPrimitives(),
             )
         case let .buyAsset(assetId):
             try await presentFiat(type: .buy, assetId: Primitives.AssetId(id: assetId), amount: .none)
@@ -274,7 +274,7 @@ extension NavigationHandler {
     private func trackNotificationTransaction(walletId: WalletId, transaction: Primitives.Transaction) {
         Task {
             do {
-                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.map()])
+                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.toGem()])
             } catch {
                 debugLog("navigation: transaction tracking failed \(error)")
             }
@@ -284,10 +284,10 @@ extension NavigationHandler {
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
         guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
               let asset = try await transactionStateService.addNotificationTransaction(
-                  wallet: wallet.map(),
+                  wallet: wallet.toGem(),
                   assetId: assetId.identifier,
-                  transaction: transaction.map(),
-              ).map({ $0.map() })
+                  transaction: transaction.toGem(),
+              ).map({ $0.toPrimitives() })
         else {
             return
         }

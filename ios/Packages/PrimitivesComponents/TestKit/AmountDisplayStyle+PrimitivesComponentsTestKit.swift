@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import GemstonePrimitives
 import enum Gemstone.GemAmountSign
 import Primitives
 @testable import PrimitivesComponents

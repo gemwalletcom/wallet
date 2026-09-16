@@ -274,11 +274,15 @@ mod tests {
             },
             TransactionInputType::Perpetual {
                 asset: asset.clone(),
-                perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
+                perpetual_type: PerpetualType::Open {
+                    data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+                },
             },
             TransactionInputType::Perpetual {
                 asset,
-                perpetual_type: PerpetualType::Close { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
+                perpetual_type: PerpetualType::Close {
+                    data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+                },
             },
         ];
         for input_type in non_spending {
@@ -553,7 +557,9 @@ mod tests {
         let open = input(
             TransactionInputType::Perpetual {
                 asset: asset.clone(),
-                perpetual_type: PerpetualType::Open { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
+                perpetual_type: PerpetualType::Open {
+                    data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+                },
             },
             1_010_000_000,
             0,
@@ -567,7 +573,9 @@ mod tests {
         let close = input(
             TransactionInputType::Perpetual {
                 asset,
-                perpetual_type: PerpetualType::Close { data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None) },
+                perpetual_type: PerpetualType::Close {
+                    data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+                },
             },
             100,
             0,

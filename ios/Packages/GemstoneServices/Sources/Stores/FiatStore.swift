@@ -17,7 +17,7 @@ public final class GemstoneFiatStore: GemFiatStore, @unchecked Sendable {
     public func setTransactions(walletId: String, transactions: [Gemstone.FiatTransactionData]) async throws {
         try store.setTransactions(
             walletId: WalletId.from(id: walletId),
-            transactions: transactions.map { $0.map() },
+            transactions: transactions.map { $0.toPrimitives() },
         )
     }
 }

@@ -5,10 +5,10 @@ mod tests {
     use gem_client::{ReqwestClient, reqwest_client};
     use name_resolver::providers::{
         alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider,
-        injective::InjectiveProvider, lens::LensProvider, near::NearProvider, suins::SuinsProvider,
+        injective::InjectiveProvider, lens::LensProvider, near::NearProvider, sns::SnsProvider, suins::SuinsProvider,
     };
     use name_resolver::{NameClient, NameConfig, NameQuery, NameResolver};
-    use primitives::{Chain, node_config::get_nodes_for_chain};
+    use primitives::{Chain, NameProvider, node_config::get_nodes_for_chain};
     use settings::Settings;
 
     fn node_client(chain: Chain) -> ReqwestClient {
@@ -42,6 +42,21 @@ mod tests {
         let provider = BasenamesProvider::new(node_client(Chain::Base));
         let address = provider.resolve(&NameQuery::new("h3rman.base.eth"), Chain::Base).await.unwrap().unwrap();
         assert_eq!(address, "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7");
+    }
+
+    #[tokio::test]
+    async fn test_resolve_sns() {
+        let client = NameClient::new(
+            vec![Box::new(SnsProvider::new(settings_client(settings().name.sns.url)))],
+            NameConfig { max_name_length: 20 },
+        );
+        for name in ["bonfida.sol", "bonfida.sns"] {
+            let record = client.resolve(name, Chain::Solana).await.unwrap().unwrap();
+            assert_eq!(record.name, name);
+            assert_eq!(record.provider, NameProvider::Sns);
+            assert_eq!(record.chain, Chain::Solana);
+            assert_eq!(record.address.is_empty(), false);
+        }
     }
 
     #[tokio::test]

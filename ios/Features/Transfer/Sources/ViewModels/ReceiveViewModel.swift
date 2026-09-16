@@ -41,7 +41,7 @@ public final class ReceiveViewModel: Sendable {
         networkAssetIds = service.networkAssetIds(
             assetId: asset.id.identifier,
             associations: associations.map(\.assetId.identifier),
-            wallet: wallet.map(),
+            wallet: wallet.toGem(),
         ).map { AssetId(core: $0) }
     }
 
@@ -78,17 +78,9 @@ public final class ReceiveViewModel: Sendable {
     }
 
     var warningMessage: String {
-        [Localized.Receive.warning(assetModel.symbol.boldMarkdown(), assetModel.networkFullName.boldMarkdown()), memoWarningText]
-            .compactMap(\.self)
+        service.warnings(chain: assetModel.asset.chain.rawValue)
+            .map { $0.text(asset: assetModel) }
             .joined(separator: " ")
-    }
-
-    private var memoWarningText: String? {
-        switch service.memoWarning(chain: assetModel.asset.chain.rawValue) {
-        case .destinationTag: Localized.Wallet.Receive.noDestinationTagRequired
-        case .memo: Localized.Wallet.Receive.noMemoRequired
-        case .notSupported: nil
-        }
     }
 
     var copyModel: CopyTypeViewModel {
@@ -188,7 +180,7 @@ extension ReceiveViewModel {
 
         Task {
             do {
-                let asset = try await service.asset(assetId: assetId.identifier).map()
+                let asset = try await service.asset(assetId: assetId.identifier).toPrimitives()
                 let account = try wallet.account(for: asset.chain)
                 assetModel = AssetViewModel(asset: asset)
                 address = account.address

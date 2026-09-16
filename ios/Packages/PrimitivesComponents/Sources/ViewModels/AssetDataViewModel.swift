@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemCurrencyStyle
 import BigInt
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -15,18 +17,18 @@ public struct AssetDataViewModel: Sendable {
     private let balanceViewModel: BalanceViewModel
 
     public let priceViewModel: PriceViewModel
-    public let currencyCode: String
+    public let currency: Currency
 
     public init(
         assetData: AssetData,
         formatter: ValueFormatter,
-        currencyCode: String,
-        currencyFormatterType: CurrencyFormatterType = .currency,
+        currency: Currency,
+        currencyFormatterType: GemCurrencyStyle = .currency,
     ) {
         self.assetData = assetData
         priceViewModel = PriceViewModel(
             price: assetData.price,
-            currencyCode: currencyCode,
+            currencyCode: currency.rawValue,
             currencyFormatterType: currencyFormatterType,
         )
         balanceViewModel = BalanceViewModel(
@@ -34,19 +36,7 @@ public struct AssetDataViewModel: Sendable {
             balance: assetData.balance,
             formatter: formatter,
         )
-        self.currencyCode = currencyCode
-    }
-
-    public var availableBalanceTitle: String {
-        Localized.Asset.Balances.available
-    }
-
-    public var reservedBalanceTitle: String {
-        Localized.Asset.Balances.reserved
-    }
-
-    public var pendingUnconfirmedBalanceTitle: String {
-        Localized.Stake.pending
+        self.currency = currency
     }
 
     // asset
@@ -124,23 +114,8 @@ public struct AssetDataViewModel: Sendable {
     }
 
     public var fiatBalanceText: String {
-        guard
-            let price = priceViewModel.price,
-            balanceViewModel.balanceAmount > 0
-        else {
-            return .empty
-        }
-        guard let value = try? CryptoFiatConverter().toFiat(
-            value: balanceViewModel.total,
-            decimals: UInt32(asset.decimals),
-            price: price.price,
-        ) else {
-            return .empty
-        }
-        return CurrencyFormatter(
-            type: .currency,
-            currencyCode: currencyCode,
-        ).string(Double(value) ?? .zero)
+        guard balanceViewModel.balanceAmount > 0 else { return .empty }
+        return priceViewModel.fiatValueText(value: balanceViewModel.total, decimals: asset.decimals.asInt) ?? .empty
     }
 
     public var isEnabled: Bool {

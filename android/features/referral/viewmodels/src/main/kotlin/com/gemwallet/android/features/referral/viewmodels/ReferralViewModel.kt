@@ -49,7 +49,7 @@ class ReferralViewModel @Inject constructor(
     val uiState = rewards.mapLatest { service.state(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, service.state(null))
 
-    val referralLink = rewards.mapLatest { it?.code?.let(service::referralLink) }
+    val referralLink = uiState.mapLatest { it.referralLink }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = getWallets().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }

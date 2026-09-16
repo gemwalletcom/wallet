@@ -60,15 +60,13 @@ mod tests {
 
         assert_eq!(name_input_step(&idle, "", true), GemNameInputStep::Reset);
         assert_eq!(name_input_step(&idle, "vitalik", true), GemNameInputStep::Reset, "a name without a suffix resolves nowhere");
-        assert_eq!(name_input_step(&idle, "vitalik.eth", false), GemNameInputStep::Reset, "no chain, nothing to resolve against");
         assert_eq!(
-            name_input_step(
-                &GemNameRecordState::Loading {
-                    name: "vitalik.eth".to_string()
-                },
-                "vitalik.eth",
-                true
-            ),
+            name_input_step(&idle, "vitalik.eth", false),
+            GemNameInputStep::Reset,
+            "no chain, nothing to resolve against"
+        );
+        assert_eq!(
+            name_input_step(&GemNameRecordState::Loading { name: "vitalik.eth".to_string() }, "vitalik.eth", true),
             GemNameInputStep::Unchanged,
             "the name already being resolved is not resolved twice"
         );
@@ -87,9 +85,7 @@ mod tests {
 
     #[test]
     fn test_a_result_for_a_name_no_longer_being_typed_is_dropped() {
-        let loading = GemNameRecordState::Loading {
-            name: "vitalik.eth".to_string(),
-        };
+        let loading = GemNameRecordState::Loading { name: "vitalik.eth".to_string() };
 
         assert_eq!(resolved_state(&loading, "vitalik.eth", GemNameRecordState::Error), GemNameRecordState::Error);
         assert_eq!(

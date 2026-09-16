@@ -19,7 +19,6 @@ import Validators
 @MainActor
 @Observable
 public final class SwapSlippageViewModel {
-    private nonisolated static let formatter = NumericFormatter()
 
     private let service: any GemSwapQuoteServiceProtocol
     private let onSelect: (SwapSlippage) -> Void
@@ -33,7 +32,7 @@ public final class SwapSlippageViewModel {
         self.service = service
         self.onSelect = onSelect
         let config = Config.shared.swapConfig()
-        placeholder = Self.format(bps: service.defaultSlippage(chain: chain.rawValue).bps)
+        placeholder = Self.format(bps: service.defaultSlippage(chain: chain.rawValue).bps, service: service)
         let input: String
         switch slippage {
         case .auto:
@@ -41,15 +40,15 @@ public final class SwapSlippageViewModel {
             input = ""
         case let .manual(value):
             isAuto = false
-            input = Self.format(bps: value)
+            input = Self.format(bps: value, service: service)
         }
         inputModel = InputValidationViewModel(
             mode: .onDemand,
             validators: [
                 SwapSlippageValidator(
                     service: service,
-                    minimumText: Self.format(bps: config.minSlippageBps),
-                    maximumText: Self.format(bps: config.maxSlippageBps),
+                    minimumText: Self.format(bps: config.minSlippageBps, service: service),
+                    maximumText: Self.format(bps: config.maxSlippageBps, service: service),
                 ),
             ],
         )
@@ -90,7 +89,7 @@ public final class SwapSlippageViewModel {
     }
 
     var suggestions: [SlippageSuggestion] {
-        viewState.suggestionsBps.map { SlippageSuggestion(bps: $0, percentText: Self.format(bps: $0)) }
+        viewState.suggestionsBps.map { SlippageSuggestion(bps: $0, percentText: Self.format(bps: $0, service: service)) }
     }
 
     func onSelect(suggestion: SlippageSuggestion) {
@@ -103,7 +102,7 @@ public final class SwapSlippageViewModel {
 
     func sanitize(_ text: String) -> String {
         let state = viewState
-        return GemNumberFormat(decimalSeparator: Locale.current.decimalSeparator ?? ".").sanitize(
+        return NumberInput.format().sanitize(
             input: text,
             maximumFractionDigits: state.maximumFractionDigits,
             maximumIntegerDigits: state.maximumIntegerDigits,
@@ -115,12 +114,12 @@ public final class SwapSlippageViewModel {
     }
 
     nonisolated static func bps(from text: String, service: any GemSwapQuoteServiceProtocol) -> UInt32? {
-        guard let percent = formatter.double(from: text) else { return nil }
+        guard let percent = NumberInput.double(text) else { return nil }
         return service.slippageBpsFromPercent(percent: percent)
     }
 
-    private static func format(bps: UInt32) -> String {
-        (Double(bps) / 100).formatted(.number.precision(.fractionLength(0 ... 2)))
+    private static func format(bps: UInt32, service: any GemSwapQuoteServiceProtocol) -> String {
+        service.slippagePercent(bps: bps).formatted(.number.precision(.fractionLength(0 ... 2)))
     }
 }
 

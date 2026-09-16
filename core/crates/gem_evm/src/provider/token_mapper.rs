@@ -20,7 +20,9 @@ pub fn map_token_data(chain: Chain, token_id: String, name_hex: String, symbol_h
         token_id: Some(token_id.clone()),
     };
 
-    Ok(Asset::new(asset_id.clone(), name, symbol, decimals.into(), asset_id.chain.default_asset_type().unwrap()))
+    let asset_type = asset_id.chain.default_asset_type().ok_or("Invalid token metadata: chain has no token asset type")?;
+
+    Ok(Asset::new(asset_id.clone(), name, symbol, decimals.into(), asset_type))
 }
 
 pub fn map_is_token_address(token_id: &str) -> bool {

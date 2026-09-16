@@ -140,9 +140,7 @@ impl Pusher {
                     message: Some(description),
                 })
             }
-            TransactionType::AssetActivation | TransactionType::PerpetualModifyPosition => {
-                Err(format!("no notification copy for {:?}", transaction.transaction_type).into())
-            }
+            TransactionType::AssetActivation | TransactionType::PerpetualModifyPosition => Err(format!("no notification copy for {:?}", transaction.transaction_type).into()),
             TransactionType::StakeFreeze => Ok(Message {
                 title: localizer.notification_freeze_title(&amount),
                 message: None,

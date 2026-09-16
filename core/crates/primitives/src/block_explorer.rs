@@ -84,7 +84,9 @@ pub fn get_block_explorers_by_chain(chain: &str) -> Vec<Box<dyn BlockExplorer>> 
 }
 
 pub fn get_block_explorer(chain: Chain, name: &str) -> Box<dyn BlockExplorer> {
-    get_block_explorers(chain).into_iter().find(|x| x.name() == name).unwrap()
+    let mut explorers = get_block_explorers(chain);
+    let index = explorers.iter().position(|explorer| explorer.name() == name).unwrap_or_default();
+    explorers.swap_remove(index)
 }
 
 pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
@@ -144,7 +146,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::HyperCore => vec![HyperliquidExplorer::boxed(), HypurrScan::boxed(), FlowScan::boxed()],
         Chain::Monad => vec![EtherScan::boxed(EVMChain::Monad), BlockVision::new_monad()],
         Chain::XLayer => vec![OkxExplorer::new_xlayer()],
-        Chain::Robinhood => vec![BlockScout::new_robinhood()],
+        Chain::Robinhood => vec![EtherScan::boxed(EVMChain::Robinhood), BlockScout::new_robinhood()],
         Chain::Stable => vec![EtherScan::boxed(EVMChain::Stable)],
         Chain::Tempo => vec![TempoExplorer::boxed()],
         Chain::Arc => vec![BlockScout::new_arc()],

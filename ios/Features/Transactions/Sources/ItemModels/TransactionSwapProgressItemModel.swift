@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemSwapProgressMarker
+import struct Gemstone.GemSwapProgressState
 import enum Gemstone.GemSwapProgressStep
 import Localization
 import Style
@@ -9,16 +11,16 @@ public struct TransactionSwapProgressItemModel: Equatable {
     public struct Step: Equatable {
         public let title: String
         public let subtitle: String
-        public let status: GemSwapProgressStep
+        public let state: GemSwapProgressState
 
         public init(
             title: String,
             subtitle: String,
-            status: GemSwapProgressStep,
+            state: GemSwapProgressState,
         ) {
             self.title = title
             self.subtitle = subtitle
-            self.status = status
+            self.state = state
         }
     }
 
@@ -43,8 +45,7 @@ extension GemSwapProgressStep {
         case .completed: Colors.green
         case .pending: Colors.blue
         case .waiting: Colors.gray
-        case .failed: Colors.red
-        case .reverted: Colors.red
+        case .failed, .reverted: Colors.red
         case .refunded: Colors.orange
         }
     }
@@ -59,11 +60,25 @@ extension GemSwapProgressStep {
         case .pending, .waiting, .failed, .reverted, .refunded: Colors.gray.opacity(.medium)
         }
     }
+}
+
+extension GemSwapProgressState {
+    var color: Color {
+        step.color
+    }
+
+    var background: Color {
+        step.background
+    }
+
+    var lineColor: Color {
+        step.lineColor
+    }
 
     var markerBackground: Color {
-        switch self {
-        case .completed, .failed, .reverted, .refunded: background
-        case .pending, .waiting: .clear
+        switch marker {
+        case .check, .cross, .swap: background
+        case .spinner, .dots: .clear
         }
     }
 }

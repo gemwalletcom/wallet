@@ -30,7 +30,7 @@ struct ConfirmSubmissionTests {
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(
             request: request,
-            execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.map()])),
+            execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.toGem()])),
         ).submit(request: request)
 
         #expect(reported.values == ["hash-1", "hash-2"])
@@ -68,7 +68,7 @@ struct ConfirmSubmissionTests {
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
-                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: 1_000_000)),
+                header: GemSimulationValue(asset: usdt.toGem(), value: .exact(value: 1_000_000)),
                 balanceChanges: [],
                 hasCriticalWarning: false,
             ),
@@ -77,7 +77,7 @@ struct ConfirmSubmissionTests {
 
         let state = model.state.simulation
 
-        #expect(state.headerData == GemSimulationValue(asset: usdt.map(), value: .exact(value: BigUInt(1_000_000))))
+        #expect(state.headerData == GemSimulationValue(asset: usdt.toGem(), value: .exact(value: BigUInt(1_000_000))))
         #expect(state.payload.primaryFields.isEmpty)
         #expect(state.payload.secondaryFields.isEmpty)
     }
@@ -89,14 +89,14 @@ struct ConfirmSubmissionTests {
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
-                header: GemSimulationValue(asset: usdt.map(), value: .unlimited),
+                header: GemSimulationValue(asset: usdt.toGem(), value: .unlimited),
                 balanceChanges: [],
                 hasCriticalWarning: false,
             ),
         )))
         await model.load()
 
-        #expect(model.state.simulation.headerData == GemSimulationValue(asset: usdt.map(), value: .unlimited))
+        #expect(model.state.simulation.headerData == GemSimulationValue(asset: usdt.toGem(), value: .unlimited))
     }
 
     @Test
@@ -122,13 +122,13 @@ struct ConfirmSubmissionTests {
                 primaryFields: [],
                 secondaryFields: [],
                 header: nil,
-                balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25", sign: .outgoing)],
+                balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing)],
                 hasCriticalWarning: false,
             ),
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.map(), value: "-25", sign: .outgoing)])
+        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing)])
     }
 
 }

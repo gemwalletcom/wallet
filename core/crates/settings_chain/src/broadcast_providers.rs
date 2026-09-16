@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error};
 
 use chain_traits::{ChainRequestClassifier, ChainTransactionDecode};
 use primitives::{Chain, ChainRequest, ChainRequestType, ChainType};
@@ -26,8 +26,10 @@ impl BroadcastProviders {
         self.get_provider(chain).map_or(ChainRequestType::Unknown, |provider| provider.classify_request(request))
     }
 
-    pub fn decode_transaction_broadcast(&self, chain: Chain, response: &[u8]) -> Option<String> {
-        self.get_provider(chain).and_then(|provider| provider.decode_transaction_broadcast_bytes(response))
+    pub fn decode_transaction_broadcast(&self, chain: Chain, request: &[u8], response: &[u8]) -> Result<String, Box<dyn Error + Sync + Send>> {
+        self.get_provider(chain)
+            .ok_or_else(|| format!("Broadcast provider not configured for {chain}"))?
+            .decode_transaction_broadcast_bytes(request, response)
     }
 }
 

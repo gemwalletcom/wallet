@@ -46,12 +46,14 @@ pub fn build_paths_with_routes(routes: &[Route]) -> Result<Bytes, SwapperError> 
     let fee_tier = FeeTier::try_from(route_data.fee_tier.as_str()).map_err(|_| SwapperError::ComputeQuoteError("invalid fee tier".into()))?;
     let token_pairs: Vec<TokenPair> = routes
         .iter()
-        .map(|route| TokenPair {
-            token_in: eth_address::parse_asset_id(&route.input).unwrap(),
-            token_out: eth_address::parse_asset_id(&route.output).unwrap(),
-            fee_tier,
+        .map(|route| {
+            Ok(TokenPair {
+                token_in: eth_address::parse_asset_id(&route.input)?,
+                token_out: eth_address::parse_asset_id(&route.output)?,
+                fee_tier,
+            })
         })
-        .collect();
+        .collect::<Result<Vec<TokenPair>, SwapperError>>()?;
     let paths = build_pairs(&token_pairs);
     Ok(paths)
 }

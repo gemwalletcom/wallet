@@ -65,6 +65,8 @@
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/join/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:path="/perpetuals" />
                 <data android:scheme="https" android:host="gemwallet.com" android:path="/perpetuals/" />
+                <data android:scheme="https" android:host="gemwallet.com" android:path="/rewards" />
+                <data android:scheme="https" android:host="gemwallet.com" android:path="/rewards/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/tokens/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:path="/wc" />
                 <data android:scheme="https" android:host="gemwallet.com" android:path="/wc/" />
@@ -73,6 +75,8 @@
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/join/..*" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/perpetuals" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/perpetuals/" />
+                <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/rewards" />
+                <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/rewards/" />
             </intent-filter>
         </activity>
         <provider

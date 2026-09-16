@@ -58,7 +58,7 @@ struct ConfirmHeaderViewModelTests {
     func simulationHeaderDataResolvesAssetValue() {
         let model = ConfirmHeaderViewModel(
             request: .mock(),
-            state: .mock(simulation: .mock(headerData: GemSimulationValue(asset: Asset.mockEthereumUSDT().map(), value: .exact(value: BigUInt(1_000_000))))),
+            state: .mock(simulation: .mock(headerData: GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .exact(value: BigUInt(1_000_000))))),
             currency: .usd,
         )
 
@@ -67,7 +67,7 @@ struct ConfirmHeaderViewModelTests {
             Issue.record("Expected assetValue header")
             return
         }
-        #expect(data.asset == Asset.mockEthereumUSDT().map())
+        #expect(data.asset == Asset.mockEthereumUSDT().toGem())
         #expect(data.value == .exact(value: BigUInt(1_000_000)))
         #expect(item.showClearHeader == true)
     }

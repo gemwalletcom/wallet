@@ -16,6 +16,22 @@ import Testing
 @MainActor
 struct NetworkFeeSceneViewModelTests {
     @Test
+    func additionalFeesKeepNetworkFeeTotal() {
+        let model = NetworkFeeSceneViewModel(
+            feeAsset: .mockSolana(),
+            currency: .usd,
+            selection: .priority(priority: .normal),
+            feeAmount: 1_495_940,
+            additionalFees: [.init(option: .tokenAccountCreation, value: 1_488_440), .init(option: .tokenAccountCreation, value: 1_000)],
+        )
+
+        #expect(model.value == "0.001495 SOL")
+        #expect(model.feeItems.map(\.title) == ["Account Activation Fee", "Account Activation Fee"])
+        #expect(model.feeItems.first?.subtitle == "0.001488 SOL")
+        #expect(NetworkFeeSceneViewModel.mock().feeItems.isEmpty)
+    }
+
+    @Test
     func showFeeRatesSelector() {
         #expect(NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil)])).showFeeRates == false)
         #expect(NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil), (.fast, 2, nil)])).showFeeRates)

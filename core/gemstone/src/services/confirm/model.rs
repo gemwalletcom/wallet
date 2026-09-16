@@ -2,7 +2,7 @@ use super::error::GemConfirmError;
 use super::rules::approval_value_from;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
-use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
 use crate::services::simulation::GemSimulationWarningRow;
 use crate::services::transactions::GemAmountSign;
@@ -54,6 +54,7 @@ pub struct GemConfirmLoadOptions {
 pub struct GemConfirmData {
     pub input: GemConfirmInput,
     pub fee: GemTransactionLoadFee,
+    pub additional_fees: Vec<GemFeeOptionItem>,
     pub selected_priority: FeePriority,
     pub fee_rates: Vec<GemFeeRate>,
     pub metadata: GemTransactionLoadMetadata,
@@ -245,7 +246,6 @@ pub struct GemConfirmFailure {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmScreen {
     pub phase: GemConfirmPhase,
-    pub amount_failed: bool,
     pub has_critical_warning: bool,
     pub failure: Option<GemConfirmFailure>,
 }

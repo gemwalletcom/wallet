@@ -9,7 +9,7 @@ sealed class AmountError : Exception() {
     object IncorrectAmount : AmountError()
 
 
-    class InsufficientBalance(val assetSymbol: String) : AmountError()
+    class InsufficientBalance(val assetTitle: String) : AmountError()
 
 
     class MinimumValue(val minimumValue: String) : AmountError()

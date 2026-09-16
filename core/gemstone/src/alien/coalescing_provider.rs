@@ -102,7 +102,6 @@ impl AlienProvider for CoalescingAlienProvider {
         }
         result
     }
-
 }
 
 #[cfg(test)]

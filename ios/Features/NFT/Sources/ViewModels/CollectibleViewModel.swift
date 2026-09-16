@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemHeaderButtonKind
 import Components
 import Formatters
 import Foundation
@@ -81,7 +82,7 @@ public final class CollectibleViewModel {
     }
 
     var details: GemCollectibleDetails {
-        service.details(walletType: wallet.type.map(), assetData: assetData.map(), isOwned: query.value.isOwned)
+        service.details(walletType: wallet.type.toGem(), assetData: assetData.toGem(), isOwned: query.value.isOwned)
     }
 
     var sections: [GemCollectibleSection] {
@@ -129,23 +130,23 @@ public final class CollectibleViewModel {
     private func infoRow(_ row: GemCollectibleRow) -> CollectibleInfoRowModel {
         switch row {
         case let .collection(name):
-            return CollectibleInfoRowModel(title: Localized.Nft.collection, subtitle: name)
+            return CollectibleInfoRowModel(title: row.title, subtitle: name)
         case let .network(chain):
             let chain = Primitives.Chain(core: chain)
-            return CollectibleInfoRowModel(title: Localized.Transfer.network, subtitle: chain.networkName, assetImage: networkImage(chain: chain))
+            return CollectibleInfoRowModel(title: row.title, subtitle: chain.networkName, assetImage: networkImage(chain: chain))
         case let .contract(identifier):
             return CollectibleInfoRowModel(
-                title: Localized.Asset.contract,
+                title: row.title,
                 subtitle: identifier.text,
                 copyValue: .address(value: identifier.value, chain: assetData.asset.chain),
-                explorer: identifier.explorer.map { $0.map() },
+                explorer: identifier.explorer.map { $0.toPrimitives() },
             )
         case let .tokenId(identifier):
             return CollectibleInfoRowModel(
-                title: Localized.Asset.tokenId,
+                title: row.title,
                 subtitle: identifier.text,
                 copyValue: .plain(identifier.value),
-                explorer: identifier.explorer.map { $0.map() },
+                explorer: identifier.explorer.map { $0.toPrimitives() },
             )
         }
     }
@@ -169,27 +170,27 @@ extension CollectibleViewModel {
         isPresentingToast = .copied(value)
     }
 
-    func onSelectHeaderButton(type: HeaderButtonType) {
+    func onSelectHeaderButton(type: GemHeaderButtonKind) {
         guard let account = try? wallet.account(for: assetData.asset.chain) else {
             return
         }
         switch type {
         case .send:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
-                type: .send(.nft(nftAsset: assetData.asset.map())),
+                type: .send(.nft(nftAsset: assetData.asset.toGem())),
                 assetData: .with(asset: account.chain.asset, account: account),
             )
-        case .buy, .sell, .receive, .swap, .stake, .more, .deposit, .withdraw:
+        case .buy, .receive, .swap, .more, .deposit, .withdraw:
             fatalError()
         }
     }
 
     func onSelectSaveToGallery() {
         Task {
-            do {
+            do throws(ImageGalleryServiceError) {
                 try await saveImageToGallery()
                 isPresentingToast = .success(Localized.Nft.saveToPhotos)
-            } catch let error as ImageGalleryServiceError {
+            } catch {
                 switch error {
                 case .wrongURL, .invalidData, .invalidResponse, .unexpectedStatusCode, .urlSessionError:
                     isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)

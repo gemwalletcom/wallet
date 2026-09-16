@@ -1,6 +1,6 @@
 use primitives::{
-    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType,
-    PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
+    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData,
+    PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
 };
 
 use super::model::GemPortfolioValues;
@@ -34,10 +34,10 @@ pub fn portfolio_currency(portfolio_type: PortfolioType, currency: Currency) -> 
     }
 }
 
-pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType) -> Option<GemChartData> {
+pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, currency: Currency) -> Option<GemChartData> {
     let chart = data.charts.iter().find(|chart| chart.chart_type == chart_type).or(data.charts.first())?;
     let shows_value = portfolio_type == PortfolioType::Wallet || chart_type == PortfolioChartType::Value;
-    change_chart_data(chart.values.clone(), shows_value)
+    change_chart_data(chart.values.clone(), shows_value, portfolio_currency(portfolio_type, currency))
 }
 
 pub fn wallet_portfolio_data(values: GemPortfolioValues) -> PortfolioData {
@@ -79,10 +79,7 @@ pub fn perpetual_portfolio_data(portfolio: PerpetualPortfolio, period: ChartPeri
         statistics.push(PortfolioStatistic::UnrealizedPnl { value: summary.unrealized_pnl });
         statistics.push(PortfolioStatistic::AccountLeverage { value: summary.account_leverage });
         statistics.push(PortfolioStatistic::MarginUsage {
-            value: PortfolioMarginUsage {
-                account_value: summary.account_value,
-                usage: summary.margin_usage,
-            },
+            value: PortfolioMarginUsage::new(summary.account_value, summary.margin_usage),
         });
     }
     if let Some(all_time) = &portfolio.all_time {
@@ -130,7 +127,11 @@ mod tests {
 
     #[test]
     fn test_a_perpetuals_portfolio_is_quoted_in_dollars() {
-        assert_eq!(portfolio_currency(PortfolioType::Perpetuals, Currency::EUR), Currency::USD, "perpetual collateral is dollars whatever the wallet is set to");
+        assert_eq!(
+            portfolio_currency(PortfolioType::Perpetuals, Currency::EUR),
+            Currency::USD,
+            "perpetual collateral is dollars whatever the wallet is set to"
+        );
         assert_eq!(portfolio_currency(PortfolioType::Wallet, Currency::EUR), Currency::EUR);
     }
 
@@ -155,13 +156,13 @@ mod tests {
             available_periods: wallet_periods(),
         };
 
-        let pnl = portfolio_chart_data(data.clone(), PortfolioType::Perpetuals, PortfolioChartType::Pnl).expect("series");
+        let pnl = portfolio_chart_data(data.clone(), PortfolioType::Perpetuals, PortfolioChartType::Pnl, Currency::USD).expect("series");
         assert_eq!(pnl.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![1.0, 3.0]);
         assert!(!pnl.shows_secondary_value);
 
-        let value = portfolio_chart_data(data, PortfolioType::Perpetuals, PortfolioChartType::Value).expect("series");
+        let value = portfolio_chart_data(data, PortfolioType::Perpetuals, PortfolioChartType::Value, Currency::USD).expect("series");
         assert_eq!(value.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![10.0, 12.0]);
-        assert_eq!(value.header.unwrap().secondary_value, Some(12.0));
+        assert_eq!(value.header.unwrap().secondary_value.map(|value| value.value), Some(12.0));
     }
 
     #[test]
@@ -171,7 +172,7 @@ mod tests {
             statistics: vec![],
             available_periods: wallet_periods(),
         };
-        assert_eq!(portfolio_chart_data(data, PortfolioType::Wallet, PortfolioChartType::Value), None);
+        assert_eq!(portfolio_chart_data(data, PortfolioType::Wallet, PortfolioChartType::Value, Currency::USD), None);
     }
 
     #[test]
@@ -219,12 +220,16 @@ mod tests {
                 PortfolioStatistic::UnrealizedPnl { value: 7.0 },
                 PortfolioStatistic::AccountLeverage { value: 2.0 },
                 PortfolioStatistic::MarginUsage {
-                    value: PortfolioMarginUsage { account_value: 100.0, usage: 0.5 }
+                    value: PortfolioMarginUsage::new(100.0, 0.5)
                 },
                 PortfolioStatistic::AllTimePnl { value: 50.0 },
                 PortfolioStatistic::Volume { value: 5000.0 },
             ]
         );
+        let margin = PortfolioMarginUsage::new(100.0, 0.5);
+        assert_eq!(margin.used_value, 50.0);
+        assert_eq!(margin.usage_percent, 50.0);
+
         assert_eq!(data.available_periods, vec![ChartPeriod::Day, ChartPeriod::Year, ChartPeriod::All]);
 
         let without_summary = perpetual_portfolio_data(PerpetualPortfolio::mock(), ChartPeriod::Week);

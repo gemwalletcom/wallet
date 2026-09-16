@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.ChartPeriod
 
 @Composable
@@ -38,7 +39,7 @@ fun PeriodsPanel(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         periods.forEach {
-            PeriodButton(it.title(), it == period) { onSelect(it) }
+            PeriodButton(stringResource(it.stringRes()), it == period) { onSelect(it) }
         }
     }
 }
@@ -68,18 +69,5 @@ private fun RowScope.PeriodButton(title: String, isSelected: Boolean, onClick: (
             color = MaterialTheme.colorScheme.onSurface,
         )
     }
-}
-
-@Composable
-fun ChartPeriod.title(): String {
-    val strId = when (this) {
-        ChartPeriod.Hour -> R.string.charts_hour
-        ChartPeriod.Day -> R.string.charts_day
-        ChartPeriod.Week -> R.string.charts_week
-        ChartPeriod.Month -> R.string.charts_month
-        ChartPeriod.Year -> R.string.charts_year
-        ChartPeriod.All -> R.string.charts_all
-    }
-    return stringResource(id = strId)
 }
 

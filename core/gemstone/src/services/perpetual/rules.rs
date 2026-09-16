@@ -1,12 +1,22 @@
+use crate::percentage::GemPercentageStyle;
 use chrono::Utc;
-use primitives::PriceChangeCalculator;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
+use primitives::PriceChangeCalculator;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType};
+use primitives::{
+    Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType,
+    PerpetualPosition, PerpetualProvider, WalletType,
+};
 
-use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind, GemCandleTooltip, GemPerpetualMarketRow, GemPerpetualPositionRow, GemPerpetualTransferData};
+use super::model::{
+    GemAutocloseSummary, GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualChartLayout, GemPerpetualChartLine,
+    GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualInfoRow, GemPerpetualMarketCounts, GemPerpetualMarketRow,
+    GemPerpetualMarketSection, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetailRow,
+    GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
+};
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
@@ -99,8 +109,8 @@ pub fn autoclose_summary(data: &PerpetualModifyConfirmData) -> Option<GemAutoclo
         return None;
     }
     Some(GemAutocloseSummary {
-        take_profit,
-        stop_loss,
+        take_profit: take_profit.map(GemFormattedNumber::usd),
+        stop_loss: stop_loss.map(GemFormattedNumber::usd),
         take_profit_cleared,
         stop_loss_cleared,
     })
@@ -110,15 +120,15 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
     let candle_low = candles.iter().map(|candle| candle.low).reduce(f64::min).unwrap_or(0.0);
     let candle_high = candles.iter().map(|candle| candle.high).reduce(f64::max).unwrap_or(1.0);
     let buffer = (candle_high - candle_low) * CHART_LINE_VISIBILITY_BUFFER_FRACTION;
-    let mut lines: Vec<GemPerpetualChartLine> = position
+    let mut lines: Vec<(GemPerpetualChartLineKind, f64)> = position
         .map(chart_lines)
         .unwrap_or_default()
         .into_iter()
-        .filter(|line| line.price >= candle_low - buffer && line.price <= candle_high + buffer)
+        .filter(|(_, price)| *price >= candle_low - buffer && *price <= candle_high + buffer)
         .collect();
-    lines.sort_by(|a, b| a.price.total_cmp(&b.price));
-    let lowest = lines.first().map_or(candle_low, |line| line.price.min(candle_low));
-    let highest = lines.last().map_or(candle_high, |line| line.price.max(candle_high));
+    lines.sort_by(|a, b| a.1.total_cmp(&b.1));
+    let lowest = lines.first().map_or(candle_low, |(_, price)| price.min(candle_low));
+    let highest = lines.last().map_or(candle_high, |(_, price)| price.max(candle_high));
     let span = (highest - lowest).max(highest.abs() * CHART_MINIMUM_SPAN_FRACTION + CHART_MINIMUM_SPAN);
     let padding = span * CHART_RANGE_PADDING_FRACTION;
     let price_low = if lowest > 0.0 {
@@ -129,19 +139,31 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
     let price_high = highest + padding;
     let overlap_threshold = (price_high - price_low) * CHART_LABEL_OVERLAP_FRACTION;
     let mut previous: Option<(f64, u32)> = None;
-    for line in &mut lines {
-        line.overlap_level = match previous {
-            Some((price, level)) if line.price - price < overlap_threshold => level + 1,
-            _ => 0,
-        };
-        previous = Some((line.price, line.overlap_level));
-    }
+    let lines = lines
+        .into_iter()
+        .map(|(kind, price)| {
+            let overlap_level = match previous {
+                Some((last, level)) if price - last < overlap_threshold => level + 1,
+                _ => 0,
+            };
+            previous = Some((price, overlap_level));
+            GemPerpetualChartLine {
+                kind,
+                price: GemFormattedNumber::adaptive(price, None),
+                overlap_level,
+            }
+        })
+        .collect();
     GemPerpetualChartLayout {
         price_low,
         price_high,
-        ticks: chart_ticks(candle_low, candle_high),
+        ticks: chart_ticks(candle_low, candle_high)
+            .into_iter()
+            .map(|tick| GemFormattedNumber::adaptive(tick, None))
+            .collect(),
         x_tick_count: chart_x_tick_count(candles.len()),
         lines,
+        current_price: candles.last().map(|candle| GemFormattedNumber::adaptive(candle.close, None)),
     }
 }
 
@@ -157,7 +179,7 @@ fn chart_ticks(candle_low: f64, candle_high: f64) -> Vec<f64> {
     (0..CHART_TICK_COUNT).map(|index| candle_low + step * index as f64).collect()
 }
 
-fn chart_lines(position: &PerpetualPosition) -> Vec<GemPerpetualChartLine> {
+fn chart_lines(position: &PerpetualPosition) -> Vec<(GemPerpetualChartLineKind, f64)> {
     [
         (GemPerpetualChartLineKind::Entry, Some(position.entry_price)),
         (GemPerpetualChartLineKind::TakeProfit, position.take_profit.as_ref().map(|order| order.price)),
@@ -165,7 +187,7 @@ fn chart_lines(position: &PerpetualPosition) -> Vec<GemPerpetualChartLine> {
         (GemPerpetualChartLineKind::Liquidation, position.liquidation_price.filter(|price| *price > 0.0)),
     ]
     .into_iter()
-    .filter_map(|(kind, price)| price.map(|price| GemPerpetualChartLine { kind, price, overlap_level: 0 }))
+    .filter_map(|(kind, price)| price.map(|price| (kind, price)))
     .collect()
 }
 
@@ -298,7 +320,9 @@ pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Perp
     match input.action {
         GemPerpetualOrderAction::Open => PerpetualType::Open { data },
         GemPerpetualOrderAction::Increase => PerpetualType::Increase { data },
-        GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce { data: PerpetualReduceData { data, position_direction } },
+        GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce {
+            data: PerpetualReduceData { data, position_direction },
+        },
     }
 }
 
@@ -465,7 +489,7 @@ pub fn symbol(perpetual: &Perpetual) -> String {
     perpetual.name.clone()
 }
 
-pub fn apply_candle_update(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
+pub fn merged_candles(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
     (update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
 }
 
@@ -500,21 +524,47 @@ pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is
     }
 }
 
+pub fn market_section_list(sections: &GemPerpetualMarketSections) -> Vec<GemPerpetualMarketSection> {
+    [
+        (sections.shows_recents, GemPerpetualMarketSection::Recents),
+        (sections.shows_positions, GemPerpetualMarketSection::Positions),
+        (sections.shows_pinned, GemPerpetualMarketSection::Pinned),
+        (sections.shows_markets, GemPerpetualMarketSection::Markets),
+        (sections.shows_empty, GemPerpetualMarketSection::Empty),
+    ]
+    .into_iter()
+    .filter_map(|(shows, section)| shows.then_some(section))
+    .collect()
+}
+
 pub fn candle_tooltip(candle: &ChartCandleStick) -> GemCandleTooltip {
     GemCandleTooltip {
-        open: candle.open,
-        high: candle.high,
-        low: candle.low,
-        close: candle.close,
-        change_percentage: PriceChangeCalculator::percentage(candle.open, candle.close),
-        volume: candle.volume * candle.close,
+        prices: vec![
+            tooltip_cell(GemCandleTooltipRow::Open, GemFormattedNumber::adaptive(candle.open, None)),
+            tooltip_cell(GemCandleTooltipRow::High, GemFormattedNumber::adaptive(candle.high, None)),
+            tooltip_cell(GemCandleTooltipRow::Low, GemFormattedNumber::adaptive(candle.low, None)),
+            tooltip_cell(GemCandleTooltipRow::Close, GemFormattedNumber::adaptive(candle.close, None)),
+        ],
+        summary: vec![
+            tooltip_cell(
+                GemCandleTooltipRow::Change,
+                GemFormattedNumber::percentage(PriceChangeCalculator::percentage(candle.open, candle.close), GemPercentageStyle::Signed),
+            ),
+            tooltip_cell(GemCandleTooltipRow::Volume, GemFormattedNumber::usd_abbreviated(candle.volume * candle.close)),
+        ],
     }
+}
+
+fn tooltip_cell(row: GemCandleTooltipRow, value: GemFormattedNumber) -> GemCandleTooltipCell {
+    GemCandleTooltipCell { row, value }
 }
 
 pub fn market_row(perpetual: &Perpetual) -> GemPerpetualMarketRow {
     GemPerpetualMarketRow {
         title: perpetual.name.clone(),
         shows_price: perpetual.price != 0.0,
+        volume_24h: GemFormattedNumber::usd_abbreviated(perpetual.volume_24h),
+        open_interest: GemFormattedNumber::usd_abbreviated(perpetual.open_interest),
     }
 }
 
@@ -526,8 +576,48 @@ pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPo
         },
         leverage: crate::perpetual::leverage_text(position.leverage),
         direction: position.direction.clone(),
-        liquidation_price: position.liquidation_price.filter(|price| *price > 0.0),
+        liquidation_price: position.liquidation_price.filter(|value| *value > 0.0).map(GemFormattedNumber::usd),
     }
+}
+
+pub fn perpetual_sections(has_position: bool) -> Vec<GemPerpetualSection> {
+    [has_position.then_some(GemPerpetualSection::Position), Some(GemPerpetualSection::Info)]
+        .into_iter()
+        .flatten()
+        .collect()
+}
+
+pub fn position_detail_rows(position: &PerpetualPosition) -> Vec<GemPerpetualPositionDetailRow> {
+    [
+        Some(GemPerpetualPositionDetailRow::Pnl),
+        Some(GemPerpetualPositionDetailRow::Autoclose),
+        Some(GemPerpetualPositionDetailRow::Size),
+        Some(GemPerpetualPositionDetailRow::EntryPrice),
+        position
+            .liquidation_price
+            .filter(|value| *value > 0.0)
+            .map(|_| GemPerpetualPositionDetailRow::LiquidationPrice),
+        Some(GemPerpetualPositionDetailRow::Margin),
+        Some(GemPerpetualPositionDetailRow::FundingPayments),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+pub fn info_rows() -> Vec<GemPerpetualInfoRow> {
+    vec![GemPerpetualInfoRow::DailyVolume, GemPerpetualInfoRow::OpenInterest, GemPerpetualInfoRow::FundingRate]
+}
+
+pub fn perpetual_buttons(has_position: bool) -> Vec<GemPerpetualButton> {
+    match has_position {
+        true => vec![GemPerpetualButton::Modify, GemPerpetualButton::Close],
+        false => vec![GemPerpetualButton::Long, GemPerpetualButton::Short],
+    }
+}
+
+pub fn modify_buttons() -> Vec<GemPerpetualButton> {
+    vec![GemPerpetualButton::Increase, GemPerpetualButton::Reduce]
 }
 
 #[cfg(test)]
@@ -539,6 +629,40 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::PerpetualId;
     use primitives::TransactionInputType;
+
+    #[test]
+    fn test_the_perpetual_screen_names_its_sections_rows_and_buttons_from_the_position() {
+        assert_eq!(perpetual_sections(false), vec![GemPerpetualSection::Info]);
+        assert_eq!(perpetual_sections(true), vec![GemPerpetualSection::Position, GemPerpetualSection::Info]);
+        assert_eq!(perpetual_buttons(false), vec![GemPerpetualButton::Long, GemPerpetualButton::Short]);
+        assert_eq!(perpetual_buttons(true), vec![GemPerpetualButton::Modify, GemPerpetualButton::Close]);
+
+        let without_liquidation = PerpetualPosition {
+            liquidation_price: Some(0.0),
+            ..position("open")
+        };
+        assert!(
+            !position_detail_rows(&without_liquidation).contains(&GemPerpetualPositionDetailRow::LiquidationPrice),
+            "a zero liquidation price is no liquidation price"
+        );
+        assert!(!position_detail_rows(&position("open")).contains(&GemPerpetualPositionDetailRow::LiquidationPrice));
+        let liquidatable = PerpetualPosition {
+            liquidation_price: Some(1.0),
+            ..without_liquidation
+        };
+        assert_eq!(
+            position_detail_rows(&liquidatable),
+            vec![
+                GemPerpetualPositionDetailRow::Pnl,
+                GemPerpetualPositionDetailRow::Autoclose,
+                GemPerpetualPositionDetailRow::Size,
+                GemPerpetualPositionDetailRow::EntryPrice,
+                GemPerpetualPositionDetailRow::LiquidationPrice,
+                GemPerpetualPositionDetailRow::Margin,
+                GemPerpetualPositionDetailRow::FundingPayments,
+            ]
+        );
+    }
 
     #[test]
     fn test_market_sections_hide_recents_mid_search_and_answer_empty_only_while_searching() {
@@ -574,7 +698,6 @@ mod tests {
         assert!(!sections.shows_empty);
     }
 
-
     fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData {
             base_asset: Asset::mock(),
@@ -608,8 +731,8 @@ mod tests {
     #[test]
     fn test_autoclose_summary_reads_new_prices_and_cleared_orders() {
         let both = autoclose_summary(&modify_data(vec![tpsl(Some("65000"), Some("55000"))], None, None)).unwrap();
-        assert_eq!(both.take_profit, Some(65000.0));
-        assert_eq!(both.stop_loss, Some(55000.0));
+        assert_eq!(both.take_profit, Some(GemFormattedNumber::usd(65000.0)));
+        assert_eq!(both.stop_loss, Some(GemFormattedNumber::usd(55000.0)));
         assert!(!both.take_profit_cleared && !both.stop_loss_cleared);
 
         let cleared = autoclose_summary(&modify_data(vec![cancel(vec![111, 222])], Some(111), Some(222))).unwrap();
@@ -618,7 +741,7 @@ mod tests {
         assert!(cleared.take_profit_cleared && cleared.stop_loss_cleared);
 
         let replaced = autoclose_summary(&modify_data(vec![tpsl(Some("70000"), None), cancel(vec![111])], Some(111), None)).unwrap();
-        assert_eq!(replaced.take_profit, Some(70000.0));
+        assert_eq!(replaced.take_profit, Some(GemFormattedNumber::usd(70000.0)));
         assert!(!replaced.take_profit_cleared, "a replaced order is not a cleared one");
 
         assert!(autoclose_summary(&modify_data(vec![], None, None)).is_none());
@@ -660,8 +783,8 @@ mod tests {
         assert!(layout.price_low < 9.0 && layout.price_low >= 9.0 * CHART_RANGE_FLOOR_FRACTION);
         assert!(layout.price_high > 13.0);
         assert_eq!(layout.ticks.len(), 4);
-        assert_eq!(layout.ticks[0], 9.0);
-        assert_eq!(layout.ticks[3], 13.0);
+        assert_eq!(layout.ticks[0].value, 9.0);
+        assert_eq!(layout.ticks[3].value, 13.0);
         assert!(layout.lines.is_empty());
     }
 
@@ -682,7 +805,7 @@ mod tests {
         open.liquidation_price = Some(1.0);
 
         let layout = chart_layout(&[candle_range(9.0, 13.0)], Some(&open));
-        let lines: Vec<(GemPerpetualChartLineKind, f64)> = layout.lines.iter().map(|line| (line.kind, line.price)).collect();
+        let lines: Vec<(GemPerpetualChartLineKind, f64)> = layout.lines.iter().map(|line| (line.kind, line.price.value)).collect();
 
         assert_eq!(lines, vec![(GemPerpetualChartLineKind::StopLoss, 8.0), (GemPerpetualChartLineKind::Entry, 14.0)]);
         assert!(layout.price_low <= 8.0 && layout.price_high >= 14.0);
@@ -712,7 +835,7 @@ mod tests {
     fn test_chart_layout_keeps_a_measurable_range_for_flat_and_negative_series() {
         let flat = chart_layout(&[candle_range(100.0, 100.0)], None);
         assert!(flat.price_low < flat.price_high);
-        assert_eq!(flat.ticks, vec![100.0]);
+        assert_eq!(flat.ticks.iter().map(|tick| tick.value).collect::<Vec<_>>(), vec![100.0]);
 
         let negative = chart_layout(&[candle_range(-10.0, -5.0)], None);
         assert!(negative.price_low < -10.0);
@@ -725,7 +848,7 @@ mod tests {
         open.take_profit = Some(trigger_order(120.0));
         open.stop_loss = Some(trigger_order(90.0));
         open.liquidation_price = Some(80.0);
-        let kinds: Vec<(GemPerpetualChartLineKind, f64)> = chart_lines(&open).into_iter().map(|line| (line.kind, line.price)).collect();
+        let kinds: Vec<(GemPerpetualChartLineKind, f64)> = chart_lines(&open);
         assert_eq!(
             kinds,
             vec![
@@ -768,9 +891,17 @@ mod tests {
         };
         let tooltip = candle_tooltip(&candle);
 
-        assert_eq!(tooltip.volume, 220.0);
-        assert_eq!(tooltip.change_percentage, 10.0);
-        assert_eq!(tooltip.high, 120.0);
+        assert_eq!(
+            tooltip.prices.iter().map(|cell| cell.row).collect::<Vec<_>>(),
+            vec![GemCandleTooltipRow::Open, GemCandleTooltipRow::High, GemCandleTooltipRow::Low, GemCandleTooltipRow::Close]
+        );
+        assert_eq!(
+            tooltip.summary.iter().map(|cell| cell.row).collect::<Vec<_>>(),
+            vec![GemCandleTooltipRow::Change, GemCandleTooltipRow::Volume]
+        );
+        assert_eq!(tooltip.prices[1].value, GemFormattedNumber::adaptive(120.0, None));
+        assert_eq!(tooltip.summary[0].value, GemFormattedNumber::percentage(10.0, GemPercentageStyle::Signed));
+        assert_eq!(tooltip.summary[1].value, GemFormattedNumber::usd_abbreviated(220.0));
     }
 
     #[test]
@@ -784,12 +915,31 @@ mod tests {
     }
 
     #[test]
+    fn test_a_market_row_abbreviates_its_volume_and_open_interest_in_usd() {
+        let row = market_row(&Perpetual {
+            volume_24h: 1_500_000.0,
+            open_interest: 5_250_000.0,
+            ..market("BTC")
+        });
+
+        for number in [&row.volume_24h, &row.open_interest] {
+            assert_eq!(number.unit, crate::formatted_number::GemNumberUnit::Currency { code: "USD".to_string() });
+            assert_eq!(number.display, crate::formatted_number::GemNumberDisplay::Abbreviated);
+        }
+        assert_eq!(row.volume_24h.value, 1_500_000.0);
+        assert_eq!(row.open_interest.value, 5_250_000.0);
+    }
+
+    #[test]
     fn test_a_position_row_falls_back_to_the_market_name_when_the_asset_has_no_symbol() {
         let market = market("BTC");
         let mut held = position("one");
         held.leverage = 40;
         let symboled = Asset::from_chain(Chain::HyperCore);
-        let unsymboled = Asset { symbol: String::new(), ..symboled.clone() };
+        let unsymboled = Asset {
+            symbol: String::new(),
+            ..symboled.clone()
+        };
 
         assert_eq!(position_row(&market, &symboled, &held).title, symboled.symbol);
         assert_eq!(position_row(&market, &unsymboled, &held).title, "BTC");
@@ -813,7 +963,7 @@ mod tests {
             ..position("one")
         };
 
-        assert_eq!(position_row(&market, &asset, &priced).liquidation_price, Some(12.5));
+        assert_eq!(position_row(&market, &asset, &priced).liquidation_price, Some(GemFormattedNumber::usd(12.5)));
         assert_eq!(position_row(&market, &asset, &zero).liquidation_price, None, "a zero price is no liquidation price");
         assert_eq!(position_row(&market, &asset, &absent).liquidation_price, None);
     }
@@ -1145,7 +1295,12 @@ mod tests {
         assert_eq!(open.action, GemPerpetualDetailsAction::Open);
         assert_eq!(open.direction, PerpetualDirection::Long);
 
-        assert!(details(&PerpetualType::Modify { data: modify_data(vec![], None, None) }).is_none());
+        assert!(
+            details(&PerpetualType::Modify {
+                data: modify_data(vec![], None, None)
+            })
+            .is_none()
+        );
     }
 
     #[test]
@@ -1165,7 +1320,9 @@ mod tests {
         assert_eq!(data.fiat_value, 200.0);
         assert_eq!(data.margin_amount, 50.0);
         assert!(matches!(increase, PerpetualType::Increase { .. }));
-        let PerpetualType::Reduce { data: reduce } = reduce else { panic!("expected a reduce order") };
+        let PerpetualType::Reduce { data: reduce } = reduce else {
+            panic!("expected a reduce order")
+        };
         assert_eq!(reduce.position_direction, PerpetualDirection::Short);
     }
 
@@ -1229,13 +1386,13 @@ mod tests {
             candle: candle(3000, 110.0),
         };
         let symbol = symbol(&perpetual);
-        assert_eq!(apply_candle_update(candles.clone(), update(&symbol, "30m"), &perpetual, &ChartPeriod::Day), Some(appended));
+        assert_eq!(merged_candles(candles.clone(), update(&symbol, "30m"), &perpetual, &ChartPeriod::Day), Some(appended));
         assert_eq!(
-            apply_candle_update(candles.clone(), update(&symbol, "1m"), &perpetual, &ChartPeriod::Day),
+            merged_candles(candles.clone(), update(&symbol, "1m"), &perpetual, &ChartPeriod::Day),
             None,
             "a candle for another interval is not this chart's"
         );
-        assert_eq!(apply_candle_update(candles, update("OTHER", "30m"), &perpetual, &ChartPeriod::Day), None);
+        assert_eq!(merged_candles(candles, update("OTHER", "30m"), &perpetual, &ChartPeriod::Day), None);
     }
 
     #[test]
@@ -1246,5 +1403,44 @@ mod tests {
         assert_eq!(candle_interval(&ChartPeriod::Month), "12h");
         assert_eq!(candle_interval(&ChartPeriod::Year), "1w");
         assert_eq!(candle_interval(&ChartPeriod::All), "1M");
+    }
+
+    #[test]
+    fn test_the_market_screen_lists_its_sections_in_order() {
+        let counts = GemPerpetualMarketCounts {
+            positions: 1,
+            pinned: 1,
+            markets: 2,
+            recents: 1,
+        };
+
+        assert_eq!(
+            market_sections(&counts, false, true).list(),
+            vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
+        );
+        assert_eq!(
+            market_sections(&counts, true, true).list(),
+            vec![
+                GemPerpetualMarketSection::Recents,
+                GemPerpetualMarketSection::Positions,
+                GemPerpetualMarketSection::Pinned,
+                GemPerpetualMarketSection::Markets
+            ],
+            "an empty search query offers the recents above the rest"
+        );
+        assert_eq!(
+            market_sections(
+                &GemPerpetualMarketCounts {
+                    positions: 0,
+                    pinned: 0,
+                    markets: 0,
+                    recents: 0
+                },
+                true,
+                false
+            )
+            .list(),
+            vec![GemPerpetualMarketSection::Empty]
+        );
     }
 }

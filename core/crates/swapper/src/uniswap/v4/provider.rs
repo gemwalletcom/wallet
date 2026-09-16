@@ -24,7 +24,12 @@ use crate::{
 };
 use gem_evm::{
     jsonrpc::EthereumRpc,
-    uniswap::{FeeTier, command::encode_commands, deployment::v4::get_uniswap_deployment_by_chain, path::get_base_pair},
+    uniswap::{
+        FeeTier,
+        command::{Permit2Permit, encode_commands},
+        deployment::v4::get_uniswap_deployment_by_chain,
+        path::get_base_pair,
+    },
 };
 use gem_hash::keccak::keccak256;
 use gem_jsonrpc::client::JsonRpcClient;
@@ -67,7 +72,10 @@ impl UniswapV4 {
     }
 
     fn is_base_pair(token_in: &Address, token_out: &Address, evm_chain: &EVMChain) -> bool {
-        let base_set: HashSet<Address> = HashSet::from_iter(get_base_pair(evm_chain, evm_chain.native_asset_contract()).unwrap().path_building_array());
+        let Some(base_pair) = get_base_pair(evm_chain, evm_chain.native_asset_contract()) else {
+            return false;
+        };
+        let base_set: HashSet<Address> = HashSet::from_iter(base_pair.path_building_array());
         base_set.contains(token_in) || base_set.contains(token_out)
     }
 
@@ -278,7 +286,7 @@ impl Swapper for UniswapV4 {
         let to_amount = u128::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?;
 
         let client = self.client_for(from_asset.chain)?;
-        let permit = data.permit2_data().map(|data| data.into());
+        let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
         let input_is_native = uses_native_currency(&request.from_asset.asset_id());
 
         let approval: Option<ApprovalData> = if input_is_native {

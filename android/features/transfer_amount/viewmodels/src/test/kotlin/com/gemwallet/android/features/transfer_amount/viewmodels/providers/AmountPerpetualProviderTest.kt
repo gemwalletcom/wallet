@@ -6,7 +6,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
+import uniffi.gemstone.GemAmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
@@ -39,9 +39,8 @@ class AmountPerpetualProviderTest {
     @Test
     fun `title carries the direction`() {
         val provider = makeProvider(direction = PerpetualDirection.Short)
-        val title = provider.title as AmountTitle.Perpetual
-        val open = title.action as GemPerpetualPositionAction.Open
-        assertEquals(PerpetualDirection.Short.toGem(), open.data.direction)
+        val title = provider.title.value as GemAmountTitle.PerpetualOpen
+        assertEquals(PerpetualDirection.Short.toGem(), title.direction)
     }
 
     @Test

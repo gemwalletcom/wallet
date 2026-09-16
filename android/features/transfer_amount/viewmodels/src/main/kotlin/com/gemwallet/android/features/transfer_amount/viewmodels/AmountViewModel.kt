@@ -7,7 +7,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
@@ -40,6 +40,7 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemTransferData
 import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemValueStyle
 
 @HiltViewModel
 class AmountViewModel @Inject constructor(
@@ -48,18 +49,18 @@ class AmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
+    private val valueFormatter = ValueFormatter(style = GemValueStyle.AUTO)
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
     val provider: AmountDataProvider = factory.create(params, viewModelScope)
 
-    var amount by mutableStateOf(params.amount.orEmpty())
+    var amount by mutableStateOf(provider.prefilledAmount.orEmpty())
         private set
 
     val amountInputType = MutableStateFlow(GemAmountInputType.ASSET)
     val amountError = MutableStateFlow<AmountError>(AmountError.None)
 
-    val currency: Currency = service.getCurrency().toCurrency()
+    val currency: Currency = service.getCurrency().toPrimitives()
     private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
 
     private val entry: StateFlow<GemAmountEntry?> = combine(
@@ -133,7 +134,7 @@ class AmountViewModel @Inject constructor(
         Crypto(value).value(asset.decimals).stripTrailingZeros().toPlainString()
 
     fun switchInputType() {
-        amountInputType.update { if (it == GemAmountInputType.ASSET) GemAmountInputType.FIAT else GemAmountInputType.ASSET }
+        amountInputType.update { it.toggled() }
         amount = ""
     }
 

@@ -62,6 +62,7 @@ import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemServiceStatus
+import uniffi.gemstone.GemServiceStatusInterface
 import uniffi.gemstone.serviceStatusTimeout
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemSimulationServiceInterface
@@ -280,7 +281,7 @@ object GatewayModule {
     @Singleton
     fun provideGemServiceStatus(
         okHttpClient: OkHttpClient,
-    ): GemServiceStatus {
+    ): GemServiceStatusInterface {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeout())
             .build()

@@ -51,15 +51,15 @@ private object CandlestickMetrics {
     val leftPadding = space8
     val labelPadding = space4
     val candleSpacingFraction = 0.25f
-    val candleBodyWidth = 4.dp
-    val wickWidth = 1.dp
-    val referenceLineThickness = 1.dp
+    val candleBodyWidth = space4
+    val wickWidth = space1
+    val referenceLineThickness = space1
     val referenceLineDash = space4
     val referenceLineGap = 3.dp
-    val selectionLineWidth = 1.dp
+    val selectionLineWidth = space1
     val selectionDashLength = space4
     val selectionDotOuterRadius = space6
-    val selectionDotBorderWidth = 2.dp
+    val selectionDotBorderWidth = space2
     val currentPriceBadgeHorizontalPadding = space2
     val currentPriceBadgeVerticalPadding = space1
     val referenceBadgeHorizontalPadding = space4
@@ -338,7 +338,7 @@ private fun DrawScope.drawReferenceLines(
     textMeasurer: TextMeasurer,
 ) {
     val visible = referenceLines.mapNotNull { line ->
-        val y = valueToY(line.line.price)
+        val y = valueToY(line.line.price.value)
         if (y < plotTop || y > plotBottom) null else line to y
     }
     visible.forEach { (line, y) ->

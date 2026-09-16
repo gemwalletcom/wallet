@@ -127,17 +127,17 @@ struct PaymentTransferTests {
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
 
     private static func paymentTransaction(memo: String?, request: Gemstone.PaymentRequest?) throws -> GemPaymentTransaction {
-        try GemPaymentTransaction(
+        GemPaymentTransaction(
             merchant: Primitives.ApplicationMetadata(
                 name: "Merchant",
                 description: "Payment",
                 url: "https://example.com",
                 icon: "https://example.com/icon.png",
                 source: .payment,
-            ).map(),
-            account: Primitives.ChainAddress(chain: .solana, address: "account").map(),
+            ).toGem(),
+            account: Primitives.ChainAddress(chain: .solana, address: "account").toGem(),
             transaction: "encoded-transaction",
-            transactionType: Primitives.TransactionType.transfer.map(),
+            transactionType: Primitives.TransactionType.transfer.toGem(),
             memo: memo,
             request: request,
         )

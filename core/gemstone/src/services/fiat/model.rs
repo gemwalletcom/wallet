@@ -1,12 +1,13 @@
 use super::rules;
+use crate::formatted_number::GemFormattedNumber;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::swap::GemAssetRate;
 use primitives::{FiatProviderName, FiatTransactionStatus};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemFiatAmountCheck {
-    BelowMinimum { minimum: u32 },
-    AboveMaximum { maximum: u32 },
+    BelowMinimum { minimum: GemFormattedNumber },
+    AboveMaximum { maximum: GemFormattedNumber },
     InsufficientBalance { requirement: GemBalanceRequirement },
     Valid,
 }
@@ -17,8 +18,8 @@ pub struct GemFiatQuoteRow {
     pub provider: FiatProviderName,
     pub provider_name: String,
     pub provider_image_url: Option<String>,
-    pub crypto_amount: f64,
-    pub fiat_amount: f64,
+    pub crypto_amount: GemFormattedNumber,
+    pub fiat_amount: GemFormattedNumber,
     pub rate: Option<GemAssetRate>,
 }
 

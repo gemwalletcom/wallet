@@ -24,6 +24,29 @@ pub enum GemAmountType {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountTitle {
+    Send,
+    Deposit,
+    Withdraw,
+    Stake,
+    Unstake,
+    Redelegate,
+    Rewards,
+    Freeze,
+    Unfreeze,
+    PerpetualOpen { direction: PerpetualDirection },
+    PerpetualIncrease { direction: PerpetualDirection },
+    PerpetualReduce { direction: PerpetualDirection },
+}
+
+#[uniffi::export]
+impl GemAmountType {
+    pub fn title(&self) -> GemAmountTitle {
+        super::rules::amount_title(self)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountTransfer {
     Send { payment: GemPaymentRecipient },
     Deposit,
@@ -86,6 +109,16 @@ pub enum GemAmountInputType {
     Fiat,
 }
 
+#[uniffi::export]
+impl GemAmountInputType {
+    pub fn toggled(&self) -> Self {
+        match self {
+            Self::Asset => Self::Fiat,
+            Self::Fiat => Self::Asset,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountEquivalent {
     Fiat { amount: f64 },
@@ -129,6 +162,36 @@ pub enum GemAmountError {
     InsufficientBalance { asset: Asset, requirement: GemBalanceRequirement },
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountErrorDisplay {
+    None,
+    InvalidAmount,
+    BelowMinimum { asset: Asset, minimum: GemBigInt },
+    InsufficientBalance { title: String },
+}
+
+#[uniffi::export]
+impl GemAmountError {
+    pub fn display(&self) -> GemAmountErrorDisplay {
+        match self {
+            Self::Zero => GemAmountErrorDisplay::None,
+            Self::InvalidNumber | Self::PriceMissing => GemAmountErrorDisplay::InvalidAmount,
+            Self::BelowMinimum { asset, minimum } => GemAmountErrorDisplay::BelowMinimum {
+                asset: asset.clone(),
+                minimum: minimum.clone(),
+            },
+            Self::InsufficientBalance { asset, .. } => GemAmountErrorDisplay::InsufficientBalance { title: asset_title(asset) },
+        }
+    }
+}
+
+fn asset_title(asset: &Asset) -> String {
+    match asset.name == asset.symbol {
+        true => asset.name.clone(),
+        false => asset.full_name(),
+    }
+}
+
 impl std::fmt::Display for GemAmountError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -156,5 +219,51 @@ impl GemNumberFormat {
 
     pub fn plain(&self, input: String) -> String {
         super::rules::plain_number(&self.decimal_separator, &input)
+    }
+
+    pub fn value(&self, input: String, decimals: u32) -> Result<GemBigInt, GemAmountError> {
+        super::rules::value_from_input(&self.decimal_separator, &input, decimals)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::Chain;
+
+    #[test]
+    fn test_the_input_type_toggles_between_the_asset_and_the_fiat_side() {
+        assert_eq!(GemAmountInputType::Asset.toggled(), GemAmountInputType::Fiat);
+        assert_eq!(GemAmountInputType::Fiat.toggled(), GemAmountInputType::Asset);
+        assert_eq!(GemAmountInputType::Asset.toggled().toggled(), GemAmountInputType::Asset);
+    }
+
+    #[test]
+    fn test_a_zero_amount_shows_nothing_and_a_short_balance_names_the_asset() {
+        assert_eq!(GemAmountError::Zero.display(), GemAmountErrorDisplay::None);
+        assert_eq!(GemAmountError::InvalidNumber.display(), GemAmountErrorDisplay::InvalidAmount);
+        assert_eq!(GemAmountError::PriceMissing.display(), GemAmountErrorDisplay::InvalidAmount);
+
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let requirement = GemBalanceRequirement::new(GemBigInt::from(1), GemBigInt::ZERO);
+        assert_eq!(
+            GemAmountError::InsufficientBalance {
+                asset: asset.clone(),
+                requirement: requirement.clone(),
+            }
+            .display(),
+            GemAmountErrorDisplay::InsufficientBalance {
+                title: format!("{} ({})", asset.name, asset.symbol)
+            }
+        );
+
+        let same = Asset {
+            name: asset.symbol.clone(),
+            ..asset
+        };
+        assert_eq!(
+            GemAmountError::InsufficientBalance { asset: same.clone(), requirement }.display(),
+            GemAmountErrorDisplay::InsufficientBalance { title: same.symbol }
+        );
     }
 }

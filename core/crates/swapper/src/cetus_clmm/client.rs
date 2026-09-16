@@ -42,9 +42,9 @@ impl std::fmt::Debug for CetusClmm {
 }
 
 impl CetusClmm {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let sui_client = create_sui_client(rpc_provider).expect("failed to create Sui gRPC client");
-        Self::with_client(sui_client)
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
+        let sui_client = create_sui_client(rpc_provider).ok()?;
+        Some(Self::with_client(sui_client))
     }
 
     pub fn with_client(sui_client: SuiClient) -> Self {
@@ -501,7 +501,7 @@ mod tests {
 
     #[test]
     fn test_known_pools_do_not_suppress_discovery() {
-        let provider = CetusClmm::new(Arc::new(ProviderMock::new(String::new())));
+        let provider = CetusClmm::new(Arc::new(ProviderMock::new(String::new()))).unwrap();
 
         assert!(!provider.route_discovery_complete(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL));
 

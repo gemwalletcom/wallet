@@ -157,6 +157,7 @@ public final class ConfirmTransferSceneViewModel {
             feeRates: feeRates,
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.fee?.fee,
+            additionalFees: state.confirmData?.additionalFees ?? [],
             feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: confirmation.currency) },
             onSelect: { [weak self] in self?.feeSelection = $0 },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
@@ -180,10 +181,16 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     }
 
     private var detailItems: [ConfirmTransferItem] {
-        if case .generic = request.data.inputType {
-            return [.app, .sender, .network]
+        request.data.confirmRows().map { row in
+            switch row {
+            case .app: .app
+            case .sender: .sender
+            case .recipient: .recipient
+            case .network: .network
+            case .memo: .memo
+            case .details: .details
+            }
         }
-        return [.app, .sender, .recipient, .network, .memo, .details]
     }
 
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
@@ -195,12 +202,12 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .app:
             ConfirmAppViewModel(transfer: request.data)
         case .sender:
-            ConfirmSenderViewModel(row: walletRow(wallet: wallet.map()))
+            ConfirmSenderViewModel(row: walletRow(wallet: wallet.toGem()))
         case .network:
             ConfirmNetworkViewModel(transfer: request.data)
         case .recipient:
             ConfirmRecipientViewModel(
-                destination: request.data.destination()?.withAddressName(addressName: state.addressName?.map()),
+                destination: request.data.destination()?.withAddressName(addressName: state.addressName?.toGem()),
                 chain: dataModel.chain,
                 memo: dataModel.recipient.memo,
                 addressName: state.addressName,

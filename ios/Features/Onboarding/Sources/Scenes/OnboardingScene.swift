@@ -20,7 +20,7 @@ public struct OnboardingScene: View {
     public var body: some View {
         VStack {
             Spacer()
-            VStack(alignment: .center, spacing: 24) {
+            VStack(alignment: .center, spacing: .large) {
                 StateButton(
                     text: Localized.Wallet.createNewWallet,
                     action: { isPresentingCreateWalletSheet = true },

@@ -12,9 +12,12 @@ use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
 use gem_wallet_connect::validate_sign_message_account;
-use primitives::{Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
+use primitives::{
+    Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId,
+};
 
 use crate::application::{GemApplicationMetadataService, GemConnectionRow};
+use crate::message::sign_type::SignMessage;
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::simulation::GemSimulationService;
@@ -23,8 +26,9 @@ use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectCha
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemSessionApproval, GemSessionProposal, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome, GemWalletConnectResponse, GemWalletConnectRpcError,
-    GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
+    GemConnection, GemConnectionDetailRow, GemConnectionDetails, GemConnectionSection, GemSessionApproval, GemSessionProposal, GemWalletConnectAuthAccount,
+    GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse,
+    GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
 pub use signer::GemWalletConnectSigner;
@@ -33,6 +37,7 @@ pub use store::GemConnectionStore;
 #[derive(uniffi::Object)]
 pub struct GemWalletConnectService {
     wallet_connect: WalletConnect,
+    sign_message: Arc<GemSignMessageService>,
     metadata: GemApplicationMetadataService,
     simulation: Arc<GemSimulationService>,
     store: Arc<dyn GemConnectionStore>,
@@ -53,9 +58,11 @@ impl GemWalletConnectService {
         signer: Arc<dyn GemWalletConnectSigner>,
         session: Arc<GemWalletSessionService>,
         assets: Arc<GemAssetsService>,
+        sign_message: Arc<GemSignMessageService>,
     ) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
+            sign_message,
             metadata: GemApplicationMetadataService::new(),
             simulation,
             store,
@@ -66,8 +73,12 @@ impl GemWalletConnectService {
         }
     }
 
+    pub async fn sign_message(&self, wallet_id: WalletId, message: SignMessage) -> Result<String, GemServiceError> {
+        self.sign_message.sign(wallet_id, message).await
+    }
+
     pub fn should_process_message(&self, message_id: String) -> bool {
-        let mut seen = self.seen_messages.lock().expect("wallet connect seen messages lock");
+        let mut seen = self.seen_messages.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
         rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
     }
 
@@ -147,6 +158,25 @@ impl GemWalletConnectService {
         self.metadata.connection_row(metadata)
     }
 
+    pub fn connection_sections(&self, connections: Vec<WalletConnection>) -> Vec<GemConnectionSection> {
+        rules::connection_groups(connections)
+            .into_iter()
+            .map(|(wallet, connections)| GemConnectionSection {
+                title: wallet.name,
+                connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
+            })
+            .collect()
+    }
+
+    pub fn connection_details(&self, connection: WalletConnection) -> GemConnectionDetails {
+        GemConnectionDetails {
+            rows: vec![GemConnectionDetailRow::Wallet, GemConnectionDetailRow::Date],
+            wallet: connection.wallet.name.clone(),
+            date: connection.session.created_at,
+            connection: self.gem_connection(connection),
+        }
+    }
+
     pub fn application_metadata(&self, name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {
         rules::application_metadata(name, description, url, icons)
     }
@@ -168,6 +198,10 @@ impl GemWalletConnectService {
             msg: format!("invalid session expiry {expire_at}"),
         })?;
         Ok(rules::session(topic, chains, expire_at, metadata))
+    }
+
+    pub fn session_rejection(&self, reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
+        rules::session_rejection(reason)
     }
 
     pub fn user_rejected_error(&self) -> GemWalletConnectRpcError {
@@ -345,6 +379,13 @@ impl GemWalletConnectService {
         self.store.get_connection(session_id.to_string()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("WalletConnect session {session_id} not found"),
         })
+    }
+
+    fn gem_connection(&self, connection: WalletConnection) -> GemConnection {
+        GemConnection {
+            row: self.metadata.connection_row(connection.session.metadata.clone()),
+            connection,
+        }
     }
 }
 

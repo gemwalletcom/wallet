@@ -14,6 +14,17 @@ class InfoSheetEntityTest {
     }
 
     @Test
+    fun scanWarningsExplainThemselvesLikeOnTheOtherApp() {
+        assertEquals(R.string.errors_scan_transaction_malicious_title, InfoSheetEntity.MaliciousTransactionInfo.title)
+        assertEquals(R.string.errors_scan_transaction_malicious_description, InfoSheetEntity.MaliciousTransactionInfo.description)
+
+        val memo = InfoSheetEntity.MemoRequiredInfo(symbol = "XRP")
+        assertEquals(R.string.common_warning, memo.title)
+        assertEquals(R.string.errors_scan_transaction_memo_required, memo.description)
+        assertEquals(listOf("**XRP**"), memo.descriptionArgs)
+    }
+
+    @Test
     fun noQuoteInfo_usesSwapErrorStrings() {
         assertEquals(R.string.errors_swap_no_quote_available, InfoSheetEntity.NoQuoteInfo.title)
         assertEquals(R.string.info_no_quote_description, InfoSheetEntity.NoQuoteInfo.description)

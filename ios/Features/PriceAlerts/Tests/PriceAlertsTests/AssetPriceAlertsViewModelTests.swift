@@ -22,7 +22,7 @@ struct AssetPriceAlertsViewModelTests {
         let model = AssetPriceAlertsViewModel.mock()
         model.query.value = [alert1, alert2, alert3, autoAlert]
 
-        #expect(model.alertsModel.map(\.data) == [alert3, alert2, alert1])
+        #expect(model.alerts == [alert3, alert2, alert1])
         #expect(model.isAutoAlertEnabledBinding.wrappedValue == true)
     }
 }

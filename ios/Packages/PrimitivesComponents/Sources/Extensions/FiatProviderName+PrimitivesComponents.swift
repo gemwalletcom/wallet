@@ -19,6 +19,6 @@ public extension FiatProviderName {
     }
 
     var displayName: String {
-        fiatProviderName(provider: map())
+        fiatProviderName(provider: toGem())
     }
 }

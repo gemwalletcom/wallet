@@ -1,24 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import FiatConnect
+import Foundation
 import Formatters
+import GemstonePrimitives
 import struct Gemstone.GemAssetRate
+import func Gemstone.formattedCurrency
 import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
 
 struct FiatQuoteViewModelTests {
-    let usFormatter = CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue)
-    let ukFormatter = CurrencyFormatter(locale: .UK, currencyCode: Currency.usd.rawValue)
-    let uaFormatter = CurrencyFormatter(locale: .UA, currencyCode: Currency.usd.rawValue)
-    let frFormatter = CurrencyFormatter(locale: .FR, currencyCode: Currency.usd.rawValue)
 
     @Test
     func amountText() {
-        #expect(model(cryptoAmount: 0).amountText == "0.00 BTC")
+        #expect(model(cryptoAmount: 0).amountText == "0 BTC")
         #expect(model(cryptoAmount: 15.12).amountText == "15.12 BTC")
-        #expect(model(cryptoAmount: 15).amountText == "15.00 BTC")
+        #expect(model(cryptoAmount: 15).amountText == "15 BTC")
     }
 
     @Test
@@ -34,26 +33,26 @@ struct FiatQuoteViewModelTests {
 
     @Test
     func rateTextNamesTheAssetAndFollowsTheLocale() {
-        #expect(model(rate: 0.669510582, formatter: usFormatter).rateText == "1 BTC ≈ $0.6695")
-        #expect(model(rate: 27_777.7777778, formatter: usFormatter).rateText == "1 BTC ≈ $27,777.78")
+        #expect(model(rate: 0.669510582, locale: .US).rateText == "1 BTC ≈ $0.6695")
+        #expect(model(rate: 27_777.7777778, locale: .US).rateText == "1 BTC ≈ $27,777.78")
 
-        #expect(model(rate: 0.669510582, formatter: ukFormatter).rateText == "1 BTC ≈ US$0.6695")
-        #expect(model(rate: 27_777.7777778, formatter: ukFormatter).rateText == "1 BTC ≈ US$27,777.78")
+        #expect(model(rate: 0.669510582, locale: .UK).rateText == "1 BTC ≈ US$0.6695")
+        #expect(model(rate: 27_777.7777778, locale: .UK).rateText == "1 BTC ≈ US$27,777.78")
 
-        #expect(model(rate: 0.669510582, formatter: uaFormatter).rateText == "1 BTC ≈ 0,6695 $")
-        #expect(model(rate: 27_777.7777778, formatter: uaFormatter).rateText == "1 BTC ≈ 27 777,78 $")
+        #expect(model(rate: 0.669510582, locale: .UA).rateText == "1 BTC ≈ 0,6695 $")
+        #expect(model(rate: 27_777.7777778, locale: .UA).rateText == "1 BTC ≈ 27 777,78 $")
 
-        #expect(model(rate: 0.669510582, formatter: frFormatter).rateText == "1 BTC ≈ 0,6695 $ US")
-        #expect(model(rate: 27_777.7777778, formatter: frFormatter).rateText == "1 BTC ≈ 27 777,78 $ US")
+        #expect(model(rate: 0.669510582, locale: .FR).rateText == "1 BTC ≈ 0,6695 $ US")
+        #expect(model(rate: 27_777.7777778, locale: .FR).rateText == "1 BTC ≈ 27 777,78 $ US")
 
-        #expect(model(rate: 0.000000123456, formatter: frFormatter).rateText == "1 BTC ≈ 0,0000001235 $ US")
+        #expect(model(rate: 0.000000123456, locale: .FR).rateText == "1 BTC ≈ 0,0000001235 $ US")
     }
 
     private func model(
         cryptoAmount: Double = 0,
         fiatAmount: Double = 0,
         rate: Double? = nil,
-        formatter: CurrencyFormatter? = nil,
+        locale: Locale = .US,
     ) -> FiatQuoteViewModel {
         let asset = Asset.mock()
         return FiatQuoteViewModel(
@@ -61,9 +60,15 @@ struct FiatQuoteViewModelTests {
             row: .mock(
                 cryptoAmount: cryptoAmount,
                 fiatAmount: fiatAmount,
-                rate: rate.map { GemAssetRate(baseSymbol: asset.symbol, quoteSymbol: Currency.usd.rawValue, value: $0) },
+                rate: rate.map {
+                    GemAssetRate(
+                        baseSymbol: asset.symbol,
+                        quoteSymbol: Currency.usd.rawValue,
+                        value: formattedCurrency(value: $0, code: Currency.usd.rawValue, style: .currency),
+                    )
+                },
             ),
-            formatter: formatter ?? usFormatter,
+            locale: locale,
         )
     }
 }

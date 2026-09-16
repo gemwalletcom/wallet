@@ -58,7 +58,6 @@
   <string name="common_expiration">תפוגה</string>
   <string name="common_suspicious_address">כתובת חשודה</string>
   <string name="common_refresh">לְרַעֲנֵן</string>
-  <string name="common_no_thanks">לא תודה</string>
   <string name="common_grant_permission">תן רשות</string>
   <string name="common_required_field">%1$s נדרש</string>
   <string name="welcome_title">ברוכים הבאים למשפחת Gem</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">לְהַפְשִׁיר</string>
   <string name="transfer_review_request">סקור בקשה</string>
   <string name="transfer_amount">כמות</string>
-  <string name="transfer_amount_title">כמות</string>
   <string name="settings_terms_of_services">תנאי השירות</string>
   <string name="settings_privacy_policy">מדיניות פרטיות</string>
   <string name="settings_title">הגדרות</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">איך נוכל לעזור?</string>
   <string name="support_state_empty_description">שאלו אותנו כל דבר. אנחנו כאן כדי לעזור.</string>
   <string name="support_message_placeholder">הודעה</string>
-  <string name="errors_transfer">שגיאת העברה: %1$s</string>
   <string name="errors_validation">שגיאת אימות: %1$s</string>
   <string name="errors_create_wallet">שגיאת יצירת ארנק: %1$s</string>
   <string name="errors_invalid_address_name">כתובת או שם לא חוקיים</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">המשתמש ביטל</string>
   <string name="errors_not_supported">לא נתמך</string>
   <string name="errors_permissions_not_granted">הרשאות לא ניתנו</string>
-  <string name="errors_decoding">שגיאת פענוח</string>
   <string name="errors_unknown">לא ידוע</string>
   <string name="errors_not_supported_qr">מכשיר זה אינו תומך בסריקת קוד QR. אתה יכול לבחור רק תמונה של קוד QR מהספרייה.</string>
   <string name="errors_camera_permissions_not_granted">הרשאת מצלמה לא ניתנה. אפשר גישה למצלמה בהגדרות כדי לסרוק קוד QR.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">העסקה נכשלה מכיוון שהסכום קטן מדי לעמוד בדרישת המינימום של רשת %1$s (ערך אבק). מגבלה זו מבטיחה שערך העסקה יכסה את העמלות ואת עלויות העיבוד.</string>
   <string name="errors_swap_no_quote_available">אין הצעת מחיר זמינה.</string>
   <string name="errors_swap_not_supported_asset">נכס לא נתמך.</string>
-  <string name="errors_connections_invalid_send_parameters">פרמטרים לא חוקיים סופקו לשליחת עסקה.</string>
-  <string name="errors_connections_invalid_sign_parameters">פרמטרים לא חוקיים סופקו לחתימה.</string>
   <string name="errors_connections_no_supported_wallets">אין ארנקים נתמכים זמינים.</string>
   <string name="errors_connections_unsupported_chain">השרשרת שסופקה אינה נתמכת.</string>
-  <string name="errors_connections_unsupported_method">השיטה המבוקשת אינה נתמכת.</string>
   <string name="errors_swap_amount_too_small">סכום קטן מדי</string>
   <string name="errors_required">נדרש %1$s</string>
   <string name="errors_scan_transaction_malicious_description">לא ניתן להשלים עסקה זו - כתובת ארנק היעד מקושרת לפעילות חשודה או מזיקה.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">סכום המסחר המינימלי הוא %1$s. אנא הזן סכום גבוה יותר.</string>
   <string name="errors_perpetual_trigger_price_lower">מחיר ההפעלה צריך להיות נמוך ממחיר השוק</string>
   <string name="errors_perpetual_trigger_price_higher">מחיר ההפעלה צריך להיות גבוה ממחיר השוק</string>
-  <string name="errors_token_unable_fetch_token_information">לא ניתן להביא מידע על אסימון: %1$s</string>
   <string name="errors_unknown_try_again">אירעה שגיאה לא ידועה. אנא נסה שוב.</string>
   <string name="errors_network_error">שגיאת רשת: %1$s</string>
   <string name="errors_network_offline">נראה שחיבור האינטרנט אינו מקוון.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">אפשר התקנה</string>
   <string name="update_app_permission_description">עבור להגדרות ואפשר התקנה ממקורות חיצוניים</string>
   <string name="update_app_permission_open_settings">עבור אל הגדרות</string>
-  <string name="update_app_downloading">מוריד...</string>
   <string name="transaction_recipient">נמען</string>
   <string name="transaction_sender">שולח</string>
   <string name="transaction_date">תאריך</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">הרשת %1$s דורשת תשלום חד פעמי של %2$s.</string>
   <string name="banner_stake_title">התחל להמר %1$s</string>
   <string name="banner_stake_description">זכה בתגמולים של %1$s על ההימור שלך בזמן שאתה ישן.</string>
-  <string name="banner_enable_notifications_title">הפעל התראות</string>
-  <string name="banner_enable_notifications_description">הישאר מעודכן בפעילות הארנק שלך.</string>
   <string name="banner_activate_asset_description">כדי להשתמש בנכס %1$s, תחילה עליך להפעיל אותו ברשת %2$s על ידי מילוי הדרישות הספציפיות של הרשת.</string>
   <string name="banner_asset_status_title">נכס חשוד</string>
   <string name="banner_asset_status_description">האסימון עשוי להיות לא בטוח או מטעה. המשך רק אם אתה סומך עליו לחלוטין.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">מוצלב</string>
   <string name="perpetual_margin_isolated">מבודד</string>
   <string name="perpetuals_title">נצחיים</string>
+  <string name="perpetuals_trade">מסחר בנצחיים</string>
   <string name="perpetuals_markets">שווקים</string>
-  <string name="perpetuals_empty_state_no_markets">אין שווקים</string>
   <string name="perpetuals_empty_state_no_markets_found">לא נמצאו שווקים</string>
   <string name="rewards_title">תגמולים</string>
   <string name="rewards_share_text">לְהִצְטַרֵף Gem Wallet בעזרת קישור ההפניה שלי וצברו פרסים: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">התבקשה גישה מלאה לאוסף NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">אישור אסימונים ללא הגבלה</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">נדרשת הרשאת מצלמה לסריקת קוד QR.\nאנא הענק הרשאה.</string>
-  <string name="notifications_permission_request_notification">נדרשת הרשאת פרסום הודעות כדי לקבל הודעות על עסקאות חדשות.\nאנא הענק הרשאה.</string>
-  <string name="confirm_fee_error">טעות בחישוב אגרה</string>
   <string name="rootcheck_security_alert">אזהרת אבטחה</string>
   <string name="rootcheck_body">נראה שלמכשיר שלך יש גישת שורש, מה שיכול להגביר משמעותית את סיכוני האבטחה. שימוש באפליקציה זו במכשיר שורשי עלול לחשוף את הנכסים שלך לגישה לא מורשית ואובדן פוטנציאלי. למען בטיחות הכספים שלך, אנו ממליצים בחום להשתמש במכשיר ללא שורש.</string>
   <string name="rootcheck_ignore">התעלם</string>

@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -33,7 +34,7 @@ sealed interface PaymentDestination {
                 is GemPaymentDestination.Recipient -> Recipient(destination.assetId.toAssetId()!!, destination.payment)
                 is GemPaymentDestination.SelectAsset -> SelectAsset(
                     destination.payment,
-                    destination.chains.map { chain -> Chain.entries.first { it.string == chain } },
+                    destination.chains.map { chain -> chain.requireChain() },
                 )
                 is GemPaymentDestination.Unsupported -> Unsupported
             }

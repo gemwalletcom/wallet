@@ -42,33 +42,49 @@ struct ImageLoaderTests {
     }
 
     @Test
-    func cachedDecodesTheStoredResponseWithoutLoading() throws {
+    func theStoredResponseIsDecodedByTheLoadAndNotByTheLookup() async throws {
         let cache = URLCache(memoryCapacity: 1024 * 1024, diskCapacity: 0)
         let loader = ImageLoader(cache: cache)
         let request = ImageRequest(url: url, maxPixelSize: 44, scale: 2)
-        #expect(loader.cached(request) == nil)
-
         let response = try #require(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
         cache.storeCachedResponse(CachedURLResponse(response: response, data: png(side: 200)), for: URLRequest(url: url))
 
-        let image = try #require(loader.cached(request))
+        #expect(loader.cached(request) == nil, "the lookup reads decoded images only")
+
+        let image = try await loader.image(for: request)
+        #expect(image.cgImage?.width == 44)
+        #expect(loader.cached(request) === image, "the load leaves the decoded image for the next lookup")
+    }
+
+    @Test
+    func aLocalFileIsDecodedByTheLoadWithoutNetwork() async throws {
+        let loader = ImageLoader(cache: URLCache(memoryCapacity: 0, diskCapacity: 0))
+        let file = URL.temporaryDirectory.appending(path: "\(UUID().uuidString).png")
+        let request = ImageRequest(url: file, maxPixelSize: 44, scale: 2)
+        try png(side: 200).write(to: file)
+        defer { try? FileManager.default.removeItem(at: file) }
+
+        #expect(loader.cached(request) == nil)
+
+        let image = try await loader.image(for: request)
         #expect(image.cgImage?.width == 44)
         #expect(loader.cached(request) === image)
     }
 
     @Test
-    func cachedDecodesALocalFileWithoutLoading() throws {
+    func concurrentColdRequestsDecodeOnce() async throws {
         let loader = ImageLoader(cache: URLCache(memoryCapacity: 0, diskCapacity: 0))
         let file = URL.temporaryDirectory.appending(path: "\(UUID().uuidString).png")
         let request = ImageRequest(url: file, maxPixelSize: 44, scale: 2)
-        #expect(loader.cached(request) == nil)
-
         try png(side: 200).write(to: file)
         defer { try? FileManager.default.removeItem(at: file) }
 
-        let image = try #require(loader.cached(request))
-        #expect(image.cgImage?.width == 44)
-        #expect(loader.cached(request) === image)
+        async let first = loader.image(for: request)
+        async let second = loader.image(for: request)
+        let images = try await [first, second]
+
+        #expect(images[0] === images[1], "both consumers get the one decoded image")
+        #expect(loader.cached(request) === images[0])
     }
 
     @Test
@@ -82,6 +98,28 @@ struct ImageLoaderTests {
         #expect(small.cacheKey == ImageRequest(url: url, maxPixelSize: 44, scale: 2).cacheKey)
     }
 
+    @Test
+    func oneLoadIsSharedAndOutlivesACanceledConsumer() async throws {
+        let loads = InFlightLoads()
+        let request = ImageRequest(url: url, maxPixelSize: 44, scale: 2)
+        let expected = try #require(ImageLoader.decode(png(side: 200), request: request))
+        let loadCount = LoadCount()
+        let load: @Sendable () async throws -> UIImage = {
+            loadCount.increment()
+            try await Task.sleep(for: .milliseconds(50))
+            return expected
+        }
+
+        let shared = await loads.task(for: request, load: load)
+        _ = await loads.task(for: request, load: load)
+
+        let consumer = Task { try await shared.value }
+        consumer.cancel()
+
+        #expect(try await shared.value === expected, "a dismissed consumer does not cancel the load another consumer waits on")
+        #expect(loadCount.value == 1, "the second request joins the load in flight")
+    }
+
     private func png(side: Int, height: Int? = nil) -> Data {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -90,5 +128,13 @@ struct ImageLoaderTests {
             UIColor.red.setFill()
             context.fill(CGRect(origin: .zero, size: size))
         }
+    }
+}
+
+private final class LoadCount: @unchecked Sendable {
+    private(set) var value = 0
+
+    func increment() {
+        value += 1
     }
 }

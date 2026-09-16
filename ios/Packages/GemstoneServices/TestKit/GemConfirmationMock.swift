@@ -38,7 +38,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func screen() -> GemConfirmScreen {
-        GemConfirmScreen(phase: .loading, amountFailed: false, hasCriticalWarning: false, failure: nil)
+        GemConfirmScreen(phase: .loading, hasCriticalWarning: false, failure: nil)
     }
 
     public func state() async throws -> GemConfirmLoad {
@@ -56,7 +56,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func getCurrency() -> Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
     public func authentication() -> GemKeystoreAuthentication {

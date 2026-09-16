@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemLocalizer
-import enum Gemstone.GemLocalizedText
+import class Gemstone.GemAvatarService
 import Foundation
 import class Gemstone.GemExplorerService
 import class Gemstone.GemNameService
@@ -13,6 +12,7 @@ import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import GemstonePrimitivesTestKit
+import NativeProviderService
 import GemstoneServices
 import Primitives
 import Store
@@ -36,7 +36,7 @@ public extension GemWalletService {
             preferences: GemWalletPreferencesService.mock(),
             explorer: GemExplorerService(preferences: appPreferences),
             addresses: GemstoneAddressStore(store: AddressStore(db: db)),
-            localizer: TestLocalizer(),
+            avatar: GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: NativeProvider()),
         )
     }
 }
@@ -70,14 +70,5 @@ public extension GemSignMessageService {
             keystore: keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: keystore),
         )
-    }
-}
-
-final class TestLocalizer: GemLocalizer, Sendable {
-    func text(text: GemLocalizedText) -> String {
-        switch text {
-        case let .walletDefaultName(index): "Wallet #\(index)"
-        case let .walletDefaultNameChain(chain, index): "\(chain) Wallet #\(index)"
-        }
     }
 }

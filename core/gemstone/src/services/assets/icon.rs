@@ -133,23 +133,27 @@ mod tests {
     #[test]
     fn test_layer2_coins_that_are_not_ether_draw_their_own_logo_without_a_badge() {
         for chain in [Chain::Celo, Chain::Mantle, Chain::XLayer] {
-            assert_eq!(
-                asset_icon(&AssetId::from_chain(chain)),
-                GemAssetIcon {
-                    image: local(chain),
-                    badge: None
-                }
-            );
+            assert_eq!(asset_icon(&AssetId::from_chain(chain)), GemAssetIcon { image: local(chain), badge: None });
         }
     }
 
     #[test]
     fn test_every_ethereum_layer2_draws_ether_exactly_when_its_native_coin_is_ether() {
         let ether = Asset::from_chain(Chain::Ethereum).symbol;
-        for chain in Chain::all().into_iter().filter(|chain| EVMChain::from_chain(*chain).is_some_and(|chain| chain.is_ethereum_layer2())) {
+        for chain in Chain::all()
+            .into_iter()
+            .filter(|chain| EVMChain::from_chain(*chain).is_some_and(|chain| chain.is_ethereum_layer2()))
+        {
             let icon = asset_icon(&AssetId::from_chain(chain));
             match Asset::from_chain(chain).symbol == ether {
-                true => assert_eq!(icon, GemAssetIcon { image: local(Chain::Ethereum), badge: Some(chain) }, "{chain}"),
+                true => assert_eq!(
+                    icon,
+                    GemAssetIcon {
+                        image: local(Chain::Ethereum),
+                        badge: Some(chain)
+                    },
+                    "{chain}"
+                ),
                 false => assert_eq!(icon, GemAssetIcon { image: local(chain), badge: None }, "{chain}"),
             }
         }

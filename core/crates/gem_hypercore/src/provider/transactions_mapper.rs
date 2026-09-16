@@ -6,8 +6,9 @@ use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
 
+use crate::models::action::ExchangeRequest;
 use crate::models::order::{FillDirection, UserFill};
-use crate::models::response::{BroadcastResult, TransactionBroadcastResponse};
+use crate::models::response::TransactionBroadcastResponse;
 use crate::models::spot::SpotMeta;
 use crate::models::token::SpotToken;
 use crate::models::transaction_id::{HyperCoreActionId, HyperCoreTransactionId};
@@ -15,22 +16,13 @@ use crate::perpetual_formatter::usdc_value;
 use crate::provider::perpetual_mapper::create_perpetual_asset_id;
 use crate::provider::transaction_state_mapper::prepare_perpetual_fill;
 
-pub fn map_transaction_broadcast(response: serde_json::Value, action_id: Option<HyperCoreActionId>) -> Result<String, Box<dyn Error + Sync + Send>> {
+pub fn map_transaction_broadcast(request: &[u8], response: serde_json::Value) -> Result<String, Box<dyn Error + Sync + Send>> {
     let response = serde_json::from_value::<TransactionBroadcastResponse>(response)?;
-    let action_id = action_id.map(|id| HyperCoreTransactionId::Action(id).to_string());
-    map_transaction_broadcast_result(response.into_result(action_id))
-}
-
-pub fn map_transaction_broadcast_from_str(response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
-    let response = serde_json::from_str::<TransactionBroadcastResponse>(response)?;
-    map_transaction_broadcast_result(response.into_result(None))
-}
-
-fn map_transaction_broadcast_result(result: BroadcastResult) -> Result<String, Box<dyn Error + Sync + Send>> {
-    match result {
-        BroadcastResult::Success(result) => Ok(result),
-        BroadcastResult::Error(error) => Err(error.into()),
-    }
+    let identifier = match response.into_result()? {
+        Some(order_id) => HyperCoreTransactionId::Order(order_id),
+        None => HyperCoreTransactionId::Action(HyperCoreActionId::from(serde_json::from_slice::<ExchangeRequest>(request)?)),
+    };
+    Ok(identifier.to_string())
 }
 
 pub fn map_user_fills(address: &str, fills: Vec<UserFill>, spot_meta: Option<&SpotMeta>) -> Vec<Transaction> {
@@ -159,17 +151,12 @@ fn build_fill_transaction(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::action::ExchangeRequest;
     use crate::models::spot::SpotMeta;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use primitives::{
         PerpetualDirection, TransactionPerpetualMetadata, TransactionType,
         asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     };
-
-    fn action_id(data: &str) -> Option<HyperCoreActionId> {
-        serde_json::from_str::<ExchangeRequest>(data).ok().map(HyperCoreActionId::from)
-    }
 
     fn spot_meta() -> SpotMeta {
         serde_json::from_str(include_str!("../../testdata/spot_meta_spot_swap.json")).unwrap()
@@ -179,38 +166,46 @@ mod tests {
     fn test_map_transaction_broadcast_success() {
         let response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/order_broadcast_filled.json")).unwrap();
         let data = include_str!("../../testdata/hl_action_open_long_order.json").trim().to_string();
-        assert_eq!(map_transaction_broadcast(response, action_id(&data)).unwrap(), "order:134896397196");
+        assert_eq!(map_transaction_broadcast(data.as_bytes(), response).unwrap(), "order:134896397196");
     }
 
     #[test]
     fn test_map_transaction_broadcast_error() {
         let response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/order_broadcast_error.json")).unwrap();
         let data = include_str!("../../testdata/hl_action_open_long_order.json").trim().to_string();
-        assert!(map_transaction_broadcast(response, action_id(&data)).is_err());
+        assert!(map_transaction_broadcast(data.as_bytes(), response).is_err());
     }
 
     #[test]
     fn test_map_transaction_broadcast_extra_agent_error() {
         let response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/transaction_broadcast_error_extra_agent.json")).unwrap();
         let data = include_str!("../../testdata/hl_action_open_long_order.json").trim().to_string();
-        let result = map_transaction_broadcast(response, action_id(&data));
+        let result = map_transaction_broadcast(data.as_bytes(), response);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), "Extra agent already used.");
     }
 
     #[test]
-    fn test_map_transaction_broadcast_order_without_order_id_uses_action_id() {
-        let response: serde_json::Value = serde_json::from_str(r#"{"status":"ok","response":{"type":"order"}}"#).unwrap();
-        let data = include_str!("../../testdata/hl_action_update_position_tp_sl.json").trim().to_string();
-        let result = map_transaction_broadcast(response, action_id(&data)).unwrap();
-        assert_eq!(result, "action:order:1755132472149");
+    fn test_map_transaction_broadcast_batch_errors() {
+        for response in [
+            r#"{"status":"ok","response":{"type":"order","data":{"statuses":[{"resting":{"oid":123}},{"error":"Order rejected"}]}}}"#,
+            r#"{"status":"ok","response":{"type":"cancel","data":{"statuses":["success",{"error":"Order rejected"}]}}}"#,
+            r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForTrigger",{"error":"Order rejected"}]}}}"#,
+        ] {
+            let response = serde_json::from_str(response).unwrap();
+            let data = include_str!("../../testdata/hl_action_open_long_order.json");
+            assert_eq!(
+                map_transaction_broadcast(data.as_bytes(), response).map_err(|error| error.to_string()),
+                Err("Order rejected".to_string())
+            );
+        }
     }
 
     #[test]
     fn test_map_transaction_broadcast_waiting_for_trigger_uses_action_nonce() {
         let response: serde_json::Value = serde_json::from_str(r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForTrigger"]}}}"#).unwrap();
         let data = include_str!("../../testdata/hl_action_update_position_tp_sl.json").trim().to_string();
-        let result = map_transaction_broadcast(response, action_id(&data)).unwrap();
+        let result = map_transaction_broadcast(data.as_bytes(), response).unwrap();
         assert_eq!(result, "action:order:1755132472149");
     }
 
@@ -218,7 +213,7 @@ mod tests {
     fn test_map_transaction_broadcast_default_uses_staking_action_id() {
         let response: serde_json::Value = serde_json::from_str(r#"{"status":"ok","response":{"type":"default"}}"#).unwrap();
         let data = include_str!("../../testdata/hl_action_spot_to_stake.json").trim().to_string();
-        let result = map_transaction_broadcast(response, action_id(&data)).unwrap();
+        let result = map_transaction_broadcast(data.as_bytes(), response).unwrap();
         assert_eq!(result, "action:cDeposit:10000000:1755231476741");
     }
 
@@ -226,7 +221,7 @@ mod tests {
     fn test_map_transaction_broadcast_default_uses_token_delegate_action_id() {
         let response: serde_json::Value = serde_json::from_str(r#"{"status":"ok","response":{"type":"default"}}"#).unwrap();
         let data = include_str!("../../testdata/hl_action_stake_to_validator.json").trim().to_string();
-        let result = map_transaction_broadcast(response, action_id(&data)).unwrap();
+        let result = map_transaction_broadcast(data.as_bytes(), response).unwrap();
         assert_eq!(result, "action:tokenDelegate:10000000:stake:1755231522831");
     }
 

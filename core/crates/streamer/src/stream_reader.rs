@@ -2,7 +2,7 @@ use std::error::Error;
 use std::future::Future;
 
 use futures::StreamExt;
-use gem_tracing::{error_fields, error_with_fields, info_with_fields};
+use gem_tracing::{error_with_fields, info_with_fields};
 use lapin::{Channel, Connection, ConnectionProperties, options::*, types::FieldTable};
 use serde::de::DeserializeOwned;
 
@@ -58,16 +58,12 @@ impl StreamReader {
         Ok(channel)
     }
 
-    async fn reconnect(&mut self, shutdown_rx: &ShutdownReceiver) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let result = with_retry(&self.config.retry, &self.config.name, shutdown_rx, || Self::try_connect(&self.config)).await?;
-
-        match result {
-            Some(channel) => {
-                self.channel = channel;
-                Ok(true)
-            }
-            None => Ok(false),
-        }
+    async fn try_consume(config: &StreamReaderConfig, queue: &str, tag: &str) -> Result<(Channel, lapin::Consumer), Box<dyn Error + Send + Sync>> {
+        let channel = Self::try_connect(config).await?;
+        let consumer = channel
+            .basic_consume(queue.into(), tag.into(), BasicConsumeOptions::default(), FieldTable::default())
+            .await?;
+        Ok((channel, consumer))
     }
 
     pub async fn read<T, F, Fut>(&mut self, queue: QueueName, routing_key: Option<&str>, mut callback: F, shutdown_rx: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
@@ -86,26 +82,15 @@ impl StreamReader {
                 break;
             }
 
-            let consumer_result = self
-                .channel
-                .basic_consume(
-                    queue_name.as_str().into(),
-                    consumer_tag.as_str().into(),
-                    BasicConsumeOptions::default(),
-                    FieldTable::default(),
-                )
-                .await;
+            let attached = with_retry(&self.config.retry, &self.config.name, &shutdown_rx, || {
+                Self::try_consume(&self.config, queue_name.as_str(), consumer_tag.as_str())
+            })
+            .await?;
 
-            let mut consumer = match consumer_result {
-                Ok(c) => c,
-                Err(e) => {
-                    error_fields!("consumer setup failed", connection = self.config.name.as_str(), error = format!("{e}"));
-                    if !self.reconnect(&shutdown_rx).await? {
-                        break;
-                    }
-                    continue;
-                }
+            let Some((channel, mut consumer)) = attached else {
+                break;
             };
+            self.channel = channel;
 
             let result = self.consume::<T, _, _>(&mut consumer, &mut callback, shutdown_rx.clone()).await;
             if let Ok(true) = result {
@@ -117,9 +102,6 @@ impl StreamReader {
                 connection = self.config.name.as_str(),
                 error = error.as_deref().unwrap_or("stream ended")
             );
-            if !self.reconnect(&shutdown_rx).await? {
-                break;
-            }
         }
 
         Ok(())

@@ -105,7 +105,7 @@ class ConfirmViewModelRetryTest {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
-        every { confirmation.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, false, null)
+        every { confirmation.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, null)
         coEvery { confirmation.state() } returns mockGemConfirmLoad(asset, preload = null)
         var calls = 0
         coEvery { confirmation.load(any()) } answers {
@@ -124,6 +124,7 @@ class ConfirmViewModelRetryTest {
                                 options = GemFeeOptions(emptyMap()),
                                 feeAsset = asset.id.chain.string,
                             ),
+                            additionalFees = emptyList(),
                             selectedPriority = FeePriority.Normal.toGem(),
                             feeRates = emptyList(),
                             metadata = GemTransactionLoadMetadata.None,

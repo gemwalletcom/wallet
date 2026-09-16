@@ -24,13 +24,13 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     var provider: DelegationValidator {
         switch action {
-        case let .deposit(provider): provider.map()
-        case let .withdraw(delegation): delegation.validator.map()
+        case let .deposit(provider): provider.toPrimitives()
+        case let .withdraw(delegation): delegation.validator.toPrimitives()
         }
     }
 
     var providerRow: GemValidatorRow {
-        service.validatorRow(validator: provider.map())
+        service.validatorRow(validator: provider.toGem())
     }
 
     var providerTitle: String {
@@ -38,10 +38,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        switch action {
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Wallet.withdraw
-        }
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {
@@ -49,6 +46,6 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        try await service.earnTransferData(asset: asset.map(), earnType: action, value: value, useMaxAmount: useMaxAmount)
+        try await service.earnTransferData(asset: asset.toGem(), earnType: action, value: value, useMaxAmount: useMaxAmount)
     }
 }

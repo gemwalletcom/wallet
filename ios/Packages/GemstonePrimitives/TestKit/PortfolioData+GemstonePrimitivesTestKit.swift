@@ -28,14 +28,14 @@ public extension PortfolioMarginUsage {
         accountValue: Double = 10000,
         usage: Double = 0.15,
     ) -> PortfolioMarginUsage {
-        PortfolioMarginUsage(accountValue: accountValue, usage: usage)
+        PortfolioMarginUsage(accountValue: accountValue, usage: usage, usedValue: accountValue * usage, usagePercent: usage * 100)
     }
 }
 
 public extension PortfolioChartData {
     static func mock(
         chartType: PortfolioChartType = .value,
-        values: [ChartDateValue] = Primitives.ChartDateValue.mockHistory().map { $0.map() },
+        values: [ChartDateValue] = Primitives.ChartDateValue.mockHistory().map { $0.toGem() },
     ) -> PortfolioChartData {
         PortfolioChartData(chartType: chartType, values: values)
     }
@@ -55,8 +55,8 @@ public extension PortfolioData {
 
     static func mockPerpetual(
         charts: [PortfolioChartData] = [
-            .mock(chartType: .pnl, values: Primitives.ChartDateValue.mockHistory(values: [0, 5, 2, 8, 10]).map { $0.map() }),
-            .mock(chartType: .value, values: Primitives.ChartDateValue.mockHistory(values: [100, 105, 102, 108, 110]).map { $0.map() }),
+            .mock(chartType: .pnl, values: Primitives.ChartDateValue.mockHistory(values: [0, 5, 2, 8, 10]).map { $0.toGem() }),
+            .mock(chartType: .value, values: Primitives.ChartDateValue.mockHistory(values: [100, 105, 102, 108, 110]).map { $0.toGem() }),
         ],
         statistics: [PortfolioStatistic] = [
             .unrealizedPnl(value: 500),
