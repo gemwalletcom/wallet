@@ -123,13 +123,17 @@ impl GemConfirmTransferService {
         let data: Vec<String> = signatures.iter().map(|transaction| transaction.data.clone()).collect();
         if transactions.is_empty() {
             let warning = self.report(&input_type, data.clone()).await;
-            self.record_payment(&input, &signatures, warning.is_none()).await;
+            if warning.is_none() {
+                self.record_payment(&input, &signatures).await;
+            }
             return Ok(GemExecuteResult::Signed { data, warning });
         }
         let sent = self.confirm.send(input.clone(), transactions).await?;
         let _ = self.recent_activity.add(input_type.clone(), wallet_id).await;
         let warning = self.report(&input_type, [sent.hashes.clone(), data].concat()).await;
-        self.record_payment(&input, &signatures, warning.is_none()).await;
+        if warning.is_none() {
+            self.record_payment(&input, &signatures).await;
+        }
         Ok(GemExecuteResult::Sent {
             hashes: sent.hashes,
             transactions: sent.transactions,
@@ -137,8 +141,8 @@ impl GemConfirmTransferService {
         })
     }
 
-    async fn record_payment(&self, input: &SendInput, signatures: &[GemSignedTransaction], reported: bool) {
-        let Some(hash) = reported.then(|| self.payment.record_hash(&input.confirm.input.transfer.input_type)).flatten() else {
+    async fn record_payment(&self, input: &SendInput, signatures: &[GemSignedTransaction]) {
+        let Some(hash) = self.payment.record_hash(&input.confirm.input.transfer.input_type) else {
             return;
         };
         if signatures.is_empty() {
