@@ -128,7 +128,7 @@ public final class ConfirmTransferSceneViewModel {
 
     public var payloadModel: SimulationPayloadModel { state.simulation.payload }
 
-    public var transfer: GemTransferData { state.transfer }
+    var transfer: GemTransferData { state.transfer }
 
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(

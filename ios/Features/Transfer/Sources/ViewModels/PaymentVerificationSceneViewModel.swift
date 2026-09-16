@@ -12,7 +12,7 @@ public final class PaymentVerificationSceneViewModel {
     private static let messageType = "type"
     private static let completeType = "IC_COMPLETE"
 
-    public var isPresentingInfoSheet: InfoSheetType?
+    var isPresentingInfoSheet: InfoSheetType?
 
     let url: URL
 
