@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels.models
 
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
-import com.gemwallet.android.domains.asset.toQueryFilters
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,7 +19,7 @@ class BaseSelectSearch(
                 query = filters?.query.orEmpty(),
                 byAllWallets = filters?.scope == GemSelectAssetScope.ALL_ASSETS,
                 limit = filters?.limit ?: NO_QUERY_LIMIT,
-                filters = filters?.filters?.toQueryFilters().orEmpty(),
+                filters = filters?.queryFilters().orEmpty(),
             )
         }
     }

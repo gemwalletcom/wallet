@@ -4,11 +4,11 @@ use primitives::{Transaction, Wallet, WalletId};
 
 use super::GemAssetDiscoveryService;
 use crate::api::{GemApiClient, GemDeviceApiClient};
-use crate::gateway::{EmptyPreferences, GemGateway};
+use crate::gateway::GemGateway;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
-use crate::services::balance::testkit::RecordingBalanceStore;
+use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::nft::GemNftService;
 use crate::services::nft::testkit::MemoryNftStore;
@@ -25,7 +25,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-use crate::testkit::TestAlienProvider;
+use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 #[derive(Default)]
 pub struct RecordingTransactionStatus {
@@ -45,7 +45,7 @@ pub struct DiscoveryTestkit {
     pub wallets: Arc<MemoryWalletStore>,
     pub balance: Arc<GemBalanceService>,
     pub provider: Arc<TestAlienProvider>,
-    pub balances: Arc<RecordingBalanceStore>,
+    pub balances: Arc<MemoryBalanceStore>,
     pub preferences: Arc<GemPreferencesService>,
     pub wallet_preferences: Arc<GemWalletPreferencesService>,
     pub session: Arc<GemWalletSessionService>,
@@ -81,7 +81,7 @@ impl DiscoveryTestkit {
             preferences.clone(),
             session.clone(),
         ));
-        let balances = Arc::new(RecordingBalanceStore::default());
+        let balances = Arc::new(MemoryBalanceStore::default());
         let balance = Arc::new(GemBalanceService::new(
             gateway,
             wallets.clone(),

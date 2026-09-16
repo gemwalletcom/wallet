@@ -323,10 +323,7 @@ mod tests {
 
     #[test]
     fn test_collectible_details_list_only_the_sections_the_asset_has() {
-        let verified = NFTAssetData {
-            collection: NFTCollection::mock(),
-            asset: NFTAsset::mock(),
-        };
+        let verified = NFTAssetData::mock();
         let mut suspicious = verified.clone();
         suspicious.collection.status = VerificationStatus::Suspicious;
         suspicious.collection.links = vec![AssetLink::new("https://example.com", LinkType::Website)];
@@ -341,10 +338,7 @@ mod tests {
 
     #[test]
     fn test_collectible_details_can_send_follows_the_wallet_and_ownership() {
-        let data = NFTAssetData {
-            collection: NFTCollection::mock(),
-            asset: NFTAsset::mock(),
-        };
+        let data = NFTAssetData::mock();
 
         assert!(collectible_details(&WalletType::Multicoin, &data, true, None, None).can_send);
         assert!(!collectible_details(&WalletType::Multicoin, &data, false, None, None).can_send);
@@ -353,10 +347,7 @@ mod tests {
 
     #[test]
     fn test_collectible_info_rows_hide_a_contract_that_is_empty_or_the_token_itself() {
-        let mut data = NFTAssetData {
-            collection: NFTCollection::mock(),
-            asset: NFTAsset::mock(),
-        };
+        let mut data = NFTAssetData::mock();
         let link = BlockExplorerLink::mock();
         let rows = info_rows(&data, Some(link.clone()), Some(link.clone()));
         assert_eq!(
@@ -398,23 +389,41 @@ mod tests {
 
     #[test]
     fn test_collectible_token_id_reads_as_a_number_unless_it_is_address_sized() {
-        let token_text = |token_id: &str| {
-            let data = NFTAssetData {
-                collection: NFTCollection::mock(),
-                asset: NFTAsset {
-                    token_id: token_id.to_string(),
-                    ..NFTAsset::mock()
-                },
-            };
-            match info_rows(&data, None, None).pop() {
-                Some(GemCollectibleRow::TokenId { identifier }) => identifier.text,
-                row => panic!("expected a token id row, got {row:?}"),
-            }
+        let token_text = |data: NFTAssetData| match info_rows(&data, None, None).pop() {
+            Some(GemCollectibleRow::TokenId { identifier }) => identifier.text,
+            row => panic!("expected a token id row, got {row:?}"),
         };
 
-        assert_eq!(token_text("123"), "#123");
-        assert_eq!(token_text("1234567890123456"), "#1234567890123456");
-        assert_eq!(token_text("1234567890123456789"), "1234567...56789");
+        assert_eq!(
+            token_text(NFTAssetData {
+                asset: NFTAsset {
+                    token_id: "123".to_string(),
+                    ..NFTAsset::mock()
+                },
+                ..NFTAssetData::mock()
+            }),
+            "#123"
+        );
+        assert_eq!(
+            token_text(NFTAssetData {
+                asset: NFTAsset {
+                    token_id: "1234567890123456".to_string(),
+                    ..NFTAsset::mock()
+                },
+                ..NFTAssetData::mock()
+            }),
+            "#1234567890123456"
+        );
+        assert_eq!(
+            token_text(NFTAssetData {
+                asset: NFTAsset {
+                    token_id: "1234567890123456789".to_string(),
+                    ..NFTAsset::mock()
+                },
+                ..NFTAssetData::mock()
+            }),
+            "1234567...56789"
+        );
     }
 
     #[test]

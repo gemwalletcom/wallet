@@ -54,29 +54,18 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::testkit::config::jsonrpc;
-
-    fn config() -> AllowlistConfig {
-        serde_json::from_value(json!([
-            { "rpc_method": "eth_call" },
-            { "rpc_method": "eth_chainId" },
-            { "path": "/api/v2/address/**", "method": "GET" },
-            { "path": "/api/v2/sendtx/", "method": "POST" }
-        ]))
-        .unwrap()
-    }
 
     #[test]
     fn test_allows_jsonrpc_single_method() {
-        let config = config();
+        let config = AllowlistConfig::mock();
 
-        assert!(config.allows(&jsonrpc("eth_call")));
-        assert!(!config.allows(&jsonrpc("unsupported_method")));
+        assert!(config.allows(&RequestType::mock_jsonrpc("eth_call")));
+        assert!(!config.allows(&RequestType::mock_jsonrpc("unsupported_method")));
     }
 
     #[test]
     fn test_allows_jsonrpc_batch_only_when_all_methods_allowed() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let allowed = RequestType::from_request(
             "POST",
             "/".to_string(),
@@ -102,7 +91,7 @@ mod tests {
 
     #[test]
     fn test_allows_http_path_wildcard_without_query() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let request = RequestType::from_request("GET", "/api/v2/address/bc1qtest?pageSize=25&details=txs".to_string(), Vec::new());
 
         assert!(config.allows(&request));
@@ -110,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_denies_unlisted_bitcoin_block_path() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let request = RequestType::from_request("GET", "/api/v2/block/900000".to_string(), Vec::new());
 
         assert!(!config.allows(&request));
@@ -118,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_denies_http_path_method_mismatch() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let request = RequestType::from_request("GET", "/api/v2/sendtx/".to_string(), Vec::new());
 
         assert!(!config.allows(&request));
@@ -128,7 +117,7 @@ mod tests {
     fn test_empty_rules_are_unrestricted() {
         let config: AllowlistConfig = serde_json::from_value(json!([])).unwrap();
 
-        assert!(config.allows(&jsonrpc("unknown_method")));
+        assert!(config.allows(&RequestType::mock_jsonrpc("unknown_method")));
     }
 
     #[test]
@@ -146,8 +135,8 @@ mod tests {
             .try_deserialize::<Wrapper>()
             .unwrap();
 
-        assert!(wrapper.allowlist.allows(&jsonrpc("eth_call")));
-        assert!(!wrapper.allowlist.allows(&jsonrpc("eth_chainId")));
+        assert!(wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_call")));
+        assert!(!wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_chainId")));
         assert!(wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/address/bc1q".to_string(), Vec::new())));
         assert!(!wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/block/1".to_string(), Vec::new())));
     }

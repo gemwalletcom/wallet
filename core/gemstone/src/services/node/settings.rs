@@ -113,30 +113,11 @@ mod tests {
 
     use super::super::model::GemNodeSubtitle;
     use super::*;
-    use crate::gateway::EmptyPreferences;
     use crate::services::node::rules;
-    use crate::services::node::testkit::MemoryNodeStore;
-    use crate::services::preferences::GemPreferencesService;
-    use crate::services::preferences::testkit::MemoryPreferencesStore;
-    use crate::testkit::TestAlienProvider;
-
-    fn service() -> GemChainSettingsService {
-        let preferences_store = Arc::new(MemoryPreferencesStore::default());
-        let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
-        GemChainSettingsService::new(
-            Arc::new(GemNodeService::new(Arc::new(MemoryNodeStore::default()), preferences_store.clone())),
-            Arc::new(GemExplorerService::new(preferences)),
-            Arc::new(GemGateway::new(
-                Arc::new(TestAlienProvider::with_status(200)),
-                preferences_store,
-                Arc::new(EmptyPreferences),
-            )),
-        )
-    }
 
     #[test]
     fn test_exactly_one_explorer_row_is_selected_and_it_follows_the_stored_name() {
-        let service = service();
+        let service = GemChainSettingsService::mock();
         let rows = service.explorer_rows(Chain::Ethereum);
         let names: Vec<String> = rows.iter().map(|row| row.name.clone()).collect();
 
@@ -157,23 +138,15 @@ mod tests {
 
     #[test]
     fn test_node_rows_pair_each_node_with_its_own_status_and_defaults_the_rest_to_loading() {
-        let service = service();
+        let service = GemChainSettingsService::mock();
         let default_url = rules::region_node(Chain::Ethereum, NodeRegion::Us).url;
         let selections = rules::node_selections(vec![rules::region_node(Chain::Ethereum, NodeRegion::Us)], &default_url);
         let added = GemNodeSelection {
-            url: "https://node.example.com".to_string(),
             host: "node.example.com".to_string(),
-            is_selected: false,
-            gem_node_flag: None,
+            ..GemNodeSelection::mock("https://node.example.com")
         };
         let nodes = vec![selections[0].clone(), added.clone()];
-        let statuses = HashMap::from([(
-            added.url.clone(),
-            GemNodeStatusState::Result {
-                latest_block_number: 21_000_000,
-                latency: primitives::Latency::from_milliseconds(120),
-            },
-        )]);
+        let statuses = HashMap::from([(added.url.clone(), GemNodeStatusState::mock_result(21_000_000))]);
 
         let rows = service.node_rows(Chain::Ethereum, nodes, statuses);
 

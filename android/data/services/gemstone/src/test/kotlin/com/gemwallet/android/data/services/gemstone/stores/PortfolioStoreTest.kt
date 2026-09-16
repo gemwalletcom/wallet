@@ -23,7 +23,6 @@ class GemstonePortfolioStoreTest {
             coEvery { getPortfolioAssets(walletId.id) } returns listOf(
                 mockDbAssetInfo(
                     chain = bitcoin.id.chain,
-                    id = bitcoin.id.toIdentifier(),
                     walletId = walletId.id,
                     balanceAvailable = "1000",
                 )

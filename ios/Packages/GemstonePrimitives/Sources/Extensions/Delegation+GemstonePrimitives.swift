@@ -41,12 +41,12 @@ public extension Primitives.Delegation {
         self.init(
             base: Primitives.DelegationBase(core: core.base),
             validator: core.validator.toPrimitives(),
-            price: .none,
+            price: core.price?.toPrimitives(),
         )
     }
 
     func toGem() -> Gemstone.Delegation {
-        Gemstone.Delegation(base: base.toGem(), validator: validator.toGem())
+        Gemstone.Delegation(base: base.toGem(), validator: validator.toGem(), price: price?.toGem())
     }
 }
 

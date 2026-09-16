@@ -104,17 +104,11 @@ mod tests {
     #[test]
     fn test_a_blocked_multi_signature_account_disables_the_header_buttons() {
         use primitives::BannerState;
-        let banner = |event| Banner {
-            wallet_id: None,
-            asset: None,
-            event,
-            state: BannerState::Active,
-        };
         assert!(header_buttons_enabled(&[]));
-        assert!(header_buttons_enabled(&[banner(BannerEvent::Onboarding)]));
+        assert!(header_buttons_enabled(&[Banner::mock(BannerEvent::Onboarding, BannerState::Active)]));
         assert!(!header_buttons_enabled(&[
-            banner(BannerEvent::Onboarding),
-            banner(BannerEvent::AccountBlockedMultiSignature)
+            Banner::mock(BannerEvent::Onboarding, BannerState::Active),
+            Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::Active)
         ]));
     }
 

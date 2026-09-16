@@ -13,6 +13,7 @@ import uniffi.gemstone.GemPaymentConfirmTransfer
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemPaymentWalletAsset
 
 sealed interface PaymentDestination {
@@ -28,7 +29,7 @@ sealed interface PaymentDestination {
     data class SelectAsset(val payment: GemPaymentRecipient, val chains: List<Chain>) : PaymentDestination
 
     companion object {
-        fun from(request: PaymentRequest, assets: List<AssetInfo>, paymentService: GemPaymentService): PaymentDestination =
+        fun from(request: PaymentRequest, assets: List<AssetInfo>, paymentService: GemPaymentServiceInterface): PaymentDestination =
             when (val destination = paymentService.destination(request, assets.map { it.toPaymentWalletAsset() })) {
                 is GemPaymentDestination.Confirm -> destination.transfer.toTransferData(assets, paymentService)?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> Recipient(destination.assetId.toAssetId()!!, destination.payment)
@@ -46,7 +47,7 @@ fun AssetInfo.toPaymentWalletAsset(): GemPaymentWalletAsset = GemPaymentWalletAs
     decimals = asset.decimals,
 )
 
-fun GemPaymentConfirmTransfer.toTransferData(assets: List<AssetInfo>, paymentService: GemPaymentService): GemTransferData? {
+fun GemPaymentConfirmTransfer.toTransferData(assets: List<AssetInfo>, paymentService: GemPaymentServiceInterface): GemTransferData? {
     val assetInfo = assets.firstOrNull { it.asset.id.toIdentifier() == assetId } ?: return null
     return paymentService.transferData(this, assetInfo.asset.toGem())
 }

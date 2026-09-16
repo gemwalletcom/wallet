@@ -2,29 +2,22 @@ package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.ChainAssetInfo
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetMetaData
-import com.wallet.core.primitives.AssetType
+import com.gemwallet.android.testkit.mockChainAssetInfo
+import com.gemwallet.android.testkit.mockGemAssetDetails
+import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemPriceAlertToggle
-import uniffi.gemstone.GemAssetDetails
-import uniffi.gemstone.GemAssetDetailsState
-import uniffi.gemstone.GemHeaderActions
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemSwapPairSuggestion
 import java.math.BigInteger
 
 class AssetInfoUIModelFactoryTest {
@@ -43,17 +36,19 @@ class AssetInfoUIModelFactoryTest {
 
     @Test
     fun `the row name is the title core decided`() {
-        assertEquals("Renamed Cosmos", model(mockAsset(chain = Chain.Cosmos, name = "Renamed Cosmos")).name)
+        assertEquals("Renamed Cosmos", model(mockAssetInfo(asset = mockAsset(chain = Chain.Cosmos, name = "Renamed Cosmos"), owner = null)).name)
     }
 
     @Test
     fun `balance rows render the core rows with the apr standing in for an empty stake`() {
+        val atom = mockAsset(chain = Chain.Cosmos, symbol = "ATOM", decimals = 6)
         val position = model(
-            mockAsset(chain = Chain.Cosmos, symbol = "ATOM", decimals = 6),
-            metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0),
-            available = BigInteger("1000000"),
-            staked = BigInteger("2000000"),
-            reserved = BigInteger("500000"),
+            mockAssetInfo(
+                asset = atom,
+                owner = null,
+                balance = AssetBalance.create(atom, available = BigInteger("1000000"), staked = BigInteger("2000000"), reserved = BigInteger("500000")),
+                metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0),
+            ),
         ).accountInfoUIModel.balances
         assertEquals(
             listOf(AssetInfoUIModel.BalanceViewType.Available, AssetInfoUIModel.BalanceViewType.Stake, AssetInfoUIModel.BalanceViewType.Reserved),
@@ -61,60 +56,17 @@ class AssetInfoUIModelFactoryTest {
         )
         assertEquals(listOf("1 ATOM", "2 ATOM", "0.5 ATOM"), position.map { it.value })
 
-        val apr = model(mockAsset(chain = Chain.Cosmos), metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0)).accountInfoUIModel.balances
+        val apr = model(mockAssetInfo(asset = mockAsset(chain = Chain.Cosmos), owner = null, metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0))).accountInfoUIModel.balances
         assertEquals(listOf(AssetInfoUIModel.BalanceViewType.Stake), apr.map { it.type })
         assertTrue(apr.single().value.startsWith("APR"))
 
-        assertTrue(model(mockAsset(chain = Chain.Bitcoin), available = BigInteger("100000000")).accountInfoUIModel.balances.isEmpty())
+        val bitcoin = mockAsset()
+        assertTrue(model(mockAssetInfo(asset = bitcoin, owner = null, balance = AssetBalance.create(bitcoin, available = BigInteger("100000000")))).accountInfoUIModel.balances.isEmpty())
     }
 
-    private fun model(
-        asset: Asset,
-        available: BigInteger = BigInteger("0"),
-        frozen: BigInteger = BigInteger("0"),
-        locked: BigInteger = BigInteger("0"),
-        staked: BigInteger = BigInteger("0"),
-        pending: BigInteger = BigInteger("0"),
-        rewards: BigInteger = BigInteger("0"),
-        reserved: BigInteger = BigInteger("0"),
-        metadata: AssetMetaData = mockAssetMetaData(),
-    ): AssetInfoUIModel {
-        val balance = AssetBalance.create(
-            asset,
-            available = available,
-            frozen = frozen,
-            locked = locked,
-            staked = staked,
-            pending = pending,
-            rewards = rewards,
-            reserved = reserved,
-        )
-        val assetInfo = mockAssetInfo(asset = asset, owner = null, balance = balance, metadata = metadata)
-        return AssetInfoUIModelFactory().create(
-            ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
-            GemAssetDetails(
-                title = asset.name,
-                state = GemAssetDetailsState(
-                    isViewOnly = false,
-                    headerActions = GemHeaderActions.Buttons(emptyList()),
-                    showsBanners = true,
-                    showsManage = false,
-                    showsResources = false,
-                    showsPriceAlerts = false,
-                    priceAlertsCount = 0u,
-                    priceAlert = GemPriceAlertToggle.DISABLED,
-                    showsEarn = false,
-                    emptyTransactionsAction = null,
-                ),
-                explorerName = "Explorer",
-                addressLink = null,
-                tokenLink = null,
-                verificationStatus = null,
-                networkDestination = null,
-                shareUrl = "",
-                swapPair = GemSwapPairSuggestion(asset.id.toIdentifier(), null),
-            ),
-            banners = emptyList(),
-        )
-    }
+    private fun model(assetInfo: AssetInfo) = AssetInfoUIModelFactory().create(
+        mockChainAssetInfo(assetInfo),
+        mockGemAssetDetails(assetInfo.asset, mockGemAssetDetailsState(showsBanners = true)),
+        banners = emptyList(),
+    )
 }

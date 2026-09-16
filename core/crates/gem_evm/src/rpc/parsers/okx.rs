@@ -173,21 +173,6 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::{Chain, SwapProvider, TransactionState, asset_constants::BASE_USDC_TOKEN_ID, testkit::json_rpc::load_json_rpc_result};
 
-    fn erc20_transfer_log(token: &str, from: &str, to: &str, value: &str) -> Log {
-        let value = BigUint::parse_bytes(value.as_bytes(), 10).unwrap();
-
-        Log {
-            address: token.to_string(),
-            topics: vec![
-                TRANSFER_TOPIC.to_string(),
-                format!("0x{:0>64}", from.trim_start_matches("0x")),
-                format!("0x{:0>64}", to.trim_start_matches("0x")),
-            ],
-            data: format!("0x{:0>64}", value.to_str_radix(16)),
-            transaction_hash: None,
-        }
-    }
-
     fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1743373403, 0).unwrap()).unwrap()
     }
@@ -230,25 +215,22 @@ mod tests {
         let transfer_receipt = TransactionReceipt {
             gas_used: BigUint::from(318420u32),
             effective_gas_price: BigUint::from(10_000_000u64),
-            l1_fee: None,
             logs: vec![
-                erc20_transfer_log(
+                Log::mock_erc20_transfer(
                     BASE_USDC_TOKEN_ID,
                     "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F",
                     "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
-                    "995000",
+                    995000,
                 ),
-                erc20_transfer_log(
+                Log::mock_erc20_transfer(
                     "0x0000000f2eB9f69274678c76222B35eEc7588a65",
                     "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
                     "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F",
-                    "928345",
+                    928345,
                 ),
             ],
-            status: "0x1".to_string(),
-            block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
             block_number: 1,
-            fee_token: None,
+            ..TransactionReceipt::mock()
         };
         let transfer_swap_tx = map_transaction(&Chain::Base, &transfer_tx, &transfer_receipt);
         let transfer_metadata: TransactionSwapMetadata = serde_json::from_value(transfer_swap_tx.metadata.clone().unwrap()).unwrap();
@@ -283,17 +265,14 @@ mod tests {
         let uniswap_v3_swap_to_receipt = TransactionReceipt {
             gas_used: BigUint::from(203405u32),
             effective_gas_price: BigUint::from(230068341u32),
-            l1_fee: None,
             logs: vec![Log {
                 address: "0x5e1f62dac767b0491e3ce72469c217365d5b48cc".to_string(),
                 topics: vec![OKX_SWAP_EVENT_TOPIC.to_string()],
                 data: "0x00000000000000000000000052498f8d9791736f1d6398fe95ba3bd868114d10000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee000000000000000000000000adaf6f9b702718e3cec12f944be7df8b34e59e2f00000000000000000000000000000000000000000000043c33c1937564800000000000000000000000000000000000000000000000000000003798ea0b0a14fd".to_string(),
                 transaction_hash: None,
             }],
-            status: "0x1".to_string(),
-            block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
             block_number: 24717134,
-            fee_token: None,
+            ..TransactionReceipt::mock()
         };
         let uniswap_v3_swap_to = map_transaction(&Chain::Ethereum, &uniswap_v3_swap_to_tx, &uniswap_v3_swap_to_receipt);
         let uniswap_v3_swap_to_metadata: TransactionSwapMetadata = serde_json::from_value(uniswap_v3_swap_to.metadata.clone().unwrap()).unwrap();
@@ -325,17 +304,14 @@ mod tests {
         let unxswap_by_order_id_receipt = TransactionReceipt {
             gas_used: BigUint::from(176410u32),
             effective_gas_price: BigUint::from(221977999u32),
-            l1_fee: None,
             logs: vec![Log {
                 address: "0x5e1f62dac767b0491e3ce72469c217365d5b48cc".to_string(),
                 topics: vec![OKX_SWAP_EVENT_TOPIC.to_string()],
                 data: "0x000000000000000000000000249e38ea4102d0cf8264d3701f1a0e39c4f2dc3b000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee000000000000000000000000adaf6f9b702718e3cec12f944be7df8b34e59e2f000000000000000000000000000000000000000001c47e5d3263f59c9d062a020000000000000000000000000000000000000000000000000020595fca29f3dc".to_string(),
                 transaction_hash: None,
             }],
-            status: "0x1".to_string(),
-            block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
             block_number: 24717121,
-            fee_token: None,
+            ..TransactionReceipt::mock()
         };
         let unxswap_by_order_id = map_transaction(&Chain::Ethereum, &unxswap_by_order_id_tx, &unxswap_by_order_id_receipt);
         let unxswap_by_order_id_metadata: TransactionSwapMetadata = serde_json::from_value(unxswap_by_order_id.metadata.clone().unwrap()).unwrap();

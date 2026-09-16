@@ -38,6 +38,7 @@ import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailSection
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionDetailsService
+import uniffi.gemstone.GemTransactionDetailsServiceInterface
 import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransactionHeaderAction
 import uniffi.gemstone.GemTransactionParticipant
@@ -49,7 +50,7 @@ import uniffi.gemstone.GemValueStyle
 class GetTransactionDetailsImpl(
     private val getSession: GetSession,
     private val getTransaction: GetTransaction,
-    private val transactionDetailsService: GemTransactionDetailsService,
+    private val transactionDetailsService: GemTransactionDetailsServiceInterface,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = combine(

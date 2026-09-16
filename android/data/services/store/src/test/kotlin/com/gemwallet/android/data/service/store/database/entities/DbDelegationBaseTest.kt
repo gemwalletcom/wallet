@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.service.store.database.entities
 
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockDelegationBase
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationState
-import com.wallet.core.primitives.WalletId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
@@ -33,13 +33,11 @@ class DbDelegationBaseTest {
 
     @Test
     fun toRecord_usesDeterministicDelegationIdentity() {
-        val walletId = WalletId("wallet-1")
-        val delegation = DelegationBase(
-            assetId = AssetId(Chain.Monad),
+        val walletId = mockWalletId()
+        val delegation = mockDelegationBase(
+            assetId = mockAssetId(Chain.Monad),
             state = DelegationState.Activating,
             balance = BigInteger("100"),
-            shares = BigInteger("0"),
-            rewards = BigInteger("0"),
             delegationId = "0xbae:16:activating:0",
             validatorId = "16",
         )

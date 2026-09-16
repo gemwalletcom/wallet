@@ -2,12 +2,11 @@ package com.gemwallet.android.features.asset_select.viewmodels
 
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
-import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
+import com.gemwallet.android.features.asset_select.viewmodels.models.mockSelectAssetFilters
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
-import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
-import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -24,18 +23,7 @@ import uniffi.gemstone.GemSelectAssetScope
 @OptIn(ExperimentalCoroutinesApi::class)
 class BaseSelectSearchTest {
 
-    private val ethereum = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH")
-    private val results = listOf(mockAssetInfo(asset = ethereum))
-
-    private fun filters(query: String, limit: Int = 50) = MutableStateFlow(
-        SelectAssetFilters(
-            session = null,
-            query = query,
-            chainFilter = emptyList(),
-            hasBalance = false,
-            limit = limit,
-        )
-    )
+    private val results = listOf(mockAssetInfo(asset = mockAssetEthereum()))
 
     @Test
     fun `non-empty query with no matches emits empty list`() = runTest {
@@ -44,7 +32,7 @@ class BaseSelectSearchTest {
         }
         val search = BaseSelectSearch(searchService)
 
-        val result = search.items(filters("zzqxzzq")).first()
+        val result = search.items(MutableStateFlow(mockSelectAssetFilters(query = "zzqxzzq"))).first()
 
         assertEquals(emptyList<Any>(), result)
     }
@@ -56,7 +44,7 @@ class BaseSelectSearchTest {
         }
         val search = BaseSelectSearch(searchService)
 
-        val result = search.items(filters(query = "eth", limit = 25)).first()
+        val result = search.items(MutableStateFlow(mockSelectAssetFilters(query = "eth", limit = 25))).first()
 
         assertEquals(results, result)
         verify(exactly = 1) { searchService.search("eth", false, 25, emptySet()) }
@@ -69,18 +57,32 @@ class BaseSelectSearchTest {
         }
         val search = BaseSelectSearch(searchService)
         val filters = MutableStateFlow(
-            SelectAssetFilters(
-                session = null,
-                query = "",
-                chainFilter = emptyList(),
-                hasBalance = false,
-                scope = GemSelectAssetScope.ALL_ASSETS,
-                filters = listOf(GemAssetFilter.Enabled, GemAssetFilter.Buyable),
-            )
+            mockSelectAssetFilters(scope = GemSelectAssetScope.ALL_ASSETS, filters = listOf(GemAssetFilter.Enabled, GemAssetFilter.Buyable)),
         )
 
         search.items(filters).first()
 
         verify(exactly = 1) { searchService.search("", true, NO_QUERY_LIMIT, setOf(AssetFilter.Buyable)) }
+    }
+
+    @Test
+    fun `the chain chips and the balance toggle reach the query as filters`() = runTest {
+        val searchService = mockk<AssetsSearchService> {
+            every { search(any(), any(), any(), any()) } returns flowOf(results)
+        }
+        val search = BaseSelectSearch(searchService)
+        val filters = MutableStateFlow(
+            SelectAssetFilters(
+                session = null,
+                query = "",
+                chainFilter = listOf(Chain.Ethereum),
+                hasBalance = true,
+                filters = listOf(GemAssetFilter.Buyable),
+            )
+        )
+        search.items(filters).first()
+        verify(exactly = 1) {
+            searchService.search("", false, NO_QUERY_LIMIT, setOf(AssetFilter.Buyable, AssetFilter.Chains(listOf(Chain.Ethereum)), AssetFilter.HasBalance))
+        }
     }
 }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemBannerIcon
 import enum Gemstone.GemEmptyStateImage
 import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemFiatTransactionBadge
@@ -154,5 +155,18 @@ extension GemFiatTransactionBadge {
 
     public var textStyle: TextStyle {
         TextStyle(font: Font.system(.footnote, weight: .medium), color: color, background: color.opacity(.light))
+    }
+}
+
+public extension GemBannerIcon {
+    var image: AssetImage? {
+        switch self {
+        case .moneyBag: AssetImage(type: .emoji(Emoji.WalletAvatar.moneyBag.rawValue))
+        case let .network(chain): Primitives.Chain(rawValue: chain).map { AssetImage.image(ChainImage(chain: $0).image) }
+        case .warning: AssetImage.image(Images.System.exclamationmarkTriangle)
+        case .suspicious: AssetImage.image(Images.TokenStatus.risk)
+        case .bitcoin: AssetImage.image(Images.System.bitcoin)
+        case .perpetuals: AssetImage.image(Images.Perpetuals.perpetuals)
+        }
     }
 }

@@ -7,10 +7,10 @@ import com.gemwallet.android.data.service.store.database.entities.DbAccount
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
 import io.mockk.coJustRun
@@ -68,8 +68,8 @@ class GemstoneWalletStoreTest {
         mockkStatic("com.gemwallet.android.ext.ChainKt")
         mockkStatic("uniffi.gemstone.GemstoneKt")
 
-        every { Chain.Ethereum.asset() } returns mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18)
-        every { Chain.Solana.asset() } returns mockAsset(chain = Chain.Solana, name = "Solana", symbol = "SOL", decimals = 9)
+        every { Chain.Ethereum.asset() } returns mockAssetEthereum()
+        every { Chain.Solana.asset() } returns mockAssetSolana()
     }
 
     private class RecordingStoreTransactionRunner : StoreTransactionRunner {

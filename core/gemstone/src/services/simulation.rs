@@ -290,39 +290,22 @@ pub struct GemSimulationChange {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alien::{AlienError, AlienResponse, AlienTarget};
-    use async_trait::async_trait;
-    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-
-    fn balance_change(asset_id: &str, value: i64) -> primitives::SimulationBalanceChange {
-        primitives::SimulationBalanceChange {
-            asset_id: AssetId::new(asset_id).unwrap(),
-            value: GemBigInt::from(value),
-            decimals: 18,
-            name: None,
-            symbol: None,
-        }
-    }
+    use crate::testkit::{EmptyPreferences, TestAlienProvider, mock_wc_ethereum_transaction_data};
+    use num_bigint::BigInt;
+    use primitives::{SimulationBalanceChange, SimulationPayloadFieldDisplay, SimulationPayloadFieldType, SimulationWarningApproval};
 
     #[test]
     fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
-        use num_bigint::BigInt;
-        use primitives::SimulationWarningApproval;
-        let approval = |value: Option<BigInt>| SimulationWarningApproval {
-            asset_id: AssetId::from_chain(Chain::Ethereum),
-            value,
-        };
-        let warning = |warning: SimulationWarningType| SimulationWarning::new(SimulationSeverity::Warning, warning, None);
         let rows = warning_rows(&[
-            warning(SimulationWarningType::TokenApproval(approval(Some(BigInt::from(1))))),
-            warning(SimulationWarningType::PermitApproval(approval(Some(BigInt::from(1))))),
-            warning(SimulationWarningType::PermitBatchApproval(Some(BigInt::from(1)))),
-            warning(SimulationWarningType::TokenApproval(approval(None))),
-            warning(SimulationWarningType::PermitApproval(approval(None))),
-            warning(SimulationWarningType::PermitBatchApproval(None)),
-            warning(SimulationWarningType::NftCollectionApproval(AssetId::from_chain(Chain::Ethereum))),
-            warning(SimulationWarningType::ExternallyOwnedSpender),
-            warning(SimulationWarningType::SuspiciousSpender),
+            SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(Some(BigInt::from(1))))),
+            SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(1))))),
+            SimulationWarning::mock(SimulationWarningType::PermitBatchApproval(Some(BigInt::from(1)))),
+            SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(None))),
+            SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(None))),
+            SimulationWarning::mock(SimulationWarningType::PermitBatchApproval(None)),
+            SimulationWarning::mock(SimulationWarningType::NftCollectionApproval(AssetId::from_chain(Chain::Ethereum))),
+            SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender),
+            SimulationWarning::mock(SimulationWarningType::SuspiciousSpender),
             SimulationWarning::validation_error("Chain ID mismatch"),
         ]);
         let kinds: Vec<GemSimulationWarningKind> = rows.iter().map(|row| row.kind).collect();
@@ -345,15 +328,13 @@ mod tests {
     #[test]
     fn test_balance_changes_drop_zero_and_unknown_assets() {
         let simulation = SimulationResult {
-            warnings: vec![],
             balance_changes: vec![
-                balance_change("ethereum", -1000),
-                balance_change("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", 2000),
-                balance_change("solana", 0),
-                balance_change("doge", 500),
+                SimulationBalanceChange::mock(AssetId::new("ethereum").unwrap(), BigInt::from(-1000), 18),
+                SimulationBalanceChange::mock(AssetId::new("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7").unwrap(), BigInt::from(2000), 18),
+                SimulationBalanceChange::mock(AssetId::new("solana").unwrap(), BigInt::from(0), 18),
+                SimulationBalanceChange::mock(AssetId::new("doge").unwrap(), BigInt::from(500), 18),
             ],
-            payload: vec![],
-            header: None,
+            ..SimulationResult::default()
         };
         let known = ["ethereum", "ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "solana"]
             .into_iter()
@@ -371,35 +352,9 @@ mod tests {
         assert!(formatter.balance_changes(None, vec![]).is_empty());
     }
 
-    #[derive(Debug)]
-    struct TestProvider;
-
-    #[async_trait]
-    impl AlienProvider for TestProvider {
-        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
-            unreachable!()
-        }
-    }
-
-    fn mock_wc_transaction() -> WcEthereumTransactionData {
-        WcEthereumTransactionData {
-            chain_id: None,
-            from: TEST_EVM_SENDER.to_string(),
-            to: TEST_EVM_RECIPIENT.to_string(),
-            value: Some("0x2386f26fc10000".to_string()),
-            gas: None,
-            gas_limit: None,
-            gas_price: None,
-            max_fee_per_gas: None,
-            max_priority_fee_per_gas: None,
-            nonce: None,
-            data: None,
-        }
-    }
-
     #[test]
     fn test_map_transaction_object_normalizes_empty_calldata_to_0x() {
-        let transaction_object = map_transaction_object(&mock_wc_transaction());
+        let transaction_object = map_transaction_object(&mock_wc_ethereum_transaction_data());
 
         assert_eq!(serde_json::to_value(transaction_object).unwrap()["data"], "0x");
     }
@@ -411,7 +366,7 @@ mod tests {
             gas_price: Some("0x9502f900".to_string()),
             max_fee_per_gas: Some("0x59682f10".to_string()),
             max_priority_fee_per_gas: Some("0x3b9aca00".to_string()),
-            ..mock_wc_transaction()
+            ..mock_wc_ethereum_transaction_data()
         };
 
         let transaction_object = map_transaction_object(&transaction);
@@ -422,22 +377,27 @@ mod tests {
         assert_eq!(transaction_object.max_priority_fee_per_gas, None);
     }
 
-    fn field(kind: SimulationPayloadFieldKind) -> SimulationPayloadField {
-        SimulationPayloadField {
-            kind,
-            label: None,
-            value: String::new(),
-            field_type: primitives::SimulationPayloadFieldType::Text,
-            display: primitives::SimulationPayloadFieldDisplay::Primary,
-        }
-    }
-
     #[test]
     fn test_the_value_and_token_fields_give_way_to_the_header() {
         let payload = vec![
-            field(SimulationPayloadFieldKind::Value),
-            field(SimulationPayloadFieldKind::Token),
-            field(SimulationPayloadFieldKind::Spender),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Value,
+                "",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Token,
+                "",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Spender,
+                "",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
         ];
         let formatter = GemSimulationFormatter::new();
 
@@ -451,7 +411,8 @@ mod tests {
     #[test]
     fn test_wallet_connect_send_transaction_ignores_simulation_error() {
         futures::executor::block_on(async {
-            let service = GemSimulationService::new(Arc::new(TestProvider), Arc::new(crate::gateway::EmptyPreferences));
+            let provider = Arc::new(TestAlienProvider::with_status(200));
+            let service = GemSimulationService::new(provider.clone(), Arc::new(EmptyPreferences));
 
             let result = service
                 .simulate_send_transaction(
@@ -464,6 +425,7 @@ mod tests {
                 .await;
 
             assert!(result.is_ok());
+            assert!(provider.requested_paths().is_empty());
         });
     }
 }

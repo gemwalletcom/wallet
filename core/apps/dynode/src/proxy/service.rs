@@ -228,30 +228,12 @@ fn cacheable_response(chain: Chain, path: &str, status: u16, body: &[u8]) -> boo
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
     use primitives::Chain;
     use reqwest::header;
-    use settings_chain::BroadcastProviders;
 
     use super::*;
-    use crate::cache::RequestCache;
     use crate::config::HeadersConfig;
-    use crate::metrics::Metrics;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
-    use crate::testkit::config::metrics_config;
-
-    fn create_service(headers_config: HeadersConfig) -> ProxyRequestService {
-        let metrics = Metrics::new(metrics_config());
-        ProxyRequestService::new(
-            metrics.clone(),
-            RequestCache::default(),
-            gem_client::reqwest_client(),
-            headers_config,
-            DynodeBroadcastWebhookClient::disabled(),
-            Arc::new(BroadcastProviders::from_chains([Chain::Ethereum])),
-        )
-    }
 
     #[test]
     fn test_cacheable_ton_get_method_requires_success() {
@@ -284,7 +266,7 @@ mod tests {
 
     #[test]
     fn test_build_headers_forwards_configured_headers() {
-        let service = create_service(HeadersConfig {
+        let service = ProxyRequestService::mock(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string(), header::USER_AGENT.to_string()],
         });
 
@@ -302,7 +284,7 @@ mod tests {
 
     #[test]
     fn test_build_headers_drops_unconfigured_headers() {
-        let service = create_service(HeadersConfig {
+        let service = ProxyRequestService::mock(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string()],
         });
 
@@ -318,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_build_headers_forces_grpc_identity_encoding() {
-        let service = create_service(HeadersConfig {
+        let service = ProxyRequestService::mock(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string(), GRPC_ACCEPT_ENCODING.to_string()],
         });
 

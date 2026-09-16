@@ -42,5 +42,6 @@ number_formatter = { path = "../number_formatter", optional = true }
 [dev-dependencies]
 chain_traits = { path = "../chain_traits", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
+primitives = { path = "../primitives", features = ["testkit"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
 settings = { path = "../settings", features = ["testkit"] }

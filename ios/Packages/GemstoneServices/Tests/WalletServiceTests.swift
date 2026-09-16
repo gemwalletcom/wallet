@@ -15,21 +15,13 @@ import Testing
 @testable import GemstoneServices
 
 struct WalletServiceTests {
-    private func makeService(
-        keystore: LocalKeystore = LocalKeystore.mock(),
-        db: DB = .mock(),
-        sessionStore: GemstoneWalletSessionStore = .mock(),
-    ) -> GemWalletService {
-        GemWalletService.mock(keystore: keystore, db: db, sessionStore: sessionStore)
-    }
-
     @Test
     func deleteLastWalletNotifiesObservers() async throws {
         let sessionStore = GemstoneWalletSessionStore.mock()
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore.mock(db: db)
-        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
-        let service = makeService(db: db, sessionStore: sessionStore)
+        let session = GemWalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
+        let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let wallet = try await service.importWallet(
             name: "Wallet",
@@ -48,16 +40,12 @@ struct WalletServiceTests {
         }
     }
 
-
-
-
-
     @Test
     func setupChainsFailsWithoutSeededAsset() async throws {
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore.mock(db: db)
         let assetStore = AssetStore.mock(db: db)
-        let service = makeService(db: db)
+        let service = GemWalletService.mock(db: db)
 
         _ = try await service.importWallet(
             name: "Wallet",
@@ -80,7 +68,7 @@ struct WalletServiceTests {
     @Test
     func passwordCreatedOnFirstImport() async throws {
         let mockPassword = MockKeystorePassword()
-        let service = makeService(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mockWithChains([.ethereum]))
+        let service = GemWalletService.mock(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mockWithChains([.ethereum]))
 
         #expect(try mockPassword.getPassword().isEmpty)
 
@@ -97,7 +85,7 @@ struct WalletServiceTests {
     func setupChainsAddsMissingChains() async throws {
         let db = DB.mockWithChains([.ethereum, .solana])
         let walletStore = WalletStore.mock(db: db)
-        let service = makeService(db: db)
+        let service = GemWalletService.mock(db: db)
         _ = try await service.importWallet(name: "ETH only", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }), source: .import)
 
         try await service.setup(chains: [.ethereum, .solana])
@@ -112,7 +100,7 @@ struct WalletServiceTests {
         let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
         let db = DB.mockWithChains([.ethereum, .solana])
         let walletStore = WalletStore.mock(db: db)
-        let service = makeService(keystore: keystore, db: db)
+        let service = GemWalletService.mock(keystore: keystore, db: db)
         let wallet = try await service.importWallet(name: "ETH only", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }), source: .import).wallet
         _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: wallet.id.id))
         let passwordReadsBefore = mockPassword.getPasswordCallsCount
@@ -127,7 +115,7 @@ struct WalletServiceTests {
     func setupChainsAddNoMissingChains() async throws {
         let mockPassword = MockKeystorePassword()
         let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
-        let service = makeService(keystore: keystore, db: .mockWithChains([.ethereum, .solana]))
+        let service = GemWalletService.mock(keystore: keystore, db: .mockWithChains([.ethereum, .solana]))
         _ = try await service.importWallet(name: "Complete", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum, .solana].map { $0.toGem() }), source: .import)
         let passwordReadsBefore = mockPassword.getPasswordCallsCount
 
@@ -140,7 +128,7 @@ struct WalletServiceTests {
     func concurrentImportAndDelete() async throws {
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore.mock(db: db)
-        let service = makeService(
+        let service = GemWalletService.mock(
             keystore: LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: LocalKeystore.password)),
             db: db,
         )

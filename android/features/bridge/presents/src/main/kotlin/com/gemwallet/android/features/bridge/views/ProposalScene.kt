@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
@@ -101,7 +102,7 @@ fun ProposalScene(
             availableWalletRows = availableWalletRows,
             buttonState = buttonState,
             onReject = viewModel::onReject,
-            onApprove = { viewModel.onApprove { message -> onError(message.ifBlank { unknownErrorMessage }) } },
+            onApprove = { viewModel.onApprove { error -> onError(error.text(context).ifBlank { unknownErrorMessage }) } },
             onWalletSelected = viewModel::onWalletSelected
         )
     }

@@ -36,5 +36,6 @@ gem_tracing = { path = "../tracing" }
 primitives = { path = "../primitives", features = ["testkit"] }
 
 [features]
+testkit = []
 # Feature flag for integration tests
-fiat_integration_tests = ["primitives/testkit"]
+fiat_integration_tests = ["primitives/testkit", "settings/testkit"]

@@ -17,12 +17,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemTransactionStateServiceInterface
 import uniffi.gemstone.GemTransactionStatusService
 
 private const val TAG = "TransactionStatusService"
 
 class TransactionStatusService(
-    private val stateService: GemTransactionStateService,
+    private val stateService: GemTransactionStateServiceInterface,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher),
 ) : CreateTransaction, GemTransactionStatusService {

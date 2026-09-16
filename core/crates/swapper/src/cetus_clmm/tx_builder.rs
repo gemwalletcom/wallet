@@ -375,30 +375,30 @@ fn error(err: impl Display) -> SwapperError {
 mod tests {
     use super::*;
 
-    fn hop(a2b: bool, after_sqrt_price: u128) -> Hop {
-        Hop {
-            pool_id: "0xpool".into(),
-            pool_init_version: 1,
-            coin_a: "0xa".into(),
-            coin_b: "0xb".into(),
-            a2b,
-            amount_in: 1_000,
-            amount_out: 1_000_000,
-            after_sqrt_price,
-        }
-    }
-
     #[test]
     fn test_sqrt_price_limit_with_slippage() {
-        assert_eq!(sqrt_price_limit_with_slippage(&hop(true, 0), 50), MIN_SQRT_PRICE_X64);
-        assert_eq!(sqrt_price_limit_with_slippage(&hop(false, 0), 50), MAX_SQRT_PRICE_X64);
+        assert_eq!(sqrt_price_limit_with_slippage(&Hop::mock(), 50), MIN_SQRT_PRICE_X64);
+        assert_eq!(sqrt_price_limit_with_slippage(&Hop { a2b: false, ..Hop::mock() }, 50), MAX_SQRT_PRICE_X64);
 
         let after = 100_000_000_000_000u128;
-        let a2b_limit = sqrt_price_limit_with_slippage(&hop(true, after), 50);
+        let a2b_limit = sqrt_price_limit_with_slippage(
+            &Hop {
+                after_sqrt_price: after,
+                ..Hop::mock()
+            },
+            50,
+        );
         assert_eq!(a2b_limit, after * 9_950 / 10_000);
         assert!(a2b_limit < after);
 
-        let b2a_limit = sqrt_price_limit_with_slippage(&hop(false, after), 50);
+        let b2a_limit = sqrt_price_limit_with_slippage(
+            &Hop {
+                a2b: false,
+                after_sqrt_price: after,
+                ..Hop::mock()
+            },
+            50,
+        );
         assert!(b2a_limit > after);
         assert!(b2a_limit <= MAX_SQRT_PRICE_X64);
     }

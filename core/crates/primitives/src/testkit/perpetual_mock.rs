@@ -1,7 +1,8 @@
 use chrono::{TimeZone, Utc};
 
 use crate::{
-    Asset, Chain, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType,
+    Asset, AssetId, CancelOrderData, Chain, Perpetual, PerpetualConfirmData, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualModifyConfirmData,
+    PerpetualModifyPositionType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder, TPSLOrderData,
     chart::ChartDateValue,
     portfolio::{PerpetualPortfolio, PerpetualPortfolioTimeframeData},
 };
@@ -24,6 +25,88 @@ impl PerpetualConfirmData {
             margin_amount: 50.0,
             take_profit,
             stop_loss,
+        }
+    }
+}
+
+impl PerpetualPosition {
+    pub fn mock() -> Self {
+        Self {
+            id: "1".to_string(),
+            perpetual_id: PerpetualId::new(PerpetualProvider::Hypercore, "BTC"),
+            asset_id: AssetId::from_token(Chain::HyperCore, "perpetual::BTC"),
+            size: 1.0,
+            size_value: 100.0,
+            leverage: 5,
+            entry_price: 100.0,
+            liquidation_price: Some(95.0),
+            margin_type: PerpetualMarginType::Cross,
+            direction: PerpetualDirection::Long,
+            margin_amount: 20.0,
+            take_profit: None,
+            stop_loss: None,
+            pnl: 0.0,
+            funding: None,
+        }
+    }
+}
+
+impl Perpetual {
+    pub fn mock() -> Self {
+        Self {
+            id: PerpetualId::new(PerpetualProvider::Hypercore, "BTC"),
+            name: "BTC".to_string(),
+            provider: PerpetualProvider::Hypercore,
+            asset_id: AssetId::from_chain(Chain::HyperCore),
+            identifier: "0".to_string(),
+            price: 100.0,
+            price_percent_change_24h: 0.0,
+            open_interest: 0.0,
+            volume_24h: 0.0,
+            funding: 0.0,
+            max_leverage: 20,
+            is_isolated_only: true,
+        }
+    }
+}
+
+impl PerpetualTriggerOrder {
+    pub fn mock(price: f64) -> Self {
+        Self {
+            price,
+            order_type: PerpetualOrderType::Limit,
+            order_id: "order".to_string(),
+        }
+    }
+}
+
+impl PerpetualModifyPositionType {
+    pub fn mock_tpsl(take_profit: Option<&str>, stop_loss: Option<&str>) -> Self {
+        Self::Tpsl {
+            order: TPSLOrderData {
+                direction: PerpetualDirection::Long,
+                take_profit: take_profit.map(str::to_string),
+                stop_loss: stop_loss.map(str::to_string),
+                size: "1".to_string(),
+            },
+        }
+    }
+
+    pub fn mock_cancel(order_ids: Vec<u64>) -> Self {
+        Self::Cancel {
+            orders: order_ids.into_iter().map(|order_id| CancelOrderData { asset_index: 0, order_id }).collect(),
+        }
+    }
+}
+
+impl PerpetualModifyConfirmData {
+    pub fn mock(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> Self {
+        Self {
+            base_asset: Asset::mock(),
+            asset_index: 0,
+            modify_types,
+            take_profit_order_id,
+            stop_loss_order_id,
         }
     }
 }

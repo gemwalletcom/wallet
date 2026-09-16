@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
@@ -14,11 +15,7 @@ import uniffi.gemstone.walletDetails
 
 class WalletDetailsAggregateImplTest {
 
-    private val account = Account(
-        chain = Chain.Ethereum,
-        address = "0x403BC00000000000000000000000000000051bDa",
-        derivationPath = "m/44'/60'/0'/0/0",
-    )
+    private val account = mockAccount(chain = Chain.Ethereum, address = "0x403BC00000000000000000000000000000051bDa")
 
     private fun aggregate(
         id: String,

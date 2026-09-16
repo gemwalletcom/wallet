@@ -14,13 +14,14 @@ import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.Payment
 import uniffi.gemstone.PaymentLink
 import uniffi.gemstone.PaymentRequest
 
 class PaymentNavigation @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
-    private val paymentService: GemPaymentService,
+    private val paymentService: GemPaymentServiceInterface,
 ) {
 
     suspend fun routes(payment: Payment): List<NavKey> = when (payment) {

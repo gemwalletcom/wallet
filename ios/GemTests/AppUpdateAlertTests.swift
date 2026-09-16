@@ -11,22 +11,25 @@ struct AppUpdateAlertTests {
     func aRequiredUpgradeOffersOnlyTheUpdate() {
         let release = Release(version: "2.0.0", store: .appStore, upgradeRequired: true)
 
-        let actions = RootSceneViewModel.updateAlertActions(for: release, skip: .skip, update: .update)
+        let actions = RootSceneViewModel.updateAlertActions(
+            for: release,
+            skip: AlertAction(title: "skip", role: .cancel, action: {}),
+            update: AlertAction(title: "update", isDefaultAction: true, action: {}),
+        )
 
-        #expect(actions.map(\.title) == [AlertAction.update.title])
+        #expect(actions.map(\.title) == ["update"])
     }
 
     @Test
     func anOptionalUpgradeAlsoOffersSkip() {
         let release = Release(version: "2.0.0", store: .appStore, upgradeRequired: false)
 
-        let actions = RootSceneViewModel.updateAlertActions(for: release, skip: .skip, update: .update)
+        let actions = RootSceneViewModel.updateAlertActions(
+            for: release,
+            skip: AlertAction(title: "skip", role: .cancel, action: {}),
+            update: AlertAction(title: "update", isDefaultAction: true, action: {}),
+        )
 
-        #expect(actions.map(\.title) == [AlertAction.skip.title, AlertAction.update.title])
+        #expect(actions.map(\.title) == ["skip", "update"])
     }
-}
-
-private extension AlertAction {
-    static let skip = AlertAction(title: "skip", role: .cancel, action: {})
-    static let update = AlertAction(title: "update", isDefaultAction: true, action: {})
 }

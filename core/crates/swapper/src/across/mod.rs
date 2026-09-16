@@ -3,6 +3,8 @@ mod config_store;
 mod hubpool;
 mod provider;
 mod status;
+#[cfg(test)]
+mod testkit;
 
 pub use provider::Across;
 

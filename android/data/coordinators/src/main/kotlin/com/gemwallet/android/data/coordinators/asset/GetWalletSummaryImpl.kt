@@ -14,6 +14,7 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
@@ -121,8 +122,7 @@ internal class WalletSummaryEquivalentValue(
     override val changePercentage: Double?,
 ) : EquivalentValue {
     override val valueFormatted: String = value?.takeIf(Double::isFinite)?.let { amount ->
-        val formatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency).string(amount)
-        if (amount > 0) "+$formatted" else formatted
+        PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)).string(amount)
     }.orEmpty()
 
     override val changePercentageFormatted: String = changePercentage.formatAsPercentage(style = GemPercentageStyle.UNSIGNED)

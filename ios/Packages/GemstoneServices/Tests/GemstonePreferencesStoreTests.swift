@@ -2,12 +2,13 @@
 
 import Foundation
 import GemstoneServices
+import PrimitivesTestKit
 import Testing
 
 struct GemstonePreferencesStoreTests {
     @Test
     func readsValuesStoredByTheLegacyAppPreferences() throws {
-        let defaults = makeDefaults(#function)
+        let defaults = UserDefaults.mock()
         let store = GemstonePreferencesStore.application(userDefaults: defaults, appGroupDefaults: .none)
 
         defaults.set(true, forKey: "is_price_alerts_enabled")
@@ -25,8 +26,8 @@ struct GemstonePreferencesStoreTests {
 
     @Test
     func mirrorsCurrencyIntoTheAppGroup() throws {
-        let defaults = makeDefaults(#function)
-        let appGroupDefaults = makeDefaults("\(#function).group")
+        let defaults = UserDefaults.mock()
+        let appGroupDefaults = UserDefaults.mock()
         let store = GemstonePreferencesStore.application(userDefaults: defaults, appGroupDefaults: appGroupDefaults)
 
         try store.set(key: "currency", value: "EUR")
@@ -36,7 +37,7 @@ struct GemstonePreferencesStoreTests {
 
     @Test
     func clearRemovesOwnedKeysOnly() throws {
-        let defaults = makeDefaults(#function)
+        let defaults = UserDefaults.mock()
         let store = GemstonePreferencesStore.application(userDefaults: defaults, appGroupDefaults: .none)
 
         try store.set(key: "currency", value: "EUR")
@@ -50,11 +51,5 @@ struct GemstonePreferencesStoreTests {
         #expect(store.get(key: "is_developer_enabled") == nil)
         #expect(store.get(key: "current_wallet_id") == nil)
         #expect(defaults.string(forKey: "unrelated_key") == "keep")
-    }
-
-    private func makeDefaults(_ suiteName: String) -> UserDefaults {
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        return defaults
     }
 }

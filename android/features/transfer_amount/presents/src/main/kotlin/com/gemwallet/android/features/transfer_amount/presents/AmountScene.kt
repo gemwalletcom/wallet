@@ -28,8 +28,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorString
+import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorText
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -62,7 +61,7 @@ internal fun AmountScene(
     readOnly: Boolean,
     usesWholeAmounts: Boolean,
     showsAssetBalance: Boolean,
-    error: AmountError,
+    error: Throwable?,
     equivalent: String,
     availableBalance: String,
     reserveForFee: String? = null,
@@ -112,7 +111,7 @@ internal fun AmountScene(
                     equivalent = equivalent,
                     readOnly = readOnly,
                     keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,
-                    error = amountErrorString(error = error),
+                    error = amountErrorText(error = error),
                     onValueChange = { onAction(AmountAction.SetAmount(it)) },
                     onNext = { onAction(AmountAction.Next) },
                 )

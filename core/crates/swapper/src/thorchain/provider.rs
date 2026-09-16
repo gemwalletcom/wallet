@@ -262,17 +262,9 @@ mod tests {
     use gem_client::testkit::MockClient;
     use primitives::asset_constants::{ARBITRUM_USDC_ASSET_ID, THORCHAIN_TCY_ASSET_ID};
 
-    fn thorchain() -> ThorChain<MockClient> {
-        ThorChain::with_client(
-            ThorChainSwapClient::new(MockClient::new(), THORChainNetwork::Thorchain),
-            Arc::new(ProviderMock::new(String::new())),
-            THORChainNetwork::Thorchain,
-        )
-    }
-
     #[test]
     fn test_map_quote_error() {
-        let thorchain = thorchain();
+        let thorchain = ThorChain::mock(MockClient::new());
         let cases = [(18, "6614750000000000"), (8, "661475"), (6, "6614")];
 
         for (decimals, expected) in cases {
@@ -358,11 +350,7 @@ mod tests {
             assert_eq!(path, "/thorchain/inbound_addresses");
             Ok(include_str!("testdata/inbound_addresses_bsc_halted.json").as_bytes().to_vec())
         });
-        let swapper = ThorChain::with_client(
-            ThorChainSwapClient::new(client, THORChainNetwork::Thorchain),
-            Arc::new(ProviderMock::new(String::new())),
-            THORChainNetwork::Thorchain,
-        );
+        let swapper = ThorChain::mock(client);
         let bsc = SwapperQuoteAsset::from(Chain::SmartChain.as_asset_id());
         let bitcoin = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
         swapper.preload_routes(&bsc.asset_id(), &bitcoin.asset_id()).await;

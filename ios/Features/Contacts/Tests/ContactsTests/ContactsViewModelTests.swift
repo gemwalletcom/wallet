@@ -3,6 +3,7 @@
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import Contacts
+import ContactsTestKit
 import Gemstone
 import GemstonePrimitives
 import Primitives
@@ -14,7 +15,7 @@ struct ContactsViewModelTests {
     @Test
     func theListPicksARowAndTheAddressFlowPicksAContact() {
         let list = ContactsViewModel.mock()
-        let picking = ContactsViewModel.mock(mode: .addAddress(GemRecipient(address: "bc1qar0", memo: nil), chain: .bitcoin))
+        let picking = ContactsViewModel.mock(mode: .addAddress(.mock(address: "bc1qar0"), chain: .bitcoin))
 
         #expect(list.rowAction == .navigate)
         #expect(picking.rowAction == .select)
@@ -37,17 +38,5 @@ struct ContactsViewModelTests {
         let row = model.listItemModel(for: .mock(contact: .mock(name: "Satoshi"), addresses: [.mock()]))
 
         #expect(row.title == "Satoshi")
-    }
-}
-
-// MARK: - Mock
-
-extension ContactsViewModel {
-    static func mock(mode: Mode = .list) -> ContactsViewModel {
-        ContactsViewModel(
-            service: GemContactService(store: GemContactStoreMock(), addressStore: GemAddressStoreMock(), files: GemFileStoreMock()),
-            manageContact: { ManageContactViewModel(service: GemManageContactServiceMock(), nameService: GemNameServiceMock(), mode: $0) },
-            mode: mode,
-        )
     }
 }

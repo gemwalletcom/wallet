@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.components.CenteredDescriptionText
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.screen.PhraseLayout
+import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.space8
@@ -97,8 +98,9 @@ internal fun CheckPhrase(
             CenteredDescriptionText(stringResource(R.string.secret_phrase_confirm_quick_test_title))
             Spacer16()
             PhraseLayout(
-                words = render,
+                rows = remember(render.toList()) { phraseRows(render) },
                 modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
+                highlightIndex = result.size.takeIf { it < words.size },
             )
             AnimatedVisibility(visible = !isDone || !isSmallScreen) {
                 FlowRow(

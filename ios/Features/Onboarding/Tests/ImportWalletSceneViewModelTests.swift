@@ -4,11 +4,11 @@ import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import GemstoneServices
 import GemstoneServicesTestKit
-import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemWalletImportKind
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 @testable import Onboarding
+@testable import OnboardingTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
@@ -21,7 +21,7 @@ struct ImportWalletSceneViewModelTests {
     func existingImportSetsCurrentWallet() async throws {
         let db = DB.mockWithChains([.ethereum])
         let sessionStore = GemstoneWalletSessionStore.mock()
-        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: WalletStore.mock(db: db)))
+        let session = GemWalletSessionService.mock(store: WalletStore.mock(db: db), sessionStore: sessionStore)
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let walletA = try await service.importWallet(
@@ -39,9 +39,7 @@ struct ImportWalletSceneViewModelTests {
 
         #expect(session.currentWalletId == walletB.id)
 
-        let model = ImportWalletSceneViewModel.mock(
-            service: service,
-        )
+        let model = ImportWalletSceneViewModel.mock(service: service)
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
@@ -66,21 +64,5 @@ struct ImportWalletSceneViewModelTests {
         model.importType = importType
         model.onChangeInput("", newValue: "vitalik.eth")
         try await Task.sleep(for: .milliseconds(500))
-    }
-}
-
-@MainActor
-private extension ImportWalletSceneViewModel {
-    static func mock(
-        service: GemWalletService? = nil,
-        nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
-    ) -> ImportWalletSceneViewModel {
-        ImportWalletSceneViewModel(
-            service: service ?? .mock(),
-            preferences: .mock(),
-            nameService: nameService,
-            type: .chain(.ethereum),
-            onComplete: nil,
-        )
     }
 }

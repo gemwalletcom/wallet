@@ -52,8 +52,8 @@ struct TransactionStoreTests {
                 id: transactionId,
                 type: .swap,
                 assetId: btc,
-                metadata: .encode(TransactionSwapMetadata(
-                    fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200", provider: nil,
+                metadata: .encode(TransactionSwapMetadata.mock(
+                    fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200",
                 )),
             ),
         ])
@@ -63,8 +63,8 @@ struct TransactionStoreTests {
                 id: transactionId,
                 type: .swap,
                 assetId: btc,
-                metadata: .encode(TransactionSwapMetadata(
-                    fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300", provider: nil,
+                metadata: .encode(TransactionSwapMetadata.mock(
+                    fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300",
                 )),
             ),
         ])
@@ -91,14 +91,14 @@ struct TransactionStoreTests {
             type: .swap,
             state: .pending,
             assetId: ethereum,
-            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200", provider: nil)),
+            metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200")),
         )
         let target = Transaction.mock(
             id: targetId,
             type: .swap,
             assetId: ethereum,
             fee: "42",
-            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300", provider: nil)),
+            metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300")),
         )
         try store.addTransactions(walletId: walletId, transactions: [source, target])
         try store.addTransactions(walletId: otherWalletId, transactions: [source, target])

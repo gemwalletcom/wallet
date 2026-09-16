@@ -9,11 +9,11 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::GemPaymentService;
 use crate::services::assets::config::GemAssetConfigService;
-use crate::services::confirm::rules::{is_broadcast, is_insufficient_network_fee};
+use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee};
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::confirm::{
-    GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmService, GemConfirmSimulationState,
-    GemConfirmation, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
+    GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmService,
+    GemConfirmSimulationState, GemConfirmation, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
 };
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
@@ -23,6 +23,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivityService, GemTransferData};
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
+use primitives::AddressName;
 use primitives::BlockExplorerLink;
 use primitives::TransactionInputType;
 
@@ -72,6 +73,10 @@ impl GemConfirmTransferService {
 
     pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
         self.explorer.get_address_url(chain, address)
+    }
+
+    pub fn row_contents(&self, transfer: GemTransferData, wallet: Wallet, address_name: Option<AddressName>) -> Vec<GemConfirmRowContent> {
+        confirm_row_contents(&transfer, wallet, address_name, |chain, address| self.address_url(chain, address))
     }
 }
 

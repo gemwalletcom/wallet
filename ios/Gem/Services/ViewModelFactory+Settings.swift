@@ -33,6 +33,11 @@ extension ViewModelFactory {
     }
 
     @MainActor
+    public func appearanceScene() -> AppearanceViewModel {
+        AppearanceViewModel(preferences: observablePreferences)
+    }
+
+    @MainActor
     public func preferencesScene() -> PreferencesViewModel {
         PreferencesViewModel(
             settings: GemSettingsService(preferences: preferencesService),

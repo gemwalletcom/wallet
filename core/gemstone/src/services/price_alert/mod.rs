@@ -1,6 +1,8 @@
 pub mod rules;
 pub mod session;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
@@ -119,25 +121,12 @@ impl GemPriceAlertService {
 #[cfg(test)]
 mod tests {
     use super::rules::reconcile;
-    use primitives::currency::Currency;
-    use primitives::{AssetId, Chain, PriceAlert};
-
-    fn alert(chain: Chain, price: Option<f64>) -> PriceAlert {
-        PriceAlert {
-            asset_id: AssetId::from_chain(chain),
-            currency: Currency::USD,
-            price,
-            price_percent_change: None,
-            price_direction: None,
-            last_notified_at: None,
-            identifier: String::new(),
-        }
-    }
+    use primitives::{Chain, PriceAlert};
 
     #[test]
     fn test_reconcile() {
-        let local = vec![alert(Chain::Bitcoin, None), alert(Chain::Ethereum, None)];
-        let remote = vec![alert(Chain::Bitcoin, None), alert(Chain::Solana, Some(1.0))];
+        let local = vec![PriceAlert::mock(Chain::Bitcoin, None), PriceAlert::mock(Chain::Ethereum, None)];
+        let remote = vec![PriceAlert::mock(Chain::Bitcoin, None), PriceAlert::mock(Chain::Solana, Some(1.0))];
         let changes = reconcile(local.clone(), remote.clone());
         assert_eq!(changes.delete_ids, vec![local[1].id()]);
         assert_eq!(changes.alerts.iter().map(PriceAlert::id).collect::<Vec<_>>(), vec![remote[1].id()]);

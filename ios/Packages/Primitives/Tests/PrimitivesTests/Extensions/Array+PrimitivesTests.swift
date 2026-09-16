@@ -5,12 +5,6 @@ import Testing
 
 struct ArrayPrimitivesTests {
     @Test
-    func testSplitInSubArrays() {
-        #expect([1].splitInSubArrays(into: 2) == [[1], []])
-        #expect([1, 2, 3, 4].splitInSubArrays(into: 2) == [[1, 3], [2, 4]])
-    }
-
-    @Test
     func testChunks() {
         #expect([1].chunks(2) == [[1]])
         #expect([1, 2, 3, 4].chunks(2) == [[1, 2], [3, 4]])

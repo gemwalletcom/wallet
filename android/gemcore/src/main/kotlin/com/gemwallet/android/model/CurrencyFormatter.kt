@@ -56,8 +56,5 @@ class CurrencyFormatter(
             Type.Abbreviated -> GemCurrencyStyle.ABBREVIATED
         }
 
-    private fun precision(magnitude: BigDecimal): Precision = when (val precision = style.precision(magnitude.toDouble())) {
-        is GemPrecision.Fraction -> Precision.Fraction(min = precision.min.toInt(), max = precision.max.toInt())
-        is GemPrecision.Significant -> Precision.Significant(max = precision.max.toInt())
-    }
+    private fun precision(magnitude: BigDecimal): GemPrecision = style.precision(magnitude.toDouble())
 }

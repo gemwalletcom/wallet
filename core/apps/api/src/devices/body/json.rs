@@ -40,7 +40,7 @@ mod tests {
     use gem_auth::build_device_auth_header;
     use rocket::http::{ContentType, Header, Status};
     use rocket::local::blocking::Client;
-    use rocket::{Build, Rocket, post, routes};
+    use rocket::{post, routes};
 
     use super::DeviceJson;
     use crate::devices::auth_config::AuthConfig;
@@ -52,25 +52,18 @@ mod tests {
         "ok"
     }
 
-    fn rocket() -> Rocket<Build> {
-        rocket::build().manage(AuthConfig::mock()).mount("/", routes![echo])
-    }
-
-    fn authorization(body: &[u8]) -> Header<'static> {
-        let timestamp_ms = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
-        Header::new(AUTHORIZATION_HEADER, build_device_auth_header(&[1u8; 32], "POST", "/", "", body, timestamp_ms).unwrap())
-    }
-
     #[test]
     fn test_from_data_verifies_body_hash() {
-        let client = Client::tracked(rocket()).unwrap();
+        let client = Client::tracked(rocket::build().manage(AuthConfig::mock()).mount("/", routes![echo])).unwrap();
         let body = br#"{"value":"ok"}"#;
+        let timestamp_ms = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
+        let authorization = Header::new(AUTHORIZATION_HEADER, build_device_auth_header(&[1u8; 32], "POST", "/", "", body, timestamp_ms).unwrap());
 
         assert_eq!(
             client
                 .post("/")
                 .header(ContentType::JSON)
-                .header(authorization(body))
+                .header(authorization.clone())
                 .body(body.as_slice())
                 .dispatch()
                 .status(),
@@ -80,7 +73,7 @@ mod tests {
             client
                 .post("/")
                 .header(ContentType::JSON)
-                .header(authorization(body))
+                .header(authorization)
                 .body(br#"{"value":"tampered"}"#.as_slice())
                 .dispatch()
                 .status(),

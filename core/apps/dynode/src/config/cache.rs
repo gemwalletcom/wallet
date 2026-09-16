@@ -172,10 +172,6 @@ mod tests {
 
     const CONTRACT: &str = "0x1111111111111111111111111111111111111111";
 
-    fn eth_call_params(contract: &str, data: &str) -> Value {
-        serde_json::json!([{ "to": contract, "data": data }, "latest"])
-    }
-
     #[test]
     fn test_ttl_default_none() {
         let rule: CacheRule = serde_json::from_value(serde_json::json!({
@@ -261,14 +257,14 @@ mod tests {
         let ethereum = config.cache_rules(Chain::Ethereum).unwrap();
         assert_eq!(ethereum.contracts.methods.len(), 1);
         assert_eq!(
-            ethereum.call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
+            ethereum.call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, "0x1698ee82")),
             Some(MINUTE * 5)
         );
         assert_eq!(
             config
                 .cache_rules(Chain::Optimism)
                 .unwrap()
-                .call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_with_params(1, ETH_CALL, eth_call_params(CONTRACT, "0x1698ee82"))),
+                .call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, "0x1698ee82")),
             Some(MINUTE * 5)
         );
         assert!(config.cache_rules(Chain::Solana).is_none());

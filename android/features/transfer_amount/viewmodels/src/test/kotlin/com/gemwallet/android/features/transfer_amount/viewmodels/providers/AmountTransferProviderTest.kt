@@ -2,16 +2,16 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTransfer
-import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import uniffi.gemstone.GemAmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import uniffi.gemstone.TransactionInputType
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.testkit.mockAmountParamsTransfer
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockGemTransferData
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -35,16 +35,12 @@ class AmountTransferProviderTest {
         every { this@mockk.invoke(asset.id) } returns flowOf(assetInfo)
     }
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
-    private val params = AmountParams.Transfer(
-        assetId = asset.id,
-        destination = GemRecipient(address = "to", name = null),
-        memo = "memo",
-    )
+    private val params = mockAmountParamsTransfer(assetId = asset.id, memo = "memo")
 
     private val transfers = mutableListOf<GemAmountTransfer>()
     private val service = mockk<GemAmountServiceInterface> {
         coEvery { transferData(any(), capture(transfers), any(), any()) } answers {
-            GemTransferData(inputType = TransactionInputType.Transfer(firstArg()), recipient = GemRecipient(address = "core"), value = thirdArg(), useMaxAmount = arg(3))
+            mockGemTransferData(inputType = TransactionInputType.Transfer(firstArg()), value = thirdArg(), useMaxAmount = arg(3))
         }
     }
 

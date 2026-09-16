@@ -1,4 +1,4 @@
-mod rewards_abuse_checker;
+pub(crate) mod rewards_abuse_checker;
 mod rewards_eligibility_checker;
 
 use std::error::Error;

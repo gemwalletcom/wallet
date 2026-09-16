@@ -471,7 +471,7 @@ pub struct Okx {
     pub project: String,
 }
 
-#[cfg(feature = "testkit")]
+#[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
 pub fn service_user_agent(service: &str, sub_service: Option<&str>) -> String {

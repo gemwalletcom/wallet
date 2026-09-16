@@ -6,15 +6,15 @@ import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
-import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.includeGemstoneLibs
+import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
-import com.wallet.core.primitives.ApplicationMetadata
+import com.gemwallet.android.testkit.mockGemTransferData
+import com.gemwallet.android.testkit.mockTransferDataExtra
 import com.wallet.core.primitives.ApplicationMetadataSource
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
@@ -27,7 +27,6 @@ import uniffi.gemstone.ApprovalData
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
 import com.gemwallet.android.domains.confirm.unpackTransferData
 
@@ -43,40 +42,11 @@ class TransferDataCodecTest {
     private fun roundTrip(transfer: GemTransferData): GemTransferData =
         requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))
 
-    private fun generic(
-        asset: Asset,
-        recipient: GemRecipient,
-        metadata: ApplicationMetadata,
-        data: String,
-        outputType: TransferDataOutputType,
-        outputAction: TransferDataOutputAction,
-        transactionType: TransactionType,
-        gasLimit: BigInteger? = null,
-        approval: ApprovalData? = null,
-    ) = GemTransferData(
-        inputType = TransactionInputType.Generic(
-            asset = asset.toGem(),
-            metadata = metadata.toGem(),
-            extra = TransferDataExtra(
-                to = recipient.address,
-                gasLimit = gasLimit,
-                gasPrice = null,
-                data = data.toTransactionData(),
-                outputType = outputType.toGem(),
-                outputAction = outputAction.toGem(),
-                transactionType = transactionType.toGem(),
-                approval = approval,
-            ),
-        ),
-        recipient = recipient,
-        value = BigInteger.ZERO,
-    )
-
     @Test
     fun transferPackRoundTripsThroughCoreCodec() {
         val asset = mockAssetSolanaUSDC()
-        val original = GemTransferData(
-            inputType = TransactionInputType.transfer(asset),
+        val original = mockGemTransferData(
+            asset = asset,
             recipient = GemRecipient(address = "recipient", name = "recipient.sol", memo = "payment-memo", references = listOf("reference")),
             value = BigInteger("19000000"),
             useMaxAmount = true,
@@ -98,22 +68,18 @@ class TransferDataCodecTest {
     fun genericPackRoundTripsThroughCoreCodec() {
         val asset = mockAssetSolana()
         val approval = ApprovalData(token = "token", spender = "spender", value = BigInteger.ONE, isUnlimited = false)
-        val original = generic(
-            asset = asset,
-            recipient = GemRecipient(address = "merchant", memo = "payment-memo"),
-            metadata = ApplicationMetadata(
-                name = "Merchant",
-                description = "Payment",
-                url = "https://example.com",
-                icon = "https://example.com/icon.png",
-                source = ApplicationMetadataSource.WalletConnect,
+        val original = mockGemTransferData(
+            inputType = TransactionInputType.Generic(
+                asset = asset.toGem(),
+                metadata =  mockApplicationMetadata(name = "Merchant", source = ApplicationMetadataSource.WalletConnect).toGem(),
+                extra = mockTransferDataExtra(
+                    to = "merchant",
+                    data = "encoded-transaction".toTransactionData(),
+                    gasLimit = BigInteger("21000"),
+                    approval = approval,
+                ),
             ),
-            data = "encoded-transaction",
-            outputType = TransferDataOutputType.EncodedTransaction,
-            outputAction = TransferDataOutputAction.Send,
-            transactionType = TransactionType.Transfer,
-            gasLimit = BigInteger("21000"),
-            approval = approval,
+            recipient = GemRecipient(address = "merchant", memo = "payment-memo"),
         )
 
         val transfer = roundTrip(original)
@@ -137,20 +103,19 @@ class TransferDataCodecTest {
     @Test
     fun genericHexDataSurvivesCoreCodec() {
         val data = "0xa9059cbb00000000000000000000000000000000000000000000000000000000000000ff"
-        val original = generic(
-            asset = mockAssetEthereum(),
-            recipient = GemRecipient("0x000000000022D473030F116dDEE9F6B43aC78BA3"),
-            metadata = ApplicationMetadata(
-                name = "Dapp",
-                description = "",
-                url = "https://dapp.example",
-                icon = "",
-                source = ApplicationMetadataSource.WalletConnect,
+        val original = mockGemTransferData(
+            inputType = TransactionInputType.Generic(
+                asset = mockAssetEthereum().toGem(),
+                metadata = mockApplicationMetadata().toGem(),
+                extra = mockTransferDataExtra(
+                    to = "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                    data = data.toTransactionData(),
+                    outputType = TransferDataOutputType.Signature,
+                    outputAction = TransferDataOutputAction.Sign,
+                    transactionType = TransactionType.SmartContractCall,
+                ),
             ),
-            data = data,
-            outputType = TransferDataOutputType.Signature,
-            outputAction = TransferDataOutputAction.Sign,
-            transactionType = TransactionType.SmartContractCall,
+            recipient = GemRecipient("0x000000000022D473030F116dDEE9F6B43aC78BA3"),
         )
 
         val generic = roundTrip(original).inputType as TransactionInputType.Generic
@@ -164,11 +129,7 @@ class TransferDataCodecTest {
     @Test
     fun nativeTransferPackRoundTripsThroughCoreCodec() {
         val asset = mockAssetSolana()
-        val original = GemTransferData(
-            inputType = TransactionInputType.transfer(asset),
-            recipient = GemRecipient("recipient"),
-            value = BigInteger.ONE,
-        )
+        val original = mockGemTransferData(asset = asset)
 
         val transfer = roundTrip(original)
 

@@ -8,6 +8,8 @@ mod client;
 mod constants;
 #[cfg(feature = "backend")]
 mod model;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 mod text;
 #[cfg(feature = "backend")]
 mod webhook;

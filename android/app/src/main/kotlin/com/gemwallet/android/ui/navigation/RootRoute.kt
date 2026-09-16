@@ -99,6 +99,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.UrlAction
@@ -137,7 +138,7 @@ fun rememberWalletNavigationState(
 class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
-    private val deeplinkService: GemDeeplinkService,
+    private val deeplinkService: GemDeeplinkServiceInterface,
     private val assetsService: GemAssetsServiceInterface,
     private val scope: CoroutineScope,
 ) {

@@ -85,7 +85,6 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    use crate::testkit::config::{chain_config, jsonrpc};
     use primitives::Chain;
     use serde_json::json;
 
@@ -112,9 +111,9 @@ mod tests {
         assert_eq!(ethereum.rpc_ttl("eth_chainId"), Some(Duration::from_secs(180)));
         assert_eq!(optimism.rpc_ttl("eth_blockNumber"), Some(Duration::from_secs(60)));
         assert_eq!(optimism.rpc_ttl("eth_chainId"), None);
-        let chain = chain_config(Chain::Ethereum, "https://example.com");
-        assert!(config.allows(&chain, &jsonrpc("eth_chainId")));
-        assert!(!config.allows(&chain, &jsonrpc("eth_blockNumber")));
+        let chain = ChainConfig::mock(Chain::Ethereum);
+        assert!(config.allows(&chain, &RequestType::mock_jsonrpc("eth_chainId")));
+        assert!(!config.allows(&chain, &RequestType::mock_jsonrpc("eth_blockNumber")));
         assert!(config.cache_rules(Chain::Solana).is_none());
     }
 
@@ -129,9 +128,9 @@ mod tests {
         }))
         .unwrap();
 
-        assert!(config.allows(&chain_config(Chain::Ethereum, "https://example.com"), &jsonrpc("eth_call")));
-        assert!(config.allows(&chain_config(Chain::Arbitrum, "https://example.com"), &jsonrpc("eth_call")));
-        assert!(!config.allows(&chain_config(Chain::Ethereum, "https://example.com"), &jsonrpc("unsupported_method")));
+        assert!(config.allows(&ChainConfig::mock(Chain::Ethereum), &RequestType::mock_jsonrpc("eth_call")));
+        assert!(config.allows(&ChainConfig::mock(Chain::Arbitrum), &RequestType::mock_jsonrpc("eth_call")));
+        assert!(!config.allows(&ChainConfig::mock(Chain::Ethereum), &RequestType::mock_jsonrpc("unsupported_method")));
     }
 
     #[test]
@@ -141,8 +140,8 @@ mod tests {
         }))
         .unwrap();
 
-        assert!(config.allows(&chain_config(Chain::Tron, "https://example.com"), &jsonrpc("unknown_method")));
-        assert!(config.allows(&chain_config(Chain::Solana, "https://example.com"), &jsonrpc("unknown_method")));
+        assert!(config.allows(&ChainConfig::mock(Chain::Tron), &RequestType::mock_jsonrpc("unknown_method")));
+        assert!(config.allows(&ChainConfig::mock(Chain::Solana), &RequestType::mock_jsonrpc("unknown_method")));
     }
 
     #[test]
@@ -166,8 +165,8 @@ mod tests {
         let quote = RequestType::from_request("GET", "/thorchain/quote/swap?from_asset=SOL.SOL".to_string(), Vec::new());
         let denied = RequestType::from_request("GET", "/thorchain/vaults/asgard".to_string(), Vec::new());
 
-        assert!(config.allows(&chain_config(Chain::Thorchain, "https://example.com"), &balance));
-        assert!(config.allows(&chain_config(Chain::Thorchain, "https://example.com"), &quote));
-        assert!(!config.allows(&chain_config(Chain::Thorchain, "https://example.com"), &denied));
+        assert!(config.allows(&ChainConfig::mock(Chain::Thorchain), &balance));
+        assert!(config.allows(&ChainConfig::mock(Chain::Thorchain), &quote));
+        assert!(!config.allows(&ChainConfig::mock(Chain::Thorchain), &denied));
     }
 }

@@ -194,10 +194,7 @@ mod tests {
                     amount: 6000000,
                 },
             ]),
-            unfrozen_v2: Some(vec![TronUnfrozen {
-                unfreeze_amount: 2000000,
-                unfreeze_expire_time: Some(1234567890),
-            }]),
+            unfrozen_v2: Some(vec![TronUnfrozen::mock(2000000, 1234567890)]),
         };
 
         let reward = TronReward { reward: 100000 };
@@ -373,14 +370,7 @@ mod tests {
         };
 
         let reward = TronReward { reward: 0 };
-        let usage = TronAccountUsage {
-            energy_limit: 0,
-            energy_used: 0,
-            free_net_limit: 0,
-            free_net_used: 0,
-            net_used: 0,
-            net_limit: 0,
-        };
+        let usage = TronAccountUsage::mock(0, 0, 0);
 
         let balance = map_staking_balance(&account, &reward, &usage).unwrap();
         let metadata = balance.balance.metadata.as_ref().unwrap();

@@ -10,7 +10,7 @@ import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
-import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.GemBalanceResource
 import uniffi.gemstone.PaymentStatus
 import uniffi.gemstone.GemRecipientSection
 import uniffi.gemstone.GemHeaderButtonKind
@@ -86,14 +86,12 @@ fun GemWalletSubtitle.string(): String = when (this) {
     is GemWalletSubtitle.Address -> value
 }
 
-@Composable
-fun GemAddNodeFailure.string(): String = stringResource(
-    when (this) {
-        GemAddNodeFailure.INVALID_URL -> R.string.errors_invalid_url
-        GemAddNodeFailure.INVALID_NETWORK_ID -> R.string.errors_invalid_network_id
-        GemAddNodeFailure.UNAVAILABLE -> R.string.errors_error_occurred
-    }
-)
+@StringRes
+fun GemAddNodeFailure.stringRes(): Int = when (this) {
+    GemAddNodeFailure.INVALID_URL -> R.string.errors_invalid_url
+    GemAddNodeFailure.INVALID_NETWORK_ID -> R.string.errors_invalid_network_id
+    GemAddNodeFailure.UNAVAILABLE -> R.string.errors_error_occurred
+}
 
 @Composable
 fun GemDelegationStatus.stateText(): String = stringResource(
@@ -397,16 +395,14 @@ fun GemCandleTooltipRow.stringRes(): Int = when (this) {
 }
 
 @StringRes
-fun GemContactAddressField.stringRes(): Int = when (this) {
-    GemContactAddressField.NETWORK -> R.string.transfer_network
-    GemContactAddressField.ADDRESS -> R.string.common_address
-    GemContactAddressField.MEMO -> R.string.transfer_memo
-}
-
-@StringRes
 fun GemRecipientSection.stringRes(): Int = when (this) {
     is GemRecipientSection.Pinned -> R.string.common_pinned
     is GemRecipientSection.Contacts -> R.string.contacts_title
     is GemRecipientSection.Wallets -> R.string.transfer_recipient_my_wallets
     is GemRecipientSection.ViewWallets -> R.string.transfer_recipient_view_wallets
+}
+
+fun GemBalanceResource.titleRes(): Int = when (this) {
+    GemBalanceResource.ENERGY -> R.string.stake_resource_energy
+    GemBalanceResource.BANDWIDTH -> R.string.stake_resource_bandwidth
 }

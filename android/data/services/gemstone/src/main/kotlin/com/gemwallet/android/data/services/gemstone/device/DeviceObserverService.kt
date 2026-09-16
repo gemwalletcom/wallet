@@ -8,10 +8,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemDeviceServiceInterface
 
 class DeviceObserverService(
     private val getWallets: GetWallets,
-    private val deviceService: GemDeviceService,
+    private val deviceService: GemDeviceServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) {
     private var observeJob: Job? = null

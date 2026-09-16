@@ -1,46 +1,37 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemAPI
+import class Gemstone.GemApiClient
 import enum Gemstone.GemImage
+import struct Gemstone.GemWidgetCoin
+import protocol Gemstone.GemWidgetServiceProtocol
+import class Gemstone.GemWidgetService
+import enum Gemstone.GemWidgetSize
+import NativeProviderService
 import Primitives
 import Style
 import SwiftUI
 import WidgetKit
 
 struct WidgetPriceService {
-    private let assetsService: any GemAPIAssetsService
+    private let service: any GemWidgetServiceProtocol
     private let preferences = SharedPreferences()
 
-    init() {
-        assetsService = GemAPIService()
+    init(service: any GemWidgetServiceProtocol = GemWidgetService(api: GemApiClient(provider: NativeProvider()))) {
+        self.service = service
     }
 
-    func coins(_ widgetFamily: WidgetFamily) -> [AssetId] {
-        switch widgetFamily {
-        case .systemSmall:
-            [AssetId(chain: .bitcoin, tokenId: nil)]
-        default:
-            [
-                AssetId(chain: .bitcoin, tokenId: nil),
-                AssetId(chain: .ethereum, tokenId: nil),
-                AssetId(chain: .solana, tokenId: nil),
-                AssetId(chain: .xrp, tokenId: nil),
-                AssetId(chain: .smartChain, tokenId: nil),
-            ]
-        }
+    var refreshInterval: TimeInterval {
+        TimeInterval(service.refreshIntervalSeconds())
     }
 
     func topCoinPrices(widgetFamily: WidgetFamily = .systemMedium) async -> PriceWidgetEntry {
-        let coins = coins(widgetFamily)
         let currency = preferences.currency
-
         do {
-            let assets = try await assetsService.getAssets(currency: currency, assetIds: coins)
-
+            let coins = try await service.coins(size: widgetFamily.widgetSize, currency: currency)
             return await PriceWidgetEntry(
                 date: Date(),
-                coinPrices: coinPrices(assets: assets),
+                coinPrices: coinPrices(coins: coins),
                 currency: currency,
                 widgetFamily: widgetFamily,
             )
@@ -53,34 +44,23 @@ struct WidgetPriceService {
 // MARK: - Private
 
 extension WidgetPriceService {
-    private func coinPrices(assets: [AssetBasic]) async -> [CoinPrice] {
-        await withTaskGroup(of: CoinPrice?.self) { group in
-            for asset in assets {
-                guard let price = asset.price else { continue }
+    private func coinPrices(coins: [GemWidgetCoin]) async -> [CoinPrice] {
+        await withTaskGroup(of: (Int, CoinPrice).self) { group in
+            for (index, coin) in coins.enumerated() {
                 group.addTask {
-                    await CoinPrice(
-                        assetId: asset.asset.id,
-                        name: asset.asset.name,
-                        symbol: asset.asset.symbol,
-                        price: price.price,
-                        priceChangePercentage24h: price.priceChangePercentage24h,
-                        image: Self.image(for: asset.asset.id),
-                    )
+                    await (index, CoinPrice(coin: coin, image: Self.image(for: coin.assetId)))
                 }
             }
-            return await group.compactMap(\.self).reduce(into: []) { $0.append($1) }
+            return await group.reduce(into: []) { $0.append($1) }.sorted { $0.0 < $1.0 }.map(\.1)
         }
     }
 
-    private static func image(for assetId: AssetId) async -> Image? {
+    private static func image(for assetId: String) async -> Image? {
+        guard let assetId = try? AssetId(id: assetId) else { return nil }
         switch assetId.type {
-        case .native: Images.name(assetId.chain.rawValue)
-        case .token: await remoteImage(url: tokenImageURL(for: assetId))
+        case .native: return Images.name(assetId.chain.rawValue)
+        case .token: return await remoteImage(url: URL(string: GemImage.asset(assetId: assetId.identifier).url()))
         }
-    }
-
-    private static func tokenImageURL(for assetId: AssetId) -> URL? {
-        URL(string: GemImage.asset(assetId: assetId.identifier).url())
     }
 
     private static func remoteImage(url: URL?) async -> Image? {
@@ -94,6 +74,16 @@ extension WidgetPriceService {
         } catch {
             debugLog("WidgetPriceService: Failed to fetch image from \(url): \(error)")
             return nil
+        }
+    }
+}
+
+extension WidgetFamily {
+    var widgetSize: GemWidgetSize {
+        switch self {
+        case .systemSmall: .small
+        case .systemLarge, .systemExtraLarge: .large
+        default: .medium
         }
     }
 }

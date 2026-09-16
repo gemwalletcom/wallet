@@ -5,7 +5,6 @@ import struct Gemstone.GemPerpetualMarketCounts
 import enum Gemstone.GemPerpetualMarketSection
 import struct Gemstone.GemPerpetualMarketSections
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import GemstonePrimitives
 import enum Gemstone.GemMarketsRefreshTrigger
 import protocol Gemstone.GemPerpetualServiceProtocol

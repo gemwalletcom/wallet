@@ -191,22 +191,22 @@ pub fn empty_state(input: GemEmptyStateInput) -> GemEmptyState {
 mod tests {
     use super::*;
 
-    fn state(kind: GemEmptyStateKind, is_view_only: bool, offered_actions: Vec<GemEmptyStateAction>) -> GemEmptyState {
-        empty_state(GemEmptyStateInput {
-            kind,
-            is_view_only,
-            offered_actions,
-        })
-    }
-
     #[test]
     fn test_a_watch_only_list_explains_itself_and_offers_nothing() {
-        let watching = state(GemEmptyStateKind::Activity, true, vec![GemEmptyStateAction::Buy]);
+        let watching = empty_state(GemEmptyStateInput {
+            kind: GemEmptyStateKind::Activity,
+            is_view_only: true,
+            offered_actions: vec![GemEmptyStateAction::Buy],
+        });
         assert_eq!(watching.title, GemEmptyStateText::WatchWalletTitle);
         assert_eq!(watching.description, Some(GemEmptyStateText::WatchWalletDescription));
         assert!(watching.actions.is_empty());
 
-        let owned = state(GemEmptyStateKind::Activity, false, vec![GemEmptyStateAction::Buy, GemEmptyStateAction::Receive]);
+        let owned = empty_state(GemEmptyStateInput {
+            kind: GemEmptyStateKind::Activity,
+            is_view_only: false,
+            offered_actions: vec![GemEmptyStateAction::Buy, GemEmptyStateAction::Receive],
+        });
         assert_eq!(owned.title, GemEmptyStateText::ActivityTitle);
         assert_eq!(owned.actions, vec![GemEmptyStateAction::Buy, GemEmptyStateAction::Receive]);
     }
@@ -214,16 +214,40 @@ mod tests {
     #[test]
     fn test_only_the_actions_the_screen_offers_are_returned() {
         assert_eq!(
-            state(GemEmptyStateKind::Asset, false, vec![GemEmptyStateAction::Swap]).actions,
+            empty_state(GemEmptyStateInput {
+                kind: GemEmptyStateKind::Asset,
+                is_view_only: false,
+                offered_actions: vec![GemEmptyStateAction::Swap],
+            })
+            .actions,
             vec![GemEmptyStateAction::Swap]
         );
-        assert!(state(GemEmptyStateKind::Asset, false, vec![]).actions.is_empty());
         assert!(
-            state(GemEmptyStateKind::Nfts, false, vec![]).description.is_none(),
+            empty_state(GemEmptyStateInput {
+                kind: GemEmptyStateKind::Asset,
+                is_view_only: false,
+                offered_actions: vec![],
+            })
+            .actions
+            .is_empty()
+        );
+        assert!(
+            empty_state(GemEmptyStateInput {
+                kind: GemEmptyStateKind::Nfts,
+                is_view_only: false,
+                offered_actions: vec![],
+            })
+            .description
+            .is_none(),
             "an nft list without a receive action says only that it is empty"
         );
         assert_eq!(
-            state(GemEmptyStateKind::Nfts, false, vec![GemEmptyStateAction::Receive]).description,
+            empty_state(GemEmptyStateInput {
+                kind: GemEmptyStateKind::Nfts,
+                is_view_only: false,
+                offered_actions: vec![GemEmptyStateAction::Receive],
+            })
+            .description,
             Some(GemEmptyStateText::NftsDescription)
         );
     }
@@ -231,11 +255,21 @@ mod tests {
     #[test]
     fn test_a_search_without_a_custom_token_action_falls_back_to_the_plain_description() {
         assert_eq!(
-            state(GemEmptyStateKind::SearchAssets, false, vec![]).description,
+            empty_state(GemEmptyStateInput {
+                kind: GemEmptyStateKind::SearchAssets,
+                is_view_only: false,
+                offered_actions: vec![],
+            })
+            .description,
             Some(GemEmptyStateText::SearchDescription)
         );
         assert_eq!(
-            state(GemEmptyStateKind::SearchAssets, false, vec![GemEmptyStateAction::AddCustomToken]).description,
+            empty_state(GemEmptyStateInput {
+                kind: GemEmptyStateKind::SearchAssets,
+                is_view_only: false,
+                offered_actions: vec![GemEmptyStateAction::AddCustomToken],
+            })
+            .description,
             Some(GemEmptyStateText::SearchAssetsDescription)
         );
     }

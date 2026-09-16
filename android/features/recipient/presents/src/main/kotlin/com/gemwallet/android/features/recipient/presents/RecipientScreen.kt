@@ -33,7 +33,6 @@ import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.features.recipient.presents.components.walletsSection
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
-import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
@@ -64,7 +63,6 @@ fun RecipientScreen(
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressError by viewModel.addressError.collectAsStateWithLifecycle()
-    val memoError by viewModel.memoErrorState.collectAsStateWithLifecycle()
     val address by viewModel.address.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val memo by viewModel.memo.collectAsStateWithLifecycle()
@@ -83,7 +81,6 @@ fun RecipientScreen(
                 memo = memo,
                 addressError = addressError,
                 nameResolveState = nameResolveState,
-                memoError = memoError,
                 sections = sections,
                 contacts = contacts,
                 buttonState = buttonState,
@@ -125,7 +122,6 @@ internal fun RecipientScreen(
     memo: String,
     addressError: Boolean,
     nameResolveState: GemNameRecordState,
-    memoError: RecipientError,
     sections: List<GemRecipientSection>,
     contacts: List<ContactRecipient>,
     buttonState: ButtonState,
@@ -177,7 +173,6 @@ internal fun RecipientScreen(
                 addressError = addressError,
                 nameResolveState = nameResolveState,
                 memo = memo,
-                memoError = memoError,
                 onAddress = { onAction(RecipientAction.SetAddress(it)) },
                 onMemo = { onAction(RecipientAction.SetMemo(it)) },
                 onQrScan = { onAction(RecipientAction.Scan(it)) },

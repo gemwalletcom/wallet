@@ -7,7 +7,6 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.features.settings.networks.presents.localization.string
 
 @Composable
 internal fun ServiceStatusItem(
@@ -17,15 +16,15 @@ internal fun ServiceStatusItem(
     ListItem(
         title = {
             ListItemTitleText(
-                text = model.endpoint.title(model.endpoint.endpointType.string()),
+                text = model.title,
                 titleBadge = {
-                    LatencyStatusBadge(status = model.statusState)
+                    LatencyStatusBadge(latency = model.latency)
                 },
             )
         },
         subtitle = {
             ListItemSupportText(
-                text = model.endpoint.host,
+                text = model.host,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         },

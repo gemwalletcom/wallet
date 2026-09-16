@@ -6,8 +6,10 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockGemConfirmLoad
+import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -34,29 +36,19 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmButtonState
 import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.TransactionInputType
-import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRequestTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val asset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val asset = mockAssetEthereum()
     private val account = mockAccount(chain = Chain.Ethereum)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmation = mockk<GemConfirmation>(relaxed = true)
     private var model: ConfirmViewModel? = null
-
-    private fun transfer(memo: String?) = GemTransferData(
-        inputType = TransactionInputType.Transfer(asset.toGem()),
-        recipient = GemRecipient(address = account.address, memo = memo),
-        value = BigInteger.TEN,
-    )
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -80,7 +72,7 @@ class ConfirmViewModelRequestTest {
 
     @Test
     fun aLargePayloadIsDecodedIntoTheRequest() = runTest(testDispatcher) {
-        val transfer = transfer("m".repeat(64 * 1024))
+        val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "m".repeat(64 * 1024)))
         val handle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack())))
         model = viewModel(handle)
 
@@ -89,8 +81,8 @@ class ConfirmViewModelRequestTest {
 
     @Test
     fun theLatestParamsReplaceTheEarlierOnes() = runTest(testDispatcher) {
-        val first = transfer("first")
-        val second = transfer("second")
+        val first = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "first"))
+        val second = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "second"))
         val handle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(first.pack())))
         model = viewModel(handle)
         verify(timeout = AWAIT_MS) { confirmService.confirmation(any(), first, any()) }
@@ -106,9 +98,9 @@ class ConfirmViewModelRequestTest {
 
     private fun viewModel(handle: SavedStateHandle): ConfirmViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
-        every { confirmation.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, null)
+        every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset, preload = null)
+        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
         coEvery { confirmation.load(any()) } throws IllegalStateException("preload failed")
         return confirmViewModel(handle)
     }

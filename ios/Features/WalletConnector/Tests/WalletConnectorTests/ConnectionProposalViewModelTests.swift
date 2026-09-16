@@ -4,14 +4,13 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import WalletConnector
+import WalletConnectorTestKit
 
 struct ConnectionProposalViewModelTests {
     @Test
     func appIconPrefersTheProposedIcon() {
-        let metadata = ApplicationMetadata.mock(url: "https://tronscan.org/some/page", icon: "https://tronscan.org/static/media/logo.png")
-        let model = ConnectionProposalViewModel(
-            confirmTransferDelegate: { _ in },
-            pairingProposal: .mock(proposal: .mock(metadata: metadata)),
+        let model = ConnectionProposalViewModel.mock(
+            metadata: .mock(url: "https://tronscan.org/some/page", icon: "https://tronscan.org/static/media/logo.png"),
         )
 
         #expect(model.imageUrl?.absoluteString == "https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Ftronscan.org%2Fstatic%2Fmedia%2Flogo.png&size=256")
@@ -20,23 +19,18 @@ struct ConnectionProposalViewModelTests {
 
     @Test
     func unsafeAppWebsiteUsesPlaceholder() {
-        let model = ConnectionProposalViewModel(
-            confirmTransferDelegate: { _ in },
-            pairingProposal: .mock(proposal: .mock(metadata: .mock(url: "http://app.example.com"))),
-        )
+        let model = ConnectionProposalViewModel.mock(metadata: .mock(url: "http://app.example.com"))
 
         #expect(model.imageUrl == nil)
     }
 
     @Test
     func appTextKeepsNameAndDomain() {
-        let metadata = ApplicationMetadata.mock(
-            name: "PancakeSwap - Trade",
-            url: "https://pancakeswap.finance/swap",
-        )
-        let model = ConnectionProposalViewModel(
-            confirmTransferDelegate: { _ in },
-            pairingProposal: .mock(proposal: .mock(metadata: metadata)),
+        let model = ConnectionProposalViewModel.mock(
+            metadata: .mock(
+                name: "PancakeSwap - Trade",
+                url: "https://pancakeswap.finance/swap",
+            ),
         )
 
         #expect(model.appText == "PancakeSwap (pancakeswap.finance)")

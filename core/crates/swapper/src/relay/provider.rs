@@ -228,7 +228,6 @@ where
 mod tests {
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock, approval::DEFAULT_TRON_SWAP_ENERGY_LIMIT, relay::model::Step};
-    use gem_client::testkit::MockClient;
     use primitives::asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID};
 
     const ROUTER_ADDRESS: &str = "0xCcC88a9d1B4ED6b0EABA998850414b24f1c315bE";
@@ -236,55 +235,28 @@ mod tests {
     const ZERO_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const SUFFICIENT_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000022b1c8c1227a00000";
 
-    fn mock_relay_with_allowance(allowance_result: &str) -> Relay<MockClient> {
-        Relay {
-            provider: ProviderType::new(SwapperProvider::Relay),
-            rpc_provider: Arc::new(ProviderMock::new(format!(r#"{{"id":1,"jsonrpc":"2.0","result":"{allowance_result}"}}"#))),
-            client: RelayClient::new(MockClient::new()),
-        }
-    }
-
-    fn mock_relay_with_tron_allowance(allowance: &str) -> Relay<MockClient> {
-        Relay {
-            provider: ProviderType::new(SwapperProvider::Relay),
-            rpc_provider: Arc::new(ProviderMock::new(format!(r#"{{"constant_result":["{allowance}"]}}"#))),
-            client: RelayClient::new(MockClient::new()),
-        }
-    }
-
-    fn mock_quote(chain: Chain) -> Quote {
-        let mut quote = Quote::mock(chain, None);
-        quote.from_value = QUOTE_VALUE.parse().unwrap();
-        quote.request.wallet_address = "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string();
-        quote
-    }
-
-    fn mock_quote_response() -> RelayQuoteResponse {
-        RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", ROUTER_ADDRESS, "0", "0xf9e4bab4")])
-    }
-
     #[tokio::test]
     async fn test_check_evm_approval_tokenized_native_currency() -> Result<(), SwapperError> {
-        let relay = mock_relay_with_allowance(ZERO_ALLOWANCE);
-        let approval = relay
-            .check_approval(&mock_quote(Chain::Celo), &mock_quote_response(), &AssetId::from_chain(Chain::Celo))
-            .await?
-            .unwrap();
+        let response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", ROUTER_ADDRESS, "0", "0xf9e4bab4")]);
+        let mut quote = Quote::mock(Chain::Celo, None);
+        quote.from_value = QUOTE_VALUE.parse().unwrap();
+        quote.request.wallet_address = "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string();
+
+        let relay = Relay::new(Arc::new(ProviderMock::mock_json_rpc_result(ZERO_ALLOWANCE)));
+        let approval = relay.check_approval(&quote, &response, &AssetId::from_chain(Chain::Celo)).await?.unwrap();
 
         assert_eq!(approval.token, CELO_WETH_TOKEN_ID);
         assert_eq!(approval.spender, ROUTER_ADDRESS);
         assert_eq!(approval.value.to_string(), QUOTE_VALUE);
 
-        let relay = mock_relay_with_allowance(SUFFICIENT_ALLOWANCE);
-        let approval = relay
-            .check_approval(&mock_quote(Chain::Celo), &mock_quote_response(), &AssetId::from_chain(Chain::Celo))
-            .await?;
+        let relay = Relay::new(Arc::new(ProviderMock::mock_json_rpc_result(SUFFICIENT_ALLOWANCE)));
+        let approval = relay.check_approval(&quote, &response, &AssetId::from_chain(Chain::Celo)).await?;
         assert!(approval.is_none());
 
-        let relay = mock_relay_with_allowance(ZERO_ALLOWANCE);
-        let approval = relay
-            .check_approval(&mock_quote(Chain::Ethereum), &mock_quote_response(), &AssetId::from_chain(Chain::Ethereum))
-            .await?;
+        quote.request.from_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
+        quote.request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
+        let relay = Relay::new(Arc::new(ProviderMock::mock_json_rpc_result(ZERO_ALLOWANCE)));
+        let approval = relay.check_approval(&quote, &response, &AssetId::from_chain(Chain::Ethereum)).await?;
         assert!(approval.is_none());
 
         Ok(())
@@ -303,7 +275,7 @@ mod tests {
         }];
         quote.request.wallet_address = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z".to_string();
 
-        let relay = mock_relay_with_tron_allowance("0");
+        let relay = Relay::new(Arc::new(ProviderMock::mock_tron_constant_result("0")));
         let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
         let approval = quote_data.approval.unwrap();
         assert_eq!(quote_data.to, "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN");
@@ -313,7 +285,7 @@ mod tests {
         assert!(approval.is_unlimited);
         assert_eq!(quote_data.gas_limit, Some(DEFAULT_TRON_SWAP_ENERGY_LIMIT.to_string()));
 
-        let relay = mock_relay_with_tron_allowance("f4240");
+        let relay = Relay::new(Arc::new(ProviderMock::mock_tron_constant_result("f4240")));
         let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(quote_data.approval.is_none());
         assert!(quote_data.gas_limit.is_none());

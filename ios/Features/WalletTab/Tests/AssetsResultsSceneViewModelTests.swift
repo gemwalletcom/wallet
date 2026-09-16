@@ -10,27 +10,13 @@ import PrimitivesTestKit
 import StoreTestKit
 import Testing
 @testable import WalletTab
+import WalletTabTestKit
 
 @MainActor
 struct AssetsResultsSceneViewModelTests {
-    private func model(
-        service: GemAssetSelectionServiceMock = GemAssetSelectionServiceMock(),
-        wallet: Wallet = .mock(),
-        request: WalletSearchRequest? = nil,
-        onSelectAsset: @escaping (Asset) -> Void = { _ in },
-    ) -> AssetsResultsSceneViewModel {
-        AssetsResultsSceneViewModel(
-            wallet: wallet,
-            service: service,
-            request: request ?? WalletSearchRequest(walletId: wallet.id, searchBy: "usdc", types: [.asset]),
-            title: "Results",
-            onSelectAsset: onSelectAsset,
-        )
-    }
-
     @Test
     func theRequestTakesItsKeyAndLimitFromCore() {
-        let model = model()
+        let model = AssetsResultsSceneViewModel.mock()
 
         #expect(model.searchQuery.request.searchKey == "usdc")
         #expect(model.searchQuery.request.limit == 100)
@@ -38,15 +24,14 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func aListScopeSearchesByItsTag() {
-        let wallet = Wallet.mock()
-        let model = model(request: WalletSearchRequest(walletId: wallet.id, scope: .list("trending"), types: [.asset]))
+        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.asset]))
 
         #expect(model.searchQuery.request.searchKey == "tag:trending")
     }
 
     @Test
     func noResultsReadAsEmptyOnceTheSearchFinished() async {
-        let model = model()
+        let model = AssetsResultsSceneViewModel.mock()
 
         await model.refresh()
 
@@ -56,7 +41,7 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func aFailedSearchStillLeavesTheEmptyState() async {
-        let model = model(service: GemAssetSelectionServiceMock(error: AnyError("offline")))
+        let model = AssetsResultsSceneViewModel.mock(service: GemAssetSelectionServiceMock(error: AnyError("offline")))
 
         await model.refresh()
 
@@ -65,7 +50,7 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func assetsAndPinnedAssetsSplitOnTheirMetadata() {
-        let model = model()
+        let model = AssetsResultsSceneViewModel.mock()
         model.searchQuery.value = .mock(assets: [.mock(metadata: .mock(isPinned: true)), .mock(metadata: .mock(isPinned: false))])
 
         #expect(model.showPinned)
@@ -75,9 +60,8 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func perpetualsAreOfferedOnlyInAListScopeAndOnlyWhenCoreAllowsThem() {
-        let wallet = Wallet.mock()
         let service = GemAssetSelectionServiceMock()
-        let listModel = model(service: service, wallet: wallet, request: WalletSearchRequest(walletId: wallet.id, scope: .list("trending"), types: [.perpetual]))
+        let listModel = AssetsResultsSceneViewModel.mock(service: service, request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
         listModel.searchQuery.value = .mock(perpetuals: [PerpetualData.mock()])
 
         #expect(listModel.showPerpetuals)
@@ -85,7 +69,7 @@ struct AssetsResultsSceneViewModelTests {
         service.perpetualsShown = false
         #expect(listModel.showPerpetuals == false)
 
-        let allModel = model(service: GemAssetSelectionServiceMock(), wallet: wallet)
+        let allModel = AssetsResultsSceneViewModel.mock()
         allModel.searchQuery.value = .mock(perpetuals: [PerpetualData.mock()])
         #expect(allModel.showPerpetuals == false)
     }
@@ -93,7 +77,7 @@ struct AssetsResultsSceneViewModelTests {
     @Test
     func selectingAnAssetCallsBack() {
         var selected: [Asset] = []
-        let model = model(onSelectAsset: { selected.append($0) })
+        let model = AssetsResultsSceneViewModel.mock(onSelectAsset: { selected.append($0) })
 
         model.onSelectAsset(.mock())
 
@@ -107,7 +91,7 @@ struct AssetsResultsSceneViewModelTests {
             onSetAssetsEnabled: { ids, value in calls.record(assetIds: ids, enabled: value) },
             onSetAssetPinned: { id, value in calls.record(assetId: id, pinned: value) },
         )
-        let model = model(service: service)
+        let model = AssetsResultsSceneViewModel.mock(service: service)
         let assetId = AssetId.mock(.ethereum)
 
         try await model.setAssetPinned(assetId, pinned: true)

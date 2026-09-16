@@ -9,6 +9,16 @@ import PrimitivesTestKit
 import struct Gemstone.GemPriceAlertSession
 import enum Gemstone.GemNameInputStep
 
+public extension GemContactService {
+    static func mock() -> GemContactService {
+        GemContactService(
+            store: GemContactStoreMock(),
+            addressStore: GemAddressStoreMock(),
+            files: GemFileStoreMock(),
+        )
+    }
+}
+
 public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol, @unchecked Sendable {
     public var connectionSectionsValue: [GemConnectionSection] = []
     public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: nil, iconUrl: nil)

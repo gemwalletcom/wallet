@@ -13,6 +13,10 @@ let package = Package(
             name: "AppLock",
             targets: ["AppLock"],
         ),
+        .library(
+            name: "AppLockTestKit",
+            targets: ["AppLockTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
@@ -35,12 +39,22 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "AppLockTestKit",
+            dependencies: [
+                "AppLock",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "AppLockTests",
             dependencies: [
                 "AppLock",
-                "Gemstone",
+                "AppLockTestKit",
                 "GemstoneServices",
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 "Primitives",
             ],
         ),

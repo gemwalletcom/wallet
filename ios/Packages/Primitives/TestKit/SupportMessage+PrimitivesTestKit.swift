@@ -28,3 +28,12 @@ public extension SupportAgent {
         SupportAgent(name: name)
     }
 }
+
+public extension SupportMessageImage {
+    static func mock(
+        id: String = "img",
+        url: String = "https://gemwallet.com/a.png",
+    ) -> SupportMessageImage {
+        SupportMessageImage(id: id, url: url, thumbnailUrl: nil, fileName: nil, fileSize: nil, width: nil, height: nil)
+    }
+}

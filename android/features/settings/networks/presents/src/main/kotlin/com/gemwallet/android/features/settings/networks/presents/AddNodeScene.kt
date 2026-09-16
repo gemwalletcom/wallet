@@ -23,12 +23,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeCheckRowUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.features.settings.networks.presents.localization.stringRes
-import com.gemwallet.android.features.settings.networks.presents.localization.text
-import com.gemwallet.android.features.settings.networks.presents.style.icon
-import com.gemwallet.android.features.settings.networks.presents.style.tint
-import uniffi.gemstone.GemNodeCheckRow
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.wallet.core.primitives.QRScanType
@@ -47,7 +43,6 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.localization.string
 
 @Composable
 fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
@@ -85,15 +80,15 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         )
         UrlField(
             value = viewModel.url,
-            error = uiModel.failure?.string().orEmpty(),
+            error = uiModel.errorText,
             onValueChange = viewModel::onUrlChange,
             onQRScan = {
                 isShowQRScan = true
             }
         )
         Spacer16()
-        uiModel.status?.let { status ->
-            status.rows().forEach { NodeCheckRow(it) }
+        if (uiModel.checks.isNotEmpty()) {
+            uiModel.checks.forEach { NodeCheckRow(it) }
             WarningItem()
         }
     }
@@ -168,23 +163,25 @@ private fun WarningItem() {
 }
 
 @Composable
-private fun NodeCheckRow(row: GemNodeCheckRow) {
-    when (row) {
-        is GemNodeCheckRow.InSync -> PropertyItem(
-            title = { PropertyTitleText(row.stringRes()) },
-            data = {
-                PropertyDataText(
-                    "",
-                    badge = {
-                        Icon(
-                            imageVector = row.state.icon(),
-                            tint = row.state.tint(),
-                            contentDescription = "",
-                        )
-                    },
-                )
-            },
-        )
-        else -> PropertyItem(row.stringRes(), row.text())
+private fun NodeCheckRow(row: NodeCheckRowUIModel) {
+    val isInSync = row.isInSync
+    if (isInSync == null) {
+        PropertyItem(row.title, row.value)
+        return
     }
+    PropertyItem(
+        title = { PropertyTitleText(row.title) },
+        data = {
+            PropertyDataText(
+                "",
+                badge = {
+                    Icon(
+                        imageVector = if (isInSync) AppIcons.CheckCircleOutlined else AppIcons.Cancel,
+                        tint = if (isInSync) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error,
+                        contentDescription = "",
+                    )
+                },
+            )
+        },
+    )
 }

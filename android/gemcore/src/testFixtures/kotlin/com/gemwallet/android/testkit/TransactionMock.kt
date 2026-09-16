@@ -1,30 +1,22 @@
 package com.gemwallet.android.testkit
 
-import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.TransactionUtxoInput
 
 fun mockTransaction(
     assetId: AssetId = mockAssetId(),
     id: TransactionId = mockTransactionId(chain = assetId.chain),
     from: String = "sender-address",
     to: String = "recipient-address",
-    contract: String? = null,
     type: TransactionType = TransactionType.Transfer,
     state: TransactionState = TransactionState.Confirmed,
-    blockNumber: String? = "1",
-    sequence: String? = null,
-    fee: String = "1",
     feeAssetId: AssetId = assetId,
     value: String = "1",
-    memo: String? = null,
     direction: TransactionDirection = TransactionDirection.Outgoing,
-    utxoInputs: List<TransactionUtxoInput>? = null,
-    utxoOutputs: List<TransactionUtxoInput>? = null,
     metadata: String? = null,
     createdAt: Long = 1L,
 ) = Transaction(
@@ -32,19 +24,18 @@ fun mockTransaction(
     assetId = assetId,
     from = from,
     to = to,
-    contract = contract,
+    contract = null,
     type = type,
     state = state,
-    blockNumber = blockNumber,
-    sequence = sequence,
-    fee = fee,
+    blockNumber = "1",
+    sequence = null,
+    fee = "1",
     feeAssetId = feeAssetId,
     value = value,
-    memo = memo,
+    memo = null,
     direction = direction,
-    utxoInputs = utxoInputs,
-    utxoOutputs = utxoOutputs,
+    utxoInputs = null,
+    utxoOutputs = null,
     metadata = metadata,
     createdAt = createdAt,
 )
-

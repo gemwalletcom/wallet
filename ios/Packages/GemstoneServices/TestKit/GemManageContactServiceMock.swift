@@ -5,7 +5,6 @@ import struct Gemstone.Contact
 import class Gemstone.GemAddressService
 import enum Gemstone.GemAddressFormatStyle
 import struct Gemstone.GemContactInput
-import class Gemstone.GemContactService
 import struct Gemstone.GemContactScannedAddress
 import class Gemstone.GemManageContactService
 import protocol Gemstone.GemManageContactServiceProtocol
@@ -17,11 +16,7 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
 
     public init() {
         service = GemManageContactService(
-            contacts: GemContactService(
-                store: GemContactStoreMock(),
-                addressStore: GemAddressStoreMock(),
-                files: GemFileStoreMock(),
-            ),
+            contacts: .mock(),
             addresses: GemAddressService(),
             payments: GemPaymentService.mock(),
         )

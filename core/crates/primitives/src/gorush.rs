@@ -95,17 +95,10 @@ impl PushErrorLog {
 mod tests {
     use super::*;
 
-    fn mock_push_data() -> PushNotification {
-        PushNotification {
-            notification_type: crate::PushNotificationTypes::Test,
-            data: None,
-        }
-    }
-
     #[test]
     fn from_device() {
         let device = Device::mock();
-        let result = GorushNotification::from_device(device.clone(), "title".to_string(), "msg".to_string(), mock_push_data());
+        let result = GorushNotification::from_device(device.clone(), "title".to_string(), "msg".to_string(), PushNotification::mock());
         assert!(result.is_some());
 
         let notification = result.unwrap();
@@ -115,10 +108,10 @@ mod tests {
         assert_eq!(notification.device_id, "test-device-id");
 
         let disabled = Device::mock_with(false, "token".to_string(), None);
-        assert!(GorushNotification::from_device(disabled, "t".to_string(), "m".to_string(), mock_push_data()).is_none());
+        assert!(GorushNotification::from_device(disabled, "t".to_string(), "m".to_string(), PushNotification::mock()).is_none());
 
         let empty_token = Device::mock_with(true, "".to_string(), None);
-        assert!(GorushNotification::from_device(empty_token, "t".to_string(), "m".to_string(), mock_push_data()).is_none());
+        assert!(GorushNotification::from_device(empty_token, "t".to_string(), "m".to_string(), PushNotification::mock()).is_none());
     }
 
     #[test]

@@ -14,7 +14,6 @@ import com.gemwallet.android.features.settings.networks.viewmodels.NetworksViewM
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun NetworksScreen(
@@ -22,7 +21,7 @@ fun NetworksScreen(
     viewModel: NetworksViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = state.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackbar = rememberSnackbarState(message = state.errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val selectListState = rememberLazyListState()
     var showStatus by remember { mutableStateOf(false) }

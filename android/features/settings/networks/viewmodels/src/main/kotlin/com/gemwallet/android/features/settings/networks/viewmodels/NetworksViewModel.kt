@@ -1,16 +1,19 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworkSectionUIModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ext.requireChain
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemExplorerRow
-import uniffi.gemstone.GemNodeRow
 import uniffi.gemstone.GemNodeListSession
 import uniffi.gemstone.GemNodeStatusState
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
@@ -37,6 +40,7 @@ import com.gemwallet.android.ext.errorText
 class NetworksViewModel @Inject constructor(
     private val service: GemChainSettingsServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val sections = service.sections()
@@ -81,7 +85,7 @@ class NetworksViewModel @Inject constructor(
         viewModelScope.launch {
             runCatchingCancellable { service.selectNode(chain.string, url) }
                 .onSuccess { loadNodes(chain) }
-                .onFailure { error -> updateState { it.copy(error = error.errorText()) } }
+                .onFailure { error -> updateState { it.copy(errorText = error.errorText().text(context)) } }
         }
     }
 
@@ -89,7 +93,7 @@ class NetworksViewModel @Inject constructor(
         val chain = state.value.chain ?: return
         runCatching { service.setExplorerName(chain.string, name) }
             .onSuccess { updateState { it.copy(explorers = service.explorerRows(chain.string)) } }
-            .onFailure { error -> updateState { it.copy(error = error.errorText()) } }
+            .onFailure { error -> updateState { it.copy(errorText = error.errorText().text(context)) } }
     }
 
     fun onSelectChain() {
@@ -101,11 +105,11 @@ class NetworksViewModel @Inject constructor(
         viewModelScope.launch {
             runCatchingCancellable { service.deleteNode(chain.string, url) }
                 .onSuccess { loadNodes(chain) }
-                .onFailure { error -> updateState { it.copy(error = error.errorText()) } }
+                .onFailure { error -> updateState { it.copy(errorText = error.errorText().text(context)) } }
         }
     }
 
-    fun clearError() = updateState { it.copy(error = null) }
+    fun clearError() = updateState { it.copy(errorText = null) }
 
     private fun observeNodes(chain: Chain) {
         observeNodesJob?.cancel()
@@ -154,17 +158,20 @@ class NetworksViewModel @Inject constructor(
         val availableChains: List<Chain> = emptyList(),
         val selectChain: Boolean = true,
         val availableAddNode: Boolean = true,
-        val error: GemErrorText? = null,
+        val errorText: String? = null,
     )
 
     private fun State.toUIState(): NetworksUIState = NetworksUIState(
         chain = chain,
         chains = availableChains,
         selectChain = selectChain,
-        sections = sections,
-        blockExplorers = explorers,
+        sections = sections.map { section ->
+            when (section) {
+                GemChainSettingsSection.NODES -> NetworkSectionUIModel.Nodes(session?.let { service.nodeRows(it.chain, it.nodes, it.statuses) }.orEmpty().map { it.uiModel(context) })
+                GemChainSettingsSection.EXPLORER -> NetworkSectionUIModel.Explorers(explorers.map { it.uiModel() })
+            }
+        },
         availableAddNode = availableAddNode,
-        nodeRows = session?.let { service.nodeRows(it.chain, it.nodes, it.statuses) }.orEmpty(),
-        error = error,
+        errorText = errorText,
     )
 }

@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER};
 use crate::{
-    ApplicationMetadata, Asset, AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
-    TransferDataOutputAction, TransferDataOutputType,
+    ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata,
+    TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, UTXO, asset_constants::NEAR_USDT_ASSET_ID,
 };
 use num_bigint::BigInt;
 use num_bigint::BigUint;
@@ -26,14 +26,7 @@ impl TransactionLoadInput {
     pub fn mock_aptos_token_transfer(token_id: &str) -> Self {
         TransactionLoadInput {
             input_type: TransactionInputType::Transfer {
-                asset: Asset::mock_with_params(
-                    Chain::Aptos,
-                    Some(token_id.to_string()),
-                    "USD Coin".to_string(),
-                    "USDC".to_string(),
-                    6,
-                    crate::AssetType::TOKEN,
-                ),
+                asset: Asset::mock_with_params(Chain::Aptos, Some(token_id.to_string()), "USD Coin".to_string(), "USDC".to_string(), 6, AssetType::TOKEN),
             },
             sender_address: "0x1".to_string(),
             destination_address: "0x2".to_string(),
@@ -104,30 +97,6 @@ impl SignerInput {
         )
     }
 
-    pub fn mock_tron(
-        input_type: TransactionInputType,
-        sender: &str,
-        destination: &str,
-        value: &str,
-        transaction_fee: TransactionFee,
-        memo: Option<&str>,
-        metadata: TransactionLoadMetadata,
-    ) -> Self {
-        SignerInput::new(
-            TransactionLoadInput {
-                input_type,
-                sender_address: sender.to_string(),
-                destination_address: destination.to_string(),
-                value: value.parse().unwrap(),
-                gas_price: GasPriceType::regular(0),
-                memo: memo.map(str::to_string),
-                is_max_value: false,
-                metadata,
-            },
-            transaction_fee,
-        )
-    }
-
     pub fn mock_osmosis(input_type: TransactionInputType, destination: &str) -> Self {
         let fee_amount = BigInt::from(10_000u64);
         SignerInput::new(
@@ -167,10 +136,33 @@ impl SignerInput {
         )
     }
 
+    pub fn mock_sign_data(chain: Chain, sender: &str, data: &str, output_type: TransferDataOutputType) -> Self {
+        SignerInput::new(
+            TransactionLoadInput {
+                sender_address: sender.to_string(),
+                ..TransactionLoadInput::mock_sign_data(chain, data, output_type)
+            },
+            TransactionFee::mock(),
+        )
+    }
+
     pub fn mock_solana(block_hash: &str) -> Self {
         SignerInput::new(
             TransactionLoadInput::mock_solana(block_hash),
             TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Solana)),
+        )
+    }
+
+    pub fn mock_near_token_transfer(memo: Option<&str>, fee: TransactionFee) -> Self {
+        SignerInput::new(
+            TransactionLoadInput {
+                input_type: TransactionInputType::Transfer {
+                    asset: Asset::new(NEAR_USDT_ASSET_ID.clone(), "Tether".to_string(), "USDT".to_string(), 6, AssetType::TOKEN),
+                },
+                memo: memo.map(String::from),
+                ..TransactionLoadInput::mock_near("test.near", "receiver.near", "1000000", 1, "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM")
+            },
+            fee,
         )
     }
 }
@@ -207,16 +199,57 @@ impl TransactionLoadInput {
         }
     }
 
-    pub fn mock_transfer(asset: Asset, sender: &str, destination: &str, value: &str, fee: u64, memo: Option<&str>, metadata: TransactionLoadMetadata) -> Self {
+    pub fn mock_polkadot() -> Self {
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer { asset },
-            sender_address: sender.into(),
-            destination_address: destination.into(),
-            value: value.parse().unwrap(),
-            gas_price: GasPriceType::regular(fee),
-            memo: memo.map(String::from),
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Polkadot),
+            },
+            sender_address: "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo".to_string(),
+            destination_address: "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo".to_string(),
+            value: BigUint::from(10000u64),
+            gas_price: GasPriceType::regular(10),
+            memo: None,
             is_max_value: false,
-            metadata,
+            metadata: TransactionLoadMetadata::Polkadot {
+                sequence: 0,
+                genesis_hash: "0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3".to_string(),
+                block_hash: "0x6e3ffeaa3be9d19bd110e5b6e7cbbc92cceed0d2ec557276c296bf7970ace2e5".to_string(),
+                block_number: 24_666_537,
+                spec_version: 1_003_004,
+                transaction_version: 26,
+                period: 64,
+            },
+        }
+    }
+
+    pub fn mock_cardano(sender: &str, value: &str) -> Self {
+        TransactionLoadInput {
+            input_type: TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Cardano),
+            },
+            sender_address: sender.to_string(),
+            destination_address: "addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5".to_string(),
+            value: value.parse().unwrap(),
+            gas_price: GasPriceType::regular(0),
+            memo: None,
+            is_max_value: false,
+            metadata: TransactionLoadMetadata::Cardano {
+                block_number: 189_992_800,
+                utxos: vec![
+                    UTXO {
+                        transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
+                        vout: 1,
+                        value: BigUint::from(1500000u64),
+                        address: sender.to_string(),
+                    },
+                    UTXO {
+                        transaction_id: "554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af0".to_string(),
+                        vout: 0,
+                        value: BigUint::from(6500000u64),
+                        address: sender.to_string(),
+                    },
+                ],
+            },
         }
     }
 

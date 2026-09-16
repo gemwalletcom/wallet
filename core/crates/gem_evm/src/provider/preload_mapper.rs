@@ -221,18 +221,9 @@ mod tests {
         assert!(result.is_err());
     }
 
-    fn create_test_fee_history_for_mapper() -> EthereumFeeHistory {
-        EthereumFeeHistory {
-            reward: vec![vec!["0xbebc200".to_string(), "0x11e1a300".to_string()]],
-            base_fee_per_gas: vec![BigInt::from(20_000_000_000u64)],
-            gas_used_ratio: vec![0.5],
-            oldest_block: 0x1234,
-        }
-    }
-
     #[test]
     fn test_map_transaction_fee_rates_normal_case() -> Result<(), Box<dyn Error + Sync + Send>> {
-        let fee_history = create_test_fee_history_for_mapper();
+        let fee_history = EthereumFeeHistory::mock();
 
         let result = map_transaction_fee_rates(EVMChain::Ethereum, &fee_history)?;
 
@@ -258,7 +249,7 @@ mod tests {
         ] {
             let history = EthereumFeeHistory {
                 base_fee_per_gas: base_fees.into_iter().map(BigInt::from).collect(),
-                ..create_test_fee_history_for_mapper()
+                ..EthereumFeeHistory::mock()
             };
             let rates = map_transaction_fee_rates(EVMChain::Ethereum, &history).unwrap();
 
@@ -273,7 +264,7 @@ mod tests {
     fn test_map_transaction_fee_rates_empty_base_fees() {
         let history = EthereumFeeHistory {
             base_fee_per_gas: vec![],
-            ..create_test_fee_history_for_mapper()
+            ..EthereumFeeHistory::mock()
         };
 
         assert_eq!(map_transaction_fee_rates(EVMChain::Ethereum, &history).unwrap_err().to_string(), "No base fee available");
@@ -282,10 +273,8 @@ mod tests {
     #[test]
     fn test_map_transaction_fee_rates_zero_base_fee() -> Result<(), Box<dyn Error + Sync + Send>> {
         let fee_history = EthereumFeeHistory {
-            reward: vec![vec!["0xbebc200".to_string(), "0x11e1a300".to_string()]],
-            base_fee_per_gas: vec![BigInt::from(0u64)], // Zero base fee
-            gas_used_ratio: vec![0.5],
-            oldest_block: 0x1234,
+            base_fee_per_gas: vec![BigInt::from(0u64)],
+            ..EthereumFeeHistory::mock()
         };
 
         let result = map_transaction_fee_rates(EVMChain::SmartChain, &fee_history)?;
@@ -302,9 +291,7 @@ mod tests {
     fn test_map_transaction_fee_rates_invalid_hex() {
         let fee_history = EthereumFeeHistory {
             reward: vec![vec!["invalid_hex".to_string()]],
-            base_fee_per_gas: vec![BigInt::from(20_000_000_000u64)],
-            gas_used_ratio: vec![0.5],
-            oldest_block: 0x1234,
+            ..EthereumFeeHistory::mock()
         };
 
         let result = map_transaction_fee_rates(EVMChain::Ethereum, &fee_history);

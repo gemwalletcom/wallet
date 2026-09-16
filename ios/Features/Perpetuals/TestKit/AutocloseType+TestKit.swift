@@ -6,9 +6,7 @@ import Primitives
 import PrimitivesTestKit
 
 extension AutocloseType {
-    static func mockOpen(
-        data: AutocloseOpenData = .mock(),
-    ) -> AutocloseType {
+    static func mock(data: AutocloseOpenData = .mock()) -> AutocloseType {
         .open(data, onComplete: { _ in })
     }
 }

@@ -10,11 +10,9 @@ import uniffi.gemstone.formattedCurrency
 
 class PerpetualModifyAutocloseFactoryTest {
 
-    private fun usd(value: Double) = formattedCurrency(value, Currency.USD.string, GemCurrencyStyle.CURRENCY)
-
     @Test
     fun formatsPricesAndDashesClearedOrders() {
-        val prices = PerpetualModifyAutocloseFactory.element(GemAutocloseSummary(usd(65000.0), usd(55000.0), false, false))
+        val prices = PerpetualModifyAutocloseFactory.element(GemAutocloseSummary(formattedCurrency(65000.0, Currency.USD.string, GemCurrencyStyle.CURRENCY), formattedCurrency(55000.0, Currency.USD.string, GemCurrencyStyle.CURRENCY), false, false))
         assertEquals("$65,000.00", prices.takeProfitText)
         assertEquals("$55,000.00", prices.stopLossText)
 
@@ -22,7 +20,7 @@ class PerpetualModifyAutocloseFactoryTest {
         assertEquals("-", cleared.takeProfitText)
         assertEquals("-", cleared.stopLossText)
 
-        val onlyTakeProfit = PerpetualModifyAutocloseFactory.element(GemAutocloseSummary(usd(70000.0), null, false, false))
+        val onlyTakeProfit = PerpetualModifyAutocloseFactory.element(GemAutocloseSummary(formattedCurrency(70000.0, Currency.USD.string, GemCurrencyStyle.CURRENCY), null, false, false))
         assertEquals("$70,000.00", onlyTakeProfit.takeProfitText)
         assertNull(onlyTakeProfit.stopLossText)
     }

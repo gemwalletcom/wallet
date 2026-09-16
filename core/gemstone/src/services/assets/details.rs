@@ -180,7 +180,7 @@ mod tests {
     use futures::executor::block_on;
     use primitives::Chain;
 
-    use super::super::details_testkit::AssetDetailsTestkit;
+    use super::super::testkit::AssetDetailsTestkit;
     use super::*;
 
     #[test]

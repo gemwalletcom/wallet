@@ -6,21 +6,17 @@ import struct Gemstone.GemSimulationValue
 import Components
 @testable import Primitives
 import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import TransferTestKit
+@testable import TransferTestKit
 
 struct ConfirmHeaderViewModelTests {
     @Test
     func amountShowsClearHeader() {
         let headerType = TransactionHeaderType.amount(
-            .numeric(
-                NumericViewModel(
-                    data: AssetValuePrice(asset: .mockEthereumUSDT(), value: BigInt(1), price: nil),
-                    style: AmountDisplayStyle(currencyCode: "USD"),
-                ),
-            ),
+            .numeric(.mock(asset: .mockEthereumUSDT(), price: nil, value: 1)),
         )
         #expect(headerType.showsClearHeader == true)
     }

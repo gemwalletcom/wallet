@@ -235,24 +235,7 @@ mod tests {
 
     #[test]
     fn fingerprint_generation() {
-        let input = RiskSignalInput {
-            username: "user1".to_string(),
-            device_id: 1,
-            device_platform: Platform::IOS,
-            device_platform_store: PlatformStore::AppStore,
-            device_os: "18.0".to_string(),
-            device_model: "iPhone15,2".to_string(),
-            device_locale: "en-US".to_string(),
-            device_currency: "USD".to_string(),
-            ip_address: "192.168.1.1".to_string(),
-            ip_country_code: "US".to_string(),
-            ip_usage_type: IpUsageType::Isp,
-            ip_isp: "Comcast".to_string(),
-            ip_abuse_score: 0,
-            referrer_status: RewardStatus::Unverified,
-            referrer_referral_count: 0,
-            user_agent: String::new(),
-        };
+        let input = RiskSignalInput::mock();
         assert_eq!(input.generate_fingerprint().len(), 64);
     }
 }

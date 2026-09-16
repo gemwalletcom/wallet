@@ -4,6 +4,8 @@ mod downloader;
 mod error;
 mod image;
 mod providers;
+#[cfg(test)]
+mod testkit;
 
 use clap::Parser;
 use config::ImgDownloaderConfig;

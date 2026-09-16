@@ -10,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAppUpdateService
+import uniffi.gemstone.GemAppUpdateServiceInterface
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemPreferencesService
 import javax.inject.Singleton
@@ -43,4 +44,8 @@ object UpdateModule {
     @Provides
     @Singleton
     fun provideSkipAppUpdate(coordinator: AppUpdateCoordinator): SkipAppUpdate = coordinator
+
+    @Provides
+    @Singleton
+    fun provideAppUpdateServiceInterface(service: GemAppUpdateService): GemAppUpdateServiceInterface = service
 }

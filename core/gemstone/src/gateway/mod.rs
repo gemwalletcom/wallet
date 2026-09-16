@@ -5,8 +5,6 @@ mod preferences;
 pub use chain_factory::ChainClientFactory;
 pub use error::GatewayError;
 pub(crate) use error::map_network_error;
-#[cfg(test)]
-pub use preferences::EmptyPreferences;
 pub(crate) use preferences::{PreferencesWrapper, SecureStoreWrapper};
 
 use crate::services::chain::rules as chain_rules;
@@ -213,13 +211,13 @@ impl GemGateway {
 #[cfg(all(test, feature = "reqwest_provider"))]
 mod tests {
     use super::*;
-    use crate::testkit::TestAlienProvider;
+    use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
     #[test]
     fn test_get_node_status_http_404_error() {
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(404));
-        let preferences: Arc<dyn GemPreferencesStore> = Arc::new(EmptyPreferences {});
-        let secure: Arc<dyn GemSecureStore> = Arc::new(EmptyPreferences {});
+        let preferences: Arc<dyn GemPreferencesStore> = Arc::new(EmptyPreferences);
+        let secure: Arc<dyn GemSecureStore> = Arc::new(EmptyPreferences);
         let gateway = GemGateway::new(provider, preferences.clone(), secure);
 
         let result = futures::executor::block_on(gateway.get_node_status(Chain::Bitcoin, "https://httpbin.org/status/404"));

@@ -7,7 +7,7 @@ mod fee_token;
 pub mod fees;
 mod swapper_trait;
 
-#[cfg(test)]
+#[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
 pub mod across;

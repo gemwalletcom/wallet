@@ -56,10 +56,6 @@ mod tests {
     use super::*;
     use crate::{CompiledInstruction, Message, MessageHeader, SignatureBytes, decode_transaction, signer::testkit::SINGLE_SIG_TX};
 
-    fn pubkey(value: u8) -> Pubkey {
-        Pubkey::new([value; 32])
-    }
-
     #[test]
     fn test_decode_transaction_compute_unit_limit() {
         let transaction = decode_transaction(SINGLE_SIG_TX).unwrap();
@@ -69,12 +65,12 @@ mod tests {
 
     #[test]
     fn test_build_legacy_transaction_preserves_account_order_by_bucket() {
-        let fee_payer = pubkey(1);
-        let writable = pubkey(2);
-        let readonly_first = pubkey(3);
-        let readonly_second = pubkey(4);
-        let program_first = pubkey(5);
-        let program_second = pubkey(6);
+        let fee_payer = Pubkey::new([1; 32]);
+        let writable = Pubkey::new([2; 32]);
+        let readonly_first = Pubkey::new([3; 32]);
+        let readonly_second = Pubkey::new([4; 32]);
+        let program_first = Pubkey::new([5; 32]);
+        let program_second = Pubkey::new([6; 32]);
         let instructions = vec![
             Instruction {
                 program_id: program_first,
@@ -141,9 +137,9 @@ mod tests {
 
     #[test]
     fn test_build_legacy_transaction_upgrades_duplicate_account_flags() {
-        let fee_payer = pubkey(1);
-        let upgraded = pubkey(2);
-        let program = pubkey(3);
+        let fee_payer = Pubkey::new([1; 32]);
+        let upgraded = Pubkey::new([2; 32]);
+        let program = Pubkey::new([3; 32]);
         let instructions = vec![
             Instruction {
                 program_id: program,

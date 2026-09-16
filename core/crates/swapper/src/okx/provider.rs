@@ -290,91 +290,18 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use super::super::{
-        model::OkxClientConfig,
-        provider_proxy::{OkxProviderProxy, error_response},
-        testkit::{TEST_EVM_WALLET, TEST_TRON_WALLET},
-    };
+    use super::super::testkit::{TEST_EVM_WALLET, TEST_TRON_WALLET};
     use super::*;
-    use crate::{SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
-    use gem_client::ClientError;
+    use crate::{SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode, testkit::mock_quote};
     use primitives::{
         AssetId,
         asset_constants::{HYPEREVM_USDT_ASSET_ID, PLASMA_USDT_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, SOLANA_USDC_ASSET_ID, TRON_USDT_ASSET_ID},
         testkit::signer_mock::TEST_SOLANA_SENDER,
     };
-    use serde::{Serialize, de::DeserializeOwned};
-    use std::collections::HashMap;
-
-    // Stands in for the deployed api: routes the client's POSTs into the in-process proxy.
-    #[derive(Clone, Debug)]
-    struct ProxyPassthroughClient {
-        proxy: Arc<OkxProviderProxy<RpcClient>>,
-    }
-
-    #[async_trait]
-    impl Client for ProxyPassthroughClient {
-        async fn get_with<R: DeserializeOwned>(&self, _path: &str, _headers: HashMap<String, String>) -> Result<R, ClientError> {
-            Err(ClientError::Network("not supported".into()))
-        }
-
-        async fn get_url<R: DeserializeOwned>(&self, _url: &str) -> Result<R, ClientError> {
-            Err(ClientError::Network("not supported".into()))
-        }
-
-        async fn patch_with<T, R>(&self, _path: &str, _body: &T, _headers: HashMap<String, String>) -> Result<R, ClientError>
-        where
-            T: Serialize + Send + Sync,
-            R: DeserializeOwned,
-        {
-            Err(ClientError::Network("not supported".into()))
-        }
-
-        async fn post_with<T, R>(&self, path: &str, body: &T, _headers: HashMap<String, String>) -> Result<R, ClientError>
-        where
-            T: Serialize + Send + Sync,
-            R: DeserializeOwned,
-        {
-            let body = serde_json::to_vec(body).map_err(|error| ClientError::Serialization(error.to_string()))?;
-            let result = match path {
-                PROXY_QUOTE_PATH => {
-                    let params = serde_json::from_slice(&body).map_err(|error| ClientError::Serialization(error.to_string()))?;
-                    self.proxy.get_quote(params).await
-                }
-                PROXY_SWAP_PATH => {
-                    let params = serde_json::from_slice(&body).map_err(|error| ClientError::Serialization(error.to_string()))?;
-                    self.proxy.get_swap(params).await
-                }
-                other => return Err(ClientError::Network(format!("unexpected path: {other}"))),
-            };
-            let response = result.unwrap_or_else(error_response);
-            serde_json::from_value(response).map_err(|error| ClientError::Serialization(error.to_string()))
-        }
-    }
-
-    fn okx_provider_through_proxy() -> OkxProvider<ProxyPassthroughClient> {
-        let settings = settings::testkit::get_test_settings();
-        let config = OkxClientConfig {
-            api_key: settings.swap.okx.key.public,
-            secret_key: settings.swap.okx.key.secret,
-            passphrase: settings.swap.okx.passphrase,
-            project: settings.swap.okx.project,
-        };
-        let rpc_provider = Arc::new(NativeProvider::default());
-        let proxy = Arc::new(OkxProviderProxy::new(settings.swap.okx.url, config, rpc_provider.clone()));
-        OkxProvider::new_with_client(ProxyPassthroughClient { proxy }, rpc_provider)
-    }
-
-    fn mock_swap_request(from_asset: AssetId, to_asset: AssetId, wallet_address: &str, value: &str) -> QuoteRequest {
-        let mut request = mock_quote(SwapperQuoteAsset::from(from_asset), SwapperQuoteAsset::from(to_asset));
-        request.wallet_address = wallet_address.to_string();
-        request.value = value.parse().unwrap();
-        request
-    }
 
     #[tokio::test]
     async fn test_okx_swap_through_proxy() -> Result<(), SwapperError> {
-        let provider = okx_provider_through_proxy();
+        let provider = OkxProvider::mock_through_proxy();
         let cases = [
             (AssetId::from_chain(Chain::Solana), SOLANA_USDC_ASSET_ID.clone(), TEST_SOLANA_SENDER, "100000000", "0"),
             (
@@ -402,7 +329,9 @@ mod swap_integration_tests {
         ];
 
         for (from_asset, to_asset, wallet_address, value, expected_value) in cases {
-            let request = mock_swap_request(from_asset, to_asset, wallet_address, value);
+            let mut request = mock_quote(SwapperQuoteAsset::from(from_asset), SwapperQuoteAsset::from(to_asset));
+            request.wallet_address = wallet_address.to_string();
+            request.value = value.parse().unwrap();
 
             // OKX rate limits to ~1 request per second.
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
@@ -416,7 +345,12 @@ mod swap_integration_tests {
             assert!(quote_data.approval.is_none());
         }
 
-        let mut request = mock_swap_request(AssetId::from_chain(Chain::Solana), SOLANA_USDC_ASSET_ID.clone(), TEST_SOLANA_SENDER, "100000000");
+        let mut request = mock_quote(
+            SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
+            SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+        );
+        request.wallet_address = TEST_SOLANA_SENDER.to_string();
+        request.value = BigUint::from(100000000u64);
         request.options.slippage = SwapperSlippage {
             bps: 300,
             mode: SwapperSlippageMode::Exact,

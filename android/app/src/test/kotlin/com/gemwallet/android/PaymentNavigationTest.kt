@@ -1,8 +1,10 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
@@ -66,7 +68,7 @@ class PaymentNavigationTest {
         every { getWalletAssets() } returns MutableStateFlow(listOf(mockAssetInfo(asset = mockAssetSolana())))
         coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Verify(
             invoice = paymentInvoice(),
-            assetId = mockAssetSolana().id.toGem(),
+            assetId = mockAssetSolana().id.toIdentifier(),
             url = "https://walletconnect.com/verify",
         )
         val navigation = PaymentNavigation(getWalletAssets, paymentService)
@@ -99,6 +101,7 @@ class PaymentNavigationTest {
         merchant = PaymentMerchant(name = "Merchant", icon = "https://example.com/icon.png"),
         price = null,
         quotes = emptyList(),
+        verification = null,
     )
 
     private companion object {

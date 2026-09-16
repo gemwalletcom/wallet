@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import android.content.Context
@@ -81,7 +82,7 @@ class ManageContactViewModel @Inject constructor(
             page = current.page,
             isSaving = current.isSaving,
             saved = current.saved,
-            error = current.error,
+            errorText = current.errorText,
             isSaveEnabled = service.canSave(current.name, current.isSaving),
             addressInput = current.form?.let { form ->
                 ContactAddressInput(
@@ -234,11 +235,11 @@ class ManageContactViewModel @Inject constructor(
             runCatchingCancellable { service.saveContact(input) }
                 .onSuccess { state.update { it.copy(saved = true) } }
                 .onFailure { error ->
-                    state.update { it.copy(isSaving = false, error = error.errorText()) }
+                    state.update { it.copy(isSaving = false, errorText = error.errorText().text(context)) }
                 }
         }
     }
 
-    fun clearError() = state.update { it.copy(error = null) }
+    fun clearError() = state.update { it.copy(errorText = null) }
 
 }

@@ -89,7 +89,7 @@ public final class FiatSceneViewModel {
     var amountError: (any Error)? {
         switch viewState.phase {
         case .noInput, .loading, .noQuotes, .failed: nil
-        case .invalidInput: AnyError(Localized.Errors.invalidAmount)
+        case .invalidInput: viewState.phase.inputErrorText.map(AnyError.init)
         case let .invalid(check): amountCheckError(check)
         case .ready: amountCheckError(viewState.amountCheck)
         }

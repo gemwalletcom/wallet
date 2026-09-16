@@ -6,12 +6,9 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByA
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockPerpetual
-import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockPerpetualPositionData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
 import io.mockk.every
@@ -50,18 +47,7 @@ class AutocloseViewModelTest {
 
     private val asset = mockAsset()
 
-    private fun positionData(direction: PerpetualDirection = PerpetualDirection.Long) = mockPerpetualPositionData(
-        perpetual = mockPerpetual(price = 100.0),
-        asset = asset,
-        position = mockPerpetualPosition(
-            assetId = asset.id,
-            direction = direction,
-            entryPrice = 100.0,
-            leverage = 5u,
-        ),
-    )
-
-    private fun viewModel(position: PerpetualPositionData? = positionData()): AutocloseViewModel {
+    private fun viewModel(position: PerpetualPositionData? = mockPerpetualPositionData()): AutocloseViewModel {
         val session: GetSession = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession())
         }

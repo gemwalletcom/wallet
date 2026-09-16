@@ -18,27 +18,13 @@ pub fn map_transaction_status(blocks: Vec<Block>, transaction_id: &str, block_nu
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::rpc::{Block, Extrinsic, ExtrinsicArguments, ExtrinsicInfo, ExtrinsicMethod};
-
-    fn create_test_extrinsic(hash: &str, success: bool) -> Extrinsic {
-        Extrinsic {
-            hash: hash.to_string(),
-            method: ExtrinsicMethod {
-                pallet: "test".to_string(),
-                method: "test".to_string(),
-            },
-            info: ExtrinsicInfo { partial_fee: Some(0u32.into()) },
-            success,
-            args: ExtrinsicArguments::Other(serde_json::json!({})),
-            signature: None,
-        }
-    }
+    use crate::models::rpc::{Block, Extrinsic};
 
     #[test]
     fn test_map_transaction_status_confirmed() {
         let blocks = vec![Block {
             number: 100,
-            extrinsics: vec![create_test_extrinsic("hash123", true)],
+            extrinsics: vec![Extrinsic::mock()],
         }];
 
         let result = map_transaction_status(blocks, "hash123", 100);
@@ -49,7 +35,10 @@ mod tests {
     fn test_map_transaction_status_failed() {
         let blocks = vec![Block {
             number: 100,
-            extrinsics: vec![create_test_extrinsic("hash123", false)],
+            extrinsics: vec![Extrinsic {
+                success: false,
+                ..Extrinsic::mock()
+            }],
         }];
 
         let result = map_transaction_status(blocks, "hash123", 100);
@@ -60,7 +49,10 @@ mod tests {
     fn test_map_transaction_status_pending() {
         let blocks = vec![Block {
             number: 100,
-            extrinsics: vec![create_test_extrinsic("other_hash", true)],
+            extrinsics: vec![Extrinsic {
+                hash: "other_hash".to_string(),
+                ..Extrinsic::mock()
+            }],
         }];
 
         let result = map_transaction_status(blocks, "hash123", 100);

@@ -1,25 +1,18 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockGemTransferData
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.TransactionInputType
-import uniffi.gemstone.GemTransferData
 import java.math.BigInteger
-import com.gemwallet.android.domains.confirm.unpackTransferData
-import com.gemwallet.android.domains.confirm.pack
 
 class TransferDataTest {
 
-
     @Test
     fun theRoutePayloadKeepsTheMemoAndReferences() {
-        val transfer = GemTransferData(
-            inputType = TransactionInputType.transfer(mockAsset()),
+        val transfer = mockGemTransferData(
             recipient = GemRecipient(address = "destination", memo = "memo", references = listOf("reference")),
-            value = BigInteger.ONE,
         )
 
         val decoded = requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))

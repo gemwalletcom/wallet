@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemWalletConnectService
+import uniffi.gemstone.GemWalletConnectServiceInterface
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.gemwallet.android.ext.toPrimitives
@@ -39,7 +40,7 @@ import uniffi.gemstone.GemWalletConnectRejection
 @Singleton
 class ReownWalletConnectClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val walletConnectService: GemWalletConnectService,
+    private val walletConnectService: GemWalletConnectServiceInterface,
 ) : WalletConnectClient, WalletKit.WalletDelegate, CoreClient.CoreDelegate {
 
     override val isEnabled: Boolean = true

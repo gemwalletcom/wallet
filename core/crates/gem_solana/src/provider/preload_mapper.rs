@@ -120,12 +120,6 @@ mod tests {
     use primitives::swap::SwapData;
     use primitives::{Asset, AssetId, AssetType, Chain, DelegationValidator, SwapProvider, asset_constants::SOLANA_USDC_ASSET_ID};
 
-    fn mock_swap_data_with_gas_limit(provider: SwapProvider, gas_limit: Option<&str>) -> SwapData {
-        let mut data = SwapData::mock_with_provider(provider);
-        data.data.gas_limit = gas_limit.map(|s| s.to_string());
-        data
-    }
-
     #[test]
     fn test_calculate_transaction_fee() {
         let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
@@ -154,7 +148,7 @@ mod tests {
         let input_type = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
             to_asset: Asset::mock_spl_token(),
-            swap_data: mock_swap_data_with_gas_limit(SwapProvider::Jupiter, None),
+            swap_data: SwapData::mock_with_provider_data(SwapProvider::Jupiter, "0x", None),
         };
 
         let fee = calculate_transaction_fee(&input_type, &gas_price_type, Some("recipient_token_address".to_string()));
@@ -169,7 +163,7 @@ mod tests {
         let input_type = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
             to_asset: Asset::mock_spl_token(),
-            swap_data: mock_swap_data_with_gas_limit(SwapProvider::Okx, Some("550000")),
+            swap_data: SwapData::mock_with_provider_data(SwapProvider::Okx, "0x", Some("550000")),
         };
 
         let fee = calculate_transaction_fee(&input_type, &gas_price_type, Some("recipient_token_address".to_string()));
@@ -267,7 +261,7 @@ mod tests {
         let input_type = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
             to_asset: Asset::mock_spl_token(),
-            swap_data: mock_swap_data_with_gas_limit(SwapProvider::Jupiter, None),
+            swap_data: SwapData::mock_with_provider_data(SwapProvider::Jupiter, "0x", None),
         };
 
         let rates = calculate_fee_rates(&input_type, &fees);

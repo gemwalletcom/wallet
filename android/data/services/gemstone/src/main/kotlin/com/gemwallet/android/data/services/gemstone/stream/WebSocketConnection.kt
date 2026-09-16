@@ -15,6 +15,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemConnectionServiceInterface
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
@@ -39,7 +40,7 @@ interface WebSocketConnectable {
 class WebSocketConnection(
     private val requestProvider: suspend () -> WebSocketRequest,
     client: OkHttpClient,
-    private val connectionService: GemConnectionService,
+    private val connectionService: GemConnectionServiceInterface,
 ) : WebSocketConnectable {
     private val client = client.newBuilder()
         .pingInterval(connectionService.pingIntervalMilliseconds().toLong(), TimeUnit.MILLISECONDS)

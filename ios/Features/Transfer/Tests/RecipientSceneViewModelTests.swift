@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemPaymentRecipient
-import struct Gemstone.GemRecipient
-import enum Gemstone.GemRecipientType
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -11,9 +9,7 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import class Gemstone.GemNameService
-import class Gemstone.GemRecipientService
-import GemstoneServicesTestKit
+import TransferTestKit
 
 @MainActor
 struct RecipientSceneViewModelTests {
@@ -120,10 +116,7 @@ struct RecipientSceneViewModelTests {
         let model = RecipientSceneViewModel.mock(
             asset: asset,
             type: .asset(asset: asset.toGem()),
-            recipient: GemPaymentRecipient(
-                recipient: GemRecipient(address: address, memo: "12345"),
-                amount: "10",
-            ),
+            recipient: .mock(recipient: .mock(address: address, memo: "12345"), amount: "10"),
         )
 
         #expect(model.addressInputModel.text == address)
@@ -181,29 +174,5 @@ struct RecipientSceneViewModelTests {
         let nftAsset = NFTAsset.mock(id: NFTAssetId(chain: .ethereum, contractAddress: "0x123", tokenId: "1"))
         let image = RecipientSceneViewModel.mock().nftAssetImage(for: nftAsset)
         #expect(image.imageURL?.absoluteString.contains("ethereum_0x123::1") == true)
-    }
-}
-
-// MARK: - Mocks
-
-extension RecipientSceneViewModel {
-    static func mock(
-        wallet: Wallet = .mock(),
-        asset: Asset = .mockEthereum(),
-        type: GemRecipientType = .asset(asset: Asset.mock().toGem()),
-        recipient: GemPaymentRecipient? = .none,
-        onRecipientDataAction: RecipientDataAction = nil,
-        onTransferAction: TransferDataAction = nil,
-    ) -> RecipientSceneViewModel {
-        RecipientSceneViewModel(
-            wallet: wallet,
-            asset: asset,
-            service: GemRecipientService.mock(),
-            nameService: GemNameService.mock(),
-            type: type,
-            recipient: recipient,
-            onRecipientDataAction: onRecipientDataAction,
-            onTransferAction: onTransferAction,
-        )
     }
 }

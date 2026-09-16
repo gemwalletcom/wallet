@@ -99,18 +99,12 @@ mod tests {
 
     #[test]
     fn test_resolved_completes_only_with_a_name_and_an_address() {
-        let record = |name: &str, address: &str| NameRecord {
-            name: name.into(),
-            chain: Chain::Ethereum,
-            address: address.into(),
-            provider: primitives::name::NameProvider::Ens,
-        };
-        let complete = resolved(Some(record("vitalik.eth", "0x1")));
+        let complete = resolved(Some(NameRecord::mock("vitalik.eth", "0x1")));
 
         assert_eq!(complete.requested_name().as_deref(), Some("vitalik.eth"));
         assert!(complete.record().is_some());
-        assert_eq!(resolved(Some(record("vitalik.eth", ""))), GemNameRecordState::Error);
-        assert_eq!(resolved(Some(record("", "0x1"))), GemNameRecordState::Error);
+        assert_eq!(resolved(Some(NameRecord::mock("vitalik.eth", ""))), GemNameRecordState::Error);
+        assert_eq!(resolved(Some(NameRecord::mock("", "0x1"))), GemNameRecordState::Error);
         assert_eq!(resolved(None), GemNameRecordState::Error);
         assert_eq!(GemNameRecordState::Loading { name: "vitalik.eth".into() }.requested_name().as_deref(), Some("vitalik.eth"));
         assert_eq!(GemNameRecordState::None.requested_name(), None);

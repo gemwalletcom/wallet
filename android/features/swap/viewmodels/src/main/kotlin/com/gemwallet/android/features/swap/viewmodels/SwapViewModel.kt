@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import kotlinx.coroutines.CancellationException
@@ -88,6 +90,7 @@ class SwapViewModel @Inject constructor(
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(swapQuoteService.newSession())
@@ -224,11 +227,14 @@ class SwapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val uiState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
+    private val viewState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
             val available = pay?.balance?.balance?.available ?: BigInteger.ZERO
             val atomic = pay?.let { Crypto(value, it.asset.decimals).atomicValue } ?: BigInteger.ZERO
-            createSwapUiState(quoteSession.viewState(atomic, available, pay?.asset?.toGem()))
+            quoteSession.viewState(atomic, available, pay?.asset?.toGem())
         }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val uiState = viewState.map { state -> state?.let { createSwapUiState(it, context) } ?: SwapUiState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
 
     init {
@@ -316,7 +322,7 @@ class SwapViewModel @Inject constructor(
         if (state.buttonState != ButtonState.Enabled) {
             return
         }
-        when (val action = state.buttonAction) {
+        when (val action = viewState.value?.buttonAction ?: return) {
             GemSwapButtonAction.Swap -> {
                 if (swapDetails.value?.shouldShowPriceImpactWarning == true) {
                     onShowPriceImpactWarning()

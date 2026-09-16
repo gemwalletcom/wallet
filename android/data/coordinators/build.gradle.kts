@@ -57,4 +57,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk.android)
     testImplementation(testFixtures(project(":gemcore")))
+    testImplementation(testFixtures(project(":data:services:store")))
 }

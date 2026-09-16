@@ -2,6 +2,9 @@
 
 import BigInt
 import Formatters
+import struct Gemstone.GemBannerAmount
+import enum Gemstone.GemBannerTitle
+import enum Gemstone.GemBannerDescription
 import enum Gemstone.PerpetualDirection
 import enum Gemstone.FeeOption
 import enum Gemstone.GemAssetMenuAction
@@ -521,6 +524,34 @@ public extension GemContactAddressField {
         case .network: Localized.Transfer.network
         case .address: Localized.Common.address
         case .memo: Localized.Transfer.memo
+        }
+    }
+}
+
+public extension GemBannerTitle {
+    var text: String {
+        switch self {
+        case let .stake(assetName): Localized.Banner.Stake.title(assetName)
+        case .accountActivation: Localized.Banner.AccountActivation.title
+        case .warning: Localized.Common.warning
+        case .activateAsset: Localized.Transfer.ActivateAsset.title
+        case .suspiciousAsset: Localized.Banner.AssetStatus.title
+        case .onboarding: Localized.Banner.Onboarding.title
+        case .tradePerpetuals: Localized.Banner.Perpetuals.title
+        }
+    }
+}
+
+public extension GemBannerDescription {
+    func text(amount: (GemBannerAmount) -> String) -> String {
+        switch self {
+        case let .stake(assetSymbol): Localized.Banner.Stake.description(assetSymbol)
+        case let .accountActivation(networkName, fee): Localized.Banner.AccountActivation.description(networkName, amount(fee))
+        case let .multiSignatureBlocked(networkName): Localized.Warnings.multiSignatureBlocked(networkName)
+        case let .activateAsset(assetSymbol, networkName): Localized.Banner.ActivateAsset.description(assetSymbol, networkName)
+        case .suspiciousAsset: Localized.Banner.AssetStatus.description
+        case .onboarding: Localized.Banner.Onboarding.description
+        case .tradePerpetuals: Localized.Banner.Perpetuals.description
         }
     }
 }

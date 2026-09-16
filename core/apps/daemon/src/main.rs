@@ -9,6 +9,8 @@ mod pusher;
 mod reporters;
 mod setup;
 mod shutdown;
+#[cfg(test)]
+mod testkit;
 mod worker;
 
 use std::str::FromStr;

@@ -1,12 +1,15 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetEthereumUSDT
+import com.gemwallet.android.testkit.mockAssetSmartChain
 import com.gemwallet.android.testkit.mockTransaction
-import com.wallet.core.primitives.Transaction
+import com.gemwallet.android.testkit.mockTransactionExtended
+import com.gemwallet.android.testkit.mockTransactionId
 import com.wallet.core.primitives.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
@@ -65,81 +68,23 @@ class TransactionDataAggregateImplTest {
         System.clearProperty(gemstoneLibraryOverrideProperty)
     }
 
-    private val btcAsset = Asset(
-        id = AssetId(Chain.Bitcoin),
-        name = "Bitcoin",
-        symbol = "BTC",
-        decimals = 8,
-        type = AssetType.NATIVE,
-    )
+    private val btcAsset = mockAsset()
 
-    private val ethAsset = Asset(
-        id = AssetId(Chain.Ethereum),
-        name = "Ethereum",
-        symbol = "ETH",
-        decimals = 18,
-        type = AssetType.NATIVE,
-    )
-
-    private val usdtAsset = Asset(
-        id = AssetId(Chain.Ethereum, "0xdac17f958d2ee523a2206206994597c13d831ec7"),
-        name = "Tether",
-        symbol = "USDT",
-        decimals = 6,
-        type = AssetType.ERC20,
-    )
-
-    private fun createTransaction(
-        id: String = "tx123",
-        assetId: AssetId = btcAsset.id,
-        from: String = "bc1qsender",
-        to: String = "bc1qreceiver",
-        type: TransactionType = TransactionType.Transfer,
-        state: TransactionState = TransactionState.Confirmed,
-        direction: TransactionDirection = TransactionDirection.Outgoing,
-        value: String = "100000000",
-        metadata: String? = null,
-        createdAt: Long = 1_700_000_000_000L,
-    ) = mockTransaction(
-        assetId = assetId,
-        id = TransactionId(assetId.chain, id),
-        from = from,
-        to = to,
-        type = type,
-        state = state,
-        value = value,
-        direction = direction,
-        metadata = metadata,
-        createdAt = createdAt,
-    )
-
-    private fun createTransactionExtended(
-        transaction: Transaction,
-        asset: Asset = btcAsset,
-        assets: List<Asset> = emptyList(),
-    ) = TransactionExtended(
-        recordId = 1,
-        transaction = transaction,
-        asset = asset,
-        feeAsset = asset,
-        price = null,
-        feePrice = null,
-        assets = assets,
-        prices = emptyList(),
-    )
+    private val ethAsset = mockAssetEthereum()
 
     private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate =
         TransactionDataAggregateImpl(transactionRow(transaction.toGem()))
 
     @Test
     fun testBasicPropertyDelegation() {
-        val transaction = createTransaction(
-            id = "test-id-123",
+        val transaction = mockTransaction(
+            id = mockTransactionId(hash = "test-id-123"),
+            createdAt = 1_700_000_000_000L,
             state = TransactionState.Pending,
             type = TransactionType.Transfer,
             direction = TransactionDirection.Incoming,
         )
-        val extended = createTransactionExtended(transaction)
+        val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         assertEquals(TransactionId(Chain.Bitcoin, "test-id-123"), aggregate.id)
@@ -153,13 +98,13 @@ class TransactionDataAggregateImplTest {
     @Test
     fun testAddress_transferOutgoing() {
         assumeHostGemstoneRuntime()
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.Outgoing,
             from = "bc1qsender",
             to = "bc1qx2x5cqhymfcnjtg902ky6u5t5htmt7fvqztdsm028hkrvxcl4t2sjtpd9l",
         )
-        val extended = createTransactionExtended(transaction)
+        val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         assertEquals("bc1qx2...tpd9l", aggregate.address)
@@ -168,13 +113,13 @@ class TransactionDataAggregateImplTest {
     @Test
     fun testAddress_transferIncoming() {
         assumeHostGemstoneRuntime()
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.Incoming,
             from = "bc1qsender",
             to = "bc1qreceiver",
         )
-        val extended = createTransactionExtended(transaction)
+        val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         assertEquals("bc1qsender", aggregate.address)
@@ -183,13 +128,13 @@ class TransactionDataAggregateImplTest {
     @Test
     fun testAddress_transferSelfTransfer() {
         assumeHostGemstoneRuntime()
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.SelfTransfer,
             from = "bc1qsender",
             to = "bc1qsender",
         )
-        val extended = createTransactionExtended(transaction)
+        val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         assertEquals("bc1qsender", aggregate.address)
@@ -197,11 +142,11 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testAddress_swapTransaction() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Swap,
             direction = TransactionDirection.Outgoing,
         )
-        val extended = createTransactionExtended(transaction)
+        val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         assertEquals("", aggregate.address)
@@ -209,11 +154,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testAddress_stakeDelegate() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
+            to = "bc1qreceiver",
             type = TransactionType.StakeDelegate,
             direction = TransactionDirection.Outgoing,
         )
-        val extended = createTransactionExtended(transaction)
+        val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         assertEquals("bc1qre...eiver", aggregate.address)
@@ -221,12 +167,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_transferOutgoing() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.Outgoing,
             value = "100000000",
         )
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
+        val extended = mockTransactionExtended(transaction, asset = btcAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("-1 BTC", aggregate.value)
@@ -235,12 +181,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_transferIncoming() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.Incoming,
             value = "50000000",
         )
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
+        val extended = mockTransactionExtended(transaction, asset = btcAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("+0.5 BTC", aggregate.value)
@@ -249,12 +195,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_transferSelfTransfer() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.SelfTransfer,
             value = "25000000",
         )
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
+        val extended = mockTransactionExtended(transaction, asset = btcAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("0.25 BTC", aggregate.value)
@@ -263,12 +209,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_stakeDelegate() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.StakeDelegate,
             direction = TransactionDirection.Outgoing,
             value = "1000000000000000000",
         )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
+        val extended = mockTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("1 ETH", aggregate.value)
@@ -277,12 +223,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_stakeUndelegate() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.StakeUndelegate,
             direction = TransactionDirection.Incoming,
             value = "2000000000000000000",
         )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
+        val extended = mockTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("2 ETH", aggregate.value)
@@ -291,12 +237,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_stakeRewards() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.StakeRewards,
             direction = TransactionDirection.Incoming,
             value = "500000000000000000",
         )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
+        val extended = mockTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("+0.5 ETH", aggregate.value)
@@ -305,12 +251,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_tokenApproval() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.TokenApproval,
             direction = TransactionDirection.Outgoing,
             value = "1000000",
         )
-        val extended = createTransactionExtended(transaction, asset = usdtAsset)
+        val extended = mockTransactionExtended(transaction, asset = mockAssetEthereumUSDT())
         val aggregate = createAggregate(extended)
 
         assertEquals("USDT", aggregate.value)
@@ -319,12 +265,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_smartContractCall() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.SmartContractCall,
             direction = TransactionDirection.Outgoing,
             value = "1000000000000000000",
         )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
+        val extended = mockTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("1 ETH", aggregate.value)
@@ -333,15 +279,10 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_swap() {
-        val bnbAsset = Asset(
-            id = AssetId(Chain.SmartChain),
-            name = "BNB",
-            symbol = "BNB",
-            decimals = 18,
-            type = AssetType.NATIVE,
-        )
-        val tonAsset = Asset(
-            id = AssetId(Chain.SmartChain, "0x76A797A59Ba2C17726896976B7B3747BfD1d220f"),
+        val bnbAsset = mockAssetSmartChain()
+        val tonAsset = mockAsset(
+            chain = Chain.SmartChain,
+            tokenId = "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
             name = "Ton",
             symbol = "TON",
             decimals = 9,
@@ -356,18 +297,18 @@ class TransactionDataAggregateImplTest {
         )
         val metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata)
 
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Swap,
             direction = TransactionDirection.Outgoing,
             assetId = bnbAsset.id,
             value = "90000000000000000",
             metadata = metadata,
         )
-        val extended = createTransactionExtended(
+        val extended = mockTransactionExtended(
             transaction = transaction,
             asset = bnbAsset,
             assets = listOf(bnbAsset, tonAsset),
-                    )
+        )
         val aggregate = createAggregate(extended)
 
         assertEquals(aggregate.value,"+19 TON")
@@ -376,13 +317,13 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_swapMissingMetadata() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Swap,
             direction = TransactionDirection.Outgoing,
             value = "90000000000000000",
             metadata = null,
         )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
+        val extended = mockTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("", aggregate.value)
@@ -397,16 +338,16 @@ class TransactionDataAggregateImplTest {
             fromValue = "1.5",
             toValue = "",
         )
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Swap,
             assetId = btcAsset.id,
             metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata),
         )
         val aggregate = createAggregate(
-            createTransactionExtended(
+            mockTransactionExtended(
                 transaction = transaction,
                 assets = listOf(btcAsset, ethAsset),
-                            ),
+            ),
         )
 
         assertEquals("", aggregate.value)
@@ -415,12 +356,12 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testValue_smallAmount() {
-        val transaction = createTransaction(
+        val transaction = mockTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.Outgoing,
             value = "1345",
         )
-        val extended = createTransactionExtended(transaction, asset = btcAsset)
+        val extended = mockTransactionExtended(transaction, asset = btcAsset)
         val aggregate = createAggregate(extended)
 
         assertEquals("-<0.0001 BTC", aggregate.value)

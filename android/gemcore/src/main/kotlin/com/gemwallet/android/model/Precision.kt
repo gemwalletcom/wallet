@@ -7,30 +7,20 @@ import java.text.DecimalFormat
 import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.adaptivePrecision as gemAdaptivePrecision
 
-internal sealed interface Precision {
-    data class Fraction(val min: Int, val max: Int) : Precision
-    data class Significant(val max: Int) : Precision
+internal fun BigDecimal.rounded(precision: GemPrecision, roundingMode: RoundingMode): BigDecimal = when (precision) {
+    is GemPrecision.Fraction -> setScale(precision.max.toInt(), roundingMode)
+    is GemPrecision.Significant -> round(MathContext(precision.max.toInt(), roundingMode)).stripTrailingZeros()
 }
 
-internal fun BigDecimal.rounded(precision: Precision, roundingMode: RoundingMode): BigDecimal = when (precision) {
-    is Precision.Fraction -> setScale(precision.max, roundingMode)
-    is Precision.Significant -> round(MathContext(precision.max, roundingMode)).stripTrailingZeros()
-}
-
-internal fun DecimalFormat.format(value: BigDecimal, precision: Precision): String = when (precision) {
-    is Precision.Fraction -> apply {
-        minimumFractionDigits = precision.min
-        maximumFractionDigits = precision.max
+internal fun DecimalFormat.format(value: BigDecimal, precision: GemPrecision): String = when (precision) {
+    is GemPrecision.Fraction -> apply {
+        minimumFractionDigits = precision.min.toInt()
+        maximumFractionDigits = precision.max.toInt()
     }.format(value.rounded(precision, roundingMode))
-    is Precision.Significant -> apply {
+    is GemPrecision.Significant -> apply {
         minimumFractionDigits = 0
         maximumFractionDigits = Int.MAX_VALUE
     }.format(value.rounded(precision, roundingMode))
 }
 
-internal fun adaptivePrecision(magnitude: BigDecimal): Precision = gemAdaptivePrecision(magnitude.toDouble()).toPrecision()
-
-internal fun GemPrecision.toPrecision(): Precision = when (this) {
-    is GemPrecision.Fraction -> Precision.Fraction(min = min.toInt(), max = max.toInt())
-    is GemPrecision.Significant -> Precision.Significant(max = max.toInt())
-}
+internal fun adaptivePrecision(magnitude: BigDecimal): GemPrecision = gemAdaptivePrecision(magnitude.toDouble())

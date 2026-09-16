@@ -3,6 +3,8 @@ mod crypto;
 mod deserialize;
 mod reader;
 #[cfg(test)]
+mod testkit;
+#[cfg(test)]
 mod tests;
 mod types;
 

@@ -1,7 +1,6 @@
 package com.gemwallet.android.testkit
 
 import com.gemwallet.android.ext.toGem
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
@@ -12,12 +11,7 @@ import uniffi.gemstone.PerpetualConfirmData
 
 fun mockPerpetualConfirmData(
     direction: PerpetualDirection = PerpetualDirection.Long,
-    marginType: PerpetualMarginType = PerpetualMarginType.Cross,
-    baseAsset: Asset = mockAssetHyperCoreUSDC(),
-    assetIndex: Int = 0,
-    price: String = "100.0",
     fiatValue: Double = 100.0,
-    size: String = "1.0",
     slippage: Double = 2.0,
     leverage: UByte = 1u,
     pnl: Double? = null,
@@ -28,12 +22,12 @@ fun mockPerpetualConfirmData(
     stopLoss: String? = null,
 ) = PerpetualConfirmData(
     direction = direction.toGem(),
-    marginType = marginType.toGem(),
-    baseAsset = baseAsset.toGem(),
-    assetIndex = assetIndex,
-    price = price,
+    marginType = PerpetualMarginType.Cross.toGem(),
+    baseAsset = mockAssetHyperCoreUSDC().toGem(),
+    assetIndex = 0,
+    price = "100.0",
     fiatValue = fiatValue,
-    size = size,
+    size = "1.0",
     slippage = slippage,
     leverage = leverage,
     pnl = pnl,
@@ -45,26 +39,23 @@ fun mockPerpetualConfirmData(
 )
 
 fun mockPerpetualDetails(
-    action: GemPerpetualDetailsAction = GemPerpetualDetailsAction.OPEN,
     direction: PerpetualDirection = PerpetualDirection.Long,
     data: PerpetualConfirmData = mockPerpetualConfirmData(),
 ) = GemPerpetualDetails(
-    action = action,
+    action = GemPerpetualDetailsAction.OPEN,
     direction = direction.toGem(),
     data = data,
 )
 
 fun mockGemPerpetualTransferData(
     direction: PerpetualDirection = PerpetualDirection.Long,
-    asset: Asset = mockAssetHyperCoreUBTC(),
-    leverage: UByte = 1u,
 ) = GemPerpetualTransferData(
     provider = PerpetualProvider.Hypercore.toGem(),
     direction = direction.toGem(),
-    asset = asset.toGem(),
+    asset = mockAssetHyperCoreUBTC().toGem(),
     baseAsset = mockAssetHyperCoreUSDC().toGem(),
     assetIndex = 0,
     price = 100.0,
-    leverage = leverage,
+    leverage = 1u,
     marginType = PerpetualMarginType.Cross.toGem(),
 )

@@ -10,6 +10,10 @@ let package = Package(
             name: "Support",
             targets: ["Support"],
         ),
+        .library(
+            name: "SupportTestKit",
+            targets: ["SupportTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Style", path: "../../Packages/Style"),
@@ -38,13 +42,24 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "SupportTestKit",
+            dependencies: [
+                "Support",
+                "Gemstone",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "SupportTests",
             dependencies: [
                 "Support",
+                "SupportTestKit",
                 "Primitives",
-                "Gemstone",
-                "GemstonePrimitives",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),

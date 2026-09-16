@@ -541,14 +541,16 @@ mod tests {
         assert_eq!(addresses, vec![AssetAddress::new(Asset::mock_ethereum_usdc().id, "0xowner".to_string(), None)]);
     }
 
-    fn utxo_input(address: &str, value: u64) -> TransactionUtxoInput {
-        TransactionUtxoInput::new(address.to_string(), value.into())
-    }
-
     #[test]
     fn test_finalize_incoming_utxo() {
-        let transaction =
-            Transaction::mock_utxo(vec![utxo_input("sender", 50_000)], vec![utxo_input("user", 40_000), utxo_input("change", 9_000)]).finalize(vec!["user".to_string()]);
+        let transaction = Transaction::mock_utxo(
+            vec![TransactionUtxoInput::new("sender".into(), 50_000u32.into())],
+            vec![
+                TransactionUtxoInput::new("user".into(), 40_000u32.into()),
+                TransactionUtxoInput::new("change".into(), 9_000u32.into()),
+            ],
+        )
+        .finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
@@ -559,8 +561,14 @@ mod tests {
 
     #[test]
     fn test_finalize_outgoing_utxo() {
-        let transaction =
-            Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("recipient", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
+        let transaction = Transaction::mock_utxo(
+            vec![TransactionUtxoInput::new("user".into(), 50_000u32.into())],
+            vec![
+                TransactionUtxoInput::new("recipient".into(), 40_000u32.into()),
+                TransactionUtxoInput::new("user".into(), 9_000u32.into()),
+            ],
+        )
+        .finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
@@ -571,7 +579,14 @@ mod tests {
 
     #[test]
     fn test_finalize_self_transfer_utxo() {
-        let transaction = Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("user", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
+        let transaction = Transaction::mock_utxo(
+            vec![TransactionUtxoInput::new("user".into(), 50_000u32.into())],
+            vec![
+                TransactionUtxoInput::new("user".into(), 40_000u32.into()),
+                TransactionUtxoInput::new("user".into(), 9_000u32.into()),
+            ],
+        )
+        .finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
@@ -593,26 +608,20 @@ mod tests {
         let usdc = Asset::mock_ethereum_usdc().id;
         let original = Transaction {
             transaction_type: TransactionType::SmartContractCall,
-            metadata: Some(
-                serde_json::to_value(TransactionAssetTransfersMetadata {
-                    asset_transfers: vec![
-                        TransactionAssetTransfer {
-                            asset_id: usdc.clone(),
-                            from: "0xContract".to_string(),
-                            to: "0xUser".to_string(),
-                            value: BigUint::from(10u8),
-                        },
-                        TransactionAssetTransfer {
-                            asset_id: usdc.clone(),
-                            from: "0xContract".to_string(),
-                            to: "0xOther".to_string(),
-                            value: BigUint::from(20u8),
-                        },
-                    ],
-                })
-                .unwrap(),
-            ),
-            ..Transaction::mock()
+            ..Transaction::mock_with_asset_transfers(vec![
+                TransactionAssetTransfer {
+                    asset_id: usdc.clone(),
+                    from: "0xContract".to_string(),
+                    to: "0xUser".to_string(),
+                    value: BigUint::from(10u8),
+                },
+                TransactionAssetTransfer {
+                    asset_id: usdc.clone(),
+                    from: "0xContract".to_string(),
+                    to: "0xOther".to_string(),
+                    value: BigUint::from(20u8),
+                },
+            ])
         };
 
         assert_eq!(original.asset_ids().into_iter().collect::<HashSet<_>>(), HashSet::from([Asset::mock().id, usdc.clone()]));

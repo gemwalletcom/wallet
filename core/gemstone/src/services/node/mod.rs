@@ -122,20 +122,12 @@ mod tests {
     use super::*;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
 
-    fn node(url: &str) -> Node {
-        Node {
-            url: url.to_string(),
-            status: NodeState::Active,
-            priority: 0,
-        }
-    }
-
     #[test]
     fn test_merge_nodes_keeps_defaults_first_and_dedupes() {
-        let merged = merge_nodes(vec![node("a"), node("b")], vec![node("b"), node("c")]);
+        let merged = merge_nodes(vec![Node::mock("a", 0), Node::mock("b", 0)], vec![Node::mock("b", 0), Node::mock("c", 0)]);
         assert_eq!(merged.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(), vec!["a", "b", "c"]);
-        assert!(is_default_node("a", &[node("a")]));
-        assert!(!is_default_node("c", &[node("a")]));
+        assert!(is_default_node("a", &[Node::mock("a", 0)]));
+        assert!(!is_default_node("c", &[Node::mock("a", 0)]));
     }
 
     #[test]

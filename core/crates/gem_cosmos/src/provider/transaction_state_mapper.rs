@@ -15,37 +15,15 @@ pub fn map_transaction_status(transaction: TransactionResponse) -> TransactionUp
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{TransactionBody, TransactionResponseData, TransactionResponseTx};
-
-    fn create_response(code: i64) -> TransactionResponse {
-        TransactionResponse {
-            tx: TransactionResponseTx {
-                body: TransactionBody {
-                    memo: String::new(),
-                    messages: vec![],
-                },
-                auth_info: None,
-            },
-            tx_response: TransactionResponseData {
-                code,
-                txhash: "hash".to_string(),
-                events: vec![],
-                timestamp: String::new(),
-            },
-        }
-    }
-
     #[test]
     fn test_map_transaction_status_confirmed() {
-        let response = create_response(0);
-        let update = map_transaction_status(response);
+        let update = map_transaction_status(TransactionResponse::mock_delegate());
         assert_eq!(update.state, TransactionState::Confirmed);
     }
 
     #[test]
     fn test_map_transaction_status_reverted() {
-        let response = create_response(1);
-        let update = map_transaction_status(response);
+        let update = map_transaction_status(TransactionResponse::mock_reverted_transfer_spam());
         assert_eq!(update.state, TransactionState::Reverted);
     }
 }

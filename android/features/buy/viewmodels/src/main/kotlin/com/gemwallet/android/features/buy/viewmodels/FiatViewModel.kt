@@ -25,6 +25,9 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.withContext
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -58,6 +61,7 @@ class FiatViewModel @Inject constructor(
     getAssetPriceUsd: GetAssetPriceUsd,
     private val service: GemFiatQuoteServiceInterface,
     @ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -154,7 +158,7 @@ class FiatViewModel @Inject constructor(
     private suspend fun loadQuotes(request: GemFiatQuoteRequest, assetId: AssetId) {
         session.update { it.onFetchStarted(request) }
         val results = try {
-            GemFiatQuotesResult(request, service.quotes(request.quoteType, assetId.toIdentifier(), request.amount), null)
+            GemFiatQuotesResult(request, withContext(ioDispatcher) { service.quotes(request.quoteType, assetId.toIdentifier(), request.amount) }, null)
         } catch (err: CancellationException) {
             throw err
         } catch (err: Throwable) {

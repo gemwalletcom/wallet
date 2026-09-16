@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
 import android.util.Log
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectException
 import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -101,7 +103,7 @@ class ProposalSceneViewModel @Inject constructor(
         }
     }
 
-    fun onApprove(onError: (String) -> Unit) {
+    fun onApprove(onError: (GemErrorText) -> Unit) {
         val wallet = selectedWallet.value
         val proposal = _proposal.value
         if (state.value is ProposalSceneState.Approving) {
@@ -119,10 +121,10 @@ class ProposalSceneViewModel @Inject constructor(
                     wallet = wallet,
                     proposal = proposal,
                     onSuccess = { finish(proposal) },
-                    onError = { message -> fail(proposal, message, onError) }
+                    onError = { message -> fail(proposal, GemErrorText.Message(message), onError) }
                 )
             }
-            result.onFailure { err -> fail(proposal, err.message.orEmpty(), onError) }
+            result.onFailure { err -> fail(proposal, err.errorText(), onError) }
         }
     }
 
@@ -155,10 +157,10 @@ class ProposalSceneViewModel @Inject constructor(
         }
     }
 
-    private fun fail(proposal: WalletConnectSessionProposal, message: String, onError: (String) -> Unit) {
+    private fun fail(proposal: WalletConnectSessionProposal, error: GemErrorText, onError: (GemErrorText) -> Unit) {
         if (activeRequest.finish(proposal)) {
             reset()
-            onError(message)
+            onError(error)
         }
     }
 

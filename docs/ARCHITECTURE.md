@@ -14,7 +14,7 @@ Read the contract and the named implementation, then the actual owner and caller
 | App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-on-ios-narrow-cases-on-android), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
 | Loading UI | Shared [reuse rule](../skills/engineering-principles.md#clean-code-principles) | Current screen state first; [`LoadingView.swift`](../ios/Packages/Components/Sources/LoadingView.swift), [`LoadingScene.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/screen/LoadingScene.kt) |
 | REST or JSON-RPC client | [§ 12](#12-a-clients-requests-are-one-enum-the-client-only-sends) | [`AptosClient`](../core/crates/gem_aptos/src/rpc/client.rs) for direct sends, [`TronGridClient`](../core/crates/gem_tron/src/rpc/trongrid/client.rs) for shared credentials, [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for RPC |
-| Tests and fixtures | [§ 10](#10-tests) and the platform testing guide | The owner's existing tests, [`gem_client/testkit.rs`](../core/crates/gem_client/src/testkit.rs) for wire behavior |
+| Tests and fixtures | [§ 10](#10-tests) and the platform testing guide | The owner's existing tests, [`primitives/src/testkit/asset_mock.rs`](../core/crates/primitives/src/testkit/asset_mock.rs) for fixtures, [`gem_client/testkit.rs`](../core/crates/gem_client/src/testkit.rs) for wire behavior |
 
 Read [§ 13](#13-shapes-that-were-tried-and-reverted) only when the task needs the rationale for a rejected design. Subsystem-specific contracts remain in their own documents.
 
@@ -308,7 +308,7 @@ The test is whether the same row is drawn differently somewhere: if it is, the s
 
 ### A row is projected from its value, never fetched from a service
 
-`walletRow(wallet)`, `walletRows(wallets)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root. All three were tried on the wallet row and all three read as the same mistake: a projection dressed up as a dependency. This is the one exception to [no free exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
+`walletRow(wallet)`, `walletRows(wallets)`, `secretPhraseRows(wordCount)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root. All three were tried on the wallet row and all three read as the same mistake: a projection dressed up as a dependency. This is the one exception to [no free exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
 
 A view model that already owns the screen's service still asks that service for anything the *screen* decides. The line is whether the answer depends on state the service holds.
 
@@ -1162,6 +1162,8 @@ let client = AlgorandClient::new(MockClient::new().with_post_with_headers(|path,
 ```
 
 `MockClient` encodes the body exactly as `ReqwestClient` and `RpcClient` do, so a handler that asserts bytes and headers is asserting the wire. References: [`gem_client::testkit`](../core/crates/gem_client/src/testkit.rs) and `mock_jsonrpc_client` for HTTP, [`gem_hypercore/src/testkit.rs`](../core/crates/gem_hypercore/src/testkit.rs) for a chain client, [`primitives/src/testkit/asset_mock.rs`](../core/crates/primitives/src/testkit/asset_mock.rs) and [`storage/src/testkit/scan_address_mock.rs`](../core/crates/storage/src/testkit/scan_address_mock.rs) for fixtures; call sites in [`gem_algorand/src/rpc/client.rs`](../core/crates/gem_algorand/src/rpc/client.rs) and [`gem_stellar/src/rpc/client.rs`](../core/crates/gem_stellar/src/rpc/client.rs).
+
+**A mock exists once, beside its type.** Values, doubles, and units under test come from the mock in the testkit that owns the type — `Type::mock()` in Core, `static func mock` in the iOS `TestKit`, `mockType()` in Android `testFixtures` — never from a helper written in the test file, even when one test uses it. The test keeps its literal inputs and one-off overrides; a missing shape extends the existing mock. Placement and naming per platform: [Core tests](../core/skills/tests.md#testkit-mocks), [iOS testing](../ios/skills/testing.md#mocks), [Android testing](../android/skills/testing.md#shared-testkit).
 
 ### Do not test the same rule twice through a thicker stack
 

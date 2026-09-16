@@ -86,4 +86,5 @@ uniffi = { workspace = true, features = ["build"] }
 [dev-dependencies]
 gem_evm = { path = "../crates/gem_evm", features = ["testkit"] }
 primitives = { path = "../crates/primitives", features = ["testkit"] }
+swapper = { path = "../crates/swapper", features = ["testkit"] }
 tempfile = "3.24.0"

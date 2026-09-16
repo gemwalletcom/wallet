@@ -3,6 +3,7 @@
 import Foundation
 import Testing
 @testable import WalletConnectorService
+@testable import WalletConnectorServiceTestKit
 
 struct WebSocketTests {
     @Test
@@ -99,11 +100,5 @@ struct WebSocketTests {
                 }
             }
         }
-    }
-}
-
-extension WebSocket {
-    static func mock(url: String = "wss://example.com") -> WebSocket {
-        WebSocket(request: URLRequest(url: URL(string: url)!))
     }
 }

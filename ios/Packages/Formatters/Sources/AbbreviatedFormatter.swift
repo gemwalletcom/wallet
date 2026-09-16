@@ -2,18 +2,11 @@
 
 import Foundation
 
-public let defaultAbbreviationThreshold: Decimal = 100000.0
-
 public struct AbbreviatedFormatter {
     private let locale: Locale
-    private let threshold: Decimal
 
-    public init(
-        locale: Locale = .current,
-        threshold: Decimal = defaultAbbreviationThreshold,
-    ) {
+    public init(locale: Locale = .current) {
         self.locale = locale
-        self.threshold = threshold
     }
 
     public func string(from double: Double) -> String? {
@@ -25,7 +18,7 @@ public struct AbbreviatedFormatter {
     }
 
     public func string(from decimal: Decimal) -> String? {
-        guard abs(decimal) >= threshold, #available(iOS 18, *) else {
+        guard #available(iOS 18, *) else {
             return nil
         }
 
@@ -39,7 +32,7 @@ public struct AbbreviatedFormatter {
     }
 
     public func string(from decimal: Decimal, currency: String) -> String? {
-        guard abs(decimal) >= threshold, #available(iOS 18, *) else {
+        guard #available(iOS 18, *) else {
             return nil
         }
 

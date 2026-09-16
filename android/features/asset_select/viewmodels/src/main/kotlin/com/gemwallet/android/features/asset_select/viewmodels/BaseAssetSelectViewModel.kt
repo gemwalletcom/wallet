@@ -117,13 +117,10 @@ open class BaseAssetSelectViewModel(
     private val assetsContent = combine(
         filters,
         search.items(filters),
-    ) { filters, items ->
-        val chainFilter = filters?.chainFilter.orEmpty()
-        val balanceFilter = filters?.hasBalance == true
+    ) { _, items ->
         val wallet = session.value?.wallet
         val formatters = RowFormatters()
         items
-            .filter { (chainFilter.isEmpty() || it.id().chain in chainFilter) && (!balanceFilter || it.balance.totalAmount > 0.0) }
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
                 val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)

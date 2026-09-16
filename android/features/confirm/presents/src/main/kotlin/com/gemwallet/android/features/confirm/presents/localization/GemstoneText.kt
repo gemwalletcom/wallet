@@ -12,6 +12,8 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.errorText
+
+import uniffi.gemstone.GemAcquireAssetFlow
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.Asset
@@ -123,3 +125,12 @@ internal fun FeeUnitType.suffix(assetSymbol: String): String = when (this) {
     FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei)
     FeeUnitType.Native -> assetSymbol
 }
+
+@Composable
+fun GemAcquireAssetFlow.actionLabel(symbol: String): String = stringResource(
+    when (this) {
+        GemAcquireAssetFlow.OPTIONS -> R.string.asset_get_asset
+        GemAcquireAssetFlow.FIAT -> R.string.asset_buy_asset
+    },
+    symbol,
+)

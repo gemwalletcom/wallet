@@ -85,25 +85,14 @@ impl FailureTracker {
 mod tests {
     use std::time::Duration;
 
-    use primitives::MINUTE;
-
     use super::*;
-
-    fn trigger_config(failures: usize) -> FailureTriggerConfig {
-        FailureTriggerConfig {
-            failures,
-            rate: 50,
-            window: MINUTE,
-            latency: None,
-        }
-    }
 
     #[test]
     fn test_record() {
         let now = Instant::now();
 
         let mut tracker = FailureTracker::default();
-        let config = trigger_config(15);
+        let config = FailureTriggerConfig::mock();
         for _ in 0..14 {
             assert!(!tracker.record(true, now, &config));
         }
@@ -116,7 +105,10 @@ mod tests {
         assert!(tracker.record(true, now, &config));
 
         let mut tracker = FailureTracker::default();
-        let config = trigger_config(3);
+        let config = FailureTriggerConfig {
+            failures: 3,
+            ..FailureTriggerConfig::mock()
+        };
         for failed in [true, false, true, false] {
             assert!(!tracker.record(failed, now, &config));
         }
@@ -136,7 +128,10 @@ mod tests {
         assert!(tracker.record(true, now + Duration::from_secs(61), &config));
 
         let mut tracker = FailureTracker::default();
-        let config = trigger_config(usize::MAX);
+        let config = FailureTriggerConfig {
+            failures: usize::MAX,
+            ..FailureTriggerConfig::mock()
+        };
         for _ in 0..100_000 {
             assert!(!tracker.record(false, now, &config));
         }

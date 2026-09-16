@@ -183,9 +183,8 @@ mod tests {
     use uuid::Uuid;
 
     use super::*;
-    use crate::config::Override;
     use crate::config::routes::{ProxyConfig, ProxyHealthConfig};
-    use crate::testkit::config::{chain_config, sample_config};
+    use crate::config::{Override, Url};
 
     #[test]
     fn test_expand_value_preserves_literal_environment_contents() {
@@ -200,7 +199,7 @@ mod tests {
 
     #[test]
     fn test_prepare_expands_credentials_for_both_route_types() {
-        let mut config = sample_config();
+        let mut config = Config::mock();
         let endpoint = &mut config.routes.as_mut().unwrap().routes.get_mut("fastnear_tx").unwrap().endpoints[0];
         endpoint.url = "https://${HOST}/provider".to_string();
         endpoint.headers = Some(HashMap::from([("authorization".to_string(), "Bearer ${KEY}".to_string())]));
@@ -216,13 +215,18 @@ mod tests {
                 },
             },
         )]));
-        let mut chain = chain_config(Chain::Ethereum, "https://${HOST}/rpc");
-        chain.urls[0].headers = Some(HashMap::from([("x-api-key".to_string(), "${KEY}".to_string())]));
-        chain.overrides = Some(vec![Override {
-            rpc_method: Some("eth_chainId".to_string()),
-            path: None,
-            url: "https://${HOST}/override".to_string(),
-        }]);
+        let chain = ChainConfig {
+            urls: vec![Url {
+                headers: Some(HashMap::from([("x-api-key".to_string(), "${KEY}".to_string())])),
+                ..Url::mock("https://${HOST}/rpc")
+            }],
+            overrides: Some(vec![Override {
+                rpc_method: Some("eth_chainId".to_string()),
+                path: None,
+                url: "https://${HOST}/override".to_string(),
+            }]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
         let mut chains = HashMap::from([(Chain::Ethereum, chain)]);
         let values = HashMap::from([("KEY", "test-key"), ("HOST", "example.invalid")]);
         prepare(&mut config, &mut chains, |name| values.get(name).map(|value| value.to_string())).unwrap();
@@ -243,7 +247,7 @@ mod tests {
 
     #[test]
     fn test_prepare_rejects_invalid_configuration_without_exposing_credentials() {
-        let mut config = sample_config();
+        let mut config = Config::mock();
         let mut chains = HashMap::new();
         config.routes.as_mut().unwrap().routes.get_mut("fastnear_tx").unwrap().endpoints[0].url = "invalid-test-secret".to_string();
         assert_eq!(prepare(&mut config, &mut chains, |_| None).unwrap_err().to_string(), "invalid upstream URL");
@@ -291,7 +295,7 @@ mod tests {
             .get::<Vec<ChainConfig>>("chains")
             .unwrap();
         assert_eq!(chains.len(), expected_chains.len());
-        assert_eq!(chains[&Chain::Ethereum].urls, chain_config(Chain::Ethereum, "https://region.example.invalid").urls);
+        assert_eq!(chains[&Chain::Ethereum].urls, vec![Url::mock("https://region.example.invalid")]);
         assert_eq!(chains[&Chain::Ethereum].overrides, None);
         for chain in expected_chains.iter().filter(|chain| chain.chain != Chain::Ethereum) {
             assert_eq!(chains[&chain.chain].urls, chain.urls);

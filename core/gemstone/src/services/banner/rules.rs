@@ -231,7 +231,7 @@ fn event_priority(event: BannerEvent) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Account, WalletId, known_assets::TRON_USDT};
+    use primitives::known_assets::TRON_USDT;
 
     #[test]
     fn test_setup_keys() {
@@ -251,17 +251,7 @@ mod tests {
 
     #[test]
     fn test_wallet_setup_keys() {
-        let mut wallet = Wallet {
-            id: WalletId::Multicoin("0x1".to_string()),
-            external_id: None,
-            name: "wallet".to_string(),
-            index: 0,
-            wallet_type: WalletType::Multicoin,
-            accounts: vec![],
-            is_pinned: false,
-            image_url: None,
-            source: WalletSource::Import,
-        };
+        let mut wallet = Wallet::mock_with_accounts(vec![]);
         let imported = wallet_setup_keys(&wallet);
         assert_eq!(imported.len(), 3);
         assert!(imported.iter().all(|key| key.event == BannerEvent::AccountActivation));
@@ -275,71 +265,55 @@ mod tests {
         );
     }
 
-    fn context(has_asset: bool) -> GemBannerContext {
-        GemBannerContext {
-            wallet: Some(Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::HyperCore], "address"))),
-            asset: has_asset.then(|| Asset::from_chain(Chain::Ethereum)),
-            is_stakeable: true,
-            has_stake_balance: false,
-            has_available_balance: false,
-            is_asset_activated: true,
-            asset_rank_score: Some(50),
-            is_wallet_empty: false,
-        }
-    }
-
-    fn item(event: BannerEvent, state: BannerState) -> Banner {
-        Banner {
-            wallet_id: None,
-            asset: Some(Asset::from_chain(Chain::Ethereum)),
-            event,
-            state,
-        }
-    }
-
     fn events(banners: &[Banner]) -> Vec<BannerEvent> {
         banners.iter().map(|banner| banner.event).collect()
     }
 
     #[test]
     fn test_visible_banners_asset_rules() {
-        let stake = vec![item(BannerEvent::Stake, BannerState::Active)];
-        assert_eq!(events(&visible_banners(stake.clone(), &context(true))), vec![BannerEvent::Stake]);
+        let stake = vec![Banner::mock(BannerEvent::Stake, BannerState::Active)];
+        assert_eq!(events(&visible_banners(stake.clone(), &GemBannerContext::mock())), vec![BannerEvent::Stake]);
         let staked = GemBannerContext {
             has_stake_balance: true,
-            ..context(true)
+            ..GemBannerContext::mock()
         };
         assert!(visible_banners(stake, &staked).is_empty());
 
         let inactive = GemBannerContext {
             is_asset_activated: false,
-            ..context(true)
+            ..GemBannerContext::mock()
         };
         assert_eq!(events(&visible_banners(vec![], &inactive)), vec![BannerEvent::ActivateAsset]);
-        assert!(visible_banners(vec![], &context(true)).is_empty());
+        assert!(visible_banners(vec![], &GemBannerContext::mock()).is_empty());
 
         let suspicious = GemBannerContext {
             asset_rank_score: Some(5),
-            ..context(true)
+            ..GemBannerContext::mock()
         };
         assert_eq!(events(&visible_banners(vec![], &suspicious)), vec![BannerEvent::SuspiciousAsset]);
 
-        let activation = vec![item(BannerEvent::AccountActivation, BannerState::AlwaysActive)];
-        assert_eq!(events(&visible_banners(activation.clone(), &context(true))), vec![BannerEvent::AccountActivation]);
+        let activation = vec![Banner::mock(BannerEvent::AccountActivation, BannerState::AlwaysActive)];
+        assert_eq!(
+            events(&visible_banners(activation.clone(), &GemBannerContext::mock())),
+            vec![BannerEvent::AccountActivation]
+        );
         let funded = GemBannerContext {
             has_available_balance: true,
-            ..context(true)
+            ..GemBannerContext::mock()
         };
         assert!(visible_banners(activation, &funded).is_empty());
 
-        let perpetuals = vec![item(BannerEvent::TradePerpetuals, BannerState::Active)];
-        assert_eq!(events(&visible_banners(perpetuals.clone(), &context(true))), vec![BannerEvent::TradePerpetuals]);
+        let perpetuals = vec![Banner::mock(BannerEvent::TradePerpetuals, BannerState::Active)];
+        assert_eq!(events(&visible_banners(perpetuals.clone(), &GemBannerContext::mock())), vec![BannerEvent::TradePerpetuals]);
         let unsupported = GemBannerContext {
-            wallet: Some(Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum], "address"))),
-            ..context(true)
+            wallet: Some(Wallet::mock_with_chains(&[Chain::Ethereum])),
+            ..GemBannerContext::mock()
         };
         assert!(visible_banners(perpetuals.clone(), &unsupported).is_empty());
-        let no_wallet = GemBannerContext { wallet: None, ..context(true) };
+        let no_wallet = GemBannerContext {
+            wallet: None,
+            ..GemBannerContext::mock()
+        };
         assert!(visible_banners(perpetuals, &no_wallet).is_empty());
     }
 
@@ -352,12 +326,12 @@ mod tests {
             }),
             is_asset_activated: false,
             asset_rank_score: Some(5),
-            ..context(true)
+            ..GemBannerContext::mock()
         };
         let stored = vec![
-            item(BannerEvent::Stake, BannerState::Active),
-            item(BannerEvent::AccountActivation, BannerState::Active),
-            item(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive),
+            Banner::mock(BannerEvent::Stake, BannerState::Active),
+            Banner::mock(BannerEvent::AccountActivation, BannerState::Active),
+            Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive),
         ];
 
         assert_eq!(
@@ -373,14 +347,14 @@ mod tests {
         let token = TRON_USDT.clone();
         let warning = Banner {
             asset: Some(tron.clone()),
-            ..item(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
+            ..Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
         };
         for wallet_type in [WalletType::Multicoin, WalletType::Single, WalletType::PrivateKey, WalletType::View] {
             for asset in [None, Some(tron.clone()), Some(token.clone())] {
                 let context = GemBannerContext {
                     wallet: Some(Wallet { wallet_type, ..Wallet::mock() }),
                     asset,
-                    ..context(true)
+                    ..GemBannerContext::mock()
                 };
                 assert_eq!(visible_banners(vec![warning.clone()], &context), vec![warning.clone()], "{wallet_type:?}");
             }
@@ -392,22 +366,22 @@ mod tests {
         let token = Asset::mock_ethereum_usdc();
         let context = GemBannerContext {
             asset: Some(token.clone()),
-            ..context(true)
+            ..GemBannerContext::mock()
         };
-        let warning = item(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive);
+        let warning = Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive);
         let token_stake = Banner {
             asset: Some(token),
-            ..item(BannerEvent::Stake, BannerState::Active)
+            ..Banner::mock(BannerEvent::Stake, BannerState::Active)
         };
         let stored = vec![
             Banner {
                 asset: Some(Asset::from_chain(Chain::Tron)),
                 ..warning.clone()
             },
-            item(BannerEvent::Stake, BannerState::Active),
-            item(BannerEvent::AccountActivation, BannerState::Active),
-            item(BannerEvent::TradePerpetuals, BannerState::Active),
-            item(BannerEvent::Onboarding, BannerState::Active),
+            Banner::mock(BannerEvent::Stake, BannerState::Active),
+            Banner::mock(BannerEvent::AccountActivation, BannerState::Active),
+            Banner::mock(BannerEvent::TradePerpetuals, BannerState::Active),
+            Banner::mock(BannerEvent::Onboarding, BannerState::Active),
             warning.clone(),
             token_stake.clone(),
             token_stake.clone(),
@@ -420,33 +394,37 @@ mod tests {
         let stored = vec![
             Banner {
                 asset: None,
-                ..item(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
+                ..Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
             },
-            item(BannerEvent::AccountBlockedMultiSignature, BannerState::Cancelled),
+            Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::Cancelled),
         ];
-        assert!(visible_banners(stored, &context(true)).is_empty());
+        assert!(visible_banners(stored, &GemBannerContext::mock()).is_empty());
     }
 
     #[test]
     fn test_visible_banners_order_and_wallet_rules() {
         let stored = vec![
-            item(BannerEvent::Stake, BannerState::Active),
-            item(BannerEvent::AccountActivation, BannerState::AlwaysActive),
+            Banner::mock(BannerEvent::Stake, BannerState::Active),
+            Banner::mock(BannerEvent::AccountActivation, BannerState::AlwaysActive),
         ];
         let suspicious = GemBannerContext {
             asset_rank_score: Some(5),
-            ..context(true)
+            ..GemBannerContext::mock()
         };
         let banners = visible_banners(stored, &suspicious);
         assert_eq!(events(&banners), vec![BannerEvent::AccountActivation, BannerEvent::SuspiciousAsset, BannerEvent::Stake]);
         assert_eq!(banners[0].state, BannerState::AlwaysActive);
         assert_eq!(banners[2].state, BannerState::Active);
 
-        let wallet = vec![item(BannerEvent::Onboarding, BannerState::AlwaysActive)];
-        assert!(visible_banners(wallet.clone(), &context(false)).is_empty());
+        let wallet = vec![Banner::mock(BannerEvent::Onboarding, BannerState::AlwaysActive)];
+        let without_asset = GemBannerContext {
+            asset: None,
+            ..GemBannerContext::mock()
+        };
+        assert!(visible_banners(wallet.clone(), &without_asset).is_empty());
         let empty = GemBannerContext {
             is_wallet_empty: true,
-            ..context(false)
+            ..without_asset
         };
         assert_eq!(events(&visible_banners(wallet, &empty)), vec![BannerEvent::Onboarding]);
     }

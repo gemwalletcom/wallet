@@ -245,62 +245,17 @@ pub fn map_transaction_blocks(transaction_blocks: TransactionBlocks) -> Vec<Tran
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Effect, GasObject, Owner, OwnerObject, Status};
+    use crate::models::testkit::TEST_OWNER_ADDRESS;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use crate::{SUI_COIN_TYPE_FULL, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT};
-    use num_bigint::{BigInt, BigUint};
+    use num_bigint::BigUint;
     use serde_json::json;
 
-    const OWNER_ADDRESS: &str = "0x1930a5e729ad95a48e4d9dc2ca8a001f8ed18b20077c083cd6b1d3355a7972a5";
     const RECIPIENT_ADDRESS: &str = "0x9d6b98b18fd26b5efeec68d020dcf1be7a94c2c315353779bc6b3aed44188ddf";
     const SPONSORED_TRANSFER_SENDER_ADDRESS: &str = "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138";
     const VALIDATOR_ADDRESS: &str = "0xbba318294a51ddeafa50c335c8e77202170e1f272599a2edc40592100863f638";
     const TOKEN_A: &str = "0x00000000000000000000000000000000000000000000000000000000000000aa::coin::AAA";
     const TOKEN_B: &str = "0x00000000000000000000000000000000000000000000000000000000000000bb::coin::BBB";
-
-    fn owner(address: &str) -> Owner {
-        Owner::OwnerObject(OwnerObject {
-            address_owner: Some(address.to_string()),
-        })
-    }
-
-    fn balance_change(address: &str, coin_type: &str, amount: i64) -> BalanceChange {
-        BalanceChange {
-            owner: owner(address),
-            coin_type: coin_type.to_string(),
-            amount: BigInt::from(amount),
-        }
-    }
-
-    fn event(event_type: impl Into<String>, parsed_json: serde_json::Value) -> Event {
-        Event {
-            event_type: event_type.into(),
-            parsed_json: Some(parsed_json),
-            package_id: String::new(),
-        }
-    }
-
-    fn make_digest(events: Vec<Event>, balance_changes: Vec<BalanceChange>) -> Digest {
-        Digest {
-            digest: "test".to_string(),
-            effects: Effect {
-                gas_used: GasUsed {
-                    computation_cost: BigUint::from(0u32),
-                    storage_cost: BigUint::from(0u32),
-                    storage_rebate: BigUint::from(0u32),
-                    non_refundable_storage_fee: BigUint::from(0u32),
-                },
-                status: Status {
-                    status: STATUS_SUCCESS.to_string(),
-                },
-                gas_object: GasObject { owner: owner(OWNER_ADDRESS) },
-            },
-            move_call_packages: Vec::new(),
-            balance_changes: Some(balance_changes),
-            events,
-            timestamp_ms: 1778964551487,
-        }
-    }
 
     #[test]
     fn test_map_transaction_blocks() {
@@ -350,16 +305,16 @@ mod tests {
         assert_eq!(transaction.hash(), "DXKezMGJZaxJRC6a6zCr3JdfquYGxgU1zjV4xrNAaCFB");
         assert_eq!(transaction.transaction_type, TransactionType::StakeDelegate);
         assert_eq!(transaction.value, BigUint::from(2000000000u64));
-        assert_eq!(transaction.from, OWNER_ADDRESS);
+        assert_eq!(transaction.from, TEST_OWNER_ADDRESS);
         assert_eq!(transaction.to, VALIDATOR_ADDRESS);
         assert_eq!(transaction.fee, BigUint::from(10610996u64));
         assert_eq!(map_asset_id(SUI_COIN_TYPE_FULL), Chain::Sui.as_asset_id());
 
-        let native_transfer = map_transaction(make_digest(
+        let native_transfer = map_transaction(Digest::mock(
             vec![],
             vec![
-                balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -101744880),
-                balance_change(RECIPIENT_ADDRESS, SUI_COIN_TYPE_FULL, 100000000),
+                BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -101744880),
+                BalanceChange::mock(RECIPIENT_ADDRESS, SUI_COIN_TYPE_FULL, 100000000),
             ],
         ))
         .unwrap();
@@ -374,15 +329,15 @@ mod tests {
         assert_eq!(sponsored_transfer.transaction_type, TransactionType::Transfer);
         assert_eq!(sponsored_transfer.asset_id, Chain::Sui.as_asset_id());
         assert_eq!(sponsored_transfer.from, SPONSORED_TRANSFER_SENDER_ADDRESS);
-        assert_eq!(sponsored_transfer.to, OWNER_ADDRESS);
+        assert_eq!(sponsored_transfer.to, TEST_OWNER_ADDRESS);
         assert_eq!(sponsored_transfer.value, BigUint::from(5996594751u64));
 
-        let token_transfer = map_transaction(make_digest(
+        let token_transfer = map_transaction(Digest::mock(
             vec![],
             vec![
-                balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -1000),
-                balance_change(OWNER_ADDRESS, TOKEN_A, -100),
-                balance_change(RECIPIENT_ADDRESS, TOKEN_A, 100),
+                BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -1000),
+                BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_A, -100),
+                BalanceChange::mock(RECIPIENT_ADDRESS, TOKEN_A, 100),
             ],
         ))
         .unwrap();
@@ -391,12 +346,15 @@ mod tests {
         assert_eq!(token_transfer.asset_id, AssetId::from_token(Chain::Sui, TOKEN_A));
         assert_eq!(token_transfer.value, BigUint::from(100u64));
 
-        let swap = map_transaction(make_digest(
-            vec![event("0x00000000000000000000000000000000000000000000000000000000000000cc::pool::SwapEvent", json!({}))],
+        let swap = map_transaction(Digest::mock(
+            vec![Event::mock(
+                "0x00000000000000000000000000000000000000000000000000000000000000cc::pool::SwapEvent",
+                json!({}),
+            )],
             vec![
-                balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -1000),
-                balance_change(OWNER_ADDRESS, TOKEN_A, -200),
-                balance_change(OWNER_ADDRESS, TOKEN_B, 150),
+                BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -1000),
+                BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_A, -200),
+                BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_B, 150),
             ],
         ))
         .unwrap();
@@ -410,52 +368,52 @@ mod tests {
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Sui, TOKEN_B));
         assert_eq!(metadata.to_value, BigUint::from(150u64));
 
-        let unstake = map_transaction(make_digest(
-            vec![event(
+        let unstake = map_transaction(Digest::mock(
+            vec![Event::mock(
                 full_coin_type(SUI_UNSTAKE_EVENT),
                 json!({
                     "principal_amount": "3000000000",
                     "reward_amount": "42",
-                    "staker_address": OWNER_ADDRESS,
+                    "staker_address": TEST_OWNER_ADDRESS,
                     "validator_address": VALIDATOR_ADDRESS,
                 }),
             )],
-            vec![balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, 3000000000)],
+            vec![BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, 3000000000)],
         ))
         .unwrap();
 
         assert_eq!(unstake.transaction_type, TransactionType::StakeUndelegate);
         assert_eq!(unstake.value, BigUint::from(3000000000u64));
-        assert_eq!(unstake.from, OWNER_ADDRESS);
+        assert_eq!(unstake.from, TEST_OWNER_ADDRESS);
         assert_eq!(unstake.to, VALIDATOR_ADDRESS);
     }
 
     #[test]
     fn test_map_transaction_rejects_non_integer_stake_amount() {
-        let malformed_stake = map_transaction(make_digest(
-            vec![event(
+        let malformed_stake = map_transaction(Digest::mock(
+            vec![Event::mock(
                 full_coin_type(SUI_STAKE_EVENT),
                 json!({
                     "amount": "54.108086",
-                    "staker_address": OWNER_ADDRESS,
+                    "staker_address": TEST_OWNER_ADDRESS,
                     "validator_address": VALIDATOR_ADDRESS,
                 }),
             )],
-            vec![balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -3000000000)],
+            vec![BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -3000000000)],
         ));
         assert!(malformed_stake.is_none());
 
-        let malformed_unstake = map_transaction(make_digest(
-            vec![event(
+        let malformed_unstake = map_transaction(Digest::mock(
+            vec![Event::mock(
                 full_coin_type(SUI_UNSTAKE_EVENT),
                 json!({
                     "principal_amount": "",
                     "reward_amount": "42",
-                    "staker_address": OWNER_ADDRESS,
+                    "staker_address": TEST_OWNER_ADDRESS,
                     "validator_address": VALIDATOR_ADDRESS,
                 }),
             )],
-            vec![balance_change(OWNER_ADDRESS, SUI_COIN_TYPE_FULL, 3000000000)],
+            vec![BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, 3000000000)],
         ));
         assert!(malformed_unstake.is_none());
     }

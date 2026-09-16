@@ -24,6 +24,10 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.earn.delegation.models.DelegationProperties
 import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,6 +45,7 @@ class DelegationViewModel @Inject constructor(
     private val getDelegation: GetDelegation,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -111,14 +116,17 @@ class DelegationViewModel @Inject constructor(
     fun onClaimRewards(call: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
-        call(
-            stakeService.stakeTransferData(
-                assetInfo.asset.toGem(),
-                StakeType.Rewards(listOf(delegation.validator)).toGem(),
-                delegation.base.rewards,
-                false,
-            )
-        )
+        viewModelScope.launch {
+            val transfer = withContext(ioDispatcher) {
+                stakeService.stakeTransferData(
+                    assetInfo.asset.toGem(),
+                    StakeType.Rewards(listOf(delegation.validator)).toGem(),
+                    delegation.base.rewards,
+                    false,
+                )
+            }
+            call(transfer)
+        }
     }
 }
 

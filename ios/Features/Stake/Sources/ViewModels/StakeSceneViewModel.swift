@@ -36,7 +36,7 @@ public final class StakeSceneViewModel {
     public let assetQuery: ObservableQuery<AssetRequest>
 
     public var delegations: [Delegation] {
-        delegationsQuery.value
+        service.sortedDelegations(delegations: delegationsQuery.value.map { $0.toGem() }).map { Delegation(core: $0) }
     }
 
     public var validators: [DelegationValidator] {

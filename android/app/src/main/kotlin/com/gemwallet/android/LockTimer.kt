@@ -7,12 +7,13 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import kotlinx.coroutines.flow.first
 import java.util.concurrent.atomic.AtomicLong
 import uniffi.gemstone.GemSecurityService
+import uniffi.gemstone.GemSecurityServiceInterface
 import javax.inject.Inject
 
 class LockTimer @Inject constructor(
     private val userConfig: UserConfig,
     private val activeWalletConnectRequest: ActiveWalletConnectRequest,
-    private val securityService: GemSecurityService,
+    private val securityService: GemSecurityServiceInterface,
 ) {
 
     private val pauseTime = AtomicLong(0L)

@@ -13,6 +13,7 @@ import uniffi.gemstone.GemConfirmFailure
 import uniffi.gemstone.GemConfirmStage
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.gemwallet.android.features.confirm.presents.localization.actionLabel
 import com.gemwallet.android.features.confirm.presents.localization.text
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemBalanceRequirement
@@ -181,10 +182,7 @@ private fun GemConfirmErrorDisplay.toInfoSheetEntity(
 }
 
 @Composable
-private fun Asset.acquireActionLabel(flow: GemAcquireAssetFlow): String = stringResource(
-    if (flow == GemAcquireAssetFlow.OPTIONS) R.string.asset_get_asset else R.string.asset_buy_asset,
-    symbol,
-)
+private fun Asset.acquireActionLabel(flow: GemAcquireAssetFlow): String = flow.actionLabel(symbol)
 
 private fun AssetPriceValue?.amountWithFiat(value: BigInteger, asset: Asset): String {
     val amount = ValueFormatter(style = GemValueStyle.FULL).string(value, asset)

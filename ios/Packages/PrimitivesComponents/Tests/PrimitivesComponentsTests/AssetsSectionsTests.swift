@@ -6,17 +6,15 @@ import PrimitivesTestKit
 import Testing
 
 struct AssetsSectionsTests {
-    private func asset(_ chain: Chain, isPinned: Bool = false) -> AssetData {
-        AssetData.mock(
-            asset: .mock(id: AssetId(chain: chain)),
-            metadata: .mock(isPinned: isPinned)
-        )
-    }
-
     @Test
     func popularEnabledRemovesPopularFromAssets() {
         let sections = AssetsSections.from(
-            [asset(.bitcoin), asset(.ethereum), asset(.solana), asset(.smartChain)],
+            [
+                .mock(asset: .mock(id: .mock(.bitcoin)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(.ethereum)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(.solana)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(.smartChain)), metadata: .mock(isPinned: false)),
+            ],
             showsPopular: true
         )
 
@@ -26,7 +24,10 @@ struct AssetsSectionsTests {
 
     @Test
     func popularDisabledKeepsPopularInAssets() {
-        let sections = AssetsSections.from([asset(.bitcoin), asset(.smartChain)])
+        let sections = AssetsSections.from([
+            .mock(asset: .mock(id: .mock(.bitcoin)), metadata: .mock(isPinned: false)),
+            .mock(asset: .mock(id: .mock(.smartChain)), metadata: .mock(isPinned: false)),
+        ])
 
         #expect(sections.popular.isEmpty)
         #expect(sections.assets.map { $0.asset.id.chain } == [.bitcoin, .smartChain])
@@ -35,7 +36,11 @@ struct AssetsSectionsTests {
     @Test
     func pinnedAssetsStaySeparateFromPopularAndAssets() {
         let sections = AssetsSections.from(
-            [asset(.smartChain, isPinned: true), asset(.ethereum), asset(.tron)],
+            [
+                .mock(asset: .mock(id: .mock(.smartChain)), metadata: .mock(isPinned: true)),
+                .mock(asset: .mock(id: .mock(.ethereum)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(.tron)), metadata: .mock(isPinned: false)),
+            ],
             showsPopular: true
         )
 

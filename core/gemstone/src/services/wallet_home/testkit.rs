@@ -4,7 +4,7 @@ use primitives::WalletId;
 
 use super::GemWalletHomeService;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
-use crate::services::balance::testkit::RecordingBalanceStore;
+use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::MemoryBannerStore;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
@@ -13,7 +13,7 @@ use crate::testkit::TestAlienProvider;
 pub struct WalletHomeTestkit {
     pub service: GemWalletHomeService,
     pub provider: Arc<TestAlienProvider>,
-    pub balances: Arc<RecordingBalanceStore>,
+    pub balances: Arc<MemoryBalanceStore>,
     pub wallet_preferences: Arc<GemWalletPreferencesService>,
     pub wallet_id: WalletId,
 }

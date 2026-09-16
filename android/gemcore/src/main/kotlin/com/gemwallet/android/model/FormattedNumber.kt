@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemPrecision
 import android.icu.text.CompactDecimalFormat
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -21,12 +22,12 @@ private val GemFormattedNumber.showsSign: Boolean
 
 private fun GemFormattedNumber.body(locale: Locale): String = when (val display = display) {
     is GemNumberDisplay.Number -> when (unit) {
-        is GemNumberUnit.Percent -> percentText(BigDecimal.valueOf(value), display.precision.toPrecision(), showsSign, locale)
-        else -> appendSymbol(numberText(BigDecimal.valueOf(value), display.precision.toPrecision(), locale))
+        is GemNumberUnit.Percent -> percentText(BigDecimal.valueOf(value), display.precision, showsSign, locale)
+        else -> appendSymbol(numberText(BigDecimal.valueOf(value), display.precision, locale))
     }
     is GemNumberDisplay.Abbreviated -> appendSymbol(abbreviatedText(BigDecimal.valueOf(value), locale))
     is GemNumberDisplay.BelowThreshold -> appendSymbol(
-        "<${numberText(BigDecimal.valueOf(display.threshold), Precision.Fraction(display.places.toInt(), display.places.toInt()), locale)}"
+        "<${numberText(BigDecimal.valueOf(display.threshold), GemPrecision.Fraction(display.places, display.places), locale)}"
     )
 }
 
@@ -36,11 +37,11 @@ private val GemFormattedNumber.currencyCode: String?
 private val GemFormattedNumber.symbol: String?
     get() = (unit as? GemNumberUnit.Symbol)?.symbol
 
-private fun percentText(value: BigDecimal, precision: Precision, showsSign: Boolean, locale: Locale): String {
-    val fraction = precision as Precision.Fraction
+private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: Boolean, locale: Locale): String {
+    val fraction = precision as GemPrecision.Fraction
     val formatter = (NumberFormat.getPercentInstance(locale) as DecimalFormat).apply {
-        minimumFractionDigits = fraction.min
-        maximumFractionDigits = fraction.max
+        minimumFractionDigits = fraction.min.toInt()
+        maximumFractionDigits = fraction.max.toInt()
         roundingMode = RoundingMode.HALF_EVEN
         if (showsSign) {
             positivePrefix = "+"
@@ -55,7 +56,7 @@ private fun percentText(value: BigDecimal, precision: Precision, showsSign: Bool
 private fun GemFormattedNumber.appendSymbol(text: String): String =
     symbol?.let { "$text $it" } ?: text
 
-private fun GemFormattedNumber.numberText(value: BigDecimal, precision: Precision, locale: Locale): String {
+private fun GemFormattedNumber.numberText(value: BigDecimal, precision: GemPrecision, locale: Locale): String {
     val formatter = (numberFormat(locale) as DecimalFormat).apply {
         roundingMode = RoundingMode.HALF_EVEN
         if (showsSign) {

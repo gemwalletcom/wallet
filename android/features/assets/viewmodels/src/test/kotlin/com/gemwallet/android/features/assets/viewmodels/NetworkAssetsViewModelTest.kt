@@ -7,8 +7,11 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetEthereumUSDT
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
+import com.gemwallet.android.testkit.mockGemAssetRow
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -30,10 +33,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAssetRow
-import uniffi.gemstone.GemAssetRowSubtitle
-import uniffi.gemstone.GemAssetRowTitle
-import uniffi.gemstone.GemAssetRowTrailing
 import uniffi.gemstone.GemWalletHomeServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,11 +40,11 @@ class NetworkAssetsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
-    private val native = mockAssetInfo(asset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", type = AssetType.NATIVE))
-    private val pinnedToken = token(symbol = "USDT", tokenId = "0xusdt", isPinned = true)
-    private val unpinnedToken = token(symbol = "USDC", tokenId = "0xusdc", isPinned = false)
-    private val hiddenToken = token(symbol = "DAI", tokenId = "0xdai", isPinned = false)
-    private val otherWalletToken = token(symbol = "LINK", tokenId = "0xlink", isPinned = false)
+    private val native = mockAssetInfo(asset = mockAssetEthereum())
+    private val pinnedToken = mockAssetInfo(asset = mockAssetEthereumUSDT(), metadata = mockAssetMetaData(isPinned = true))
+    private val unpinnedToken = mockAssetInfo(asset = mockAsset(chain = Chain.Ethereum, tokenId = "0xusdc", symbol = "USDC", type = AssetType.ERC20))
+    private val hiddenToken = mockAssetInfo(asset = mockAsset(chain = Chain.Ethereum, tokenId = "0xdai", symbol = "DAI", type = AssetType.ERC20))
+    private val otherWalletToken = mockAssetInfo(asset = mockAsset(chain = Chain.Ethereum, tokenId = "0xlink", symbol = "LINK", type = AssetType.ERC20))
 
     private val active = MutableStateFlow(listOf(native, pinnedToken, unpinnedToken))
     private val hidden = MutableStateFlow(listOf(hiddenToken))
@@ -66,18 +65,8 @@ class NetworkAssetsViewModelTest {
     }
 
     private val service = mockk<GemWalletHomeServiceInterface>(relaxed = true) {
-        every { assetRow() } returns GemAssetRow(
-            title = GemAssetRowTitle.ASSET,
-            showsSymbol = false,
-            subtitle = GemAssetRowSubtitle.PRICE,
-            trailing = GemAssetRowTrailing.BALANCE,
-        )
+        every { assetRow() } returns mockGemAssetRow()
     }
-
-    private fun token(symbol: String, tokenId: String, isPinned: Boolean) = mockAssetInfo(
-        asset = mockAsset(chain = Chain.Ethereum, tokenId = tokenId, name = symbol, symbol = symbol, decimals = 6, type = AssetType.ERC20),
-        metadata = mockAssetMetaData(isPinned = isPinned),
-    )
 
     @Before
     fun setUp() {

@@ -230,8 +230,8 @@ mod tests {
             SupportMessageDisplayContent {
                 text: "The current price of Hyperliquid (HYPE) is $71.62.".to_string(),
                 links: vec![
-                    link("Hyperliquid (HYPE)", "https://hyperliquid.xyz", Some("hyperliquid.xyz")),
-                    link("Open market chart", "https://www.coingecko.com/en/coins/hyperliquid", Some("coingecko.com")),
+                    SupportMessageLink::mock("Hyperliquid (HYPE)", "https://hyperliquid.xyz", Some("hyperliquid.xyz")),
+                    SupportMessageLink::mock("Open market chart", "https://www.coingecko.com/en/coins/hyperliquid", Some("coingecko.com")),
                 ],
             }
         );
@@ -239,21 +239,21 @@ mod tests {
             parse_support_message_display_content("Here's the Bitcoin page: [Bitcoin](gem://tokens/bitcoin)"),
             SupportMessageDisplayContent {
                 text: "Here's the Bitcoin page:".to_string(),
-                links: vec![link("Bitcoin", "gem://tokens/bitcoin", None)],
+                links: vec![SupportMessageLink::mock("Bitcoin", "gem://tokens/bitcoin", None)],
             }
         );
         assert_eq!(
             parse_support_message_display_content("You can top up here: [Buy Bitcoin](gem://tokens/bitcoin/buy?amount=100)"),
             SupportMessageDisplayContent {
                 text: "You can top up here:".to_string(),
-                links: vec![link("Buy Bitcoin", "gem://tokens/bitcoin/buy?amount=100", None)],
+                links: vec![SupportMessageLink::mock("Buy Bitcoin", "gem://tokens/bitcoin/buy?amount=100", None)],
             }
         );
         assert_eq!(
             parse_support_message_display_content("Here's the Bitcoin page: [Bitcoin](https://gemwallet.com/tokens/bitcoin)"),
             SupportMessageDisplayContent {
                 text: "Here's the Bitcoin page:".to_string(),
-                links: vec![link("Bitcoin", "https://gemwallet.com/tokens/bitcoin", None)],
+                links: vec![SupportMessageLink::mock("Bitcoin", "https://gemwallet.com/tokens/bitcoin", None)],
             }
         );
         assert_eq!(
@@ -267,7 +267,7 @@ mod tests {
             ),
             SupportMessageDisplayContent {
                 text: "Here's the Gem Wallet docs homepage:".to_string(),
-                links: vec![link("Docs", "https://docs.gemwallet.com", Some("docs.gemwallet.com"))],
+                links: vec![SupportMessageLink::mock("Docs", "https://docs.gemwallet.com", Some("docs.gemwallet.com"))],
             }
         );
         assert_eq!(
@@ -291,14 +291,14 @@ mod tests {
             SupportMessageDisplayContent {
                 text: "Here are the links: Which docs article were you looking for specifically?".to_string(),
                 links: vec![
-                    link("Docs", "https://docs.gemwallet.com", Some("docs.gemwallet.com")),
-                    link(
+                    SupportMessageLink::mock("Docs", "https://docs.gemwallet.com", Some("docs.gemwallet.com")),
+                    SupportMessageLink::mock(
                         "Robinhood announcement",
                         "https://gemwallet.com/learn/gem-wallet-now-supports-robinhood-chain-store-and-swap-eth-and-tokenized-stocks/",
                         Some("gemwallet.com"),
                     ),
-                    link("Transaction", "https://etherscan.io/tx/0x123", Some("etherscan.io")),
-                    link("Deep link", "gem://tokens/bitcoin", None),
+                    SupportMessageLink::mock("Transaction", "https://etherscan.io/tx/0x123", Some("etherscan.io")),
+                    SupportMessageLink::mock("Deep link", "gem://tokens/bitcoin", None),
                 ],
             }
         );
@@ -325,8 +325,8 @@ mod tests {
             SupportMessageDisplayContent {
                 text: "Here are the links: Which docs article were you looking for specifically?".to_string(),
                 links: vec![
-                    link("Docs", "https://docs.gemwallet.com/", Some("docs.gemwallet.com")),
-                    link(
+                    SupportMessageLink::mock("Docs", "https://docs.gemwallet.com/", Some("docs.gemwallet.com")),
+                    SupportMessageLink::mock(
                         "Robinhood announcement",
                         "https://gemwallet.com/learn/gem-wallet-now-supports-robinhood-chain-store-and-swap-eth-and-tokenized-stocks/",
                         Some("gemwallet.com"),
@@ -342,13 +342,5 @@ mod tests {
                 links: vec![],
             }
         );
-    }
-
-    fn link(title: &str, url: &str, subtitle: Option<&str>) -> SupportMessageLink {
-        SupportMessageLink {
-            title: title.to_string(),
-            url: url.to_string(),
-            subtitle: subtitle.map(str::to_string),
-        }
     }
 }

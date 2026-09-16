@@ -5,32 +5,19 @@ import GemstonePrimitives
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import ManageWallets
+import ManageWalletsTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
-import SwiftUI
 import Testing
 
 @MainActor
 struct WalletDetailViewModelTests {
-    private func model(
-        wallet: Primitives.Wallet,
-        db: DB = .mock(),
-        service: GemWalletService? = nil,
-    ) -> WalletDetailViewModel {
-        WalletDetailViewModel(
-            navigationPath: .constant(NavigationPath()),
-            wallet: wallet,
-            service: service ?? GemWalletService.mock(db: db),
-            preferences: .mock(),
-        )
-    }
-
     @Test
     func theRowAndTheNameComeFromCore() {
         let wallet = Primitives.Wallet.mock(name: "Main Wallet")
-        let model = model(wallet: wallet)
+        let model = WalletDetailViewModel.mock(wallet: wallet)
 
         #expect(model.name == "Main Wallet")
         #expect(model.nameInput == "Main Wallet")
@@ -39,7 +26,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func aMulticoinWalletHasNoSingleAddressRow() {
-        let model = model(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum)]))
+        let model = WalletDetailViewModel.mock(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum)]))
 
         #expect(model.address == nil)
     }
@@ -47,7 +34,7 @@ struct WalletDetailViewModelTests {
     @Test
     func aSingleChainWalletShowsItsAddressWithAnExplorerLink() throws {
         let account = Account.mock(chain: .ethereum, address: "0xabc")
-        let model = model(wallet: .mock(type: .single, accounts: [account]))
+        let model = WalletDetailViewModel.mock(wallet: .mock(type: .single, accounts: [account]))
 
         let address = try #require(model.address)
         guard case let .account(simple, link) = address else {
@@ -60,7 +47,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func renamingAWalletThatIsGoneShowsTheError() async {
-        let model = model(wallet: .mock(id: .multicoin(address: "0xmissing")))
+        let model = WalletDetailViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
         model.nameInput = "Renamed"
 
         await model.onChangeWalletName()
@@ -70,11 +57,10 @@ struct WalletDetailViewModelTests {
 
     @Test
     func renamingStoresTheNewName() async throws {
-        let db = DB.mock()
-        let walletStore = WalletStore.mock(db: db)
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"), name: "Old")
-        try walletStore.addWallet(wallet)
-        let model = model(wallet: wallet, db: db)
+        let db = try DB.mockWithWallets([wallet])
+        let walletStore = WalletStore.mock(db: db)
+        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db))
         model.nameInput = "New"
 
         await model.onChangeWalletName()
@@ -85,7 +71,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func askingToDeleteOpensTheConfirmation() {
-        let model = model(wallet: .mock())
+        let model = WalletDetailViewModel.mock()
 
         model.onSelectDelete()
 
@@ -94,11 +80,10 @@ struct WalletDetailViewModelTests {
 
     @Test
     func deletingTheOnlyWalletSucceeds() async throws {
-        let db = DB.mock()
-        let walletStore = WalletStore.mock(db: db)
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
-        try walletStore.addWallet(wallet)
-        let model = model(wallet: wallet, db: db)
+        let db = try DB.mockWithWallets([wallet])
+        let walletStore = WalletStore.mock(db: db)
+        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db))
 
         #expect(await model.onDelete())
         #expect(try walletStore.getWallets().isEmpty)
@@ -106,7 +91,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func exportingASecretAWatchWalletDoesNotHaveShowsTheError() async {
-        let model = model(wallet: .mock(id: .multicoin(address: "0xmissing")))
+        let model = WalletDetailViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
 
         model.onShowSecret()
         await settle { model.isPresentingAlertMessage != nil }

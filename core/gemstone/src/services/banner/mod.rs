@@ -63,27 +63,24 @@ mod tests {
     use super::testkit::MemoryBannerStore;
     use super::*;
     use futures::executor::block_on;
-    use primitives::{Account, WalletSource};
-
-    fn wallet(source: WalletSource) -> Wallet {
-        Wallet {
-            source,
-            ..Wallet::mock_with_accounts(Account::mock_chains(&[primitives::Chain::Xrp, primitives::Chain::Ethereum], "address"))
-        }
-    }
+    use primitives::{Chain, WalletSource};
 
     #[test]
     fn test_wallet_setup_writes_its_banners_once() {
         block_on(async {
             let store = Arc::new(MemoryBannerStore::default());
             let service = GemBannerService::new(store.clone());
+            let wallet = Wallet {
+                source: WalletSource::Create,
+                ..Wallet::mock_with_chains(&[Chain::Xrp, Chain::Ethereum])
+            };
 
-            service.setup_wallet(wallet(WalletSource::Create)).await.unwrap();
-            service.setup_wallet(wallet(WalletSource::Create)).await.unwrap();
+            service.setup_wallet(wallet.clone()).await.unwrap();
+            service.setup_wallet(wallet.clone()).await.unwrap();
 
             let writes = store.writes.lock().unwrap();
             assert_eq!(writes.len(), 1);
-            assert_eq!(writes[0].len(), rules::wallet_setup_keys(&wallet(WalletSource::Create)).len());
+            assert_eq!(writes[0].len(), rules::wallet_setup_keys(&wallet).len());
             assert!(writes[0].iter().any(|key| key.event == BannerEvent::Onboarding));
         });
     }
@@ -93,11 +90,15 @@ mod tests {
         block_on(async {
             let store = Arc::new(MemoryBannerStore::default());
             let service = GemBannerService::new(store.clone());
-            service.setup_wallet(wallet(WalletSource::Import)).await.unwrap();
-            let key = rules::wallet_setup_keys(&wallet(WalletSource::Import)).remove(0);
+            let wallet = Wallet {
+                source: WalletSource::Import,
+                ..Wallet::mock_with_chains(&[Chain::Xrp, Chain::Ethereum])
+            };
+            service.setup_wallet(wallet.clone()).await.unwrap();
+            let key = rules::wallet_setup_keys(&wallet).remove(0);
             service.close(key.clone()).await.unwrap();
 
-            service.setup_wallet(wallet(WalletSource::Import)).await.unwrap();
+            service.setup_wallet(wallet).await.unwrap();
 
             assert_eq!(store.get_state(key).await.unwrap(), Some(BannerState::Cancelled));
             assert_eq!(store.writes.lock().unwrap().len(), 1);

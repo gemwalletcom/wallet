@@ -182,27 +182,49 @@ mod tests {
     fn test_get_transaction_update() {
         let chain = Chain::Ethereum;
         let now = Utc::now;
-        let pending = || Ok(TransactionUpdate::new_state(TransactionState::Pending));
-        let in_transit = || Ok(TransactionUpdate::new_state(TransactionState::InTransit));
-        let confirmed = || Ok(TransactionUpdate::new_state(TransactionState::Confirmed));
 
-        assert_eq!(get_transaction_update(chain, None, now(), pending()).unwrap().state, TransactionState::Pending);
         assert_eq!(
-            get_transaction_update(chain, None, DateTime::<Utc>::UNIX_EPOCH, pending()).unwrap().state,
+            get_transaction_update(chain, None, now(), Ok(TransactionUpdate::new_state(TransactionState::Pending)))
+                .unwrap()
+                .state,
+            TransactionState::Pending
+        );
+        assert_eq!(
+            get_transaction_update(chain, None, DateTime::<Utc>::UNIX_EPOCH, Ok(TransactionUpdate::new_state(TransactionState::Pending)))
+                .unwrap()
+                .state,
             TransactionState::Failed
         );
         assert_eq!(
-            get_transaction_update(chain, Some(Chain::Solana), now() - chrono::Duration::hours(3), in_transit())
-                .unwrap()
-                .state,
+            get_transaction_update(
+                chain,
+                Some(Chain::Solana),
+                now() - chrono::Duration::hours(3),
+                Ok(TransactionUpdate::new_state(TransactionState::InTransit))
+            )
+            .unwrap()
+            .state,
             TransactionState::InTransit
         );
         assert_eq!(
-            get_transaction_update(chain, Some(chain), now() - chrono::Duration::hours(3), in_transit()).unwrap(),
+            get_transaction_update(
+                chain,
+                Some(chain),
+                now() - chrono::Duration::hours(3),
+                Ok(TransactionUpdate::new_state(TransactionState::InTransit))
+            )
+            .unwrap(),
             TransactionUpdate::new(TransactionState::Failed, vec![TransactionChange::ConfirmationEtaSeconds(0)])
         );
         assert_eq!(
-            get_transaction_update(chain, Some(Chain::Solana), DateTime::<Utc>::UNIX_EPOCH, confirmed()).unwrap().state,
+            get_transaction_update(
+                chain,
+                Some(Chain::Solana),
+                DateTime::<Utc>::UNIX_EPOCH,
+                Ok(TransactionUpdate::new_state(TransactionState::Confirmed))
+            )
+            .unwrap()
+            .state,
             TransactionState::Confirmed
         );
     }
@@ -288,25 +310,27 @@ mod swap_route_tests {
     use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionSwapMetadata};
     use serde_json::json;
 
-    fn transaction_with_metadata(metadata: Option<serde_json::Value>) -> Transaction {
-        let mut transaction = Transaction::mock();
-        transaction.metadata = metadata;
-        transaction
-    }
-
     #[test]
     fn test_swap_route() {
-        assert!(swap_route(&transaction_with_metadata(None)).is_none());
         assert!(
-            swap_route(&transaction_with_metadata(Some(
-                json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2"})
-            )))
+            swap_route(&Transaction {
+                metadata: None,
+                ..Transaction::mock()
+            })
             .is_none()
         );
         assert!(
-            swap_route(&transaction_with_metadata(Some(
-                json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2","provider":"nope"})
-            )))
+            swap_route(&Transaction {
+                metadata: Some(json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2"})),
+                ..Transaction::mock()
+            })
+            .is_none()
+        );
+        assert!(
+            swap_route(&Transaction {
+                metadata: Some(json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2","provider":"nope"})),
+                ..Transaction::mock()
+            })
             .is_none()
         );
 
@@ -317,7 +341,10 @@ mod swap_route_tests {
             to_value: BigUint::from(2u64),
             provider: Some(SwapProvider::Thorchain.as_ref().to_string()),
         };
-        let route = swap_route(&transaction_with_metadata(Some(serde_json::to_value(metadata).unwrap())));
+        let route = swap_route(&Transaction {
+            metadata: Some(serde_json::to_value(metadata).unwrap()),
+            ..Transaction::mock()
+        });
         assert_eq!(route, Some((SwapProvider::Thorchain, Chain::Solana)));
     }
 }

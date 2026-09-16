@@ -120,7 +120,7 @@ fn timeframe_data(portfolio: &PerpetualPortfolio, period: ChartPeriod) -> Option
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, Utc};
+    use chrono::Utc;
     use primitives::{ChartDateValue, ChartValue, PerpetualAccountSummary};
 
     use super::*;
@@ -137,19 +137,15 @@ mod tests {
 
     #[test]
     fn test_portfolio_chart_data_picks_the_chart_the_screen_asked_for() {
-        let point = |seconds: i64, value: f64| ChartDateValue {
-            date: DateTime::from_timestamp(seconds, 0).unwrap(),
-            value,
-        };
         let data = PortfolioData {
             charts: vec![
                 PortfolioChartData {
                     chart_type: PortfolioChartType::Pnl,
-                    values: vec![point(1, 1.0), point(2, 3.0)],
+                    values: vec![ChartDateValue::mock(1, 1.0), ChartDateValue::mock(2, 3.0)],
                 },
                 PortfolioChartData {
                     chart_type: PortfolioChartType::Value,
-                    values: vec![point(1, 10.0), point(2, 12.0)],
+                    values: vec![ChartDateValue::mock(1, 10.0), ChartDateValue::mock(2, 12.0)],
                 },
             ],
             statistics: vec![],
@@ -177,14 +173,13 @@ mod tests {
 
     #[test]
     fn test_converted_portfolio_applies_rate_to_values_and_extremes() {
-        let now = Utc::now();
         let portfolio = PortfolioAssets {
             total_value: 10.0,
             values: vec![ChartValue { timestamp: 2, value: 2.0 }, ChartValue { timestamp: 1, value: 1.0 }],
             all_time_high: Some(ChartValuePercentage {
-                date: now,
                 value: 4.0,
                 percentage: 10.0,
+                ..ChartValuePercentage::mock()
             }),
             all_time_low: None,
             allocation: vec![],

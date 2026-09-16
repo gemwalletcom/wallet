@@ -8,6 +8,8 @@ mod ip_security_client;
 mod ipapi;
 mod redemption;
 mod redemption_service;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 mod transfer_provider;
 mod transfer_redemption_service;
 

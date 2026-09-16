@@ -39,22 +39,12 @@ pub(crate) fn path_without_query(path: &str) -> &str {
 #[cfg(test)]
 mod tests {
     use config::{Config, File, FileFormat};
-    use serde_json::json;
 
     use super::*;
 
-    fn allowlist() -> PathAllowlist {
-        serde_json::from_value(json!([
-            { "path": "/quote/v2", "method": "POST" },
-            { "path": "/chains", "method": "GET" },
-            { "path": "/api/v2/address/**", "method": "GET" }
-        ]))
-        .unwrap()
-    }
-
     #[test]
     fn test_allows_exact_path_and_method() {
-        let allowlist = allowlist();
+        let allowlist = PathAllowlist::mock();
 
         assert!(allowlist.allows("POST", "/quote/v2"));
         assert!(allowlist.allows("GET", "/chains"));
@@ -65,7 +55,7 @@ mod tests {
 
     #[test]
     fn test_denies_path_prefix_without_wildcard() {
-        let allowlist = allowlist();
+        let allowlist = PathAllowlist::mock();
 
         assert!(!allowlist.allows("GET", "/chains/"));
         assert!(!allowlist.allows("GET", "/chains/1"));
@@ -74,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_allows_wildcard_suffix() {
-        let allowlist = allowlist();
+        let allowlist = PathAllowlist::mock();
 
         assert!(allowlist.allows("GET", "/api/v2/address/bc1qtest"));
         assert!(allowlist.allows("GET", "/api/v2/address/bc1qtest/utxo"));

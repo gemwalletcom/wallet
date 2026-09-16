@@ -191,7 +191,7 @@ fn sum_amounts(utxos: &[UTXO]) -> Result<u64, SignerError> {
 #[cfg(test)]
 mod tests {
     use num_bigint::BigUint;
-    use primitives::{Asset, AssetType, Chain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadMetadata, swap::SwapData};
+    use primitives::{Asset, AssetType, Chain, SwapProvider, TransactionInputType, TransactionLoadMetadata, swap::SwapData};
 
     use super::*;
 
@@ -200,40 +200,9 @@ mod tests {
     const TEST_EXPIRATION_BLOCK_NUMBER: u64 = 190_000_000;
     const TEST_BLOCK_NUMBER: u64 = TEST_EXPIRATION_BLOCK_NUMBER - CARDANO_EXPIRATION_BLOCK_OFFSET;
 
-    fn wallet_core_input(amount: &str, is_max_value: bool) -> TransactionLoadInput {
-        TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Cardano),
-            },
-            sender_address: OWN_ADDRESS_1.to_string(),
-            destination_address: TO_ADDRESS.to_string(),
-            value: amount.parse().unwrap(),
-            gas_price: GasPriceType::regular(0u64),
-            memo: None,
-            is_max_value,
-            metadata: TransactionLoadMetadata::Cardano {
-                block_number: TEST_BLOCK_NUMBER,
-                utxos: vec![
-                    UTXO {
-                        transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
-                        vout: 1,
-                        value: BigUint::from(1500000u64),
-                        address: OWN_ADDRESS_1.to_string(),
-                    },
-                    UTXO {
-                        transaction_id: "554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af0".to_string(),
-                        vout: 0,
-                        value: BigUint::from(6500000u64),
-                        address: OWN_ADDRESS_1.to_string(),
-                    },
-                ],
-            },
-        }
-    }
-
     #[test]
     fn test_plan_transfer_vectors() {
-        let plan = plan_transfer(&wallet_core_input("7000000", false)).unwrap();
+        let plan = plan_transfer(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "7000000")).unwrap();
         assert_eq!(plan.utxos.len(), 2);
         assert_eq!(sum_amounts(&plan.utxos).unwrap(), 8_000_000);
         assert_eq!(plan.amount, 7_000_000);
@@ -242,21 +211,25 @@ mod tests {
         assert_eq!(plan.utxos[0].value, BigUint::from(6500000u64));
         assert_eq!(plan.utxos[1].value, BigUint::from(1500000u64));
 
-        let plan = plan_transfer(&wallet_core_input("1", false)).unwrap();
+        let plan = plan_transfer(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1")).unwrap();
         assert_eq!(plan.utxos.len(), 1);
         assert_eq!(sum_amounts(&plan.utxos).unwrap(), 6_500_000);
         assert_eq!(plan.amount, 1);
         assert_eq!(plan.fee, 168_479);
         assert_eq!(plan.change, 6_331_520);
 
-        let plan = plan_transfer(&wallet_core_input("2000000", false)).unwrap();
+        let plan = plan_transfer(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "2000000")).unwrap();
         assert_eq!(plan.utxos.len(), 1);
         assert_eq!(sum_amounts(&plan.utxos).unwrap(), 6_500_000);
         assert_eq!(plan.amount, 2_000_000);
         assert_eq!(plan.fee, 168_655);
         assert_eq!(plan.change, 4_331_345);
 
-        let plan = plan_transfer(&wallet_core_input("2000000", true)).unwrap();
+        let plan = plan_transfer(&TransactionLoadInput {
+            is_max_value: true,
+            ..TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "2000000")
+        })
+        .unwrap();
         assert_eq!(plan.utxos.len(), 2);
         assert_eq!(sum_amounts(&plan.utxos).unwrap(), 8_000_000);
         assert_eq!(plan.amount, 7_832_622);
@@ -268,25 +241,19 @@ mod tests {
 
     #[test]
     fn test_plan_transfer_android_vector_fee() {
+        let address = "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq";
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Cardano),
-            },
-            sender_address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
-            destination_address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
-            value: BigUint::from(10000u64),
-            gas_price: GasPriceType::regular(0u64),
-            memo: None,
-            is_max_value: false,
+            destination_address: address.to_string(),
             metadata: TransactionLoadMetadata::Cardano {
                 block_number: TEST_BLOCK_NUMBER,
                 utxos: vec![UTXO {
-                    address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
+                    address: address.to_string(),
                     transaction_id: "412c5a964cf4515210bf4b82f45df6521c38e1e5381f27638fc509bef6679378".to_string(),
                     value: BigUint::from(7945975u64),
                     vout: 1,
                 }],
             },
+            ..TransactionLoadInput::mock_cardano(address, "10000")
         };
 
         let plan = plan_transfer(&input).unwrap();
@@ -296,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_plan_transfer_accepts_native_swap() {
-        let mut input = wallet_core_input("2000000", false);
+        let mut input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "2000000");
         let mut swap_data = SwapData::mock_transfer(SwapProvider::Mayachain, "2000000", "1000000000000000", TO_ADDRESS);
         swap_data.data.memo = Some("=:e:0x1234567890abcdef:0/1/0:g1:50".to_string());
         input.input_type = TransactionInputType::Swap {
@@ -317,14 +284,14 @@ mod tests {
 
     #[test]
     fn test_plan_transfer_validation() {
-        let mut input = wallet_core_input("1", false);
+        let mut input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.metadata = TransactionLoadMetadata::Cardano {
             utxos: vec![],
             block_number: TEST_BLOCK_NUMBER,
         };
         assert!(plan_transfer(&input).is_err());
 
-        input = wallet_core_input("1", false);
+        input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.metadata = TransactionLoadMetadata::Cardano {
             block_number: TEST_BLOCK_NUMBER,
             utxos: vec![UTXO {
@@ -336,11 +303,11 @@ mod tests {
         };
         assert!(plan_transfer(&input).is_err());
 
-        input = wallet_core_input("1", false);
+        input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.destination_address = "stake1uykptcz226y5r5at5rfqqm00p9n0z0yfajz3gk3j3wm8dxg2sn0r4".to_string();
         assert!(plan_transfer(&input).is_err());
 
-        input = wallet_core_input("1", false);
+        input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.input_type = TransactionInputType::Transfer {
             asset: Asset::mock_with_params(
                 Chain::Cardano,
@@ -353,7 +320,7 @@ mod tests {
         };
         assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token transfer");
 
-        input = wallet_core_input("1", false);
+        input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.input_type = TransactionInputType::Swap {
             from_asset: Asset::mock_with_params(
                 Chain::Cardano,
@@ -368,7 +335,7 @@ mod tests {
         };
         assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token swap");
 
-        input = wallet_core_input("1", false);
+        input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.metadata = TransactionLoadMetadata::Cardano {
             block_number: TEST_BLOCK_NUMBER,
             utxos: vec![UTXO {
@@ -386,7 +353,7 @@ mod tests {
 
     #[test]
     fn test_transaction_expiration_block_number() {
-        let input = wallet_core_input("1", false);
+        let input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         let plan = plan_transfer(&input).unwrap();
         let transaction = transaction_from_plan(&input, &plan).unwrap();
         assert_eq!(transaction.expiration_block_number, TEST_EXPIRATION_BLOCK_NUMBER);

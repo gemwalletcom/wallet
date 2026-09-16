@@ -9,8 +9,8 @@ mod siws;
 pub mod validator;
 pub mod verifier;
 
-#[cfg(test)]
-mod testkit;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 
 pub use actions::*;
 pub use decode::decode_sign_message;

@@ -144,7 +144,12 @@ mod tests {
     fn test_refresh_runs_discovery_even_when_the_balance_update_fails() {
         block_on(async {
             let testkit = WalletHomeTestkit::with_status(503);
-            testkit.balances.enabled_asset_ids.lock().unwrap().push(AssetId::from_chain(Chain::Ethereum));
+            testkit
+                .balances
+                .enabled_asset_ids
+                .lock()
+                .unwrap()
+                .insert(testkit.wallet_id.clone(), vec![AssetId::from_chain(Chain::Ethereum)]);
 
             assert!(testkit.service.refresh().await.is_err());
 

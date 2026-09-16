@@ -7,13 +7,10 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import uniffi.gemstone.GemAmountTitle
-import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockAmountParamsPerpetual
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualProvider
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -67,7 +64,6 @@ class AmountPerpetualProviderTest {
         positionAction: GemPerpetualPositionAction = GemPerpetualPositionAction.Open(mockGemPerpetualTransferData(direction = direction)),
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
     ): AmountPerpetualProvider {
-        val asset = mockAssetCosmos()
         val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         }
@@ -86,7 +82,7 @@ class AmountPerpetualProviderTest {
             every { getBalance() } returns flowOf(null)
         }
         return AmountPerpetualProvider(
-            params = AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
+            params = mockAmountParamsPerpetual(positionAction),
             service = service,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,

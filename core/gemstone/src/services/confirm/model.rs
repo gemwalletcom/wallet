@@ -8,8 +8,11 @@ use crate::services::error_text::GemErrorText;
 use crate::services::simulation::GemSimulationWarningRow;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
+use crate::services::transfer::model::GemConfirmDestination;
+use crate::services::wallet::model::GemWalletRow;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::AssetPrice;
+use primitives::BlockExplorerLink;
 use primitives::{
     Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
 };
@@ -293,20 +296,14 @@ mod tests {
 
     #[test]
     fn test_metadata_pairs_each_balance_with_its_own_price() {
-        let balance = |chain: primitives::Chain| GemAssetBalance {
-            asset_id: AssetId::from_chain(chain),
-            ..GemAssetBalance::mock()
-        };
-        let price = |chain: primitives::Chain, value: f64| AssetPrice {
-            asset_id: AssetId::from_chain(chain),
-            price: value,
-            price_change_percentage_24h: 0.0,
-            updated_at: chrono::Utc::now(),
-        };
+        let now = chrono::Utc::now();
         let metadata = GemConfirmMetadata {
-            asset_balance: balance(primitives::Chain::Solana),
-            fee_asset_balance: balance(primitives::Chain::Bitcoin),
-            prices: vec![price(primitives::Chain::Bitcoin, 2.0), price(primitives::Chain::Solana, 1.0)],
+            asset_balance: GemAssetBalance::zero(AssetId::from_chain(primitives::Chain::Solana)),
+            fee_asset_balance: GemAssetBalance::zero(AssetId::from_chain(primitives::Chain::Bitcoin)),
+            prices: vec![
+                AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), 2.0, 0.0, now),
+                AssetPrice::new(AssetId::from_chain(primitives::Chain::Solana), 1.0, 0.0, now),
+            ],
         };
 
         assert_eq!(metadata.asset_price().map(|price| price.price), Some(1.0));
@@ -324,4 +321,34 @@ mod tests {
         assert_eq!(custom.selected_priority(), None);
         assert_eq!(custom.custom_gas_price(), Some(7.into()));
     }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemConfirmRowContent {
+    App {
+        name: String,
+        icon_url: Option<String>,
+    },
+    Sender {
+        wallet: GemWalletRow,
+    },
+    Recipient {
+        destination: GemConfirmDestination,
+        address_name: Option<AddressName>,
+        memo: Option<String>,
+        chain: Chain,
+        link: BlockExplorerLink,
+    },
+    Network {
+        chain: Chain,
+        name: String,
+    },
+    Memo {
+        memo: Option<String>,
+    },
+    Details,
+    PaymentAsset {
+        symbol: String,
+        selectable: bool,
+    },
 }

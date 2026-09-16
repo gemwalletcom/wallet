@@ -1,16 +1,14 @@
-use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use futures::channel::oneshot;
-use primitives::currency::Currency;
 use primitives::{AssetId, Chain, PriceAlert, StreamMessage, WalletId};
 
 use super::{GemStreamConnection, GemStreamSubscriptionService};
-use crate::services::balance::{GemAssetBalance, GemBalanceRecord, GemBalanceStore};
+use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::error::GemServiceError;
-use crate::services::price_alert::GemPriceAlertStore;
+use crate::services::price_alert::testkit::MemoryPriceAlertStore;
 
 pub struct SubscriptionTestkit {
     pub service: GemStreamSubscriptionService,
@@ -22,10 +20,16 @@ pub struct SubscriptionTestkit {
 impl SubscriptionTestkit {
     pub fn new(enabled: &[Chain], alerted: &[Chain]) -> Self {
         let wallet_id = WalletId::Multicoin("0x1".into());
-        let balances = Arc::new(MemoryBalanceStore(Mutex::new(HashMap::from([(wallet_id.clone(), asset_ids(enabled))]))));
+        let balances = Arc::new(MemoryBalanceStore::with_enabled_asset_ids(wallet_id.clone(), asset_ids(enabled)));
         let connection = Arc::new(MemoryStreamConnection::default());
         connection.connected.store(true, Ordering::SeqCst);
-        let service = GemStreamSubscriptionService::new(balances.clone(), Arc::new(MemoryPriceAlertStore(asset_ids(alerted))), connection.clone());
+        let service = GemStreamSubscriptionService::new(
+            balances.clone(),
+            Arc::new(MemoryPriceAlertStore {
+                alerts: alerted.iter().map(|chain| PriceAlert::mock(*chain, None)).collect(),
+            }),
+            connection.clone(),
+        );
         Self {
             service,
             balances,
@@ -37,63 +41,6 @@ impl SubscriptionTestkit {
 
 pub fn asset_ids(chains: &[Chain]) -> Vec<AssetId> {
     chains.iter().copied().map(AssetId::from_chain).collect()
-}
-
-pub struct MemoryBalanceStore(Mutex<HashMap<WalletId, Vec<AssetId>>>);
-
-#[async_trait]
-impl GemBalanceStore for MemoryBalanceStore {
-    async fn get_available_balances(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-        Ok(vec![])
-    }
-
-    async fn update_balances(&self, _wallet_id: WalletId, _balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
-        Ok(())
-    }
-
-    async fn get_enabled_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-        Ok(self.0.lock().unwrap().get(&wallet_id).cloned().unwrap_or_default())
-    }
-
-    async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        let mut wallets = self.0.lock().unwrap();
-        let stored = wallets.entry(wallet_id).or_default();
-        if enabled {
-            stored.extend(asset_ids);
-        } else {
-            stored.retain(|asset_id| !asset_ids.contains(asset_id));
-        }
-        Ok(())
-    }
-
-    async fn set_asset_pinned(&self, _wallet_id: WalletId, _asset_id: AssetId, _pinned: bool) -> Result<(), GemServiceError> {
-        Ok(())
-    }
-}
-
-struct MemoryPriceAlertStore(Vec<AssetId>);
-
-#[async_trait]
-impl GemPriceAlertStore for MemoryPriceAlertStore {
-    async fn get_price_alerts(&self, _asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, GemServiceError> {
-        Ok(self
-            .0
-            .iter()
-            .map(|asset_id| PriceAlert {
-                asset_id: asset_id.clone(),
-                currency: Currency::USD,
-                price: None,
-                price_percent_change: None,
-                price_direction: None,
-                identifier: String::new(),
-                last_notified_at: None,
-            })
-            .collect())
-    }
-
-    async fn update_price_alerts(&self, _alerts: Vec<PriceAlert>, _delete_ids: Vec<String>) -> Result<(), GemServiceError> {
-        Ok(())
-    }
 }
 
 #[derive(Default)]

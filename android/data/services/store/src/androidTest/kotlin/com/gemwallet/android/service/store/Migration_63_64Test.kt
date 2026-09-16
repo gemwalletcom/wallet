@@ -6,9 +6,9 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.di.Migration_63_64
+import com.gemwallet.android.testkit.PasswordStoreMock
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -32,7 +32,7 @@ class Migration_63_64Test {
         FrameworkSQLiteOpenHelperFactory()
     )
 
-    private lateinit var passwordStore: TestPasswordStore
+    private lateinit var passwordStore: PasswordStoreMock
     private lateinit var context: Context
     private lateinit var keysDir: File
 
@@ -40,7 +40,7 @@ class Migration_63_64Test {
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         keysDir = context.dataDir
-        passwordStore = TestPasswordStore()
+        passwordStore = PasswordStoreMock()
     }
 
     @After
@@ -369,26 +369,5 @@ class Migration_63_64Test {
         txHashCursor.close()
 
         db.close()
-    }
-
-    private class TestPasswordStore : PasswordStore {
-        private val passwords = mutableMapOf<String, String>()
-
-        override fun getOrCreatePassword(key: String): String =
-            passwords.getOrPut(key) { "generated_password_$key" }
-
-        override fun getPassword(key: String): String {
-            return passwords[key] ?: ""
-        }
-
-        override fun putPassword(key: String, password: String) {
-            passwords[key] = password
-        }
-
-        override fun removePassword(key: String): Boolean {
-            return passwords.remove(key) != null
-        }
-
-        override fun hasPassword(key: String): Boolean = passwords.containsKey(key)
     }
 }

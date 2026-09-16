@@ -26,24 +26,13 @@ mod tests {
     use super::*;
     use crate::models::{RECEIPT_FAILED, RECEIPT_OUT_OF_ENERGY, RECEIPT_REVERT, TransactionReceipt, TransactionReceiptData};
 
-    fn create_receipt(result: Option<&str>, receipt_result: Option<&str>, block_number: i64, fee: Option<u64>) -> TransactionReceiptData {
-        TransactionReceiptData {
-            id: "transaction_id".to_string(),
-            fee,
-            block_number,
-            block_time_stamp: 0,
-            result: result.map(|value| value.to_string()),
-            receipt: TransactionReceipt {
-                result: receipt_result.map(|value| value.to_string()),
-            },
-            log: None,
-            internal_transactions: None,
-        }
-    }
-
     #[test]
     fn test_map_transaction_status_confirmed() {
-        let receipt = create_receipt(None, Some("SUCCESS"), 10, Some(100));
+        let receipt = TransactionReceiptData {
+            fee: Some(100),
+            block_number: 10,
+            ..TransactionReceiptData::mock_with_result("SUCCESS")
+        };
 
         let result = map_transaction_status(Some(&receipt));
         assert_eq!(result.state, TransactionState::Confirmed);
@@ -52,27 +41,43 @@ mod tests {
 
     #[test]
     fn test_map_transaction_status_reverted() {
-        let revert = create_receipt(Some(RECEIPT_FAILED), Some(RECEIPT_REVERT), 10, Some(854700));
+        let revert = TransactionReceiptData {
+            result: Some(RECEIPT_FAILED.to_string()),
+            fee: Some(854700),
+            block_number: 10,
+            ..TransactionReceiptData::mock_with_result(RECEIPT_REVERT)
+        };
         let result = map_transaction_status(Some(&revert));
         assert_eq!(result.state, TransactionState::Reverted);
         assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigInt::from(854700))]);
 
-        let top_level_failed_only = create_receipt(Some(RECEIPT_FAILED), None, 10, Some(100));
-        assert_eq!(map_transaction_status(Some(&top_level_failed_only)).state, TransactionState::Reverted);
-
-        let receipt_revert_only = create_receipt(None, Some(RECEIPT_REVERT), 10, Some(100));
-        assert_eq!(map_transaction_status(Some(&receipt_revert_only)).state, TransactionState::Reverted);
-
-        let out_of_energy = create_receipt(None, Some(RECEIPT_OUT_OF_ENERGY), 10, Some(100));
-        assert_eq!(map_transaction_status(Some(&out_of_energy)).state, TransactionState::Reverted);
-
-        let receipt_failed = create_receipt(None, Some(RECEIPT_FAILED), 10, Some(100));
-        assert_eq!(map_transaction_status(Some(&receipt_failed)).state, TransactionState::Reverted);
+        for (result, receipt_result) in [
+            (Some(RECEIPT_FAILED), None),
+            (None, Some(RECEIPT_REVERT)),
+            (None, Some(RECEIPT_OUT_OF_ENERGY)),
+            (None, Some(RECEIPT_FAILED)),
+        ] {
+            let receipt = TransactionReceiptData {
+                result: result.map(str::to_string),
+                receipt: TransactionReceipt {
+                    result: receipt_result.map(str::to_string),
+                },
+                fee: Some(100),
+                block_number: 10,
+                ..TransactionReceiptData::mock_with_result("SUCCESS")
+            };
+            assert_eq!(map_transaction_status(Some(&receipt)).state, TransactionState::Reverted);
+        }
     }
 
     #[test]
     fn test_map_transaction_status_pending() {
-        let receipt = create_receipt(None, None, 0, None);
+        let receipt = TransactionReceiptData {
+            fee: None,
+            block_number: 0,
+            receipt: TransactionReceipt { result: None },
+            ..TransactionReceiptData::mock_with_result("SUCCESS")
+        };
 
         let result = map_transaction_status(Some(&receipt));
         assert_eq!(result.state, TransactionState::Pending);

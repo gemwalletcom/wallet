@@ -161,10 +161,7 @@ mod tests {
 
     #[test]
     fn test_a_node_row_subtitle_names_the_latest_block_and_admits_when_it_has_none() {
-        let result = GemNodeStatusState::Result {
-            latest_block_number: 21_000_000,
-            latency: Latency::from_milliseconds(120),
-        };
+        let result = GemNodeStatusState::mock_result(21_000_000);
 
         assert_eq!(result.subtitle(), GemNodeSubtitle::LatestBlock { value: "21,000,000".to_string() });
         assert_eq!(GemNodeStatusState::Loading.subtitle(), GemNodeSubtitle::LatestBlock { value: "-".to_string() });

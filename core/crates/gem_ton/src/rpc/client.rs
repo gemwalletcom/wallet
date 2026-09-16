@@ -179,26 +179,19 @@ mod tests {
 
     use super::*;
 
-    fn mock_client(expected_path: &'static str, response: &'static [u8]) -> TonClient<MockClient> {
-        TonClient::new(MockClient::new().with_get(move |path| {
-            assert_eq!(path, expected_path);
-            Ok(response.to_vec())
-        }))
-    }
-
     #[tokio::test]
     async fn test_get_balance_v3() {
-        let client = mock_client("/api/v3/addressInformation?address=account", br#"{"balance":"79349435046","status":"active"}"#);
+        let client = TonClient::mock_with_get("/api/v3/addressInformation?address=account", br#"{"balance":"79349435046","status":"active"}"#);
         assert_eq!(client.get_balance("account".into()).await.unwrap(), "79349435046");
-        let client = mock_client("/api/v3/addressInformation?address=account", br#"{"balance":"0","status":"uninit"}"#);
+        let client = TonClient::mock_with_get("/api/v3/addressInformation?address=account", br#"{"balance":"0","status":"uninit"}"#);
         assert_eq!(client.get_balance("account".into()).await.unwrap(), "0");
     }
 
     #[tokio::test]
     async fn test_get_wallet_information_v3() {
-        let client = mock_client("/api/v3/walletInformation?address=account", br#"{"seqno":217,"status":"active"}"#);
+        let client = TonClient::mock_with_get("/api/v3/walletInformation?address=account", br#"{"seqno":217,"status":"active"}"#);
         assert_eq!(client.get_wallet_information("account".into()).await.unwrap().seqno, Some(217));
-        let client = mock_client("/api/v3/walletInformation?address=account", br#"{"status":"uninit"}"#);
+        let client = TonClient::mock_with_get("/api/v3/walletInformation?address=account", br#"{"status":"uninit"}"#);
         assert_eq!(client.get_wallet_information("account".into()).await.unwrap().seqno, None);
     }
 
@@ -232,13 +225,13 @@ mod tests {
         let client = TonClient::new(MockClient::new().with_post(|_, _| Ok(br#"{"error":"invalid request","code":400}"#.to_vec())));
         assert!(client.run_get_method("account", "seqno", vec![]).await.is_err());
         assert!(client.transaction_broadcast("invalid".into(), BroadcastOptions::default()).await.is_err());
-        let client = mock_client("/api/v3/addressInformation?address=account", br#"{"error":"invalid address"}"#);
+        let client = TonClient::mock_with_get("/api/v3/addressInformation?address=account", br#"{"error":"invalid address"}"#);
         assert!(client.get_balance("account".into()).await.is_err());
     }
 
     #[tokio::test]
     async fn test_get_token_data_v3() {
-        let client = mock_client(
+        let client = TonClient::mock_with_get(
             "/api/v3/jetton/masters?address=EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE",
             include_bytes!("../../testdata/jetton_master_dedust.json"),
         );
@@ -247,13 +240,13 @@ mod tests {
         assert_eq!(dedust.symbol, "DUST");
         assert_eq!(dedust.decimals, 9);
 
-        let client = mock_client("/api/v3/jetton/masters?address=inline", include_bytes!("../../testdata/jetton_master_inline.json"));
+        let client = TonClient::mock_with_get("/api/v3/jetton/masters?address=inline", include_bytes!("../../testdata/jetton_master_inline.json"));
         let inline = client.get_token_data("inline".to_string()).await.unwrap();
         assert_eq!(inline.name, "Inline Token");
         assert_eq!(inline.symbol, "INL");
         assert_eq!(inline.decimals, 8);
 
-        let client = mock_client(
+        let client = TonClient::mock_with_get(
             "/api/v3/jetton/masters?address=indexed_decimals",
             include_bytes!("../../testdata/jetton_master_indexed_decimals.json"),
         );
@@ -262,25 +255,25 @@ mod tests {
         assert_eq!(indexed_decimals.symbol, "IDX");
         assert_eq!(indexed_decimals.decimals, 6);
 
-        let client = mock_client("/api/v3/jetton/masters?address=missing", include_bytes!("../../testdata/jetton_master_missing.json"));
+        let client = TonClient::mock_with_get("/api/v3/jetton/masters?address=missing", include_bytes!("../../testdata/jetton_master_missing.json"));
         let missing_master = client.get_token_data("missing".to_string()).await.unwrap_err();
         assert_eq!(missing_master.to_string(), "missing jetton master");
 
-        let client = mock_client(
+        let client = TonClient::mock_with_get(
             "/api/v3/jetton/masters?address=invalid_token_info",
             include_bytes!("../../testdata/jetton_master_invalid_token_info.json"),
         );
         let invalid_token_info = client.get_token_data("invalid_token_info".to_string()).await.unwrap_err();
         assert_eq!(invalid_token_info.to_string(), "invalid jetton metadata");
 
-        let client = mock_client(
+        let client = TonClient::mock_with_get(
             "/api/v3/jetton/masters?address=missing_fields",
             include_bytes!("../../testdata/jetton_master_missing_fields.json"),
         );
         let missing_fields = client.get_token_data("missing_fields".to_string()).await.unwrap_err();
         assert_eq!(missing_fields.to_string(), "invalid jetton metadata");
 
-        let client = mock_client(
+        let client = TonClient::mock_with_get(
             "/api/v3/jetton/masters?address=invalid_decimals",
             include_bytes!("../../testdata/jetton_master_invalid_decimals.json"),
         );

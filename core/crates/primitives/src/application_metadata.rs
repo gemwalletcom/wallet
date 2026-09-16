@@ -41,24 +41,63 @@ impl ApplicationMetadata {
 mod tests {
     use super::*;
 
-    fn metadata(name: &str) -> ApplicationMetadata {
-        ApplicationMetadata {
-            name: name.to_string(),
-            description: String::new(),
-            url: String::new(),
-            icon: String::new(),
-            source: ApplicationMetadataSource::WalletConnect,
-        }
-    }
-
     #[test]
     fn short_name_strips_separators() {
-        assert_eq!(metadata("Polymarket - Buy & Sell").short_name(), "Polymarket");
-        assert_eq!(metadata("Uniswap: Trade Crypto").short_name(), "Uniswap");
-        assert_eq!(metadata("OpenSea | NFT Marketplace").short_name(), "OpenSea");
-        assert_eq!(metadata("  Compound  ").short_name(), "Compound");
-        assert_eq!(metadata("Sushiswap").short_name(), "Sushiswap");
-        assert_eq!(metadata(&"A".repeat(100)).short_name(), "A".repeat(80));
-        assert_eq!(metadata(&"é".repeat(100)).short_name(), "é".repeat(80));
+        assert_eq!(
+            ApplicationMetadata {
+                name: "Polymarket - Buy & Sell".to_string(),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name(),
+            "Polymarket"
+        );
+        assert_eq!(
+            ApplicationMetadata {
+                name: "Uniswap: Trade Crypto".to_string(),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name(),
+            "Uniswap"
+        );
+        assert_eq!(
+            ApplicationMetadata {
+                name: "OpenSea | NFT Marketplace".to_string(),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name(),
+            "OpenSea"
+        );
+        assert_eq!(
+            ApplicationMetadata {
+                name: "  Compound  ".to_string(),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name(),
+            "Compound"
+        );
+        assert_eq!(
+            ApplicationMetadata {
+                name: "Sushiswap".to_string(),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name(),
+            "Sushiswap"
+        );
+        assert_eq!(
+            ApplicationMetadata {
+                name: "A".repeat(100),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name(),
+            "A".repeat(80)
+        );
+        assert_eq!(
+            ApplicationMetadata {
+                name: "é".repeat(100),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name(),
+            "é".repeat(80)
+        );
     }
 }

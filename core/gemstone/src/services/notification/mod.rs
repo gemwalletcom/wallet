@@ -55,33 +55,34 @@ impl GemNotificationService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gateway::EmptyPreferences;
-    use crate::services::device::GemDeviceKeyService;
-    use crate::services::wallet::testkit::MemoryWalletStore;
-    use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
-    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
     use crate::testkit::TestAlienProvider;
     use testkit::MemoryNotificationStore;
-
-    async fn open(unread: bool) -> Vec<String> {
-        let provider = Arc::new(TestAlienProvider::with_json(200, "[]"));
-        let api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
-        let store = Arc::new(MemoryNotificationStore { unread, ..Default::default() });
-        let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore::default()),
-            Arc::new(MemoryWalletStore::default()),
-        ));
-        session.set_current_wallet_id(Some(WalletId::Multicoin("wallet".to_string()))).unwrap();
-        GemNotificationService::new(api, store, preferences, session).open().await.unwrap();
-        provider.requested_paths()
-    }
 
     #[test]
     fn test_open_marks_read_only_when_unread() {
         futures::executor::block_on(async {
-            assert_eq!(open(false).await, vec!["/v2/devices/notifications?from_timestamp=0"]);
-            assert_eq!(open(true).await, vec!["/v2/devices/notifications?from_timestamp=0", "/v2/devices/notifications/read"]);
+            let read = Arc::new(TestAlienProvider::with_json(200, "[]"));
+            GemNotificationService::mock(read.clone(), Arc::new(MemoryNotificationStore::default()))
+                .open()
+                .await
+                .unwrap();
+            assert_eq!(read.requested_paths(), vec!["/v2/devices/notifications?from_timestamp=0"]);
+
+            let unread = Arc::new(TestAlienProvider::with_json(200, "[]"));
+            GemNotificationService::mock(
+                unread.clone(),
+                Arc::new(MemoryNotificationStore {
+                    unread: true,
+                    ..Default::default()
+                }),
+            )
+            .open()
+            .await
+            .unwrap();
+            assert_eq!(
+                unread.requested_paths(),
+                vec!["/v2/devices/notifications?from_timestamp=0", "/v2/devices/notifications/read"]
+            );
         });
     }
 }

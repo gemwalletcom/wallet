@@ -59,11 +59,10 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `disableNotifications suppresses the global prompt`() = runTest(testDispatcher) {
+    fun `disableNotifications switches push off`() = runTest(testDispatcher) {
         viewModel.disableNotifications()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { userConfig.stopAskNotifications() }
         coVerify(exactly = 1) { switchPushEnabled.switchPushEnabled(false) }
     }
 

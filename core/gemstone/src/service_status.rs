@@ -100,9 +100,7 @@ impl GemServiceStatus {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alien::{AlienError, AlienResponse};
     use crate::testkit::TestAlienProvider;
-    use async_trait::async_trait;
     use futures::executor::block_on;
     use primitives::LatencyType;
 
@@ -114,16 +112,6 @@ mod tests {
         assert_eq!(endpoint.host, "api.gemwallet.com");
     }
 
-    #[derive(Debug)]
-    struct OfflineProvider;
-
-    #[async_trait]
-    impl AlienProvider for OfflineProvider {
-        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
-            Err(AlienError::Offline)
-        }
-    }
-
     #[test]
     fn test_endpoint_status_measures_a_reachable_endpoint_and_reports_an_unreachable_one() {
         let reachable = GemServiceStatus::new(Arc::new(TestAlienProvider::with_status(200)));
@@ -132,7 +120,7 @@ mod tests {
             other => panic!("a reachable endpoint reports its latency, got {other:?}"),
         }
 
-        let unreachable = GemServiceStatus::new(Arc::new(OfflineProvider));
+        let unreachable = GemServiceStatus::new(Arc::new(TestAlienProvider::offline()));
         assert_eq!(block_on(unreachable.get_endpoint_status("https://api.gemwallet.com".to_string())), GemLatencyStatus::Error);
     }
 }
