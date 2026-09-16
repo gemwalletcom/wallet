@@ -41,25 +41,13 @@ impl AssetListDocument {
 mod tests {
     use super::*;
 
-    fn document() -> AssetListDocument {
-        AssetListDocument::new(
-            "stablecoins".to_string(),
-            "Stablecoins".to_string(),
-            HashMap::from([("ethereum".to_string(), 4), ("solana".to_string(), 2)]),
-        )
-    }
-
     #[test]
     fn test_as_primitive() {
-        let list = |count| AssetList {
-            id: "stablecoins".to_string(),
-            name: "Stablecoins".to_string(),
-            count,
-        };
+        let document = AssetListDocument::mock();
 
-        assert_eq!(document().as_primitive(&[]), Some(list(6)));
-        assert_eq!(document().as_primitive(&["ethereum".to_string()]), Some(list(4)));
-        assert_eq!(document().as_primitive(&["bitcoin".to_string(), "solana".to_string()]), Some(list(2)));
-        assert_eq!(document().as_primitive(&["bitcoin".to_string()]), None);
+        assert_eq!(document.as_primitive(&[]), Some(AssetList::mock(6)));
+        assert_eq!(document.as_primitive(&["ethereum".to_string()]), Some(AssetList::mock(4)));
+        assert_eq!(document.as_primitive(&["bitcoin".to_string(), "solana".to_string()]), Some(AssetList::mock(2)));
+        assert_eq!(document.as_primitive(&["bitcoin".to_string()]), None);
     }
 }

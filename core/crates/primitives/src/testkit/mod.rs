@@ -20,6 +20,7 @@ pub mod payment_mock;
 pub mod perpetual_mock;
 pub mod price_data_mock;
 pub mod quote_asset_mock;
+pub mod search_mock;
 pub mod signer_mock;
 pub mod simulation_mock;
 pub mod subscription_mock;

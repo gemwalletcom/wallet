@@ -65,21 +65,12 @@ mod tests {
     use primitives::{PerpetualId, PerpetualProvider};
     use storage::sql_types::TagVisibility;
 
-    fn tag(id: &str, visibility: TagVisibility) -> TagRow {
-        TagRow {
-            id: id.to_string(),
-            name: id.to_string(),
-            visibility,
-            list_id: None,
-        }
-    }
-
     #[test]
     fn test_build_documents() {
         let tags = vec![
-            tag("stablecoins", TagVisibility::Public),
-            tag("stocks", TagVisibility::Public),
-            tag("internal", TagVisibility::Internal),
+            TagRow::mock("stablecoins", TagVisibility::Public),
+            TagRow::mock("stocks", TagVisibility::Public),
+            TagRow::mock("internal", TagVisibility::Internal),
         ];
         let assets_tags = vec![
             AssetTagRow::mock_with_tag(AssetId::from_chain(Chain::Ethereum), "stablecoins"),
@@ -87,11 +78,7 @@ mod tests {
             AssetTagRow::mock_with_tag(AssetId::from_token(Chain::Solana, "abc"), "stablecoins"),
             AssetTagRow::mock_with_tag(AssetId::from_chain(Chain::Bitcoin), "internal"),
         ];
-        let perpetuals_tags = vec![PerpetualTagRow {
-            perpetual_id: PerpetualId::new(PerpetualProvider::Hypercore, "TSLA").into(),
-            tag_id: "stocks".to_string(),
-            order: None,
-        }];
+        let perpetuals_tags = vec![PerpetualTagRow::mock_with_tag(PerpetualId::new(PerpetualProvider::Hypercore, "TSLA"), "stocks")];
 
         let documents = AssetListsIndexUpdater::build_documents(tags, &assets_tags, &perpetuals_tags);
 
