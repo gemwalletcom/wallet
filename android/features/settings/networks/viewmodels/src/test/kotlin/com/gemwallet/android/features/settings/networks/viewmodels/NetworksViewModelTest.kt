@@ -81,7 +81,7 @@ class NetworksViewModelTest {
             nodesByCall = listOf(listOf(node("a"), node("b"))),
             statuses = mapOf("a" to reachable(10UL), "b" to reachable(11UL)),
         )
-        val viewModel = NetworksViewModel(service).also { models.add(it) }
+        val viewModel = NetworksViewModel(service, dispatcher).also { models.add(it) }
 
         viewModel.onSelectedChain(Chain.Ethereum)
         advanceUntilIdle()
@@ -96,7 +96,7 @@ class NetworksViewModelTest {
             nodesByCall = listOf(listOf(node("a"), node("b")), listOf(node("a"))),
             statuses = mapOf("a" to reachable(10UL), "b" to reachable(11UL)),
         )
-        val viewModel = NetworksViewModel(service).also { models.add(it) }
+        val viewModel = NetworksViewModel(service, dispatcher).also { models.add(it) }
         viewModel.onSelectedChain(Chain.Ethereum)
         advanceUntilIdle()
 

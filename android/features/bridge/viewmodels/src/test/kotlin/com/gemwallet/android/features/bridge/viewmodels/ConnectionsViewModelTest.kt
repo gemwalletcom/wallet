@@ -25,6 +25,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -94,7 +95,7 @@ class ConnectionsViewModelTest {
         val connections: GetWalletConnections = mockk {
             every { observeConnections() } returns flowOf(listOf(connection))
         }
-        val model = ConnectionsViewModel(connections, mockk(relaxed = true), service).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connections, mockk(relaxed = true), service, dispatcher).also { scopes.add(it) }
 
         assertEquals(sections, model.sections.first { it.isNotEmpty() })
     }
@@ -105,10 +106,10 @@ class ConnectionsViewModelTest {
         val connections: GetWalletConnections = mockk {
             every { observeConnections() } returns flowOf(emptyList())
         }
-        val model = ConnectionsViewModel(connections, pair, mockk(relaxed = true)).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connections, pair, mockk(relaxed = true), dispatcher).also { scopes.add(it) }
 
         model.addPairing("wc:topic@2", onSuccess = {}, onError = {})
-        model.sections.first()
+        advanceUntilIdle()
 
         verify { pair.pair(uri = "wc:topic@2", onSuccess = any(), onError = any()) }
     }
