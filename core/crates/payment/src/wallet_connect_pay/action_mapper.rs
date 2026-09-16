@@ -93,11 +93,14 @@ fn get_transaction(quote: &Quote, action: &WalletRpcAction) -> Result<WCEthereum
     if !quote.account.address.eq_ignore_ascii_case(&transaction.from) {
         return Err(PaymentError::invalid_request("Payment asks to sign from another account"));
     }
+    if transaction.chain_id.is_some_and(|chain_id| Some(chain_id) != quote.account.chain.network_id_value()) {
+        return Err(PaymentError::invalid_request(format!("Payment transaction is for chain {:?}", transaction.chain_id)));
+    }
     Ok(transaction)
 }
 
 fn validate_chain(quote: &Quote, action: &WalletRpcAction) -> Result<(), PaymentError> {
-    let chain = WalletConnectCAIP2::parse_chain_id(action.chain_id.clone()).ok_or_else(|| PaymentError::invalid_request(format!("Unsupported chain: {}", action.chain_id)))?;
+    let chain = WalletConnectCAIP2::get_chain_from_id(Some(action.chain_id.clone())).map_err(PaymentError::invalid_request)?;
     if chain != quote.account.chain {
         return Err(PaymentError::invalid_request(format!(
             "Payment asks to sign on {} for an account on {}",
@@ -195,6 +198,12 @@ mod tests {
             })
         );
         assert!(map_actions(&polygon_quote(1_001), &[send(ADDRESS, "0x3e8", "0xabcd")]).is_err());
+        let other_chain = WalletRpcAction {
+            params: serde_json::json!([{"from": ADDRESS, "to": ROUTER, "value": "0x3e8", "data": "0xabcd", "chainId": 1}]),
+            ..send(ADDRESS, "0x3e8", "0xabcd")
+        };
+        assert!(map_actions(&polygon_quote(1_000), &[other_chain]).is_err());
+        assert!(map_actions(&polygon_quote(1_000), &[WalletRpcAction { chain_id: "eip155".to_string(), ..send(ADDRESS, "0x3e8", "0xabcd") }]).is_err());
         assert!(map_actions(&polygon_quote(1_000), &[send(ROUTER, "0x3e8", "0xabcd")]).is_err());
         assert!(map_actions(&usdt_quote(1_000), &[send(ADDRESS, "0x3e8", "0xabcd")]).is_err());
     }

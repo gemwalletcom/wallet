@@ -1,4 +1,4 @@
-use gem_evm::eip712::{EIP712Field, EIP712TypedValue, eip712_domain_types, parse_eip712_json};
+use gem_evm::eip712::{EIP712Field, EIP712TypedValue, eip712_domain_types, parse_eip712_json, validate_eip712_chain_id};
 use num_bigint::BigUint;
 use num_traits::Num;
 use primitives::Chain;
@@ -19,13 +19,13 @@ pub(super) fn map_typed_data(chain: Chain, value: &Value) -> Result<TypedDataTra
         value => value.clone(),
     };
     let typed_data = with_domain_schema(typed_data)?;
+    let chain_id = chain
+        .network_id_value()
+        .ok_or_else(|| PaymentError::invalid_request(format!("{} has no chain id", chain.as_ref())))?;
+    validate_eip712_chain_id(&typed_data.to_string(), chain_id).map_err(PaymentError::invalid_request)?;
     let message = parse_eip712_json(&typed_data).map_err(PaymentError::invalid_request)?;
-    let chain_id = message
-        .domain
-        .chain_id
-        .ok_or_else(|| PaymentError::invalid_request("Payment signature has no chain id"))?;
-    if Some(chain_id) != chain.network_id_value() {
-        return Err(PaymentError::invalid_request(format!("Payment asks to sign for chain {chain_id} on {}", chain.as_ref())));
+    if message.domain.chain_id.is_none() {
+        return Err(PaymentError::invalid_request("Payment signature has no chain id"));
     }
 
     let (token, amount, from, recipient) = match message.primary_type.as_str() {
