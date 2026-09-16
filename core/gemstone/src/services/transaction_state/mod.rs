@@ -107,7 +107,7 @@ impl GemTransactionStateService {
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
         let update = match rules::payment_link(&transaction) {
-            Some(link) => self.payments.transaction_update(&transaction, &link).await.map_err(|error| error.to_string()),
+            Some(link) => self.payments.transaction_update(transaction.hash(), &link).await.map_err(|error| error.to_string()),
             None => self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string()),
         };
         let previous_state = transaction.state;

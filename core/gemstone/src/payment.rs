@@ -15,7 +15,7 @@ use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentUpdate, Wa
 use primitives::TransactionInputType;
 use primitives::{
     Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentURLDecoder, PaymentVerification,
-    Transaction, TransactionChange, TransactionState, TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex,
+    TransactionChange, TransactionState, TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex,
 };
 use uuid::Uuid;
 
@@ -96,12 +96,12 @@ impl GemPaymentService {
 }
 
 impl GemPaymentService {
-    pub(crate) async fn transaction_update(&self, transaction: &Transaction, link: &PaymentLink) -> Result<TransactionUpdate, GemPaymentError> {
-        Ok(payment_transaction_update(transaction.hash(), self.payments.status(link).await?))
+    pub(crate) async fn transaction_update(&self, hash: &str, link: &PaymentLink) -> Result<TransactionUpdate, GemPaymentError> {
+        Ok(payment_transaction_update(hash, self.payments.status(link).await?))
     }
 
     pub(crate) fn record_hash(&self, input_type: &TransactionInputType) -> Option<String> {
-        payment_quote(input_type).map(|(invoice, _)| payment_record_hash(&invoice.link))
+        payment_quote(input_type).and_then(|(invoice, _)| payment_record_hash(&invoice.link))
     }
 
     pub(crate) async fn confirm(&self, input_type: &TransactionInputType, action_results: Vec<String>) -> Result<(), GemPaymentError> {
@@ -200,10 +200,10 @@ fn transaction_transfer_data(transaction: PaymentTransaction, asset: Asset) -> G
     }
 }
 
-fn payment_record_hash(link: &PaymentLink) -> String {
+fn payment_record_hash(link: &PaymentLink) -> Option<String> {
     match link {
-        PaymentLink::WalletConnectPay { payment_id } => payment_id.clone(),
-        PaymentLink::SolanaPay { url } => url.clone(),
+        PaymentLink::WalletConnectPay { payment_id } => Some(payment_id.clone()),
+        PaymentLink::SolanaPay { .. } => None,
     }
 }
 
@@ -440,7 +440,8 @@ mod tests {
         assert_eq!(update(PaymentStatus::Failed, None), TransactionUpdate::new_state(TransactionState::Failed));
         assert_eq!(update(PaymentStatus::Expired, None), TransactionUpdate::new_state(TransactionState::Failed));
         assert_eq!(update(PaymentStatus::Cancelled, None), TransactionUpdate::new_state(TransactionState::Failed));
-        assert_eq!(payment_record_hash(&PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() }), "pay_1");
+        assert_eq!(payment_record_hash(&PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() }).as_deref(), Some("pay_1"));
+        assert_eq!(payment_record_hash(&PaymentLink::SolanaPay { url: "solana:pay".to_string() }), None, "only a relayed payment is recorded by its id");
     }
     use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
     use primitives::{Asset, AssetId, AssetType, Chain, ChainAddress, PaymentInvoice, TransactionType};
