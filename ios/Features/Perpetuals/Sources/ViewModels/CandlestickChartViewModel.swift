@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.valueTone
 import Components
 import Formatters
 import Foundation
@@ -88,7 +89,7 @@ struct CandlestickChartViewModel {
     }
 
     func candleColor(for candle: ChartCandleStick) -> Color {
-        PriceChangeColor.color(for: candle.close - candle.open)
+        valueTone(value: candle.close - candle.open).color
     }
 
     func candle(for date: Date) -> ChartCandleStick? {

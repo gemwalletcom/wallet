@@ -97,6 +97,14 @@ public final class EarnSceneViewModel {
         positionModels.isNotEmpty
     }
 
+    func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
+        switch service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem()) {
+        case .details: delegation.delegation
+        case let .confirm(transfer): transfer
+        case let .amount(asset, input): AmountInput(type: input.map(), asset: asset.toPrimitives())
+        }
+    }
+
     var showEmptyState: Bool {
         !hasPositions && !viewState.isLoading
     }

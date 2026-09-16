@@ -122,7 +122,7 @@ impl<C: Client + Clone> EVMIndexer<C> {
                 vec![ProviderKind::Blockscout, ProviderKind::Alchemy]
             }
             EVMChain::Blast | EVMChain::Abstract | EVMChain::Berachain | EVMChain::Hyperliquid | EVMChain::Monad => vec![ProviderKind::Alchemy],
-            EVMChain::OpBNB | EVMChain::Manta | EVMChain::Mantle | EVMChain::Sonic | EVMChain::SeiEvm | EVMChain::Plasma | EVMChain::Stable | EVMChain::Tempo => {
+            EVMChain::OpBNB | EVMChain::Manta | EVMChain::Mantle | EVMChain::Sonic | EVMChain::SeiEvm | EVMChain::Plasma | EVMChain::Stable | EVMChain::Tempo | EVMChain::Arc => {
                 return None;
             }
         };

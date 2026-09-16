@@ -33,6 +33,7 @@ pub fn default_derivation_path(chain: Chain) -> &'static str {
         | Chain::Robinhood
         | Chain::Stable
         | Chain::Tempo
+        | Chain::Arc
         | Chain::Injective => "m/44'/60'/0'/0/0",
         Chain::Bitcoin => "m/84'/0'/0'/0/0",
         Chain::BitcoinCash => "m/44'/145'/0'/0/0",

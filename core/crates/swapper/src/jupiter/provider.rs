@@ -168,7 +168,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_jupiter_provider_fetch_quote() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Jupiter::new(rpc_provider);
+        let provider = Jupiter::new(rpc_provider).unwrap();
 
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),

@@ -68,11 +68,9 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: [Gemstone.FiatQuote]
-    private let check: @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck
 
-    public init(quotes: [Gemstone.FiatQuote] = [], check: @escaping @Sendable (Gemstone.FiatQuote?) -> GemFiatAmountCheck = { _ in .valid }) {
+    public init(quotes: [Gemstone.FiatQuote] = []) {
         self.quotes = quotes
-        self.check = check
     }
 
     public func getCurrency() -> Gemstone.Currency {
@@ -97,10 +95,6 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
 
     public func randomAmount() -> UInt32 {
         50
-    }
-
-    public func amountCheck(quoteType _: Gemstone.FiatQuoteType, amount _: Double, quote: Gemstone.FiatQuote?, available _: GemBigUint) -> GemFiatAmountCheck {
-        check(quote)
     }
 
     public func quoteDebounceMilliseconds() -> UInt64 {
@@ -199,7 +193,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let validators: [Gemstone.DelegationValidator]
     private let lockTime: UInt64
     private let minStake: Gemstone.GemBigInt
-    private let changesAmountOnUnstake: Bool
     private let freezes: Bool
     private let wholeAmounts: Bool
 
@@ -211,7 +204,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         validators: [Gemstone.DelegationValidator] = [],
         lockTime: UInt64 = 0,
         minStake: Gemstone.GemBigInt = 0,
-        changesAmountOnUnstake: Bool = false,
         freezes: Bool = false,
         wholeAmounts: Bool = false,
     ) {
@@ -222,7 +214,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.validators = validators
         self.lockTime = lockTime
         self.minStake = minStake
-        self.changesAmountOnUnstake = changesAmountOnUnstake
         self.freezes = freezes
         self.wholeAmounts = wholeAmounts
     }
@@ -233,10 +224,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func minStakeAmount(chain _: Gemstone.Chain) -> Gemstone.GemBigInt {
         minStake
-    }
-
-    public func canChangeAmountOnUnstake(chain _: Gemstone.Chain) -> Bool {
-        changesAmountOnUnstake
     }
 
     public func earnApr(providers: [Gemstone.DelegationValidator], assetApr: Double?) -> Double {
@@ -261,6 +248,15 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func delegationDestination(walletType _: Gemstone.WalletType, asset _: Gemstone.Asset, delegation _: Gemstone.Delegation) -> GemDelegationDestination {
+        .details
+    }
+
+    public func delegationActionDestination(
+        asset _: Gemstone.Asset,
+        delegation _: Gemstone.Delegation,
+        action _: Gemstone.GemDelegationAction,
+        validators _: [Gemstone.DelegationValidator],
+    ) -> GemDelegationDestination {
         .details
     }
 
@@ -370,9 +366,10 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
     public var warningsValue: [GemReceiveWarning] = []
     public var assetResult: Result<Gemstone.Asset, Error> = .success(Primitives.Asset.mock().toGem())
     public var enableAssetError: Error?
+    public var syncedNetworkAssetIdsResult: Result<[Gemstone.AssetId], Error> = .success([])
 
     public private(set) var enabledAssetIds: [Gemstone.AssetId] = []
-    public private(set) var syncedAssetIds: [[Gemstone.AssetId]] = []
+    public private(set) var syncedAssetIds: [Gemstone.AssetId] = []
     public private(set) var requestedAssetIds: [Gemstone.AssetId] = []
 
     public init() {}
@@ -391,9 +388,9 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
         networkAssetIdsValue.isEmpty ? [assetId] : networkAssetIdsValue
     }
 
-    public func syncMissingAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
-        syncedAssetIds.append(assetIds)
-        return assetIds
+    public func syncNetworkAssetIds(assetId: Gemstone.AssetId, wallet _: Gemstone.Wallet) async throws -> [Gemstone.AssetId] {
+        syncedAssetIds.append(assetId)
+        return try syncedNetworkAssetIdsResult.get()
     }
 
     public func warnings(chain _: Gemstone.Chain) -> [GemReceiveWarning] { warningsValue }

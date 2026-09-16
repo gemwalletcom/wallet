@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D8A1B2C42E90000100AAAA02 /* AppUpdateAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */; };
 		0741683A2D3AFDBB00AC26A4 /* NFT in Frameworks */ = {isa = PBXBuildFile; productRef = 074168392D3AFDBB00AC26A4 /* NFT */; };
 		0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF1CEBA22E20000000000B1 /* View+ConnectionStatusBanner.swift */; };
 		0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */ = {isa = PBXBuildFile; productRef = 0FF1CEBA22E20000000000C1 /* ConnectionStatusService */; };
@@ -208,6 +209,7 @@
 		C30952B3299C39D70004C0F9 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		C30952B7299C39D80004C0F9 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		C30952B9299C39D80004C0F9 /* Gem.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gem.entitlements; sourceTree = "<group>"; };
+		D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateAlertTests.swift; sourceTree = "<group>"; };
 		C30952C1299C39D80004C0F9 /* GemTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GemTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = unit_frameworks.xctestplan; sourceTree = "<group>"; };
 		C3549B4C29CA3A9000B4BE01 /* Store */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Store; sourceTree = "<group>"; };
@@ -583,6 +585,7 @@
 		C30952C4299C39D80004C0F9 /* GemTests */ = {
 			isa = PBXGroup;
 			children = (
+				D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */,
 				D8D726BF2C716C5B00A6B559 /* Screenshots */,
 				C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */,
 				D87316B72E3AF30300C11634 /* ui_tests.xctestplan */,
@@ -850,6 +853,7 @@
 				D8CFDEA92E37FC8C00D27283 /* GemAPI */,
 				D8CFDEAD2E37FCA800D27283 /* Formatters */,
 				D8CFDEAF2E37FCB000D27283 /* Components */,
+				D8WIDGETGEMSTONE00000001 /* Gemstone */,
 				D8WIDGET12345678901234 /* WidgetLocalization */,
 			);
 			productName = GemPriceWidgetExtension;
@@ -1067,6 +1071,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8A1B2C42E90000100AAAA02 /* AppUpdateAlertTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1511,6 +1516,14 @@
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios/debug/libgemstone.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a",
+				);
 				INFOPLIST_FILE = GemPriceWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = GemPriceWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1546,6 +1559,14 @@
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios/release/libgemstone.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/release/libgemstone.a",
+				);
 				INFOPLIST_FILE = GemPriceWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = GemPriceWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1854,6 +1875,10 @@
 		DF8421ED2C1526ED003F558C /* GemstonePrimitives */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GemstonePrimitives;
+		};
+		D8WIDGETGEMSTONE00000001 /* Gemstone */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Gemstone;
 		};
 		DF93C4ED2C969F4F00204ABD /* Gemstone */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -29,7 +29,7 @@ pub(crate) fn is_quote_input_fee_token(base_pair: Option<&BasePair>, request: &Q
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_evm::uniswap::path::get_base_pair;
+    use crate::uniswap::routed_asset::{Protocol, base_pair};
     use primitives::{
         EVMChain,
         asset_constants::{ETHEREUM_UNI_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, ETHEREUM_WETH_TOKEN_ID},
@@ -38,7 +38,7 @@ mod tests {
     #[test]
     fn test_is_input_fee_token() {
         let evm_chain = EVMChain::Ethereum;
-        let base_pair = get_base_pair(&evm_chain, evm_chain.weth_contract());
+        let base_pair = base_pair(evm_chain, Protocol::V3);
 
         let weth = FeeToken::new(ETHEREUM_WETH_TOKEN_ID.parse().unwrap(), "WETH");
         let uni = FeeToken::new(ETHEREUM_UNI_TOKEN_ID.parse().unwrap(), "UNI");
@@ -62,7 +62,7 @@ mod tests {
         let evm_chain = EVMChain::SmartChain;
         let v_usdt = FeeToken::new("0xfD5840Cd36d94D7229439859C0112a4185BC0255".parse().unwrap(), "vUSDT");
         let bnb_tiger = FeeToken::new("0xAc68475a88DA0fbAdB73fBF4Cc157EA137dbdC2D".parse().unwrap(), "BNBTiger");
-        let base_pair = get_base_pair(&evm_chain, evm_chain.weth_contract());
+        let base_pair = base_pair(evm_chain, Protocol::V3);
 
         let native_bnb = FeeToken::new(evm_chain.weth_contract().unwrap().parse().unwrap(), "BNB");
 

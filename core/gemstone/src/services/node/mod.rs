@@ -33,10 +33,6 @@ impl GemNodeService {
         Self { store, preferences }
     }
 
-    pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
-        rules::can_delete_node(chain, &url)
-    }
-
     pub fn websocket_node_url(&self, chain: Chain) -> String {
         rules::websocket_url(&self.node_url(chain))
     }

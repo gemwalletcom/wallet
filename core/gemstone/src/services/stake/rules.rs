@@ -5,15 +5,15 @@ use crate::services::collections::{stale, unique};
 use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
 use primitives::{
-    AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, RedelegateData, Resource, StakeChain,
-    StakeProviderType, StakeType, VerificationStatus, WalletType, YieldProvider,
+    AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource,
+    StakeChain, StakeProviderType, StakeType, VerificationStatus, WalletType, YieldProvider,
 };
 use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow, GemDelegationStatus, GemDelegationTone,
-    GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow,
+    GemDelegationStatus, GemDelegationTone, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -30,9 +30,45 @@ pub fn delegation_destination(wallet_type: WalletType, asset: Asset, delegation:
     if wallet_type == WalletType::View || delegation.base.state != DelegationState::AwaitingWithdrawal {
         return GemDelegationDestination::Details;
     }
+    delegation_action_destination(asset, delegation, GemDelegationAction::Withdraw, vec![])
+}
+
+pub fn delegation_action_destination(asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: Vec<DelegationValidator>) -> GemDelegationDestination {
     let value = BigInt::from(delegation.base.balance.clone());
-    GemDelegationDestination::Withdraw {
-        transfer: transfer_rules::stake_transfer_data(asset, StakeType::Withdraw(delegation), value, false),
+    let stake = |asset, input| GemDelegationDestination::Amount {
+        asset,
+        input: GemDelegationAmountInput::Stake { input },
+    };
+    let earn = |asset, earn_type| GemDelegationDestination::Amount {
+        asset,
+        input: GemDelegationAmountInput::Earn { earn_type },
+    };
+    let confirm = move |asset, stake_type| GemDelegationDestination::Confirm {
+        transfer: transfer_rules::stake_transfer_data(asset, stake_type, value, false),
+    };
+    match action {
+        GemDelegationAction::Stake => stake(
+            asset,
+            GemStakeAmountInput::Stake {
+                validators,
+                validator: Some(delegation.validator),
+            },
+        ),
+        GemDelegationAction::Redelegate => stake(
+            asset,
+            GemStakeAmountInput::Redelegate {
+                validators,
+                delegation,
+                validator: None,
+            },
+        ),
+        GemDelegationAction::Unstake if can_change_amount_on_unstake(asset.chain()) => stake(asset, GemStakeAmountInput::Unstake { delegation }),
+        GemDelegationAction::Unstake => confirm(asset, StakeType::Unstake(delegation)),
+        GemDelegationAction::Withdraw => match delegation.validator.provider_type {
+            StakeProviderType::Stake => confirm(asset, StakeType::Withdraw(delegation)),
+            StakeProviderType::Earn => earn(asset, EarnType::Withdraw(delegation)),
+        },
+        GemDelegationAction::Deposit => earn(asset, EarnType::Deposit(delegation.validator)),
     }
 }
 
@@ -74,7 +110,7 @@ pub fn can_claim_rewards(wallet_type: WalletType, delegation: &Delegation) -> bo
     wallet_type != WalletType::View && config.can_claim_rewards && shows_rewards(&delegation.base)
 }
 
-pub fn validator_display_name(validator: &DelegationValidator) -> String {
+fn validator_display_name(validator: &DelegationValidator) -> String {
     if validator.name.is_empty() {
         return AddressFormatter::format(&validator.id, Some(validator.chain), AddressFormatStyle::Short);
     }
@@ -201,7 +237,7 @@ pub fn min_stake_amount(chain: Chain) -> BigInt {
     stake_config(chain).map(|config| BigInt::from(config.min_amount)).unwrap_or_default()
 }
 
-pub fn can_change_amount_on_unstake(chain: Chain) -> bool {
+fn can_change_amount_on_unstake(chain: Chain) -> bool {
     stake_config(chain).is_some_and(|config| config.change_amount_on_unstake)
 }
 
@@ -314,7 +350,7 @@ fn recommended_validator_ids(chain: Chain) -> Vec<String> {
     get_validators().remove(chain.as_ref()).unwrap_or_default()
 }
 
-pub fn recommended_validators(chain: Chain, validators: &[DelegationValidator]) -> Vec<DelegationValidator> {
+fn recommended_validators(chain: Chain, validators: &[DelegationValidator]) -> Vec<DelegationValidator> {
     let recommended = recommended_validator_ids(chain);
     validators.iter().filter(|validator| recommended.contains(&validator.id)).cloned().collect()
 }
@@ -519,6 +555,7 @@ pub fn earn_validators(providers: Vec<DelegationValidator>, apr: f64) -> Vec<Del
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::transfer::GemTransferData;
     use primitives::{AssetId, Resource};
 
     fn solana_validator(name: &str) -> DelegationValidator {
@@ -753,25 +790,95 @@ mod tests {
         assert!(!shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Inactive, 100).base));
     }
 
+    fn destination_kind(destination: &GemDelegationDestination) -> &'static str {
+        match destination {
+            GemDelegationDestination::Details => "details",
+            GemDelegationDestination::Confirm { .. } => "confirm",
+            GemDelegationDestination::Amount {
+                input: GemDelegationAmountInput::Stake { input },
+                ..
+            } => match input {
+                GemStakeAmountInput::Stake { .. } => "stake amount",
+                GemStakeAmountInput::Redelegate { .. } => "redelegate amount",
+                GemStakeAmountInput::Unstake { .. } => "unstake amount",
+                GemStakeAmountInput::Withdraw { .. } | GemStakeAmountInput::Rewards { .. } | GemStakeAmountInput::Freeze { .. } | GemStakeAmountInput::Unfreeze { .. } => {
+                    "other stake amount"
+                }
+            },
+            GemDelegationDestination::Amount {
+                input: GemDelegationAmountInput::Earn { earn_type },
+                ..
+            } => match earn_type {
+                EarnType::Deposit(_) => "earn deposit amount",
+                EarnType::Withdraw(_) => "earn withdraw amount",
+            },
+        }
+    }
+
+    fn confirm_transfer(destination: GemDelegationDestination) -> GemTransferData {
+        match destination {
+            GemDelegationDestination::Confirm { transfer } => transfer,
+            GemDelegationDestination::Details | GemDelegationDestination::Amount { .. } => panic!("expected a confirm transfer"),
+        }
+    }
+
     #[test]
     fn test_a_delegation_tap_withdraws_only_an_awaiting_withdrawal_on_a_signing_wallet() {
         let asset = Asset::from_chain(Chain::Solana);
         let awaiting = delegation(Chain::Solana, StakeProviderType::Stake, DelegationState::AwaitingWithdrawal, 0);
         let active = delegation(Chain::Solana, StakeProviderType::Stake, DelegationState::Active, 0);
+        let earn_awaiting = delegation(Chain::Ethereum, StakeProviderType::Earn, DelegationState::AwaitingWithdrawal, 0);
 
-        assert!(matches!(
-            delegation_destination(WalletType::Multicoin, asset.clone(), active),
-            GemDelegationDestination::Details
-        ));
-        assert!(matches!(
-            delegation_destination(WalletType::View, asset.clone(), awaiting.clone()),
-            GemDelegationDestination::Details
-        ));
-        let GemDelegationDestination::Withdraw { transfer } = delegation_destination(WalletType::Multicoin, asset.clone(), awaiting.clone()) else {
-            panic!("expected a withdraw transfer");
-        };
+        assert_eq!(destination_kind(&delegation_destination(WalletType::Multicoin, asset.clone(), active)), "details");
+        assert_eq!(destination_kind(&delegation_destination(WalletType::View, asset.clone(), awaiting.clone())), "details");
+        assert_eq!(
+            destination_kind(&delegation_destination(WalletType::Multicoin, Asset::from_chain(Chain::Ethereum), earn_awaiting)),
+            "earn withdraw amount",
+            "an earn position withdraws through the amount screen"
+        );
+        let transfer = confirm_transfer(delegation_destination(WalletType::Multicoin, asset, awaiting.clone()));
         assert_eq!(transfer.value, BigInt::from(awaiting.base.balance.clone()));
         assert_eq!(transfer.recipient.address, awaiting.validator.id);
+    }
+
+    #[test]
+    fn test_each_delegation_action_leads_to_its_screen() {
+        use GemDelegationAction::*;
+        let validators = vec![validator("other")];
+        let destination = |chain, provider, action| {
+            let delegation = delegation(chain, provider, DelegationState::Active, 0);
+            delegation_action_destination(Asset::from_chain(chain), delegation, action, validators.clone())
+        };
+        let stake = |chain, action| destination(chain, StakeProviderType::Stake, action);
+        let earn = |action| destination(Chain::Ethereum, StakeProviderType::Earn, action);
+
+        let GemDelegationDestination::Amount {
+            asset,
+            input: GemDelegationAmountInput::Stake {
+                input: GemStakeAmountInput::Stake { validators: offered, validator },
+            },
+        } = stake(Chain::Ethereum, Stake)
+        else {
+            panic!("stake opens the amount screen")
+        };
+        assert_eq!(asset, Asset::from_chain(Chain::Ethereum));
+        assert_eq!(offered, validators);
+        assert_eq!(validator, Some(delegation(Chain::Ethereum, StakeProviderType::Stake, DelegationState::Active, 0).validator));
+        assert_eq!(destination_kind(&stake(Chain::Ethereum, Redelegate)), "redelegate amount");
+        assert_eq!(
+            destination_kind(&stake(Chain::Ethereum, Unstake)),
+            "unstake amount",
+            "a chain that unstakes a chosen amount asks for it"
+        );
+        assert_eq!(destination_kind(&stake(Chain::Solana, Unstake)), "confirm", "a chain that unstakes whole confirms at once");
+        assert_eq!(destination_kind(&stake(Chain::Solana, Withdraw)), "confirm");
+        assert_eq!(destination_kind(&earn(Withdraw)), "earn withdraw amount");
+        assert_eq!(destination_kind(&earn(Deposit)), "earn deposit amount");
+
+        let unstaked = delegation(Chain::Solana, StakeProviderType::Stake, DelegationState::Active, 0);
+        let transfer = confirm_transfer(stake(Chain::Solana, Unstake));
+        assert_eq!(transfer.value, BigInt::from(unstaked.base.balance.clone()));
+        assert_eq!(transfer.recipient.address, unstaked.validator.id);
     }
 
     #[test]

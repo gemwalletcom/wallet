@@ -183,7 +183,7 @@ pub fn wallet_row() -> GemAssetRow {
     }
 }
 
-pub fn select_asset_title(select_type: &GemSelectAssetType) -> GemSelectAssetTitle {
+fn select_asset_title(select_type: &GemSelectAssetType) -> GemSelectAssetTitle {
     match select_type {
         GemSelectAssetType::Send => GemSelectAssetTitle::Send,
         GemSelectAssetType::Receive => GemSelectAssetTitle::Receive,

@@ -379,7 +379,8 @@ mod tests {
             }
         );
         assert_eq!(session.on_amount_changed("4".to_string()).quote_request(), None);
-        assert_eq!(session.on_amount_changed("12,5".to_string()).current().phase, GemFiatQuotePhase::Loading { amount: 12.5 });
+        assert_eq!(session.on_amount_changed("12,5".to_string()).current().phase, GemFiatQuotePhase::InvalidInput);
+        assert_eq!(session.on_amount_changed("12".to_string()).current().phase, GemFiatQuotePhase::Loading { amount: 12.0 });
         assert_eq!(session.on_amount_changed("4".to_string()).button_state(false), GemFiatButtonState::Disabled);
     }
 

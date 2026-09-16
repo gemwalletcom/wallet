@@ -34,7 +34,11 @@ public final class ChartSceneViewModel: ChartListViewable {
         get { session.period.toPrimitives() }
         set {
             session = session.onSelectPeriod(period: newValue.toGem())
-            try? service.setChartPeriod(period: newValue.toGem())
+            do {
+                try service.setChartPeriod(period: newValue.toGem())
+            } catch {
+                debugLog("ChartSceneViewModel chart period error: \(error)")
+            }
         }
     }
 

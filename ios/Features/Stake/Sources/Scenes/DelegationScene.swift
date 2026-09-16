@@ -27,14 +27,14 @@ public struct DelegationScene: View {
             .cleanListRow()
 
             Section {
-                ForEach(model.rows.filter { $0 != .rewards }, id: \.self) { row in
+                ForEach(model.detailRows, id: \.self) { row in
                     content(for: row)
                 }
             }
 
-            if model.rows.contains(.rewards) {
+            if let rewardsRow = model.rewardsRow {
                 Section {
-                    content(for: .rewards)
+                    content(for: rewardsRow)
                 }
             }
 

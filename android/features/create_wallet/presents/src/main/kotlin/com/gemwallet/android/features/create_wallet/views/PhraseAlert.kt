@@ -41,6 +41,7 @@ import com.gemwallet.android.features.create_wallet.localization.subtitleRes
 import com.gemwallet.android.features.create_wallet.localization.titleRes
 import com.gemwallet.android.features.create_wallet.style.emoji
 import uniffi.gemstone.securityReminderItems
+import uniffi.gemstone.DocsUrl
 
 private val emojiFontSize = 24.sp
 
@@ -63,7 +64,7 @@ fun PhraseAlertDialog(
         },
         actions = {
             IconButton(
-                { uriHandler.open(context, AppUrl.whatIsSecretPhrase) }
+                { uriHandler.open(context, AppUrl.docs(DocsUrl.WhatIsSecretPhrase)) }
             ) {
                 Icon(AppIcons.InfoOutlined, "")
             }

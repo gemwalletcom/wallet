@@ -703,7 +703,6 @@ pub enum SwapProvider {
     Mayan,
     Chainflip,
     NearIntents,
-    CetusAggregator,
     CetusClmm,
     Relay,
     Hyperliquid,

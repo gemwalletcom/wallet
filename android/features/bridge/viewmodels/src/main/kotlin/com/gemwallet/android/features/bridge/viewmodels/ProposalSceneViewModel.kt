@@ -9,6 +9,7 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
@@ -16,7 +17,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -38,6 +39,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val prepareSessionProposal: PrepareSessionProposal,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
@@ -74,7 +76,7 @@ class ProposalSceneViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val prepared = withContext(Dispatchers.IO) {
+            val prepared = withContext(ioDispatcher) {
                 runCatchingCancellable {
                     prepareSessionProposal(
                         name = proposal.name,
@@ -111,7 +113,7 @@ class ProposalSceneViewModel @Inject constructor(
             return
         }
         state.update { ProposalSceneState.Approving(it.verificationStatus) }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val result = runCatching {
                 approveWalletConnection.approveConnection(
                     wallet = wallet,
@@ -144,7 +146,7 @@ class ProposalSceneViewModel @Inject constructor(
     }
 
     private fun reject(proposal: WalletConnectSessionProposal) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             approveWalletConnection.rejectConnection(
                 proposal = proposal,
                 onSuccess = { finish(proposal) },

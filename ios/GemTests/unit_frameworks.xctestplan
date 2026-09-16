@@ -16,6 +16,13 @@
   "testTargets": [
     {
       "target": {
+        "containerPath": "container:Gem.xcodeproj",
+        "identifier": "C30952C0299C39D80004C0F9",
+        "name": "GemTests"
+      }
+    },
+    {
+      "target": {
         "containerPath": "container:Features/NFT",
         "identifier": "NFTTests",
         "name": "NFTTests"

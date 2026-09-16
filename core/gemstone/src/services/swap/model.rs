@@ -143,7 +143,7 @@ pub struct GemSwapPairSuggestion {
     pub receive_asset_id: Option<AssetId>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemSwapButtonInput {
     pub value: GemBigInt,
     pub available_balance: GemBigInt,

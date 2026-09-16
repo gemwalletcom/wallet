@@ -128,6 +128,10 @@ impl GemWalletService {
         })
     }
 
+    pub fn phrase_verification_words(&self, words: Vec<String>) -> Vec<String> {
+        rules::phrase_verification_words(words)
+    }
+
     pub fn import_kinds(&self, chain: Option<Chain>) -> Vec<GemWalletImportKind> {
         rules::import_kinds(chain)
     }

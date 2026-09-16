@@ -28,7 +28,8 @@ pub enum SwapProvider {
     Mayan,
     Chainflip,
     NearIntents,
-    CetusAggregator,
+    #[strum(to_string = "cetus_clmm", serialize = "cetus_aggregator")]
+    #[serde(alias = "cetus_aggregator")]
     CetusClmm,
     Relay,
     Hyperliquid,
@@ -67,7 +68,6 @@ impl SwapProvider {
             | Self::Okx
             | Self::Oku
             | Self::Wagmi
-            | Self::CetusAggregator
             | Self::CetusClmm
             | Self::StonfiV2
             | Self::Aerodrome
@@ -98,7 +98,6 @@ impl SwapProvider {
             | Self::Okx
             | Self::Oku
             | Self::Wagmi
-            | Self::CetusAggregator
             | Self::CetusClmm
             | Self::StonfiV2
             | Self::Aerodrome
@@ -120,7 +119,7 @@ impl SwapProvider {
             Self::Across => "Across",
             Self::Oku => "Oku",
             Self::Wagmi => "Wagmi",
-            Self::CetusAggregator | Self::CetusClmm => "Cetus",
+            Self::CetusClmm => "Cetus",
             Self::StonfiV2 => "STON.fi",
             Self::Mayan => "Mayan",
             Self::Chainflip => "Chainflip",
@@ -142,7 +141,7 @@ impl SwapProvider {
             Self::Across => "Across v3",
             Self::Oku => "Oku",
             Self::StonfiV2 => "STON.fi v2",
-            Self::CetusAggregator | Self::CetusClmm => "Cetus",
+            Self::CetusClmm => "Cetus",
             Self::Thorchain
             | Self::Mayachain
             | Self::Jupiter
@@ -163,6 +162,8 @@ impl SwapProvider {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
 
     #[test]
@@ -175,6 +176,20 @@ mod tests {
         assert!(SwapProvider::SwapsXyz.is_cross_chain());
         assert!(!SwapProvider::UniswapV3.is_cross_chain());
         assert!(!SwapProvider::Jupiter.is_cross_chain());
+    }
+
+    #[test]
+    fn test_a_swap_stored_under_the_old_cetus_id_still_reads_back() {
+        assert_eq!(SwapProvider::from_str("cetus_aggregator").unwrap(), SwapProvider::CetusClmm);
+        assert_eq!(SwapProvider::from_str("cetus_clmm").unwrap(), SwapProvider::CetusClmm);
+        assert_eq!(SwapProvider::CetusClmm.id(), "cetus_clmm");
+        assert_eq!(SwapProvider::CetusClmm.name(), "Cetus");
+        assert_eq!(
+            serde_json::from_str::<SwapProvider>("\"cetus_aggregator\"").unwrap(),
+            SwapProvider::CetusClmm,
+            "a stored swap row written before the rename still decodes"
+        );
+        assert_eq!(serde_json::to_string(&SwapProvider::CetusClmm).unwrap(), "\"cetus_clmm\"");
     }
 
     #[test]

@@ -31,7 +31,7 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     var type: SecretPhraseDataType {
-        .words(words: WordIndex.rows(for: words))
+        .words(rows: SecretPhraseRow.rows(for: words))
     }
 
     var copyModel: CopyTypeViewModel {

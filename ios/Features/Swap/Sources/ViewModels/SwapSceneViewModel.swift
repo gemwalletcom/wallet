@@ -360,8 +360,8 @@ extension SwapSceneViewModel {
             side: side,
             assetId: asset.id.identifier,
         )
-        pairSelectorModel.fromAssetId = selection.payAssetId.flatMap { try? AssetId(id: $0) }
-        pairSelectorModel.toAssetId = selection.receiveAssetId.flatMap { try? AssetId(id: $0) }
+        pairSelectorModel.fromAssetId = selection.payAssetId.map { AssetId(core: $0) }
+        pairSelectorModel.toAssetId = selection.receiveAssetId.map { AssetId(core: $0) }
         isPresentingInfoSheet = nil
     }
 }
@@ -406,15 +406,14 @@ extension SwapSceneViewModel {
     }
 
     private func setFromValue(percent: Int, assetData: AssetData) {
-        amountInputModel.text = formatter.format(
-            value: assetData.balance.available.multiply(byPercent: percent),
-            decimals: assetData.asset.decimals.asInt,
-        )
+        let value = service.amountForPercent(available: assetData.balance.available, percent: UInt32(percent))
+        guard let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(assetData.asset.decimals)) else { return }
+        amountInputModel.text = text
     }
 
     private func setFromValue(minimum value: BigInt) {
-        guard let fromAsset else { return }
-        amountInputModel.text = formatter.format(value: value, decimals: fromAsset.asset.decimals.asInt)
+        guard let fromAsset, let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(fromAsset.asset.decimals)) else { return }
+        amountInputModel.text = text
         setLoadTrigger(isImmediate: true)
     }
 

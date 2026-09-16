@@ -6,7 +6,7 @@ use crate::services::collections::unique_by;
 
 const NAME_RECORD_DEBOUNCE_MILLISECONDS: u64 = 250;
 
-pub fn name_record_debounce_milliseconds() -> u64 {
+fn name_record_debounce_milliseconds() -> u64 {
     NAME_RECORD_DEBOUNCE_MILLISECONDS
 }
 

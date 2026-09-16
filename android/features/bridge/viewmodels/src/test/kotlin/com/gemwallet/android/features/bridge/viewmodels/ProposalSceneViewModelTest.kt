@@ -28,6 +28,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -125,6 +126,7 @@ class ProposalSceneViewModelTest {
         prepareSessionProposal = prepare,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
+        ioDispatcher = dispatcher,
     ).also { models.add(it) }
 
     @Test
@@ -166,6 +168,7 @@ class ProposalSceneViewModelTest {
         viewModel(approve = approve, prepare = prepare).onProposal(proposal, verifyContext) { notified.complete(it) }
 
         assertEquals(BridgeRequestError.MaliciousSession, notified.await())
+        advanceUntilIdle()
         verify { approve.rejectConnection(proposal, any(), any(), any()) }
     }
 

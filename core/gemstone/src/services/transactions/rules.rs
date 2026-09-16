@@ -35,7 +35,7 @@ pub fn transaction_filters() -> Vec<GemTransactionFilter> {
     ]
 }
 
-pub fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
+fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
     match transaction_type {
         TransactionType::Transfer | TransactionType::TransferNFT => GemTransactionFilter::Transfers,
         TransactionType::Swap | TransactionType::TokenApproval => GemTransactionFilter::Swaps,

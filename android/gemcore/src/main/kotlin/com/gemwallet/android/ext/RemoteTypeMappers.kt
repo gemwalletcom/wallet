@@ -848,7 +848,6 @@ fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.Swap
     uniffi.gemstone.SwapProvider.MAYAN -> com.wallet.core.primitives.SwapProvider.Mayan
     uniffi.gemstone.SwapProvider.CHAINFLIP -> com.wallet.core.primitives.SwapProvider.Chainflip
     uniffi.gemstone.SwapProvider.NEAR_INTENTS -> com.wallet.core.primitives.SwapProvider.NearIntents
-    uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR -> com.wallet.core.primitives.SwapProvider.CetusAggregator
     uniffi.gemstone.SwapProvider.CETUS_CLMM -> com.wallet.core.primitives.SwapProvider.CetusClmm
     uniffi.gemstone.SwapProvider.RELAY -> com.wallet.core.primitives.SwapProvider.Relay
     uniffi.gemstone.SwapProvider.HYPERLIQUID -> com.wallet.core.primitives.SwapProvider.Hyperliquid
@@ -874,7 +873,6 @@ fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvide
     com.wallet.core.primitives.SwapProvider.Mayan -> uniffi.gemstone.SwapProvider.MAYAN
     com.wallet.core.primitives.SwapProvider.Chainflip -> uniffi.gemstone.SwapProvider.CHAINFLIP
     com.wallet.core.primitives.SwapProvider.NearIntents -> uniffi.gemstone.SwapProvider.NEAR_INTENTS
-    com.wallet.core.primitives.SwapProvider.CetusAggregator -> uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR
     com.wallet.core.primitives.SwapProvider.CetusClmm -> uniffi.gemstone.SwapProvider.CETUS_CLMM
     com.wallet.core.primitives.SwapProvider.Relay -> uniffi.gemstone.SwapProvider.RELAY
     com.wallet.core.primitives.SwapProvider.Hyperliquid -> uniffi.gemstone.SwapProvider.HYPERLIQUID

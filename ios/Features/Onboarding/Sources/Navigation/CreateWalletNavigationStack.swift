@@ -20,10 +20,7 @@ public struct CreateWalletNavigationStack: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: Scenes.VerifyPhrase.self) { scene in
                     VerifyPhraseWalletScene(
-                        model: VerifyPhraseViewModel(
-                            words: scene.words,
-                            onComplete: onVerifyPhraseComplete,
-                        ),
+                        model: model.verifyPhraseModel(words: scene.words, onComplete: onVerifyPhraseComplete),
                     )
                 }
                 .navigationDestination(for: Scenes.WalletProfile.self) { scene in

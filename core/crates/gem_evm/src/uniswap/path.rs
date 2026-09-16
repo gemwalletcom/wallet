@@ -67,11 +67,10 @@ impl BasePair {
     }
 }
 
-pub fn get_base_pair(chain: &EVMChain, native_asset_token: Option<&str>) -> Option<BasePair> {
-    let primary = match (chain, native_asset_token) {
-        (EVMChain::Tempo, _) => TEMPO_PATHUSD_TOKEN_ID.parse().ok()?,
-        (_, Some(token)) => token.parse().ok()?,
-        (_, None) => Address::ZERO,
+pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePair> {
+    let primary = match chain {
+        EVMChain::Tempo => TEMPO_PATHUSD_TOKEN_ID.parse().ok()?,
+        _ => native_address,
     };
 
     let btc: &str = match chain {
@@ -117,7 +116,7 @@ pub fn get_base_pair(chain: &EVMChain, native_asset_token: Option<&str>) -> Opti
         EVMChain::SeiEvm => SEIEVM_USDC_TOKEN_ID,
         EVMChain::XLayer => XLAYER_USDC_TOKEN_ID,
         EVMChain::Robinhood => ROBINHOOD_USDG_TOKEN_ID,
-        EVMChain::OpBNB | EVMChain::Plasma => "",
+        EVMChain::OpBNB | EVMChain::Plasma | EVMChain::Arc => "",
         EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b", // USDC.e (Stargate)
         EVMChain::Tempo => TEMPO_BRIDGED_USDC_TOKEN_ID,
         _ => panic!("USDC is not configured for this chain"),
@@ -146,8 +145,8 @@ pub fn get_base_pair(chain: &EVMChain, native_asset_token: Option<&str>) -> Opti
         EVMChain::Monad => MONAD_USDT_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID, // USDT0
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
-        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",                // USDT0
-        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo => "", // None
+        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",                                // USDT0
+        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc => "", // None
         _ => panic!("USDT is not configured for this chain"),
     };
 
@@ -282,7 +281,7 @@ mod tests {
 
     #[test]
     fn test_robinhood_base_pair() {
-        let base_pair = get_base_pair(&EVMChain::Robinhood, EVMChain::Robinhood.weth_contract()).unwrap();
+        let base_pair = get_base_pair(&EVMChain::Robinhood, ROBINHOOD_WETH_TOKEN_ID.parse().unwrap()).unwrap();
 
         assert_eq!(base_pair.primary, ROBINHOOD_WETH_TOKEN_ID.parse::<Address>().unwrap());
         assert_eq!(base_pair.stables, vec![ROBINHOOD_USDG_TOKEN_ID.parse::<Address>().unwrap()]);

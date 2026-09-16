@@ -66,11 +66,15 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var pinned: [AssetData] {
-        active.filter { $0.metadata.isPinned }
+        activeSections.pinned
     }
 
     var unpinned: [AssetData] {
-        active.filter { !$0.metadata.isPinned }
+        activeSections.assets
+    }
+
+    private var activeSections: AssetsSections {
+        AssetsSections.from(active)
     }
 
     var hidden: [AssetData] {

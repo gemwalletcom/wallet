@@ -1236,7 +1236,6 @@ public extension Gemstone.SwapProvider {
         case .mayan: .mayan
         case .chainflip: .chainflip
         case .nearIntents: .nearIntents
-        case .cetusAggregator: .cetusAggregator
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid
@@ -1266,7 +1265,6 @@ public extension Primitives.SwapProvider {
         case .mayan: .mayan
         case .chainflip: .chainflip
         case .nearIntents: .nearIntents
-        case .cetusAggregator: .cetusAggregator
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid

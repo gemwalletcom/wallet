@@ -2,6 +2,7 @@
 
 import Foundation
 import GemAPI
+import enum Gemstone.GemImage
 import Primitives
 import Style
 import SwiftUI
@@ -78,11 +79,12 @@ extension WidgetPriceService {
         }
     }
 
-    private static func tokenImageURL(for assetId: AssetId) -> URL {
-        URL(string: "https://assets.gemwallet.com/blockchains/\(assetId.chain.rawValue)/assets/\(assetId.tokenId ?? "")/logo.png")!
+    private static func tokenImageURL(for assetId: AssetId) -> URL? {
+        URL(string: GemImage.asset(assetId: assetId.identifier).url())
     }
 
-    private static func remoteImage(url: URL) async -> Image? {
+    private static func remoteImage(url: URL?) async -> Image? {
+        guard let url else { return nil }
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             guard let uiImage = UIImage(data: data) else {

@@ -92,8 +92,8 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
             }
         )
         Spacer16()
-        if (uiModel.canImport) {
-            requireNotNull(uiModel.status).rows().forEach { NodeCheckRow(it) }
+        uiModel.status?.let { status ->
+            status.rows().forEach { NodeCheckRow(it) }
             WarningItem()
         }
     }

@@ -20,8 +20,6 @@ final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol, @unche
         addedNodes.append(url)
     }
 
-    func canDeleteNode(chain _: Chain, url _: String) -> Bool { true }
-
     func chains(query _: String) -> [Chain] { [] }
 
     func checkNode(chain _: Chain, url _: String) async throws -> GemNodeCheck {
@@ -32,11 +30,7 @@ final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol, @unche
         deletedNodes.append(url)
     }
 
-    func explorerName(chain _: Chain) -> String { "" }
-
     func explorerRows(chain _: Chain) -> [GemExplorerRow] { explorerRowsValue }
-
-    func explorers(chain _: Chain) -> [String] { [] }
 
     func newAddNodeSession(chain: Chain) -> GemAddNodeSession {
         GemAddNodeSession(chain: chain, url: "", check: nil, failure: nil, isChecking: false)
@@ -47,10 +41,6 @@ final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol, @unche
     }
 
     func nodeCheckDebounceMilliseconds() -> UInt64 { 0 }
-
-    func nodeRow(chain: Chain, node: GemNodeSelection, status: GemNodeStatusState) -> GemNodeRow {
-        nodeRows(chain: chain, nodes: [node], statuses: [node.url: status])[0]
-    }
 
     func nodeRows(chain _: Chain, nodes: [GemNodeSelection], statuses: [String: GemNodeStatusState]) -> [GemNodeRow] {
         nodes.map {

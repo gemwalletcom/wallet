@@ -220,10 +220,10 @@ One Core service per screen, held by the screen's view model on both apps. The s
 | --- | --- | --- | --- |
 | `GemAddAssetService` | — | `AddAssetSceneViewModel` | `AddAssetViewModel` |
 | `GemAmountService` | — | `AmountSceneViewModel` and its providers | `AmountViewModel`, `AmountPerpetualProvider` |
-| `GemAppUpdateService` | — | `AboutUsViewModel` | — (Play in-app update instead) |
+| `GemAppUpdateService` | — | `AboutUsViewModel` | `AppUpdateCoordinator` (adds the Play vs universal-APK delivery channel) |
 | `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetDetailsViewModel` |
 | `GemAssetSelectionService` | — | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses |
-| `GemAvatarService` | — | `WalletImageViewModel`, vended by `CreateWalletModel` and `ImportWalletViewModel` | — (no avatar surface) |
+| `GemAvatarService` | — | `WalletImageViewModel`, vended by `CreateWalletModel` and `ImportWalletViewModel` | `WalletImageViewModel` (through `WalletAvatarService`) |
 | `GemBannerService` | — | — (a collaborator inside `GemAssetDetailsService` and `GemWalletHomeService`) | — (the same two services carry `bannerContent` and `closeBanner`) |
 | `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `SelectImportTypeViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
@@ -238,7 +238,7 @@ One Core service per screen, held by the screen's view model on both apps. The s
 | `GemManageContactService` | — | `ManageContactViewModel` (+ `nameService`) | `ManageContactViewModel` (+ `GemNameServiceInterface`) |
 | `GemNftService` | — | `CollectionsViewModel`, `CollectionViewModel`, `UnverifiedCollectionsViewModel` | `NftListViewModels`, `ReceiveNftChainsViewModel` |
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
-| `GemNotificationsService` | — | `NotificationsViewModel` | — (`SettingsViewModel` uses push cases) |
+| `GemNotificationsService` | — | `NotificationsViewModel` | `DevicePushSettings` (the push cases `SettingsViewModel` calls) |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` |
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ recent activity) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioChartViewModel` |

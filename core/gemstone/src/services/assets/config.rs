@@ -3,7 +3,7 @@ use primitives::{Asset, AssetBasic, AssetId, AssetType, Chain, ChainAsset};
 use super::icon::{GemAssetIcon, asset_icon};
 use super::model::GemAssetSectionIds;
 use super::rules::{asset_sections, default_asset_basic, popular_asset_ids};
-use crate::models::asset::{chain_asset_wrapper, default_token_rank};
+use crate::models::asset::chain_asset_wrapper;
 use crate::services::confirm::{GemAcquireAssetFlow, acquire_asset_flow};
 
 #[derive(Default, uniffi::Object)]
@@ -18,10 +18,6 @@ impl GemAssetConfigService {
 
     pub fn default_asset_basic(&self, asset: Asset) -> AssetBasic {
         default_asset_basic(asset)
-    }
-
-    pub fn default_token_rank(&self) -> i32 {
-        default_token_rank()
     }
 
     pub fn default_asset(&self, chain: Chain, asset_type: AssetType) -> Option<Asset> {

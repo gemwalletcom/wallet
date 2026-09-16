@@ -2,10 +2,11 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
+use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
+const SECRET_PHRASE_COLUMNS: u32 = 2;
 use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -35,6 +36,21 @@ impl GemWalletImportType {
             }
         }
     }
+}
+
+pub const PHRASE_VERIFICATION_GROUP: usize = 4;
+
+pub fn phrase_verification_words(words: Vec<String>) -> Vec<String> {
+    use rand::seq::SliceRandom;
+    let mut rng = rand::rng();
+    words
+        .chunks(PHRASE_VERIFICATION_GROUP)
+        .flat_map(|group| {
+            let mut group = group.to_vec();
+            group.shuffle(&mut rng);
+            group
+        })
+        .collect()
 }
 
 pub fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
@@ -117,6 +133,16 @@ fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
         SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),
         SecretExport::None => None,
     }
+}
+
+pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
+    let per_column = word_count / SECRET_PHRASE_COLUMNS;
+    let pairs = (0..per_column).map(|row| GemSecretPhraseRow::Pair {
+        left: row,
+        right: row + per_column,
+    });
+    let odd_last = (word_count % SECRET_PHRASE_COLUMNS == 1).then(|| GemSecretPhraseRow::Single { index: word_count - 1 });
+    pairs.chain(odd_last).collect()
 }
 
 pub fn row(wallet: &Wallet) -> GemWalletRow {
@@ -249,6 +275,30 @@ pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: Wa
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_phrase_verification_shuffles_inside_a_group_and_never_across_one() {
+        let words: Vec<String> = (1..=12).map(|n| n.to_string()).collect();
+        for _ in 0..50 {
+            let shuffled = phrase_verification_words(words.clone());
+            assert_eq!(shuffled.len(), words.len());
+            for (group, original) in shuffled.chunks(PHRASE_VERIFICATION_GROUP).zip(words.chunks(PHRASE_VERIFICATION_GROUP)) {
+                let mut seen = group.to_vec();
+                let mut expected = original.to_vec();
+                seen.sort();
+                expected.sort();
+                assert_eq!(seen, expected, "a word never leaves its group of {PHRASE_VERIFICATION_GROUP}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_phrase_verification_keeps_a_short_last_group() {
+        let words: Vec<String> = (1..=6).map(|n| n.to_string()).collect();
+        let shuffled = phrase_verification_words(words.clone());
+        assert_eq!(shuffled.len(), 6);
+        assert_eq!(shuffled[4..].iter().collect::<std::collections::HashSet<_>>(), words[4..].iter().collect());
+    }
+
     use super::*;
     use primitives::NameProvider;
 
@@ -407,6 +457,23 @@ mod tests {
         assert_eq!(secret_kind(&phrase), Some(GemWalletSecretKind::Phrase));
         assert_eq!(secret_kind(&private_key), Some(GemWalletSecretKind::PrivateKey));
         assert_eq!(secret_kind(&view), None);
+    }
+
+    #[test]
+    fn test_secret_phrase_rows() {
+        assert_eq!(
+            secret_phrase_rows(4),
+            vec![GemSecretPhraseRow::Pair { left: 0, right: 2 }, GemSecretPhraseRow::Pair { left: 1, right: 3 }]
+        );
+        assert_eq!(
+            secret_phrase_rows(5),
+            vec![
+                GemSecretPhraseRow::Pair { left: 0, right: 2 },
+                GemSecretPhraseRow::Pair { left: 1, right: 3 },
+                GemSecretPhraseRow::Single { index: 4 },
+            ]
+        );
+        assert_eq!(secret_phrase_rows(0), vec![]);
     }
 
     #[test]

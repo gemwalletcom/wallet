@@ -11,9 +11,7 @@ struct SwapMetadataViewModel {
         guard
             let swapMetadata = metadata.swapMetadata,
             let fromAsset = metadata.asset(for: swapMetadata.fromAsset),
-            let toAsset = metadata.asset(for: swapMetadata.toAsset),
-            let fromValue = try? BigInt.from(string: swapMetadata.fromValue),
-            let toValue = try? BigInt.from(string: swapMetadata.toValue)
+            let toAsset = metadata.asset(for: swapMetadata.toAsset)
         else {
             return .none
         }
@@ -21,12 +19,12 @@ struct SwapMetadataViewModel {
         return SwapHeaderInput(
             from: AssetValuePrice(
                 asset: fromAsset,
-                value: fromValue,
+                value: BigInt.from(string: swapMetadata.fromValue),
                 price: metadata.price(for: swapMetadata.fromAsset),
             ),
             to: AssetValuePrice(
                 asset: toAsset,
-                value: toValue,
+                value: BigInt.from(string: swapMetadata.toValue),
                 price: metadata.price(for: swapMetadata.toAsset),
             ),
         )

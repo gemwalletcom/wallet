@@ -577,7 +577,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_quote() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
 
         let options = Options::mock_exact(100);
 
@@ -602,7 +602,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_near_to_usdt_quote() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Near)),
             to_asset: SwapperQuoteAsset::from(NEAR_USDT_ASSET_ID.clone()),
@@ -621,7 +621,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_bitcoin_quotes() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
 
         let from_bitcoin_request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
@@ -673,7 +673,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_stellar_requires_memo() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
 
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Stellar)),
@@ -703,7 +703,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_status() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
         let deposit_address = "18gB9wZz1Q4CzniurLye1KdUUqjWjo3ePr";
 
         let swap_result = provider.get_swap_result(Chain::Bitcoin, deposit_address).await?;

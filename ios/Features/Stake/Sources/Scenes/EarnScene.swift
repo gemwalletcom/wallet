@@ -47,7 +47,7 @@ public struct EarnScene: View {
             Section(model.positionsSectionTitle) {
                 if model.hasPositions {
                     ForEach(model.positionModels) { delegation in
-                        NavigationLink(value: delegation.delegation) {
+                        NavigationLink(value: model.navigationDestination(for: delegation)) {
                             DelegationView(delegation: delegation)
                         }
                     }

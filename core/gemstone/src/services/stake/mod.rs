@@ -14,8 +14,8 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow, GemDelegationStatus, GemDelegationTone,
-    GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow,
+    GemDelegationStatus, GemDelegationTone, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -105,6 +105,16 @@ impl GemStakeService {
         rules::delegation_destination(wallet_type, asset, delegation)
     }
 
+    pub fn delegation_action_destination(
+        &self,
+        asset: Asset,
+        delegation: Delegation,
+        action: GemDelegationAction,
+        validators: Vec<DelegationValidator>,
+    ) -> GemDelegationDestination {
+        rules::delegation_action_destination(asset, delegation, action, validators)
+    }
+
     pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, delegation: Delegation) -> bool {
         rules::can_claim_rewards(wallet_type, &delegation)
     }
@@ -119,10 +129,6 @@ impl GemStakeService {
 
     pub fn min_stake_amount(&self, chain: Chain) -> GemBigInt {
         rules::min_stake_amount(chain)
-    }
-
-    pub fn can_change_amount_on_unstake(&self, chain: Chain) -> bool {
-        rules::can_change_amount_on_unstake(chain)
     }
 
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {

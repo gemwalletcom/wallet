@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemChainSettingsSection
@@ -15,7 +16,7 @@ import uniffi.gemstone.GemNodeStatusState
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -35,6 +36,7 @@ import com.gemwallet.android.ext.errorText
 @HiltViewModel
 class NetworksViewModel @Inject constructor(
     private val service: GemChainSettingsServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val sections = service.sections()
@@ -131,7 +133,7 @@ class NetworksViewModel @Inject constructor(
             supervisorScope {
                 urls.forEach { url ->
                     launch {
-                        val nodeState = withContext(Dispatchers.IO) { service.nodeStatus(chain.string, url) }
+                        val nodeState = withContext(ioDispatcher) { service.nodeStatus(chain.string, url) }
                         updateState { current ->
                             if (current.chain != chain) current else current.copy(session = current.session?.onStatus(url, nodeState))
                         }

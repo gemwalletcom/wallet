@@ -209,13 +209,17 @@ extension RootSceneViewModel {
                 }
             },
         )
-        let actions = release.upgradeRequired ? [updateAction] : [skipAction, updateAction]
+        let actions = Self.updateAlertActions(for: release, skip: skipAction, update: updateAction)
 
         return AlertMessage(
             title: Localized.UpdateApp.title,
             message: Localized.UpdateApp.description(release.version),
             actions: actions,
         )
+    }
+
+    static func updateAlertActions(for release: Release, skip: AlertAction, update: AlertAction) -> [AlertAction] {
+        release.upgradeRequired ? [update] : [skip, update]
     }
 
     private func requestPushPermissions() {

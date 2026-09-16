@@ -14,6 +14,7 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.providers.Amoun
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
 import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
@@ -126,12 +127,13 @@ class AmountViewModel @Inject constructor(
     fun onMaxAmount() {
         val current = provider.assetInfo.value ?: return
         val max = provider.input.value?.maxEntry() ?: return
+        val text = maxAmountText(current.asset, max.value) ?: return
         amountInputType.value = max.inputType
-        updateAmount(maxAmountText(current.asset, max.value))
+        updateAmount(text)
     }
 
-    private fun maxAmountText(asset: Asset, value: BigInteger): String =
-        Crypto(value).value(asset.decimals).stripTrailingZeros().toPlainString()
+    private fun maxAmountText(asset: Asset, value: BigInteger): String? =
+        numberFormat().inputText(value.toString(), asset.decimals.toUInt())
 
     fun switchInputType() {
         amountInputType.update { it.toggled() }

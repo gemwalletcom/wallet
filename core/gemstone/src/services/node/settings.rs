@@ -34,10 +34,6 @@ impl GemChainSettingsService {
         vec![GemChainSettingsSection::Nodes, GemChainSettingsSection::Explorer]
     }
 
-    pub fn explorers(&self, chain: Chain) -> Vec<String> {
-        self.explorer.get_explorers(chain)
-    }
-
     pub fn explorer_rows(&self, chain: Chain) -> Vec<GemExplorerRow> {
         let selected = self.explorer.get_explorer_name(chain);
         self.explorer
@@ -55,23 +51,15 @@ impl GemChainSettingsService {
             .into_iter()
             .map(|node| {
                 let status = statuses.get(&node.url).cloned().unwrap_or(GemNodeStatusState::Loading);
-                self.node_row(chain, node, status)
+                GemNodeRow {
+                    title: node.title(),
+                    subtitle: status.subtitle(),
+                    latency_status: status.latency_status(),
+                    can_delete: rules::can_delete_node(chain, &node.url),
+                    node,
+                }
             })
             .collect()
-    }
-
-    pub fn node_row(&self, chain: Chain, node: GemNodeSelection, status: GemNodeStatusState) -> GemNodeRow {
-        GemNodeRow {
-            title: node.title(),
-            subtitle: status.subtitle(),
-            latency_status: status.latency_status(),
-            can_delete: self.can_delete_node(chain, node.url.clone()),
-            node,
-        }
-    }
-
-    pub fn explorer_name(&self, chain: Chain) -> String {
-        self.explorer.get_explorer_name(chain)
     }
 
     pub fn set_explorer_name(&self, chain: Chain, name: String) -> Result<(), GemServiceError> {
@@ -86,10 +74,6 @@ impl GemChainSettingsService {
 
     pub async fn select_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.nodes.select_node(chain, url).await
-    }
-
-    pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
-        self.nodes.can_delete_node(chain, url)
     }
 
     pub async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
@@ -156,7 +140,7 @@ mod tests {
         let rows = service.explorer_rows(Chain::Ethereum);
         let names: Vec<String> = rows.iter().map(|row| row.name.clone()).collect();
 
-        assert_eq!(names, service.explorers(Chain::Ethereum));
+        assert_eq!(names, service.explorer.get_explorers(Chain::Ethereum));
         assert_eq!(rows.iter().filter(|row| row.is_selected).count(), 1);
 
         let other = names.last().unwrap().clone();
@@ -202,34 +186,5 @@ mod tests {
         assert_eq!(rows[1].subtitle, GemNodeSubtitle::LatestBlock { value: "21,000,000".to_string() });
         assert!(!rows[0].can_delete);
         assert!(rows[1].can_delete);
-    }
-
-    #[test]
-    fn test_a_default_node_row_cannot_be_deleted_and_an_added_one_can() {
-        let service = service();
-        let default_url = rules::region_node(Chain::Ethereum, NodeRegion::Us).url;
-        let selections = rules::node_selections(vec![rules::region_node(Chain::Ethereum, NodeRegion::Us)], &default_url);
-        let default_row = service.node_row(Chain::Ethereum, selections[0].clone(), GemNodeStatusState::Loading);
-
-        assert!(!default_row.can_delete);
-        assert_eq!(default_row.subtitle, GemNodeSubtitle::LatestBlock { value: "-".to_string() });
-
-        let added = GemNodeSelection {
-            url: "https://node.example.com".to_string(),
-            host: "node.example.com".to_string(),
-            is_selected: false,
-            gem_node_flag: None,
-        };
-        let added_row = service.node_row(
-            Chain::Ethereum,
-            added,
-            GemNodeStatusState::Result {
-                latest_block_number: 21_000_000,
-                latency: primitives::Latency::from_milliseconds(120),
-            },
-        );
-
-        assert!(added_row.can_delete);
-        assert_eq!(added_row.subtitle, GemNodeSubtitle::LatestBlock { value: "21,000,000".to_string() });
     }
 }
