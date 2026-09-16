@@ -7,7 +7,6 @@ import struct Gemstone.GemFeeRateRows
 import Components
 import Foundation
 import enum Gemstone.GemConfirmError
-import struct Gemstone.GemConfirmLoadOptions
 import func Gemstone.walletRow
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmSimulationState
@@ -330,7 +329,7 @@ extension ConfirmTransferSceneViewModel {
         state.screen = state.screen.onLoadStarted()
         do {
             state = try ConfirmTransferState(await confirmation.state(), screen: state.screen)
-            let load = try await confirmation.load(options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection))
+            let load = try await confirmation.load(options: selection.loadOptions)
             state = try ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch {
             guard !Task.isCancelled else { return }
@@ -418,14 +417,6 @@ extension ConfirmTransferSceneViewModel {
 extension ConfirmTransferSceneViewModel {
     func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
         confirmation.explorerLink(chain: chain, address: address)
-    }
-
-    private func options(selection: GemConfirmFeeSelection, feeAssetSelection: FeeAssetSelection) -> GemConfirmLoadOptions {
-        GemConfirmLoadOptions(
-            feeSelection: selection,
-            feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
-            assetId: assetSelection?.identifier,
-        )
     }
 
     func submit(request: ConfirmTransferRequest) async throws -> GemExecuteResult {
