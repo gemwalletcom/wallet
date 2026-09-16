@@ -140,6 +140,7 @@ mod tests {
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
     use primitives::swap::ApprovalData;
     use primitives::{Chain, ChainAddress};
+    use serde_json::Value;
 
     #[test]
     fn test_map_options() {
@@ -190,6 +191,11 @@ mod tests {
             *ETHEREUM_USDT_ASSET_ID,
             "a lowercase token id is the wallet's checksummed one"
         );
+
+        let mut unbuilt: Value = serde_json::from_str(OPTIONS).unwrap();
+        unbuilt["options"][0].as_object_mut().unwrap().remove("actions");
+        let unbuilt: PaymentOptionsResponse = serde_json::from_value(unbuilt).unwrap();
+        assert!(invoice(unbuilt, &accounts).quotes[0].actions.is_empty(), "an option without actions is fetched");
     }
 
     #[test]

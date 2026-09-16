@@ -104,6 +104,7 @@ pub(super) struct PaymentOption {
     pub id: String,
     pub account: String,
     pub amount: PaymentOptionAmount,
+    #[serde(default)]
     pub actions: Vec<WalletConnectPayAction>,
     pub collect_data: Option<PaymentCollectData>,
 }

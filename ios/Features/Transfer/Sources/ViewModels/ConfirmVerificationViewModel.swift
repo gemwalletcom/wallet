@@ -3,6 +3,8 @@
 import Components
 import Localization
 import Primitives
+import Style
+import SwiftUI
 
 struct ConfirmVerificationViewModel: ItemModelProvidable {
     private let infoAction: VoidAction
@@ -12,6 +14,14 @@ struct ConfirmVerificationViewModel: ItemModelProvidable {
     }
 
     var itemModel: ConfirmTransferItemModel {
-        .verification(ListItemModel(title: Localized.Info.paymentVerificationTitle, infoAction: infoAction))
+        .verification(
+            ListItemModel(
+                title: Localized.Info.paymentVerificationTitle,
+                subtitle: "",
+                subtitleStyle: TextStyle(font: .body, color: Colors.orange),
+                subtitleTagType: .image(Image(systemName: SystemImage.clockBadgeExclamationmark)),
+                infoAction: infoAction,
+            ),
+        )
     }
 }
