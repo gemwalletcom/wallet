@@ -32,7 +32,7 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
-import com.gemwallet.android.ui.models.subtitleSymbol
+import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ui.theme.paddingLarge
 
 @Composable

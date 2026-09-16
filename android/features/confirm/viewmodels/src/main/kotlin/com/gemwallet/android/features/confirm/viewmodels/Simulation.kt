@@ -2,7 +2,6 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSimulationBalanceChange
-import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.price.ValueDirection
 import uniffi.gemstone.GemSimulationValue
 import com.gemwallet.android.model.ValueFormatter
@@ -49,23 +48,4 @@ fun GemSimulationBalanceChange.valueDirection(): ValueDirection = when (sign) {
     GemAmountSign.INCOMING -> ValueDirection.Up
     GemAmountSign.OUTGOING -> ValueDirection.Down
     GemAmountSign.NONE -> ValueDirection.None
-}
-
-fun List<ConfirmProperty>.reorderRequestProperties(): List<ConfirmProperty> {
-    val app = filterIsInstance<ConfirmProperty.Destination.Generic>()
-    val wallet = filterIsInstance<ConfirmProperty.Source>()
-    val network = filterIsInstance<ConfirmProperty.Network>()
-
-    return buildList {
-        addAll(app)
-        addAll(wallet)
-        addAll(network)
-        addAll(
-            this@reorderRequestProperties.filterNot {
-                it is ConfirmProperty.Destination.Generic
-                    || it is ConfirmProperty.Source
-                    || it is ConfirmProperty.Network
-            }
-        )
-    }
 }

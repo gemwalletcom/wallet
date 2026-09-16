@@ -117,14 +117,14 @@ impl MessageSigner {
             SignDigestType::Base58 => bs58::decode(&self.message.data).into_vec().map_err(|e| GemstoneError::from(e.to_string())),
         }
     }
+}
 
+impl MessageSigner {
     pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
         let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
         self.sign(private_key)
     }
-}
 
-impl MessageSigner {
     pub fn plain_preview(&self) -> String {
         match self.message.sign_type {
             SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),

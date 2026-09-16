@@ -289,6 +289,15 @@ fun uniffi.gemstone.Currency.toPrimitives(): com.wallet.core.primitives.Currency
     uniffi.gemstone.Currency.MYR -> com.wallet.core.primitives.Currency.MYR
     uniffi.gemstone.Currency.AED -> com.wallet.core.primitives.Currency.AED
     uniffi.gemstone.Currency.SEK -> com.wallet.core.primitives.Currency.SEK
+    uniffi.gemstone.Currency.BYN -> com.wallet.core.primitives.Currency.BYN
+    uniffi.gemstone.Currency.KZT -> com.wallet.core.primitives.Currency.KZT
+    uniffi.gemstone.Currency.UZS -> com.wallet.core.primitives.Currency.UZS
+    uniffi.gemstone.Currency.EGP -> com.wallet.core.primitives.Currency.EGP
+    uniffi.gemstone.Currency.KES -> com.wallet.core.primitives.Currency.KES
+    uniffi.gemstone.Currency.COP -> com.wallet.core.primitives.Currency.COP
+    uniffi.gemstone.Currency.MAD -> com.wallet.core.primitives.Currency.MAD
+    uniffi.gemstone.Currency.GHS -> com.wallet.core.primitives.Currency.GHS
+    uniffi.gemstone.Currency.PEN -> com.wallet.core.primitives.Currency.PEN
 }
 
 fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = when (this) {
@@ -338,6 +347,15 @@ fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = when
     com.wallet.core.primitives.Currency.MYR -> uniffi.gemstone.Currency.MYR
     com.wallet.core.primitives.Currency.AED -> uniffi.gemstone.Currency.AED
     com.wallet.core.primitives.Currency.SEK -> uniffi.gemstone.Currency.SEK
+    com.wallet.core.primitives.Currency.BYN -> uniffi.gemstone.Currency.BYN
+    com.wallet.core.primitives.Currency.KZT -> uniffi.gemstone.Currency.KZT
+    com.wallet.core.primitives.Currency.UZS -> uniffi.gemstone.Currency.UZS
+    com.wallet.core.primitives.Currency.EGP -> uniffi.gemstone.Currency.EGP
+    com.wallet.core.primitives.Currency.KES -> uniffi.gemstone.Currency.KES
+    com.wallet.core.primitives.Currency.COP -> uniffi.gemstone.Currency.COP
+    com.wallet.core.primitives.Currency.MAD -> uniffi.gemstone.Currency.MAD
+    com.wallet.core.primitives.Currency.GHS -> uniffi.gemstone.Currency.GHS
+    com.wallet.core.primitives.Currency.PEN -> uniffi.gemstone.Currency.PEN
 }
 
 fun uniffi.gemstone.DelegationState.toPrimitives(): com.wallet.core.primitives.DelegationState = when (this) {

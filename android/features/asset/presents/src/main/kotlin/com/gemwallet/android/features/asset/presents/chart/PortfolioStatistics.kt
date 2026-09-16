@@ -53,4 +53,4 @@ private fun PortfolioStatistic.asAllTimeUIModel(): AllTimeUIModel? = when (this)
 }
 
 private fun PortfolioMarginUsage.marginText(formatter: CurrencyFormatter): String =
-    "${formatter.string(accountValue * usage)} (${(usage * 100).formatAsPercentage(GemPercentageStyle.UNSIGNED)})"
+    "${formatter.string(usedValue)} (${usagePercent.formatAsPercentage(GemPercentageStyle.UNSIGNED)})"

@@ -19,7 +19,10 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.features.asset.presents.localization.toastRes
+import com.gemwallet.android.features.asset.presents.style.icon
 import com.gemwallet.android.ui.icons.AppIcons
+import uniffi.gemstone.GemPriceAlertToggle
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
@@ -29,7 +32,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RowScope.AssetDetailsMenu(
     uiState: AssetInfoUIModel,
-    priceAlertEnabled: Boolean,
+    priceAlert: GemPriceAlertToggle,
     snackBar: SnackbarHostState,
     requestNotificationPermission: (() -> Unit) -> Unit,
     onPriceAlert: (AssetId) -> Unit,
@@ -37,8 +40,7 @@ fun RowScope.AssetDetailsMenu(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val priceAlertToastRes = if (priceAlertEnabled) R.string.price_alerts_disabled_for else R.string.price_alerts_enabled_for
-    val priceAlertToastMessage = stringResource(priceAlertToastRes, uiState.asset.name)
+    val priceAlertToastMessage = stringResource(priceAlert.toastRes(), uiState.asset.name)
     var menuExpanded by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
     val shareTitle = stringResource(id = R.string.common_share)
@@ -55,18 +57,13 @@ fun RowScope.AssetDetailsMenu(
 
     IconButton(
         onClick = {
-            if (priceAlertEnabled) {
-                enablePriceAlert()
-            } else {
-                requestNotificationPermission(enablePriceAlert)
+            when (priceAlert) {
+                GemPriceAlertToggle.ENABLED -> enablePriceAlert()
+                GemPriceAlertToggle.DISABLED -> requestNotificationPermission(enablePriceAlert)
             }
         }
     ) {
-        if (priceAlertEnabled) {
-            Icon(AppIcons.Notifications, "")
-        } else {
-            Icon(AppIcons.NotificationsOutlined, "")
-        }
+        Icon(priceAlert.icon(), "")
     }
     IconButton(onClick = { menuExpanded = !menuExpanded }) {
         Icon(

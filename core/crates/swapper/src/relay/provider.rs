@@ -51,7 +51,7 @@ impl Relay<RpcClient> {
     }
 }
 
-fn resolve_app_fees() -> Vec<RelayAppFee> {
+fn app_fees() -> Vec<RelayAppFee> {
     let fee = default_referral_fees().evm;
     if fee.address.is_empty() {
         return vec![];
@@ -88,7 +88,7 @@ where
 
         let origin_currency = asset_to_currency(&from_asset_id)?;
         let destination_currency = asset_to_currency(&to_asset_id)?;
-        let app_fees = resolve_app_fees();
+        let app_fees = app_fees();
         let from_value = request.value.clone();
         let slippage_tolerance = match request.options.slippage.mode {
             SlippageMode::Auto => None,

@@ -2,7 +2,7 @@ pub mod model;
 pub mod rules;
 pub mod store;
 #[cfg(test)]
-pub(crate) mod testkit;
+pub mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
@@ -90,11 +90,8 @@ impl GemBalanceService {
             return Ok(());
         };
         let requests = rules::balance_requests(&wallet.accounts, &asset_ids);
-        let (balances, failures): (Vec<_>, Vec<_>) = join_all(requests.iter().map(|request| self.chain_balances(request)))
-            .await
-            .into_iter()
-            .partition(Result::is_ok);
-        let balances: Vec<(BalanceKind, AssetBalance)> = balances.into_iter().flatten().flatten().collect();
+        let results = join_all(requests.iter().map(|request| self.chain_balances(request))).await;
+        let (balances, failure) = rules::published_balances(results);
         if !balances.is_empty() {
             let assets = self
                 .asset_store
@@ -103,7 +100,7 @@ impl GemBalanceService {
                 .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
             self.write_balances(wallet_id, rules::balance_updates(balances), &assets).await?;
         }
-        match failures.into_iter().find_map(Result::err) {
+        match failure {
             Some(error) => Err(error),
             None => Ok(()),
         }

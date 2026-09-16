@@ -5,7 +5,7 @@ use primitives::{Asset, AutocloseEstimator, Chain, EarnType, PerpetualDirection,
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
-    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+    GemAmountTitle, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
 };
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
@@ -164,6 +164,32 @@ pub fn earn_amount_type(earn_type: EarnType) -> GemAmountType {
         earn_type: match earn_type {
             EarnType::Deposit(_) => GemAmountEarnType::Deposit,
             EarnType::Withdraw(delegation) => GemAmountEarnType::Withdraw { delegation },
+        },
+    }
+}
+
+pub fn amount_title(amount_type: &GemAmountType) -> GemAmountTitle {
+    match amount_type {
+        GemAmountType::Transfer => GemAmountTitle::Send,
+        GemAmountType::Deposit => GemAmountTitle::Deposit,
+        GemAmountType::Withdraw => GemAmountTitle::Withdraw,
+        GemAmountType::Stake { stake_type } => match stake_type {
+            GemAmountStakeType::Stake => GemAmountTitle::Stake,
+            GemAmountStakeType::Unstake { .. } => GemAmountTitle::Unstake,
+            GemAmountStakeType::Redelegate { .. } => GemAmountTitle::Redelegate,
+            GemAmountStakeType::Withdraw { .. } => GemAmountTitle::Withdraw,
+            GemAmountStakeType::Rewards { .. } => GemAmountTitle::Rewards,
+            GemAmountStakeType::Freeze { .. } => GemAmountTitle::Freeze,
+            GemAmountStakeType::Unfreeze { .. } => GemAmountTitle::Unfreeze,
+        },
+        GemAmountType::Earn { earn_type } => match earn_type {
+            GemAmountEarnType::Deposit => GemAmountTitle::Deposit,
+            GemAmountEarnType::Withdraw { .. } => GemAmountTitle::Withdraw,
+        },
+        GemAmountType::Perpetual { position, direction, .. } => match position {
+            GemAmountPerpetualPosition::Open => GemAmountTitle::PerpetualOpen { direction: direction.clone() },
+            GemAmountPerpetualPosition::Increase => GemAmountTitle::PerpetualIncrease { direction: direction.clone() },
+            GemAmountPerpetualPosition::Reduce { .. } => GemAmountTitle::PerpetualReduce { direction: direction.clone() },
         },
     }
 }
@@ -465,6 +491,38 @@ fn without_leading_zeros(text: &str) -> String {
 mod tests {
 
     #[test]
+    fn test_the_amount_screen_title_follows_the_amount_type() {
+        assert_eq!(amount_title(&GemAmountType::Transfer), GemAmountTitle::Send);
+        assert_eq!(
+            amount_title(&GemAmountType::Earn {
+                earn_type: GemAmountEarnType::Withdraw {
+                    delegation: primitives::Delegation::mock()
+                }
+            }),
+            GemAmountTitle::Withdraw,
+            "earning and staking withdrawals share the wallet's withdraw title"
+        );
+        assert_eq!(
+            amount_title(&GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Rewards { delegations: vec![] }
+            }),
+            GemAmountTitle::Rewards
+        );
+        assert_eq!(
+            amount_title(&GemAmountType::Perpetual {
+                position: GemAmountPerpetualPosition::Increase,
+                direction: primitives::PerpetualDirection::Short,
+                price: 1.0,
+                leverage: 1,
+                size_decimals: 2,
+            }),
+            GemAmountTitle::PerpetualIncrease {
+                direction: primitives::PerpetualDirection::Short
+            }
+        );
+    }
+
+    #[test]
     fn test_an_amount_confirms_only_when_it_is_positive_and_has_no_error() {
         let entry = |value: Option<i32>, error: Option<GemAmountError>| GemAmountEntry {
             value: value.map(num_bigint::BigInt::from),
@@ -480,11 +538,11 @@ mod tests {
         assert!(!entry(Some(1), Some(GemAmountError::Zero)).allows_confirm());
     }
     use super::*;
-    use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
     use crate::models::custom_types::GemBigUint;
     use crate::payment::GemPaymentRecipient;
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
+    use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
 
     #[test]
@@ -1156,7 +1214,7 @@ mod tests {
 
         let deposit = transfer_data(usdc(), GemAmountTransfer::Deposit, None, GemBigInt::from(2), true).unwrap();
         assert!(matches!(deposit.input_type, TransactionInputType::Deposit { .. }));
-        assert_eq!(deposit.recipient.address, HYPERLIQUID_DEPOSIT_ADDRESS);
+        assert_eq!(deposit.recipient.address, HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS);
         assert!(deposit.use_max_amount);
 
         let withdraw = transfer_data(usdc(), GemAmountTransfer::Withdraw, Some(owner.clone()), GemBigInt::from(3), false).unwrap();

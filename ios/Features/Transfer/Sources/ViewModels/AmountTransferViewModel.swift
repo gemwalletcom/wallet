@@ -27,11 +27,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        switch transfer {
-        case .send: Localized.Transfer.Send.title
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Wallet.withdraw
-        }
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {

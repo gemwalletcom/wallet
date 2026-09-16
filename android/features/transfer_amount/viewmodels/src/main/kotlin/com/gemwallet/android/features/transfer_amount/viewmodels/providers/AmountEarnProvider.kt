@@ -6,7 +6,6 @@ import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -38,8 +37,6 @@ class AmountEarnProvider(
     private val service: GemAmountServiceInterface,
     scope: CoroutineScope,
 ) : AmountDataProvider(scope) {
-
-    override val title: AmountTitle = AmountTitle.Earn(params)
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)

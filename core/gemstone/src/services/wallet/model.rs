@@ -112,8 +112,3 @@ pub enum GemWalletSecretKind {
     Phrase,
     PrivateKey,
 }
-
-#[uniffi::export]
-pub fn wallet_secret_kind(wallet: Wallet) -> Option<GemWalletSecretKind> {
-    rules::secret_kind(&wallet)
-}

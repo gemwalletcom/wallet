@@ -48,11 +48,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var title: String {
-        switch preview.messageType {
-        case .siwe: Localized.Common.signInWith(Chain.ethereum.networkName)
-        case .siws: Localized.Common.signInWith(Chain.solana.networkName)
-        case .text, .eip712: Localized.Transfer.reviewRequest
-        }
+        preview.messageType.title
     }
 
     public var walletText: String {
@@ -63,16 +59,12 @@ public final class SignMessageSceneViewModel {
         Localized.Transfer.confirm
     }
 
-    public var connectionViewModel: WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: WalletConnection(session: payload.session, wallet: payload.wallet))
-    }
-
     public var appName: String {
         payload.session.metadata.shortName
     }
 
     public var appAssetImage: AssetImage {
-        AssetImage(imageURL: connectionViewModel.imageUrl)
+        AssetImage(imageURL: payload.session.metadata.iconURL)
     }
 
     public var walletAssetImage: AssetImage {
@@ -91,7 +83,7 @@ public final class SignMessageSceneViewModel {
         AppPreviewModel(
             assetImage: appAssetImage,
             name: appName,
-            subtitleSymbol: connectionViewModel.hostText,
+            subtitleSymbol: payload.session.metadata.host,
         )
     }
 

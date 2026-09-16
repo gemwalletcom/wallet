@@ -9,7 +9,7 @@ use primitives::{
     TransferDataOutputType,
 };
 
-use super::model::{GemConfirmDestination, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
+use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionLoadInput, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
@@ -54,6 +54,21 @@ impl GemTransferData {
 
     pub fn shows_memo(&self) -> bool {
         self.input_type.shows_memo()
+    }
+
+    pub fn confirm_rows(&self) -> Vec<GemConfirmRow> {
+        let is_generic = matches!(self.input_type, TransactionInputType::Generic { .. });
+        [
+            self.input_type.application_short_name().is_some().then_some(GemConfirmRow::App),
+            Some(GemConfirmRow::Sender),
+            (!is_generic).then_some(GemConfirmRow::Recipient),
+            Some(GemConfirmRow::Network),
+            self.shows_memo().then_some(GemConfirmRow::Memo),
+            (!is_generic).then_some(GemConfirmRow::Details),
+        ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 
     pub fn fee_asset(&self) -> Asset {
@@ -554,7 +569,7 @@ mod tests {
         let swap = (TransactionInputType::Swap {
             from_asset: from.clone(),
             to_asset: to.clone(),
-            swap_data: crate::models::swap::GemSwapData::mock(),
+            swap_data: SwapData::mock(),
         })
         .recent_activity()
         .unwrap();
@@ -790,6 +805,40 @@ mod tests {
         assert_eq!(transfer.recipient.address, "0xvault");
         assert_eq!(transfer.recipient.name.as_deref(), Some(provider.name.as_str()));
         assert!(matches!(transfer.input_type, TransactionInputType::Earn { .. }));
+    }
+
+    #[test]
+    fn test_a_generic_request_shows_the_app_instead_of_a_recipient() {
+        let send = transfer(TransactionInputType::Transfer { asset: asset(Chain::Cosmos) }, "1");
+        assert_eq!(
+            send.confirm_rows(),
+            vec![
+                GemConfirmRow::Sender,
+                GemConfirmRow::Recipient,
+                GemConfirmRow::Network,
+                GemConfirmRow::Memo,
+                GemConfirmRow::Details
+            ]
+        );
+
+        let ethereum = transfer(TransactionInputType::Transfer { asset: asset(Chain::Ethereum) }, "1");
+        assert!(!ethereum.confirm_rows().contains(&GemConfirmRow::Memo), "a chain without memos has no memo row");
+
+        let generic = transfer(
+            TransactionInputType::Generic {
+                asset: asset(Chain::Ethereum),
+                metadata: primitives::ApplicationMetadata {
+                    name: "App".into(),
+                    description: String::new(),
+                    url: String::new(),
+                    icon: String::new(),
+                    source: primitives::ApplicationMetadataSource::WalletConnect,
+                },
+                extra: primitives::TransferDataExtra::default(),
+            },
+            "1",
+        );
+        assert_eq!(generic.confirm_rows(), vec![GemConfirmRow::App, GemConfirmRow::Sender, GemConfirmRow::Network]);
     }
 
     #[test]

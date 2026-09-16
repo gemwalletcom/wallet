@@ -57,7 +57,7 @@ fn map_undelegation(asset_id: &AssetId, undelegation: BscUndelegation) -> Delega
 
     DelegationBase {
         asset_id: asset_id.clone(),
-        delegation_id: undelegation.delegator_address,
+        delegation_id: undelegation.unlock_time.map(|unlock_time| unlock_time.to_string()).unwrap_or_default(),
         validator_id: undelegation.validator_address,
         balance: undelegation.amount,
         shares: undelegation.shares,
@@ -71,6 +71,7 @@ fn map_undelegation(asset_id: &AssetId, undelegation: BscUndelegation) -> Delega
 mod tests {
     use super::*;
     use crate::testkit::{TEST_SMARTCHAIN_STAKING_ADDRESS, mock_undelegation};
+    use std::collections::HashSet;
 
     #[test]
     fn test_map_delegations() {
@@ -90,11 +91,23 @@ mod tests {
         assert_eq!(result[0].state, DelegationState::Active);
         assert_eq!(result[0].balance, BigUint::from(2_000_000_000_000_000_000u64));
         assert_eq!(result[0].completion_date, None);
+        assert_eq!(result[0].delegation_id, TEST_SMARTCHAIN_STAKING_ADDRESS);
         assert_eq!(result[1].state, DelegationState::Deactivating);
         assert_eq!(result[1].completion_date.unwrap().timestamp(), 4_102_444_800);
+        assert_eq!(result[1].delegation_id, "4102444800");
         assert_eq!(result[2].state, DelegationState::AwaitingWithdrawal);
         assert_eq!(result[2].completion_date.unwrap().timestamp(), 1_716_417_585);
+        assert_eq!(result[2].delegation_id, "1716417585");
         assert_eq!(result[3].state, DelegationState::Deactivating);
         assert_eq!(result[3].completion_date, None);
+        assert_eq!(result[3].delegation_id, "");
+        assert_eq!(
+            result
+                .iter()
+                .map(|delegation| (&delegation.validator_id, &delegation.delegation_id))
+                .collect::<HashSet<_>>()
+                .len(),
+            4
+        );
     }
 }

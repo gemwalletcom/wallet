@@ -2,121 +2,121 @@ package com.gemwallet.android.ui.components.empty
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.localization.title
+import uniffi.gemstone.GemEmptyStateAction
+import uniffi.gemstone.GemEmptyStateImage
+import uniffi.gemstone.GemEmptyStateInput
+import uniffi.gemstone.emptyState
 
 @Composable
 fun EmptyContentView(
     type: EmptyContentType,
     modifier: Modifier = Modifier,
 ) {
+    val actions = type.actions()
+    val state = emptyState(
+        GemEmptyStateInput(
+            kind = type.kind(),
+            isViewOnly = type.isViewOnly(),
+            offeredActions = actions.keys.toList(),
+        ),
+    )
     EmptyStateView(
-        title = type.title(),
-        description = type.description(),
-        icon = type.icon(),
-        iconVector = type.iconVector(),
-        buttons = type.buttons(),
+        title = state.title.text(type.symbol()),
+        description = state.description?.text(type.symbol()),
+        icon = state.image.painter(),
+        iconVector = state.image.vector(),
+        buttons = state.actions.mapIndexedNotNull { index, action ->
+            actions[action]?.let {
+                EmptyAction(
+                    title = stringResource(action.title()),
+                    onClick = it,
+                    style = if (index == 0) EmptyActionStyle.Primary else EmptyActionStyle.Secondary,
+                )
+            }
+        },
         modifier = modifier,
     )
 }
 
 @Composable
-private fun EmptyContentType.title(): String = when (this) {
-    is EmptyContentType.Nft -> stringResource(R.string.nft_state_empty_title)
-    is EmptyContentType.PriceAlerts -> stringResource(R.string.price_alerts_state_empty_title)
-    is EmptyContentType.Contacts -> stringResource(R.string.contacts_state_empty_title)
-    is EmptyContentType.Asset -> if (isViewOnly) {
-        stringResource(R.string.wallet_watch_empty_state_title)
-    } else {
-        stringResource(R.string.asset_state_empty_title)
-    }
-    is EmptyContentType.Activity -> if (isViewOnly) {
-        stringResource(R.string.wallet_watch_empty_state_title)
-    } else {
-        stringResource(R.string.activity_state_empty_title)
-    }
-    is EmptyContentType.Stake -> stringResource(R.string.stake_state_empty_title)
-    is EmptyContentType.Earn -> stringResource(R.string.earn_state_empty_title)
-    is EmptyContentType.WalletConnect -> stringResource(R.string.wallet_connect_no_active_connections)
-    is EmptyContentType.Recents -> stringResource(R.string.recent_activity_state_empty_title)
-    is EmptyContentType.Notifications -> stringResource(R.string.notifications_inapp_state_empty_title)
-    is EmptyContentType.SearchAssets -> stringResource(R.string.assets_no_assets_found)
-    is EmptyContentType.NetworkAssets -> stringResource(R.string.assets_no_assets_found)
-    is EmptyContentType.SearchActivity -> stringResource(R.string.activity_state_empty_search_title)
-    is EmptyContentType.SearchNetworks -> stringResource(R.string.networks_state_empty_search_title)
-    is EmptyContentType.SearchPerpetuals -> stringResource(R.string.perpetuals_empty_state_no_markets_found)
+private fun GemEmptyStateImage.painter(): Painter? = when (this) {
+    GemEmptyStateImage.NFTS -> painterResource(R.drawable.empty_nfts)
+    GemEmptyStateImage.PRICE_ALERTS -> painterResource(R.drawable.empty_notifications)
+    GemEmptyStateImage.CONTACTS -> painterResource(R.drawable.empty_contacts)
+    GemEmptyStateImage.ACTIVITY -> painterResource(R.drawable.empty_activity)
+    GemEmptyStateImage.STAKE -> painterResource(R.drawable.empty_stake)
+    GemEmptyStateImage.WALLET_CONNECT -> painterResource(R.drawable.empty_dapps)
+    GemEmptyStateImage.NOTIFICATIONS -> painterResource(R.drawable.empty_notifications)
+    GemEmptyStateImage.SEARCH, GemEmptyStateImage.WALLET -> null
 }
 
 @Composable
-private fun EmptyContentType.description(): String? = when (this) {
-    is EmptyContentType.Nft -> if (onReceive != null) stringResource(R.string.nft_state_empty_description) else null
-    is EmptyContentType.PriceAlerts -> stringResource(R.string.price_alerts_state_empty_description)
-    is EmptyContentType.Contacts -> stringResource(R.string.contacts_state_empty_description)
-    is EmptyContentType.Asset -> if (isViewOnly) null else stringResource(R.string.asset_state_empty_description, symbol)
-    is EmptyContentType.Activity -> if (isViewOnly) null else stringResource(R.string.activity_state_empty_description)
-    is EmptyContentType.Stake -> stringResource(R.string.stake_state_empty_description, symbol)
-    is EmptyContentType.Earn -> stringResource(R.string.earn_state_empty_description, symbol)
-    is EmptyContentType.WalletConnect -> stringResource(R.string.wallet_connect_state_empty_description)
-    is EmptyContentType.Recents -> stringResource(R.string.recent_activity_state_empty_description)
-    is EmptyContentType.Notifications -> stringResource(R.string.notifications_inapp_state_empty_description)
-    is EmptyContentType.SearchAssets -> if (onAddCustomToken != null) {
-        stringResource(R.string.assets_state_empty_search_description)
-    } else {
-        stringResource(R.string.search_state_empty_description)
-    }
-    is EmptyContentType.NetworkAssets -> null
-    is EmptyContentType.SearchActivity -> stringResource(R.string.activity_state_empty_search_description)
-    is EmptyContentType.SearchNetworks -> stringResource(R.string.search_state_empty_description)
-    is EmptyContentType.SearchPerpetuals -> stringResource(R.string.search_state_empty_description)
+private fun GemEmptyStateImage.vector(): ImageVector? = when (this) {
+    GemEmptyStateImage.SEARCH -> AppIcons.Search
+    GemEmptyStateImage.WALLET -> AppIcons.Wallet
+    GemEmptyStateImage.NFTS, GemEmptyStateImage.PRICE_ALERTS, GemEmptyStateImage.CONTACTS, GemEmptyStateImage.ACTIVITY,
+    GemEmptyStateImage.STAKE, GemEmptyStateImage.WALLET_CONNECT, GemEmptyStateImage.NOTIFICATIONS -> null
 }
 
-@Composable
-private fun EmptyContentType.icon() = when (this) {
-    is EmptyContentType.SearchAssets, is EmptyContentType.SearchActivity,
-    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals,
-    is EmptyContentType.NetworkAssets -> null
-    is EmptyContentType.Nft -> painterResource(R.drawable.empty_nfts)
-    is EmptyContentType.PriceAlerts -> painterResource(R.drawable.empty_notifications)
-    is EmptyContentType.Contacts -> painterResource(R.drawable.empty_contacts)
-    is EmptyContentType.Asset, is EmptyContentType.Activity -> painterResource(R.drawable.empty_activity)
-    is EmptyContentType.Stake, is EmptyContentType.Earn -> painterResource(R.drawable.empty_stake)
-    is EmptyContentType.WalletConnect -> painterResource(R.drawable.empty_dapps)
-    is EmptyContentType.Recents -> painterResource(R.drawable.empty_activity)
-    is EmptyContentType.Notifications -> painterResource(R.drawable.empty_notifications)
+private fun EmptyContentType.kind() = when (this) {
+    is EmptyContentType.Nft -> uniffi.gemstone.GemEmptyStateKind.NFTS
+    is EmptyContentType.PriceAlerts -> uniffi.gemstone.GemEmptyStateKind.PRICE_ALERTS
+    is EmptyContentType.Contacts -> uniffi.gemstone.GemEmptyStateKind.CONTACTS
+    is EmptyContentType.Asset -> uniffi.gemstone.GemEmptyStateKind.ASSET
+    is EmptyContentType.Activity -> uniffi.gemstone.GemEmptyStateKind.ACTIVITY
+    is EmptyContentType.Stake -> uniffi.gemstone.GemEmptyStateKind.STAKE
+    is EmptyContentType.Earn -> uniffi.gemstone.GemEmptyStateKind.EARN
+    is EmptyContentType.WalletConnect -> uniffi.gemstone.GemEmptyStateKind.WALLET_CONNECT
+    is EmptyContentType.Recents -> uniffi.gemstone.GemEmptyStateKind.RECENTS
+    is EmptyContentType.Notifications -> uniffi.gemstone.GemEmptyStateKind.NOTIFICATIONS
+    is EmptyContentType.NetworkAssets -> uniffi.gemstone.GemEmptyStateKind.NETWORK_ASSETS
+    is EmptyContentType.SearchAssets -> uniffi.gemstone.GemEmptyStateKind.SEARCH_ASSETS
+    is EmptyContentType.SearchNetworks -> uniffi.gemstone.GemEmptyStateKind.SEARCH_NETWORKS
+    is EmptyContentType.SearchActivity -> uniffi.gemstone.GemEmptyStateKind.SEARCH_ACTIVITY
+    is EmptyContentType.SearchPerpetuals -> uniffi.gemstone.GemEmptyStateKind.SEARCH_PERPETUALS
 }
 
-@Composable
-private fun EmptyContentType.iconVector(): ImageVector? = when (this) {
-    is EmptyContentType.SearchAssets, is EmptyContentType.SearchActivity,
-    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals -> AppIcons.Search
-    is EmptyContentType.NetworkAssets -> AppIcons.Wallet
-    else -> null
+private fun EmptyContentType.isViewOnly() = when (this) {
+    is EmptyContentType.Asset -> isViewOnly
+    is EmptyContentType.Activity -> isViewOnly
+    is EmptyContentType.Nft, is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Stake,
+    is EmptyContentType.Earn, is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
+    is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets, is EmptyContentType.SearchNetworks,
+    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals -> false
 }
 
-@Composable
-private fun EmptyContentType.buttons(): List<EmptyAction> = when (this) {
-    is EmptyContentType.Nft -> listOfNotNull(
-        onReceive?.let { EmptyAction(stringResource(R.string.wallet_receive), it, EmptyActionStyle.Secondary) },
-    )
-    is EmptyContentType.Asset -> if (isViewOnly) emptyList() else listOfNotNull(
-        onBuy?.let { EmptyAction(stringResource(R.string.wallet_buy), it) },
-        onSwap?.let { EmptyAction(stringResource(R.string.wallet_swap), it, EmptyActionStyle.Secondary) },
-    )
-    is EmptyContentType.Activity -> if (isViewOnly) emptyList() else listOfNotNull(
-        onBuy?.let { EmptyAction(stringResource(R.string.wallet_buy), it) },
-        onReceive?.let { EmptyAction(stringResource(R.string.wallet_receive), it, EmptyActionStyle.Secondary) },
-    )
-    is EmptyContentType.SearchAssets -> listOfNotNull(
-        onAddCustomToken?.let { EmptyAction(stringResource(R.string.assets_add_custom_token), it) },
-    )
-    is EmptyContentType.NetworkAssets -> listOfNotNull(
-        onManageAssets?.let { EmptyAction(stringResource(R.string.wallet_manage_token_list), it) },
-    )
-    is EmptyContentType.SearchActivity -> listOfNotNull(
-        onClearFilters?.let { EmptyAction(stringResource(R.string.filter_clear), it) },
-    )
-    else -> emptyList()
+private fun EmptyContentType.symbol() = when (this) {
+    is EmptyContentType.Asset -> symbol
+    is EmptyContentType.Stake -> symbol
+    is EmptyContentType.Earn -> symbol
+    is EmptyContentType.Nft, is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Activity,
+    is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
+    is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets, is EmptyContentType.SearchNetworks,
+    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals -> ""
+}
+
+private fun EmptyContentType.actions(): Map<GemEmptyStateAction, () -> Unit> = when (this) {
+    is EmptyContentType.Nft -> listOfNotNull(onReceive?.let { GemEmptyStateAction.RECEIVE to it }).toMap()
+    is EmptyContentType.Asset -> listOfNotNull(
+        onBuy?.let { GemEmptyStateAction.BUY to it },
+        onSwap?.let { GemEmptyStateAction.SWAP to it },
+    ).toMap()
+    is EmptyContentType.Activity -> listOfNotNull(
+        onBuy?.let { GemEmptyStateAction.BUY to it },
+        onReceive?.let { GemEmptyStateAction.RECEIVE to it },
+    ).toMap()
+    is EmptyContentType.NetworkAssets -> listOfNotNull(onManageAssets?.let { GemEmptyStateAction.MANAGE_TOKEN_LIST to it }).toMap()
+    is EmptyContentType.SearchAssets -> listOfNotNull(onAddCustomToken?.let { GemEmptyStateAction.ADD_CUSTOM_TOKEN to it }).toMap()
+    is EmptyContentType.SearchActivity -> listOfNotNull(onClearFilters?.let { GemEmptyStateAction.CLEAR_FILTERS to it }).toMap()
+    is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Stake, is EmptyContentType.Earn,
+    is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
+    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals -> emptyMap()
 }

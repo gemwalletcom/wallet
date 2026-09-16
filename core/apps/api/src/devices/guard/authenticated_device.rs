@@ -6,6 +6,7 @@ use storage::models::DeviceRow;
 use super::auth::{authenticate, lookup_device};
 
 // Verifies the device request signature, then checks that the device exists.
+#[derive(Clone)]
 pub struct AuthenticatedDevice {
     pub device_row: DeviceRow,
 }
@@ -15,16 +16,20 @@ impl<'r> FromRequest<'r> for AuthenticatedDevice {
     type Error = String;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, String> {
-        let auth = match authenticate(req).await {
-            Ok(auth) => auth,
-            Err(error) => return error,
-        };
+        req.local_cache_async(async {
+            let auth = match authenticate(req).await {
+                Ok(auth) => auth,
+                Err(error) => return error,
+            };
 
-        let (device_row, _) = match lookup_device(req, &auth.device_id).await {
-            Ok(result) => result,
-            Err(error) => return error,
-        };
+            let (device_row, _) = match lookup_device(req, &auth.device_id).await {
+                Ok(result) => result,
+                Err(error) => return error,
+            };
 
-        Success(AuthenticatedDevice { device_row })
+            Success(AuthenticatedDevice { device_row })
+        })
+        .await
+        .clone()
     }
 }

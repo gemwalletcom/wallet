@@ -111,10 +111,7 @@ impl GemAssetDetailsService {
 
         record_both(
             &mut failures,
-            (
-                GemAssetRefreshStep::UpdateBalances,
-                self.balances.update(wallet_id.clone(), vec![asset_id.clone()]),
-            ),
+            (GemAssetRefreshStep::UpdateBalances, self.balances.update(wallet_id.clone(), vec![asset_id.clone()])),
             (GemAssetRefreshStep::SyncTransactions, self.transactions.sync_wallet(wallet_id, Some(asset_id))),
         )
         .await;
@@ -185,5 +182,57 @@ impl GemAssetDetailsService {
 
     pub fn deeplink_gem_url(&self, deeplink: Deeplink) -> String {
         self.deeplinks.build_gem_url(deeplink)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+    use primitives::Chain;
+
+    use super::super::details_testkit::AssetDetailsTestkit;
+    use super::*;
+
+    #[test]
+    fn test_every_step_is_attempted_and_reported_on_its_own() {
+        block_on(async {
+            let testkit = AssetDetailsTestkit::with_status(503);
+
+            let failures = testkit.service.refresh(Chain::Ethereum.as_asset_id()).await;
+
+            let steps: Vec<GemAssetRefreshStep> = failures.iter().map(|failure| failure.step).collect();
+            assert!(steps.contains(&GemAssetRefreshStep::SyncAsset), "{failures:?}");
+            assert!(steps.contains(&GemAssetRefreshStep::UpdateBalances), "{failures:?}");
+            assert!(steps.contains(&GemAssetRefreshStep::SyncTransactions), "{failures:?}");
+        })
+    }
+
+    #[test]
+    fn test_no_current_wallet_reports_one_failure_and_asks_for_nothing() {
+        block_on(async {
+            let testkit = AssetDetailsTestkit::with_status(503);
+            testkit.discovery.session.set_current_wallet_id(None).unwrap();
+
+            let failures = testkit.service.refresh(Chain::Ethereum.as_asset_id()).await;
+
+            assert_eq!(failures.len(), 1);
+            assert_eq!(failures[0].step, GemAssetRefreshStep::UpdateBalances);
+            assert!(testkit.provider.requested_paths().is_empty());
+        })
+    }
+
+    #[test]
+    fn test_an_asset_that_loads_leaves_the_other_steps_to_fail_alone() {
+        block_on(async {
+            let asset = serde_json::to_string(&primitives::AssetFull::mock()).unwrap();
+            let testkit = AssetDetailsTestkit::with_bodies(200, &[("assets/", &asset)]);
+
+            let failures = testkit.service.refresh(Chain::Ethereum.as_asset_id()).await;
+
+            let steps: Vec<GemAssetRefreshStep> = failures.iter().map(|failure| failure.step).collect();
+            assert!(!steps.contains(&GemAssetRefreshStep::SyncAsset), "{failures:?}");
+            assert!(steps.contains(&GemAssetRefreshStep::UpdateBalances), "{failures:?}");
+            assert!(steps.contains(&GemAssetRefreshStep::SyncTransactions), "{failures:?}");
+        })
     }
 }

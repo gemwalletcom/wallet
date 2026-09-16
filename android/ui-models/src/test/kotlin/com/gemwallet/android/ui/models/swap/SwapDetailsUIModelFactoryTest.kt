@@ -99,14 +99,13 @@ class SwapDetailsUIModelFactoryTest {
             SwapDetailsUIModelInput(
                 payAsset = eth,
                 receiveAsset = usdc,
-                rate = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc).rate,
+                summary = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc),
                 provider = provider(
                     toValue = "2000000000",
                     receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
                 ),
                 slippageBps = DEFAULT_SLIPPAGE_BPS,
                 selectedSlippage = DEFAULT_SLIPPAGE_BPS,
-                etaInSeconds = null,
                 isProviderSelectable = false,
             ),
         )
@@ -175,15 +174,13 @@ class SwapDetailsUIModelFactoryTest {
             SwapDetailsUIModelInput(
                 payAsset = payAsset,
                 receiveAsset = receiveAsset,
-                rate = summary.rate,
+                summary = summary,
                 provider = provider,
                 providers = providers,
                 slippageBps = slippageBps,
                 selectedSlippage = slippageBps,
-                etaInSeconds = etaInSeconds,
                 isProviderSelectable = isProviderSelectable,
                 priceImpact = priceImpact,
-                minReceiveValue = summary.minReceiveValue,
             ),
         )
     }

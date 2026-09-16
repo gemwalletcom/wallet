@@ -181,10 +181,16 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     }
 
     private var detailItems: [ConfirmTransferItem] {
-        if case .generic = request.data.inputType {
-            return [.app, .sender, .network]
+        request.data.confirmRows().map { row in
+            switch row {
+            case .app: .app
+            case .sender: .sender
+            case .recipient: .recipient
+            case .network: .network
+            case .memo: .memo
+            case .details: .details
+            }
         }
-        return [.app, .sender, .recipient, .network, .memo, .details]
     }
 
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {

@@ -60,13 +60,7 @@ public struct SwapProviderItem: Sendable {
     }
 
     private func fiatBalance() -> String {
-        guard let value = try? NumberInput.value(amount, decimals: asset.decimals.asInt),
-              let amount = try? valueFormatter.double(from: value, decimals: asset.decimals.asInt),
-              let price = priceViewModel.price
-        else {
-            return .empty
-        }
-        return priceViewModel.fiatAmountText(amount: price.price * amount)
+        priceViewModel.fiatValueText(value: BigInt(swapQuote.toValue) ?? .zero, decimals: asset.decimals.asInt) ?? .empty
     }
 }
 

@@ -52,6 +52,15 @@ pub enum Currency {
     MYR,
     AED,
     SEK,
+    BYN,
+    KZT,
+    UZS,
+    EGP,
+    KES,
+    COP,
+    MAD,
+    GHS,
+    PEN,
 }
 
 impl Currency {
@@ -103,6 +112,15 @@ impl Currency {
             Self::MYR => "🇲🇾",
             Self::AED => "🇦🇪",
             Self::SEK => "🇸🇪",
+            Self::BYN => "🇧🇾",
+            Self::KZT => "🇰🇿",
+            Self::UZS => "🇺🇿",
+            Self::EGP => "🇪🇬",
+            Self::KES => "🇰🇪",
+            Self::COP => "🇨🇴",
+            Self::MAD => "🇲🇦",
+            Self::GHS => "🇬🇭",
+            Self::PEN => "🇵🇪",
         }
     }
 }

@@ -63,7 +63,7 @@ impl PricesRepository for DatabaseClient {
             .into_iter()
             .map(|(_, row)| row)
             .collect::<Vec<_>>();
-        Ok(resolve_primary(&providers, &rows, max_age)
+        Ok(primary_price(&providers, &rows, max_age)
             .ok_or_else(|| DatabaseError::not_found(PriceRow::RESOURCE_NAME, asset_id.to_string()))?
             .id
             .0
@@ -86,7 +86,7 @@ impl PricesRepository for DatabaseClient {
             .iter()
             .filter_map(|asset_id| {
                 let rows = rows_by_asset.remove(&asset_id.to_string())?;
-                let row = resolve_primary(&providers, &rows, max_age)?.clone();
+                let row = primary_price(&providers, &rows, max_age)?.clone();
                 Some((asset_id.clone(), row))
             })
             .collect())
@@ -214,14 +214,14 @@ impl PricesRepository for DatabaseClient {
             .into_iter()
             .map(|asset| {
                 let rows = prices_by_asset.remove(&asset.id).unwrap_or_default();
-                let price = resolve_primary(&providers, &rows, max_age).cloned();
+                let price = primary_price(&providers, &rows, max_age).cloned();
                 PriceAssetDataRow { asset, price }
             })
             .collect())
     }
 }
 
-fn resolve_primary<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow], max_age: Duration) -> Option<&'a PriceRow> {
+fn primary_price<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow], max_age: Duration) -> Option<&'a PriceRow> {
     let cutoff = (Utc::now() - chrono::Duration::from_std(max_age).ok()?).naive_utc();
     let mut candidates: Vec<(&PriceProviderConfigRow, &PriceRow)> = providers
         .iter()
@@ -245,7 +245,7 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_primary() {
+    fn test_primary_price() {
         let providers = vec![
             PriceProviderConfigRow::new(PriceProvider::Coingecko, true),
             PriceProviderConfigRow::new(PriceProvider::Pyth, true),
@@ -254,14 +254,14 @@ mod tests {
         let max_age = HOUR;
 
         let fresh = vec![aged(PriceProvider::Coingecko, 60), aged(PriceProvider::Pyth, 60)];
-        assert_eq!(resolve_primary(&providers, &fresh, max_age).unwrap().provider.0, PriceProvider::Coingecko);
+        assert_eq!(primary_price(&providers, &fresh, max_age).unwrap().provider.0, PriceProvider::Coingecko);
 
         let stale_primary = vec![aged(PriceProvider::Coingecko, 7200), aged(PriceProvider::Pyth, 60)];
-        assert_eq!(resolve_primary(&providers, &stale_primary, max_age).unwrap().provider.0, PriceProvider::Pyth);
+        assert_eq!(primary_price(&providers, &stale_primary, max_age).unwrap().provider.0, PriceProvider::Pyth);
 
         let only_disabled = vec![aged(PriceProvider::Jupiter, 60)];
-        assert!(resolve_primary(&providers, &only_disabled, max_age).is_none());
+        assert!(primary_price(&providers, &only_disabled, max_age).is_none());
 
-        assert!(resolve_primary(&providers, &[], max_age).is_none());
+        assert!(primary_price(&providers, &[], max_age).is_none());
     }
 }

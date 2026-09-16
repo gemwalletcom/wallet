@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset.presents.chart
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -21,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.asset.presents.localization.stringRes
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.PortfolioChartViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
@@ -29,7 +31,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.PortfolioType
-import com.gemwallet.android.features.asset.presents.localization.stringRes
 import uniffi.gemstone.PortfolioChartType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +68,7 @@ fun PortfolioChartScene(
             onRefresh = viewModel::refresh,
             containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { PortfolioChart(viewModel) }
                 if (state.chart is StateViewType.Data || state.chart == StateViewType.NoData) {
                     portfolioStatistics(currency, statistics)

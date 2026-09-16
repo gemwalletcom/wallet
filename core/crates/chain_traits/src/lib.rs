@@ -152,12 +152,10 @@ pub trait ChainTransactionBroadcast: Send + Sync {
 }
 
 pub trait ChainTransactionDecode: Send + Sync {
-    fn decode_transaction_broadcast(&self, _response: &str) -> Option<String> {
-        None
-    }
+    fn decode_transaction_broadcast(&self, request: &[u8], response: &str) -> Result<String, Box<dyn Error + Sync + Send>>;
 
-    fn decode_transaction_broadcast_bytes(&self, response: &[u8]) -> Option<String> {
-        str::from_utf8(response).ok().and_then(|response| self.decode_transaction_broadcast(response))
+    fn decode_transaction_broadcast_bytes(&self, request: &[u8], response: &[u8]) -> Result<String, Box<dyn Error + Sync + Send>> {
+        self.decode_transaction_broadcast(request, str::from_utf8(response)?)
     }
 }
 

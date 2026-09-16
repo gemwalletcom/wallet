@@ -492,6 +492,7 @@ dependencies = [
  "gem_tracing",
  "in_app_notifications",
  "localizer",
+ "metrics",
  "name_resolver",
  "nft",
  "num-bigint 0.5.1",
@@ -1791,6 +1792,7 @@ dependencies = [
 name = "coinmarketcap"
 version = "2.114.31"
 dependencies = [
+ "futures",
  "gem_client",
  "primitives",
  "reqwest 0.13.4",
@@ -6303,6 +6305,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "coingecko",
+ "coinmarketcap",
  "gem_client",
  "gem_ton",
  "gem_tracing",

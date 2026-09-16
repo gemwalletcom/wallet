@@ -58,5 +58,6 @@ dependencies {
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 
+    testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
 }

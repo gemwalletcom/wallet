@@ -19,6 +19,7 @@ import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAler
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun PriceAlertsNavScreen(
@@ -37,8 +38,9 @@ fun PriceAlertsNavScreen(
         onShown = onToastShown,
     )
     val error by viewModel.error.collectAsStateWithLifecycle()
-    LaunchedEffect(error) {
-        error?.let {
+    val errorMessage = error?.text()
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
             snackbar.showSnackbar(it, R.drawable.ic_error)
             viewModel.clearError()
         }

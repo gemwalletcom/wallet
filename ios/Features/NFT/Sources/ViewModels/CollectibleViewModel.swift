@@ -187,10 +187,10 @@ extension CollectibleViewModel {
 
     func onSelectSaveToGallery() {
         Task {
-            do {
+            do throws(ImageGalleryServiceError) {
                 try await saveImageToGallery()
                 isPresentingToast = .success(Localized.Nft.saveToPhotos)
-            } catch let error as ImageGalleryServiceError {
+            } catch {
                 switch error {
                 case .wrongURL, .invalidData, .invalidResponse, .unexpectedStatusCode, .urlSessionError:
                     isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)

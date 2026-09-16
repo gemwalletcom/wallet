@@ -104,6 +104,16 @@ pub enum GemConfirmTitle {
     PerpetualModify,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConfirmRow {
+    App,
+    Sender,
+    Recipient,
+    Network,
+    Memo,
+    Details,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemConfirmDestination {
     Recipient { name: Option<String>, address: String },

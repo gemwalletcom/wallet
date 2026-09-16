@@ -7,6 +7,25 @@ use super::GemWalletStore;
 use super::password::{GemKeystoreAuthentication, GemKeystorePassword};
 use crate::services::error::GemServiceError;
 use crate::services::name::GemAddressStore;
+use std::path::PathBuf;
+use std::sync::Arc;
+
+use primitives::WalletSource;
+use tempfile::TempDir;
+
+use super::{GemWalletImportResult, GemWalletImportType, GemWalletService, keystore_id_for_wallet};
+use crate::keystore::GemKeystore;
+use crate::keystore::decode_password;
+use crate::services::avatar::GemAvatarService;
+use crate::services::explorer::GemExplorerService;
+use crate::services::file::testkit::NoopFileStore;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::preferences::testkit::MemoryPreferencesStore;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
+use crate::services::wallet_session::GemWalletSessionService;
+use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
+use crate::testkit::TestAlienProvider;
 
 pub const TEST_PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 
@@ -96,5 +115,81 @@ impl GemAddressStore for MemoryAddressStore {
             stored.remove(&(name.chain, name.address));
         }
         Ok(())
+    }
+}
+
+pub const PHRASE: [&str; 12] = [
+    "shoot", "island", "position", "soft", "burden", "budget", "tooth", "cruel", "issue", "economy", "destroy", "above",
+];
+pub const OTHER_PHRASE: [&str; 12] = [
+    "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "about",
+];
+
+pub struct WalletTestkit {
+    pub service: Arc<GemWalletService>,
+    pub wallets: Arc<MemoryWalletStore>,
+    pub passwords: Arc<MemoryKeystorePassword>,
+    pub addresses: Arc<MemoryAddressStore>,
+    pub keystore: Arc<GemKeystore>,
+    pub directory: TempDir,
+}
+
+impl WalletTestkit {
+    pub fn new() -> Self {
+        let directory = TempDir::new().unwrap();
+        let wallets = Arc::new(MemoryWalletStore::default());
+        let passwords = Arc::new(MemoryKeystorePassword::default());
+        let addresses = Arc::new(MemoryAddressStore::default());
+        let preferences = Arc::new(MemoryPreferencesStore::default());
+        let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
+        let app_preferences = Arc::new(GemPreferencesService::new(preferences.clone()));
+        let service = Arc::new(GemWalletService::new(
+            keystore.clone(),
+            passwords.clone(),
+            wallets.clone(),
+            session,
+            app_preferences.clone(),
+            Arc::new(NoopFileStore),
+            Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
+            Arc::new(GemExplorerService::new(app_preferences)),
+            addresses.clone(),
+            Arc::new(GemAvatarService::new(
+                wallets.clone(),
+                Arc::new(NoopFileStore),
+                Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))),
+            )),
+        ));
+        Self {
+            service,
+            wallets,
+            passwords,
+            addresses,
+            keystore,
+            directory,
+        }
+    }
+
+    pub async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
+        let import = GemWalletImportType::MulticoinPhrase {
+            words: words.iter().map(|word| word.to_string()).collect(),
+            chains: vec![Chain::Ethereum],
+        };
+        match self.service.import_wallet(name.to_string(), import, WalletSource::Import).await.unwrap() {
+            GemWalletImportResult::New { wallet } => wallet,
+            GemWalletImportResult::Existing { wallet } => wallet,
+        }
+    }
+
+    pub fn keystore_path(&self, wallet: &Wallet) -> PathBuf {
+        self.directory.path().join(format!("{}.json", keystore_id_for_wallet(wallet.id.id())))
+    }
+
+    pub fn lock_out(&self, wallet: &Wallet) {
+        let password = decode_password(&self.service.password.get_password(false).unwrap());
+        self.service
+            .keystore
+            .change_password(keystore_id_for_wallet(wallet.id.id()), password, b"other".to_vec())
+            .unwrap();
     }
 }

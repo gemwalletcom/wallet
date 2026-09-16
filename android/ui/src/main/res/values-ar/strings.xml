@@ -58,7 +58,6 @@
   <string name="common_expiration">انتهاء الصلاحية</string>
   <string name="common_suspicious_address">عنوان مشبوه</string>
   <string name="common_refresh">ينعش</string>
-  <string name="common_no_thanks">ًلا شكرا</string>
   <string name="common_grant_permission">يعطي الأذن</string>
   <string name="common_required_field">%1$s مطلوب</string>
   <string name="welcome_title">مرحبًا بكم في Gem Family</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">إزالة التجميد</string>
   <string name="transfer_review_request">طلب مراجعة</string>
   <string name="transfer_amount">كمية</string>
-  <string name="transfer_amount_title">كمية</string>
   <string name="settings_terms_of_services">شروط الخدمات</string>
   <string name="settings_privacy_policy">سياسة الخصوصية</string>
   <string name="settings_title">إعدادات</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">كيف يمكننا مساعدتك؟</string>
   <string name="support_state_empty_description">اسألنا أي شيء. نحن هنا للمساعدة.</string>
   <string name="support_message_placeholder">رسالة</string>
-  <string name="errors_transfer">خطأ النقل: %1$s</string>
   <string name="errors_validation">خطأ التحقق: %1$s</string>
   <string name="errors_create_wallet">خطأ إنشاء المحفظة: %1$s</string>
   <string name="errors_invalid_address_name">العنوان أو الاسم غير صالح</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">تم إلغاء المستخدم</string>
   <string name="errors_not_supported">غير مدعوم</string>
   <string name="errors_permissions_not_granted">لم يتم منح الأذونات</string>
-  <string name="errors_decoding">خطأ في فك التشفير</string>
   <string name="errors_unknown">مجهول</string>
   <string name="errors_not_supported_qr">هذا الجهاز لا يدعم مسح رمز الاستجابة السريعة. يمكنك فقط تحديد صورة رمز الاستجابة السريعة من المكتبة.</string>
   <string name="errors_camera_permissions_not_granted">لم يتم منح إذن الكاميرا. يرجى تمكين الوصول إلى الكاميرا في الإعدادات لمسح رمز الاستجابة السريعة.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">فشلت المعاملة لأن المبلغ صغير جدًا بحيث لا يلبي الحد الأدنى لمتطلبات شبكة %1$s (حد الغبار). يضمن هذا الحد أن قيمة المعاملة تغطي الرسوم وتكاليف المعالجة. زد المبلغ أو قلل الرسوم للمتابعة.</string>
   <string name="errors_swap_no_quote_available">لا يوجد عرض سعر متاح.</string>
   <string name="errors_swap_not_supported_asset">أصل غير مدعوم.</string>
-  <string name="errors_connections_invalid_send_parameters">تم توفير معلمات غير صالحة لإرسال المعاملة.</string>
-  <string name="errors_connections_invalid_sign_parameters">تم توفير معلمات غير صالحة للتوقيع.</string>
   <string name="errors_connections_no_supported_wallets">لا تتوفر محافظ مدعومة.</string>
   <string name="errors_connections_unsupported_chain">السلسلة المقدمة غير مدعومة.</string>
-  <string name="errors_connections_unsupported_method">الطريقة المطلوبة غير مدعومة.</string>
   <string name="errors_swap_amount_too_small">المبلغ صغير جدًا</string>
   <string name="errors_required">%1$s مطلوب</string>
   <string name="errors_scan_transaction_malicious_description">لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">الحد الأدنى لمبلغ التداول هو %1$s. يرجى إدخال مبلغ أعلى.</string>
   <string name="errors_perpetual_trigger_price_lower">يجب أن يكون سعر التفعيل أقل من سعر السوق</string>
   <string name="errors_perpetual_trigger_price_higher">يجب أن يكون سعر التفعيل أعلى من سعر السوق</string>
-  <string name="errors_token_unable_fetch_token_information">غير قادر على جلب معلومات الرمز المميز: %1$s</string>
   <string name="errors_unknown_try_again">حدث خطأ غير معروف. يرجى المحاولة مرة أخرى.</string>
   <string name="errors_network_error">خطأ في الشبكة: %1$s</string>
   <string name="errors_network_offline">يبدو أن الاتصال بالإنترنت غير متاح.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">السماح بالتثبيت</string>
   <string name="update_app_permission_description">انتقل إلى الإعدادات واسمح بالتثبيت من مصادر خارجية</string>
   <string name="update_app_permission_open_settings">انتقل إلى الإعدادات</string>
-  <string name="update_app_downloading">جارٍ التنزيل...</string>
   <string name="transaction_recipient">متلقي</string>
   <string name="transaction_sender">مرسل</string>
   <string name="transaction_date">تاريخ</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">تتطلب شبكة %1$s رسومًا لمرة واحدة قدرها %2$s.</string>
   <string name="banner_stake_title">ابدأ تخزين %1$s</string>
   <string name="banner_stake_description">احصل على مكافآت %1$s على حصتك أثناء نومك.</string>
-  <string name="banner_enable_notifications_title">تمكين الإشعارات</string>
-  <string name="banner_enable_notifications_description">ابق على اطلاع بنشاط محفظتك.</string>
   <string name="banner_activate_asset_description">لاستخدام الأصل %1$s ، يجب عليك أولاً تمكينه على شبكة %2$s من خلال استيفاء المتطلبات المحددة للشبكة.</string>
   <string name="banner_asset_status_title">الأصول المشبوهة</string>
   <string name="banner_asset_status_description">قد يكون الرمز غير آمن أو مضللاً. تابع فقط إذا كنت تثق به تمامًا.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">متقاطع</string>
   <string name="perpetual_margin_isolated">معزول</string>
   <string name="perpetuals_title">العقود الدائمة</string>
+  <string name="perpetuals_trade">تداول العقود الدائمة</string>
   <string name="perpetuals_markets">الأسواق</string>
-  <string name="perpetuals_empty_state_no_markets">لا أسواق</string>
   <string name="perpetuals_empty_state_no_markets_found">لم يتم العثور على الأسواق</string>
   <string name="rewards_title">مكافآت</string>
   <string name="rewards_share_text">ينضم Gem Wallet استخدم رابط الإحالة الخاص بي واحصل على مكافآت: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">تم طلب الوصول الكامل إلى مجموعة NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">الموافقة على الرموز المميزة غير محدودة</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">مطلوب إذن الكاميرا لمسح رمز الاستجابة السريعة.\nيرجى منح الإذن.</string>
-  <string name="notifications_permission_request_notification">مطلوب إذن نشر الإشعارات للحصول على إشعارات حول المعاملات الجديدة.\nيرجى منح الإذن.</string>
-  <string name="confirm_fee_error">خطأ في حساب الرسوم</string>
   <string name="rootcheck_security_alert">تحذير أمني</string>
   <string name="rootcheck_body">يبدو أن جهازك يتمتع بصلاحيات الجذر، مما قد يزيد من مخاطر الأمان بشكل كبير. قد يؤدي استخدام هذا التطبيق على جهاز به صلاحيات الجذر إلى تعريض أصولك لوصول غير مصرح به وخسارة محتملة. ولضمان سلامة أموالك، نوصي بشدة باستخدام جهاز غير متجذر.</string>
   <string name="rootcheck_ignore">يتجاهل</string>

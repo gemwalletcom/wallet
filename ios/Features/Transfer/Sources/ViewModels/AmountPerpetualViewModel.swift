@@ -69,11 +69,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        switch action {
-        case .open: PerpetualDirectionViewModel(direction: direction).title
-        case .increase: PerpetualDirectionViewModel(direction: direction).increaseTitle
-        case .reduce: PerpetualDirectionViewModel(direction: direction).reduceTitle
-        }
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {

@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.buy.viewmodels
 
-import com.gemwallet.android.features.buy.localization.string
-import com.gemwallet.android.features.buy.localization.titleRes
+import com.gemwallet.android.features.buy.localization.errorText
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -48,11 +47,7 @@ import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
-import uniffi.gemstone.GemFiatViewState
-import uniffi.gemstone.GemFiatQuotePhase
-import uniffi.gemstone.GemFiatAmountCheck
 import dagger.hilt.android.qualifiers.ApplicationContext
-import com.gemwallet.android.ui.R
 import android.content.Context
 import com.gemwallet.android.model.text
 
@@ -118,22 +113,9 @@ class FiatViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val uiState: StateFlow<FiatUiState> = combine(viewState, assetInfoUIModel) { state, asset ->
-        createFiatUiState(state, errorText(state, asset?.asset?.name.orEmpty(), asset?.asset?.symbol.orEmpty()))
+        createFiatUiState(state, state.errorText(context, asset?.asset?.name.orEmpty(), asset?.asset?.symbol.orEmpty()))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(viewState.value, null))
-
-    private fun errorText(state: GemFiatViewState, assetName: String, assetSymbol: String): String? = when (val phase = state.phase) {
-        is GemFiatQuotePhase.Invalid -> phase.check.string(context, assetName, assetSymbol)
-        GemFiatQuotePhase.InvalidInput -> context.getString(R.string.errors_invalid_amount)
-        GemFiatQuotePhase.NoInput -> context.getString(
-            R.string.input_enter_amount_to,
-            context.getString(state.quoteType.toPrimitives().titleRes(), ""),
-        )
-        GemFiatQuotePhase.NoQuotes -> context.getString(R.string.buy_no_results)
-        is GemFiatQuotePhase.Failed -> context.getString(R.string.errors_unknown_try_again)
-        is GemFiatQuotePhase.Loading -> null
-        GemFiatQuotePhase.Ready -> state.amountCheck.string(context, assetName, assetSymbol)
-    }
 
 
     val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { asset, state ->

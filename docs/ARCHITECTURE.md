@@ -129,6 +129,36 @@ The method is thin: gather inputs, call the rule, return. Product or domain-deci
 
 **Point reads should be synchronous.** `GemWalletStore.get_wallet` is a sync trait method, so `GemWalletSessionService` answers a session lookup without `await`. Do the same for any single-row read — an `async` point read pushes the caller back to the store, which is how the confirm screen ended up reading `AssetStore` directly for two years.
 
+### No trivial exports
+
+An export earns its place by making a decision. A function that looks up a constant for a variant, or wraps a value the app already holds so the app can ask for it back, is not a decision — it is a second spelling of a `match` the app will write anyway, plus an FFI crossing per call. Two of these were caught and reverted: an icon name per row key, and a title per enum case. Both belong on the enum as data the screen record already carries, resolved once in the app's [module mapper](#one-mapper-per-module-names-every-core-key-it-renders).
+
+The test is what the caller could not have worked out: if the answer depends only on the variant, the variant is the answer and the app maps it. If it depends on state, configuration, a chain rule or several values at once, it is a decision and Core owns it.
+
+The one exception is a **projection**: a pure function of a value Core already defines, where the value is a remote record and Rust allows no inherent `impl` to hang it off. `walletRow(wallet)` and `emptyState(input)` are that shape.
+
+### A staged load names what each stage waits for
+
+A load that fans out and then narrows is a graph, not a list, and the graph has to be written down before anyone reorders it. [`GemConfirmService.load`](../core/gemstone/src/services/confirm/mod.rs) is the worked example:
+
+```
+        ┌─ preload ────────┐ metadata
+start ──┼─ fee rates ──────┼──▶ validate scan ──▶ select fee rate ──▶ transaction load ──▶ confirm data
+        ├─ scan ───────────┤                                          (metadata + gas price)
+        └─ simulate ───────┘
+```
+
+The four openers run together and every one of them is awaited before the first gate. What comes after is ordered for two different reasons, and they are not interchangeable:
+
+- **Data.** The transaction load needs the preload's metadata and the gas price of the selected fee rate. It needs nothing from the scan or the simulation.
+- **Policy.** The scan verdict and the simulation gate the load anyway, because a rejected input must cost no provider work. A transport failure in the preload or the fee rates is reported before the scan verdict is read, so a malicious verdict is only ever surfaced for an input that would otherwise have loaded.
+
+**The scanner fails open.** A scanner outage yields no verdict and the send continues; only an explicit `is_malicious` or an unmet `is_memo_required` stops it. That is the policy, not an oversight; changing it is a product decision rather than a performance one.
+
+Before moving any stage earlier, audit what the stage actually does on every provider — "load" is not a promise of read-only. Every chain family but one answers `get_transaction_load` with RPC estimates and local arithmetic. HyperCore is the exception: its swap and perpetual path creates and persists an agent keypair in the secure store and writes approval-cache preferences, so starting it before the scan verdict would provision durable credentials for transactions the scanner then rejects. That single provider is why the gate stays where it is, and an implementation commit has to move the provisioning out of the load first — the overlap is safe for the read-only families only once each one is pinned as read-only.
+
+The order itself is tested, not assumed: a malicious verdict must leave the chain unasked, and a clean verdict must let the load through.
+
 ## 3. Return one record that answers the whole question
 
 A screen that needs five things should make one call, not five. Core assembles the answer.
@@ -169,7 +199,7 @@ pub enum GemApprovalValue {
 
 ### A list row is a record of choices
 
-A row is the smallest case of this rule and the one the codebase repeats most. Core returns what the row *means* — which name it shows, whether the symbol would repeat that name, what sits underneath, what trails it — and the app turns each case into a widget. A list whose entries are fixed and unconditional is not one of these: the tab bar names three or four destinations with no rule behind them, so it stays app-side until a destination becomes conditional. The record carries no formatted text: Core's value formatter is not locale-aware, so a formatted string regresses every locale that groups or separates differently. It carries the choices that would otherwise be re-made, differently, in each list on each platform.
+A row is the smallest case of this rule and the one the codebase repeats most. Core returns what the row *means* — which name it shows, whether the symbol would repeat that name, what sits underneath, what trails it — and the app turns each case into a widget. A list whose entries are fixed and unconditional is not one of these: the tab bar names three or four destinations with no rule behind them, so it stays app-side until a destination becomes conditional. The record carries the value the row shows, already formatted, and the name of every outcome the row draws. It carries the choices that would otherwise be re-made, differently, in each list on each platform.
 
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
@@ -193,11 +223,90 @@ public var name: String {
 }
 ```
 
+```kotlin
+private fun AssetInfo.title(naming: GemAssetRowTitle): String = when (naming) {
+    GemAssetRowTitle.ASSET -> asset.name
+    GemAssetRowTitle.CANONICAL_ASSET -> when (asset.subtype) {
+        AssetSubtype.NATIVE -> asset.chain.asset().name
+        AssetSubtype.TOKEN -> asset.name
+    }
+    GemAssetRowTitle.NETWORK -> asset.id.chain.asset().name
+}
+```
+
 `GemValidatorRow`, `GemFiatQuoteRow`, `GemWalletRow` and `GemBalanceRow` are the same shape for their lists. A session is for a screen the user drives, with events and a derived view state; a projection of one value that answers the same way every time is a row. The thing to look for in a row model is a decision the record could carry: if both apps compute it, it belongs in the record, not in two view models.
+
+### The record carries the finished value, not the ingredients
+
+An app that receives a number and a flag has to decide what to print, and the two apps decide differently: one groups the block height with the device locale and the other with a US formatter, one shows a dash for a missing chain id and the other an empty cell, one draws a check emoji for a synced node and the other a tinted icon. None of that is a platform capability; it is the same answer computed twice.
+
+So the row carries the text and names the outcome:
+
+```rust
+pub enum GemNodeCheckRow {
+    ChainId { value: String },
+    InSync { state: GemNodeSyncState },
+    LatestBlock { value: String },
+    Latency { milliseconds: u32 },
+}
+```
+
+`ChainId` and `LatestBlock` arrive printable — Core groups the digits and substitutes the placeholder, so neither app carries a formatter for them. `InSync` carries a named state rather than a `bool`, because a boolean forces the app to pick the glyph and the two apps pick differently; the name is mapped once in each app's style file, the way every other Core case is. `Latency` stays a number because its text is a localized template with a number in it, and that template lives in the app's catalog.
+
+The app is then a map over the rows, and the only thing it decides is which widget draws each one:
+
+```swift
+var fields: [ListItemField] {
+    result.rows().map { ListItemField(title: $0.title, value: $0.text) }
+}
+```
+
+```kotlin
+check.rows().forEach { row ->
+    when (row) {
+        is GemNodeCheckRow.InSync -> PropertyItem(
+            title = { PropertyTitleText(row.stringRes()) },
+            data = { PropertyDataText("", badge = { Icon(row.state.icon(), tint = row.state.tint()) }) },
+        )
+        else -> PropertyItem(row.stringRes(), row.text())
+    }
+}
+```
+
+iOS draws the sync state as an emoji in the value column and Android as a tinted icon beside it, so Android branches on the row to pick the widget while iOS does not. That branch is layout; both read the same `GemNodeSyncState` from their style file and neither decides what the state means.
+
+Two things still map per platform, and only two: the localized label for each case, and the glyph or colour for each named outcome. Anything else in a row model — a formatter, a placeholder, a ternary over a flag — is a decision that belongs in the record.
+
+The same holds for a value an SDK sends on the wire. Rejecting a WalletConnect proposal used to be decided twice: iOS mapped the error to a CAIP-25 reason and deleted the stored session, Android sent the string `"Reject Session"` for every rejection and kept the session. `session_rejection` now returns the finished rejection — the named reason, the CAIP-25 code, the message the dApp receives and whether the session is deleted — and each app maps only its own SDK's error type onto the named reason, which is the one thing Core cannot see.
+
+```swift
+let rejection = service.sessionRejection(reason: GemWalletConnectRejectionReason(from: error))
+try await WalletKit.instance.rejectSession(proposalId: proposal.id, reason: RejectionReason(rejection.reason))
+if rejection.deletesSession {
+    try await service.deleteSession(sessionId: proposal.pairingTopic)
+}
+```
+
+```kotlin
+val rejection = walletConnectService.sessionRejection(reason)
+walletConnectClient.rejectSession(proposal, rejection) {
+    if (rejection.deletesSession) {
+        scope.launch { walletConnectService.deleteSession(proposal.pairingTopic) }
+    }
+}
+```
+
+### A row that a screen only ever draws one way keeps its shape app-side
+
+`GemAssetRow` carries the layout because the same asset row is drawn four ways: the wallet list prices it, select-asset names its network, manage-tokens toggles it, receive copies it. The choice varies, so Core makes it once and both apps switch on `subtitle` and `trailing`.
+
+The rows that do not vary keep their shape in the app. A perpetual market row always shows its price under the name and its volume at the end; a position row always shows direction and leverage under the name and its margin at the end; a price-alert row always shows the price and a toggle. Each is one row on one screen, so a `GemListItemSubtitle`/`GemListItemAccessory` that every row carried would add a crossing per row and settle nothing — the cost [§ 3 Keep the crossings few](#keep-the-crossings-few) warns about, paid for a decision no one is making twice. Reviewed on 2026-09-15 and left as is.
+
+The test is whether the same row is drawn differently somewhere: if it is, the shape is a choice and belongs in the record; if it is not, it is layout and belongs in the view.
 
 ### A row is projected from its value, never fetched from a service
 
-`walletRow(wallet)` and `walletRows(wallets)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root. All three were tried on the wallet row and all three read as the same mistake: a projection dressed up as a dependency. This is the one exception to [no free exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
+`walletRow(wallet)`, `walletRows(wallets)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root. All three were tried on the wallet row and all three read as the same mistake: a projection dressed up as a dependency. This is the one exception to [no free exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
 
 A view model that already owns the screen's service still asks that service for anything the *screen* decides. The line is whether the answer depends on state the service holds.
 
@@ -243,6 +352,32 @@ var address: WalletDetailAddress? {
 ```
 
 `GemTransactionRow` and `GemTransactionDetailRows` are the same split for one value: the list row and the details record each carry the transaction's id, asset, type, direction, state and creation date, so neither screen needs the `TransactionExtended` beside it.
+
+### A screen derives its record once and passes it down
+
+A Core record is derived by crossing the FFI, so *where* a screen derives it decides how many times it crosses. The rule is one derivation per render, passed down:
+
+```swift
+public var body: some View {
+    let details = model.details
+    return List {
+        ValueHeaderView(model: model.assetHeaderModel(details))
+        if details.state.showsEarn { ... }
+    }
+    .navigationTitle(details.title)
+}
+```
+
+A view model getter that derives the record itself — `var title: String { details.title }`, `var showEarnButton: Bool { details.state.showsEarn }` — looks free and is not: every getter the body reads crosses again, so one asset screen crossed a dozen times per pass. Getters that need the record take it as a parameter, and getters that are a one-line read of it are deleted: the view reads the record. Deriving inside an action (`onTogglePriceAlert`) is fine — that is one crossing per tap, not per frame.
+
+Android gets this for free by collecting, not by reading: the record is derived once in the view model's flow and the composable reads the collected value.
+
+```kotlin
+val uiModel = assetInfo.map { info -> service.details(info.toInput()) }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+```
+
+Do not reach for a memo. A cache keyed on an `Equatable` input was tried on both of these screens and removed: it saved a crossing only when the body re-ran for an unrelated reason, it had to restate every input of the derivation to stay correct, and it hid the real problem — a screen that derives more than once per render.
 
 ### Sections, actions and destinations are records too
 
@@ -290,6 +425,12 @@ The view model's whole job on an event becomes one line, and every decision the 
 var type: FiatQuoteType {
     get { session.type }
     set { session = session.onTypeChanged(quoteType: newValue.map()) }
+}
+```
+
+```kotlin
+fun setType(type: FiatQuoteType) {
+    session.update { it.onTypeChanged(type.toGem()) }
 }
 ```
 
@@ -530,19 +671,33 @@ A record crosses by copy. Every call carries its arguments and its result across
 
 ```rust
 #[uniffi::export]
-impl GemDay {
-    pub fn boundaries(&self) -> GemDayBoundaries {
-        GemDayBoundaries { today: *self, yesterday: /* one calendar day back */ }
+impl GemDayBoundaries {
+    pub fn label(&self, day: GemDay) -> GemDayLabel {
+        match day {
+            day if day == self.today => GemDayLabel::Today,
+            day if day == self.yesterday => GemDayLabel::Yesterday,
+            _ => GemDayLabel::Date,
+        }
     }
 }
 ```
 
 ```swift
 let boundaries = GemDayBoundaries.current          // one crossing per list build
-switch date.gemDay {
-case boundaries.today: Localized.Date.today
-case boundaries.yesterday: Localized.Date.yesterday
-default: sectionFormatter.string(from: date)
+switch boundaries.label(day: date.gemDay) {
+case .today: Localized.Date.today
+case .yesterday: Localized.Date.yesterday
+case .date: Self.sectionFormatter.string(from: date)
+}
+```
+
+```kotlin
+private val boundaries = LocalDate.now().gemDay().boundaries()   // one crossing per list build
+
+fun format(date: LocalDate, locale: Locale): String = when (boundaries.label(date.gemDay())) {
+    GemDayLabel.TODAY -> todayLabel
+    GemDayLabel.YESTERDAY -> yesterdayLabel
+    GemDayLabel.DATE -> DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).format(date)
 }
 ```
 
@@ -560,6 +715,12 @@ var viewState: GemFiatViewState {
         $0.session.viewState(assetPrice: $0.assetPrice, isUrlLoading: $0.isUrlLoading)
     }
 }
+```
+
+```kotlin
+private val viewState = combine(session, isUrlLoading, assetPriceUsd) { session, isUrlLoading, priceUsd ->
+    session.viewState(priceUsd, isUrlLoading)
+}.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, false))
 ```
 
 The input struct names what the state depends on, so a new dependency is a compile-time edit rather than a forgotten refresh.
@@ -699,7 +860,23 @@ private fun errorText(phase: GemFiatQuotePhase): String? = when (phase) {
 }
 ```
 
-Two greps keep this honest, because nothing else will: no file under an iOS feature's `Sources/Scenes/` and no file under an Android feature's `presents/` should name `Gemstone` or `uniffi.gemstone`.
+Naming a Core type is not the test; deciding from one is. A view that iterates a row key and hands each case to a component is doing what [§ 3](#3-return-one-record-that-answers-the-whole-question) asks — the key is the screen's contract, and the switch over it is exhaustive on purpose. Twelve of the seventy-five iOS scene files and just under half of the Android `presents/` files name a Core type for exactly that reason.
+
+What to grep for is a view that answers a question instead of asking one: a `switch`/`when` over a Core type whose arms produce `Localized.` or `stringResource` — the localized text belongs to the module's mapper, not the body — or a Core record passed into a child view's initializer. On Android:
+
+```
+rg -tkotlin -U 'when \([^)]*\)\s*\{[^}]*(stringResource|R\.string)' android/features/*/presents --glob '!**/localization/**'
+```
+
+and its Swift equivalent over `Sources/Scenes/` and `Sources/Views/`, excluding the module's `Gemstone+Localized.swift`. A hit is a decision that has to move one layer down; everything else the type-name grep finds is the contract working.
+
+### One mapper per module names every Core key it renders
+
+A module resolves every Core key it shows in one file: `Sources/Types/Gemstone+Localized.swift` on iOS, `presents/localization/GemstoneText.kt` on Android, with `Gemstone+Style.swift` / `presents/style/GemstoneStyle.kt` beside them for the icon and colour a key picks. A view model, a scene or a composable that maps a key somewhere else has taken the module's vocabulary private, and the two apps drift one key at a time — `GemAmountTitle.rewards` read "Claim Rewards" on one app and "Rewards" on the other for exactly this reason, and the import screen labelled the same field two ways.
+
+The mapper is the only place a `Localized.`/`R.string` is chosen from a Core variant, which is what makes the two apps comparable. `just check-mappers` parses each app's mapper files into variant → key, resolves both keys to their English text, and fails on every variant the two apps resolve differently. `just check-docs` does the same for the guidance: every link in `docs/`, `skills/` and the `AGENTS.md` files has to point at a file that exists, a heading that exists, and — when the label is a backticked name — a symbol that is still in that file. It only sees a variant while both mappers hold it, so a key mapped anywhere else is invisible to it.
+
+Two files per module, no exceptions: if a screen needs a second phrasing of the same key — a tab title and a field label — both live in that one file under different names, the way Android's `tabStringRes` and `fieldStringRes` do.
 
 ### A UI state class translates the view state; it does not re-shape it
 
@@ -793,6 +970,19 @@ An iOS view model holds **at most one** Core service, named `service`, and it is
 
 This limit does not count explicit platform ports such as a signer, keystore, observation source or navigation builder. Those remain narrow injected dependencies; they do not decide shared product behavior.
 
+A store is not one of those ports. A store is the database side of a Core service, and a view model that holds one has reached past the service into what the service owns — the same coupling a second service would be, by a shorter path. The developer screen was the last of these on iOS: it held `TransactionStore`, `AssetStore`, `StakeStore`, `BannerStore` and `PriceStore` beside `GemDeveloperServiceProtocol`, so the nine clear actions and the sample transaction table existed only on that platform. The operations moved onto `GemDeveloperStore` and the service exports them, which is what let Android offer the same actions from the service it already held:
+
+```swift
+DeveloperViewModel(walletId: walletId, service: developerService)
+```
+
+```kotlin
+class DevelopViewModel @Inject constructor(
+    private val service: GemDeveloperServiceInterface,
+    val notificationsAvailable: NotificationsAvailable,
+) : ViewModel()
+```
+
 A second service is never the way to reach a value the screen renders. When a view model needs an answer its own service does not hold, the fix is one of three, in order: the answer is a pure projection and becomes a function of the value it projects ([a row is projected from its value](#a-row-is-projected-from-its-value-never-fetched-from-a-service)); the screen's own service or session already receives the input and returns the answer alongside the rest of its view state; or the screen was drawn around the wrong service. Widening the constructor is not on the list, and neither is having the composition root call the other service and pass the result in — a factory line that reads `walletService.walletRow(...)` next to an unrelated service is the same coupling with a longer path.
 
 When a real screen-level service is needed, name it for the screen it backs, not for the layer: `GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. A `GemContactsService` that only forwarded calls to `GemContactService` was wrapper debt, not the pattern, and is deleted: the list screen holds the owning `GemContactService`. When a screen needs a cohesive answer from several Core owners, Core composes them:
@@ -855,6 +1045,19 @@ Where the child is a different screen with its own service, the parent cannot bu
 ```swift
 public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
     ContactsViewModel(service: contactsService, manageContact: manageContactScene, mode: mode)
+}
+```
+
+Android does not hit this at all for a child of the same screen: one Hilt view model owns both pages and the composable switches on the page it reports, so there is no child model for a view to assemble.
+
+```kotlin
+AnimatedContent(targetState = uiState.page) { page ->
+    when (page) {
+        ManageContactPage.Form -> ManageContactScene(state = uiState, onAction = ...)
+        ManageContactPage.Address -> uiState.addressInput?.let { input ->
+            ManageContactAddressScene(input = input, onAction = ...)
+        }
+    }
 }
 ```
 
@@ -968,6 +1171,14 @@ try await service.setupWallet(wallet: created.json())
 // worth keeping — the adapter and schema, which Core cannot reach
 try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, event: .stake, state: .active)])
 #expect(try store.getBanner(id: id)?.state == .active)
+```
+
+```kotlin
+// worth keeping — the query the adapter runs, which Core cannot reach
+database.bannersDao().addBanners(listOf(warning.copy(id = "other-wallet", walletId = "wallet-2")))
+val banners = database.bannersDao().observeAssetBanners("wallet-1", tokenId, assetId).first().map { it.toDTO() }
+
+assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature), banners.map { it.event }.toSet())
 ```
 
 - **Never mock a dependency-free constructible service** (`GemChainService`, `GemAssetConfigService`, …). Construct the real one. An app test may substitute an I/O screen service to test mapping or state; the returned Core answer is then a stated premise, not a rule assertion.

@@ -38,10 +38,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        switch action {
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Wallet.withdraw
-        }
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {

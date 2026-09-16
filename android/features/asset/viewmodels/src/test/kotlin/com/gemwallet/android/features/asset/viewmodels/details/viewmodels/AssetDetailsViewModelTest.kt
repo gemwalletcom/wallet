@@ -38,6 +38,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
@@ -102,7 +103,7 @@ class AssetDetailsViewModelTest {
         val uiModel = viewModel.uiModel.first { it != null }!!
 
         assertEquals(1u, uiModel.detailsState.priceAlertsCount)
-        assertEquals(true, uiModel.detailsState.priceAlertEnabled)
+        assertEquals(GemPriceAlertToggle.ENABLED, uiModel.detailsState.priceAlert)
     }
 
     private fun details(input: GemAssetDetailsInput) = GemAssetDetails(
@@ -115,7 +116,7 @@ class AssetDetailsViewModelTest {
             showsResources = false,
             showsPriceAlerts = input.priceAlerts.isNotEmpty(),
             priceAlertsCount = input.priceAlerts.size.toUInt(),
-            priceAlertEnabled = input.priceAlerts.isNotEmpty(),
+            priceAlert = if (input.priceAlerts.isNotEmpty()) GemPriceAlertToggle.ENABLED else GemPriceAlertToggle.DISABLED,
             showsEarn = false,
             emptyTransactionsAction = null,
         ),

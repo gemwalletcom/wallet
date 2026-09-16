@@ -83,7 +83,7 @@ public struct AmountScene: View {
                             }
                         }
                         .pickerStyle(.segmented)
-                        .frame(width: 200)
+                        .frame(width: Sizing.picker.segmentedWidth)
                         .onChange(of: resourceSelection.selected, model.onChangeResource)
                     }
                     .cleanListRow()

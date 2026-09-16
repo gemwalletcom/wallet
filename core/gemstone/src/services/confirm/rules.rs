@@ -65,6 +65,7 @@ pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asse
 }
 
 pub(super) trait ConfirmInput {
+    fn requires_scan(&self) -> bool;
     fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)>;
     fn validate_approvals(&self, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError>;
     fn simulation_payload(&self) -> Option<String>;
@@ -73,6 +74,15 @@ pub(super) trait ConfirmInput {
 }
 
 impl ConfirmInput for TransactionInputType {
+    fn requires_scan(&self) -> bool {
+        match self {
+            Self::Transfer { .. } | Self::Swap { .. } | Self::TokenApprove { .. } | Self::Generic { .. } => true,
+            Self::Deposit { .. } | Self::Withdrawal { .. } | Self::Stake { .. } | Self::TransferNft { .. } | Self::Account { .. } | Self::Perpetual { .. } | Self::Earn { .. } => {
+                false
+            }
+        }
+    }
+
     fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)> {
         match self {
             Self::TokenApprove { asset, approval_data } => Some((asset.id.clone(), approval_value_from(Some(&approval_data.value), approval_data.is_unlimited))),
@@ -338,9 +348,12 @@ pub(super) fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, 
     Ok(())
 }
 
-pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransactionPayload {
+pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> Option<ScanTransactionPayload> {
+    if !input.input_type.requires_scan() {
+        return None;
+    }
     let input: TransactionPreloadInput = input.into();
-    ScanTransactionPayload {
+    Some(ScanTransactionPayload {
         origin: ScanAddressTarget {
             asset_id: input.input_type.get_asset().id.clone(),
             address: input.sender_address.clone(),
@@ -348,7 +361,7 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
         target: scan_target(&input),
         website: input.get_website(),
         transaction_type: input.input_type.transaction_type(),
-    }
+    })
 }
 
 fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
@@ -468,7 +481,7 @@ mod tests {
         TransactionType, TransferDataExtra, TransferDataOutputAction, Wallet, WalletId,
         swap::{ApprovalData, SwapData, SwapQuoteData},
     };
-    use primitives::{AddressName, AddressType, VerificationStatus};
+    use primitives::{AccountDataType, AddressName, AddressType, ContractCallData, Delegation, DelegationValidator, EarnType, NFTAsset, VerificationStatus};
     use std::collections::HashMap;
 
     fn wallet(chain: Chain) -> Wallet {
@@ -905,11 +918,11 @@ mod tests {
             references: vec![],
         };
 
-        let target = scan_payload(swap("0xrouter", "own-solana-address")).target;
+        let target = scan_payload(swap("0xrouter", "own-solana-address")).unwrap().target;
         assert_eq!(target.address, "0xrouter", "the scan asks about the contract, not the address the user already owns");
         assert_eq!(target.asset_id, Asset::mock_eth().id, "the contract is on the chain the funds leave");
 
-        let without_contract = scan_payload(swap("", "recipient")).target;
+        let without_contract = scan_payload(swap("", "recipient")).unwrap().target;
         assert_eq!(without_contract.address, "recipient", "a swap with no contract falls back to the recipient");
     }
 
@@ -925,7 +938,7 @@ mod tests {
             destination_address: "router".to_string(),
             references: vec![],
         };
-        let payload = scan_payload(swap);
+        let payload = scan_payload(swap).unwrap();
         assert_eq!(payload.transaction_type, TransactionType::Swap);
         assert_eq!(payload.origin.asset_id, Asset::mock_sol().id);
         assert_eq!(payload.website, None);
@@ -940,9 +953,83 @@ mod tests {
             destination_address: "contract".to_string(),
             references: vec![],
         };
-        let payload = scan_payload(generic);
+        let payload = scan_payload(generic).unwrap();
         assert_eq!(payload.transaction_type, TransferDataExtra::mock().transaction_type);
         assert_eq!(payload.website, Some(ApplicationMetadata::mock().url));
+    }
+
+    #[test]
+    fn test_requires_scan() {
+        let earn = |earn_type| TransactionInputType::Earn {
+            asset: Asset::mock_erc20(),
+            earn_type,
+            data: ContractCallData::mock(),
+        };
+        for (input_type, should_scan) in [
+            (TransactionInputType::Deposit { asset: Asset::mock_erc20() }, false),
+            (earn(EarnType::Deposit(DelegationValidator::mock())), false),
+            (TransactionInputType::Transfer { asset: Asset::mock_erc20() }, true),
+            (TransactionInputType::Withdrawal { asset: Asset::mock_erc20() }, false),
+            (earn(EarnType::Withdraw(Delegation::mock())), false),
+            (
+                TransactionInputType::Account {
+                    asset: Asset::mock_erc20(),
+                    account_type: AccountDataType::Activate,
+                },
+                false,
+            ),
+            (
+                TransactionInputType::Stake {
+                    asset: Asset::mock_sol(),
+                    stake_type: StakeType::Rewards(vec![]),
+                },
+                false,
+            ),
+            (
+                TransactionInputType::TransferNft {
+                    asset: Asset::mock_eth(),
+                    nft_asset: NFTAsset::mock(),
+                },
+                false,
+            ),
+            (
+                TransactionInputType::Perpetual {
+                    asset: Asset::mock_erc20(),
+                    perpetual_type: PerpetualType::Open {
+                        data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+                    },
+                },
+                false,
+            ),
+            (
+                TransactionInputType::Swap {
+                    from_asset: Asset::mock_eth(),
+                    to_asset: Asset::mock_erc20(),
+                    swap_data: SwapData::mock(),
+                },
+                true,
+            ),
+            (
+                TransactionInputType::TokenApprove {
+                    asset: Asset::mock_erc20(),
+                    approval_data: ApprovalData::mock(),
+                },
+                true,
+            ),
+            (
+                TransactionInputType::Generic {
+                    asset: Asset::mock_erc20(),
+                    metadata: ApplicationMetadata::mock(),
+                    extra: TransferDataExtra {
+                        transaction_type: TransactionType::EarnDeposit,
+                        ..TransferDataExtra::mock()
+                    },
+                },
+                true,
+            ),
+        ] {
+            assert_eq!(input_type.requires_scan(), should_scan);
+        }
     }
 
     #[test]

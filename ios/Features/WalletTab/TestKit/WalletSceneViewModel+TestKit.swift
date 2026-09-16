@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemNftService
-import protocol Gemstone.GemWalletHomeServiceProtocol
 import GemstoneServicesTestKit
 import Foundation
 import Primitives
@@ -11,12 +10,9 @@ import NFT
 import WalletTab
 
 public extension WalletSceneViewModel {
-    static func mock(
-        wallet: Wallet = .mock(),
-        service: any GemWalletHomeServiceProtocol = GemWalletHomeServiceMock(),
-    ) -> WalletSceneViewModel {
+    static func mock(wallet: Wallet = .mock()) -> WalletSceneViewModel {
         WalletSceneViewModel(
-            service: service,
+            service: GemWalletHomeServiceMock(),
             observablePreferences: .mock(),
             collectionsModel: CollectionsViewModel(service: GemNftService.mock(), wallet: wallet),
             wallet: wallet,

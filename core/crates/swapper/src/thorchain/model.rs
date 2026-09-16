@@ -74,7 +74,7 @@ impl TransactionCoin {
         Some(value_to(&self.amount, decimals).magnitude().clone())
     }
 
-    pub fn resolve_asset_id(&self, network: THORChainNetwork) -> Option<AssetId> {
+    pub fn asset_id(&self, network: THORChainNetwork) -> Option<AssetId> {
         let (chain_symbol, asset_symbol) = self.asset.split_once('.')?;
         let chain_name = ChainName::from_symbol(network, chain_symbol)?;
         let chain = chain_name.chain();
@@ -489,7 +489,7 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_asset_id() {
+    fn test_asset_id() {
         fn coin(asset: &str) -> TransactionCoin {
             TransactionCoin {
                 asset: asset.to_string(),
@@ -498,27 +498,27 @@ mod tests {
             }
         }
 
-        assert_eq!(coin("LTC.LTC").resolve_asset_id(THORChainNetwork::Thorchain), Some(Chain::Litecoin.as_asset_id()));
-        assert_eq!(coin("ETH.ETH").resolve_asset_id(THORChainNetwork::Thorchain), Some(Chain::Ethereum.as_asset_id()));
-        assert_eq!(coin("BTC.BTC").resolve_asset_id(THORChainNetwork::Thorchain), Some(Chain::Bitcoin.as_asset_id()));
-        assert_eq!(coin("THOR.RUNE").resolve_asset_id(THORChainNetwork::Thorchain), Some(Chain::Thorchain.as_asset_id()));
-        assert_eq!(coin("ZEC.ZEC").resolve_asset_id(THORChainNetwork::Mayachain), Some(Chain::Zcash.as_asset_id()));
-        assert_eq!(coin("ARB.ETH").resolve_asset_id(THORChainNetwork::Mayachain), Some(Chain::Arbitrum.as_asset_id()));
-        assert_eq!(coin("ARB.ETH").resolve_asset_id(THORChainNetwork::Thorchain), None);
+        assert_eq!(coin("LTC.LTC").asset_id(THORChainNetwork::Thorchain), Some(Chain::Litecoin.as_asset_id()));
+        assert_eq!(coin("ETH.ETH").asset_id(THORChainNetwork::Thorchain), Some(Chain::Ethereum.as_asset_id()));
+        assert_eq!(coin("BTC.BTC").asset_id(THORChainNetwork::Thorchain), Some(Chain::Bitcoin.as_asset_id()));
+        assert_eq!(coin("THOR.RUNE").asset_id(THORChainNetwork::Thorchain), Some(Chain::Thorchain.as_asset_id()));
+        assert_eq!(coin("ZEC.ZEC").asset_id(THORChainNetwork::Mayachain), Some(Chain::Zcash.as_asset_id()));
+        assert_eq!(coin("ARB.ETH").asset_id(THORChainNetwork::Mayachain), Some(Chain::Arbitrum.as_asset_id()));
+        assert_eq!(coin("ARB.ETH").asset_id(THORChainNetwork::Thorchain), None);
         assert_eq!(
-            coin("ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7").resolve_asset_id(THORChainNetwork::Thorchain),
+            coin("ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7").asset_id(THORChainNetwork::Thorchain),
             Some(ETHEREUM_USDT_ASSET_ID.clone())
         );
         assert_eq!(
-            coin(&format!("TRON.USDT-{TRON_USDT_TOKEN_ID}")).resolve_asset_id(THORChainNetwork::Thorchain),
+            coin(&format!("TRON.USDT-{TRON_USDT_TOKEN_ID}")).asset_id(THORChainNetwork::Thorchain),
             Some(TRON_USDT_ASSET_ID.clone())
         );
-        assert_eq!(coin("THOR.TCY").resolve_asset_id(THORChainNetwork::Thorchain), Some(THORCHAIN_TCY_ASSET_ID.clone()));
+        assert_eq!(coin("THOR.TCY").asset_id(THORChainNetwork::Thorchain), Some(THORCHAIN_TCY_ASSET_ID.clone()));
         assert_eq!(
-            coin("ETH.UNKNOWN-0x1234567890abcdef1234567890abcdef12345678").resolve_asset_id(THORChainNetwork::Thorchain),
+            coin("ETH.UNKNOWN-0x1234567890abcdef1234567890abcdef12345678").asset_id(THORChainNetwork::Thorchain),
             None
         );
-        assert_eq!(coin("INVALID").resolve_asset_id(THORChainNetwork::Thorchain), None);
+        assert_eq!(coin("INVALID").asset_id(THORChainNetwork::Thorchain), None);
     }
 
     #[test]

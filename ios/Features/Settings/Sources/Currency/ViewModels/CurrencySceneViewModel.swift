@@ -28,10 +28,6 @@ public final class CurrencySceneViewModel {
         self.service = service
     }
 
-    public var selectedCurrencyValue: String {
-        "\(currencies.selected.flag) \(currency.rawValue)"
-    }
-
     var title: String {
         Localized.Settings.currency
     }

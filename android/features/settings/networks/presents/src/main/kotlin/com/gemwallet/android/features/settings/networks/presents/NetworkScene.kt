@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -15,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,9 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.features.settings.networks.presents.localization.stringRes
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
 import com.gemwallet.android.ui.R
+import uniffi.gemstone.GemChainSettingsSection
+import uniffi.gemstone.GemExplorerRow
+import uniffi.gemstone.GemNodeRow
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -39,7 +44,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
-import androidx.compose.material3.SnackbarHostState
 
 @Composable
 internal fun NetworkScene(
@@ -50,7 +54,7 @@ internal fun NetworkScene(
     val chain = state.chain ?: return
     var isShowAddSource by remember { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
-    var nodeDelete by remember { mutableStateOf<NodeRowUiModel?>(null) }
+    var nodeDelete by remember { mutableStateOf<GemNodeRow?>(null) }
 
     Scene(
         title = chain.networkName(),
@@ -68,40 +72,36 @@ internal fun NetworkScene(
             isRefreshing = false,
             onRefresh = { onAction(NetworkAction.Refresh) },
         ) {
-            LazyColumn {
-                item {
-                    SubheaderItem(R.string.settings_networks_source)
-                }
-
-                val size = state.nodeRows.size
-                itemsIndexed(state.nodeRows, key = { _, item -> item.id }) { index, node ->
-                    NodeItem(
-                        model = node,
-                        listPosition = ListPosition.getPosition(index, size),
-                        isDeleteRevealed = revealedNodeId == node.id,
-                        onDeleteReveal = { revealedNodeId = node.id },
-                        onDeleteCollapse = {
-                            if (revealedNodeId == node.id) {
-                                revealedNodeId = null
-                            }
-                        },
-                        onSelect = { onAction(NetworkAction.SelectNode(it)) },
-                        onDelete = if (node.canDelete) {
-                            {
-                                revealedNodeId = null
-                                nodeDelete = node
-                            }
-                        } else {
-                            null
-                        },
-                    )
-                }
-
-                item {
-                    SubheaderItem(R.string.settings_networks_explorer)
-                }
-                itemsPositioned(state.blockExplorers) { position, item ->
-                    BlockExplorerItem(state.currentExplorer, item, position) { onAction(NetworkAction.SelectBlockExplorer(it)) }
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                state.sections.forEach { section ->
+                    item { SubheaderItem(section.stringRes()) }
+                    when (section) {
+                        GemChainSettingsSection.NODES -> itemsIndexed(state.nodeRows, key = { _, item -> item.node.url }) { index, node ->
+                            NodeItem(
+                                model = node,
+                                listPosition = ListPosition.getPosition(index, state.nodeRows.size),
+                                isDeleteRevealed = revealedNodeId == node.node.url,
+                                onDeleteReveal = { revealedNodeId = node.node.url },
+                                onDeleteCollapse = {
+                                    if (revealedNodeId == node.node.url) {
+                                        revealedNodeId = null
+                                    }
+                                },
+                                onSelect = { onAction(NetworkAction.SelectNode(it)) },
+                                onDelete = if (node.canDelete) {
+                                    {
+                                        revealedNodeId = null
+                                        nodeDelete = node
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
+                        }
+                        GemChainSettingsSection.EXPLORER -> itemsPositioned(state.blockExplorers) { position, item ->
+                            BlockExplorerItem(item, position) { onAction(NetworkAction.SelectBlockExplorer(it)) }
+                        }
+                    }
                 }
             }
         }
@@ -126,7 +126,7 @@ internal fun NetworkScene(
         ConfirmNodeDeleteDialog(
             nodeName = pendingNode.node.host,
             onConfirm = {
-                onAction(NetworkAction.DeleteNode(pendingNode.url))
+                onAction(NetworkAction.DeleteNode(pendingNode.node.url))
                 nodeDelete = null
             },
             onDismiss = { nodeDelete = null },
@@ -136,17 +136,16 @@ internal fun NetworkScene(
 
 @Composable
 private fun BlockExplorerItem(
-    current: String?,
-    explorerName: String,
+    explorer: GemExplorerRow,
     listPosition: ListPosition,
     onSelect: (String) -> Unit,
 ) {
     PropertyItem(
-        modifier = Modifier.clickable { onSelect(explorerName) },
+        modifier = Modifier.clickable { onSelect(explorer.name) },
         title = {
-            PropertyTitleText(text = explorerName)
+            PropertyTitleText(text = explorer.name)
         },
-        data = if (explorerName == current) {
+        data = if (explorer.isSelected) {
             {
                 SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
             }

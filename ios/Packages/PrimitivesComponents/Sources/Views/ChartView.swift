@@ -27,7 +27,7 @@ public struct ChartView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: .zero) {
             priceHeader
             chart
         }

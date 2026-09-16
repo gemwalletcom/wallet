@@ -5,30 +5,31 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.features.perpetual.localization.stringRes
+import uniffi.gemstone.GemPerpetualInfoRow
 
-fun LazyListScope.perpetualInfo(data: PerpetualDetailsDataAggregate) {
-    item { SubheaderItem(R.string.common_info) }
-
-    item {
-        PropertyItem(
-            title = stringResource(R.string.markets_daily_volume),
-            data = data.dayVolume,
-            listPosition = ListPosition.First,
-        )
-        PropertyItem(
-            title = stringResource(R.string.info_perpetual_open_interest_title),
-            data = data.openInterest,
-            info = InfoSheetEntity.OpenInterestInfo,
-            listPosition = ListPosition.Middle,
-        )
-        PropertyItem(
-            title = stringResource(R.string.info_perpetual_funding_apr_title),
-            data = data.funding,
-            info = InfoSheetEntity.FundingAprInfo,
-            listPosition = ListPosition.Last,
-        )
+fun LazyListScope.perpetualInfo(data: PerpetualDetailsDataAggregate, rows: List<GemPerpetualInfoRow>) {
+    itemsPositioned(rows) { position, row ->
+        when (row) {
+            GemPerpetualInfoRow.DAILY_VOLUME -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = data.dayVolume,
+                listPosition = position,
+            )
+            GemPerpetualInfoRow.OPEN_INTEREST -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = data.openInterest,
+                info = InfoSheetEntity.OpenInterestInfo,
+                listPosition = position,
+            )
+            GemPerpetualInfoRow.FUNDING_RATE -> PropertyItem(
+                title = stringResource(row.stringRes()),
+                data = data.funding,
+                info = InfoSheetEntity.FundingAprInfo,
+                listPosition = position,
+            )
+        }
     }
 }

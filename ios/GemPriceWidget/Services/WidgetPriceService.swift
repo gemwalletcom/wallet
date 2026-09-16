@@ -30,7 +30,7 @@ struct WidgetPriceService {
         }
     }
 
-    func fetchTopCoinPrices(widgetFamily: WidgetFamily = .systemMedium) async -> PriceWidgetEntry {
+    func topCoinPrices(widgetFamily: WidgetFamily = .systemMedium) async -> PriceWidgetEntry {
         let coins = coins(widgetFamily)
         let currency = preferences.currency
 
@@ -74,7 +74,7 @@ extension WidgetPriceService {
     private static func image(for assetId: AssetId) async -> Image? {
         switch assetId.type {
         case .native: Images.name(assetId.chain.rawValue)
-        case .token: await fetchRemoteImage(url: tokenImageURL(for: assetId))
+        case .token: await remoteImage(url: tokenImageURL(for: assetId))
         }
     }
 
@@ -82,7 +82,7 @@ extension WidgetPriceService {
         URL(string: "https://assets.gemwallet.com/blockchains/\(assetId.chain.rawValue)/assets/\(assetId.tokenId ?? "")/logo.png")!
     }
 
-    private static func fetchRemoteImage(url: URL) async -> Image? {
+    private static func remoteImage(url: URL) async -> Image? {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             guard let uiImage = UIImage(data: data) else {

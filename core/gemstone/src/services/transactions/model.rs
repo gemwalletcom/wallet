@@ -32,6 +32,18 @@ pub fn transaction_filters() -> Vec<GemTransactionFilter> {
     rules::transaction_filters()
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemActivityFilters {
+    pub asset_rank_greater_than: i32,
+    pub chains: Vec<Chain>,
+    pub transaction_types: Vec<TransactionType>,
+}
+
+#[uniffi::export]
+pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemActivityFilters {
+    rules::activity_filters(chains, filters)
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionTitle {
     Received,

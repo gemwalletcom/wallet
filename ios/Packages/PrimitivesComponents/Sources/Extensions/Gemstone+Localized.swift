@@ -5,9 +5,15 @@ import Formatters
 import enum Gemstone.PerpetualDirection
 import enum Gemstone.FeeOption
 import enum Gemstone.GemAssetMenuAction
+import enum Gemstone.GemContactAddressField
 import enum Gemstone.PerpetualType
 import enum Gemstone.GemApprovalValue
 import enum Gemstone.GemAssetInfoKind
+import enum Gemstone.GemEmptyStateAction
+import enum Gemstone.GemErrorText
+import enum Gemstone.GemSelectAssetSection
+import enum Gemstone.GemSelectAssetTitle
+import enum Gemstone.GemEmptyStateText
 import enum Gemstone.GemFiatTransactionBadge
 import enum Gemstone.LinkType
 import enum Gemstone.GemHeaderButtonKind
@@ -22,6 +28,7 @@ import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemWalletSubtitle
 import GemstonePrimitives
+import enum Gemstone.GemDayLabel
 import Localization
 import Primitives
 import Style
@@ -385,6 +392,120 @@ extension FiatQuoteType {
         switch self {
         case .buy: Localized.Wallet.buy
         case .sell: Localized.Wallet.sell
+        }
+    }
+}
+
+extension GemEmptyStateText {
+    public func text(symbol: String) -> String {
+        switch self {
+        case .nftsTitle: Localized.Nft.State.Empty.title
+        case .nftsDescription: Localized.Nft.State.Empty.description
+        case .priceAlertsTitle: Localized.PriceAlerts.State.Empty.title
+        case .priceAlertsDescription: Localized.PriceAlerts.State.Empty.description
+        case .contactsTitle: Localized.Contacts.State.Empty.title
+        case .contactsDescription: Localized.Contacts.State.Empty.description
+        case .assetTitle: Localized.Asset.State.Empty.title
+        case .assetDescription: Localized.Asset.State.Empty.description(symbol)
+        case .activityTitle: Localized.Activity.State.Empty.title
+        case .activityDescription: Localized.Activity.State.Empty.description
+        case .stakeTitle: Localized.Stake.State.Empty.title
+        case .stakeDescription: Localized.Stake.State.Empty.description(symbol)
+        case .earnTitle: Localized.Earn.State.Empty.title
+        case .earnDescription: Localized.Earn.State.Empty.description(symbol)
+        case .walletConnectTitle: Localized.WalletConnect.noActiveConnections
+        case .walletConnectDescription: Localized.WalletConnect.State.Empty.description
+        case .recentsTitle: Localized.RecentActivity.State.Empty.title
+        case .recentsDescription: Localized.RecentActivity.State.Empty.description
+        case .notificationsTitle: Localized.Notifications.Inapp.State.Empty.title
+        case .notificationsDescription: Localized.Notifications.Inapp.State.Empty.description
+        case .watchWalletTitle: Localized.Wallet.watchEmptyStateTitle
+        case .watchWalletDescription: Localized.Info.WatchWallet.description
+        case .noAssetsFoundTitle: Localized.Assets.noAssetsFound
+        case .searchDescription: Localized.Search.State.Empty.description
+        case .searchAssetsDescription: Localized.Assets.State.Empty.searchDescription
+        case .searchActivityTitle: Localized.Activity.State.Empty.searchTitle
+        case .searchActivityDescription: Localized.Activity.State.Empty.searchDescription
+        case .searchNetworksTitle: Localized.Networks.State.Empty.searchTitle
+        case .searchPerpetualsTitle: Localized.Perpetuals.EmptyState.noMarketsFound
+        }
+    }
+}
+
+extension GemEmptyStateAction {
+    public var title: String {
+        switch self {
+        case .buy: Localized.Wallet.buy
+        case .swap: Localized.Wallet.swap
+        case .receive: Localized.Wallet.receive
+        case .addCustomToken: Localized.Assets.addCustomToken
+        case .manageTokenList: Localized.Wallet.manageTokenList
+        case .clearFilters: Localized.Filter.clear
+        }
+    }
+}
+
+extension GemErrorText {
+    public var text: String {
+        switch self {
+        case .cancelled: Localized.Errors.cancelled
+        case .networkOffline: Localized.Errors.networkOffline
+        case let .networkMessage(text): Localized.Errors.networkError(text)
+        case let .networkStatus(status): Localized.Errors.networkError(status)
+        case .invalidNetworkId: Localized.Errors.invalidNetworkId
+        case .invalidUrl: Localized.Errors.invalidUrl
+        case .notSupported: Localized.Errors.notSupported
+        case .unsupportedChain: Localized.Errors.Connections.unsupportedChain
+        case .maliciousOrigin: Localized.Errors.Connections.maliciousOrigin
+        case .noSupportedWallets: Localized.Errors.Connections.noSupportedWallets
+        case let .message(text): text
+        }
+    }
+}
+
+extension GemSelectAssetTitle {
+    public var text: String {
+        switch self {
+        case .send: Localized.Wallet.send
+        case .receive: Localized.Wallet.receive
+        case .receiveCollection: Localized.Wallet.receiveCollection
+        case .buy: Localized.Wallet.buy
+        case .swapPay: Localized.Swap.youPay
+        case .swapReceive: Localized.Swap.youReceive
+        case .manageTokenList: Localized.Wallet.manageTokenList
+        case .selectAsset: Localized.Assets.selectAsset
+        case .deposit: Localized.Wallet.deposit
+        case .withdraw: Localized.Wallet.withdraw
+        case .search: Localized.Assets.selectAsset
+        }
+    }
+}
+
+extension GemSelectAssetSection {
+    public var text: String {
+        switch self {
+        case .assets: Localized.Assets.title
+        case .networks: Localized.Settings.Networks.title
+        }
+    }
+}
+
+extension GemDayLabel {
+    var title: String? {
+        switch self {
+        case .today: Localized.Date.today
+        case .yesterday: Localized.Date.yesterday
+        case .date: nil
+        }
+    }
+}
+
+public extension GemContactAddressField {
+    var title: String {
+        switch self {
+        case .network: Localized.Transfer.network
+        case .address: Localized.Common.address
+        case .memo: Localized.Transfer.memo
         }
     }
 }

@@ -22,7 +22,7 @@ public struct AssetScene: View {
         return List {
             Section {} header: {
                 ValueHeaderView(
-                    model: model.assetHeaderModel,
+                    model: model.assetHeaderModel(details),
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     onHeaderAction: model.onSelectHeader,
@@ -44,7 +44,7 @@ public struct AssetScene: View {
                 .listRowInsets(.zero)
             }
 
-            if let statusViewModel = model.statusViewModel {
+            if let statusViewModel = model.statusViewModel(details) {
                 Section {
                     AssetStatusView(model: statusViewModel, action: model.onSelectTokenStatus)
                 }
@@ -110,13 +110,13 @@ public struct AssetScene: View {
                         switch row {
                         case let .available(value):
                             ListItemView(
-                                title: model.assetDataModel.availableBalanceTitle,
+                                title: row.title(stakeProvider: .stake),
                                 subtitle: model.balanceText(value),
                             )
                         case let .staked(value):
                             NavigationCustomLink(
                                 with: ListItemView(
-                                    title: model.balanceTitle(for: .stake),
+                                    title: row.title(stakeProvider: .stake),
                                     subtitle: model.stakeBalanceText(value),
                                 ),
                                 action: { model.onSelectStake() },
@@ -125,7 +125,7 @@ public struct AssetScene: View {
                         case let .earn(value):
                             NavigationCustomLink(
                                 with: ListItemView(
-                                    title: model.balanceTitle(for: .earn),
+                                    title: row.title(stakeProvider: .earn),
                                     subtitle: model.balanceText(value),
                                 ),
                                 action: { model.onSelectEarn() },
@@ -133,7 +133,7 @@ public struct AssetScene: View {
                             .accessibilityIdentifier("earn")
                         case let .pendingUnconfirmed(value):
                             ListItemView(
-                                title: model.assetDataModel.pendingUnconfirmedBalanceTitle,
+                                title: row.title(stakeProvider: .stake),
                                 subtitle: model.balanceText(value),
                                 infoAction: model.onSelectPendingUnconfirmedInfo,
                             )
@@ -141,13 +141,13 @@ public struct AssetScene: View {
                             if let url = url.flatMap(URL.init) {
                                 SafariNavigationLink(url: url) {
                                     ListItemView(
-                                        title: model.assetDataModel.reservedBalanceTitle,
+                                        title: row.title(stakeProvider: .stake),
                                         subtitle: model.balanceText(value),
                                     )
                                 }
                             } else {
                                 ListItemView(
-                                    title: model.assetDataModel.reservedBalanceTitle,
+                                    title: row.title(stakeProvider: .stake),
                                     subtitle: model.balanceText(value),
                                 )
                             }
@@ -156,14 +156,14 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.showEarnButton {
+            if details.state.showsEarn {
                 Section {
                     NavigationCustomLink(
                         with: HStack(spacing: Spacing.medium) {
                             EmojiView(color: Colors.grayVeryLight, emoji: Emoji.WalletAvatar.moneyBag.rawValue)
                                 .frame(size: .image.asset)
                             ListItemView(
-                                title: model.balanceTitle(for: .earn),
+                                title: StakeProviderType.earn.title,
                                 subtitle: model.aprModel(for: .earn).text,
                                 subtitleStyle: model.aprModel(for: .earn).subtitle.style,
                             )
@@ -186,7 +186,7 @@ public struct AssetScene: View {
             } else {
                 Section {
                     Spacer()
-                    EmptyContentView(model: model.emptyContentModel)
+                    EmptyContentView(model: model.emptyContentModel(details))
                         .padding(.bottom, .extraLarge)
                 }
                 .cleanListRow()
@@ -197,7 +197,7 @@ public struct AssetScene: View {
         }
         .taskOnce(model.loadOnce)
         .listSectionSpacing(.compact)
-        .navigationTitle(model.title)
+        .navigationTitle(details.title)
         .contentMargins([.top], .small, for: .scrollContent)
     }
 }

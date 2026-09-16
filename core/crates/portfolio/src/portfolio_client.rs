@@ -24,7 +24,7 @@ impl PortfolioClient {
     }
 
     pub fn get_portfolio_charts(&self, assets: Vec<PortfolioAsset>, period: ChartPeriod) -> Result<PortfolioAssets, Box<dyn Error + Send + Sync>> {
-        let assets: Vec<ResolvedAsset> = assets.into_iter().filter_map(|input| self.resolve_asset(input)).collect();
+        let assets: Vec<ResolvedAsset> = assets.into_iter().filter_map(|input| self.resolved_asset(input)).collect();
         let chart_data = self.get_chart_values(&assets, &period);
         Ok(Self::build_portfolio(assets, chart_data))
     }
@@ -91,7 +91,7 @@ impl PortfolioClient {
         }
     }
 
-    fn resolve_asset(&self, input: PortfolioAsset) -> Option<ResolvedAsset> {
+    fn resolved_asset(&self, input: PortfolioAsset) -> Option<ResolvedAsset> {
         let asset_id = &input.asset_id;
         let asset = self.database.assets().ok()?.get_asset(asset_id).ok()?;
         let balance = BigNumberFormatter::value_as_f64(&input.value.to_string(), asset.decimals as u32).ok()?;

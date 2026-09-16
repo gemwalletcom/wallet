@@ -96,10 +96,9 @@ extension AddNodeScene {
             EmptyView()
         case let .data(result):
             Section {
-                ListItemView(field: result.chainIdField)
-                ListItemView(field: result.inSyncField)
-                ListItemView(field: result.latestBlockField)
-                ListItemView(field: result.latencyField)
+                ForEach(Array(result.fields.enumerated()), id: \.offset) {
+                    ListItemView(field: $0.element)
+                }
             }
             warningSection
         }

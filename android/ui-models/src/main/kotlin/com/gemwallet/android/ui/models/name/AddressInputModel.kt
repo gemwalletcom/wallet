@@ -52,7 +52,7 @@ class AddressInputModel(
         validate()
     }
 
-    fun applyExternalAddress(address: String) {
+    fun setScannedAddress(address: String) {
         _text.value = address
         nameRecordController.getNameRecord(address, chain)
         validate()

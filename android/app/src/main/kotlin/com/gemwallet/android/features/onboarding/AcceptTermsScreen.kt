@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,7 +47,10 @@ import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.features.onboarding.localization.stringRes
+import uniffi.gemstone.GemAcceptTermsItem
 import uniffi.gemstone.PublicUrl
+import uniffi.gemstone.acceptTermsItems
 
 @Composable
 fun AcceptTermsScreen(
@@ -55,16 +59,15 @@ fun AcceptTermsScreen(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    var isUnderstand1 by remember { mutableStateOf(false) }
-    var isUnderstand2 by remember { mutableStateOf(false) }
-    var isUnderstand3 by remember { mutableStateOf(false) }
+    val items = remember { acceptTermsItems() }
+    val accepted = remember { mutableStateMapOf<GemAcceptTermsItem, Boolean>() }
     Scene(
         title = stringResource(R.string.onboarding_accept_terms_title),
         onClose = { onCancel() },
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.onboarding_accept_terms_continue),
-                state = buttonState(enabled = isUnderstand1 && isUnderstand2 && isUnderstand3),
+                state = buttonState(enabled = items.all { accepted[it] == true }),
                 onClick = { onAccept() }
             )
         },
@@ -94,21 +97,13 @@ fun AcceptTermsScreen(
                 )
                 Spacer(Modifier.size(paddingDefault))
             }
-            termItem(
-                isUnderstand1,
-                R.string.onboarding_accept_terms_item1_message,
-                testTag = "term_1",
-            ) { isUnderstand1 = !isUnderstand1 }
-            termItem(
-                isUnderstand2,
-                R.string.onboarding_accept_terms_item2_message,
-                testTag = "term_2",
-            ) { isUnderstand2 = !isUnderstand2 }
-            termItem(
-                isUnderstand3,
-                R.string.onboarding_accept_terms_item3_message,
-                testTag = "term_3",
-            ) { isUnderstand3 = !isUnderstand3 }
+            items.forEachIndexed { index, item ->
+                termItem(
+                    isUnderstand = accepted[item] == true,
+                    description = item.stringRes(),
+                    testTag = "term_${index + 1}",
+                ) { accepted[item] = accepted[item] != true }
+            }
 
             item { Spacer(modifier = Modifier.size(it.calculateBottomPadding())) }
         }

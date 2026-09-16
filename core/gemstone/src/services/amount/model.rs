@@ -24,6 +24,29 @@ pub enum GemAmountType {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountTitle {
+    Send,
+    Deposit,
+    Withdraw,
+    Stake,
+    Unstake,
+    Redelegate,
+    Rewards,
+    Freeze,
+    Unfreeze,
+    PerpetualOpen { direction: PerpetualDirection },
+    PerpetualIncrease { direction: PerpetualDirection },
+    PerpetualReduce { direction: PerpetualDirection },
+}
+
+#[uniffi::export]
+impl GemAmountType {
+    pub fn title(&self) -> GemAmountTitle {
+        super::rules::amount_title(self)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountTransfer {
     Send { payment: GemPaymentRecipient },
     Deposit,

@@ -102,8 +102,8 @@ internal fun TransactionsScene(
         chainsFilter = chainsFilter,
         typesFilter = typeFilter,
         onDismissRequest = { showFilters = false },
-        onApplyChainsFilter = { onAction(TransactionsListAction.ApplyChainsFilter(it)) },
-        onApplyTypesFilter = { onAction(TransactionsListAction.ApplyTypesFilter(it)) },
+        onSelectChainsFilter = { onAction(TransactionsListAction.SelectChainsFilter(it)) },
+        onSelectTypesFilter = { onAction(TransactionsListAction.SelectTypesFilter(it)) },
         onClearChainsFilter = { onAction(TransactionsListAction.ClearChainsFilter) },
         onClearTypesFilter = { onAction(TransactionsListAction.ClearTypesFilter) },
     )

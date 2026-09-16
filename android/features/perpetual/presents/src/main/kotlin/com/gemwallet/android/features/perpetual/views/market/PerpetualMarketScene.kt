@@ -36,6 +36,8 @@ import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.perpetual.localization.stringRes
+import uniffi.gemstone.GemPerpetualMarketSection
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -87,8 +89,7 @@ internal fun PerpetualMarketScene(
         markets = unpinnedPerpetuals.size.toUInt(),
         recents = recent.size.toUInt(),
     ).sections(isSearching, query.text.isEmpty())
-    val showRecents = sections.showsRecents
-    val showMarkets = sections.showsMarkets
+    val sectionList = sections.list()
 
     Scene(
         titleContent = {
@@ -124,13 +125,6 @@ internal fun PerpetualMarketScene(
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                if (showRecents) {
-                    recentPerpetuals(
-                        items = recent,
-                        onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
-                        onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
-                    )
-                }
                 if (!isSearching) {
                     item {
                         AmountListHead(
@@ -148,53 +142,58 @@ internal fun PerpetualMarketScene(
                         }
                     }
                 }
-                positions.takeIf { it.isNotEmpty() }?.let {
-                    item { SubheaderItem(R.string.perpetual_positions) }
-                    itemsPositioned(positions) { position, item ->
-                        PerpetualPositionItem(
-                            data = item,
-                            listPosition = position,
-                            modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) }
+                sectionList.forEach { section ->
+                    when (section) {
+                        GemPerpetualMarketSection.RECENTS -> recentPerpetuals(
+                            items = recent,
+                            onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
+                            onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
                         )
-                    }
-                }
-                if (pinnedPerpetuals.isNotEmpty()) {
-                    item {
-                        Spacer16()
-                        PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
-                    }
-                    itemsPositioned(pinnedPerpetuals) { position, item ->
-                        PerpetualItem(
-                            item = item,
-                            listPosition = position,
-                            longPressState = longPressedAsset,
-                            onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                            onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
-                        )
-                    }
-                }
-                if (sections.showsEmpty) {
-                    item {
-                        EmptyContentView(
-                            type = EmptyContentType.SearchPerpetuals,
-                            modifier = Modifier
-                                .animateItem()
-                                .fillParentMaxSize(),
-                        )
-                    }
-                }
-                if (showMarkets) {
-                    item {
-                        SubheaderItem(R.string.markets_title)
-                    }
-                    itemsPositioned(unpinnedPerpetuals) { position, item ->
-                        PerpetualItem(
-                            item = item,
-                            listPosition = position,
-                            longPressState = longPressedAsset,
-                            onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                            onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
-                        )
+                        GemPerpetualMarketSection.POSITIONS -> {
+                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
+                            itemsPositioned(positions) { position, item ->
+                                PerpetualPositionItem(
+                                    data = item,
+                                    listPosition = position,
+                                    modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) }
+                                )
+                            }
+                        }
+                        GemPerpetualMarketSection.PINNED -> {
+                            item {
+                                Spacer16()
+                                PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
+                            }
+                            itemsPositioned(pinnedPerpetuals) { position, item ->
+                                PerpetualItem(
+                                    item = item,
+                                    listPosition = position,
+                                    longPressState = longPressedAsset,
+                                    onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
+                                    onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                                )
+                            }
+                        }
+                        GemPerpetualMarketSection.MARKETS -> {
+                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
+                            itemsPositioned(unpinnedPerpetuals) { position, item ->
+                                PerpetualItem(
+                                    item = item,
+                                    listPosition = position,
+                                    longPressState = longPressedAsset,
+                                    onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
+                                    onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                                )
+                            }
+                        }
+                        GemPerpetualMarketSection.EMPTY -> item {
+                            EmptyContentView(
+                                type = EmptyContentType.SearchPerpetuals,
+                                modifier = Modifier
+                                    .animateItem()
+                                    .fillParentMaxSize(),
+                            )
+                        }
                     }
                 }
             }

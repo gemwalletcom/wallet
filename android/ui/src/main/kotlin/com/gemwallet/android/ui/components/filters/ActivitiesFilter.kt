@@ -44,8 +44,8 @@ fun TransactionsFilter(
     chainsFilter: List<Chain>,
     typesFilter: List<GemTransactionFilter>,
     onDismissRequest: () -> Unit,
-    onApplyChainsFilter: (List<Chain>) -> Unit,
-    onApplyTypesFilter: (List<GemTransactionFilter>) -> Unit,
+    onSelectChainsFilter: (List<Chain>) -> Unit,
+    onSelectTypesFilter: (List<GemTransactionFilter>) -> Unit,
     onClearChainsFilter: () -> Unit,
     onClearTypesFilter: () -> Unit,
 ) {
@@ -126,11 +126,11 @@ fun TransactionsFilter(
         isVisible = showedSubFilter == FilterType.ByChains,
         initialSelection = chainsFilter,
         onDone = {
-            onApplyChainsFilter(it)
+            onSelectChainsFilter(it)
             showedSubFilter = null
         },
         onConfirm = {
-            onApplyChainsFilter(it)
+            onSelectChainsFilter(it)
             showedSubFilter = null
             onDismissRequest()
         },
@@ -147,11 +147,11 @@ fun TransactionsFilter(
         isVisible = showedSubFilter == FilterType.ByTypes,
         initialSelection = typesFilter,
         onDone = {
-            onApplyTypesFilter(it)
+            onSelectTypesFilter(it)
             showedSubFilter = null
         },
         onConfirm = {
-            onApplyTypesFilter(it)
+            onSelectTypesFilter(it)
             showedSubFilter = null
             onDismissRequest()
         },

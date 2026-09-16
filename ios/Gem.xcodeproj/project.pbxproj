@@ -19,7 +19,7 @@
 		833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A42D2D5B1D0063BB6A /* PriceAlerts */; };
 		833CDFD02D10622D00DAABEE /* ServicesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */; };
 		8349F1472D5E4FF4003A0A93 /* ManageWallets in Frameworks */ = {isa = PBXBuildFile; productRef = 8349F1462D5E4FF4003A0A93 /* ManageWallets */; };
-		834B381A2D1D85E2009D58D4 /* LockManager in Frameworks */ = {isa = PBXBuildFile; productRef = 834B38192D1D85E2009D58D4 /* LockManager */; };
+		834B381A2D1D85E2009D58D4 /* AppLock in Frameworks */ = {isa = PBXBuildFile; productRef = 834B38192D1D85E2009D58D4 /* AppLock */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
 		8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB602D3FE5F2008D89CF /* Transactions */; };
@@ -73,6 +73,13 @@
 		D83819562E256A5B0076CDB3 /* GemPriceWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D83BDCB72E3E878A00E41807 /* PerpetualPositionNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB52E3E878A00E41807 /* PerpetualPositionNavigationStack.swift */; };
 		D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */; };
+		D8A200060000000000E41807 /* ViewModelFactory+Wallets.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100060000000000E41807 /* ViewModelFactory+Wallets.swift */; };
+		D8A200050000000000E41807 /* ViewModelFactory+Wallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100050000000000E41807 /* ViewModelFactory+Wallet.swift */; };
+		D8A200040000000000E41807 /* ViewModelFactory+Transfer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100040000000000E41807 /* ViewModelFactory+Transfer.swift */; };
+		D8A200030000000000E41807 /* ViewModelFactory+Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100030000000000E41807 /* ViewModelFactory+Settings.swift */; };
+		D8A200020000000000E41807 /* ViewModelFactory+Perpetuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100020000000000E41807 /* ViewModelFactory+Perpetuals.swift */; };
+		D8A200010000000000E41807 /* ViewModelFactory+Collectibles.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100010000000000E41807 /* ViewModelFactory+Collectibles.swift */; };
+		D8A200000000000000E41807 /* ViewModelFactory+Activity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100000000000000E41807 /* ViewModelFactory+Activity.swift */; };
 		D852CAFD2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */; };
 		D852CB012C9CC315004121D3 /* PriceAlertsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */; };
 		D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */ = {isa = PBXBuildFile; productRef = D85AD2A52CD7017E0010DEF8 /* NativeProviderService */; };
@@ -166,7 +173,7 @@
 		833931A32D2D54060063BB6A /* PriceAlerts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PriceAlerts; sourceTree = "<group>"; };
 		833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFactory.swift; sourceTree = "<group>"; };
 		8349F1452D5E4D04003A0A93 /* ManageWallets */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ManageWallets; sourceTree = "<group>"; };
-		834B38182D1D858D009D58D4 /* LockManager */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LockManager; sourceTree = "<group>"; };
+		834B38182D1D858D009D58D4 /* AppLock */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = AppLock; sourceTree = "<group>"; };
 		83518CCC2D1C998300B339E5 /* PrimitivesComponents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PrimitivesComponents; sourceTree = "<group>"; };
 		8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutocloseNavigationStack.swift; sourceTree = "<group>"; };
 		8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualNavigationView.swift; sourceTree = "<group>"; };
@@ -229,6 +236,13 @@
 		D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GemPriceWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D83BDCB52E3E878A00E41807 /* PerpetualPositionNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualPositionNavigationStack.swift; sourceTree = "<group>"; };
 		D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelFactory.swift; sourceTree = "<group>"; };
+		D8A100060000000000E41807 /* ViewModelFactory+Wallets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Wallets.swift"; sourceTree = "<group>"; };
+		D8A100050000000000E41807 /* ViewModelFactory+Wallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Wallet.swift"; sourceTree = "<group>"; };
+		D8A100040000000000E41807 /* ViewModelFactory+Transfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Transfer.swift"; sourceTree = "<group>"; };
+		D8A100030000000000E41807 /* ViewModelFactory+Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Settings.swift"; sourceTree = "<group>"; };
+		D8A100020000000000E41807 /* ViewModelFactory+Perpetuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Perpetuals.swift"; sourceTree = "<group>"; };
+		D8A100010000000000E41807 /* ViewModelFactory+Collectibles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Collectibles.swift"; sourceTree = "<group>"; };
+		D8A100000000000000E41807 /* ViewModelFactory+Activity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Activity.swift"; sourceTree = "<group>"; };
 		D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddAssetPriceAlertNavigationStack.swift; sourceTree = "<group>"; };
 		D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertsNavigationView.swift; sourceTree = "<group>"; };
 		D87316542E3AF1F000C11634 /* FeatureServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FeatureServices; sourceTree = "<group>"; };
@@ -308,7 +322,7 @@
 				DF93C4EE2C969F4F00204ABD /* Gemstone in Frameworks */,
 				D8CF19E32CC747370025D6B4 /* Transfer in Frameworks */,
 				D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */,
-				834B381A2D1D85E2009D58D4 /* LockManager in Frameworks */,
+				834B381A2D1D85E2009D58D4 /* AppLock in Frameworks */,
 				B66AFC6C2DDB260A0082C026 /* AppService in Frameworks */,
 				0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */,
 				833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */,
@@ -473,6 +487,13 @@
 				83B08BDC2D0B4B1E00CA1B33 /* AppResolver+Services.swift */,
 				833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */,
 				D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */,
+				D8A100060000000000E41807 /* ViewModelFactory+Wallets.swift */,
+				D8A100050000000000E41807 /* ViewModelFactory+Wallet.swift */,
+				D8A100040000000000E41807 /* ViewModelFactory+Transfer.swift */,
+				D8A100030000000000E41807 /* ViewModelFactory+Settings.swift */,
+				D8A100020000000000E41807 /* ViewModelFactory+Perpetuals.swift */,
+				D8A100010000000000E41807 /* ViewModelFactory+Collectibles.swift */,
+				D8A100000000000000E41807 /* ViewModelFactory+Activity.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -633,7 +654,7 @@
 				D829BF432CBDD9D200DEB2E8 /* FiatConnect */,
 				D829BF402CBDD64D00DEB2E8 /* MarketInsight */,
 				C366791B2A1860E500F1D74D /* QRScanner */,
-				834B38182D1D858D009D58D4 /* LockManager */,
+				834B38182D1D858D009D58D4 /* AppLock */,
 				C370289B2A9C3B0E009AE123 /* Settings */,
 				D88BB2682E2EE09F006310B9 /* Perpetuals */,
 			);
@@ -739,7 +760,7 @@
 				D85AD2A52CD7017E0010DEF8 /* NativeProviderService */,
 				D8D83C832CECFA610083AA53 /* Swap */,
 				839C794A2D1C42A500E32072 /* PrimitivesComponents */,
-				834B38192D1D85E2009D58D4 /* LockManager */,
+				834B38192D1D85E2009D58D4 /* AppLock */,
 				833931A42D2D5B1D0063BB6A /* PriceAlerts */,
 				B604C2E92F3F538100CBAFDC /* Contacts */,
 				D9F015752F10654000000002 /* InAppNotifications */,
@@ -1016,6 +1037,13 @@
 				D8C4A3A52C9696FE006FABE8 /* AssetNavigationView.swift in Sources */,
 				D890F7A52C7FC0AC00C26819 /* WalletsNavigationStack.swift in Sources */,
 				D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */,
+				D8A200060000000000E41807 /* ViewModelFactory+Wallets.swift in Sources */,
+				D8A200050000000000E41807 /* ViewModelFactory+Wallet.swift in Sources */,
+				D8A200040000000000E41807 /* ViewModelFactory+Transfer.swift in Sources */,
+				D8A200030000000000E41807 /* ViewModelFactory+Settings.swift in Sources */,
+				D8A200020000000000E41807 /* ViewModelFactory+Perpetuals.swift in Sources */,
+				D8A200010000000000E41807 /* ViewModelFactory+Collectibles.swift in Sources */,
+				D8A200000000000000E41807 /* ViewModelFactory+Activity.swift in Sources */,
 				83B08BDD2D0B4B1E00CA1B33 /* AppResolver+Services.swift in Sources */,
 				83E0415A2D0AFCB80031D4BC /* RootSceneViewModel.swift in Sources */,
 				D8B738D42C59643D004EF083 /* MainTabViewModel.swift in Sources */,
@@ -1667,9 +1695,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = ManageWallets;
 		};
-		834B38192D1D85E2009D58D4 /* LockManager */ = {
+		834B38192D1D85E2009D58D4 /* AppLock */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = LockManager;
+			productName = AppLock;
 		};
 		8361BB602D3FE5F2008D89CF /* Transactions */ = {
 			isa = XCSwiftPackageProductDependency;

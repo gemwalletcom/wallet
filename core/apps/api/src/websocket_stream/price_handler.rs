@@ -1,21 +1,25 @@
 use cacher::CacheKey;
 use pricer::PriceClient;
-use primitives::{AssetId, AssetPrice, AssetPriceInfo, StreamEvent, StreamMessage, StreamMessagePrices, WebSocketPricePayload};
+use primitives::{AssetId, AssetPrice, AssetPriceInfo, StreamEvent, StreamMessage, StreamMessagePrices, Version, WebSocketPricePayload};
 use redis::aio::MultiplexedConnection;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
+use crate::prices::filter_fiat_rates;
+
 pub struct PriceHandler {
     price_client: PriceClient,
+    version: Version,
     assets: HashSet<AssetId>,
     prices_to_publish: HashMap<String, AssetPrice>,
     interval: rocket::tokio::time::Interval,
 }
 
 impl PriceHandler {
-    pub fn new(price_client: PriceClient) -> Self {
+    pub fn new(price_client: PriceClient, version: Version) -> Self {
         Self {
             price_client,
+            version,
             assets: HashSet::new(),
             prices_to_publish: HashMap::new(),
             interval: rocket::tokio::time::interval(std::time::Duration::from_secs(5)),
@@ -112,7 +116,11 @@ impl PriceHandler {
             .into_iter()
             .map(|x| x.as_asset_price_primitive())
             .collect();
-        let rates = if include_rates { self.price_client.get_cache_fiat_rates().await? } else { vec![] };
+        let rates = if include_rates {
+            filter_fiat_rates(self.price_client.get_cache_fiat_rates().await?, &self.version)
+        } else {
+            vec![]
+        };
         Ok(StreamEvent::Prices(WebSocketPricePayload { prices, rates }))
     }
 }

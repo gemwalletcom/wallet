@@ -58,7 +58,6 @@
   <string name="common_expiration">Expirare</string>
   <string name="common_suspicious_address">Adresă suspectă</string>
   <string name="common_refresh">Reîmprospăta</string>
-  <string name="common_no_thanks">Nu, mulțumesc</string>
   <string name="common_grant_permission">Acordați permisiunea</string>
   <string name="common_required_field">%1$s este necesar</string>
   <string name="welcome_title">Bun venit la Gem Family</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">Dezghețare</string>
   <string name="transfer_review_request">Cerere de revizuire</string>
   <string name="transfer_amount">Suma</string>
-  <string name="transfer_amount_title">Suma</string>
   <string name="settings_terms_of_services">Termeni și condiții</string>
   <string name="settings_privacy_policy">Politica de confidențialitate</string>
   <string name="settings_title">Setări</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">Cum te putem ajuta?</string>
   <string name="support_state_empty_description">Întreabă-ne orice. Suntem aici să te ajutăm.</string>
   <string name="support_message_placeholder">Mesaj</string>
-  <string name="errors_transfer">Eroare de transfer: %1$s</string>
   <string name="errors_validation">Eroare de validare: %1$s</string>
   <string name="errors_create_wallet">Eroare la crearea portofelului: %1$s</string>
   <string name="errors_invalid_address_name">Adresă sau nume nevalide</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Anulat de utilizator</string>
   <string name="errors_not_supported">Nu este acceptat</string>
   <string name="errors_permissions_not_granted">Permisiunile nu sunt acordate</string>
-  <string name="errors_decoding">Eroare de decodare</string>
   <string name="errors_unknown">Necunoscut</string>
   <string name="errors_not_supported_qr">Acest dispozitiv nu acceptă scanarea codurilor QR. Puteți selecta doar imaginea codului QR din bibliotecă.</string>
   <string name="errors_camera_permissions_not_granted">Permisiunea camerei nu a fost acordată. Vă rugăm să activați accesul la cameră în setări pentru a scana codul QR.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">Tranzacția a eșuat deoarece suma este prea mică pentru a îndeplini cerințele minime ale rețelei %1$s (pragul de praf). Această limită asigură că valoarea tranzacției acoperă taxele și costurile de procesare.</string>
   <string name="errors_swap_no_quote_available">Nu există nicio cotație disponibilă.</string>
   <string name="errors_swap_not_supported_asset">Activ neacceptat.</string>
-  <string name="errors_connections_invalid_send_parameters">Parametri nevalidi furnizați pentru trimiterea unei tranzacții.</string>
-  <string name="errors_connections_invalid_sign_parameters">Parametrii nevalidi furnizați pentru semnare.</string>
   <string name="errors_connections_no_supported_wallets">Nu sunt disponibile portofele acceptate.</string>
   <string name="errors_connections_unsupported_chain">Lanțul furnizat nu este acceptat.</string>
-  <string name="errors_connections_unsupported_method">Metoda solicitată nu este acceptată.</string>
   <string name="errors_swap_amount_too_small">Cantitate prea mică</string>
   <string name="errors_required">%1$s este obligatoriu</string>
   <string name="errors_scan_transaction_malicious_description">Această tranzacție nu poate fi finalizată — adresa portofelului de destinație este legată de o activitate suspectă sau dăunătoare.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Suma minimă a tranzacției este %1$s. Vă rugăm să introduceți o sumă mai mare.</string>
   <string name="errors_perpetual_trigger_price_lower">Prețul de declanșare trebuie să fie mai mic decât prețul pieței</string>
   <string name="errors_perpetual_trigger_price_higher">Prețul de declanșare trebuie să fie mai mare decât prețul pieței</string>
-  <string name="errors_token_unable_fetch_token_information">Nu se pot prelua informații despre token: %1$s</string>
   <string name="errors_unknown_try_again">A apărut o eroare necunoscută. Vă rugăm să încercați din nou.</string>
   <string name="errors_network_error">Eroare de rețea: %1$s</string>
   <string name="errors_network_offline">Conexiunea la internet pare să fie offline.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">Permite instalarea</string>
   <string name="update_app_permission_description">Accesați setările și permiteți instalarea din surse externe</string>
   <string name="update_app_permission_open_settings">Accesați setările</string>
-  <string name="update_app_downloading">Se descarcă...</string>
   <string name="transaction_recipient">Destinatar</string>
   <string name="transaction_sender">Expeditorul</string>
   <string name="transaction_date">Data</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">Rețeaua %1$s necesită o taxă unică de %2$s.</string>
   <string name="banner_stake_title">Începeți miza %1$s</string>
   <string name="banner_stake_description">Câștigă %1$s recompense pe miza ta în timp ce dormi.</string>
-  <string name="banner_enable_notifications_title">Activați notificările</string>
-  <string name="banner_enable_notifications_description">Rămâneți la curent cu activitatea din portofel.</string>
   <string name="banner_activate_asset_description">Pentru a utiliza activul %1$s, trebuie mai întâi să îl activați în rețeaua %2$s îndeplinind cerințele specifice ale rețelei.</string>
   <string name="banner_asset_status_title">Activ suspect</string>
   <string name="banner_asset_status_description">Tokenul poate fi nesigur sau înșelător. Continuați doar dacă aveți deplină încredere în el.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">Cruce</string>
   <string name="perpetual_margin_isolated">Izolat</string>
   <string name="perpetuals_title">Perpetue</string>
+  <string name="perpetuals_trade">Tranzacționează perpetue</string>
   <string name="perpetuals_markets">Piețele</string>
-  <string name="perpetuals_empty_state_no_markets">Fara piete</string>
   <string name="perpetuals_empty_state_no_markets_found">Nu s-au găsit piețe</string>
   <string name="rewards_title">Recompense</string>
   <string name="rewards_share_text">Alătură-te Gem Wallet cu linkul meu de recomandare și câștigă recompense: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Acces complet la colecția NFT solicitat</string>
   <string name="simulation_warning_unlimited_token_approval_title">Aprobare nelimitată de tokenuri</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Este necesară permisiunea camerei pentru scanarea codului QR.\nVă rugăm să acordați permisiunea.</string>
-  <string name="notifications_permission_request_notification">Este necesară permisiunea de a posta notificări pentru a primi notificări despre tranzacții noi.\nVă rugăm să acordați permisiunea.</string>
-  <string name="confirm_fee_error">Eroare de calcul a taxei</string>
   <string name="rootcheck_security_alert">Avertisment de securitate</string>
   <string name="rootcheck_body">Dispozitivul dvs. pare să aibă acces root, ceea ce poate crește semnificativ riscurile de securitate. Utilizarea acestei aplicații pe un dispozitiv înrădăcinat poate expune activele dvs. la acces neautorizat și la o potențială pierdere. Pentru siguranța fondurilor dvs., vă recomandăm insistent să utilizați un dispozitiv care nu este rootat.</string>
   <string name="rootcheck_ignore">Ignora</string>

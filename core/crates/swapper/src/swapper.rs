@@ -67,30 +67,37 @@ impl GemSwapper {
 }
 
 impl GemSwapper {
+    fn boxed<T: Swapper + 'static>(swapper: T) -> Box<dyn Swapper> {
+        Box::new(swapper)
+    }
+
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let swappers: Vec<Box<dyn Swapper>> = vec![
-            uniswap::default::boxed_uniswap_v3(rpc_provider.clone()),
-            uniswap::default::boxed_uniswap_v4(rpc_provider.clone()),
-            uniswap::default::boxed_pancakeswap(rpc_provider.clone()),
-            Box::new(thorchain::ThorChain::new(rpc_provider.clone())),
-            Box::new(thorchain::ThorChain::new_mayachain(rpc_provider.clone())),
-            Box::new(jupiter::Jupiter::new(rpc_provider.clone())),
-            Box::new(okx::OkxProvider::new(rpc_provider.clone())),
-            Box::new(across::Across::new(rpc_provider.clone())),
-            Box::new(hyperliquid::Hyperliquid::new(rpc_provider.clone())),
-            uniswap::default::boxed_oku(rpc_provider.clone()),
-            uniswap::default::boxed_wagmi(rpc_provider.clone()),
-            Box::new(stonfi::Stonfi::new(rpc_provider.clone())),
-            Box::new(mayan::Mayan::new(rpc_provider.clone())),
-            Box::new(panora::Panora::new(rpc_provider.clone())),
-            Box::new(near_intents::NearIntents::new(rpc_provider.clone())),
-            Box::new(chainflip::ChainflipProvider::new(rpc_provider.clone())),
-            Box::new(cetus_clmm::CetusClmm::new(rpc_provider.clone())),
-            Box::new(relay::Relay::new(rpc_provider.clone())),
-            Box::new(squid::Squid::new(rpc_provider.clone())),
-            Box::new(swaps_xyz::SwapsXyz::new(rpc_provider.clone())),
-            uniswap::default::boxed_aerodrome(rpc_provider.clone()),
-        ];
+        let swappers: Vec<Box<dyn Swapper>> = [
+            Some(uniswap::default::boxed_uniswap_v3(rpc_provider.clone())),
+            Some(uniswap::default::boxed_uniswap_v4(rpc_provider.clone())),
+            Some(uniswap::default::boxed_pancakeswap(rpc_provider.clone())),
+            thorchain::ThorChain::new(rpc_provider.clone()).map(Self::boxed),
+            thorchain::ThorChain::new_mayachain(rpc_provider.clone()).map(Self::boxed),
+            jupiter::Jupiter::new(rpc_provider.clone()).map(Self::boxed),
+            Some(Box::new(okx::OkxProvider::new(rpc_provider.clone()))),
+            Some(Box::new(across::Across::new(rpc_provider.clone()))),
+            Some(Box::new(hyperliquid::Hyperliquid::new(rpc_provider.clone()))),
+            Some(uniswap::default::boxed_oku(rpc_provider.clone())),
+            Some(uniswap::default::boxed_wagmi(rpc_provider.clone())),
+            stonfi::Stonfi::new(rpc_provider.clone()).map(Self::boxed),
+            Some(Box::new(mayan::Mayan::new(rpc_provider.clone()))),
+            Some(Box::new(panora::Panora::new(rpc_provider.clone()))),
+            near_intents::NearIntents::new(rpc_provider.clone()).map(Self::boxed),
+            Some(Box::new(chainflip::ChainflipProvider::new(rpc_provider.clone()))),
+            cetus_clmm::CetusClmm::new(rpc_provider.clone()).map(Self::boxed),
+            Some(Box::new(relay::Relay::new(rpc_provider.clone()))),
+            Some(Box::new(squid::Squid::new(rpc_provider.clone()))),
+            swaps_xyz::SwapsXyz::new(rpc_provider.clone()).map(Self::boxed),
+            Some(uniswap::default::boxed_aerodrome(rpc_provider.clone())),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
 
         Self { rpc_provider, swappers }
     }
@@ -314,9 +321,9 @@ mod tests {
         let swappers: Vec<Box<dyn Swapper>> = vec![
             Box::new(new_uniswap_v3(provider.clone())),
             Box::new(new_pancakeswap(provider.clone())),
-            Box::new(thorchain::ThorChain::new(provider.clone())),
-            Box::new(thorchain::ThorChain::new_mayachain(provider.clone())),
-            Box::new(jupiter::Jupiter::new(provider)),
+            Box::new(thorchain::ThorChain::new(provider.clone()).unwrap()),
+            Box::new(thorchain::ThorChain::new_mayachain(provider.clone()).unwrap()),
+            Box::new(jupiter::Jupiter::new(provider).unwrap()),
         ];
 
         let from_chain = Chain::Ethereum;
@@ -530,5 +537,69 @@ mod tests {
         GemSwapper::sort_quotes_by_output_amount(&mut large);
 
         assert_eq!(large[0].to_value, BigUint::from(10_000_000_000_000_000_000u64));
+    }
+}
+
+#[cfg(all(test, feature = "swap_integration_tests"))]
+mod timing_tests {
+    use std::{sync::Arc, time::Instant};
+
+    use num_bigint::BigUint;
+    use primitives::{AssetId, Chain, asset_constants::ETHEREUM_USDC_ASSET_ID};
+
+    use super::*;
+    use crate::{Options, QuoteRequest, alien::reqwest_provider::NativeProvider};
+
+    fn request(to_asset: AssetId, destination_address: &str) -> QuoteRequest {
+        QuoteRequest {
+            from_asset: AssetId::from_chain(Chain::Ethereum).into(),
+            to_asset: to_asset.into(),
+            wallet_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
+            destination_address: destination_address.into(),
+            value: BigUint::from(100000000000000000u64),
+            options: Options {
+                slippage: 100.into(),
+                use_max_amount: false,
+            },
+        }
+    }
+
+    async fn report(swapper: &GemSwapper, request: &QuoteRequest, round: &str) {
+        let started = Instant::now();
+        swapper.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
+        println!("{round} preload total: {}ms", started.elapsed().as_millis());
+
+        let provider_ids: BTreeSet<_> = swapper.get_providers_for_request(request).unwrap().into_iter().map(|provider| provider.id).collect();
+        let timings = swapper
+            .swappers
+            .iter()
+            .filter(|swapper| provider_ids.contains(&swapper.provider().id))
+            .map(|provider| async move {
+                let started = Instant::now();
+                let outcome = provider.get_quote(request).await;
+                (provider.provider().id.id().to_string(), started.elapsed().as_millis(), outcome.is_ok())
+            });
+
+        let started = Instant::now();
+        let mut timings = futures::future::join_all(timings).await;
+        let total = started.elapsed().as_millis();
+        timings.sort_by_key(|(_, elapsed, _)| *elapsed);
+        for (provider, elapsed, quoted) in &timings {
+            println!("{round} quote {provider}: {elapsed}ms {}", if *quoted { "quoted" } else { "no quote" });
+        }
+        println!("{round} quote round total: {total}ms, slowest decides");
+    }
+
+    #[tokio::test]
+    async fn test_report_preload_and_quote_durations_per_provider() {
+        let swapper = GemSwapper::new(Arc::new(NativeProvider::new().set_debug(false)));
+
+        let on_chain = request(ETHEREUM_USDC_ASSET_ID.clone(), "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4");
+        report(&swapper, &on_chain, "on-chain cold").await;
+        report(&swapper, &on_chain, "on-chain warm").await;
+
+        let cross_chain = request(AssetId::from_chain(Chain::Solana), "7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q");
+        report(&swapper, &cross_chain, "cross-chain cold").await;
+        report(&swapper, &cross_chain, "cross-chain warm").await;
     }
 }

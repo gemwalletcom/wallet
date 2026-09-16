@@ -111,7 +111,7 @@ pub fn secret_export(wallet: &Wallet) -> SecretExport {
     }
 }
 
-pub fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
+fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
     match secret_export(wallet) {
         SecretExport::Words => Some(GemWalletSecretKind::Phrase),
         SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),

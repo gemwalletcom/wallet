@@ -7,6 +7,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemSettingsServiceInterface
+import uniffi.gemstone.GemSettingsService
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import javax.inject.Singleton
@@ -30,4 +33,8 @@ object SessionModule {
     @Singleton
     @Provides
     fun provideGemWalletSessionServiceInterface(service: GemWalletSessionService): GemWalletSessionServiceInterface = service
+
+    @Singleton
+    @Provides
+    fun provideGemSettingsService(preferences: GemPreferencesService): GemSettingsServiceInterface = GemSettingsService(preferences)
 }

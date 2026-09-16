@@ -2,6 +2,8 @@
 
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import Components
+import struct Gemstone.GemAboutSection
+import func Gemstone.aboutSections
 import func Gemstone.communityLinks
 import GemstonePrimitives
 import Localization
@@ -16,7 +18,6 @@ import SwiftUI
 public final class AboutUsViewModel: Sendable {
     private let preferences: ObservablePreferences
     private let service: any GemAppUpdateServiceProtocol
-
     public init(
         preferences: ObservablePreferences,
         service: any GemAppUpdateServiceProtocol,
@@ -25,37 +26,29 @@ public final class AboutUsViewModel: Sendable {
         self.service = service
     }
 
+    var sections: [GemAboutSection] {
+        aboutSections()
+    }
+
     var title: String {
         Localized.Settings.aboutus
     }
 
-    var termsOfServiceTitle: String {
-        Localized.Settings.termsOfServices
-    }
 
     var termsOfServiceURL: URL {
         AppUrl.page(.termsOfService)
     }
 
-    var privacyPolicyTitle: String {
-        Localized.Settings.privacyPolicy
-    }
 
     var privacyPolicyURL: URL {
         AppUrl.page(.privacyPolicy)
     }
 
-    var websiteTitle: String {
-        Localized.Settings.website
-    }
 
     var websiteURL: URL {
         AppUrl.page(.website)
     }
 
-    var versionTextTitle: String {
-        Localized.Settings.version
-    }
 
     var versionTextValue: String {
         let version = Bundle.main.releaseVersionNumber
@@ -99,9 +92,6 @@ public final class AboutUsViewModel: Sendable {
         SocialLinksViewModel(links: communityLinks())
     }
 
-    var communityTitle: String {
-        Localized.Settings.community
-    }
 }
 
 extension AboutUsViewModel {

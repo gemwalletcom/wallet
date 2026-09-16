@@ -35,7 +35,7 @@ impl JobMetrics {
     }
 
     pub fn report(&self, name: &str, interval: u64, duration: u64, success: bool) {
-        let mut jobs = self.jobs.lock().unwrap();
+        let mut jobs = super::locked(&self.jobs);
         let state = jobs.entry(name.to_string()).or_default();
 
         state.interval = interval;
@@ -54,7 +54,7 @@ impl MetricsProvider for JobMetrics {
         let interval = Family::<JobLabels, Gauge>::default();
         let duration = Family::<JobLabels, Gauge>::default();
 
-        let jobs = self.jobs.lock().unwrap();
+        let jobs = super::locked(&self.jobs);
         for (name, state) in jobs.iter() {
             let labels = JobLabels {
                 service: self.service.clone(),

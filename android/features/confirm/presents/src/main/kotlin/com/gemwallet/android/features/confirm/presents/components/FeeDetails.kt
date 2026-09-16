@@ -70,6 +70,8 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.title
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -229,6 +231,13 @@ private fun FeeRates(
                 )
             }
         }
+        itemsIndexed(currentFee.feeItems) { index, (option, info) ->
+            PropertyItem(
+                title = option.title(),
+                data = info.cryptoAmount,
+                listPosition = ListPosition.getPosition(index, currentFee.feeItems.size + 1),
+            )
+        }
         item {
             PropertyNetworkFee(
                 currentFee.feeAsset.name,
@@ -238,7 +247,6 @@ private fun FeeRates(
                 showedCryptoAmount = true,
             )
         }
-        // TODO: Present currentFee.feeItems in a separate section when nonempty.
     }
 }
 

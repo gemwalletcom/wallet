@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemWalletServiceProtocol
 import Foundation
@@ -16,7 +15,6 @@ public final class ImportWalletViewModel {
     private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
     private let nameService: any GemNameServiceProtocol
-    private let chainService: any GemChainServiceProtocol
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
@@ -25,13 +23,11 @@ public final class ImportWalletViewModel {
         service: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
         nameService: any GemNameServiceProtocol,
-        chainService: any GemChainServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.service = service
         self.preferences = preferences
         self.nameService = nameService
-        self.chainService = chainService
         self.onComplete = onComplete
     }
 
@@ -44,7 +40,7 @@ public final class ImportWalletViewModel {
     }
 
     func importWalletTypeModel() -> ImportWalletTypeViewModel {
-        ImportWalletTypeViewModel(service: chainService)
+        ImportWalletTypeViewModel()
     }
 
     func setupWalletModel(wallet: Wallet, onComplete: @escaping (Wallet) -> Void) -> SetupWalletViewModel {

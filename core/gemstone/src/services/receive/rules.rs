@@ -1,16 +1,15 @@
 use primitives::{AssetId, Chain, Wallet};
 
-use super::model::GemMemoWarning;
+use super::model::GemReceiveWarning;
 use crate::config::chain::is_memo_supported;
 
-pub fn memo_warning(chain: Chain) -> GemMemoWarning {
-    if !is_memo_supported(chain) {
-        return GemMemoWarning::NotSupported;
-    }
-    match chain {
-        Chain::Xrp => GemMemoWarning::DestinationTag,
-        _ => GemMemoWarning::Memo,
-    }
+pub fn warnings(chain: Chain) -> Vec<GemReceiveWarning> {
+    let memo = match (is_memo_supported(chain), chain) {
+        (false, _) => None,
+        (true, Chain::Xrp) => Some(GemReceiveWarning::NoDestinationTagRequired),
+        (true, _) => Some(GemReceiveWarning::NoMemoRequired),
+    };
+    std::iter::once(GemReceiveWarning::AssetNetwork).chain(memo).collect()
 }
 
 pub fn network_asset_ids(asset_id: AssetId, associations: Vec<AssetId>, wallet: &Wallet) -> Vec<AssetId> {
@@ -44,11 +43,11 @@ mod tests {
     }
 
     #[test]
-    fn test_memo_warning_names_the_field_each_chain_uses() {
-        assert_eq!(memo_warning(Chain::Xrp), GemMemoWarning::DestinationTag);
-        assert_eq!(memo_warning(Chain::Cosmos), GemMemoWarning::Memo);
-        assert_eq!(memo_warning(Chain::Ton), GemMemoWarning::Memo);
-        assert_eq!(memo_warning(Chain::Ethereum), GemMemoWarning::NotSupported);
-        assert_eq!(memo_warning(Chain::Bitcoin), GemMemoWarning::NotSupported);
+    fn test_receive_warnings_lead_with_the_asset_network_sentence_and_name_the_memo_field() {
+        assert_eq!(warnings(Chain::Ethereum), vec![GemReceiveWarning::AssetNetwork]);
+        assert_eq!(warnings(Chain::Bitcoin), vec![GemReceiveWarning::AssetNetwork]);
+        assert_eq!(warnings(Chain::Xrp), vec![GemReceiveWarning::AssetNetwork, GemReceiveWarning::NoDestinationTagRequired]);
+        assert_eq!(warnings(Chain::Cosmos), vec![GemReceiveWarning::AssetNetwork, GemReceiveWarning::NoMemoRequired]);
+        assert_eq!(warnings(Chain::Ton), vec![GemReceiveWarning::AssetNetwork, GemReceiveWarning::NoMemoRequired]);
     }
 }

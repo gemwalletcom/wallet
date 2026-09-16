@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.create_wallet.views
 
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletDefaultName
 import androidx.activity.compose.BackHandler
@@ -114,7 +116,7 @@ fun CreateWalletScreen(
 private fun UI(
     defaultName: GemWalletDefaultName?,
     data: List<String>,
-    dataError: String?,
+    dataError: GemErrorText?,
     onCreate: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -139,7 +141,7 @@ private fun UI(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (dataError != null) {
-                Text(text = dataError.ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
+                Text(text = dataError.text().ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
             } else {
                 Text(
                     text = stringResource(id = R.string.secret_phrase_save_phrase_safely),

@@ -75,7 +75,8 @@ import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemWalletImportKind
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.localization.text
 
 private val loadingDialogSize = 100.dp
 
@@ -336,7 +337,7 @@ private fun ErrorMessage(error: Throwable?) {
         null -> return
         else -> stringResource(
             R.string.errors_create_wallet,
-            error.serviceMessage().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
+            error.errorText().text().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
         )
     }
     Text(text = text, color = MaterialTheme.colorScheme.error)

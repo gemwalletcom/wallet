@@ -58,7 +58,6 @@
   <string name="common_expiration">Vervaldatum</string>
   <string name="common_suspicious_address">Verdacht adres</string>
   <string name="common_refresh">Vernieuwen</string>
-  <string name="common_no_thanks">Nee bedankt</string>
   <string name="common_grant_permission">Geef toestemming</string>
   <string name="common_required_field">%1$s is vereist</string>
   <string name="welcome_title">Welkom bij Gem-familie</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">Ontvriezen</string>
   <string name="transfer_review_request">Verzoek controleren</string>
   <string name="transfer_amount">Bedrag</string>
-  <string name="transfer_amount_title">Bedrag</string>
   <string name="settings_terms_of_services">Servicevoorwaarden</string>
   <string name="settings_privacy_policy">Privacybeleid</string>
   <string name="settings_title">Instellingen</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">Hoe kunnen we helpen?</string>
   <string name="support_state_empty_description">Vraag ons wat je maar wilt. We staan voor je klaar.</string>
   <string name="support_message_placeholder">Bericht</string>
-  <string name="errors_transfer">Overdrachtsfout: %1$s</string>
   <string name="errors_validation">Validatiefout: %1$s</string>
   <string name="errors_create_wallet">Fout bij het aanmaken van een portemonnee: %1$s</string>
   <string name="errors_invalid_address_name">Ongeldig adres of naam</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Gebruiker geannuleerd</string>
   <string name="errors_not_supported">Niet ondersteund</string>
   <string name="errors_permissions_not_granted">Machtigingen niet verleend</string>
-  <string name="errors_decoding">Decoderingsfout</string>
   <string name="errors_unknown">Onbekend</string>
   <string name="errors_not_supported_qr">Dit apparaat ondersteunt het scannen van QR-codes niet. U kunt alleen een QR-codeafbeelding uit de bibliotheek selecteren.</string>
   <string name="errors_camera_permissions_not_granted">Cameratoestemming niet verleend. Schakel cameratoegang in de instellingen in om de QR-code te scannen.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">De transactie is mislukt omdat het bedrag te klein is om te voldoen aan de minimumvereiste van het %1$s-netwerk (stofdrempel). Deze limiet zorgt ervoor dat de transactiewaarde de vergoedingen en verwerkingskosten dekt.</string>
   <string name="errors_swap_no_quote_available">Geen offerte beschikbaar.</string>
   <string name="errors_swap_not_supported_asset">Niet-ondersteunde asset.</string>
-  <string name="errors_connections_invalid_send_parameters">Ongeldige parameters opgegeven voor het verzenden van een transactie.</string>
-  <string name="errors_connections_invalid_sign_parameters">Ongeldige parameters opgegeven voor ondertekening.</string>
   <string name="errors_connections_no_supported_wallets">Er zijn geen ondersteunde wallets beschikbaar.</string>
   <string name="errors_connections_unsupported_chain">De meegeleverde keten wordt niet ondersteund.</string>
-  <string name="errors_connections_unsupported_method">De gevraagde methode wordt niet ondersteund.</string>
   <string name="errors_swap_amount_too_small">Bedrag te klein</string>
   <string name="errors_required">%1$s is vereist</string>
   <string name="errors_scan_transaction_malicious_description">Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Het minimale handelsbedrag is %1$s. Voer een hoger bedrag in.</string>
   <string name="errors_perpetual_trigger_price_lower">De triggerprijs moet lager zijn dan de marktprijs</string>
   <string name="errors_perpetual_trigger_price_higher">De triggerprijs moet hoger zijn dan de marktprijs</string>
-  <string name="errors_token_unable_fetch_token_information">Kan tokeninformatie niet ophalen: %1$s</string>
   <string name="errors_unknown_try_again">Er is een onbekende fout opgetreden. Probeer het opnieuw.</string>
   <string name="errors_network_error">Netwerkfout: %1$s</string>
   <string name="errors_network_offline">De internetverbinding lijkt offline te zijn.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">Installatie toestaan</string>
   <string name="update_app_permission_description">Ga naar instellingen en sta installatie van externe bronnen toe</string>
   <string name="update_app_permission_open_settings">Ga naar instellingen</string>
-  <string name="update_app_downloading">Downloaden...</string>
   <string name="transaction_recipient">Ontvanger</string>
   <string name="transaction_sender">Afzender</string>
   <string name="transaction_date">Datum</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">Voor het %1$s-netwerk is een eenmalige vergoeding van %2$s vereist.</string>
   <string name="banner_stake_title">Begin met uitzetten %1$s</string>
   <string name="banner_stake_description">Verdien %1$s beloningen op uw inzet terwijl u slaapt.</string>
-  <string name="banner_enable_notifications_title">Meldingen inschakelen</string>
-  <string name="banner_enable_notifications_description">Blijf op de hoogte van uw portemonnee-activiteit.</string>
   <string name="banner_activate_asset_description">Als u de asset %1$s wilt gebruiken, moet u deze eerst inschakelen op het netwerk %2$s door te voldoen aan de specifieke vereisten van het netwerk.</string>
   <string name="banner_asset_status_title">Verdachte activa</string>
   <string name="banner_asset_status_description">Token kan onveilig of misleidend zijn. Ga alleen verder als u er volledig op vertrouwt.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">Kruis</string>
   <string name="perpetual_margin_isolated">Geïsoleerd</string>
   <string name="perpetuals_title">Perpetuals</string>
+  <string name="perpetuals_trade">Perpetuals verhandelen</string>
   <string name="perpetuals_markets">Markten</string>
-  <string name="perpetuals_empty_state_no_markets">Geen markten</string>
   <string name="perpetuals_empty_state_no_markets_found">Geen markten gevonden</string>
   <string name="rewards_title">Beloningen</string>
   <string name="rewards_share_text">Doe mee met Gem Wallet via mijn verwijzingslink en verdien beloningen: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Volledige toegang tot de NFT-collectie aangevraagd</string>
   <string name="simulation_warning_unlimited_token_approval_title">Onbeperkte tokengoedkeuring</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Cameratoestemming vereist voor QR-codescan.\nVerleen toestemming.</string>
-  <string name="notifications_permission_request_notification">Toestemming voor het plaatsen van meldingen vereist voor het ontvangen van meldingen over nieuwe transacties.\nVerleen toestemming.</string>
-  <string name="confirm_fee_error">Fout bij het berekenen van de vergoeding</string>
   <string name="rootcheck_security_alert">Beveiligingswaarschuwing</string>
   <string name="rootcheck_body">Het lijkt erop dat uw apparaat root-toegang heeft, wat de beveiligingsrisico\'s aanzienlijk kan vergroten. Als u deze app op een geroot apparaat gebruikt, kunnen uw bezittingen worden blootgesteld aan ongeoorloofde toegang en mogelijk verlies. Voor de veiligheid van uw geld raden wij u ten zeerste aan een niet-geroot apparaat te gebruiken.</string>
   <string name="rootcheck_ignore">Negeer</string>

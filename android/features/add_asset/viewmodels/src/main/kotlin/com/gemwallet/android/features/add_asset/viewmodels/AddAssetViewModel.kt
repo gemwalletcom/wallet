@@ -31,9 +31,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemAddAssetServiceInterface
 import javax.inject.Inject
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetSession
 
@@ -148,7 +149,7 @@ class AddAssetViewModel @Inject constructor(
                 service.add(wallet.toGem(), asset.id.toIdentifier())
             }
         }
-        state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.serviceMessage()) }
+        state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.errorText()) }
         if (added.isSuccess) {
             onFinish()
         }
@@ -165,7 +166,7 @@ class AddAssetViewModel @Inject constructor(
         val isQrScan: Boolean = false,
         val isSelectChain: Boolean = false,
         val isImporting: Boolean = false,
-        val error: String? = null,
+        val error: GemErrorText? = null,
     ) {
         fun toUIState(): AddAssetUIState {
             return AddAssetUIState(

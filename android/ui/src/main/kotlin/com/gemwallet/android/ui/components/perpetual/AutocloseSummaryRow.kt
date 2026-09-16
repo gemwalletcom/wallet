@@ -11,6 +11,8 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.space2
+import uniffi.gemstone.PerpetualProvider
+import uniffi.gemstone.GemPerpetual
 
 @Composable
 fun AutocloseSummaryRow(
@@ -19,8 +21,8 @@ fun AutocloseSummaryRow(
     listPosition: ListPosition = ListPosition.Single,
 ) {
     val lines = listOfNotNull(
-        takeProfitText?.let { "${stringResource(R.string.perpetual_take_profit)}: $it" },
-        stopLossText?.let { "${stringResource(R.string.perpetual_stop_loss)}: $it" },
+        takeProfitText?.let { perpetual.triggerOrderText(stringResource(R.string.perpetual_take_profit), it) },
+        stopLossText?.let { perpetual.triggerOrderText(stringResource(R.string.perpetual_stop_loss), it) },
     )
     if (lines.isEmpty()) return
     PropertyItem(
@@ -36,3 +38,5 @@ fun AutocloseSummaryRow(
         listPosition = listPosition,
     )
 }
+
+private val perpetual = GemPerpetual(PerpetualProvider.HYPERCORE)

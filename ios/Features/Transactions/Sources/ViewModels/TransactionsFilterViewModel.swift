@@ -25,10 +25,6 @@ public final class TransactionsFilterViewModel {
 
     public let query: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
 
-    private let transactionTypes = TransactionType.allCases
-
-    private let defaultFilters = TransactionsRequestFilter.activityDefaults
-
     var isPresentingChains: Bool = false
     var isPresentingTypes: Bool = false
 
@@ -42,7 +38,7 @@ public final class TransactionsFilterViewModel {
         let request = TransactionsRequest(
             walletId: wallet.id,
             type: type,
-            filters: defaultFilters + [.types(transactionTypes.map(\.rawValue))],
+            filters: TransactionsRequestFilter.activity(chains: [], filters: []),
             limit: Int(transactionsListLimit()),
         )
         query = ObservableQuery(MappedRequest(request, transform: TransactionViewModel.sections), initialValue: [])
@@ -91,21 +87,10 @@ public final class TransactionsFilterViewModel {
     }
 
     private var requestFilters: [TransactionsRequestFilter] {
-        var filters: [TransactionsRequestFilter] = defaultFilters
-
-        if !chainsFilter.selectedChains.isEmpty {
-            let chainIds = chainsFilter.selectedChains.map(\.rawValue)
-            filters.append(.chains(chainIds))
-        }
-
-        if !transactionTypesFilter.selectedTypes.isEmpty {
-            let typeIds = transactionTypesFilter.requestFilters.map(\.rawValue)
-            filters.append(.types(typeIds))
-        } else {
-            filters.append(.types(transactionTypes.map(\.rawValue)))
-        }
-
-        return filters
+        TransactionsRequestFilter.activity(
+            chains: chainsFilter.selectedChains,
+            filters: transactionTypesFilter.selectedTypes,
+        )
     }
 }
 

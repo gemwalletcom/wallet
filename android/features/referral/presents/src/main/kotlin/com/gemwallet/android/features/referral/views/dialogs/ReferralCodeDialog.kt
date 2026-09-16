@@ -24,7 +24,8 @@ import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.filters.FormDialog
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun ReferralCodeDialog(
@@ -100,7 +101,7 @@ fun ReferralCodeDialog(
                 }
             },
             text = {
-                Text(showError?.serviceMessage() ?: return@AlertDialog)
+                Text(showError?.errorText()?.text() ?: return@AlertDialog)
             }
         )
     }

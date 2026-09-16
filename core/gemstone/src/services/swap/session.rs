@@ -589,10 +589,7 @@ mod tests {
 
     #[test]
     fn test_a_selected_quote_without_results_is_not_a_quote() {
-        let stale = GemSwapSession {
-            quotes: None,
-            ..ready()
-        };
+        let stale = GemSwapSession { quotes: None, ..ready() };
 
         assert!(stale.selected_quote.is_some(), "the selection outlives the results it came from");
         assert!(stale.quote().is_none());

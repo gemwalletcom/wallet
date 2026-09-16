@@ -2,25 +2,34 @@ package com.gemwallet.android.features.confirm.presents.localization
 
 import com.wallet.core.primitives.FeeUnitType
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.title
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ext.toGemNetworkError
+import com.gemwallet.android.ext.toGemErrorText
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.GemNetworkError
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.localizedDescription
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.Asset
 import java.math.BigInteger
 import uniffi.gemstone.GemConfirmButtonKind
+import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemValueStyle
+
+internal fun GemConfirmDestination.title(): Int = when (this) {
+    is GemConfirmDestination.Recipient -> R.string.transfer_recipient_title
+    is GemConfirmDestination.Contract -> R.string.asset_contract
+    is GemConfirmDestination.Validator -> R.string.stake_validator
+    is GemConfirmDestination.Resource -> R.string.stake_resource
+    is GemConfirmDestination.Provider -> R.string.common_provider
+}
 
 @Composable
 internal fun GemConfirmTitle.string(): String = when (this) {
@@ -53,12 +62,12 @@ internal fun GemConfirmScreen.buttonLabel(kind: GemConfirmButtonKind): String = 
 
 @Composable
 internal fun Throwable.toBroadcastLabel(): String = (this as? GemConfirmException)?.display()?.text()
-    ?: toGemNetworkError()?.localizedDescription()
+    ?: toGemErrorText()?.text(LocalContext.current)
     ?: "${stringResource(R.string.errors_transfer_error)}: ${message ?: toString()}"
 
 @Composable
 internal fun GemConfirmErrorDisplay.text(): String = when (this) {
-    is GemConfirmErrorDisplay.Offline -> GemNetworkError.Offline.localizedDescription()
+    is GemConfirmErrorDisplay.Offline -> stringResource(R.string.errors_network_offline)
     is GemConfirmErrorDisplay.Malicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
     is GemConfirmErrorDisplay.MemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
     is GemConfirmErrorDisplay.FeeRatesMissing -> stringResource(R.string.errors_unable_estimate_network_fee)

@@ -2,6 +2,7 @@
 
 import Assets
 import enum Gemstone.GemPerpetualPositionAction
+import enum Gemstone.GemTransactionHeaderAction
 import Components
 import InfoSheet
 import Localization
@@ -217,7 +218,7 @@ extension WalletNavigationView {
         Task { await navigationHandler.handle(code: code) }
     }
 
-    private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
+    private func onSelectTransactionHeaderAction(_ action: GemTransactionHeaderAction) {
         Task {
             do {
                 try await presenter.handleTransactionHeaderAction(

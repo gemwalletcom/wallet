@@ -51,6 +51,7 @@ class WalletConnectCoordinatorTest {
         icons = listOf(metadata.icon),
         requiredNamespaces = emptyMap(),
         optionalNamespaces = emptyMap(),
+        pairingTopic = "pairing",
         proposerPublicKey = "proposer",
         properties = null,
     )

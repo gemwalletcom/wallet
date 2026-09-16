@@ -142,14 +142,26 @@ pub struct GemPerpetualChartLayout {
     pub current_price: Option<GemFormattedNumber>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCandleTooltipRow {
+    Open,
+    High,
+    Low,
+    Close,
+    Change,
+    Volume,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleTooltipCell {
+    pub row: GemCandleTooltipRow,
+    pub value: GemFormattedNumber,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleTooltip {
-    pub open: GemFormattedNumber,
-    pub high: GemFormattedNumber,
-    pub low: GemFormattedNumber,
-    pub close: GemFormattedNumber,
-    pub change: GemFormattedNumber,
-    pub volume: GemFormattedNumber,
+    pub prices: Vec<GemCandleTooltipCell>,
+    pub summary: Vec<GemCandleTooltipCell>,
 }
 
 #[uniffi::export]
@@ -186,6 +198,40 @@ impl StepFailure for GemPerpetualRefreshFailure {
     fn new(step: GemPerpetualRefreshStep, message: String) -> Self {
         Self { step, message }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualSection {
+    Position,
+    Info,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualPositionDetailRow {
+    Pnl,
+    Autoclose,
+    Size,
+    EntryPrice,
+    LiquidationPrice,
+    Margin,
+    FundingPayments,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualInfoRow {
+    DailyVolume,
+    OpenInterest,
+    FundingRate,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualButton {
+    Long,
+    Short,
+    Modify,
+    Close,
+    Increase,
+    Reduce,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
@@ -245,6 +291,22 @@ pub struct GemPerpetualMarketSections {
     pub shows_pinned: bool,
     pub shows_markets: bool,
     pub shows_empty: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualMarketSection {
+    Positions,
+    Recents,
+    Pinned,
+    Markets,
+    Empty,
+}
+
+#[uniffi::export]
+impl GemPerpetualMarketSections {
+    pub fn list(&self) -> Vec<GemPerpetualMarketSection> {
+        super::rules::market_section_list(self)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

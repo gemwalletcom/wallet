@@ -16,7 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
@@ -60,20 +59,14 @@ fun WalletApp(
         currentTab = currentTab,
         deeplinkService = deeplinkService,
     )
-    var confirmPendingNavigation by remember(pendingRoutes) { mutableStateOf(false) }
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute
     val shouldWaitForWalletRootContent = isWalletRootActive && pendingRoutes.isEmpty()
 
-    LaunchedEffect(pendingRoutes, navigator, confirmPendingNavigation) {
+    LaunchedEffect(pendingRoutes, navigator) {
         if (pendingRoutes.isEmpty()) return@LaunchedEffect
-        if (confirmPendingNavigation) {
-            return@LaunchedEffect
-        }
         if (navigator.openPendingNavigation(pendingRoutes)) {
             onPendingNavigationConsumed()
-        } else if (navigator.needsPendingNavigationConfirmation()) {
-            confirmPendingNavigation = true
         }
     }
 
@@ -149,44 +142,6 @@ fun WalletApp(
             onDismiss = viewModel::laterAskNotifications,
         )
     }
-
-    if (confirmPendingNavigation && pendingRoutes.isNotEmpty()) {
-        OpenPendingNavigationDialog(
-            onOpen = {
-                confirmPendingNavigation = false
-                if (navigator.openPendingNavigation(pendingRoutes, confirmed = true)) {
-                    onPendingNavigationConsumed()
-                }
-            },
-            onCancel = {
-                confirmPendingNavigation = false
-                onPendingNavigationConsumed()
-            },
-        )
-    }
-}
-
-@Composable
-private fun OpenPendingNavigationDialog(
-    onOpen: () -> Unit,
-    onCancel: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onCancel,
-        confirmButton = {
-            TextButton(onClick = onOpen) {
-                Text(text = stringResource(id = R.string.common_continue))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(text = stringResource(id = R.string.common_cancel))
-            }
-        },
-        title = {
-            Text(text = stringResource(id = R.string.common_warning))
-        },
-    )
 }
 
 @Composable

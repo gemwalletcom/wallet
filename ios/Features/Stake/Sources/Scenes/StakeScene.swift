@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemStakeSection
+import struct Gemstone.GemStakeActionItem
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -18,13 +20,16 @@ public struct StakeScene: View {
         List {
             headerSection
             stakeInfoSection
-            if model.showManage {
-                stakeSection
+            ForEach(model.sections, id: \.self) { section in
+                Section(section.title) {
+                    content(for: section)
+                }
             }
-            if model.showTronResources {
-                resourcesSection
+            if !model.sections.contains(.delegations) {
+                Section {
+                    delegationsPlaceholder
+                }
             }
-            delegationsSection
         }
         .listSectionSpacing(.compact)
         .refreshable {
@@ -46,90 +51,69 @@ extension StakeScene {
         ListAssetHeaderView(model: model.assetModel)
     }
 
-    private var stakeSection: some View {
-        Section(Localized.Common.manage) {
-            if let stakeInfoAction = model.stakeInfoAction {
-                NavigationCustomLink(
-                    with: ListItemView(
-                        title: model.stakeTitle,
-                        titleStyle: .bodySecondary,
-                        infoAction: stakeInfoAction,
-                    ),
-                    action: stakeInfoAction,
-                )
-            } else {
-                NavigationLink(value: model.stakeDestination) {
-                    ListItemView(title: model.stakeTitle)
-                }
-                .enabled(model.isStakeEnabled)
+    @ViewBuilder
+    private func content(for section: GemStakeSection) -> some View {
+        switch section {
+        case .manage:
+            ForEach(model.actions, id: \.action) { item in
+                actionLink(item)
             }
-
-            if model.showFreeze {
-                NavigationLink(value: model.freezeDestination) {
-                    ListItemView(title: model.freezeTitle)
-                }
-            }
-
-            if model.showUnfreeze {
-                NavigationLink(value: model.unfreezeDestination) {
-                    ListItemView(title: model.unfreezeTitle)
-                }
-            }
-
-            if model.showRewards {
-                NavigationLink(value: model.claimRewardsDestination) {
-                    ListItemView(
-                        title: model.rewardsTitle,
-                        subtitle: model.claimRewardsText,
-                    )
-                }
-            }
+        case .resources:
+            ListItemView(field: model.energyField)
+            ListItemView(field: model.bandwidthField)
+        case .delegations:
+            delegationsPlaceholder
         }
     }
 
-    private var delegationsSection: some View {
-        Section(model.delegationsSectionTitle) {
-            switch model.delegationsViewState {
-            case .noData:
-                EmptyContentView(model: model.emptyContentModel)
-                    .cleanListRow()
-            case .loading:
-                ListItemLoadingView()
-                    .id(UUID())
-            case let .data(delegations):
-                ForEach(delegations) { delegation in
-                    NavigationLink(value: model.navigationDestination(for: delegation)) {
-                        DelegationView(delegation: delegation)
-                    }
-                }
-                .listRowInsets(.assetListRowInsets)
-            case let .error(error):
-                ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+    @ViewBuilder
+    private func actionLink(_ item: GemStakeActionItem) -> some View {
+        if let infoAction = model.frozenBalanceInfoAction(for: item) {
+            NavigationCustomLink(
+                with: ListItemView(
+                    title: item.action.title,
+                    titleStyle: .bodySecondary,
+                    infoAction: infoAction,
+                ),
+                action: infoAction,
+            )
+        } else {
+            NavigationLink(value: model.destination(for: item.action)) {
+                ListItemView(title: item.action.title, subtitle: model.subtitle(for: item.action))
             }
+            .enabled(item.isEnabled)
+        }
+    }
+
+    @ViewBuilder
+    private var delegationsPlaceholder: some View {
+        switch model.delegationsViewState {
+        case .noData:
+            EmptyContentView(model: model.emptyContentModel)
+                .cleanListRow()
+        case .loading:
+            ListItemLoadingView()
+                .id(UUID())
+        case let .data(delegations):
+            ForEach(delegations) { delegation in
+                NavigationLink(value: model.navigationDestination(for: delegation)) {
+                    DelegationView(delegation: delegation)
+                }
+            }
+            .listRowInsets(.assetListRowInsets)
+        case let .error(error):
+            ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
         }
     }
 
     private var stakeInfoSection: some View {
         Section {
-            ListItemView(
-                title: model.stakeAprModel.title,
-                subtitle: model.stakeAprModel.subtitle,
-                infoAction: model.onAprInfo,
-            )
-            ListItemView(
-                field: model.lockTimeField,
-                infoAction: model.onLockTimeInfo,
-            )
-            if let minAmountField = model.minAmountField {
-                ListItemView(field: minAmountField)
+            ForEach(model.infoRows, id: \.self) { row in
+                ListItemView(
+                    field: model.infoField(for: row),
+                    infoAction: model.infoAction(for: row),
+                )
             }
-        }
-    }
-
-    private var resourcesSection: some View {
-        Section(model.resourcesTitle) {
-            ListItemView(field: model.energyField)
-            ListItemView(field: model.bandwidthField)
         }
     }
 }

@@ -61,7 +61,7 @@ public struct CurrencyTextField: View {
                 currencySymbolView
             }
         }
-        .frame(height: Constants.height) // TODO: Remove after fix bug: https://developer.apple.com/forums/thread/806828
+        .frame(height: Constants.height)
     }
 
     private var currencySymbolView: some View {

@@ -3,44 +3,27 @@ package com.gemwallet.android.features.transfer_amount.presents.localization
 import com.gemwallet.android.ext.toPrimitives
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.perpetual.data
-import com.gemwallet.android.serializer.decodeJson
-import uniffi.gemstone.GemPerpetualPositionAction
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
-import com.gemwallet.android.model.AmountParams
+import uniffi.gemstone.GemAmountTitle
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.PerpetualDirection
 
 @Composable
-fun AmountTitle.asString(): String = when (this) {
-    AmountTitle.Send -> stringResource(R.string.transfer_send_title)
-    AmountTitle.Deposit -> stringResource(R.string.wallet_deposit)
-    AmountTitle.Withdraw -> stringResource(R.string.wallet_withdraw)
-    is AmountTitle.Stake -> stringResource(when (action) {
-        is AmountParams.Stake.Delegate -> R.string.transfer_stake_title
-        is AmountParams.Stake.Undelegate -> R.string.transfer_unstake_title
-        is AmountParams.Stake.Redelegate -> R.string.transfer_redelegate_title
-        is AmountParams.Stake.Withdraw -> R.string.transfer_withdraw_title
-        is AmountParams.Stake.Rewards -> R.string.transfer_rewards_title
-        is AmountParams.Stake.Freeze -> R.string.transfer_freeze_title
-        is AmountParams.Stake.Unfreeze -> R.string.transfer_unfreeze_title
-    })
-    is AmountTitle.Earn -> stringResource(when (action) {
-        is AmountParams.Earn.Deposit -> R.string.wallet_deposit
-        is AmountParams.Earn.Withdraw -> R.string.transfer_withdraw_title
-    })
-    is AmountTitle.Perpetual -> perpetualTitle(action)
+fun GemAmountTitle.asString(): String = when (this) {
+    GemAmountTitle.Send -> stringResource(R.string.transfer_send_title)
+    GemAmountTitle.Deposit -> stringResource(R.string.wallet_deposit)
+    GemAmountTitle.Withdraw -> stringResource(R.string.wallet_withdraw)
+    GemAmountTitle.Stake -> stringResource(R.string.transfer_stake_title)
+    GemAmountTitle.Unstake -> stringResource(R.string.transfer_unstake_title)
+    GemAmountTitle.Redelegate -> stringResource(R.string.transfer_redelegate_title)
+    GemAmountTitle.Rewards -> stringResource(R.string.transfer_claim_rewards_title)
+    GemAmountTitle.Freeze -> stringResource(R.string.transfer_freeze_title)
+    GemAmountTitle.Unfreeze -> stringResource(R.string.transfer_unfreeze_title)
+    is GemAmountTitle.PerpetualOpen -> stringResource(direction.toPrimitives().stringRes())
+    is GemAmountTitle.PerpetualIncrease -> stringResource(R.string.perpetual_increase_direction, stringResource(direction.toPrimitives().stringRes()))
+    is GemAmountTitle.PerpetualReduce -> stringResource(R.string.perpetual_reduce_direction, stringResource(direction.toPrimitives().stringRes()))
 }
 
-@Composable
-private fun perpetualTitle(action: GemPerpetualPositionAction): String {
-    val directionLabel = stringResource(when (action.transferData().direction.toPrimitives()) {
-        PerpetualDirection.Short -> R.string.perpetual_short
-        PerpetualDirection.Long -> R.string.perpetual_long
-    })
-    return when (action) {
-        is GemPerpetualPositionAction.Open -> directionLabel
-        is GemPerpetualPositionAction.Increase -> stringResource(R.string.perpetual_increase_direction, directionLabel)
-        is GemPerpetualPositionAction.Reduce -> stringResource(R.string.perpetual_reduce_direction, directionLabel)
-    }
+private fun PerpetualDirection.stringRes(): Int = when (this) {
+    PerpetualDirection.Short -> R.string.perpetual_short
+    PerpetualDirection.Long -> R.string.perpetual_long
 }

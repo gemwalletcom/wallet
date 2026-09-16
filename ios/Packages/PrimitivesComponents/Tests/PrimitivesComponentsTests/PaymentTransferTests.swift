@@ -127,7 +127,7 @@ struct PaymentTransferTests {
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
 
     private static func paymentTransaction(memo: String?, request: Gemstone.PaymentRequest?) throws -> GemPaymentTransaction {
-        try GemPaymentTransaction(
+        GemPaymentTransaction(
             merchant: Primitives.ApplicationMetadata(
                 name: "Merchant",
                 description: "Payment",

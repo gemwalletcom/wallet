@@ -182,6 +182,8 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
     let reporter: Arc<dyn ConsumerStatusReporter> = Arc::new(ConsumerReporter::new(consumer_metrics));
     let failures = Arc::new(Mutex::new(Vec::new()));
 
+    health_state.set_ready();
+
     let handles: Vec<_> = services
         .iter()
         .map(|service| {
@@ -192,6 +194,7 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
             let shutdown_rx = shutdown_rx.clone();
             let failures = failures.clone();
             let options = options.clone();
+            let health_state = health_state.clone();
             tokio::spawn(async move {
                 let restart_delay = settings.consumer.error.timeout;
                 loop {
@@ -209,6 +212,7 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
                             if let Ok(mut list) = failures.lock() {
                                 list.push(format!("{}: {}", svc_name, message));
                             }
+                            health_state.set_not_ready();
                             if shutdown::sleep_or_shutdown(restart_delay, &shutdown_rx).await {
                                 break;
                             }
@@ -219,8 +223,6 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
             })
         })
         .collect();
-
-    health_state.set_ready();
 
     signal_handle.await.ok();
     futures::future::join_all(handles).await;

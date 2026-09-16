@@ -44,8 +44,8 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.components.color
-import com.gemwallet.android.ui.components.icon
+import com.gemwallet.android.ui.style.color
+import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor

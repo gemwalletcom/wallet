@@ -28,6 +28,7 @@ internal fun previewRewardsState(
     canActivatePendingReferral = canActivatePendingReferral,
     inviteRewardPoints = 100,
     referralCode = referralCode,
+    referralLink = referralCode?.let { "https://gemwallet.com/join?code=$it" },
     usedReferralCode = usedReferralCode,
     verifyAfter = verifyAfter,
     disableReason = disableReason,

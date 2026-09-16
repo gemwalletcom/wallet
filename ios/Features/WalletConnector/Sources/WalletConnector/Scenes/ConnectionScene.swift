@@ -13,11 +13,12 @@ struct ConnectionScene: View {
     var body: some View {
         List {
             Section {
-                ConnectionView(model: model.model)
+                ConnectionView(connection: model.details.connection)
             }
             Section {
-                ListItemView(title: model.walletField, subtitle: model.walletText)
-                ListItemView(title: model.dateField, subtitle: model.dateText)
+                ForEach(model.details.rows, id: \.self) { row in
+                    ListItemView(title: row.title, subtitle: model.value(for: row))
+                }
             }
             Section {
                 Button(model.disconnectTitle, role: .destructive) {

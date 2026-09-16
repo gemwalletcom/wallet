@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.bridge.views
 
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionRowModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -40,6 +40,7 @@ import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
 import kotlinx.coroutines.launch
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+import uniffi.gemstone.GemConnection
 
 @Composable
 fun ConnectionsScene(
@@ -50,7 +51,7 @@ fun ConnectionsScene(
     val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by remember { mutableStateOf(false) }
 
-    val connections by viewModel.connections.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
 
     var pairError by remember { mutableStateOf("") }
 
@@ -101,13 +102,16 @@ fun ConnectionsScene(
                     listPosition = ListPosition.Last,
                 )
             }
-            if (connections.isEmpty()) {
+            if (sections.isEmpty()) {
                 item {
                     EmptyContentView(type = EmptyContentType.WalletConnect, modifier = Modifier.fillParentMaxHeight(0.7f))
                 }
             } else {
-                itemsIndexed(connections) { index, item ->
-                    ConnectionItem(item, ListPosition.getPosition(index, connections.size), onConnection)
+                sections.forEach { section ->
+                    item { SubheaderItem(title = section.title) }
+                    itemsIndexed(section.connections) { index, item ->
+                        ConnectionItem(item, ListPosition.getPosition(index, section.connections.size), onConnection)
+                    }
                 }
             }
         }
@@ -136,7 +140,7 @@ fun ConnectionsScene(
 
 @Composable
 fun ConnectionItem(
-    model: ConnectionRowModel,
+    model: GemConnection,
     listPosition: ListPosition,
     onClick: ((String) -> Unit)? = null,
 ) {

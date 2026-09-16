@@ -1,11 +1,17 @@
+use std::collections::{HashMap, HashSet};
+
 use super::model::{GemNodeSelection, GemNodeStatusState};
 use crate::service_status::GemLatencyStatus;
 use crate::services::collections::unique_by;
+use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::Chain;
+use primitives::Latency;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::{self, NodePriority, NodeRegion};
+use primitives::node_status::NodeStatus;
 use url::Url;
 
+const EMPTY_VALUE: &str = "-";
 const NODE_URL_SCHEME: &str = "https";
 const NODE_CHECK_DEBOUNCE_MILLISECONDS: u64 = 250;
 
@@ -124,6 +130,40 @@ pub fn latency_status(state: &GemNodeStatusState) -> GemLatencyStatus {
         GemNodeStatusState::Error => GemLatencyStatus::Error,
         GemNodeStatusState::Result { latency, .. } => GemLatencyStatus::Result { latency: latency.clone() },
     }
+}
+
+pub fn node_status_state(status: Option<NodeStatus>) -> GemNodeStatusState {
+    match status {
+        Some(status) if status.latest_block_number > 0 => GemNodeStatusState::Result {
+            latest_block_number: status.latest_block_number,
+            latency: Latency::from_milliseconds(status.latency_ms),
+        },
+        _ => GemNodeStatusState::Error,
+    }
+}
+
+pub fn text_or_placeholder(value: Option<&str>) -> String {
+    match value.map(str::trim) {
+        Some(value) if !value.is_empty() => value.to_string(),
+        _ => EMPTY_VALUE.to_string(),
+    }
+}
+
+pub fn block_number_text(value: Option<u64>) -> String {
+    text_or_placeholder(
+        value
+            .map(|value| ValueFormatter::format(ValueStyle::Full, &value.to_string(), 0).unwrap_or_else(|_| value.to_string()))
+            .as_deref(),
+    )
+}
+
+pub fn visible_statuses(nodes: &[GemNodeSelection], statuses: &HashMap<String, GemNodeStatusState>) -> HashMap<String, GemNodeStatusState> {
+    let urls: HashSet<&str> = nodes.iter().map(|node| node.url.as_str()).collect();
+    statuses
+        .iter()
+        .filter(|(url, _)| urls.contains(url.as_str()))
+        .map(|(url, state)| (url.clone(), state.clone()))
+        .collect()
 }
 
 #[cfg(test)]
@@ -286,5 +326,36 @@ mod tests {
             sorted.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(),
             vec![default_url.as_str(), added.url.as_str()]
         );
+    }
+
+    #[test]
+    fn test_a_node_that_reports_no_block_is_an_error_not_a_result() {
+        let reachable = NodeStatus {
+            latest_block_number: 21_000_000,
+            latency_ms: 120,
+        };
+        let stalled = NodeStatus {
+            latest_block_number: 0,
+            latency_ms: 5,
+        };
+
+        assert_eq!(
+            node_status_state(Some(reachable)),
+            GemNodeStatusState::Result {
+                latest_block_number: 21_000_000,
+                latency: Latency::from_milliseconds(120),
+            }
+        );
+        assert_eq!(node_status_state(Some(stalled)), GemNodeStatusState::Error, "a node at block zero has nothing to serve");
+        assert_eq!(node_status_state(None), GemNodeStatusState::Error);
+    }
+
+    #[test]
+    fn test_a_block_number_is_grouped_and_a_missing_one_reads_as_a_dash() {
+        assert_eq!(block_number_text(Some(21_000_000)), "21,000,000");
+        assert_eq!(block_number_text(Some(0)), "0");
+        assert_eq!(block_number_text(None), "-");
+        assert_eq!(text_or_placeholder(Some("  ")), "-");
+        assert_eq!(text_or_placeholder(Some(" 1 ")), "1");
     }
 }

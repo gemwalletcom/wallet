@@ -393,15 +393,13 @@ class ConfirmViewModel @Inject constructor(
             SwapDetailsUIModelInput(
                 payAsset = fromAsset,
                 receiveAsset = toAsset,
-                rate = summary.rate,
+                summary = summary,
                 provider = provider,
                 slippageBps = swapData.quote.slippageBps,
                 selectedSlippage = swapData.quote.slippageBps,
-                etaInSeconds = swapData.quote.etaInSeconds,
                 isProviderSelectable = false,
                 priceImpact = fromAsset.swapValue(transfer.value)
                     .priceImpact(toAsset.swapValue(swapData.quote.toValue)),
-                minReceiveValue = summary.minReceiveValue,
             ),
         ) ?: return null
 

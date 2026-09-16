@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -83,7 +84,7 @@ private const val LARGE_BADGE_CONTENT_SIZE_RATIO = 3f
 private const val BADGE_RING_WIDTH_RATIO = 32f
 private const val BADGE_OFFSET_RATIO = 5f
 private val LARGE_BADGE_THRESHOLD = 48.dp
-private val MAX_BADGE_RING_WIDTH = 2.dp
+private val MAX_BADGE_RING_WIDTH = space2
 
 internal data class BadgeLayout(
     val contentSize: Dp,

@@ -116,6 +116,19 @@ pub struct PortfolioAssets {
 pub struct PortfolioMarginUsage {
     pub account_value: f64,
     pub usage: f64,
+    pub used_value: f64,
+    pub usage_percent: f64,
+}
+
+impl PortfolioMarginUsage {
+    pub fn new(account_value: f64, usage: f64) -> Self {
+        Self {
+            account_value,
+            usage,
+            used_value: account_value * usage,
+            usage_percent: usage * 100.0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -12,8 +12,8 @@ use std::sync::Arc;
 
 use crate::SwapperError;
 
-pub fn create_client_with_chain(provider: Arc<dyn RpcProvider>, chain: Chain) -> JsonRpcClient<RpcClient> {
-    alien::create_client(provider, chain).expect("failed to create client for chain")
+pub fn create_client_with_chain(provider: Arc<dyn RpcProvider>, chain: Chain) -> Result<JsonRpcClient<RpcClient>, SwapperError> {
+    alien::create_client(provider, chain).map_err(|_| SwapperError::NotSupportedChain)
 }
 
 pub fn create_sui_client(provider: Arc<dyn RpcProvider>) -> Result<SuiClient, SwapperError> {

@@ -46,15 +46,15 @@ where
 }
 
 impl SwapsXyz<RpcClient> {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let sui_client = create_sui_client(rpc_provider.clone()).expect("failed to create Sui gRPC client");
-        Self::with_client(
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
+        let sui_client = create_sui_client(rpc_provider.clone()).ok()?;
+        Some(Self::with_client(
             SwapsXyzClient::new(
                 RpcClient::new(super::base_url(), rpc_provider.clone()),
                 RpcClient::new(format!("{API_BASE_URL}/v1/swaps/{}", SwapperProvider::SwapsXyz.as_ref()), rpc_provider),
             ),
             sui_client,
-        )
+        ))
     }
 }
 

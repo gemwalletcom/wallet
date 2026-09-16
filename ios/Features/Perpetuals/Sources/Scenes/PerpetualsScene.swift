@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemPerpetualMarketSection
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -73,52 +74,8 @@ struct PerpetualsScene: View {
                 .cleanListRow()
             }
 
-            if model.showRecents {
-                RecentAssetsSectionView(
-                    model: model.recentModel,
-                    onSelect: model.onSelectRecent,
-                )
-            }
-
-            if model.showPositions {
-                Section {
-                    PerpetualPositionsList(
-                        positions: model.positions,
-                        onSelect: model.onSelectPerpetual,
-                    )
-                } header: {
-                    Text(model.positionsSectionTitle)
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if model.showPinned {
-                Section {
-                    PerpetualSectionView(
-                        perpetuals: model.sections.pinned,
-                        onPin: model.onPinPerpetual,
-                        onSelect: model.onSelectPerpetual,
-                    )
-                } header: {
-                    HStack {
-                        model.pinImage
-                        Text(model.pinnedSectionTitle)
-                    }
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if model.showMarkets {
-                Section {
-                    PerpetualSectionView(
-                        perpetuals: model.sections.markets,
-                        onPin: model.onPinPerpetual,
-                        onSelect: model.onSelectPerpetual,
-                    )
-                } header: {
-                    Text(model.marketsSectionTitle)
-                }
-                .listRowInsets(.assetListRowInsets)
+            ForEach(model.marketSectionList, id: \.self) { section in
+                marketSection(section)
             }
         }
         .if(!model.isSearching) {
@@ -128,6 +85,58 @@ struct PerpetualsScene: View {
             if model.showSearchEmptyState {
                 EmptyContentView(model: model.emptyContentModel)
             }
+        }
+    }
+}
+
+// MARK: - UI Components
+
+extension PerpetualsScene {
+    @ViewBuilder
+    private func marketSection(_ section: GemPerpetualMarketSection) -> some View {
+        switch section {
+        case .recents:
+            RecentAssetsSectionView(
+                model: model.recentModel,
+                onSelect: model.onSelectRecent,
+            )
+        case .positions:
+            Section {
+                PerpetualPositionsList(
+                    positions: model.positions,
+                    onSelect: model.onSelectPerpetual,
+                )
+            } header: {
+                Text(section.title)
+            }
+            .listRowInsets(.assetListRowInsets)
+        case .pinned:
+            Section {
+                PerpetualSectionView(
+                    perpetuals: model.sections.pinned,
+                    onPin: model.onPinPerpetual,
+                    onSelect: model.onSelectPerpetual,
+                )
+            } header: {
+                HStack {
+                    model.pinImage
+                    Text(section.title)
+                }
+            }
+            .listRowInsets(.assetListRowInsets)
+        case .markets:
+            Section {
+                PerpetualSectionView(
+                    perpetuals: model.sections.markets,
+                    onPin: model.onPinPerpetual,
+                    onSelect: model.onSelectPerpetual,
+                )
+            } header: {
+                Text(section.title)
+            }
+            .listRowInsets(.assetListRowInsets)
+        case .empty:
+            EmptyView()
         }
     }
 }

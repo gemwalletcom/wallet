@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
+import class Gemstone.CryptoFiatConverter
 import enum Gemstone.GemCurrencyStyle
 import Components
 import Formatters
@@ -63,5 +65,11 @@ public struct PriceViewModel: Sendable {
 
     public func fiatAmountText(amount: Double) -> String {
         currencyFormatter.string(amount)
+    }
+
+    public func fiatValueText(value: BigInt, decimals: Int) -> String? {
+        guard let price, price.price != 0, value > 0 else { return nil }
+        let amount = CryptoFiatConverter().toFiat(value: value, decimals: UInt32(decimals), price: price.price)
+        return currencyFormatter.string(Double(amount) ?? .zero)
     }
 }

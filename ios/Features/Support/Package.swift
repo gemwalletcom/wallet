@@ -43,7 +43,13 @@ let package = Package(
             dependencies: [
                 "Support",
                 "Primitives",
+                "Gemstone",
+                "GemstonePrimitives",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "StoreTestKit", package: "Store"),
+                "Store",
             ],
         ),
     ],

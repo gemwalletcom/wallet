@@ -13,12 +13,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemServiceEndpoint
-import uniffi.gemstone.GemServiceStatus
+import uniffi.gemstone.GemServiceStatusInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class ServiceStatusViewModel @Inject constructor(
-    private val serviceStatus: GemServiceStatus,
+    private val serviceStatus: GemServiceStatusInterface,
 ) : ViewModel() {
     private val endpoints = serviceStatus.getEndpoints()
 

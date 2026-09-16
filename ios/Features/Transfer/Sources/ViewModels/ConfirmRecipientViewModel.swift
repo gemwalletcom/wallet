@@ -4,7 +4,6 @@ import Components
 import Foundation
 import enum Gemstone.GemConfirmDestination
 import GemstonePrimitives
-import Localization
 import Primitives
 import PrimitivesComponents
 
@@ -35,16 +34,16 @@ struct ConfirmRecipientViewModel {
 extension ConfirmRecipientViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
         guard let destination else { return .empty }
-        let (title, name, address): (String, String?, String) = switch destination {
-        case let .recipient(name, address): (Localized.Transfer.Recipient.title, name, address)
-        case let .contract(address): (Localized.Asset.contract, addressName?.name, address)
-        case let .validator(name, address): (Localized.Stake.validator, name, address)
-        case let .resource(resource): (Localized.Stake.resource, resource.toPrimitives().title, "")
-        case let .provider(name, address): (Localized.Common.provider, name, address)
+        let (name, address): (String?, String) = switch destination {
+        case let .recipient(name, address): (name, address)
+        case let .contract(address): (addressName?.name, address)
+        case let .validator(name, address): (name, address)
+        case let .resource(resource): (resource.toPrimitives().title, "")
+        case let .provider(name, address): (name, address)
         }
         return .recipient(
             AddressListItemViewModel(
-                title: title,
+                title: destination.title,
                 account: SimpleAccount(
                     name: name,
                     chain: chain,

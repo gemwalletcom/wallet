@@ -44,7 +44,7 @@ struct WalletServiceTests {
             } onChange: {
                 confirm()
             }
-            try await service.delete(wallet)
+            _ = try await service.delete(wallet)
         }
     }
 
@@ -162,7 +162,7 @@ struct WalletServiceTests {
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for wallet in wallets {
-                group.addTask { try await service.delete(wallet) }
+                group.addTask { _ = try await service.delete(wallet) }
             }
             try await group.waitForAll()
         }

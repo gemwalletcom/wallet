@@ -188,38 +188,38 @@ final class FiatSceneViewModelTests {
         )
         FiatSceneViewModelTests.load(model, quotes: [affordable, unaffordable], amount: 100, type: .sell)
 
-        #expect(model.selectedQuote?.quoteId == affordable.id)
-        #expect(model.allowSelectProvider)
-        #expect(model.actionButtonState == .normal)
+        #expect(model.selectedQuote(model.viewState)?.quoteId == affordable.id)
+        #expect(model.allowSelectProvider(model.viewState))
+        #expect(model.actionButtonState(model.viewState) == .normal)
 
         model.onSelectQuotes([FiatQuoteViewModel(asset: model.asset, row: .mock(provider: .transak))])
 
-        #expect(model.selectedQuote?.quoteId == unaffordable.id)
+        #expect(model.selectedQuote(model.viewState)?.quoteId == unaffordable.id)
         #expect(model.inputValidationModel.isInvalid)
-        #expect(model.actionButtonState == .disabled)
+        #expect(model.actionButtonState(model.viewState) == .disabled)
         #expect(!model.isPresentingFiatProvider)
     }
 
     @Test
     func actionButtonStateFollowsTheSession() {
         let model = FiatSceneViewModelTests.mock()
-        #expect(model.actionButtonState == .loading(showProgress: true))
+        #expect(model.actionButtonState(model.viewState) == .loading(showProgress: true))
 
         FiatSceneViewModelTests.load(model, quotes: [])
-        #expect(model.actionButtonState == .disabled)
-        #expect(model.emptyTitle == Localized.Buy.noResults)
+        #expect(model.actionButtonState(model.viewState) == .disabled)
+        #expect(model.emptyTitle(model.viewState) == Localized.Buy.noResults)
 
         model.onChangeAmountText("", text: "0")
-        #expect(model.actionButtonState == .disabled)
-        #expect(model.emptyTitle == Localized.Input.enterAmountTo(Localized.Wallet.buy))
+        #expect(model.actionButtonState(model.viewState) == .disabled)
+        #expect(model.emptyTitle(model.viewState) == Localized.Input.enterAmountTo(Localized.Wallet.buy))
 
         model.onChangeAmountText("", text: "100")
         FiatSceneViewModelTests.load(model, quotes: [.mock(fiatAmount: 100, cryptoAmount: 1)], amount: 100)
-        #expect(model.actionButtonState == .normal)
-        #expect(model.actionButtonTitle == Localized.Common.continue)
+        #expect(model.actionButtonState(model.viewState) == .normal)
+        #expect(model.actionButtonTitle(model.viewState) == Localized.Common.continue)
 
         model.urlState = .loading
-        #expect(model.actionButtonState == .loading(showProgress: true))
+        #expect(model.actionButtonState(model.viewState) == .loading(showProgress: true))
     }
 
     @Test
@@ -227,9 +227,9 @@ final class FiatSceneViewModelTests {
         let model = FiatSceneViewModelTests.mock()
         FiatSceneViewModelTests.load(model, quotes: [], error: .Api(msg: "offline"))
 
-        #expect(model.quotesState.isError)
-        #expect(model.actionButtonTitle == Localized.Common.tryAgain)
-        #expect(model.actionButtonState == .normal)
+        #expect(model.quotesState(model.viewState).isError)
+        #expect(model.actionButtonTitle(model.viewState) == Localized.Common.tryAgain)
+        #expect(model.actionButtonState(model.viewState) == .normal)
     }
 
     @Test
@@ -289,7 +289,7 @@ final class FiatSceneViewModelTests {
 
         #expect(model.viewState.amount == "250")
         #expect(model.inputValidationModel.text == "250")
-        #expect(model.quotesState.isLoading == true)
+        #expect(model.quotesState(model.viewState).isLoading == true)
         #expect(model.loadTrigger.amount == "250")
         #expect(model.loadTrigger.isImmediate == true)
 

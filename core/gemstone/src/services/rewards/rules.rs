@@ -1,10 +1,11 @@
-use chrono::{DateTime, Utc};
-use number_formatter::BigNumberFormatter;
 use crate::formatted_number::GemFormattedNumber;
 use crate::precision::GemValueStyle;
+use chrono::{DateTime, Utc};
+use number_formatter::BigNumberFormatter;
 use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards};
 
 use super::model::{GemRewardsRedemption, GemRewardsState};
+use crate::config::rewards::get_referral_url;
 
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let Some(rewards) = rewards else {
@@ -16,6 +17,7 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let has_referral_code = has_value(rewards.code.as_deref());
     let has_used_referral_code = has_value(rewards.used_referral_code.as_deref());
     let has_pending_referral = has_used_referral_code && rewards.verify_after.is_some();
+    let referral_code = rewards.code.clone().filter(|code| !code.is_empty());
     GemRewardsState {
         has_referral_code,
         has_used_referral_code,
@@ -26,7 +28,8 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
         has_pending_referral,
         can_activate_pending_referral: has_pending_referral && rewards.verify_after.is_some_and(|verify_after| now >= verify_after),
         invite_reward_points: rewards.invite_reward_points,
-        referral_code: rewards.code.clone().filter(|code| !code.is_empty()),
+        referral_code: referral_code.clone(),
+        referral_link: referral_code.as_deref().map(get_referral_url),
         used_referral_code: rewards.used_referral_code.clone().filter(|code| !code.is_empty()),
         verify_after: rewards.verify_after,
         disable_reason: rewards.disable_reason.clone(),
@@ -67,6 +70,22 @@ fn has_value(code: Option<&str>) -> bool {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_state_carries_the_referral_link() {
+        let rewards = Rewards {
+            code: Some("abc123".to_string()),
+            ..Rewards::default()
+        };
+        let with_code = super::state(Some(&rewards), Utc::now());
+        assert_eq!(with_code.referral_code.as_deref(), Some("abc123"));
+        assert_eq!(with_code.referral_link, Some(get_referral_url("abc123")));
+
+        let without_code = super::state(Some(&Rewards::default()), Utc::now());
+        assert_eq!(without_code.referral_code, None);
+        assert_eq!(without_code.referral_link, None);
+    }
+
     #[test]
     fn test_points_read_with_the_gem_glyph() {
         assert_eq!(points_text(250), "250 \u{1f48e}");

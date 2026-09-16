@@ -44,14 +44,11 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                 SwapDetailsViewModel(
                     fromAssetPrice: fromAssetPrice,
                     toAssetPrice: toAssetPrice,
-                    selectedQuote: quote,
-                    slippage: .manual(bps: quote.slippageBps),
-                    rate: summary.rate,
+                    summary: summary,
+                    slippagePercent: summary.slippagePercent(),
                     currency: confirmation.currency.rawValue,
                     swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
                         .priceImpact(receive: toAssetPrice.swapValue(quote.toValue)),
-                    minReceiveValue: BigInt(summary.minReceiveValue),
-                    etaSeconds: quote.etaInSeconds,
                 ),
             )
         case let .perpetual(_, perpetualType):

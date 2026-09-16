@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.create_wallet.viewmodels
 
 import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
 
 @HiltViewModel
 class CreateWalletViewModel @Inject constructor(
@@ -36,7 +37,7 @@ class CreateWalletViewModel @Inject constructor(
             state.update { it.copy(defaultName = service.defaultWalletName(null)) }
             runCatchingCancellable { service.createWallet() }
                 .onSuccess { words -> state.update { it.copy(data = words) } }
-                .onFailure { err -> state.update { it.copy(dataError = err.serviceMessage()) } }
+                .onFailure { err -> state.update { it.copy(dataError = err.errorText()) } }
         }
     }
 
@@ -70,7 +71,7 @@ class CreateWalletViewModel @Inject constructor(
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.value.copy(loading = false, dataError = err.serviceMessage())
+                state.value.copy(loading = false, dataError = err.errorText())
             }
             state.update { newState }
         }
@@ -91,7 +92,7 @@ data class CreateWalletViewModelState(
     val defaultName: GemWalletDefaultName? = null,
     val name: String = "",
     val data: List<String> = emptyList(),
-    val dataError: String? = null,
+    val dataError: GemErrorText? = null,
     val isShowSafeMessage: Boolean = false,
 ) {
     fun isExistingWallets() = defaultName?.hasExistingWallets == true

@@ -12,7 +12,6 @@ import uniffi.gemstone.GemAutocloseEstimator
 import uniffi.gemstone.GemPerpetualAutoclose
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
@@ -46,8 +45,6 @@ class AmountPerpetualProvider(
     getPerpetualBalance: GetPerpetualBalance,
     private val scope: CoroutineScope,
 ) : AmountDataProvider(scope) {
-
-    override val title: AmountTitle = AmountTitle.Perpetual(params.positionAction)
 
     private val isOpenAction: Boolean =
         params.positionAction is GemPerpetualPositionAction.Open

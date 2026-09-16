@@ -6,7 +6,7 @@ use crate::providers::goplus::{
 use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget};
 use async_trait::async_trait;
 use gem_client::{Client, ClientExt};
-use primitives::{AccessTokenCacher, Chain};
+use primitives::{AccessTokenCacher, Chain, ScanProvider};
 use sha1::{Digest, Sha1};
 use std::collections::HashMap;
 use std::error::Error;
@@ -69,8 +69,8 @@ impl<C: Client> GoPlusProvider<C> {
 
 #[async_trait]
 impl<C: Client> AddressScanProvider for GoPlusProvider<C> {
-    fn name(&self) -> &'static str {
-        Self::NAME
+    fn provider(&self) -> ScanProvider {
+        ScanProvider::GoPlus
     }
 
     fn supports_chain(&self, chain: Chain) -> bool {

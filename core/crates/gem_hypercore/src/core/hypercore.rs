@@ -2,99 +2,99 @@ use serde_json::Value;
 
 use super::{actions::*, eip712, hasher::action_hash, models::PhantomAgent};
 
-fn l1_action_typed_data(action: Value, nonce: u64) -> String {
-    let hash = action_hash(&action, None, nonce, None).unwrap();
+fn l1_action_typed_data(action: Value, nonce: u64) -> Result<String, String> {
+    let hash = action_hash(&action, None, nonce, None)?;
     let phantom_agent = PhantomAgent::new(hash);
     eip712::create_l1_eip712_json(&phantom_agent)
 }
 
-fn spot_send_typed_data(spot_send: SpotSend) -> String {
-    let action_value = serde_json::to_value(&spot_send).unwrap();
+fn spot_send_typed_data(spot_send: SpotSend) -> Result<String, String> {
+    let action_value = serde_json::to_value(&spot_send).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:SpotSend", eip712::spot_send_types())
 }
 
-fn usd_class_transfer_typed_data(usd_class_transfer: UsdClassTransfer) -> String {
-    let action_value = serde_json::to_value(&usd_class_transfer).unwrap();
+fn usd_class_transfer_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
+    let action_value = serde_json::to_value(&usd_class_transfer).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:UsdClassTransfer", eip712::usd_class_transfer_types())
 }
 
 // L1 payload
-pub fn place_order_typed_data(order: PlaceOrder, nonce: u64) -> String {
-    let action_value = serde_json::to_value(&order).unwrap();
+pub fn place_order_typed_data(order: PlaceOrder, nonce: u64) -> Result<String, String> {
+    let action_value = serde_json::to_value(&order).map_err(|error| error.to_string())?;
     l1_action_typed_data(action_value, nonce)
 }
 
 // L1 payload
-pub fn set_referrer_typed_data(referrer: SetReferrer, nonce: u64) -> String {
-    let action_value = serde_json::to_value(&referrer).unwrap();
+pub fn set_referrer_typed_data(referrer: SetReferrer, nonce: u64) -> Result<String, String> {
+    let action_value = serde_json::to_value(&referrer).map_err(|error| error.to_string())?;
     l1_action_typed_data(action_value, nonce)
 }
 
 // L1 payload
-pub fn update_leverage_typed_data(update_leverage: UpdateLeverage, nonce: u64) -> String {
-    let action_value = serde_json::to_value(&update_leverage).unwrap();
+pub fn update_leverage_typed_data(update_leverage: UpdateLeverage, nonce: u64) -> Result<String, String> {
+    let action_value = serde_json::to_value(&update_leverage).map_err(|error| error.to_string())?;
     l1_action_typed_data(action_value, nonce)
 }
 
 // L1 payload
-pub fn cancel_order_typed_data(cancel: Cancel, nonce: u64) -> String {
-    let action_value = serde_json::to_value(&cancel).unwrap();
+pub fn cancel_order_typed_data(cancel: Cancel, nonce: u64) -> Result<String, String> {
+    let action_value = serde_json::to_value(&cancel).map_err(|error| error.to_string())?;
     l1_action_typed_data(action_value, nonce)
 }
 
 // User signed payload
-pub fn withdrawal_request_typed_data(request: WithdrawalRequest) -> String {
-    let action_value = serde_json::to_value(&request).unwrap();
+pub fn withdrawal_request_typed_data(request: WithdrawalRequest) -> Result<String, String> {
+    let action_value = serde_json::to_value(&request).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:Withdraw", eip712::withdraw_types())
 }
 
 // User signed payload
-pub fn approve_agent_typed_data(agent: ApproveAgent) -> String {
-    let action_value = serde_json::to_value(&agent).unwrap();
+pub fn approve_agent_typed_data(agent: ApproveAgent) -> Result<String, String> {
+    let action_value = serde_json::to_value(&agent).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:ApproveAgent", eip712::approve_agent_types())
 }
 
 // User signed payload
-pub fn approve_builder_fee_typed_data(fee: ApproveBuilderFee) -> String {
-    let action_value = serde_json::to_value(&fee).unwrap();
+pub fn approve_builder_fee_typed_data(fee: ApproveBuilderFee) -> Result<String, String> {
+    let action_value = serde_json::to_value(&fee).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:ApproveBuilderFee", eip712::approve_builder_fee_types())
 }
 
-pub fn transfer_to_hyper_evm_typed_data(spot_send: SpotSend) -> String {
+pub fn transfer_to_hyper_evm_typed_data(spot_send: SpotSend) -> Result<String, String> {
     spot_send_typed_data(spot_send)
 }
 
-pub fn send_spot_token_to_address_typed_data(spot_send: SpotSend) -> String {
+pub fn send_spot_token_to_address_typed_data(spot_send: SpotSend) -> Result<String, String> {
     spot_send_typed_data(spot_send)
 }
 
-pub fn send_perps_usd_to_address_typed_data(usd_send: UsdSend) -> String {
-    let action_value = serde_json::to_value(&usd_send).unwrap();
+pub fn send_perps_usd_to_address_typed_data(usd_send: UsdSend) -> Result<String, String> {
+    let action_value = serde_json::to_value(&usd_send).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:UsdSend", eip712::usd_send_types())
 }
 
-pub fn transfer_spot_to_perps_typed_data(usd_class_transfer: UsdClassTransfer) -> String {
+pub fn transfer_spot_to_perps_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
     usd_class_transfer_typed_data(usd_class_transfer)
 }
 
-pub fn transfer_perps_to_spot_typed_data(usd_class_transfer: UsdClassTransfer) -> String {
+pub fn transfer_perps_to_spot_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
     usd_class_transfer_typed_data(usd_class_transfer)
 }
 
 // User signed payload
-pub fn c_deposit_typed_data(c_deposit: CDeposit) -> String {
-    let action_value = serde_json::to_value(&c_deposit).unwrap();
+pub fn c_deposit_typed_data(c_deposit: CDeposit) -> Result<String, String> {
+    let action_value = serde_json::to_value(&c_deposit).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:CDeposit", eip712::c_deposit_types())
 }
 
-pub fn c_withdraw_typed_data(c_withdraw: CWithdraw) -> String {
-    let action_value = serde_json::to_value(&c_withdraw).unwrap();
-    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:CWithdraw", eip712::c_deposit_types()) // same as c_deposit_types
+pub fn c_withdraw_typed_data(c_withdraw: CWithdraw) -> Result<String, String> {
+    let action_value = serde_json::to_value(&c_withdraw).map_err(|error| error.to_string())?;
+    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:CWithdraw", eip712::c_deposit_types())
 }
 
 // User signed payload
-pub fn token_delegate_typed_data(token_delegate: TokenDelegate) -> String {
-    let action_value = serde_json::to_value(&token_delegate).unwrap();
+pub fn token_delegate_typed_data(token_delegate: TokenDelegate) -> Result<String, String> {
+    let action_value = serde_json::to_value(&token_delegate).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:TokenDelegate", eip712::token_delegate_types())
 }
 
@@ -131,7 +131,7 @@ mod tests {
     fn test_eip712_approve_agent() {
         let agent = ApproveAgent::new("0xbec81216a5edeaed508709d8526078c750e307ad".to_string(), "".to_string(), 1753576844319);
 
-        let eip712_json = approve_agent_typed_data(agent);
+        let eip712_json = approve_agent_typed_data(agent).unwrap();
 
         // Pretty print the generated JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -147,7 +147,7 @@ mod tests {
     fn test_eip712_withdrawal() {
         let withdrawal = WithdrawalRequest::new("2".to_string(), 1753577591421, "0x514bcb1f9aabb904e6106bd1052b66d2706dbbb7".to_string());
 
-        let eip712_json = withdrawal_request_typed_data(withdrawal);
+        let eip712_json = withdrawal_request_typed_data(withdrawal).unwrap();
 
         // Pretty print the generated JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -223,7 +223,7 @@ mod tests {
         // Test that hyperliquidChain and signatureChainId are added during encoding
         let agent = ApproveAgent::new("0xbec81216a5edeaed508709d8526078c750e307ad".to_string(), "".to_string(), 1753576844319);
 
-        let eip712_json = approve_agent_typed_data(agent);
+        let eip712_json = approve_agent_typed_data(agent).unwrap();
 
         // Parse the JSON to verify the fields are present
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -243,7 +243,7 @@ mod tests {
         let update_leverage = UpdateLeverage::new(25, true, 10);
         let nonce = 1753577591421u64;
 
-        let eip712_json = update_leverage_typed_data(update_leverage, nonce);
+        let eip712_json = update_leverage_typed_data(update_leverage, nonce).unwrap();
 
         // Parse the JSON to verify structure
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -271,7 +271,7 @@ mod tests {
             HYPERCORE_CORE_HYPE_TOKEN_ID.to_string(),
         );
 
-        let eip712_json = transfer_to_hyper_evm_typed_data(spot_send);
+        let eip712_json = transfer_to_hyper_evm_typed_data(spot_send).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -289,7 +289,7 @@ mod tests {
             "USDC:0x6d1e7cde53ba9467b783cb7c530ce054".to_string(),
         );
 
-        let eip712_json = send_spot_token_to_address_typed_data(spot_send);
+        let eip712_json = send_spot_token_to_address_typed_data(spot_send).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -302,7 +302,7 @@ mod tests {
     fn test_eip712_usd_send() {
         let usd_send = UsdSend::new("1".to_string(), "0xe51d0862078098c84346b6203b50b996f7dafe28".to_string(), 1754987223323);
 
-        let eip712_json = send_perps_usd_to_address_typed_data(usd_send);
+        let eip712_json = send_perps_usd_to_address_typed_data(usd_send).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -319,7 +319,7 @@ mod tests {
             1754986301493,
         );
 
-        let eip712_json = transfer_perps_to_spot_typed_data(usd_class_transfer);
+        let eip712_json = transfer_perps_to_spot_typed_data(usd_class_transfer).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -337,7 +337,7 @@ mod tests {
             1754986567194,
         );
 
-        let eip712_json = transfer_spot_to_perps_typed_data(usd_class_transfer);
+        let eip712_json = transfer_spot_to_perps_typed_data(usd_class_transfer).unwrap();
 
         // Parse and verify structure
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -360,7 +360,7 @@ mod tests {
     fn test_eip712_c_deposit() {
         let c_deposit = CDeposit::new(10000000, 1755231476741);
 
-        let eip712_json = c_deposit_typed_data(c_deposit);
+        let eip712_json = c_deposit_typed_data(c_deposit).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -373,7 +373,7 @@ mod tests {
     fn test_eip712_c_withdraw() {
         let c_withdraw = CWithdraw::new(10000000, 1758983015647);
 
-        let eip712_json = c_withdraw_typed_data(c_withdraw);
+        let eip712_json = c_withdraw_typed_data(c_withdraw).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -386,7 +386,7 @@ mod tests {
     fn test_eip712_token_delegate() {
         let token_delegate = TokenDelegate::new("0x5ac99df645f3414876c816caa18b2d234024b487".to_string(), 10000000, false, 1755231522831);
 
-        let eip712_json = token_delegate_typed_data(token_delegate);
+        let eip712_json = token_delegate_typed_data(token_delegate).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();

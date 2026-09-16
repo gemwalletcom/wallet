@@ -19,7 +19,7 @@ struct SwapDetailsViewModelTests {
     @Test
     func swapEstimationField() throws {
         #expect(
-            try SwapDetailsViewModel
+            SwapDetailsViewModel
                 .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).swapQuote).swapEstimationField == nil,
         )
         #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField?.value.text == "≈ 30 sec")
@@ -51,13 +51,10 @@ extension SwapDetailsViewModel {
         return SwapDetailsViewModel(
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
-            selectedQuote: selectedQuote,
-            slippage: .auto,
-            rate: summary.rate,
+            summary: summary,
+            slippagePercent: nil,
             currency: Currency.usd.rawValue,
             swapPriceImpact: nil,
-            minReceiveValue: BigInt(summary.minReceiveValue),
-            etaSeconds: selectedQuote.etaInSeconds,
             swapProviderSelectAction: nil,
         )
     }

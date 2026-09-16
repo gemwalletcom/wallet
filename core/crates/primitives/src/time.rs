@@ -9,5 +9,5 @@ pub fn unix_milliseconds() -> Result<u64, SystemTimeError> {
 }
 
 pub fn unix_timestamp() -> u64 {
-    unix_seconds().expect("Time went backwards")
+    unix_seconds().unwrap_or_default()
 }

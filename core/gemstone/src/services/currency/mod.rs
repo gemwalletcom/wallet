@@ -1,5 +1,5 @@
 pub mod model;
-mod rules;
+pub(crate) mod rules;
 
 use std::sync::Arc;
 

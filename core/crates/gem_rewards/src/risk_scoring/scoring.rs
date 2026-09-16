@@ -216,7 +216,9 @@ fn count_signals_in_recent_window(signals: &[&RiskSignalRow], window: Duration) 
         return (count, 1.0);
     }
     let timestamps: Vec<_> = recent.iter().map(|s| s.created_at).collect();
-    let (min, max) = (timestamps.iter().min().unwrap(), timestamps.iter().max().unwrap());
+    let (Some(min), Some(max)) = (timestamps.iter().min(), timestamps.iter().max()) else {
+        return (count, 1.0);
+    };
     let span_secs = max.signed_duration_since(*min).num_seconds().max(1);
     let speed_multiplier = 1.0 + (window_secs - span_secs) as f64 / window_secs as f64;
     (count, speed_multiplier)

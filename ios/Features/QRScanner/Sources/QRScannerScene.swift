@@ -76,7 +76,7 @@ public struct QRScannerScene: View {
                 .buttonStyle(.blue(paddingVertical: .zero))
         case .permissionsNotGranted:
             Button(action: onSelectOpenSettings) {
-                actionLabel(model.resources.openSettings)
+                Self.actionLabel(model.resources.openSettings)
             }
             .buttonStyle(.blue(paddingVertical: .zero))
             photoLibraryButton
@@ -87,17 +87,17 @@ public struct QRScannerScene: View {
     private var photoLibraryButton: some View {
         let text = model.resources.selectFromPhotos
         return photosPicker {
-            actionLabel(text)
+            Self.actionLabel(text)
         }
     }
 
-    private func actionLabel(_ title: String) -> some View {
+    nonisolated private static func actionLabel(_ title: String) -> some View {
         Text(title)
             .frame(height: .scene.button.height)
     }
 
     private func photosPicker(
-        @ViewBuilder label: @escaping () -> some View,
+        @ViewBuilder label: @escaping @Sendable () -> some View,
     ) -> some View {
         PhotosPicker(
             selection: $model.selectedPhoto,

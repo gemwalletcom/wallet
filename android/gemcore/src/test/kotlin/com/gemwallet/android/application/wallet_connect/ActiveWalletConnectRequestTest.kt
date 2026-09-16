@@ -19,6 +19,7 @@ class ActiveWalletConnectRequestTest {
         icons = emptyList(),
         requiredNamespaces = emptyMap(),
         optionalNamespaces = emptyMap(),
+        pairingTopic = "pairing",
         proposerPublicKey = "key-$name",
         properties = null,
     )

@@ -3,7 +3,8 @@ use chrono::{DateTime, Utc};
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, VerificationStatus};
 
-use super::model::GemContactScannedAddress;
+use super::model::{GemContactAddressField, GemContactScannedAddress};
+use crate::config::chain::is_memo_supported;
 use std::collections::HashSet;
 
 pub fn default_contact_chain() -> Chain {
@@ -72,6 +73,14 @@ pub fn stale_addresses(existing: Vec<ContactAddress>, addresses: &[ContactAddres
 
 pub fn can_save_contact(name: &str, is_saving: bool) -> bool {
     !name.trim().is_empty() && !is_saving
+}
+
+pub fn contact_address_fields(chain: Chain) -> Vec<GemContactAddressField> {
+    let mut fields = vec![GemContactAddressField::Network, GemContactAddressField::Address];
+    if is_memo_supported(chain) {
+        fields.push(GemContactAddressField::Memo);
+    }
+    fields
 }
 
 #[cfg(test)]
@@ -203,5 +212,17 @@ mod tests {
         assert_eq!(updated.created_at, created_at);
         assert_eq!(updated.updated_at, now);
         assert_eq!(contact(None, "new".into(), "Bob".into(), "note".into(), None, now).created_at, now);
+    }
+
+    #[test]
+    fn test_a_contact_address_offers_a_memo_only_where_the_chain_carries_one() {
+        assert_eq!(
+            contact_address_fields(Chain::Ethereum),
+            vec![GemContactAddressField::Network, GemContactAddressField::Address]
+        );
+        assert_eq!(
+            contact_address_fields(Chain::Cosmos),
+            vec![GemContactAddressField::Network, GemContactAddressField::Address, GemContactAddressField::Memo]
+        );
     }
 }

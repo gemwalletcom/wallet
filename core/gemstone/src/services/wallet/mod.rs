@@ -373,95 +373,17 @@ fn keystore_import(import: GemWalletImportType) -> GemImportType {
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::path::PathBuf;
 
     use futures::executor::block_on;
     use primitives::{AddressType, Currency};
-    use tempfile::TempDir;
 
-    use super::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
+    use super::testkit::{OTHER_PHRASE, PHRASE, TEST_PASSWORD, WalletTestkit};
     use super::*;
-    use crate::services::avatar::GemAvatarService;
-    use crate::testkit::TestAlienProvider;
-    use crate::services::file::testkit::NoopFileStore;
-    use crate::services::preferences::testkit::MemoryPreferencesStore;
-    use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
-    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-
-    const PHRASE: [&str; 12] = [
-        "shoot", "island", "position", "soft", "burden", "budget", "tooth", "cruel", "issue", "economy", "destroy", "above",
-    ];
-    const OTHER_PHRASE: [&str; 12] = [
-        "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "about",
-    ];
-
-    struct TestContext {
-        service: GemWalletService,
-        wallets: Arc<MemoryWalletStore>,
-        passwords: Arc<MemoryKeystorePassword>,
-        addresses: Arc<MemoryAddressStore>,
-        directory: TempDir,
-    }
-
-    impl TestContext {
-        fn new() -> Self {
-            let directory = TempDir::new().unwrap();
-            let wallets = Arc::new(MemoryWalletStore::default());
-            let passwords = Arc::new(MemoryKeystorePassword::default());
-            let addresses = Arc::new(MemoryAddressStore::default());
-            let preferences = Arc::new(MemoryPreferencesStore::default());
-            let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
-            let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
-            let app_preferences = Arc::new(GemPreferencesService::new(preferences.clone()));
-            let service = GemWalletService::new(
-                keystore,
-                passwords.clone(),
-                wallets.clone(),
-                session,
-                app_preferences.clone(),
-                Arc::new(NoopFileStore),
-                Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
-                Arc::new(GemExplorerService::new(app_preferences)),
-                addresses.clone(),
-                Arc::new(GemAvatarService::new(wallets.clone(), Arc::new(NoopFileStore), Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),
-            );
-            Self {
-                service,
-                wallets,
-                passwords,
-                addresses,
-                directory,
-            }
-        }
-
-        async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
-            let import = GemWalletImportType::MulticoinPhrase {
-                words: words.iter().map(|word| word.to_string()).collect(),
-                chains: vec![Chain::Ethereum],
-            };
-            match self.service.import_wallet(name.to_string(), import, WalletSource::Import).await.unwrap() {
-                GemWalletImportResult::New { wallet } => wallet,
-                GemWalletImportResult::Existing { wallet } => wallet,
-            }
-        }
-
-        fn keystore_path(&self, wallet: &Wallet) -> PathBuf {
-            self.directory.path().join(format!("{}.json", keystore_id_for_wallet(wallet.id.id())))
-        }
-
-        fn lock_out(&self, wallet: &Wallet) {
-            let password = decode_password(&self.service.password.get_password(false).unwrap());
-            self.service
-                .keystore
-                .change_password(keystore_id_for_wallet(wallet.id.id()), password, b"other".to_vec())
-                .unwrap();
-        }
-    }
 
     #[test]
     fn test_delete_wallet_removes_secret_copies_preserves_preferences_and_reports_outcome() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let kept = context.import("Kept", OTHER_PHRASE).await;
             let deleted = context.import("Deleted", PHRASE).await;
             let legacy_path = context.directory.path().join(rules::legacy_keystore_id(&deleted));
@@ -490,10 +412,10 @@ mod tests {
     #[test]
     fn test_wallet_accounts_are_named_after_the_wallet_until_it_is_deleted() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let wallet = context.import("Savings", PHRASE).await;
             let account = wallet.accounts[0].clone();
-            let name = async |context: &TestContext| context.addresses.get_address_name(account.chain, account.address.clone()).await.unwrap();
+            let name = async |context: &WalletTestkit| context.addresses.get_address_name(account.chain, account.address.clone()).await.unwrap();
 
             let stored = name(&context).await.unwrap();
             assert_eq!((stored.name.as_str(), stored.address_type), ("Savings", AddressType::InternalWallet));
@@ -509,7 +431,7 @@ mod tests {
     #[test]
     fn test_import_creates_the_keystore_password_only_while_the_keystore_is_empty() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             context.import("First", PHRASE).await;
             context.import("Second", OTHER_PHRASE).await;
 
@@ -520,7 +442,7 @@ mod tests {
     #[test]
     fn test_a_failed_wallet_write_removes_the_secret_it_stored() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let import = GemWalletImportType::MulticoinPhrase {
                 words: PHRASE.iter().map(|word| word.to_string()).collect(),
                 chains: vec![Chain::Ethereum],
@@ -542,7 +464,7 @@ mod tests {
     #[test]
     fn test_export_secret_follows_the_wallet_type() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let phrase = context.import("Phrase", PHRASE).await;
             let key = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318".to_string();
             let import = GemWalletImportType::PrivateKey {
@@ -569,7 +491,7 @@ mod tests {
     #[test]
     fn test_setup_chains_keeps_going_when_one_keystore_cannot_be_read() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let broken = context.import("Broken", PHRASE).await;
             let healthy = context.import("Healthy", OTHER_PHRASE).await;
             context.lock_out(&broken);
@@ -589,7 +511,7 @@ mod tests {
     #[test]
     fn test_setup_chains_reports_the_error_when_no_wallet_could_be_set_up() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let only = context.import("Only", PHRASE).await;
             context.lock_out(&only);
 
@@ -602,7 +524,7 @@ mod tests {
     #[test]
     fn test_every_wallet_change_bumps_the_subscriptions_version() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             context.service.app_preferences.set_subscriptions_version(4).unwrap();
 
             let wallet = context.import("Imported", PHRASE).await;
@@ -641,7 +563,7 @@ mod tests {
     #[test]
     fn test_migration_rekeys_a_legacy_wallet_and_can_be_run_again() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let wallet = context.import("Legacy", PHRASE).await;
             let keystore_id = keystore_id_for_wallet(wallet.id.id());
             let legacy = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
@@ -664,7 +586,7 @@ mod tests {
     #[test]
     fn test_migration_drops_an_alias_that_already_holds_the_shared_password() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let wallet = context.import("Aliased", PHRASE).await;
             context.passwords.wallet_passwords.lock().unwrap().insert(wallet.id.id(), TEST_PASSWORD.to_string());
 
@@ -677,7 +599,7 @@ mod tests {
     #[test]
     fn test_migration_keeps_the_legacy_password_when_rekeying_fails() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let wallet = context.import("Unmigratable", PHRASE).await;
             let keystore_id = keystore_id_for_wallet(wallet.id.id());
             let actual = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
@@ -711,7 +633,7 @@ mod tests {
     #[test]
     fn test_migration_keeps_the_password_of_a_wallet_with_no_v4_keystore() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let wallet = context.import("PendingV3", PHRASE).await;
             let keystore_id = keystore_id_for_wallet(wallet.id.id());
             let legacy = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
@@ -726,7 +648,7 @@ mod tests {
     #[test]
     fn test_migration_clears_a_legacy_entry_left_by_an_interrupted_run() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let wallet = context.import("Interrupted", PHRASE).await;
             let stale = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
             context.passwords.wallet_passwords.lock().unwrap().insert(wallet.id.id(), stale.to_string());
@@ -740,7 +662,7 @@ mod tests {
     #[test]
     fn test_delete_wallet_keeps_the_record_when_a_secret_copy_survives() {
         block_on(async {
-            let context = TestContext::new();
+            let context = WalletTestkit::new();
             let wallet = context.import("Blocked", PHRASE).await;
             fs::remove_file(context.keystore_path(&wallet)).unwrap();
             fs::create_dir(context.keystore_path(&wallet)).unwrap();

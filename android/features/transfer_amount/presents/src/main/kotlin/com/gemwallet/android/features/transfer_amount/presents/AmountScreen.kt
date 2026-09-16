@@ -24,7 +24,7 @@ fun AmountScreen(
     viewModel: AmountViewModel = hiltViewModel(),
 ) {
     val provider = viewModel.provider
-    val title = provider.title.asString()
+    val title = provider.title.collectAsStateWithLifecycle().value?.asString().orEmpty()
     val assetInfo = provider.assetInfo.collectAsStateWithLifecycle().value ?: run {
         LoadingScene(title, onCancel)
         return

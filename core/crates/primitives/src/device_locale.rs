@@ -89,7 +89,6 @@ impl DeviceLocale {
         }
 
         match locale {
-            // TODO: Remove legacy locale compatibility after clients send DeviceLocale.
             "in" => Ok(Self::ID),
             "iw" => Ok(Self::HE),
             "pt" => Ok(Self::PtBR),

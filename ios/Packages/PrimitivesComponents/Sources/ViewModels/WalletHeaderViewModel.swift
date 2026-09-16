@@ -4,6 +4,7 @@ import Components
 import Formatters
 import GemstonePrimitives
 import enum Gemstone.GemHeaderActions
+import class Gemstone.PriceChangeCalculator
 import Primitives
 import Style
 import SwiftUI
@@ -43,8 +44,7 @@ extension WalletHeaderViewModel: ValueHeaderViewModel {
 
     public var subtitle: String? {
         guard let amount = totalValueViewModel.pnlAmountText else { return nil }
-        guard let percentage = totalValueViewModel.pnlPercentageText else { return amount }
-        return "\(amount) (\(percentage))"
+        return PriceChangeCalculator().pnlText(formattedAmount: amount, formattedPercentage: totalValueViewModel.pnlPercentageText)
     }
 
     public var subtitleColor: Color {

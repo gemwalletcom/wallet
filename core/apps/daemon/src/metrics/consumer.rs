@@ -32,7 +32,7 @@ impl ConsumerMetrics {
     }
 
     pub fn record_success(&self, name: &str, duration: u64, _result: &str) {
-        let mut consumers = self.consumers.lock().unwrap();
+        let mut consumers = super::locked(&self.consumers);
         let state = consumers.entry(name.to_string()).or_default();
         let timestamp = super::now_unix();
 
@@ -50,7 +50,7 @@ impl MetricsProvider for ConsumerMetrics {
         let last_success_at = Family::<ConsumerLabels, Gauge>::default();
         let avg_duration = Family::<ConsumerLabels, Gauge>::default();
 
-        let consumers = self.consumers.lock().unwrap();
+        let consumers = super::locked(&self.consumers);
         for (name, state) in consumers.iter() {
             let labels = ConsumerLabels { consumer: name.clone() };
 

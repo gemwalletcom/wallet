@@ -71,4 +71,10 @@ interface StakeDao {
             "WHERE base.walletId=:walletId AND base.delegationId=:delegationId AND validator.validatorId=:validatorId LIMIT 1"
     )
     fun getDelegation(walletId: WalletId, validatorId: String, delegationId: String): Flow<DbDelegationData?>
+
+    @Query("DELETE FROM stake_delegations")
+    suspend fun deleteAllDelegations()
+
+    @Query("DELETE FROM stake_validators")
+    suspend fun deleteAllValidators()
 }

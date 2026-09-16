@@ -23,7 +23,6 @@ import com.gemwallet.android.ui.components.chart.CandlestickTooltip
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemCandlestickChart
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
-import com.gemwallet.android.ui.models.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.StateViewType
 import uniffi.gemstone.candlestickHeader
@@ -32,8 +31,10 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualPosition
+import uniffi.gemstone.GemCandleTooltip
 import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
+import uniffi.gemstone.candleTooltip
 import uniffi.gemstone.perpetualChartLayout
 
 private val TooltipRightSafeArea = 96.dp
@@ -87,8 +88,8 @@ internal fun PerpetualChartSection(
             dateFormatter = ::getRelativeDate,
         )
     }
-    val tooltipUIModel = remember(selectedCandle) {
-        selectedCandle?.let(CandlestickTooltipUIModel::from)
+    val tooltip = remember(selectedCandle) {
+        selectedCandle?.let { candleTooltip(it.toGem()) }
     }
 
     ChartStateView(
@@ -105,8 +106,8 @@ internal fun PerpetualChartSection(
                 onSelectionChanged = { selectedIndex = it },
             )
             TooltipOverlay(
-                visible = tooltipUIModel != null,
-                tooltip = tooltipUIModel,
+                visible = tooltip != null,
+                tooltip = tooltip,
                 alignToStart = isSelectedRightHalf,
             )
         }
@@ -116,7 +117,7 @@ internal fun PerpetualChartSection(
 @Composable
 private fun BoxScope.TooltipOverlay(
     visible: Boolean,
-    tooltip: CandlestickTooltipUIModel?,
+    tooltip: GemCandleTooltip?,
     alignToStart: Boolean,
 ) {
     AnimatedVisibility(

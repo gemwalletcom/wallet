@@ -25,7 +25,7 @@ public struct HeaderButtonsView: View {
     }
 
     public var body: some View {
-        HStack(alignment: .center, spacing: 2) {
+        HStack(alignment: .center, spacing: .extraSmall) {
             ForEach(buttons) {
                 buttonView(for: $0)
             }

@@ -85,7 +85,7 @@ internal fun AssetDetailsScene(
         actions = {
             AssetDetailsMenu(
                 uiState = uiState,
-                priceAlertEnabled = detailsState.priceAlertEnabled,
+                priceAlert = detailsState.priceAlert,
                 snackBar = snackBar,
                 requestNotificationPermission = requestNotificationPermission,
                 onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },

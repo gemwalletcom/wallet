@@ -14,7 +14,6 @@ import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Resource
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -34,12 +33,6 @@ internal fun LazyListScope.stakeActions(
     amountAction: AmountTransactionAction,
     onRewards: () -> Unit
 ) {
-    if (actions.isEmpty()) {
-        return
-    }
-    item {
-        SubheaderItem(R.string.common_manage)
-    }
     itemsPositioned(actions) { position, item ->
         val action = item.action
         val onClick = when (action) {

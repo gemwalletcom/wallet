@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use strum::IntoEnumIterator;
+
 use number_formatter::BigNumberFormatter;
 use primitives::{
     Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended,
@@ -8,7 +10,7 @@ use primitives::{
 };
 
 use super::model::{
-    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows,
+    GemActivityFilters, GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows,
     GemTransactionDetailSection, GemTransactionDetails, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind,
     GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus,
     GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
@@ -570,6 +572,26 @@ fn perpetual_metadata(transaction: &Transaction) -> Option<TransactionPerpetualM
 
 fn perpetual_direction(transaction: &Transaction) -> Option<PerpetualDirection> {
     perpetual_metadata(transaction).map(|metadata| metadata.direction)
+}
+
+pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemActivityFilters {
+    let transaction_types = match filters.is_empty() {
+        true => TransactionType::iter().collect(),
+        false => {
+            let mut types: Vec<TransactionType> = Vec::new();
+            for transaction_type in filters.into_iter().flat_map(filter_transaction_types) {
+                if !types.contains(&transaction_type) {
+                    types.push(transaction_type);
+                }
+            }
+            types
+        }
+    };
+    GemActivityFilters {
+        asset_rank_greater_than: crate::models::asset::default_token_rank(),
+        chains,
+        transaction_types,
+    }
 }
 
 #[cfg(test)]
@@ -1261,5 +1283,30 @@ mod tests {
 
         swap.prices = vec![AssetPrice::new(ethereum, 12.0, 0.0, Utc::now())];
         assert_eq!(leg_price(&swap), Some(12.0));
+    }
+
+    #[test]
+    fn test_the_activity_screen_asks_for_every_type_until_one_is_picked() {
+        let unfiltered = activity_filters(vec![], vec![]);
+
+        assert_eq!(unfiltered.chains, vec![]);
+        assert_eq!(
+            unfiltered.transaction_types.len(),
+            TransactionType::iter().count(),
+            "no filter means every type, not no type filter"
+        );
+        assert_eq!(unfiltered.asset_rank_greater_than, crate::models::asset::default_token_rank());
+
+        let swaps = activity_filters(vec![Chain::Ethereum], vec![GemTransactionFilter::Swaps]);
+
+        assert_eq!(swaps.chains, vec![Chain::Ethereum]);
+        assert_eq!(swaps.transaction_types, filter_transaction_types(GemTransactionFilter::Swaps));
+    }
+
+    #[test]
+    fn test_two_filters_that_share_a_type_ask_for_it_once() {
+        let filters = activity_filters(vec![], vec![GemTransactionFilter::Transfers, GemTransactionFilter::Transfers]);
+
+        assert_eq!(filters.transaction_types, filter_transaction_types(GemTransactionFilter::Transfers));
     }
 }

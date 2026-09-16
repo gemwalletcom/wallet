@@ -167,8 +167,8 @@ private fun GemConfirmErrorDisplay.toInfoSheetEntity(
         )
     }
     is GemConfirmErrorDisplay.DustThreshold -> InfoSheetEntity.DustThresholdInfo(chain = chain.requireChain())
-    is GemConfirmErrorDisplay.Malicious,
-    is GemConfirmErrorDisplay.MemoRequired,
+    is GemConfirmErrorDisplay.Malicious -> InfoSheetEntity.MaliciousTransactionInfo
+    is GemConfirmErrorDisplay.MemoRequired -> InfoSheetEntity.MemoRequiredInfo(symbol)
     is GemConfirmErrorDisplay.Offline,
     is GemConfirmErrorDisplay.FeeRatesMissing,
     is GemConfirmErrorDisplay.Cancelled,

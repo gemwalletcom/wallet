@@ -118,7 +118,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 Appearance.Light -> false
                 Appearance.Dark -> true
             }
-            LaunchedEffect(darkTheme) { applySystemBarsAppearance(darkTheme) }
+            LaunchedEffect(darkTheme) { setSystemBarsAppearance(darkTheme) }
 
             CompositionLocalProvider(
                 LocalConnectionBannerState provides connectionBannerState,
@@ -149,7 +149,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
         }
     }
 
-    private fun applySystemBarsAppearance(darkTheme: Boolean) {
+    private fun setSystemBarsAppearance(darkTheme: Boolean) {
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = !darkTheme
             isAppearanceLightNavigationBars = !darkTheme

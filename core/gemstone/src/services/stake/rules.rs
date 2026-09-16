@@ -12,8 +12,8 @@ use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationStatus, GemDelegationTone, GemStakeAction,
-    GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow, GemDelegationStatus, GemDelegationTone,
+    GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -156,6 +156,41 @@ pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: usize) -> b
 
 fn stake_config(chain: Chain) -> Option<StakeChainConfig> {
     StakeChain::from_chain(chain).map(get_stake_config)
+}
+
+pub fn stake_sections(uses_freeze: bool, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
+    [
+        has_actions.then_some(GemStakeSection::Manage),
+        uses_freeze.then_some(GemStakeSection::Resources),
+        has_delegations.then_some(GemStakeSection::Delegations),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+pub fn stake_info_rows(chain: Chain, staking_apr: Option<f64>) -> Vec<GemStakeInfoRow> {
+    [
+        staking_apr.filter(|apr| *apr != 0.0).map(|_| GemStakeInfoRow::Apr),
+        (lock_time_seconds(chain) > 0).then_some(GemStakeInfoRow::LockTime),
+        (min_stake_amount(chain) > BigInt::ZERO).then_some(GemStakeInfoRow::MinimumAmount),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+pub fn delegation_rows(delegation: &Delegation) -> Vec<GemDelegationRow> {
+    [
+        Some(GemDelegationRow::Provider),
+        (delegation.validator.apr != 0.0).then_some(GemDelegationRow::Apr),
+        Some(GemDelegationRow::Status),
+        delegation_status(delegation).completion.map(|_| GemDelegationRow::CompletionDate),
+        shows_rewards(&delegation.base).then_some(GemDelegationRow::Rewards),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
 }
 
 pub fn lock_time_seconds(chain: Chain) -> u64 {
@@ -436,7 +471,7 @@ pub fn missing_validators(
         .collect()
 }
 
-pub fn apply_validator_state(delegations: Vec<DelegationBase>, validators: &HashMap<String, DelegationValidator>) -> Vec<DelegationBase> {
+pub fn delegations_with_state(delegations: Vec<DelegationBase>, validators: &HashMap<String, DelegationValidator>) -> Vec<DelegationBase> {
     delegations
         .into_iter()
         .map(|mut delegation| {
@@ -612,6 +647,58 @@ mod tests {
                 ..validator
             },
         }
+    }
+
+    #[test]
+    fn test_the_stake_screen_shows_only_the_info_rows_its_chain_has() {
+        assert_eq!(
+            stake_info_rows(Chain::Cosmos, Some(0.0)),
+            vec![GemStakeInfoRow::LockTime],
+            "an apr of zero is not an apr row"
+        );
+        assert_eq!(stake_info_rows(Chain::Cosmos, None), vec![GemStakeInfoRow::LockTime]);
+        assert_eq!(stake_info_rows(Chain::Cosmos, Some(12.5)), vec![GemStakeInfoRow::Apr, GemStakeInfoRow::LockTime]);
+        assert_eq!(
+            stake_info_rows(Chain::Ethereum, Some(3.0)),
+            vec![GemStakeInfoRow::Apr, GemStakeInfoRow::LockTime, GemStakeInfoRow::MinimumAmount],
+            "a chain with a minimum states it"
+        );
+    }
+
+    #[test]
+    fn test_the_stake_sections_follow_what_the_chain_and_wallet_offer() {
+        assert_eq!(
+            stake_sections(true, true, true),
+            vec![GemStakeSection::Manage, GemStakeSection::Resources, GemStakeSection::Delegations]
+        );
+        assert_eq!(
+            stake_sections(false, false, true),
+            vec![GemStakeSection::Delegations],
+            "a chain without freezing and a wallet with no actions keeps only its delegations"
+        );
+        assert!(stake_sections(false, false, false).is_empty(), "an empty wallet has no delegations section to title");
+    }
+
+    #[test]
+    fn test_a_delegation_shows_its_completion_and_rewards_rows_only_when_it_has_them() {
+        let active = delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100);
+        assert_eq!(
+            delegation_rows(&active),
+            vec![GemDelegationRow::Provider, GemDelegationRow::Apr, GemDelegationRow::Status, GemDelegationRow::Rewards]
+        );
+
+        let pending = delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Pending, 0);
+        assert!(delegation_rows(&pending).contains(&GemDelegationRow::CompletionDate));
+        assert!(!delegation_rows(&pending).contains(&GemDelegationRow::Rewards), "no rewards row without rewards");
+
+        let no_apr = Delegation {
+            validator: DelegationValidator {
+                apr: 0.0,
+                ..active.validator.clone()
+            },
+            ..active
+        };
+        assert!(!delegation_rows(&no_apr).contains(&GemDelegationRow::Apr));
     }
 
     #[test]
@@ -1030,7 +1117,7 @@ mod tests {
             stale_delegation_ids(vec![delegation("known").id(), "gone".to_string()], &[delegation("known")]),
             vec!["gone"]
         );
-        let applied = apply_validator_state(
+        let applied = delegations_with_state(
             vec![delegation("known"), delegation("anon")],
             &HashMap::from([("anon".to_string(), inactive_validator(Chain::Cosmos, "anon".to_string(), String::new()))]),
         );

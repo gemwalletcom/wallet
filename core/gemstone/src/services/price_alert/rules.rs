@@ -29,6 +29,22 @@ impl GemPriceAlertKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPriceAlertToggle {
+    Enabled,
+    Disabled,
+}
+
+#[uniffi::export]
+impl GemPriceAlertToggle {
+    pub fn toggled(&self) -> Self {
+        match self {
+            Self::Enabled => Self::Disabled,
+            Self::Disabled => Self::Enabled,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPriceAlertLabel {
     Over,
     Under,
@@ -87,8 +103,11 @@ pub fn displayed_price_alert_ids(alerts: Vec<PriceAlert>) -> Vec<String> {
         .collect()
 }
 
-pub fn price_alert_enabled(alerts: &[PriceAlert]) -> bool {
-    alerts.iter().any(|alert| alert.notification_type() == PriceAlertNotificationType::Auto)
+pub fn price_alert_toggle(alerts: &[PriceAlert]) -> GemPriceAlertToggle {
+    match alerts.iter().any(|alert| alert.notification_type() == PriceAlertNotificationType::Auto) {
+        true => GemPriceAlertToggle::Enabled,
+        false => GemPriceAlertToggle::Disabled,
+    }
 }
 
 pub fn price_alert_row(data: &PriceAlertData, price_currency: Currency) -> GemPriceAlertRow {

@@ -20,7 +20,10 @@ use gem_evm::u256::u256_to_biguint;
 use gem_evm::{
     constants::DEFAULT_SWAP_GAS_LIMIT,
     jsonrpc::EthereumRpc,
-    uniswap::{command::encode_commands, path::get_base_pair},
+    uniswap::{
+        command::{Permit2Permit, encode_commands},
+        path::get_base_pair,
+    },
 };
 use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
@@ -272,7 +275,7 @@ impl Swapper for UniswapV3 {
         let to_amount = U256::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?;
 
         let wallet_address = eth_address::parse_str(&request.wallet_address)?;
-        let permit = data.permit2_data().map(|data| data.into());
+        let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
         let wrap_input_eth = requires_native_wrapping(&request.from_asset.asset_id());
 
         let approval: Option<ApprovalData> = if wrap_input_eth {

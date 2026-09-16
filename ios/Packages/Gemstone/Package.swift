@@ -24,7 +24,7 @@ let package = Package(
                 .product(name: "BigInt", package: "BigInt"),
             ],
             swiftSettings: [
-                .swiftLanguageMode(.v5) // TODO: - remove when GemstoneFFI will support swift6 fully
+                .swiftLanguageMode(.v5)
             ]
         ),
         .target(

@@ -2,7 +2,6 @@
 
 public import struct Gemstone.GemSignedTransaction
 public import struct Gemstone.GemSignerInput
-public import class Gemstone.MessageSigner
 import Foundation
 import Primitives
 
@@ -13,7 +12,6 @@ public protocol Keystore: Sendable {
     /// Migrates pending v3 keystores to v4, reading the password at most once; returns per-wallet failures.
     func migrateV3Keystores(for wallets: [Wallet]) async throws -> [KeystoreMigrationFailure]
     func sign(wallet: Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction]
-    func signMessage(signer: MessageSigner, wallet: Wallet) async throws -> String
     func getPasswordAuthentication() throws -> KeystoreAuthentication
     func destroy() throws
 }

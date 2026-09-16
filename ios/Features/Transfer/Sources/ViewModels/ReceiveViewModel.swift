@@ -78,17 +78,9 @@ public final class ReceiveViewModel: Sendable {
     }
 
     var warningMessage: String {
-        [Localized.Receive.warning(assetModel.symbol.boldMarkdown(), assetModel.networkFullName.boldMarkdown()), memoWarningText]
-            .compactMap(\.self)
+        service.warnings(chain: assetModel.asset.chain.rawValue)
+            .map { $0.text(asset: assetModel) }
             .joined(separator: " ")
-    }
-
-    private var memoWarningText: String? {
-        switch service.memoWarning(chain: assetModel.asset.chain.rawValue) {
-        case .destinationTag: Localized.Wallet.Receive.noDestinationTagRequired
-        case .memo: Localized.Wallet.Receive.noMemoRequired
-        case .notSupported: nil
-        }
     }
 
     var copyModel: CopyTypeViewModel {

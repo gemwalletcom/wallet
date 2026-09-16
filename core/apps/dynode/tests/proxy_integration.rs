@@ -86,6 +86,10 @@ impl Handler for Upstream {
             };
             let body = format!(r#"{{"jsonrpc":"2.0","id":{},"result":"{result}"}}"#, call["id"]);
             (Status::Ok, "application/json", body.into_bytes())
+        } else if url.path() == "/api/v3/runGetMethod" {
+            let call: Value = serde_json::from_slice(&body).unwrap();
+            let exit_code = if call["address"] == "undeployed" { -13 } else { 0 };
+            (Status::Ok, "application/json", format!(r#"{{"exit_code":{exit_code},"stack":[]}}"#).into_bytes())
         } else if url.path().starts_with("/first429/") || url.path().starts_with("/last429/") {
             (Status::TooManyRequests, "text/plain", url.path().as_bytes().to_vec())
         } else if url.path() == "/echo/status" {
@@ -433,5 +437,44 @@ async fn verify_family_policies(harness: &Harness) -> Result<(), BoxError> {
     let second = harness.call(&path, 200, Some(&large_body), &[]).await?;
     assert_eq!(first.body, second.body);
     assert_eq!(harness.upstream.count("/cache/value"), before + 1);
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_ton_v3_cache() -> Result<(), BoxError> {
+    let harness = Harness::start().await?;
+    let path = "/api/v3/runGetMethod";
+    for (address, method, stack, cached) in [
+        ("master", "get_wallet_address", "owner-a", true),
+        ("master", "get_wallet_address", "owner-b", true),
+        ("other-master", "get_wallet_address", "owner-b", true),
+        ("router", "get_pool_address", "pair", true),
+        ("undeployed", "get_wallet_address", "owner", false),
+        ("wallet", "seqno", "", false),
+        ("pool", "get_pool_data", "", false),
+    ] {
+        let body = format!(r#"{{"address":"{address}","method":"{method}","stack":[{{"type":"slice","value":"{stack}"}}]}}"#);
+        let before = harness.upstream.count(path);
+        let first = harness.call(&format!("/ton{path}"), 200, Some(body.as_bytes()), &[]).await?;
+        sleep(Duration::from_millis(20)).await;
+        let second = harness.call(&format!("/ton{path}"), 200, Some(body.as_bytes()), &[]).await?;
+        assert_eq!(first.body, second.body);
+        assert_eq!(second.headers.get("x-cache").unwrap(), if cached { "HIT" } else { "MISS" });
+        assert_eq!(harness.upstream.count(path), before + if cached { 1 } else { 2 });
+    }
+    for (path, body) in [
+        ("/api/v3/addressInformation?address=wallet", None),
+        ("/api/v3/walletInformation?address=wallet", None),
+        ("/api/v3/jetton/wallets?owner_address=wallet", None),
+        ("/api/v3/masterchainInfo", None),
+        ("/api/v3/traces?account=wallet", None),
+        ("/api/v3/message", Some(b"{}".as_slice())),
+        ("/api/emulate/v1/emulateTonConnect", Some(b"{}".as_slice())),
+    ] {
+        let first = harness.call(&format!("/ton{path}"), 200, body, &[]).await?;
+        let second = harness.call(&format!("/ton{path}"), 200, body, &[]).await?;
+        assert_ne!(first.body, second.body);
+        assert_eq!(second.headers.get("x-cache").unwrap(), "MISS");
+    }
     Ok(())
 }

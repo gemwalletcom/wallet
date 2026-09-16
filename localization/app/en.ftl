@@ -123,8 +123,6 @@ common_expiration = Expiration
 common_suspicious_address = Suspicious address
 # Used in shared app UI for the refresh label.
 common_refresh = Refresh
-# Used in shared app UI for the no thanks label.
-common_no_thanks = No thanks
 # Used in shared app UI for the grant permission label.
 common_grant_permission = Grant permission
 # Used in shared app UI for the required field label. Contains 1 string placeholder.
@@ -314,8 +312,6 @@ transfer_unfreeze_title = Unfreeze
 transfer_review_request = Review Request
 # Used in Transfer, Send, Stake, and confirmation flows for the amount label.
 transfer_amount = Amount
-# Used in Transfer, Send, Stake, and confirmation flows for the amount title.
-transfer_amount_title = Amount
 
 # Settings
 
@@ -394,8 +390,6 @@ support_message_placeholder = Message
 
 # Errors
 
-# Used in error cards and validation UI for the transfer label. Contains 1 string placeholder.
-errors_transfer = Transfer Error: %@
 # Used in error cards and validation UI for the validation label. Contains 1 string placeholder.
 errors_validation = Validation Error: %@
 # Used in error cards and validation UI for the create wallet label. Contains 1 string placeholder.
@@ -432,8 +426,6 @@ errors_connections_user_cancelled = User cancelled
 errors_not_supported = Not Supported
 # Used in error cards and validation UI for the permissions not granted label.
 errors_permissions_not_granted = Permissions Not Granted
-# Used in error cards and validation UI for the decoding label.
-errors_decoding = Decoding Error
 # Used in error cards and validation UI for the unknown label.
 errors_unknown = Unknown
 # Used in error cards and validation UI for the not supported qr label.
@@ -455,17 +447,10 @@ errors_swap_no_quote_available = No quote available.
 # Used in error cards and validation UI for the swap not supported chain label.
 # Used in error cards and validation UI for the swap not supported asset label.
 errors_swap_not_supported_asset = Not supported asset.
-# Used in error cards and validation UI for the swap not supported pair label.
-# Used in error cards and validation UI for the connections invalid send parameters label.
-errors_connections_invalid_send_parameters = Invalid parameters provided for sending a transaction.
-# Used in error cards and validation UI for the connections invalid sign parameters label.
-errors_connections_invalid_sign_parameters = Invalid parameters provided for signing.
 # Used in error cards and validation UI for the connections no supported wallets label.
 errors_connections_no_supported_wallets = No supported wallets are available.
 # Used in error cards and validation UI for the connections unsupported chain label.
 errors_connections_unsupported_chain = The provided chain is not supported.
-# Used in error cards and validation UI for the connections unsupported method label.
-errors_connections_unsupported_method = The requested method is not supported.
 # Used in error cards and validation UI for the swap amount too small label.
 errors_swap_amount_too_small = Amount too small
 # Used in error cards and validation UI for the required label. Contains 1 string placeholder.
@@ -490,8 +475,6 @@ errors_swap_minimum_amount = Minimum trade amount is %@. Please enter a higher a
 errors_perpetual_trigger_price_lower = Trigger price should be lower than market price
 # Perpetual order validation when a take-profit or stop-loss trigger must be above market price.
 errors_perpetual_trigger_price_higher = Trigger price should be higher than market price
-# Used in error cards and validation UI for the token unable fetch token information label. Contains 1 string placeholder.
-errors_token_unable_fetch_token_information = Unable to fetch token information: %@
 # Used in error cards and validation UI for the unknown try again label.
 errors_unknown_try_again = An unknown error occurred. Please try again.
 # Used in error cards and validation UI for the network error label. Contains 1 string placeholder.
@@ -531,8 +514,6 @@ update_app_permission_title = Allow installation
 update_app_permission_description = Go to settings and allow installation from external sources
 # Used in Android app update prompt for the permission open settings label.
 update_app_permission_open_settings = Go to settings
-# Used in Android app update prompt for the downloading label.
-update_app_downloading = Downloading...
 
 # Transaction
 
@@ -894,10 +875,6 @@ banner_account_activation_description = The %@ network requires a one time fee o
 banner_stake_title = Start staking %@
 # Used in promotional banners for the stake description. Contains 1 string placeholder.
 banner_stake_description = Earn %@ rewards on your stake while you sleep.
-# Used in promotional banners for the enable notifications title.
-banner_enable_notifications_title = Enable Notifications
-# Used in promotional banners for the enable notifications description.
-banner_enable_notifications_description = Stay on top of your wallet activity.
 # Used in promotional banners for the activate asset description. Contains 2 string placeholders.
 banner_activate_asset_description = To use the %@ asset, you must first enable it on the %@ network by fulfilling the network's specific requirements.
 # Used in promotional banners for the asset status title.
@@ -1261,10 +1238,10 @@ perpetual_margin_isolated = Isolated
 
 # Used in Perpetuals market list and positions screens as a title.
 perpetuals_title = Perpetuals
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Trade Perpetuals
 # Used in Perpetuals market list and positions screens for the markets label.
 perpetuals_markets = Markets
-# Used in Perpetuals market list and positions screens for the empty state no markets label.
-perpetuals_empty_state_no_markets = No markets
 # Used in Perpetuals market list and positions screens for the empty state no markets found label.
 perpetuals_empty_state_no_markets_found = No markets found
 
@@ -1384,18 +1361,12 @@ application_name = Gem
 
 # Camera Permission
 
-# Used in camera UI for the permission request camera label.
-camera_permission_request_camera = Camera permission required for QR Code scan.\nPlease grant permission.
 
 # Notifications Permission
 
-# Used in in-app notification screens for the permission request notification label.
-notifications_permission_request_notification = Post Notifications permission required for get notifications about new transactions.\nPlease grant permission.
 
 # Confirm
 
-# Used in confirm UI for the fee error label.
-confirm_fee_error = Fee calculation error
 
 # Rootcheck
 

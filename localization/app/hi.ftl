@@ -58,7 +58,6 @@ common_token = टोकन
 common_expiration = समाप्ति
 common_suspicious_address = संदिग्ध पता
 common_refresh = ताज़ा करना
-common_no_thanks = नहीं धन्यवाद
 common_grant_permission = अनुमति प्रदान करें
 common_required_field = %@ आवश्यक है
 
@@ -165,7 +164,6 @@ transfer_freeze_title = जमाना
 transfer_unfreeze_title = अनफ़्रीज़
 transfer_review_request = समीक्षा अनुरोध
 transfer_amount = रकम
-transfer_amount_title = रकम
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = संदेश
 
 # Errors
 
-errors_transfer = स्थानांतरण त्रुटि: %@
 errors_validation = सत्यापन त्रुटि: %@
 errors_create_wallet = वॉलेट बनाने में त्रुटि: %@
 errors_invalid_address_name = अमान्य पता या नाम
@@ -228,7 +225,6 @@ errors_cancelled = रद्द किया गया
 errors_connections_user_cancelled = उपयोगकर्ता ने रद्द किया
 errors_not_supported = समर्थित नहीं
 errors_permissions_not_granted = अनुमतियाँ नहीं दी गईं
-errors_decoding = डिकोडिंग त्रुटि
 errors_unknown = अज्ञात
 errors_not_supported_qr = यह डिवाइस QR कोड स्कैनिंग का समर्थन नहीं करता है. आप केवल लाइब्रेरी से क्यूआर कोड छवि का चयन कर सकते हैं।
 errors_camera_permissions_not_granted = कैमरे की अनुमति नहीं दी गई. कृपया क्यूआर कोड को स्कैन करने के लिए सेटिंग्स में कैमरा एक्सेस सक्षम करें।
@@ -239,11 +235,8 @@ errors_invalid_asset_address = अमान्य %@ पता
 errors_dust_threshold = लेन-देन विफल रहा क्योंकि राशि %@ नेटवर्क की न्यूनतम आवश्यकता (डस्ट थ्रेशोल्ड) को पूरा करने के लिए बहुत कम है। यह सीमा सुनिश्चित करती है कि लेन-देन का मूल्य शुल्क और प्रसंस्करण लागत को कवर करता है।
 errors_swap_no_quote_available = कोई कोट उपलब्ध नहीं है।
 errors_swap_not_supported_asset = समर्थित परिसंपत्ति नहीं.
-errors_connections_invalid_send_parameters = लेनदेन भेजने के लिए अमान्य पैरामीटर प्रदान किए गए.
-errors_connections_invalid_sign_parameters = हस्ताक्षर के लिए अमान्य पैरामीटर प्रदान किए गए.
 errors_connections_no_supported_wallets = कोई समर्थित वॉलेट उपलब्ध नहीं है.
 errors_connections_unsupported_chain = प्रदान की गई श्रृंखला समर्थित नहीं है.
-errors_connections_unsupported_method = अनुरोधित विधि समर्थित नहीं है.
 errors_swap_amount_too_small = राशि बहुत छोटी है
 errors_required = %@ आवश्यक है
 errors_scan_transaction_malicious_description = यह लेनदेन पूरा नहीं किया जा सकता - गंतव्य वॉलेट पता संदिग्ध या हानिकारक गतिविधि से जुड़ा हुआ है।
@@ -255,7 +248,6 @@ errors_dust_threshold_short = नेटवर्क इस राशि को �
 errors_swap_minimum_amount = न्यूनतम व्यापार राशि है %@। कृपया अधिक राशि दर्ज करें।
 errors_perpetual_trigger_price_lower = ट्रिगर मूल्य बाजार मूल्य से कम होना चाहिए
 errors_perpetual_trigger_price_higher = ट्रिगर मूल्य बाजार मूल्य से अधिक होना चाहिए
-errors_token_unable_fetch_token_information = टोकन जानकारी लाने में असमर्थ: %@
 errors_unknown_try_again = एक अज्ञात त्रुटि उत्पन्न हुई. कृपया पुन: प्रयास करें।
 errors_network_error = नेटवर्क त्रुटि: %@
 errors_network_offline = इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।
@@ -279,7 +271,6 @@ update_app_action = अद्यतन करें
 update_app_permission_title = स्थापना की अनुमति दें
 update_app_permission_description = सेटिंग्स पर जाएं और बाहरी स्रोतों से इंस्टॉलेशन की अनुमति दें
 update_app_permission_open_settings = सेटिंग्स पर जाएं
-update_app_downloading = डाउनलोड हो रहा है...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = खाता सक्रियण शुल�
 banner_account_activation_description = %@ नेटवर्क को %@ का एक बार शुल्क देना पड़ता है।
 banner_stake_title = %@ स्टेक करना शुरू करें
 banner_stake_description = सोते समय अपने स्टेक पर %@ पुरस्कार अर्जित करें।
-banner_enable_notifications_title = सूचनाएं सक्षम करें
-banner_enable_notifications_description = अपनी वॉलेट गतिविधि में शीर्ष पर रहें।
 banner_activate_asset_description = %@ एसेट का उपयोग करने के लिए, आपको पहले नेटवर्क की विशिष्ट आवश्यकताओं को पूरा करके इसे %@ नेटवर्क पर सक्षम करना होगा।
 banner_asset_status_title = संदिग्ध संपत्ति
 banner_asset_status_description = टोकन असुरक्षित या भ्रामक हो सकता है. अगर आपको इस पर पूरा भरोसा है तो ही आगे बढ़ें।
@@ -690,8 +679,9 @@ perpetual_margin_isolated = पृथक
 # Perpetuals
 
 perpetuals_title = पर्पेचुअल्स
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = पर्पेचुअल्स ट्रेड करें
 perpetuals_markets = बाज़ार
-perpetuals_empty_state_no_markets = कोई बाज़ार नहीं
 perpetuals_empty_state_no_markets_found = कोई बाज़ार नहीं मिला
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = क्यूआर कोड स्कैन के लिए कैमरे की अनुमति आवश्यक है।\nकृपया अनुमति दें।
 
 # Notifications Permission
 
-notifications_permission_request_notification = नए लेनदेन के बारे में सूचनाएं प्राप्त करने के लिए अधिसूचना पोस्ट करने की अनुमति आवश्यक है।\nकृपया अनुमति प्रदान करें।
 
 # Confirm
 
-confirm_fee_error = शुल्क गणना में त्रुटि
 
 # Rootcheck
 

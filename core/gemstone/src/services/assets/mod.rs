@@ -1,6 +1,8 @@
 pub mod add;
 pub mod config;
 pub mod details;
+#[cfg(test)]
+pub(crate) mod details_testkit;
 pub mod icon;
 pub mod model;
 pub mod rules;

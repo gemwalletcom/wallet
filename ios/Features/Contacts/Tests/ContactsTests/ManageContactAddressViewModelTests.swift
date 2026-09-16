@@ -32,14 +32,14 @@ struct ManageContactAddressViewModelTests {
     }
 
     @Test
-    func showMemo() {
+    func memoFieldFollowsTheChain() {
         let model = ManageContactAddressViewModel.mock(mode: .add)
 
         model.addressInputModel.chain = .bitcoin
-        #expect(model.showMemo == false)
+        #expect(model.fields == [.network, .address])
 
         model.addressInputModel.chain = .cosmos
-        #expect(model.showMemo == true)
+        #expect(model.fields == [.network, .address, .memo])
     }
 
     @Test

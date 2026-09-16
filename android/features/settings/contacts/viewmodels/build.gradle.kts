@@ -57,4 +57,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.savedstate)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk.android)
+    testImplementation(testFixtures(project(":gemcore")))
 }

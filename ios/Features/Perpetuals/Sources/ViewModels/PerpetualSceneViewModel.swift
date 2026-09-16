@@ -3,6 +3,10 @@
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
+import enum Gemstone.GemPerpetualButton
+import enum Gemstone.GemPerpetualInfoRow
+import enum Gemstone.GemPerpetualPositionDetailRow
+import enum Gemstone.GemPerpetualSection
 import Components
 import Foundation
 import func Gemstone.transactionsListLimit
@@ -91,36 +95,52 @@ public final class PerpetualSceneViewModel {
         !positionViewModels.isEmpty
     }
 
-    public var positionSectionTitle: String {
-        Localized.Perpetual.position
+    public var sections: [GemPerpetualSection] {
+        service.sections(hasPosition: hasOpenPosition)
     }
 
-    public var infoSectionTitle: String {
-        Localized.Common.info
+    public var buttons: [GemPerpetualButton] {
+        service.buttons(hasPosition: hasOpenPosition)
     }
 
-    public var closePositionTitle: String {
-        Localized.Perpetual.closePosition
+    public var modifyButtons: [GemPerpetualButton] {
+        service.modifyButtons()
     }
 
-    public var modifyPositionTitle: String {
-        Localized.Perpetual.modify
+    public var infoRows: [GemPerpetualInfoRow] {
+        service.infoRows()
     }
 
-    public var increasePositionTitle: String {
-        Localized.Perpetual.increasePosition
+    public func positionRows(_ position: PerpetualPositionViewModel) -> [GemPerpetualPositionDetailRow] {
+        service.positionDetailRows(position: position.data.position.toGem())
     }
 
-    public var reducePositionTitle: String {
-        Localized.Perpetual.reducePosition
+    public func infoAction(for row: GemPerpetualInfoRow) -> InfoSheetAction? {
+        switch row {
+        case .dailyVolume: nil
+        case .openInterest: onSelectOpenInterestInfo
+        case .fundingRate: onSelectFundingRateInfo
+        }
     }
 
-    public var longButtonTitle: String {
-        Localized.Perpetual.long
+    public func infoAction(for row: GemPerpetualPositionDetailRow) -> InfoSheetAction? {
+        switch row {
+        case .autoclose: onSelectAutocloseInfo
+        case .liquidationPrice: onSelectLiquidationPriceInfo
+        case .fundingPayments: onSelectFundingPaymentsInfo
+        case .pnl, .size, .entryPrice, .margin: nil
+        }
     }
 
-    public var shortButtonTitle: String {
-        Localized.Perpetual.short
+    public func onSelectButton(_ button: GemPerpetualButton) {
+        switch button {
+        case .long: onOpenLongPosition()
+        case .short: onOpenShortPosition()
+        case .modify: onModifyPosition()
+        case .close: onClosePosition()
+        case .increase: onIncreasePosition()
+        case .reduce: onReducePosition()
+        }
     }
 
     public var perpetual: Perpetual {

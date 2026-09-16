@@ -12,6 +12,7 @@ import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetD
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import uniffi.gemstone.GemRefreshKind
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun AssetDetailsScreen(
@@ -21,7 +22,7 @@ fun AssetDetailsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val priceAlertError by viewModel.error.collectAsStateWithLifecycle()
-    val snackBar = rememberSnackbarState(message = priceAlertError, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackBar = rememberSnackbarState(message = priceAlertError?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val requestNotificationPermission = rememberNotificationPermissionGate()
 

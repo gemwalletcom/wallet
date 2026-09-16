@@ -1,4 +1,5 @@
 import class Gemstone.GemTransactionDetailsService
+import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitivesTestKit
 import Components
 import Foundation
@@ -40,7 +41,7 @@ struct TransactionSceneViewModelTests {
     @Test
     func nftHeaderAction() {
         let assetId = NFTAssetId(chain: .ethereum, contractAddress: "0xasset", tokenId: "1")
-        var selectedAction: TransactionHeaderAction?
+        var selectedAction: GemTransactionHeaderAction?
         let model = TransactionSceneViewModel(
             transaction: TransactionExtended.mock(
                 transaction: Transaction.mock(
@@ -57,7 +58,7 @@ struct TransactionSceneViewModelTests {
 
         model.onTransactionHeaderTap?(.header)
 
-        #expect(selectedAction == .nft(assetId: assetId))
+        #expect(selectedAction == .nft(assetId: assetId.identifier))
     }
 
     @Test

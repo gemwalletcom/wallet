@@ -2,7 +2,6 @@
 
 import GemstonePrimitives
 import struct Gemstone.GemPerpetualChartLine
-import Localization
 import Style
 import SwiftUI
 
@@ -18,22 +17,11 @@ struct ChartLineViewModel: Identifiable {
     }
 
     var label: String {
-        let typeLabel: String = switch line.kind {
-        case .takeProfit: Localized.Perpetual.takeProfit
-        case .stopLoss: Localized.Perpetual.stopLoss
-        case .entry: Localized.Charts.entry
-        case .liquidation: Localized.Perpetual.liquidation
-        }
-        return "\(typeLabel) | \(line.price.text())"
+        "\(line.kind.title) | \(line.price.text())"
     }
 
     var color: Color {
-        switch line.kind {
-        case .takeProfit: Colors.green
-        case .stopLoss: Colors.orange
-        case .entry: Colors.gray
-        case .liquidation: Colors.red
-        }
+        line.kind.color
     }
 
     var lineStyle: StrokeStyle {

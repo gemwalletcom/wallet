@@ -19,7 +19,7 @@ struct SecurityReminderScene: View {
             CalloutView(style: .header(title: model.message))
                 .cleanListRow()
 
-            ForEach(model.items) { item in
+            ForEach(model.items, id: \.self) { item in
                 Section {
                     ListItemView(
                         title: TextValue(text: item.title, style: .headline, lineLimit: 2),

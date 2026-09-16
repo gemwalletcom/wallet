@@ -59,6 +59,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
 import androidx.compose.material3.SnackbarHostState
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 
 private val tabs = listOf(
     PriceAlertNotificationType.Price,
@@ -91,9 +92,7 @@ fun PriceAlertTargetScene(
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        try {
-            focusRequester.requestFocus()
-        } catch (_: Throwable) {}
+        focusRequester.requestFocusIfAttached()
     }
 
     Scene(

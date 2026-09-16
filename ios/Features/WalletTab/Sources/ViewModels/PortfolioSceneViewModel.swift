@@ -161,8 +161,8 @@ extension PortfolioSceneViewModel {
     }
 
     private func marginModel(title: String, _ margin: PortfolioMarginUsage) -> ListItemModel {
-        let value = perpetualFormatter.string(margin.accountValue * margin.usage)
-        let percent = PercentFormatter.unsigned.string(margin.usage * 100)
+        let value = perpetualFormatter.string(margin.usedValue)
+        let percent = PercentFormatter.unsigned.string(margin.usagePercent)
         return ListItemModel(title: title, subtitle: "\(value) (\(percent))")
     }
 }

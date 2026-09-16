@@ -48,10 +48,11 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import javax.inject.Inject
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -104,6 +105,22 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val sections = position
+        .map { service.sections(it != null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val positionRows = position
+        .map { position -> position?.let { service.positionDetailRows(it.position.toGem()) }.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val infoRows = service.infoRows()
+
+    val buttons = position
+        .map { service.buttons(it != null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val modifyButtons = service.modifyButtons()
+
     val transactions = combine(
         getTransactions.getTransactions(transactionFilters),
         transactionSync,
@@ -129,7 +146,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                     if (market == null) return@flow
                     perpetualObserver.chartUpdates
                         .collect { update ->
-                            candles = service.applyCandleUpdate(candles.map { it.toGem() }, update.toGem(), market.toGem(), period.toGem())
+                            candles = service.mergedCandles(candles.map { it.toGem() }, update.toGem(), market.toGem(), period.toGem())
                                 ?.map { it.toPrimitives() } ?: return@collect
                             emit(candles.toChartState())
                         }
@@ -184,8 +201,8 @@ class PerpetualDetailsViewModel @Inject constructor(
         this.period.update { period }
     }
 
-    private val errorState = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<GemErrorText?>(null)
+    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
 
     fun fetch() {
         refreshTrigger.update { it + 1 }
@@ -212,7 +229,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             runCatchingCancellable { buildPerpetualParams.position(perpetualId, kind) }
                 .onSuccess { params -> params?.let(amountAction::invoke) }
-                .onFailure { errorState.value = it.serviceMessage() }
+                .onFailure { errorState.value = it.errorText() }
         }
     }
 
@@ -221,7 +238,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             runCatchingCancellable { buildPerpetualParams.close(perpetualId) }
                 .onSuccess { input -> input?.let(confirmAction::invoke) }
-                .onFailure { errorState.value = it.serviceMessage() }
+                .onFailure { errorState.value = it.errorText() }
         }
     }
 

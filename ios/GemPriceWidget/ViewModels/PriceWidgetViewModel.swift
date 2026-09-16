@@ -2,6 +2,7 @@
 
 import SwiftUI
 import WidgetKit
+import WidgetLocalization
 
 @Observable
 @MainActor
@@ -31,10 +32,8 @@ final class PriceWidgetViewModel {
 
     var emptyMessage: String {
         switch widgetFamily {
-        case .systemSmall:
-            "No data"
-        default:
-            "No price data available"
+        case .systemSmall: WidgetLocalized.Widget.emptyShort
+        default: WidgetLocalized.Widget.empty
         }
     }
 }

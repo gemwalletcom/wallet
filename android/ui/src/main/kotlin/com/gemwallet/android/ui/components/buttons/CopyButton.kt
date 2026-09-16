@@ -12,9 +12,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.space6
 
 private val iconSize = 18.dp
-private val iconTextSpacing = 6.dp
+private val iconTextSpacing = space6
 
 @Composable
 fun CopyButton(

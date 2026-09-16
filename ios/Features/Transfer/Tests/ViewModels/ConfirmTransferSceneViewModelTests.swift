@@ -449,7 +449,7 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(sections[3].id == "error")
 
         #expect(sections[0].values == [.header])
-        #expect(sections[1].values == [.app, .sender, .recipient, .network, .memo, .details])
+        #expect(sections[1].values == [.sender, .recipient, .network, .details], "a send on a chain without memos has no app or memo row")
         #expect(sections[2].values == [.networkFee])
         #expect(sections[3].values == [.error])
     }

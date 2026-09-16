@@ -6,6 +6,7 @@ import Foundation
 import GemstonePrimitives
 import class Gemstone.GemPerpetual
 import struct Gemstone.GemPerpetualMarketRow
+import enum Gemstone.GemPerpetualInfoRow
 import func Gemstone.perpetualMarketRow
 import Localization
 import Primitives
@@ -36,17 +37,13 @@ public struct PerpetualViewModel {
         AssetIdViewModel(assetId: perpetual.assetId).assetImage
     }
 
-    public var volumeField: ListItemField {
-        ListItemField(title: Localized.Markets.dailyVolume, value: row.volume24h.text())
-    }
-
-    public var openInterestField: ListItemField {
-        ListItemField(title: Localized.Info.Perpetual.OpenInterest.title, value: row.openInterest.text())
-    }
-
-    public var fundingRateField: ListItemField {
-        let annualized = GemPerpetual(provider: perpetual.provider.toGem()).fundingApr(funding: perpetual.funding)
-        return ListItemField(title: Localized.Info.Perpetual.FundingApr.title, value: percentFormatter.string(annualized))
+    public func infoField(for infoRow: GemPerpetualInfoRow) -> ListItemField {
+        let value = switch infoRow {
+        case .dailyVolume: row.volume24h.text()
+        case .openInterest: row.openInterest.text()
+        case .fundingRate: percentFormatter.string(GemPerpetual(provider: perpetual.provider.toGem()).fundingApr(funding: perpetual.funding))
+        }
+        return ListItemField(title: infoRow.title, value: value)
     }
 
     public var priceText: String {

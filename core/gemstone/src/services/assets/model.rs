@@ -1,6 +1,7 @@
 use primitives::{Asset, AssetId, AssetMetaData, AssetType, BannerEvent, BlockExplorerLink, Chain, PriceAlert, RecentActivityType, VerificationStatus, WalletType};
 
 use crate::services::balance::GemAssetBalance;
+use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
 use swapper::AssetList as SwapAssetList;
@@ -79,6 +80,19 @@ pub enum GemAssetRowTrailing {
     None,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetText {
+    pub title: String,
+    pub subtitle_symbol: Option<String>,
+    pub network_name: String,
+    pub network_full_name: String,
+}
+
+#[uniffi::export]
+pub fn asset_text(asset: Asset) -> GemAssetText {
+    super::rules::asset_text(&asset)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemAssetRow {
     pub title: GemAssetRowTitle,
@@ -87,8 +101,31 @@ pub struct GemAssetRow {
     pub trailing: GemAssetRowTrailing,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetTitle {
+    Send,
+    Receive,
+    ReceiveCollection,
+    Buy,
+    SwapPay,
+    SwapReceive,
+    ManageTokenList,
+    SelectAsset,
+    Deposit,
+    Withdraw,
+    Search,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetSection {
+    Assets,
+    Networks,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemSelectAssetFlow {
+    pub title: GemSelectAssetTitle,
+    pub assets_section: GemSelectAssetSection,
     pub row: GemAssetRow,
     pub row_action: GemSelectRowAction,
     pub action: Option<GemAssetAction>,
@@ -428,7 +465,7 @@ pub struct GemAssetDetailsState {
     pub shows_resources: bool,
     pub shows_price_alerts: bool,
     pub price_alerts_count: u32,
-    pub price_alert_enabled: bool,
+    pub price_alert: GemPriceAlertToggle,
     pub shows_earn: bool,
     pub empty_transactions_action: Option<GemAssetEmptyAction>,
 }

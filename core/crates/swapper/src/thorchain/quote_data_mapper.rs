@@ -9,7 +9,9 @@ use alloy_sol_types::SolCall;
 use primitives::swap::ApprovalData;
 
 use super::{asset::THORChainAsset, contracts::RouterInterface, deposit_gas_limit, model::RouteData};
-use crate::{SwapperQuoteData, approval::get_swap_gas_limit_with_approval};
+use crate::{SwapperError, SwapperQuoteData, approval::get_swap_gas_limit_with_approval};
+
+const EXPIRY_SECONDS: u64 = 86400;
 
 pub fn map_quote_data(
     from_asset: &THORChainAsset,
@@ -18,16 +20,17 @@ pub fn map_quote_data(
     value: BigUint,
     memo: String,
     approval: Option<ApprovalData>,
-) -> SwapperQuoteData {
+) -> Result<SwapperQuoteData, SwapperError> {
     let gas_limit = get_swap_gas_limit_with_approval(&approval, None, deposit_gas_limit(&memo));
 
     if from_asset.use_evm_router() {
         let router_address = route_data.router_address.clone().unwrap_or_default();
-        let inbound_address = Address::from_str(&route_data.inbound_address).unwrap();
-        let token_address = Address::from_str(&token_id.unwrap()).unwrap();
-        let amount = U256::from_str(&value.to_string()).unwrap();
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + 86400;
-        let expiry = U256::from_str(timestamp.to_string().as_str()).unwrap();
+        let inbound_address = Address::from_str(&route_data.inbound_address).map_err(|_| SwapperError::InvalidRoute)?;
+        let token_id = token_id.ok_or(SwapperError::NotSupportedAsset)?;
+        let token_address = Address::from_str(&token_id).map_err(|_| SwapperError::NotSupportedAsset)?;
+        let amount = U256::from_str(&value.to_string()).map_err(SwapperError::transaction_error)?;
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs() + EXPIRY_SECONDS;
+        let expiry = U256::from(timestamp);
 
         let call_data = RouterInterface::depositWithExpiryCall {
             inbound_address,
@@ -38,11 +41,17 @@ pub fn map_quote_data(
         }
         .abi_encode();
 
-        SwapperQuoteData::new_contract(router_address, BigUint::ZERO, HexEncode(call_data), approval, gas_limit)
+        Ok(SwapperQuoteData::new_contract(router_address, BigUint::ZERO, HexEncode(call_data), approval, gas_limit))
     } else if from_asset.chain.is_evm_chain() {
-        SwapperQuoteData::new_contract(route_data.inbound_address.clone(), value, HexEncode(memo.as_bytes()), approval, gas_limit)
+        Ok(SwapperQuoteData::new_contract(
+            route_data.inbound_address.clone(),
+            value,
+            HexEncode(memo.as_bytes()),
+            approval,
+            gas_limit,
+        ))
     } else {
-        SwapperQuoteData::new_transfer(route_data.inbound_address.clone(), value, Some(memo))
+        Ok(SwapperQuoteData::new_transfer(route_data.inbound_address.clone(), value, Some(memo)))
     }
 }
 
@@ -79,7 +88,8 @@ mod tests {
             BigUint::from(1000000u64),
             "memo".to_string(),
             None,
-        );
+        )
+        .unwrap();
 
         assert_eq!(result.to, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146");
         assert_eq!(result.value, BigUint::from(0u64));
@@ -97,7 +107,8 @@ mod tests {
             BigUint::from(1000u64),
             "memo".to_string(),
             None,
-        );
+        )
+        .unwrap();
 
         assert_eq!(result.to, "0xinbound");
         assert_eq!(result.value, BigUint::from(1000u64));
@@ -115,7 +126,8 @@ mod tests {
             BigUint::from(1_000u64),
             "memo".to_string(),
             None,
-        );
+        )
+        .unwrap();
 
         assert_eq!(result.to, "bc1q");
         assert_eq!(result.value, BigUint::from(1000u64));
@@ -133,7 +145,8 @@ mod tests {
             BigUint::from(10000000u64),
             "=:b:bc1qdestination:0/1/0:g1:50".to_string(),
             None,
-        );
+        )
+        .unwrap();
 
         assert_eq!(result.to, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML");
         assert_eq!(result.value, BigUint::from(10000000u64));
@@ -154,7 +167,8 @@ mod tests {
             BigUint::from(1000000u64),
             "memo".to_string(),
             approval.clone(),
-        );
+        )
+        .unwrap();
 
         assert_eq!(result.to, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146");
         assert_eq!(result.value, BigUint::from(0u64));
@@ -181,7 +195,8 @@ mod tests {
             BigUint::from(1000u64),
             "memo".to_string(),
             None,
-        );
+        )
+        .unwrap();
 
         assert_eq!(result.to, "0xinbound");
         assert_eq!(result.value, BigUint::from(1000u64));

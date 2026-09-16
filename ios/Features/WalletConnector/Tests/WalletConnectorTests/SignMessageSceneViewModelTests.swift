@@ -43,29 +43,6 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
-    func connectionViewModelUsesPayloadWallet() {
-        let wallet = Wallet.mock(id: .multicoin(address: "0xspecific"), name: "Test Wallet")
-        let session = WalletConnectionSession.mock(sessionId: "test-session")
-        let payload = SignMessagePayload.mock(
-            chain: .ethereum,
-            session: session,
-            wallet: wallet,
-            message: .mock(),
-            simulation: .mock(),
-        )
-
-        let viewModel = SignMessageSceneViewModel(
-            service: GemSignMessageService.mock(),
-            payload: payload,
-            confirmTransferDelegate: { _ in },
-        )
-
-        #expect(viewModel.connectionViewModel.connection.wallet.id == .multicoin(address: "0xspecific"))
-        #expect(viewModel.connectionViewModel.connection.wallet.name == "Test Wallet")
-    }
-
-    @Test
-    @MainActor
     func appTextUsesShortNameWithoutDomain() {
         let payload = SignMessagePayload.mock(
             session: .mock(metadata: .mock(

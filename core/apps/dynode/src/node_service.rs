@@ -77,9 +77,11 @@ impl NodeService {
     pub async fn handle_request(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let _inflight = self.metrics.track_node_inflight(chain);
-        let result = self.handle_request_inner(request).await;
+        let mut remote_host = None;
+        let result = self.handle_request_inner(request, &mut remote_host).await;
         if request.is_broadcast(&self.broadcast_providers) {
-            self.metrics.record_transaction_broadcast(request, &result, &self.broadcast_providers);
+            self.metrics
+                .record_transaction_broadcast(request, &result, &self.broadcast_providers, remote_host.as_deref().unwrap_or("unknown"));
         }
         let status = result.as_ref().map_or(StatusCode::INTERNAL_SERVER_ERROR.as_u16(), |response| response.status);
         self.metrics.record_node_response(chain, &request.path, status);
@@ -95,7 +97,7 @@ impl NodeService {
         result
     }
 
-    async fn handle_request_inner(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
+    async fn handle_request_inner(&self, request: &ProxyRequest, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
         Self::log_incoming_request(request);
 
         let chain_config = self.get_chain_config(request)?;
@@ -106,7 +108,7 @@ impl NodeService {
             return self.node_not_found_response(request);
         };
         if urls.len() == 1 {
-            return self.proxy.handle_request(request, &urls[0], chain_config).await;
+            return self.proxy.handle_request(request, &urls[0], chain_config, broadcast_host).await;
         }
 
         let retry_enabled = self.retry_config.enabled;
@@ -126,7 +128,7 @@ impl NodeService {
                     reason = last_error.as_deref().unwrap_or(""),
                 );
             }
-            match self.proxy.handle_request(request, url, chain_config).await {
+            match self.proxy.handle_request(request, url, chain_config, broadcast_host).await {
                 Ok(response) => {
                     let retry_error = self.matches_response_error_signal(request, &response, &self.retry_config.errors);
                     if !response.is_from_cache() {
@@ -347,7 +349,7 @@ mod tests {
     use reqwest::{Method, header, header::HeaderMap};
 
     use super::*;
-    use crate::config::{ChainTypesConfig, Url};
+    use crate::config::{ChainTypesConfig, Override, Url};
     use crate::testkit::config as testkit;
 
     fn create_service(chains: HashMap<Chain, ChainConfig>) -> NodeService {
@@ -437,6 +439,33 @@ mod tests {
             encoded.lines().filter(|line| line.starts_with(prefix) && !line.ends_with(" 0")).collect::<Vec<_>>(),
             vec!["dynode_transaction_broadcasts_total{source=\"public\",group=\"evm\",service=\"ethereum\",chain=\"ethereum\",outcome=\"failure\"} 1"]
         );
+    }
+
+    #[tokio::test]
+    async fn test_broadcast_host_tracks_final_attempt_and_override() {
+        for (urls, override_url, expected) in [
+            (vec![], None, None),
+            (vec!["http://127.0.0.1:9/secret-key"], None, Some("127.0.0.1")),
+            (vec!["http://127.0.0.1:9"], Some("http://localhost:9/secret-key"), Some("localhost")),
+            (vec!["http://127.0.0.1:9/secret-key", "http://localhost:9/other-key"], None, Some("localhost")),
+        ] {
+            let config = ChainConfig {
+                urls: urls.into_iter().map(testkit::url).collect(),
+                overrides: override_url.map(|url| {
+                    vec![Override {
+                        rpc_method: Some("eth_sendRawTransaction".to_string()),
+                        path: None,
+                        url: url.to_string(),
+                    }]
+                }),
+                ..testkit::chain_config(Chain::Ethereum, "http://127.0.0.1:9")
+            };
+            let service = create_service_with_retry(HashMap::from([(Chain::Ethereum, config)]), testkit::retry_config(true, vec![], vec![]));
+            let request = create_jsonrpc_request(Chain::Ethereum, "eth_sendRawTransaction");
+            let mut remote_host = None;
+            let _ = service.handle_request_inner(&request, &mut remote_host).await;
+            assert_eq!(remote_host.as_deref(), expected);
+        }
     }
 
     #[test]

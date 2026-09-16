@@ -25,14 +25,10 @@ where
     };
 
     match (a_pri, b_pri) {
-        (Some(a), Some(b)) if a != b => {
-            let higher_pri = if a < b { a_provider } else { b_provider }.unwrap();
-            if exceeds_threshold(higher_pri, a_amount, b_amount, ascending) {
-                by_amount()
-            } else {
-                a.cmp(&b)
-            }
-        }
+        (Some(a), Some(b)) if a != b => match if a < b { a_provider } else { b_provider } {
+            Some(higher_pri) if !exceeds_threshold(higher_pri, a_amount, b_amount, ascending) => a.cmp(&b),
+            _ => by_amount(),
+        },
         (Some(_), None) => Ordering::Less,
         (None, Some(_)) => Ordering::Greater,
         _ => by_amount(),

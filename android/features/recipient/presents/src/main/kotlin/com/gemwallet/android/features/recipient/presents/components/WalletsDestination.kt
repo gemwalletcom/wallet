@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.recipient.presents.components
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -10,6 +9,8 @@ import androidx.compose.ui.Modifier
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.localization.stringRes
+import uniffi.gemstone.GemRecipientSection
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -29,64 +30,25 @@ fun rememberWalletAddresses(wallets: List<Wallet>, toChain: Chain): Map<String, 
     }
 )
 
-fun LazyListScope.walletsDestination(
+fun LazyListScope.walletsSection(
+    section: GemRecipientSection,
+    wallets: List<Wallet>,
     toChain: Chain,
-    items: List<Wallet>,
     addresses: Map<String, String>,
     onSelect: (Wallet, Account) -> Unit,
 ) {
-    walletsSection(
-        header = R.string.common_pinned,
-        toChain = toChain,
-        items = items,
-        addresses = addresses,
-        onSelect = onSelect,
-        isPinned = true,
-        WalletType.Multicoin, WalletType.PrivateKey, WalletType.Single, WalletType.View,
-    )
-
-    walletsSection(
-        header = R.string.transfer_recipient_my_wallets,
-        toChain = toChain,
-        items = items,
-        addresses = addresses,
-        onSelect = onSelect,
-        isPinned = false,
-        WalletType.Multicoin, WalletType.PrivateKey, WalletType.Single
-    )
-    walletsSection(
-        header = R.string.transfer_recipient_view_wallets,
-        toChain = toChain,
-        items = items,
-        addresses = addresses,
-        onSelect = onSelect,
-        isPinned = false,
-        WalletType.View
-    )
-}
-
-private fun LazyListScope.walletsSection(
-    @StringRes header: Int,
-    toChain: Chain,
-    items: List<Wallet>,
-    addresses: Map<String, String>,
-    onSelect: (Wallet, Account) -> Unit,
-    isPinned: Boolean = false,
-    vararg types: WalletType
-) {
-    items.filter { it.type in types && it.isPinned == isPinned }
-        .mapNotNull { wallet -> wallet.getAccount(toChain)?.let { wallet to it } }
-        .takeIf { it.isNotEmpty() }
-        ?.let { entries ->
-            item {
-                SubheaderItem(header)
-            }
-            itemsIndexed(entries) { index, (wallet, account) ->
-                WalletRecipient(wallet, account, addresses[account.address].orEmpty(), ListPosition.getPosition(index, entries.size)) {
-                    onSelect(wallet, account)
-                }
-            }
+    val entries = wallets.mapNotNull { wallet -> wallet.getAccount(toChain)?.let { wallet to it } }
+    if (entries.isEmpty()) {
+        return
+    }
+    item {
+        SubheaderItem(section.stringRes())
+    }
+    itemsIndexed(entries) { index, (wallet, account) ->
+        WalletRecipient(wallet, account, addresses[account.address].orEmpty(), ListPosition.getPosition(index, entries.size)) {
+            onSelect(wallet, account)
         }
+    }
 }
 
 @Composable

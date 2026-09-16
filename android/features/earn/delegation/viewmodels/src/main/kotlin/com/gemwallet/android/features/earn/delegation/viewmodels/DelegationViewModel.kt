@@ -21,7 +21,7 @@ import com.gemwallet.android.ui.models.RewardsInfoUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
+import com.gemwallet.android.features.earn.delegation.models.DelegationProperties
 import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -66,38 +66,19 @@ class DelegationViewModel @Inject constructor(
         assetInfo,
     ) { delegation, assetInfo ->
         if (delegation == null || assetInfo == null) {
-            return@combine emptyList()
+            return@combine null
         }
-        val availableIn = availableIn(delegation)
-        val validator = stakeService.validatorRow(delegation.validator.toGem())
-        val validatorUrl = stakeService.validatorUrl(delegation.validator.toGem())?.link
-        val status = delegationStatus(delegation.toGem())
-        listOfNotNull(
-            DelegationProperty.Name(validator.name, validatorUrl),
-            delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },
-            DelegationProperty.TransactionStatus(status),
-            status.completion
-                ?.takeIf { availableIn.isNotEmpty() }
-                ?.let { DelegationProperty.State(it, availableIn) }
+        DelegationProperties(
+            rows = stakeService.delegationRows(delegation.toGem()),
+            validator = delegation.validator,
+            validatorName = stakeService.validatorRow(delegation.validator.toGem()).name,
+            validatorUrl = stakeService.validatorUrl(delegation.validator.toGem())?.link,
+            status = delegationStatus(delegation.toGem()),
+            availableIn = availableIn(delegation),
+            rewards = RewardsInfoUIModel(assetInfo, delegation.base.rewards),
         )
     }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val balances = combine(
-        delegation,
-        assetInfo,
-    ) { delegation, assetInfo ->
-        if (delegation == null || assetInfo == null) {
-            return@combine emptyList()
-        }
-
-        listOfNotNull(
-            delegation.base.rewards
-                .takeIf { stakeService.showsRewards(delegation.base.toGem()) }
-                ?.let { RewardsInfoUIModel(assetInfo, it) },
-        )
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val actions = combine(delegation.filterNotNull(), getSession().filterNotNull()) { delegation, session ->
         stakeService.delegationActions(session.wallet.type.toGem(), delegation.toGem())

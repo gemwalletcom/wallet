@@ -9,31 +9,11 @@ import Primitives
 import Testing
 
 private final class MockCurrencyStorage: CurrencyStorable, @unchecked Sendable {
-    var currency: Currency
-    init(currency: Currency = .usd) {
-        self.currency = currency
-    }
+    var currency: Currency = .usd
 }
 
 @MainActor
 struct CurrencySceneViewModelTests {
-    private var storage = MockCurrencyStorage()
-
-    @Test
-    func uSDCurrencyValue() {
-        let usdCurrencyStorage = MockCurrencyStorage()
-        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: GemCurrencyServiceMock())
-
-        #expect(viewModel.selectedCurrencyValue == "🇺🇸 USD")
-    }
-
-    @Test
-    func gBPCurrencyValue() {
-        let gbpCurrencyStorage = MockCurrencyStorage(currency: .gbp)
-        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, service: GemCurrencyServiceMock(flag: "🇬🇧"))
-        #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
-    }
-
     @Test
     func setNewCurrency() async throws {
         let usdCurrencyStorage = MockCurrencyStorage()

@@ -80,7 +80,7 @@ struct TransactionRequestTests {
     func missingTransactionThrows() throws {
         let db = DB.mockAssets()
         let request = TransactionRequest(walletId: .mock(), recordId: 1)
-        try db.dbQueue.read { db in
+        _ = try db.dbQueue.read { db in
             #expect(throws: RecordError.self) { try request.fetch(db) }
         }
     }

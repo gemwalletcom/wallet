@@ -65,6 +65,18 @@ pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<Bala
         .collect()
 }
 
+pub fn published_balances<E>(results: Vec<Result<Vec<(BalanceKind, AssetBalance)>, E>>) -> (Vec<(BalanceKind, AssetBalance)>, Option<E>) {
+    let mut balances = Vec::new();
+    let mut failure = None;
+    for result in results {
+        match result {
+            Ok(chain) => balances.extend(chain),
+            Err(error) => failure = failure.or(Some(error)),
+        }
+    }
+    (balances, failure)
+}
+
 pub fn balance_updates(balances: Vec<(BalanceKind, AssetBalance)>) -> Vec<GemBalanceUpdate> {
     balances
         .into_iter()
@@ -265,6 +277,29 @@ mod tests {
         let token_ids = request_token_ids(&[AssetId::from_chain(Chain::Ethereum), AssetId::from_token(Chain::Ethereum, "0x1234")]);
 
         assert_eq!(token_ids, vec!["0x1234".to_string()]);
+    }
+
+    #[test]
+    fn test_a_chain_that_fails_never_holds_back_the_chains_that_answered() {
+        let coin = |chain: Chain| (BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(chain), BigUint::from(1u32)));
+
+        let (balances, failure) = published_balances(vec![
+            Ok(vec![coin(Chain::Bitcoin)]),
+            Err("ethereum is offline"),
+            Ok(vec![coin(Chain::Solana)]),
+            Err("cosmos is offline"),
+        ]);
+
+        assert_eq!(
+            balances,
+            vec![coin(Chain::Bitcoin), coin(Chain::Solana)],
+            "every chain that answered is published in one batch"
+        );
+        assert_eq!(failure, Some("ethereum is offline"), "the caller hears about the first failure in request order");
+
+        let (balances, failure) = published_balances::<&str>(vec![Ok(vec![coin(Chain::Bitcoin)])]);
+        assert_eq!(balances.len(), 1);
+        assert_eq!(failure, None);
     }
 
     #[test]

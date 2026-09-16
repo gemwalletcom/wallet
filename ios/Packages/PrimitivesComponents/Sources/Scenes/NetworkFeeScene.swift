@@ -66,13 +66,26 @@ public struct NetworkFeeScene: View {
                 }
             }
 
-            ListItemView(
-                title: model.title,
-                subtitle: model.value,
-                subtitleExtra: model.fiatValue,
-                placeholders: [.subtitle],
-            )
-            // TODO: Present model.feeItems in a separate section when nonempty.
+            if model.feeItems.isEmpty {
+                ListItemView(
+                    title: model.title,
+                    subtitle: model.value,
+                    subtitleExtra: model.fiatValue,
+                    placeholders: [.subtitle],
+                )
+            } else {
+                Section {
+                    ForEach(model.feeItems, id: \.title) {
+                        ListItemView(model: $0)
+                    }
+                    ListItemView(
+                        title: model.title,
+                        subtitle: model.value,
+                        subtitleExtra: model.fiatValue,
+                        placeholders: [.subtitle],
+                    )
+                }
+            }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .navigationTitle(model.title)

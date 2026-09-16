@@ -162,7 +162,7 @@ Core's session-wide method list, consumed by both platform approval paths and by
 
 ## Security providers
 
-Security checks cover malicious addresses, address poisoning, websites, and tokens. Staking transactions use local security checks only.
+Security checks cover malicious addresses, address poisoning, websites, and tokens. Core confirmation requests transaction scans only for `Transfer`, `Swap`, `TokenApprove`, and `Generic` inputs. All other input types skip the scan API entirely. Staking requests from older clients still use local security checks only on the backend. Setting the backend `scanEnable` config to `false` bypasses both local and provider transaction checks and returns a non-malicious, incomplete scan without memo requirements. The API reads this flag directly from the database on every scan request, so changes apply to subsequent requests without a cache delay or API restart. A locally verified destination on the matching chain skips provider checks after local fraud and token checks pass. Cross-chain address-name fallbacks do not carry verification. Transaction providers have independent `scanProviderEnable.goplus`, `scanProviderEnable.hashdit`, and `scanProviderEnable.tronscan` flags (default `true`), also read per request.
 
 | Provider | Address security | Address poisoning | Website security | Token security |
 | --- | --- | --- | :---: | --- |
@@ -307,6 +307,10 @@ On-chain swaps use normal transaction tracking; cross-chain providers may also t
 `Omnichain` providers may be eligible for selected same-chain routes as well as cross-chain routes. Chainflip allows same-chain swaps on Tron (USDT ↔ TRX), subject to broker liquidity. `Bridge` and `Cross-chain` providers require different source and destination chains.
 
 <sub>Reviewed 2026-09-02. Source: [active swap providers](../core/crates/swapper/src/swapper.rs). Cetus Aggregator and Orca are inactive.</sub>
+
+## Fiat exchange rates
+
+CoinGecko and CoinMarketCap provide USD-based rates with a provider assigned per currency. BYN, KZT, UZS, EGP, KES, COP, MAD, GHS, and PEN require app 2.114.32+ and remain disabled pending rollout.
 
 ## Fiat providers
 

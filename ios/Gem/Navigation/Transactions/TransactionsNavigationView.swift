@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemTransactionHeaderAction
 import Localization
 import NFT
 import GemstonePrimitives
@@ -75,7 +76,7 @@ struct TransactionsNavigationView: View {
 // MARK: - Actions
 
 extension TransactionsNavigationView {
-    private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
+    private func onSelectTransactionHeaderAction(_ action: GemTransactionHeaderAction) {
         Task {
             do {
                 try await presenter.handleTransactionHeaderAction(

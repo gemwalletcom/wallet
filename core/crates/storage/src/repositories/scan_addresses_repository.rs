@@ -56,6 +56,7 @@ fn select_scan_address_row(chain: Chain, rows: &[ScanAddressRow]) -> Option<Scan
     rows.iter().find(|row| row.chain.0 == chain).cloned().or_else(|| {
         rows.first().cloned().map(|mut row| {
             row.chain = ChainRow::from(chain);
+            row.is_verified = false;
             row
         })
     })
@@ -71,23 +72,30 @@ mod tests {
     fn test_select_scan_address_prefers_exact_chain_match() {
         let rows = vec![
             ScanAddressRow::mock(1, Chain::Ethereum, "0x123", Some("Ethereum")),
-            ScanAddressRow::mock(2, Chain::Arbitrum, "0x123", Some("Arbitrum")),
+            ScanAddressRow {
+                is_verified: true,
+                ..ScanAddressRow::mock(2, Chain::Arbitrum, "0x123", Some("Arbitrum"))
+            },
         ];
 
         let result = select_scan_address(Chain::Arbitrum, "0x123", rows).unwrap();
 
         assert_eq!(result.chain.0, Chain::Arbitrum);
         assert_eq!(result.name, Some("Arbitrum".to_string()));
+        assert!(result.is_verified);
     }
 
     #[test]
     fn test_select_scan_address_falls_back_to_other_chain() {
-        let rows = vec![ScanAddressRow::mock(1, Chain::Ethereum, "0x123", Some("1inch"))];
+        let mut row = ScanAddressRow::mock(1, Chain::Ethereum, "0x123", Some("1inch"));
+        row.is_verified = true;
+        let rows = vec![row];
 
         let result = select_scan_address(Chain::Arbitrum, "0x123", rows).unwrap();
 
         assert_eq!(result.chain.0, Chain::Arbitrum);
         assert_eq!(result.name, Some("1inch".to_string()));
+        assert!(!result.is_verified);
     }
 
     #[test]

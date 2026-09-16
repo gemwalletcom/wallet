@@ -78,7 +78,7 @@ impl RequestFailureSignal {
     }
 
     fn state(&self) -> MutexGuard<'_, RequestFailureState> {
-        self.inner.state.lock().unwrap()
+        self.inner.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     fn take_pending(&self) -> Option<Url> {

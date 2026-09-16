@@ -421,6 +421,15 @@ public extension Gemstone.Currency {
         case .myr: .myr
         case .aed: .aed
         case .sek: .sek
+        case .byn: .byn
+        case .kzt: .kzt
+        case .uzs: .uzs
+        case .egp: .egp
+        case .kes: .kes
+        case .cop: .cop
+        case .mad: .mad
+        case .ghs: .ghs
+        case .pen: .pen
         }
     }
 }
@@ -474,6 +483,15 @@ public extension Primitives.Currency {
         case .myr: .myr
         case .aed: .aed
         case .sek: .sek
+        case .byn: .byn
+        case .kzt: .kzt
+        case .uzs: .uzs
+        case .egp: .egp
+        case .kes: .kes
+        case .cop: .cop
+        case .mad: .mad
+        case .ghs: .ghs
+        case .pen: .pen
         }
     }
 }

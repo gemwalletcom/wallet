@@ -4,6 +4,7 @@ import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartSection
 import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.PortfolioType
+import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.PortfolioChartType
 import uniffi.gemstone.PortfolioStatistic
 
@@ -36,4 +37,10 @@ internal fun ChartSectionUIModel.stringRes(): Int? = when (this) {
 internal fun PortfolioType.stringRes(): Int = when (this) {
     PortfolioType.Wallet -> R.string.wallet_portfolio_title
     PortfolioType.Perpetuals -> R.string.perpetuals_title
+}
+
+@StringRes
+internal fun GemPriceAlertToggle.toastRes(): Int = when (this) {
+    GemPriceAlertToggle.ENABLED -> R.string.price_alerts_disabled_for
+    GemPriceAlertToggle.DISABLED -> R.string.price_alerts_enabled_for
 }

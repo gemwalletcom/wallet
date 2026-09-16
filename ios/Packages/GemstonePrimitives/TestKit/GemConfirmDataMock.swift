@@ -24,7 +24,6 @@ public import struct Gemstone.TransferDataExtra
 public import enum Gemstone.GemTransactionLoadMetadata
 public import struct Gemstone.GemTransactionLoadFee
 import Foundation
-import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit

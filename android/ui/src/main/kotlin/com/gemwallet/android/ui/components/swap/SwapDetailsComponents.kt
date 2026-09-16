@@ -45,6 +45,8 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.listItemIconSize
 import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.GemSwapDetailRow
+import com.gemwallet.android.ui.localization.stringRes
 
 @Composable
 fun SwapDetailsSummaryItem(
@@ -112,7 +114,7 @@ fun SwapDetailsBottomSheet(
             val providers = model.inlineProviders(onProviderSelect != null)
             val providerSectionTitle = when {
                 onProviderSelect != null -> R.string.buy_providers_title
-                showProviderSectionHeader -> R.string.common_provider
+                showProviderSectionHeader -> GemSwapDetailRow.PROVIDER.stringRes()
                 else -> null
             }
 
@@ -140,42 +142,28 @@ fun SwapDetailsBottomSheet(
                     )
                 }
             }
-            item {
-                AssetRatePropertyItem(model.rate, ListPosition.First)
-            }
-            model.etaInSeconds?.let(::formatEstimatedConfirmation)?.takeIf { it.isNotEmpty() }?.let {
-                item {
-                    PropertyItem(
-                        title = R.string.swap_estimated_time_title,
-                        data = it,
-                        listPosition = ListPosition.Middle,
+            val rows = model.rows.filterNot { it == GemSwapDetailRow.PROVIDER }
+            itemsIndexed(rows) { index, row ->
+                val listPosition = ListPosition.getPosition(index, rows.size)
+                when (row) {
+                    GemSwapDetailRow.PROVIDER -> Unit
+                    GemSwapDetailRow.RATE -> AssetRatePropertyItem(model.rate, listPosition)
+                    GemSwapDetailRow.ESTIMATED_TIME -> model.etaInSeconds?.let(::formatEstimatedConfirmation)?.takeIf { it.isNotEmpty() }?.let {
+                        PropertyItem(title = row.stringRes(), data = it, listPosition = listPosition)
+                    }
+                    GemSwapDetailRow.PRICE_IMPACT -> model.priceImpact?.let { PriceImpactPropertyItem(it, listPosition) }
+                    GemSwapDetailRow.MINIMUM_RECEIVE -> PropertyItem(
+                        title = row.stringRes(),
+                        data = model.minimumReceive,
+                        listPosition = listPosition,
+                    )
+                    GemSwapDetailRow.SLIPPAGE -> PropertyItem(
+                        title = row.stringRes(),
+                        data = if (model.selectedSlippage == null) stringResource(R.string.swap_slippage_auto) else model.slippageText,
+                        info = InfoSheetEntity.Slippage,
+                        listPosition = listPosition,
                     )
                 }
-            }
-            model.priceImpact?.let {
-                item {
-                    PriceImpactPropertyItem(it, ListPosition.Middle)
-                }
-            }
-            item {
-                PropertyItem(
-                    title = R.string.swap_min_receive,
-                    data = model.minimumReceive,
-                    listPosition = ListPosition.Middle,
-                )
-            }
-            item {
-                val slippageDisplay = if (model.selectedSlippage == null) {
-                    stringResource(R.string.swap_slippage_auto)
-                } else {
-                    model.slippageText
-                }
-                PropertyItem(
-                    title = R.string.swap_slippage,
-                    data = slippageDisplay,
-                    info = InfoSheetEntity.Slippage,
-                    listPosition = ListPosition.Last,
-                )
             }
         }
     }

@@ -14,7 +14,7 @@ use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::NodeRegion;
 
-pub use model::{GemAddNodeError, GemNodeCheck, GemNodeSelection, GemNodeStatusState};
+pub use model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeRow, GemNodeRowTitle, GemNodeSelection, GemNodeStatusState, GemNodeSubtitle};
 pub use settings::GemChainSettingsService;
 pub use store::GemNodeStore;
 

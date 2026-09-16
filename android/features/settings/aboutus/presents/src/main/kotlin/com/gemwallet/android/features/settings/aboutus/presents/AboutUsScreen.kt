@@ -20,7 +20,12 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.AppUrl
 import uniffi.gemstone.PublicUrl
+import uniffi.gemstone.GemAboutRow
+import uniffi.gemstone.aboutSections
 import uniffi.gemstone.communityLinks
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.itemsIndexed
+import com.gemwallet.android.features.settings.aboutus.presents.localization.stringRes
 
 @Composable
 fun AboutUsScreen(
@@ -35,52 +40,55 @@ fun AboutUsScreen(
     }.versionName
     Scene(title = stringResource(id = R.string.settings_aboutus), onClose = onCancel) {
         LazyColumn {
-            item {
-                LinkItem(
-                    title = stringResource(id = R.string.settings_terms_of_services),
-                    listPosition = ListPosition.First,
-                ) {
-                    uriHandler.open(context, AppUrl.page(PublicUrl.TERMS_OF_SERVICE))
-                }
-                LinkItem(
-                    title = stringResource(id = R.string.settings_privacy_policy),
-                    listPosition = ListPosition.Middle,
-                ) {
-                    uriHandler.open(context, AppUrl.page(PublicUrl.PRIVACY_POLICY))
-                }
-                LinkItem(
-                    title = stringResource(id = R.string.settings_website),
-                    listPosition = ListPosition.Last,
-                ) {
-                    uriHandler.open(context, AppUrl.page(PublicUrl.WEBSITE))
-                }
-            }
-            item {
-                SubheaderItem(R.string.settings_community)
-                val socials = remember { communityLinks().toSocialLinks() }
-                socials.forEachIndexed { index, social ->
-                    LinkItem(
-                        title = stringResource(id = social.label),
-                        icon = social.icon,
-                        listPosition = ListPosition.getPosition(index, socials.size),
-                    ) {
-                        uriHandler.open(context, social.url)
+            aboutSections().forEach { section ->
+                itemsIndexed(section.rows) { index, row ->
+                    val listPosition = ListPosition.getPosition(index, section.rows.size)
+                    when (row) {
+                        GemAboutRow.TERMS_OF_SERVICE -> LinkItem(
+                            title = stringResource(row.stringRes()),
+                            listPosition = listPosition,
+                        ) {
+                            uriHandler.open(context, AppUrl.page(PublicUrl.TERMS_OF_SERVICE))
+                        }
+                        GemAboutRow.PRIVACY_POLICY -> LinkItem(
+                            title = stringResource(row.stringRes()),
+                            listPosition = listPosition,
+                        ) {
+                            uriHandler.open(context, AppUrl.page(PublicUrl.PRIVACY_POLICY))
+                        }
+                        GemAboutRow.WEBSITE -> LinkItem(
+                            title = stringResource(row.stringRes()),
+                            listPosition = listPosition,
+                        ) {
+                            uriHandler.open(context, AppUrl.page(PublicUrl.WEBSITE))
+                        }
+                        GemAboutRow.COMMUNITY -> Column {
+                            SubheaderItem(row.stringRes())
+                            val socials = remember { communityLinks().toSocialLinks() }
+                            socials.forEachIndexed { socialIndex, social ->
+                                LinkItem(
+                                    title = stringResource(id = social.label),
+                                    icon = social.icon,
+                                    listPosition = ListPosition.getPosition(socialIndex, socials.size),
+                                ) {
+                                    uriHandler.open(context, social.url)
+                                }
+                            }
+                        }
+                        GemAboutRow.VERSION -> LinkItem(
+                            title = stringResource(row.stringRes()),
+                            listPosition = listPosition,
+                            trailingContent = {
+                                Text(
+                                    text = version ?: "",
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            },
+                            onClick = {},
+                        )
                     }
                 }
-            }
-            item {
-                LinkItem(
-                    title = stringResource(id = R.string.settings_version),
-                    listPosition = ListPosition.Single,
-                    trailingContent = {
-                        Text(
-                            text = version ?: "",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    },
-                    onClick = {},
-                )
             }
         }
     }

@@ -13,7 +13,7 @@ struct WalletRecipientSectionViewModelTests {
             type: .multicoin,
             accounts: [.mock(chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")],
         )
-        let model = WalletRecipientSectionViewModel(wallets: [wallet], section: .wallets, chain: .bitcoin)
+        let model = WalletRecipientSectionViewModel(wallets: [wallet], chain: .bitcoin)
 
         #expect(model.listItems.count == 1)
         #expect(model.listItems.first?.title == "My Wallet")

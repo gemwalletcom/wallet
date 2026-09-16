@@ -11,6 +11,10 @@ import Foundation
 // swiftlint:disable nesting type_body_length type_name vertical_whitespace_opening_braces
 public enum WidgetLocalized {
   public enum Widget {
+    /// No price data available
+    public static let empty = WidgetLocalized.tr("Localizable", "widget.empty", fallback: "No price data available")
+    /// No data
+    public static let emptyShort = WidgetLocalized.tr("Localizable", "widget.empty_short", fallback: "No data")
     public enum Medium {
       /// Track prices of top cryptocurrencies
       public static let description = WidgetLocalized.tr("Localizable", "widget.medium.description", fallback: "Track prices of top cryptocurrencies")

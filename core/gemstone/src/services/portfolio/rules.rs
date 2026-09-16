@@ -79,10 +79,7 @@ pub fn perpetual_portfolio_data(portfolio: PerpetualPortfolio, period: ChartPeri
         statistics.push(PortfolioStatistic::UnrealizedPnl { value: summary.unrealized_pnl });
         statistics.push(PortfolioStatistic::AccountLeverage { value: summary.account_leverage });
         statistics.push(PortfolioStatistic::MarginUsage {
-            value: PortfolioMarginUsage {
-                account_value: summary.account_value,
-                usage: summary.margin_usage,
-            },
+            value: PortfolioMarginUsage::new(summary.account_value, summary.margin_usage),
         });
     }
     if let Some(all_time) = &portfolio.all_time {
@@ -223,12 +220,16 @@ mod tests {
                 PortfolioStatistic::UnrealizedPnl { value: 7.0 },
                 PortfolioStatistic::AccountLeverage { value: 2.0 },
                 PortfolioStatistic::MarginUsage {
-                    value: PortfolioMarginUsage { account_value: 100.0, usage: 0.5 }
+                    value: PortfolioMarginUsage::new(100.0, 0.5)
                 },
                 PortfolioStatistic::AllTimePnl { value: 50.0 },
                 PortfolioStatistic::Volume { value: 5000.0 },
             ]
         );
+        let margin = PortfolioMarginUsage::new(100.0, 0.5);
+        assert_eq!(margin.used_value, 50.0);
+        assert_eq!(margin.usage_percent, 50.0);
+
         assert_eq!(data.available_periods, vec![ChartPeriod::Day, ChartPeriod::Year, ChartPeriod::All]);
 
         let without_summary = perpetual_portfolio_data(PerpetualPortfolio::mock(), ChartPeriod::Week);

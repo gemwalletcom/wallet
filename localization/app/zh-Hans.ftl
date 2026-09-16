@@ -58,7 +58,6 @@ common_token = 代币
 common_expiration = 有效期
 common_suspicious_address = 可疑地址
 common_refresh = 刷新
-common_no_thanks = 不用了, 谢谢
 common_grant_permission = 授予权限
 common_required_field = %@为必填项
 
@@ -165,7 +164,6 @@ transfer_freeze_title = 冻结
 transfer_unfreeze_title = 解冻
 transfer_review_request = 审查请求
 transfer_amount = 金额
-transfer_amount_title = 数额
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = 消息
 
 # Errors
 
-errors_transfer = 转账错误： %@
 errors_validation = 验证错误： %@
 errors_create_wallet = 创建钱包错误： %@
 errors_invalid_address_name = 地址或名称无效
@@ -228,7 +225,6 @@ errors_cancelled = 已取消
 errors_connections_user_cancelled = 用户已取消
 errors_not_supported = 不支持
 errors_permissions_not_granted = 未授予权限
-errors_decoding = 解码错误
 errors_unknown = 未知
 errors_not_supported_qr = 此设备不支持扫码，只能选图库的二维码图片。
 errors_camera_permissions_not_granted = 未获取相机权限。请在设置中开启以扫描二维码。
@@ -239,11 +235,8 @@ errors_invalid_asset_address = 无效的 %@ 地址
 errors_dust_threshold = 交易失败，因为金额太小，无法满足%@网络的最低要求（粉尘阈值）。此限制可确保交易金额足以覆盖手续费和处理成本。
 errors_swap_no_quote_available = 暂无报价
 errors_swap_not_supported_asset = 暂不支持该资产。
-errors_connections_invalid_send_parameters = 发送交易时提供的参数无效。
-errors_connections_invalid_sign_parameters = 提供的签名参数无效。
 errors_connections_no_supported_wallets = 暂无可用钱包
 errors_connections_unsupported_chain = 暂不支持该区块链网络
-errors_connections_unsupported_method = 暂不支持请求的方法。
 errors_swap_amount_too_small = 金额太小，请输入更大的数额试试
 errors_required = %@为必填项
 errors_scan_transaction_malicious_description = 无法完成此交易：目标钱包地址与可疑或恶意行为有关。
@@ -255,7 +248,6 @@ errors_dust_threshold_short = 转账金额过小，被网络视为“粉尘”�
 errors_swap_minimum_amount = 最低交易金额为 %@。请输入更高的金额。
 errors_perpetual_trigger_price_lower = 触发价格应低于市场价格
 errors_perpetual_trigger_price_higher = 触发价格应高于市场价格
-errors_token_unable_fetch_token_information = 无法获取代币信息： %@
 errors_unknown_try_again = 发生未知错误，请重试
 errors_network_error = 网络错误： %@
 errors_network_offline = 网络连接似乎已断开。
@@ -279,7 +271,6 @@ update_app_action = 更新
 update_app_permission_title = 允许安装
 update_app_permission_description = 转到设置并允许从外部来源安装
 update_app_permission_open_settings = 前往设置
-update_app_downloading = 下载中...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = 账户激活费用
 banner_account_activation_description = %@ 网络需要一次性费用 %@。
 banner_stake_title = 开始质押 %@
 banner_stake_description = 质押 %@ 赚取奖励，躺着也赚
-banner_enable_notifications_title = 启用通知
-banner_enable_notifications_description = 实时掌握钱包动态
 banner_activate_asset_description = 要使用 %@ 资产，必须先在 %@ 网络上启用它，并满足该网络的特定要求。
 banner_asset_status_title = 可疑资产
 banner_asset_status_description = 代币可能不安全或具有误导性。请仅在完全信任的情况下继续操作。
@@ -690,8 +679,9 @@ perpetual_margin_isolated = 逐仓
 # Perpetuals
 
 perpetuals_title = 永续合约
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = 交易永续合约
 perpetuals_markets = 市场
-perpetuals_empty_state_no_markets = 没有市场
 perpetuals_empty_state_no_markets_found = 未找到任何市场
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = 需要相机权限以扫描二维码。\n请授予权限。
 
 # Notifications Permission
 
-notifications_permission_request_notification = 需要 Push 通知权限才能获取新交易的通知。\n请授予权限。
 
 # Confirm
 
-confirm_fee_error = 费用计算错误
 
 # Rootcheck
 

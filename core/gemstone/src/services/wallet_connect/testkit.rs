@@ -12,15 +12,19 @@ use super::{
 use crate::alien::AlienProvider;
 use crate::api::GemApiClient;
 use crate::gateway::{EmptyPreferences, GemGateway};
+use crate::keystore::GemKeystore;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::error::GemServiceError;
+use crate::services::explorer::GemExplorerService;
+use crate::services::name::GemNameService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;
 use crate::services::price::testkit::MemoryPriceStore;
 use crate::services::simulation::GemSimulationService;
-use crate::services::wallet::testkit::MemoryWalletStore;
+use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore};
+use crate::services::wallet_connect::sign_message::GemSignMessageService;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::TestAlienProvider;
@@ -99,13 +103,26 @@ pub(super) async fn make_service(signer: Result<String, GemServiceError>, wallet
         Arc::new(MemoryWalletSessionStore::default()),
         Arc::new(MemoryWalletStore::default()),
     ));
+    let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
     let assets = Arc::new(GemAssetsService::new(
         api.clone(),
         Arc::new(GemGateway::new(provider.clone(), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences))),
         Arc::new(MemoryAssetStore::default()),
         Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
-        Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
+        preferences.clone(),
         wallet_session.clone(),
+    ));
+    let sign_message = Arc::new(GemSignMessageService::new(
+        Arc::new(GemNameService::new(
+            Arc::new(crate::api::GemDeviceApiClient::new(
+                provider.clone(),
+                Arc::new(crate::services::device::GemDeviceKeyService::new(Arc::new(EmptyPreferences))),
+            )),
+            Arc::new(MemoryAddressStore::default()),
+        )),
+        Arc::new(GemExplorerService::new(preferences)),
+        GemKeystore::new(std::env::temp_dir().to_string_lossy().to_string()).unwrap(),
+        Arc::new(MemoryKeystorePassword::default()),
     ));
     GemWalletConnectService::new(
         Arc::new(GemSimulationService::new(provider, Arc::new(EmptyPreferences))),
@@ -116,5 +133,6 @@ pub(super) async fn make_service(signer: Result<String, GemServiceError>, wallet
         }),
         wallet_session,
         assets,
+        sign_message,
     )
 }

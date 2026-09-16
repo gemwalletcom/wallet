@@ -12,10 +12,10 @@ struct MediumPriceWidgetView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: .zero) {
             WidgetContentView(viewModel: viewModel)
         }
-        .padding(0)
+        .padding(.zero)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

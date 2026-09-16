@@ -5,6 +5,7 @@ import Components
 import Foundation
 import enum Gemstone.GemDelegationAction
 import enum Gemstone.GemDelegationCompletion
+import enum Gemstone.GemDelegationRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -42,34 +43,23 @@ public struct DelegationSceneViewModel {
     }
 
     public var title: String {
-        switch providerType {
-        case .stake: Localized.Transfer.Stake.title
-        case .earn: Localized.Common.earn
-        }
+        providerType.title
     }
 
-    public var providerField: ListItemField {
-        let title: String = switch providerType {
-        case .stake: Localized.Stake.validator
-        case .earn: Localized.Common.provider
-        }
-        return ListItemField(title: title, value: model.validatorText)
+    public var rows: [GemDelegationRow] {
+        service.delegationRows(delegation: model.delegation.toGem())
+    }
+
+    public func title(for row: GemDelegationRow) -> String {
+        delegationRowTitle(row, providerType: providerType, completion: model.status.completion)
     }
 
     public var aprModel: AprViewModel {
         AprViewModel(apr: model.delegation.validator.apr)
     }
 
-    public var stateTitle: String {
-        Localized.Transaction.status
-    }
-
     public var manageTitle: String {
         Localized.Common.manage
-    }
-
-    public var rewardsTitle: String {
-        Localized.Stake.rewards
     }
 
     public var stateModel: DelegationStateViewModel {
@@ -81,15 +71,6 @@ public struct DelegationSceneViewModel {
         case .stake: model.validatorUrl
         case .earn: nil
         }
-    }
-
-    public var completionDateField: ListItemField? {
-        guard let completion = model.status.completion, let text = model.completionDateText else { return nil }
-        let title = switch completion {
-        case .activeIn: Localized.Stake.activeIn
-        case .availableIn: Localized.Stake.availableIn
-        }
-        return ListItemField(title: title, value: text)
     }
 
     public var assetImageStyle: ListItemImageStyle? {
@@ -108,15 +89,6 @@ public struct DelegationSceneViewModel {
         service.canClaimDelegationRewards(walletType: wallet.type.toGem(), delegation: model.delegation.toGem())
     }
 
-    public func actionTitle(_ action: GemDelegationAction) -> String {
-        switch action {
-        case .stake: Localized.Transfer.Stake.title
-        case .unstake: Localized.Transfer.Unstake.title
-        case .redelegate: Localized.Transfer.Redelegate.title
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Transfer.Withdraw.title
-        }
-    }
 }
 
 // MARK: - Actions

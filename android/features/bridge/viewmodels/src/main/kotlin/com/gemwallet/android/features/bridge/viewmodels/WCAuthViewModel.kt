@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -40,7 +39,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
@@ -53,8 +51,6 @@ class WCAuthViewModel @Inject constructor(
     private val prepareSessionProposal: PrepareSessionProposal,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
-    private val chainService: GemChainServiceInterface,
-    private val signMessageService: GemSignMessageServiceInterface,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -302,7 +298,7 @@ class WCAuthViewModel @Inject constructor(
         wallet: Wallet,
         chain: Chain,
         message: String,
-    ): String = signMessageService.sign(
+    ): String = walletConnectService.signMessage(
         wallet.id.id,
         SignMessage(
             chain = chain.string,

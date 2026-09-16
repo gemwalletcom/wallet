@@ -39,7 +39,7 @@ public struct SecretPhraseGridView: View {
                         .cornerRadius(10)
                         .overlay {
                             if highlightIndex == word.index {
-                                RoundedRectangle(cornerRadius: 10)
+                                RoundedRectangle(cornerRadius: .space10)
                                     .stroke(Colors.blue, lineWidth: 2)
                             }
                         }

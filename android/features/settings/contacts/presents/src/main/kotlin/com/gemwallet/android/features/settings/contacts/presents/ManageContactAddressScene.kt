@@ -13,6 +13,8 @@ import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.gemwallet.android.ui.components.fields.MemoTextField
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.stringRes
+import uniffi.gemstone.GemContactAddressField
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.list_item.ChainItem
@@ -43,35 +45,37 @@ fun ManageContactAddressScene(
             }
         },
     ) {
-        SubheaderItem(title = stringResource(R.string.transfer_network))
-        ChainItem(
-            title = input.chain.networkName(),
-            icon = input.chain,
-            listPosition = ListPosition.Single,
-            trailing = { DataBadgeChevron() },
-            onClick = { onAction(ManageContactAddressAction.SelectChain) },
-        )
-
-        AddressChainField(
-            value = input.address,
-            label = stringResource(R.string.common_address),
-            state = input.nameResolveState,
-            onValueChange = onAddressChange,
-            error = if (input.showAddressError) {
-                stringResource(R.string.errors_invalid_asset_address, input.chain.networkName())
-            } else {
-                ""
-            },
-            onPaste = onPaste,
-            onQrScanner = { scanning = true },
-        )
-
-        if (input.showMemo) {
-            MemoTextField(
-                value = input.memo,
-                label = stringResource(R.string.transfer_memo),
-                onValueChange = onMemoChange,
-            )
+        input.fields.forEach { field ->
+            when (field) {
+                GemContactAddressField.NETWORK -> {
+                    SubheaderItem(title = stringResource(field.stringRes()))
+                    ChainItem(
+                        title = input.chain.networkName(),
+                        icon = input.chain,
+                        listPosition = ListPosition.Single,
+                        trailing = { DataBadgeChevron() },
+                        onClick = { onAction(ManageContactAddressAction.SelectChain) },
+                    )
+                }
+                GemContactAddressField.ADDRESS -> AddressChainField(
+                    value = input.address,
+                    label = stringResource(field.stringRes()),
+                    state = input.nameResolveState,
+                    onValueChange = onAddressChange,
+                    error = if (input.showAddressError) {
+                        stringResource(R.string.errors_invalid_asset_address, input.chain.networkName())
+                    } else {
+                        ""
+                    },
+                    onPaste = onPaste,
+                    onQrScanner = { scanning = true },
+                )
+                GemContactAddressField.MEMO -> MemoTextField(
+                    value = input.memo,
+                    label = stringResource(field.stringRes()),
+                    onValueChange = onMemoChange,
+                )
+            }
         }
     }
 

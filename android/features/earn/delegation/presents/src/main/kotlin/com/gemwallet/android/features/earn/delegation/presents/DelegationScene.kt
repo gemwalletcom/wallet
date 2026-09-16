@@ -26,7 +26,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.earn.delegation.presents.localization.stringRes
 import uniffi.gemstone.GemDelegationAction
-import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
+import uniffi.gemstone.GemDelegationRow
 import com.gemwallet.android.features.earn.delegation.presents.components.DelegationState
 import com.gemwallet.android.features.earn.delegation.presents.components.StakeApr
 import com.gemwallet.android.features.earn.delegation.presents.components.TransactionStatus
@@ -41,7 +41,6 @@ fun DelegationScene(
 ) {
     val delegationInfo by viewModel.delegationInfo.collectAsStateWithLifecycle()
     val properties by viewModel.properties.collectAsStateWithLifecycle()
-    val balances by viewModel.balances.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
     val canClaimRewards by viewModel.canClaimRewards.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -66,45 +65,34 @@ fun DelegationScene(
                     )
                 }
             }
-            itemsPositioned(properties) { position, item ->
-                when (item) {
-                    is DelegationProperty.Apr -> StakeApr(item.data, position)
-                    is DelegationProperty.Name -> PropertyItem(
-                        modifier = item.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
-                        title = { PropertyTitleText(stringResource(R.string.stake_validator)) },
-                        data = {
-                            PropertyDataText(
-                                text = item.data,
-                                badge = item.url?.let { { DataBadgeChevron() } },
-                            )
-                        },
-                        listPosition = position,
-                    )
-                    is DelegationProperty.State -> DelegationState(
-                        item.completion,
-                        item.availableIn,
-                        position
-                    )
-                    is DelegationProperty.TransactionStatus -> TransactionStatus(
-                        item.status,
-                        position
-                    )
+            properties?.let { properties ->
+                itemsPositioned(properties.rows) { position, row ->
+                    when (row) {
+                        GemDelegationRow.APR -> StakeApr(properties.validator, position)
+                        GemDelegationRow.PROVIDER -> PropertyItem(
+                            modifier = properties.validatorUrl?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
+                            title = { PropertyTitleText(stringResource(R.string.stake_validator)) },
+                            data = {
+                                PropertyDataText(
+                                    text = properties.validatorName,
+                                    badge = properties.validatorUrl?.let { { DataBadgeChevron() } },
+                                )
+                            },
+                            listPosition = position,
+                        )
+                        GemDelegationRow.COMPLETION_DATE -> properties.status.completion?.let {
+                            DelegationState(it, properties.availableIn, position)
+                        }
+                        GemDelegationRow.STATUS -> TransactionStatus(properties.status, position)
+                        GemDelegationRow.REWARDS -> PropertyAssetBalanceItem(
+                            model = properties.rewards,
+                            title = stringResource(R.string.stake_rewards),
+                            modifier = if (canClaimRewards) Modifier.clickable { viewModel.onClaimRewards(onConfirm) } else Modifier,
+                            showChevron = canClaimRewards,
+                            listPosition = position,
+                        )
+                    }
                 }
-            }
-
-            itemsPositioned(balances) { position, item ->
-                val modifier = if (canClaimRewards) {
-                    Modifier.clickable { viewModel.onClaimRewards(onConfirm) }
-                } else {
-                    Modifier
-                }
-                PropertyAssetBalanceItem(
-                    model = item,
-                    title = stringResource(R.string.stake_rewards),
-                    modifier = modifier,
-                    showChevron = canClaimRewards,
-                    listPosition = position,
-                )
             }
 
             if (actions.isNotEmpty()) {

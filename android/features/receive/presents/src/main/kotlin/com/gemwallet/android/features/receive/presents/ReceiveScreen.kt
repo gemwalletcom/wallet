@@ -40,7 +40,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.features.receive.presents.localization.string
-import uniffi.gemstone.GemMemoWarning
+import uniffi.gemstone.GemReceiveWarning
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
@@ -59,7 +59,7 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.subtitleSymbol
+import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
@@ -99,7 +99,7 @@ fun ReceiveScreen(
         ReceiveScene(
             closeIcon = closeIcon,
             assetInfo = info,
-            memoWarning = remember(info.asset.id) { viewModel.memoWarning(info.asset.id.chain) },
+            warnings = remember(info.asset.id) { viewModel.warnings(info.asset.id.chain) },
             onSelectNetwork = if (networkAssetIds.size > 1) {
                 { isShowingNetworkSelector = true }
             } else {
@@ -122,7 +122,7 @@ fun ReceiveScreen(
 private fun ReceiveScene(
     closeIcon: Boolean,
     assetInfo: AssetInfo,
-    memoWarning: GemMemoWarning,
+    warnings: List<GemReceiveWarning>,
     onSelectNetwork: (() -> Unit)?,
     onCancel: () -> Unit,
 ) {
@@ -232,7 +232,7 @@ private fun ReceiveScene(
                 )
                 Spacer(modifier = Modifier.size(imagePadding))
             }
-            val warning = warningMessage(assetInfo.asset, memoWarning)
+            val warning = warnings.map { it.string(assetInfo.asset) }.joinToString(" ")
             Text(
                 modifier = Modifier.width(imageSize),
                 text = remember(warning) { parseMarkdownToAnnotatedString(warning) },
@@ -243,14 +243,4 @@ private fun ReceiveScene(
         }
         Spacer(modifier = Modifier.weight(1f))
     }
-}
-
-@Composable
-private fun warningMessage(asset: Asset, memoWarning: GemMemoWarning): String {
-    val warning = stringResource(
-        R.string.receive_warning,
-        asset.symbol.boldMarkdown(),
-        asset.networkFullName.boldMarkdown(),
-    )
-    return listOfNotNull(warning, memoWarning.string()).joinToString(" ")
 }

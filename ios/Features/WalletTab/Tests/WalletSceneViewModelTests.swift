@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Observation
 import Primitives
@@ -48,28 +47,6 @@ struct WalletSceneViewModelTests {
 
         #expect(funded.homeState.visibleBanners.map(\.event) == [])
         #expect(empty.homeState.visibleBanners.map(\.event) == [.onboarding])
-    }
-
-    @Test
-    func homeStateIsDerivedOncePerInput() throws {
-        let db = DB.mockAssets()
-        let service = GemWalletHomeServiceMock()
-        let wallet = Wallet.mock()
-        let model = WalletSceneViewModel.mock(wallet: wallet, service: service)
-        model.assetsQuery.bind(dbQueue: db.dbQueue)
-        model.bannersQuery.bind(dbQueue: db.dbQueue)
-
-        _ = model.homeState
-        _ = model.homeState
-        #expect(service.viewStateCalls == 1, "reading the state twice asks Core once")
-
-        model.fiatValuesQuery.value = [AssetFiatValue(amount: 1, price: 2, priceChangePercentage24h: 0)]
-        _ = model.homeState
-        #expect(service.viewStateCalls == 2, "changed balances derive a new state")
-
-        model.observablePreferences.currency = .eur
-        _ = model.homeState
-        #expect(service.viewStateCalls == 3, "a changed preference derives a new state")
     }
 
     private func onboardingModel(db: DB) throws -> WalletSceneViewModel {

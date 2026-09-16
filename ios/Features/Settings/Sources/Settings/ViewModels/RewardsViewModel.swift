@@ -115,14 +115,11 @@ public final class RewardsViewModel: Sendable {
     }
 
     var shareText: String? {
-        guard let code = rewardsState.referralCode else { return nil }
-        let link = (try? service.referralLink(code: code).absoluteString) ?? ""
-        return Localized.Rewards.shareText(link)
+        referralLink.map { Localized.Rewards.shareText($0) }
     }
 
     var referralLink: String? {
-        guard let code = rewardsState.referralCode else { return nil }
-        return (try? service.referralLink(code: code).absoluteString) ?? ""
+        rewardsState.referralLink
     }
 
     var redemptions: [GemRewardsRedemption] {

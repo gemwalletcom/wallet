@@ -2,6 +2,7 @@
 
 import Primitives
 import Components
+import enum Gemstone.GemSecurityRow
 import Style
 import SwiftUI
 
@@ -14,28 +15,16 @@ public struct SecurityScene: View {
 
     public var body: some View {
         List {
-            Section {
-                Toggle(model.authenticationTitle, isOn: $model.isEnabled)
-                    .toggleStyle(AppToggleStyle())
-
-                if model.isEnabled {
-                    Picker(model.lockPeriodTitle, selection: $model.lockPeriod) {
-                        ForEach(model.allLockPeriods) {
-                            Text($0.title)
-                        }
+            ForEach(Array(model.sections.enumerated()), id: \.offset) { index, section in
+                Section {
+                    ForEach(section.rows, id: \.self) { row in
+                        content(for: row)
                     }
-                    .pickerStyle(.menu)
-
-                    Toggle(model.privacyLockTitle, isOn: $model.isPrivacyLockEnabled)
-                        .toggleStyle(AppToggleStyle())
+                } footer: {
+                    if index == 0 {
+                        Text(model.authenticationFooter)
+                    }
                 }
-            } footer: {
-                Text(model.authenticationFooter)
-            }
-
-            Section {
-                Toggle(model.hideBalanceTitle, isOn: $model.isHideBalanceEnabled)
-                    .toggleStyle(AppToggleStyle())
             }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
@@ -44,6 +33,28 @@ public struct SecurityScene: View {
         .alertSheet($model.isPresentingAlertMessage)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private func content(for row: GemSecurityRow) -> some View {
+        switch row {
+        case .authentication:
+            Toggle(model.authenticationTitle, isOn: $model.isEnabled)
+                .toggleStyle(AppToggleStyle())
+        case .lockPeriod:
+            Picker(model.lockPeriodTitle, selection: $model.lockPeriod) {
+                ForEach(model.allLockPeriods) {
+                    Text($0.title)
+                }
+            }
+            .pickerStyle(.menu)
+        case .privacyLock:
+            Toggle(model.privacyLockTitle, isOn: $model.isPrivacyLockEnabled)
+                .toggleStyle(AppToggleStyle())
+        case .hideBalance:
+            Toggle(model.hideBalanceTitle, isOn: $model.isHideBalanceEnabled)
+                .toggleStyle(AppToggleStyle())
+        }
     }
 }
 
