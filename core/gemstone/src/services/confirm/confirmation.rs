@@ -106,9 +106,7 @@ impl GemConfirmation {
         }
         let transfer = self.transfer();
         if transfer.verification().is_some() {
-            let screen = self.state().await?;
-            *self.screen.lock().await = Some(screen.clone());
-            return Ok(screen);
+            return self.state().await;
         }
         let input = self.service.confirm_input(self.wallet.clone(), transfer.clone())?;
         let input_type = transfer.input_type;

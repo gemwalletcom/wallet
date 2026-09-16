@@ -4,7 +4,7 @@ import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemConfirmLoadOptions
 import Primitives
 
-struct ConfirmSelection: Equatable {
+struct ConfirmPreloadSelection: Equatable {
     let fee: GemConfirmFeeSelection
     let feeAsset: FeeAssetSelection
     let asset: AssetId?

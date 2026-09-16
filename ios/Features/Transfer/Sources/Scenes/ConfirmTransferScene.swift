@@ -27,7 +27,7 @@ public struct ConfirmTransferScene: View {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .task(id: model.selection) {
+        .task(id: model.preloadSelection) {
             await model.load()
         }
         .navigationTitle(model.title)

@@ -49,7 +49,6 @@ public final class ConfirmTransferSceneViewModel {
     public var isPresentingAlertMessage: AlertMessage?
 
     private let request: ConfirmTransferRequest
-
     private let wallet: Wallet
     private let onComplete: ((GemExecuteResult) -> Void)?
 
@@ -82,8 +81,8 @@ public final class ConfirmTransferSceneViewModel {
         rowContents = confirmation.rowContents(addressName: state.addressName?.toGem())
     }
 
-    var selection: ConfirmSelection {
-        ConfirmSelection(fee: feeSelection, feeAsset: feeAssetSelection, asset: assetSelection)
+    var preloadSelection: ConfirmPreloadSelection {
+        ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection, asset: assetSelection)
     }
 
     var title: String {
@@ -305,7 +304,7 @@ extension ConfirmTransferSceneViewModel {
         state.screen = state.screen.onLoadStarted()
         do {
             state = try ConfirmTransferState(await confirmation.state(), screen: state.screen)
-            let load = try await confirmation.load(options: selection.loadOptions)
+            let load = try await confirmation.load(options: preloadSelection.loadOptions)
             state = try ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch {
             guard !Task.isCancelled else { return }
