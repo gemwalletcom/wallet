@@ -138,10 +138,10 @@ impl ConfirmInput for TransactionInputType {
     }
 }
 
-pub(super) fn broadcast_transactions(input_type: &TransactionInputType, signed: Vec<GemSignedTransaction>) -> (Vec<GemSignedTransaction>, Vec<GemSignedTransaction>) {
+pub(super) fn is_broadcast(input_type: &TransactionInputType, transaction: &GemSignedTransaction) -> bool {
     match input_type.output().output_action {
-        TransferDataOutputAction::Send => (signed, Vec::new()),
-        TransferDataOutputAction::Sign => signed.into_iter().partition(|transaction| transaction.transaction_type == TransactionType::TokenApproval),
+        TransferDataOutputAction::Send => true,
+        TransferDataOutputAction::Sign => transaction.transaction_type == TransactionType::TokenApproval,
     }
 }
 
@@ -571,7 +571,7 @@ mod tests {
     }
 
     #[test]
-    fn test_broadcast_transactions_sends_a_payment_approval_and_hands_over_the_signature() {
+    fn test_is_broadcast_sends_a_payment_approval_and_hands_over_the_signature() {
         let signed = |transaction_type: TransactionType| GemSignedTransaction {
             data: format!("{transaction_type:?}"),
             transaction_type,
@@ -585,15 +585,9 @@ mod tests {
             },
         };
 
-        assert_eq!(
-            broadcast_transactions(&payment, vec![signed(TransactionType::TokenApproval), signed(TransactionType::Transfer)]),
-            (vec![signed(TransactionType::TokenApproval)], vec![signed(TransactionType::Transfer)])
-        );
-        assert_eq!(broadcast_transactions(&payment, vec![signed(TransactionType::Transfer)]), (vec![], vec![signed(TransactionType::Transfer)]));
-        assert_eq!(
-            broadcast_transactions(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, vec![signed(TransactionType::Transfer)]),
-            (vec![signed(TransactionType::Transfer)], vec![])
-        );
+        assert!(is_broadcast(&payment, &signed(TransactionType::TokenApproval)));
+        assert!(!is_broadcast(&payment, &signed(TransactionType::Transfer)));
+        assert!(is_broadcast(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, &signed(TransactionType::Transfer)));
     }
 
     #[test]

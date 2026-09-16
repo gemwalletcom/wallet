@@ -9,7 +9,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::GemPaymentService;
 use crate::services::assets::config::GemAssetConfigService;
-use crate::services::confirm::rules::{broadcast_transactions, is_insufficient_network_fee};
+use crate::services::confirm::rules::{is_broadcast, is_insufficient_network_fee};
 use crate::services::confirm::{
     GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmService, GemConfirmSimulationState,
     GemConfirmation, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
@@ -119,7 +119,8 @@ impl GemConfirmTransferService {
             simulation,
         };
         let signed = self.confirm.sign(&input, self.signer.clone()).await?;
-        let (transactions, signatures) = broadcast_transactions(&input_type, signed);
+        let (transactions, signatures): (Vec<GemSignedTransaction>, Vec<GemSignedTransaction>) =
+            signed.into_iter().partition(|transaction| is_broadcast(&input_type, transaction));
         let data: Vec<String> = signatures.iter().map(|transaction| transaction.data.clone()).collect();
         if transactions.is_empty() {
             let warning = self.report(&input_type, data.clone()).await;
