@@ -5,7 +5,7 @@ use num_bigint::BigInt;
 use num_traits::Num;
 use primitives::swap::SwapQuoteDataType;
 use primitives::{
-    AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType, decode_hex,
+    AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, decode_hex,
     fee::FeePriority, fee::GasPriceType,
 };
 
@@ -100,16 +100,14 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
                 }
             }
         }
-        TransactionInputType::TokenApprove { approval_data: approval, .. } => Ok(TransactionParams::new(
-            approval.token.clone(),
-            encode_erc20_approve_max_value(&approval.spender)?,
-            BigInt::from(0),
-        )),
-        TransactionInputType::Generic { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
-        TransactionInputType::Payment { extra, .. } => match &extra.approval {
-            Some(approval) => Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?)),
-            None => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
-        },
+        TransactionInputType::TokenApprove { approval_data: approval, .. }
+        | TransactionInputType::Payment {
+            extra: TransferDataExtra { approval: Some(approval), .. },
+            ..
+        } => Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?)),
+        TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => {
+            Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value))
+        }
         TransactionInputType::Stake { .. } => Err("Unsupported chain for staking".into()),
         TransactionInputType::Earn { data: earn_data, .. } => {
             if let Some(approval) = &earn_data.approval {
@@ -159,59 +157,28 @@ pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, B
     }
 }
 
-pub fn is_signature_only(input_type: &TransactionInputType) -> bool {
-    let TransactionInputType::Payment { extra, .. } = input_type else {
-        return false;
-    };
-    extra.output_type == TransferDataOutputType::Signature && extra.approval.is_none()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Asset;
     use primitives::swap::ApprovalData;
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
-    use primitives::{Asset, PaymentInvoice, TransferDataExtra};
 
     #[test]
-    fn test_is_signature_only() {
-        let payment = |output_type, approval| TransactionInputType::Payment {
-            asset: Asset::mock_erc20(),
-            invoice: PaymentInvoice::mock(),
-            extra: TransferDataExtra {
-                output_type,
-                approval,
-                ..TransferDataExtra::mock()
-            },
-        };
-
-        assert!(is_signature_only(&payment(TransferDataOutputType::Signature, None)));
-        assert!(!is_signature_only(&payment(TransferDataOutputType::Signature, Some(ApprovalData::mock()))));
-        assert!(!is_signature_only(&payment(TransferDataOutputType::EncodedTransaction, None)));
-        assert!(!is_signature_only(&TransactionInputType::Transfer { asset: Asset::mock_erc20() }));
-    }
-
-    #[test]
-    fn test_get_transaction_params_payment_approval() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    fn test_get_transaction_params_payment() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let approval = ApprovalData::mock();
-        let payment = |approval| TransactionInputType::Payment {
-            asset: Asset::mock_erc20(),
-            invoice: PaymentInvoice::mock(),
-            extra: TransferDataExtra {
-                to: TEST_EVM_RECIPIENT.to_string(),
-                approval,
-                ..TransferDataExtra::mock()
-            },
-        };
+        let payment = |approval| TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra { approval, ..TransferDataExtra::mock() });
 
-        let approve = get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?;
-        assert_eq!(approve.to, approval.token);
-        assert_eq!(approve.data, encode_erc20_approve_max_value(&approval.spender)?);
-        assert_eq!(approve.value, BigInt::from(0));
-
-        let send = get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(None), "1000"))?;
-        assert_eq!(send.to, TEST_EVM_RECIPIENT);
-        assert_eq!(send.value, BigInt::from(1000));
+        assert_eq!(
+            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?,
+            TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?),
+            "a payment that still needs an approval sends the approval"
+        );
+        assert_eq!(
+            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(None), "1000"))?,
+            TransactionParams::new(TEST_EVM_RECIPIENT, vec![], BigInt::from(1000)),
+            "a payment paid by a transaction sends what the gateway built"
+        );
         Ok(())
     }
 

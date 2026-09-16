@@ -145,6 +145,13 @@ pub(super) fn is_broadcast(input_type: &TransactionInputType, transaction: &GemS
     }
 }
 
+pub(super) fn is_signature_only(input_type: &TransactionInputType) -> bool {
+    match input_type {
+        TransactionInputType::Payment { extra, .. } => extra.output_type == TransferDataOutputType::Signature && extra.approval.is_none(),
+        _ => false,
+    }
+}
+
 pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> GemApprovalValue {
     match value {
         Some(value) if !is_unlimited => GemApprovalValue::Exact { value: value.clone() },
@@ -580,6 +587,16 @@ mod tests {
         assert!(is_broadcast(&payment, &signed(TransactionType::TokenApproval)), "a payment sends its approval");
         assert!(!is_broadcast(&payment, &signed(TransactionType::Transfer)), "and hands over its signature");
         assert!(is_broadcast(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, &signed(TransactionType::Transfer)));
+    }
+
+    #[test]
+    fn test_is_signature_only() {
+        let payment = |approval| TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(vec![], approval));
+
+        assert!(is_signature_only(&payment(None)));
+        assert!(!is_signature_only(&payment(Some(ApprovalData::mock()))), "the approval is a transaction");
+        assert!(!is_signature_only(&TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock())));
+        assert!(!is_signature_only(&TransactionInputType::Transfer { asset: Asset::mock_erc20() }));
     }
 
     #[test]
