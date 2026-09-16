@@ -15,10 +15,8 @@ public extension GemTransferData {
     }
 
     var invoice: PaymentInvoice? {
-        switch inputType {
-        case let .payment(_, invoice, _): invoice
-        default: nil
-        }
+        guard case let .payment(_, invoice, _) = inputType else { return nil }
+        return invoice
     }
 
     var applicationMetadata: Primitives.ApplicationMetadata? {

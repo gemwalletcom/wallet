@@ -19,7 +19,7 @@ public enum TransactionHeaderTypeBuilder {
             case let .amount(showsFiat):
                 return .amount(showFiat: showsFiat)
             case .payment:
-                guard case let .payment(_, invoice, _) = transfer.inputType, let price = invoice.price else { return .amount(showFiat: true) }
+                guard let price = transfer.invoice?.price else { return .amount(showFiat: true) }
                 return .payment(price)
             case .nft:
                 guard case let .transferNft(_, nftAsset) = transfer.inputType else { return .amount(showFiat: false) }
