@@ -15,14 +15,14 @@ public struct PaymentVerificationScene: View {
     public var body: some View {
         NavigationStack {
             WebView(url: model.url, messageHandler: model.messageHandler)
-            .navigationTitle(model.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarDismissItem(type: .close, placement: .topBarLeading)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("", systemImage: SystemImage.info, action: model.onSelectInfo)
+                .navigationTitle(model.title)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarDismissItem(type: .close, placement: .topBarLeading)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("", systemImage: SystemImage.info, action: model.onSelectInfo)
+                    }
                 }
-            }
         }
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(type: $0)

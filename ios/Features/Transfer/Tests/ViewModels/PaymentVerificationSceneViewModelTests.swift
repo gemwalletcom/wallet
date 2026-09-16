@@ -29,6 +29,6 @@ struct PaymentVerificationSceneViewModelTests {
 
 private extension PaymentVerificationSceneViewModel {
     static func mock(onComplete: @escaping () -> Void) throws -> PaymentVerificationSceneViewModel {
-        PaymentVerificationSceneViewModel(url: try #require(URL(string: "https://walletconnect.com/collect")), onComplete: onComplete)
+        try PaymentVerificationSceneViewModel(url: #require(URL(string: "https://walletconnect.com/collect")), onComplete: onComplete)
     }
 }

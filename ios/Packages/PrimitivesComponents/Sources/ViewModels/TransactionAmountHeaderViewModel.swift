@@ -8,7 +8,7 @@ import SwiftUI
 
 struct TransactionAmountHeaderViewModel: ValueHeaderViewModel {
     let display: AmountDisplay
-    var price: String? = nil
+    var price: String?
 
     let isWatchWallet: Bool = false
     let buttons: [HeaderButton] = []
