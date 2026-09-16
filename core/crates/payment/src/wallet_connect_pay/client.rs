@@ -57,13 +57,13 @@ impl<C: Client> WalletConnectPayClient<C> {
         }
     }
 
-    pub(super) async fn confirm(&self, payment_id: &str, option_id: &str, action_result: String) -> Result<PaymentStatusResponse, PaymentError> {
+    pub(super) async fn confirm(&self, payment_id: &str, option_id: &str, action_results: Vec<String>) -> Result<PaymentStatusResponse, PaymentError> {
         let target = WalletConnectPayTarget::Confirm {
             payment_id: payment_id.to_string(),
         };
         let request = ConfirmPaymentRequest {
             option_id: option_id.to_string(),
-            results: vec![WalletConnectPayActionResult::wallet_rpc(action_result)],
+            results: action_results.into_iter().map(WalletConnectPayActionResult::wallet_rpc).collect(),
         };
         self.post(target, &request).await
     }

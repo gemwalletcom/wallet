@@ -18,8 +18,8 @@ use gem_tempo::TempoSigner;
 use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
-use primitives::swap::{SwapData, SwapQuoteDataType};
-use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionType, TransferDataOutputType};
+use primitives::swap::{ApprovalData, SwapData, SwapQuoteDataType};
+use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionLoadInput, TransactionType, TransferDataOutputType};
 use zeroize::Zeroizing;
 
 pub struct ChainTransactionSigner {
@@ -129,11 +129,17 @@ impl ChainTransactionSigner {
             TransactionInputType::TransferNft { .. } => self.one(input, private_key, transaction_type, "nft transfer", |signer, i, key| signer.sign_nft_transfer(i, key)),
             TransactionInputType::TokenApprove { .. } => self.one(input, private_key, transaction_type, "token approval", |signer, i, key| signer.sign_token_approval(i, key)),
             TransactionInputType::Generic { .. } => self.one(input, private_key, transaction_type, "data", |signer, i, key| signer.sign_data(i, key)),
-            TransactionInputType::Payment { extra, .. } => match extra.output_type {
+            TransactionInputType::Payment { asset, extra, .. } => match extra.output_type {
                 TransferDataOutputType::EncodedTransaction => self.one(input, private_key, transaction_type, "data", |signer, i, key| signer.sign_data(i, key)),
-                TransferDataOutputType::Signature => self
-                    .dispatch_message(&extra.data.clone().unwrap_or_default(), private_key, "typed data", |signer, message, key| signer.sign_message(message, key))
-                    .map(|data| vec![GemSignedTransaction { data, transaction_type }]),
+                TransferDataOutputType::Signature => {
+                    let signature = self
+                        .dispatch_message(&extra.data.clone().unwrap_or_default(), private_key, "typed data", |signer, message, key| signer.sign_message(message, key))
+                        .map(|data| GemSignedTransaction { data, transaction_type })?;
+                    match &extra.approval {
+                        Some(approval) => Ok([self.sign_payment_approval(input, private_key, asset, approval)?, vec![signature]].concat()),
+                        None => Ok(vec![signature]),
+                    }
+                }
             },
             TransactionInputType::Account { .. } => self.one(input, private_key, transaction_type, "account action", |signer, i, key| signer.sign_account_action(i, key)),
             TransactionInputType::Stake { .. } => self.many(input, private_key, "stake", |signer, i, key| signer.sign_stake(i, key)),
@@ -144,6 +150,22 @@ impl ChainTransactionSigner {
                 SwapQuoteDataType::Transfer => self.sign_swap_transfer(input, private_key, from_asset, swap_data),
             },
         }
+    }
+
+    fn sign_payment_approval(&self, input: &SignerInput, private_key: &[u8], asset: &Asset, approval: &ApprovalData) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
+        let approve = SignerInput {
+            input: TransactionLoadInput {
+                input_type: TransactionInputType::TokenApprove {
+                    asset: asset.clone(),
+                    approval_data: approval.clone(),
+                },
+                ..input.input.clone()
+            },
+            fee: input.fee.clone(),
+        };
+        self.one(&approve, private_key, TransactionType::TokenApproval, "token approval", |signer, i, key| {
+            signer.sign_token_approval(i, key)
+        })
     }
 
     fn sign_swap_transfer(&self, input: &SignerInput, private_key: &[u8], from_asset: &Asset, swap_data: &SwapData) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
@@ -331,8 +353,45 @@ mod tests {
         .into();
 
         assert_eq!(
-            signer.sign_input(payment, Zeroizing::new(key.clone())).unwrap(),
-            signed(vec![signer.sign_message(typed_data, key).unwrap()], TransactionType::Transfer)
+            signer.sign_input(payment.clone(), Zeroizing::new(key.clone())).unwrap(),
+            signed(vec![signer.sign_message(typed_data.clone(), key.clone()).unwrap()], TransactionType::Transfer)
+        );
+
+        let approval_data = primitives::swap::ApprovalData::mock();
+        let payment_with_approval: GemSignerInput = SignerInput::mock_evm(
+            TransactionInputType::Payment {
+                asset: Asset::mock_erc20(),
+                invoice: primitives::PaymentInvoice::mock(),
+                extra: primitives::TransferDataExtra {
+                    data: Some(typed_data.clone()),
+                    output_type: TransferDataOutputType::Signature,
+                    output_action: primitives::TransferDataOutputAction::Sign,
+                    transaction_type: TransactionType::Transfer,
+                    approval: Some(approval_data.clone()),
+                    ..primitives::TransferDataExtra::mock()
+                },
+            },
+            "0",
+            65000,
+        )
+        .into();
+        let approve: GemSignerInput = SignerInput::mock_evm(
+            TransactionInputType::TokenApprove {
+                asset: Asset::mock_erc20(),
+                approval_data,
+            },
+            "0",
+            65000,
+        )
+        .into();
+
+        assert_eq!(
+            signer.sign_input(payment_with_approval, Zeroizing::new(key.clone())).unwrap(),
+            [
+                signed(vec![signer.sign_token_approval(approve, key.clone()).unwrap()], TransactionType::TokenApproval),
+                signed(vec![signer.sign_message(typed_data, key).unwrap()], TransactionType::Transfer),
+            ]
+            .concat()
         );
     }
 

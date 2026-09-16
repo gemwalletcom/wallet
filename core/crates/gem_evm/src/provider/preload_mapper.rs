@@ -105,7 +105,11 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
             encode_erc20_approve_max_value(&approval.spender)?,
             BigInt::from(0),
         )),
-        TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
+        TransactionInputType::Generic { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
+        TransactionInputType::Payment { extra, .. } => match &extra.approval {
+            Some(approval) => Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?)),
+            None => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
+        },
         TransactionInputType::Stake { .. } => Err("Unsupported chain for staking".into()),
         TransactionInputType::Earn { data: earn_data, .. } => {
             if let Some(approval) = &earn_data.approval {
@@ -184,6 +188,30 @@ mod tests {
         assert!(!is_signature_only(&payment(TransferDataOutputType::Signature, Some(ApprovalData::mock()))));
         assert!(!is_signature_only(&payment(TransferDataOutputType::EncodedTransaction, None)));
         assert!(!is_signature_only(&TransactionInputType::Transfer { asset: Asset::mock_erc20() }));
+    }
+
+    #[test]
+    fn test_get_transaction_params_payment_approval() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let approval = ApprovalData::mock();
+        let payment = |approval| TransactionInputType::Payment {
+            asset: Asset::mock_erc20(),
+            invoice: PaymentInvoice::mock(),
+            extra: TransferDataExtra {
+                to: "0x0000000000a84d1a9b0063a910315c7ffa9cd248".to_string(),
+                approval,
+                ..TransferDataExtra::mock()
+            },
+        };
+
+        let approve = get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?;
+        assert_eq!(approve.to, approval.token);
+        assert_eq!(approve.data, encode_erc20_approve_max_value(&approval.spender)?);
+        assert_eq!(approve.value, BigInt::from(0));
+
+        let send = get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(None), "1000"))?;
+        assert_eq!(send.to, "0x0000000000a84d1a9b0063a910315c7ffa9cd248");
+        assert_eq!(send.value, BigInt::from(1000));
+        Ok(())
     }
 
     #[test]

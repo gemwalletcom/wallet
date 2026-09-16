@@ -30,8 +30,8 @@ impl PaymentService {
         Self::validate(provider.as_ref(), provider.select_asset(addresses, asset_id).await?, addresses)
     }
 
-    pub async fn confirm(&self, link: &PaymentLink, quote_id: &str, action_result: String) -> Result<(), PaymentError> {
-        self.providers.get_provider(link).confirm(quote_id, action_result).await
+    pub async fn confirm(&self, link: &PaymentLink, quote_id: &str, action_results: Vec<String>) -> Result<(), PaymentError> {
+        self.providers.get_provider(link).confirm(quote_id, action_results).await
     }
 
     fn validate(provider: &dyn PaymentProvider, load: PaymentLoad, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {

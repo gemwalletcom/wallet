@@ -7,7 +7,7 @@ use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wal
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::config::GemAssetConfigService;
-use crate::services::confirm::rules::is_insufficient_network_fee;
+use crate::services::confirm::rules::{broadcast_transactions, is_insufficient_network_fee};
 use crate::services::confirm::{
     GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmService, GemConfirmSimulationState,
     GemConfirmation, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
@@ -83,13 +83,6 @@ fn simulation_seed(chain: Chain, simulation: Option<SimulationResult>) -> GemCon
     }
 }
 
-fn is_broadcast(result: &GemExecuteResult) -> bool {
-    match result {
-        GemExecuteResult::Sent { .. } => true,
-        GemExecuteResult::Signed { .. } => false,
-    }
-}
-
 impl GemConfirmTransferService {
     pub(super) fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
@@ -124,36 +117,32 @@ impl GemConfirmTransferService {
             network_fee,
             simulation,
         };
-        let result = self.confirm.execute(input, self.signer.clone()).await?;
-        if is_broadcast(&result) {
-            let _ = self.recent_activity.add(input_type.clone(), wallet_id).await;
+        let signed = self.confirm.sign(&input, self.signer.clone()).await?;
+        let (transactions, signatures) = broadcast_transactions(&input_type, signed);
+        let signatures: Vec<String> = signatures.into_iter().map(|transaction| transaction.data).collect();
+        if transactions.is_empty() {
+            let warning = self.report(&input_type, signatures.clone()).await;
+            return Ok(GemExecuteResult::Signed { data: signatures, warning });
         }
-        Ok(self.report_payment(&input_type, result).await)
+        let sent = self.confirm.send(input, transactions).await?;
+        let _ = self.recent_activity.add(input_type.clone(), wallet_id).await;
+        let warning = self.report(&input_type, [sent.hashes.clone(), signatures].concat()).await;
+        Ok(GemExecuteResult::Sent {
+            hashes: sent.hashes,
+            transactions: sent.transactions,
+            warning,
+        })
     }
 
     pub(super) fn payment(&self) -> &GemPaymentService {
         &self.payment
     }
 
-    async fn report_payment(&self, input_type: &TransactionInputType, result: GemExecuteResult) -> GemExecuteResult {
+    async fn report(&self, input_type: &TransactionInputType, action_results: Vec<String>) -> Option<String> {
         let TransactionInputType::Payment { .. } = input_type else {
-            return result;
+            return None;
         };
-        match result {
-            GemExecuteResult::Sent { hashes, transactions, .. } => {
-                let warning = self.report(input_type, hashes.first()).await;
-                GemExecuteResult::Sent { hashes, transactions, warning }
-            }
-            GemExecuteResult::Signed { data, .. } => {
-                let warning = self.report(input_type, data.first()).await;
-                GemExecuteResult::Signed { data, warning }
-            }
-        }
-    }
-
-    async fn report(&self, input_type: &TransactionInputType, action_result: Option<&String>) -> Option<String> {
-        let action_result = action_result?;
-        self.payment.confirm(input_type, action_result.clone()).await.err().map(|error| error.to_string())
+        self.payment.confirm(input_type, action_results).await.err().map(|error| error.to_string())
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
@@ -223,23 +212,3 @@ impl GemConfirmTransferService {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_only_a_broadcast_send_records_recent_activity() {
-        let sent = GemExecuteResult::Sent {
-            hashes: vec!["0xhash".to_string()],
-            transactions: vec![],
-            warning: None,
-        };
-        let signed = GemExecuteResult::Signed {
-            data: vec!["0xsigned".to_string()],
-            warning: None,
-        };
-
-        assert!(is_broadcast(&sent));
-        assert!(!is_broadcast(&signed));
-    }
-}

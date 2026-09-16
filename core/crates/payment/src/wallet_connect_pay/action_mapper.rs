@@ -76,7 +76,7 @@ fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData,
     if !transaction.to.eq_ignore_ascii_case(token) {
         return Err(PaymentError::invalid_request(format!("Payment asks to approve {} on a quote of {token}", transaction.to)));
     }
-    match decode_transaction_kind(&transaction.to, transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
+    match decode_transaction_kind(token, transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
         EvmTransactionKind::TokenApproval(approval) => Ok(approval),
         EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => Err(PaymentError::invalid_request("Payment approval is not a token approval")),
     }
@@ -133,7 +133,7 @@ mod tests {
     const ADDRESS: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";
     const ROUTER: &str = "0x0000000000a84d1a9b0063a910315c7ffa9cd248";
     const PERMIT2: &str = "0x000000000022d473030f116ddee9f6b43ac78ba3";
-    const USDT_POLYGON: &str = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
+    const USDT_POLYGON: &str = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
     const APPROVE_PERMIT2_MAX: &str = "0x095ea7b3000000000000000000000000000000000022d473030f116ddee9f6b43ac78ba3ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
     fn quote(asset_id: AssetId, value: u64) -> Quote {
@@ -167,7 +167,7 @@ mod tests {
         WalletRpcAction {
             chain_id: "eip155:137".to_string(),
             method: METHOD_ETHEREUM_SEND_TRANSACTION.to_string(),
-            params: serde_json::json!([{"from": ADDRESS, "to": USDT_POLYGON, "value": "0x0", "data": APPROVE_PERMIT2_MAX}]),
+            params: serde_json::json!([{"from": ADDRESS, "to": USDT_POLYGON.to_lowercase(), "value": "0x0", "data": APPROVE_PERMIT2_MAX}]),
         }
     }
 
@@ -231,8 +231,8 @@ mod tests {
         let PaymentAction::ApproveAndSign { approval, sign } = action else {
             panic!("expected an approval and a signature, got {action:?}");
         };
-        assert_eq!(approval.token, USDT_POLYGON);
-        assert!(approval.spender.eq_ignore_ascii_case(PERMIT2));
+        assert_eq!(approval.token, USDT_POLYGON, "the record's asset id must be the wallet's checksummed token id");
+        assert_eq!(approval.spender, "0x000000000022D473030F116dDEE9F6B43aC78BA3");
         assert!(approval.is_unlimited);
         assert!(sign.recipient.eq_ignore_ascii_case(ROUTER));
 

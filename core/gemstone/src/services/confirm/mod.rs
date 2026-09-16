@@ -35,7 +35,7 @@ use crate::services::transaction_state::{GemTransactionStateService, GemTransact
 use crate::services::transfer::rules::TransferInput;
 use crate::signer::GemSignerError;
 use primitives::TransactionInputType;
-use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
+use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -201,7 +201,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    pub async fn execute(&self, input: SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
+    async fn sign(&self, input: &SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
         let signer_input = input.signer_input()?;
         let chain = input.confirm.input.transfer.input_type.get_asset().chain();
         let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
@@ -213,20 +213,7 @@ impl GemConfirmService {
             });
         }
         input.confirm.input.transfer.input_type.validate_approvals(&transactions)?;
-        match input.confirm.input.transfer.input_type.output().output_action {
-            TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
-                data: transactions.into_iter().map(|transaction| transaction.data).collect(),
-                warning: None,
-            }),
-            TransferDataOutputAction::Send => {
-                let result = self.send(input, transactions).await?;
-                Ok(GemExecuteResult::Sent {
-                    hashes: result.hashes,
-                    transactions: result.transactions,
-                    warning: None,
-                })
-            }
-        }
+        Ok(transactions)
     }
 }
 

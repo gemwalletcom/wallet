@@ -23,7 +23,7 @@ impl<C: Client> SolanaPayProvider<C> {
 
 #[async_trait]
 impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
-    async fn confirm(&self, _quote_id: &str, _action_result: String) -> Result<(), PaymentError> {
+    async fn confirm(&self, _quote_id: &str, _action_results: Vec<String>) -> Result<(), PaymentError> {
         Ok(())
     }
 
@@ -94,7 +94,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_confirm_has_nothing_to_report() {
-        assert_eq!(provider().confirm("quote", "hash".to_string()).await, Ok(()));
+        assert_eq!(provider().confirm("quote", vec!["hash".to_string()]).await, Ok(()));
     }
 
     #[tokio::test]

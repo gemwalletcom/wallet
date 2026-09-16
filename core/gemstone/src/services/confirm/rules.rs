@@ -23,6 +23,7 @@ use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
 use primitives::TransactionInputType;
 use primitives::TransferDataOutputType;
+use primitives::{TransactionType, TransferDataOutputAction};
 
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
@@ -136,6 +137,13 @@ impl ConfirmInput for TransactionInputType {
             (Chain::Solana, Self::Swap { .. } | Self::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
             _ => GemBroadcastOptions { skip_preflight: false },
         }
+    }
+}
+
+pub(super) fn broadcast_transactions(input_type: &TransactionInputType, signed: Vec<GemSignedTransaction>) -> (Vec<GemSignedTransaction>, Vec<GemSignedTransaction>) {
+    match input_type.output().output_action {
+        TransferDataOutputAction::Send => (signed, Vec::new()),
+        TransferDataOutputAction::Sign => signed.into_iter().partition(|transaction| transaction.transaction_type == TransactionType::TokenApproval),
     }
 }
 
@@ -562,6 +570,32 @@ mod tests {
             Err(GemConfirmError::ApprovalInvalid { .. }) => {}
             result => panic!("expected an invalid approval error, got {result:?}"),
         }
+    }
+
+    #[test]
+    fn test_broadcast_transactions_sends_a_payment_approval_and_hands_over_the_signature() {
+        let signed = |transaction_type: TransactionType| GemSignedTransaction {
+            data: format!("{transaction_type:?}"),
+            transaction_type,
+        };
+        let payment = TransactionInputType::Payment {
+            asset: Asset::mock_erc20(),
+            invoice: PaymentInvoice::mock(),
+            extra: TransferDataExtra {
+                output_action: TransferDataOutputAction::Sign,
+                ..TransferDataExtra::mock()
+            },
+        };
+
+        assert_eq!(
+            broadcast_transactions(&payment, vec![signed(TransactionType::TokenApproval), signed(TransactionType::Transfer)]),
+            (vec![signed(TransactionType::TokenApproval)], vec![signed(TransactionType::Transfer)])
+        );
+        assert_eq!(broadcast_transactions(&payment, vec![signed(TransactionType::Transfer)]), (vec![], vec![signed(TransactionType::Transfer)]));
+        assert_eq!(
+            broadcast_transactions(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, vec![signed(TransactionType::Transfer)]),
+            (vec![signed(TransactionType::Transfer)], vec![])
+        );
     }
 
     #[test]

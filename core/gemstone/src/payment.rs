@@ -97,11 +97,11 @@ impl GemPaymentService {
 }
 
 impl GemPaymentService {
-    pub(crate) async fn confirm(&self, input_type: &TransactionInputType, action_result: String) -> Result<(), GemPaymentError> {
+    pub(crate) async fn confirm(&self, input_type: &TransactionInputType, action_results: Vec<String>) -> Result<(), GemPaymentError> {
         let (invoice, quote) = payment_quote(input_type).ok_or(GemPaymentError::InvalidRequest {
             reason: "Transfer is not a payment".to_string(),
         })?;
-        self.payments.confirm(&invoice.link, &quote.id, action_result).await
+        self.payments.confirm(&invoice.link, &quote.id, action_results).await
     }
 
     pub(crate) async fn quote_transfer_data(&self, invoice: GemPaymentInvoice, asset_id: AssetId, verification: PaymentVerification) -> Result<GemTransferData, GemPaymentError> {

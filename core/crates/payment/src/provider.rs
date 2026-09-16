@@ -15,5 +15,5 @@ pub(crate) trait PaymentProvider: Send + Sync {
         })
     }
 
-    async fn confirm(&self, quote_id: &str, action_result: String) -> Result<(), PaymentError>;
+    async fn confirm(&self, quote_id: &str, action_results: Vec<String>) -> Result<(), PaymentError>;
 }
