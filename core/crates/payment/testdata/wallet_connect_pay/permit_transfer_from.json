@@ -1,0 +1,22 @@
+{
+  "domain": { "name": "Permit2", "chainId": "0x89", "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
+  "types": {
+    "PermitTransferFrom": [
+      { "name": "permitted", "type": "TokenPermissions" },
+      { "name": "spender", "type": "address" },
+      { "name": "nonce", "type": "uint256" },
+      { "name": "deadline", "type": "uint256" }
+    ],
+    "TokenPermissions": [
+      { "name": "token", "type": "address" },
+      { "name": "amount", "type": "uint256" }
+    ]
+  },
+  "primaryType": "PermitTransferFrom",
+  "message": {
+    "permitted": { "token": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", "amount": "1000000" },
+    "spender": "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+    "nonce": "0x08",
+    "deadline": "1785175272"
+  }
+}

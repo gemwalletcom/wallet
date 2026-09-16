@@ -1,0 +1,18 @@
+{
+  "info": {
+    "status": "requires_action",
+    "merchant": { "name": "Gem Coffee" },
+    "amount": { "unit": "iso4217/USD", "value": "10", "display": { "decimals": 2 } }
+  },
+  "collectData": {
+    "url": "https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf,eip155:56:0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+  },
+  "options": [
+    {
+      "id": "opt_op",
+      "account": "eip155:10:0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+      "amount": { "unit": "caip19/eip155:10/slip44:60", "value": "1000" },
+      "collectData": { "url": "https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf" }
+    }
+  ]
+}

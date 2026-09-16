@@ -123,28 +123,16 @@ fn get_field<'a>(fields: &'a [EIP712Field], name: &str) -> Result<&'a EIP712Type
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::model::Quote;
-    use crate::wallet_connect_pay::testkit::mock_permit_transfer_from;
+    use crate::wallet_connect_pay::testkit::{TRANSFER_WITH_AUTHORIZATION, mock_permit_transfer_from};
     use primitives::asset_constants::{BASE_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID};
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-    use primitives::AssetId;
 
     fn permit_transfer_from() -> Value {
-        mock_permit_transfer_from(&Quote::mock(AssetId::from_token(Chain::Polygon, POLYGON_USDT_TOKEN_ID), 1_000_000), "1000000")
+        mock_permit_transfer_from("1000000")
     }
 
     fn transfer_with_authorization() -> Value {
-        serde_json::json!({
-            "domain": {"name": "USD Coin", "version": "2", "chainId": 8453, "verifyingContract": BASE_USDC_TOKEN_ID},
-            "types": {
-                "TransferWithAuthorization": [
-                    {"name": "from", "type": "address"}, {"name": "to", "type": "address"}, {"name": "value", "type": "uint256"},
-                    {"name": "validAfter", "type": "uint256"}, {"name": "validBefore", "type": "uint256"}, {"name": "nonce", "type": "bytes32"}
-                ]
-            },
-            "primaryType": "TransferWithAuthorization",
-            "message": {"from": TEST_EVM_SENDER, "to": TEST_EVM_RECIPIENT, "value": 250000, "validAfter": 0, "validBefore": 1, "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001"}
-        })
+        serde_json::from_str(TRANSFER_WITH_AUTHORIZATION).unwrap()
     }
 
     #[test]

@@ -1,0 +1,22 @@
+{
+  "domain": { "name": "USD Coin", "version": "2", "chainId": 8453, "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" },
+  "types": {
+    "TransferWithAuthorization": [
+      { "name": "from", "type": "address" },
+      { "name": "to", "type": "address" },
+      { "name": "value", "type": "uint256" },
+      { "name": "validAfter", "type": "uint256" },
+      { "name": "validBefore", "type": "uint256" },
+      { "name": "nonce", "type": "bytes32" }
+    ]
+  },
+  "primaryType": "TransferWithAuthorization",
+  "message": {
+    "from": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+    "to": "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+    "value": 250000,
+    "validAfter": 0,
+    "validBefore": 1,
+    "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001"
+  }
+}

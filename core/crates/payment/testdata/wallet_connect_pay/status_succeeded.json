@@ -1,0 +1,8 @@
+{
+  "status": "succeeded",
+  "isFinal": true,
+  "info": {
+    "txId": "0xrelayed",
+    "optionAmount": { "value": "1000", "unit": "caip19/eip155:137/slip44:966" }
+  }
+}

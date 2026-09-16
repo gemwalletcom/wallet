@@ -2,9 +2,16 @@ use gem_evm::encode::encode_erc20_approve_max_value;
 use num_bigint::BigUint;
 use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
 use primitives::hex::encode_with_0x;
-use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
+use primitives::testkit::signer_mock::TEST_EVM_SENDER;
 use primitives::{AssetId, ChainAddress, WalletConnectCAIP2, WalletConnectionMethods, serde_name};
 use serde_json::Value;
+
+pub const PERMIT_TRANSFER_FROM: &str = include_str!("../../testdata/wallet_connect_pay/permit_transfer_from.json");
+pub const TRANSFER_WITH_AUTHORIZATION: &str = include_str!("../../testdata/wallet_connect_pay/transfer_with_authorization.json");
+pub const OPTIONS_IDENTITY_REQUIRED: &str = include_str!("../../testdata/wallet_connect_pay/options_identity_required.json");
+pub const STATUS_SUCCEEDED: &str = include_str!("../../testdata/wallet_connect_pay/status_succeeded.json");
+pub const STATUS_PROCESSING: &str = include_str!("../../testdata/wallet_connect_pay/status_processing.json");
+pub const STATUS_SUCCEEDED_WITHOUT_INFO: &str = include_str!("../../testdata/wallet_connect_pay/status_succeeded_without_info.json");
 
 use crate::wallet_connect_pay::model::{Quote, WalletRpcAction};
 
@@ -52,21 +59,15 @@ impl WalletRpcAction {
         Self::mock(
             WalletConnectionMethods::EthSignTypedDataV4,
             &chain_id(quote),
-            serde_json::json!([quote.account.address, mock_permit_transfer_from(quote, amount).to_string()]),
+            serde_json::json!([quote.account.address, mock_permit_transfer_from(amount).to_string()]),
         )
     }
 }
 
-pub fn mock_permit_transfer_from(quote: &Quote, amount: &str) -> Value {
-    serde_json::json!({
-        "domain": {"name": "Permit2", "chainId": quote.asset_id.chain.network_id(), "verifyingContract": UNISWAP_PERMIT2_CONTRACT},
-        "types": {
-            "PermitTransferFrom": [{"name": "permitted", "type": "TokenPermissions"}, {"name": "spender", "type": "address"}, {"name": "nonce", "type": "uint256"}, {"name": "deadline", "type": "uint256"}],
-            "TokenPermissions": [{"name": "token", "type": "address"}, {"name": "amount", "type": "uint256"}]
-        },
-        "primaryType": "PermitTransferFrom",
-        "message": {"permitted": {"token": quote.asset_id.token_id, "amount": amount}, "spender": TEST_EVM_RECIPIENT, "nonce": "0x08", "deadline": "1785175272"}
-    })
+pub fn mock_permit_transfer_from(amount: &str) -> Value {
+    let mut typed_data: Value = serde_json::from_str(PERMIT_TRANSFER_FROM).unwrap();
+    typed_data["message"]["permitted"]["amount"] = Value::String(amount.to_string());
+    typed_data
 }
 
 fn chain_id(quote: &Quote) -> String {

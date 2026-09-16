@@ -121,6 +121,7 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::wallet_connect_pay::testkit::{OPTIONS_IDENTITY_REQUIRED, STATUS_PROCESSING, STATUS_SUCCEEDED, STATUS_SUCCEEDED_WITHOUT_INFO};
     use gem_client::testkit::MockClient;
     use primitives::testkit::signer_mock::TEST_EVM_SENDER;
 
@@ -143,14 +144,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_a_refused_option_verifies_every_account_with_one_form() {
-        let options = format!(
-            r#"{{"info":{{"status":"requires_action","merchant":{{"name":"Gem Coffee"}},"amount":{{"unit":"iso4217/USD","value":"10","display":{{"decimals":2}}}}}},
-            "collectData":{{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa,eip155:56:0xa"}},
-            "options":[{{"id":"opt_op","account":"eip155:10:{TEST_EVM_SENDER}","amount":{{"unit":"caip19/eip155:10/slip44:60","value":"1000"}},
-                        "collectData":{{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa"}}}}]}}"#
-        );
         let client = MockClient::new().with_post(move |path, _| match path {
-            "/v1/gateway/payment/pay_1/options?includePaymentInfo=true" => Ok(options.clone().into_bytes()),
+            "/v1/gateway/payment/pay_1/options?includePaymentInfo=true" => Ok(OPTIONS_IDENTITY_REQUIRED.as_bytes().to_vec()),
             "/v1/gateway/payment/pay_1/fetch" => Err(gem_client::ClientError::Http {
                 status: 400,
                 body: br#"{"code":"params_validation","message":"IC data required but not found"}"#.to_vec(),
@@ -175,30 +170,30 @@ mod tests {
         else {
             panic!("expected a verification");
         };
-        assert_eq!(url, "https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa,eip155:56:0xa");
+        assert_eq!(
+            url,
+            format!("https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:{TEST_EVM_SENDER},eip155:56:{TEST_EVM_SENDER}"),
+            "the form for every account, not the one of the refused option"
+        );
         assert_eq!(asset_id, AssetId::from_chain(Chain::Optimism));
     }
 
     #[tokio::test]
     async fn test_status_reports_the_relayed_transaction() {
-        let succeeded = r#"{"status":"succeeded","isFinal":true,"info":{"txId":"0xrelayed","optionAmount":{"value":"1000","unit":"caip19/eip155:137/slip44:966"}}}"#;
-        let processing = r#"{"status":"processing","isFinal":false,"pollInMs":2000}"#;
-        let bare = r#"{"status":"succeeded","info":null}"#;
-
         assert_eq!(
-            provider(succeeded).status().await,
+            provider(STATUS_SUCCEEDED).status().await,
             Ok(PaymentUpdate {
                 status: PaymentStatus::Succeeded,
                 transaction_id: Some("0xrelayed".to_string()),
             })
         );
         assert_eq!(
-            provider(processing).status().await,
+            provider(STATUS_PROCESSING).status().await,
             Ok(PaymentUpdate {
                 status: PaymentStatus::Processing,
                 transaction_id: None,
             })
         );
-        assert_eq!(provider(bare).status().await.unwrap().transaction_id, None);
+        assert_eq!(provider(STATUS_SUCCEEDED_WITHOUT_INFO).status().await.unwrap().transaction_id, None);
     }
 }
