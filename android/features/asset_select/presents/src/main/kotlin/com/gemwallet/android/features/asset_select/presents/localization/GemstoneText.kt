@@ -7,6 +7,7 @@ import uniffi.gemstone.GemSelectAssetTitle
 @StringRes
 internal fun GemSelectAssetTitle.stringRes(): Int = when (this) {
     GemSelectAssetTitle.SEND -> R.string.wallet_send
+    GemSelectAssetTitle.PAY_WITH -> R.string.transfer_pay_with
     GemSelectAssetTitle.RECEIVE -> R.string.wallet_receive
     GemSelectAssetTitle.RECEIVE_COLLECTION -> R.string.wallet_receive_collection
     GemSelectAssetTitle.BUY -> R.string.wallet_buy

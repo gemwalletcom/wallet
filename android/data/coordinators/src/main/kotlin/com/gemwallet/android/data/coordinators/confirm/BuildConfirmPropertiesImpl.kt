@@ -36,7 +36,7 @@ class BuildConfirmPropertiesImpl(
                     GemConfirmRow.RECIPIENT -> destination(transfer, chain, addressName)
                     GemConfirmRow.NETWORK -> ConfirmProperty.Network(chain.asset())
                     GemConfirmRow.MEMO -> ConfirmProperty.Memo(transfer.recipient.memo.orEmpty())
-                    GemConfirmRow.DETAILS -> null
+                    GemConfirmRow.PAYMENT_ASSET, GemConfirmRow.DETAILS -> null
                 }
             }
         }
