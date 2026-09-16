@@ -42,6 +42,7 @@ impl AcrossDeployment {
             Chain::Hyperliquid => HYPEREVM_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Plasma => PLASMA_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Robinhood => ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT,
+            Chain::Arc => ARC_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Tron => TRON_ACROSS_SPOKE_POOL_CONTRACT,
             _ => return None,
         };
@@ -54,6 +55,7 @@ impl AcrossDeployment {
             Chain::Hyperliquid => HYPEREVM_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Plasma => PLASMA_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Robinhood => ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT,
+            Chain::Arc => ARC_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => {
                 ETHEREUM_ACROSS_MULTICALL_HANDLER_CONTRACT
             }
@@ -100,6 +102,7 @@ impl AcrossDeployment {
             (Chain::SmartChain, vec![SMARTCHAIN_ETH_ASSET_ID.clone()]),
             (Chain::Plasma, vec![PLASMA_USDT_ASSET_ID.clone()]),
             (Chain::Robinhood, vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]),
+            (Chain::Arc, vec![ARC_USDC_ASSET_ID.clone()]),
             (Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
         ])
     }
@@ -186,6 +189,7 @@ impl AcrossDeployment {
                     HYPEREVM_USDC_ASSET_ID.clone(),
                     MONAD_USDC_ASSET_ID.clone(),
                     ROBINHOOD_USDG_ASSET_ID.clone(),
+                    ARC_USDC_ASSET_ID.clone(),
                 ]),
             },
             // USDC on BSC decimals are 18
@@ -305,8 +309,10 @@ mod tests {
     use super::AcrossDeployment;
     use primitives::{
         Chain,
-        asset_constants::{ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
-        contract_constants::{ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT},
+        asset_constants::{ARC_USDC_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
+        contract_constants::{
+            ARC_ACROSS_MULTICALL_HANDLER_CONTRACT, ARC_ACROSS_SPOKE_POOL_CONTRACT, ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT,
+        },
     };
 
     #[test]
@@ -319,5 +325,14 @@ mod tests {
             AcrossDeployment::supported_assets().get(&Chain::Robinhood),
             Some(&vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()])
         );
+    }
+
+    #[test]
+    fn test_arc_deployment() {
+        let deployment = AcrossDeployment::deployment_by_chain(&Chain::Arc).unwrap();
+        assert_eq!(deployment.chain_id, 5042);
+        assert_eq!(deployment.spoke_pool, ARC_ACROSS_SPOKE_POOL_CONTRACT);
+        assert_eq!(deployment.multicall_handler(), ARC_ACROSS_MULTICALL_HANDLER_CONTRACT);
+        assert_eq!(AcrossDeployment::supported_assets().get(&Chain::Arc), Some(&vec![ARC_USDC_ASSET_ID.clone()]));
     }
 }
