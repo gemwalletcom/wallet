@@ -463,8 +463,16 @@ impl GemTransferData {
     }
 
     pub fn confirm_rows(&self) -> Vec<GemConfirmRow> {
-        if let TransactionInputType::Payment { .. } = self.input_type {
-            return vec![GemConfirmRow::Recipient, GemConfirmRow::Sender, GemConfirmRow::Network, GemConfirmRow::PaymentAsset];
+        if let TransactionInputType::Payment { invoice, .. } = &self.input_type {
+            return [
+                Some(GemConfirmRow::Recipient),
+                Some(GemConfirmRow::Sender),
+                Some(GemConfirmRow::Network),
+                (!invoice.quotes.is_empty()).then_some(GemConfirmRow::PaymentAsset),
+            ]
+            .into_iter()
+            .flatten()
+            .collect();
         }
         let is_generic = matches!(self.input_type, TransactionInputType::Generic { .. });
         [
@@ -798,6 +806,22 @@ mod tests {
             extra: primitives::TransferDataExtra::default(),
         });
         assert_eq!(generic.confirm_rows(), vec![GemConfirmRow::App, GemConfirmRow::Sender, GemConfirmRow::Network]);
+
+        let quoted = GemTransferData::mock(TransactionInputType::mock_payment(Asset::from_chain(Chain::Ethereum), TransferDataExtra::mock()));
+        assert_eq!(
+            quoted.confirm_rows(),
+            vec![GemConfirmRow::Recipient, GemConfirmRow::Sender, GemConfirmRow::Network, GemConfirmRow::PaymentAsset]
+        );
+        let solana_pay = GemTransferData::mock(TransactionInputType::Payment {
+            asset: Asset::from_chain(Chain::Solana),
+            invoice: PaymentInvoice { quotes: vec![], ..PaymentInvoice::mock() },
+            extra: TransferDataExtra::mock(),
+        });
+        assert_eq!(
+            solana_pay.confirm_rows(),
+            vec![GemConfirmRow::Recipient, GemConfirmRow::Sender, GemConfirmRow::Network],
+            "a rail without quotes offers nothing to pay with"
+        );
     }
 
     #[test]

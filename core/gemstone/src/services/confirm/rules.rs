@@ -145,9 +145,10 @@ impl ConfirmInput for TransactionInputType {
 }
 
 pub(super) fn is_broadcast(input_type: &TransactionInputType, transaction: &GemSignedTransaction) -> bool {
-    match input_type.output().output_action {
-        TransferDataOutputAction::Send => true,
-        TransferDataOutputAction::Sign => transaction.transaction_type == TransactionType::TokenApproval,
+    match (input_type.output().output_action, input_type) {
+        (TransferDataOutputAction::Send, _) => true,
+        (TransferDataOutputAction::Sign, TransactionInputType::Payment { .. }) => transaction.transaction_type == TransactionType::TokenApproval,
+        (TransferDataOutputAction::Sign, _) => false,
     }
 }
 
@@ -623,6 +624,21 @@ mod tests {
             &TransactionInputType::Transfer { asset: Asset::mock_sol() },
             &GemSignedTransaction::mock(TransactionType::Transfer)
         ));
+
+        let approve_request = TransactionInputType::Generic {
+            asset: Asset::mock_erc20(),
+            metadata: ApplicationMetadata::mock(),
+            extra: TransferDataExtra {
+                output_action: TransferDataOutputAction::Sign,
+                transaction_type: TransactionType::TokenApproval,
+                approval: Some(ApprovalData::mock()),
+                ..TransferDataExtra::mock()
+            },
+        };
+        assert!(
+            !is_broadcast(&approve_request, &GemSignedTransaction::mock(TransactionType::TokenApproval)),
+            "an approval a dapp only asked to sign is handed back, never sent"
+        );
     }
 
     #[test]

@@ -101,7 +101,9 @@ impl GemPaymentService {
     }
 
     pub(crate) async fn confirm(&self, input_type: &TransactionInputType, action_results: Vec<String>) -> Result<(), GemPaymentError> {
-        let (invoice, quote) = payment_quote(input_type).ok_or(GemPaymentError::invalid_request("Transfer is not a payment"))?;
+        let Some((invoice, quote)) = payment_quote(input_type) else {
+            return Ok(());
+        };
         self.payments.confirm(&invoice.link, &quote.id, action_results).await
     }
 
@@ -392,6 +394,7 @@ mod tests {
     use super::*;
     use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
     use crate::testkit::mock_payment_transaction;
+    use futures::executor::block_on;
     use primitives::{Asset, AssetId, AssetType, Chain, PaymentInvoice};
 
     #[test]
@@ -422,6 +425,25 @@ mod tests {
         assert_eq!(update(PaymentStatus::Failed, None), TransactionUpdate::new_state(TransactionState::Failed));
         assert_eq!(update(PaymentStatus::Expired, None), TransactionUpdate::new_state(TransactionState::Failed));
         assert_eq!(update(PaymentStatus::Cancelled, None), TransactionUpdate::new_state(TransactionState::Failed));
+    }
+
+    #[test]
+    fn test_confirm() {
+        let solana_pay = TransactionInputType::Payment {
+            asset: Asset::mock_sol(),
+            invoice: PaymentInvoice {
+                link: PaymentLink::SolanaPay { url: "https://merchant.example/pay".to_string() },
+                quotes: vec![],
+                ..PaymentInvoice::mock()
+            },
+            extra: TransferDataExtra::mock(),
+        };
+
+        assert_eq!(
+            block_on(GemPaymentService::mock().confirm(&solana_pay, vec!["0xhash".to_string()])),
+            Ok(()),
+            "a rail without quotes has nothing to confirm"
+        );
     }
 
     #[test]

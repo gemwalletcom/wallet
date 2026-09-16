@@ -111,10 +111,10 @@ class ConfirmViewModel @Inject constructor(
     val title = request.map { it?.title() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val isExternalRequest = request.map { it?.inputType?.applicationMetadata != null }
+    val isPaymentRequest = request.map { it?.inputType is TransactionInputType.Payment }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val isPaymentRequest = request.map { it?.inputType is TransactionInputType.Payment }
+    val isExternalRequest = combine(request, isPaymentRequest) { request, isPayment -> request?.inputType?.applicationMetadata != null || isPayment }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val session = getSession()
