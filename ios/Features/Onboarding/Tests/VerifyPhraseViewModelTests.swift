@@ -11,7 +11,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func failedCreationReEnablesTheButtonAndShowsTheError() async {
-        let model = VerifyPhraseViewModel(words: words) { _ in throw AnyError("keystore write failed") }
+        let model = VerifyPhraseViewModel(words: words, shuffledWords: words) { _ in throw AnyError("keystore write failed") }
         model.onContinue()
 
         await model.complete()
@@ -22,7 +22,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func cancelledPromptReEnablesTheButtonWithoutAnError() async {
-        let model = VerifyPhraseViewModel(words: words) { _ in throw GemServiceError.Cancelled }
+        let model = VerifyPhraseViewModel(words: words, shuffledWords: words) { _ in throw GemServiceError.Cancelled }
         model.onContinue()
 
         await model.complete()
@@ -33,7 +33,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func successfulCreationKeepsTheButtonBusyWhileTheFlowMovesOn() async {
-        let model = VerifyPhraseViewModel(words: words) { _ in }
+        let model = VerifyPhraseViewModel(words: words, shuffledWords: words) { _ in }
         model.onContinue()
 
         await model.complete()

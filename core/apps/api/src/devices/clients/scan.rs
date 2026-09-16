@@ -328,22 +328,7 @@ impl ScanClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, ScanAddressTarget};
-
-    fn payload(origin: AssetId, target: AssetId, website: Option<&str>, transaction_type: TransactionType) -> ScanTransactionPayload {
-        ScanTransactionPayload {
-            origin: ScanAddressTarget {
-                asset_id: origin,
-                address: "origin".into(),
-            },
-            target: ScanAddressTarget {
-                asset_id: target,
-                address: "target".into(),
-            },
-            website: website.map(str::to_string),
-            transaction_type,
-        }
-    }
+    use primitives::{AssetId, Chain};
 
     #[test]
     fn test_website_host_excludes_credentials_and_query_values() {
@@ -380,7 +365,7 @@ mod tests {
 
     #[test]
     fn test_native_assets_do_not_create_token_asset_ids() {
-        let payload = payload(AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Ethereum), None, TransactionType::Transfer);
+        let payload = ScanTransactionPayload::mock_with_assets(AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Ethereum));
 
         assert!(ScanClient::token_asset_ids(&payload).is_empty());
     }
@@ -388,19 +373,17 @@ mod tests {
     #[test]
     fn test_same_token_is_looked_up_once() {
         let token = AssetId::from_token(Chain::SmartChain, "0x123");
-        let payload = payload(token.clone(), token, None, TransactionType::Transfer);
+        let payload = ScanTransactionPayload::mock_with_assets(token.clone(), token);
 
         assert_eq!(ScanClient::token_asset_ids(&payload).len(), 1);
     }
 
     #[test]
     fn test_swap_looks_up_both_distinct_token_assets() {
-        let payload = payload(
-            AssetId::from_token(Chain::Ethereum, "0x123"),
-            AssetId::from_token(Chain::SmartChain, "0x456"),
-            None,
-            TransactionType::Swap,
-        );
+        let payload = ScanTransactionPayload {
+            transaction_type: TransactionType::Swap,
+            ..ScanTransactionPayload::mock_with_assets(AssetId::from_token(Chain::Ethereum, "0x123"), AssetId::from_token(Chain::SmartChain, "0x456"))
+        };
 
         assert_eq!(
             ScanClient::token_asset_ids(&payload),
@@ -410,12 +393,10 @@ mod tests {
 
     #[test]
     fn test_provider_targets_use_recipient_context() {
-        let payload = payload(
-            AssetId::from_chain(Chain::SmartChain),
-            AssetId::from_token(Chain::SmartChain, "0x456"),
-            Some("https://example.com"),
-            TransactionType::Transfer,
-        );
+        let payload = ScanTransactionPayload {
+            website: Some("https://example.com".to_string()),
+            ..ScanTransactionPayload::mock_with_assets(AssetId::from_chain(Chain::SmartChain), AssetId::from_token(Chain::SmartChain, "0x456"))
+        };
 
         assert_eq!(
             ScanClient::provider_targets(&payload).unwrap(),
@@ -449,12 +430,11 @@ mod tests {
             TransactionType::StakeFreeze,
             TransactionType::StakeUnfreeze,
         ] {
-            let payload = payload(
-                AssetId::from_chain(Chain::Monad),
-                AssetId::from_chain(Chain::Monad),
-                Some("https://example.com"),
+            let payload = ScanTransactionPayload {
+                website: Some("https://example.com".to_string()),
                 transaction_type,
-            );
+                ..ScanTransactionPayload::mock_with_assets(AssetId::from_chain(Chain::Monad), AssetId::from_chain(Chain::Monad))
+            };
 
             assert_eq!(ScanClient::provider_targets(&payload), None);
         }
@@ -462,12 +442,10 @@ mod tests {
 
     #[test]
     fn test_provider_targets_skip_poisoning_for_contract_calls() {
-        let payload = payload(
-            AssetId::from_chain(Chain::Ethereum),
-            AssetId::from_token(Chain::SmartChain, "0x456"),
-            None,
-            TransactionType::Swap,
-        );
+        let payload = ScanTransactionPayload {
+            transaction_type: TransactionType::Swap,
+            ..ScanTransactionPayload::mock_with_assets(AssetId::from_chain(Chain::Ethereum), AssetId::from_token(Chain::SmartChain, "0x456"))
+        };
 
         assert_eq!(ScanClient::provider_targets(&payload).unwrap().1, None);
     }

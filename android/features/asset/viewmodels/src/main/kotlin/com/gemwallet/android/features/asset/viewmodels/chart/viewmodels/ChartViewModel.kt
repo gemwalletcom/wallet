@@ -56,7 +56,7 @@ class ChartViewModel internal constructor(
                 loading.onLoaded(chartService.syncCharts(assetId.toIdentifier(), period))
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
-                loading.onFailed(GemServiceException.Core(e.message.orEmpty()))
+                loading.onFailed(e as? GemServiceException ?: GemServiceException.Core(e.message.orEmpty()))
             }
             refreshController.stopRefreshing()
             emit(next.viewState())

@@ -135,7 +135,7 @@ public final class SwapDetailsViewModel {
     // MARK: - Slippage
 
     var slippageField: ListItemField {
-        let value = slippagePercent.map { percentSignLessFormatter.string($0.rounded(toPlaces: 2)) } ?? Localized.Swap.slippageAuto
+        let value = slippagePercent.map { percentSignLessFormatter.string($0) } ?? Localized.Swap.slippageAuto
         return ListItemField(title: GemSwapDetailRow.slippage.title, value: value)
     }
 

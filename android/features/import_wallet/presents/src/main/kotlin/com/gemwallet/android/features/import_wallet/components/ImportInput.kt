@@ -31,7 +31,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
-import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
 import com.gemwallet.android.ui.components.clipboard.clear
@@ -43,14 +43,12 @@ import com.gemwallet.android.ui.components.fields.NameResolveIndicator
 import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.space8
-import com.gemwallet.android.features.import_wallet.localization.fieldStringRes
-import uniffi.gemstone.GemWalletImportKind
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 internal fun ImportInput(
     inputState: TextFieldValue,
-    importType: ImportType,
+    input: ImportInputUIModel,
     uiState: GemNameRecordState,
     onValueChange: (TextFieldValue) -> Unit,
     invalidWords: (String) -> Set<String>,
@@ -73,19 +71,16 @@ internal fun ImportInput(
                 minLines = 2,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 visualTransformation = {
-                    when (importType.kind) {
-                        GemWalletImportKind.ADDRESS,
-                        GemWalletImportKind.PRIVATE_KEY -> TransformedText(it, OffsetMapping.Identity)
-                        GemWalletImportKind.PHRASE -> TransformedText(
-                            highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)),
-                            OffsetMapping.Identity
-                        )
+                    if (input.isPhrase) {
+                        TransformedText(highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)), OffsetMapping.Identity)
+                    } else {
+                        TransformedText(it, OffsetMapping.Identity)
                     }
                 },
                 decorationBox = { innerTextField ->
                     if (inputState.text.isEmpty()) {
                         Text(
-                            text = stringResource(importType.kind.fieldStringRes()),
+                            text = stringResource(input.placeholder),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.secondary,
                         )
@@ -121,18 +116,14 @@ internal fun ImportInput(
                 text = stringResource(id = R.string.common_paste),
             ) {
                 val newValue = clipboardManager.getPlainText() ?: ""
-                val pastedText = when (importType.kind) {
-                    GemWalletImportKind.ADDRESS,
-                    GemWalletImportKind.PRIVATE_KEY -> newValue.trim()
-                    GemWalletImportKind.PHRASE -> "$newValue "
-                }
+                val pastedText = if (input.isPhrase) "$newValue " else newValue.trim()
                 onValueChange(
                     TextFieldValue(
                         text = pastedText,
                         selection = TextRange(pastedText.length),
                     )
                 )
-                if (importType.kind.protectsInput()) {
+                if (input.protectsInput) {
                     clipboardManager.clear()
                 }
             }

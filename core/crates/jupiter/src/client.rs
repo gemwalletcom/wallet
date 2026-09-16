@@ -81,14 +81,10 @@ mod tests {
         (client, requests)
     }
 
-    fn static_client(response: &'static str) -> JupiterClient<MockClient> {
-        JupiterClient::new_with_client(MockClient::new().with_get(move |_| Ok(response.as_bytes().to_vec())))
-    }
-
     #[tokio::test]
     async fn test_get_token_returns_only_exact_match() {
         let mint = "MintCaseSensitive";
-        let client = static_client(
+        let client = JupiterClient::mock(
             r#"[
                 {"id":"mintcasesensitive","isVerified":true,"audit":null},
                 {"id":"MintCaseSensitive","isVerified":false,"audit":null}
@@ -99,8 +95,8 @@ mod tests {
         assert_eq!(token.id, mint);
         assert_eq!(token.is_verified, Some(false));
 
-        let wrong_id_client = static_client(r#"[{"id":"mintcasesensitive","isVerified":true,"audit":null}]"#);
-        let empty_client = static_client("[]");
+        let wrong_id_client = JupiterClient::mock(r#"[{"id":"mintcasesensitive","isVerified":true,"audit":null}]"#);
+        let empty_client = JupiterClient::mock("[]");
 
         assert!(wrong_id_client.get_token(mint).await.unwrap().is_none());
         assert!(empty_client.get_token(mint).await.unwrap().is_none());

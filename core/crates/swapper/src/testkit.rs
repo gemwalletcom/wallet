@@ -1,5 +1,5 @@
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    AssetList, FetchQuoteData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     SwapperSlippage, SwapperSlippageMode,
 };
 use async_trait::async_trait;
@@ -14,6 +14,19 @@ impl ProviderData {
             provider: ProviderType::new(SwapperProvider::Okx),
             routes: vec![],
             slippage_bps: 50,
+        }
+    }
+}
+
+impl AssetList {
+    pub fn mock() -> Self {
+        Self {
+            chains: vec![Chain::Tron, Chain::Bitcoin],
+            asset_ids: vec![
+                AssetId::from_chain(Chain::Bitcoin),
+                AssetId::from_token(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+                AssetId::from_chain(Chain::Ethereum),
+            ],
         }
     }
 }
@@ -116,6 +129,16 @@ pub fn mock_ton(wallet_address: String) -> QuoteRequest {
             slippage: 100.into(),
             use_max_amount: false,
         },
+    }
+}
+
+#[cfg(feature = "reqwest_provider")]
+impl crate::swapper::GemSwapper {
+    pub fn mock(swappers: Vec<Box<dyn Swapper>>) -> Self {
+        Self {
+            rpc_provider: std::sync::Arc::new(crate::NativeProvider::default()),
+            swappers,
+        }
     }
 }
 

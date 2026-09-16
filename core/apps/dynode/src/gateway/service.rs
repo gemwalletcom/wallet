@@ -311,9 +311,6 @@ mod tests {
     use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderName};
 
     use super::*;
-    use crate::config::path::PathAllowlist;
-    use crate::config::routes::{EndpointConfig, RouteConfig, Selection};
-    use crate::testkit::config::metrics_config;
 
     #[test]
     fn test_cacheable_response_honors_upstream_directives() {
@@ -336,13 +333,7 @@ mod tests {
 
     #[test]
     fn test_route_header_inheritance() {
-        let config = FileConfig::builder()
-            .add_source(File::from_str(include_str!("../../testdata/route_headers.yml"), FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize::<RoutesConfig>()
-            .unwrap();
-        let gateway = Gateway::new(config, Metrics::new(metrics_config()), RequestCache::default()).unwrap();
+        let gateway = Gateway::new(RoutesConfig::mock(), Metrics::mock(), RequestCache::default()).unwrap();
         let routes = &gateway.routes;
         assert_eq!(
             routes["security_tronscan"].forward_headers,
@@ -366,44 +357,13 @@ mod tests {
                 .unwrap()
                 .try_deserialize::<RoutesConfig>()
                 .unwrap();
-            assert!(Gateway::new(config, Metrics::new(metrics_config()), RequestCache::default()).is_err());
+            assert!(Gateway::new(config, Metrics::mock(), RequestCache::default()).is_err());
         }
-    }
-
-    fn gateway() -> Gateway {
-        let mut config: RoutesConfig = FileConfig::builder()
-            .add_source(File::from_str(include_str!("../../testdata/route_headers.yml"), FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize()
-            .unwrap();
-        config.routes = HashMap::from([(
-            "indexer_blockscout".to_string(),
-            RouteConfig {
-                group: "indexer".to_string(),
-                selection: Selection::Ordered,
-                headers: None,
-                allowlist: PathAllowlist::default(),
-                cache: Vec::new(),
-                rate: None,
-                retry: None,
-                endpoints: ["key_1", "key_2"]
-                    .map(|name| EndpointConfig {
-                        name: name.to_string(),
-                        url: "https://api.blockscout.com".to_string(),
-                        headers: None,
-                        query: None,
-                        proxy: None,
-                    })
-                    .into(),
-            },
-        )]);
-        Gateway::new(config, Metrics::new(metrics_config()), RequestCache::default()).unwrap()
     }
 
     #[tokio::test]
     async fn test_cooldowns_preserve_status_and_path() {
-        let gateway = gateway();
+        let gateway = Gateway::mock();
         let route = gateway.routes.get("indexer_blockscout").unwrap();
         let failure = Failure {
             status: Status::TooManyRequests.code,

@@ -19,6 +19,7 @@ fun Chain.iconResource(): Int? = when (string) {
     "algorand" -> R.drawable.chain_algorand
     "aptos" -> R.drawable.chain_aptos
     "arbitrum" -> R.drawable.chain_arbitrum
+    "arc" -> R.drawable.chain_arc
     "avalanchec" -> R.drawable.chain_avalanchec
     "base" -> R.drawable.chain_base
     "berachain" -> R.drawable.chain_berachain

@@ -73,40 +73,12 @@ fn map_pending_withdrawals(history: Vec<DelegatorHistoryUpdate>, now: DateTime<U
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::balance::ValidatorStats;
-    use crate::models::user::{DelegatorHistoryDelta, DelegatorWithdrawalDelta};
+    use crate::models::user::DelegatorHistoryDelta;
     use primitives::{Chain, DelegationState};
-
-    fn validator(address: &str, name: &str, commission: f64, predicted_apr: Option<f64>) -> Validator {
-        Validator {
-            validator: address.to_string(),
-            name: name.to_string(),
-            commission,
-            is_active: true,
-            stats: predicted_apr
-                .map(|apr| vec![("month".to_string(), ValidatorStats { predicted_apr: apr })])
-                .unwrap_or_default(),
-        }
-    }
-
-    fn withdrawal_entry(time: u64, amount: &str, phase: &str) -> DelegatorHistoryUpdate {
-        DelegatorHistoryUpdate {
-            time,
-            hash: "0x0".to_string(),
-            delta: DelegatorHistoryDelta {
-                c_deposit: None,
-                delegate: None,
-                withdrawal: Some(DelegatorWithdrawalDelta {
-                    amount: amount.to_string(),
-                    phase: phase.to_string(),
-                }),
-            },
-        }
-    }
 
     #[test]
     fn test_map_staking_validators() {
-        let validators = vec![validator("0x5ac99df645f3414876c816caa18b2d234024b487", "Test Validator", 5.0, Some(0.15))];
+        let validators = vec![Validator::mock("0x5ac99df645f3414876c816caa18b2d234024b487", "Test Validator", 5.0, Some(0.15))];
 
         let result = map_staking_validators(validators, Chain::HyperCore, None);
         assert_eq!(result.len(), 2);
@@ -125,7 +97,7 @@ mod tests {
 
     #[test]
     fn test_map_staking_validators_with_apy() {
-        let validators = vec![validator("0x5ac99df645f3414876c816caa18b2d234024b487", "Test Validator", 5.0, None)];
+        let validators = vec![Validator::mock("0x5ac99df645f3414876c816caa18b2d234024b487", "Test Validator", 5.0, None)];
 
         let result = map_staking_validators(validators, Chain::HyperCore, Some(10.0));
         assert_eq!(result.len(), 2);
@@ -136,9 +108,9 @@ mod tests {
     #[test]
     fn test_map_staking_validators_keeps_each_validator_apr() {
         let validators = vec![
-            validator("0x5ac99df645f3414876c816caa18b2d234024b487", "High", 1.0, Some(0.25)),
-            validator("0x66be52ec79f829cc88e5778a255e2cb9492798fd", "Low", 2.0, Some(0.0625)),
-            validator("0x343da7ff0446247ca47aa41e2a25c5bbb230ed0a", "Zero", 3.0, Some(0.0)),
+            Validator::mock("0x5ac99df645f3414876c816caa18b2d234024b487", "High", 1.0, Some(0.25)),
+            Validator::mock("0x66be52ec79f829cc88e5778a255e2cb9492798fd", "Low", 2.0, Some(0.0625)),
+            Validator::mock("0x343da7ff0446247ca47aa41e2a25c5bbb230ed0a", "Zero", 3.0, Some(0.0)),
         ];
 
         let result = map_staking_validators(validators, Chain::HyperCore, Some(7.0));
@@ -176,9 +148,9 @@ mod tests {
         let now = DateTime::from_timestamp(1_780_000_000, 0).unwrap();
         let at = |days: i64| (now - Duration::days(days)).timestamp_millis() as u64;
         let history = vec![
-            withdrawal_entry(at(1), "1.5", "initiated"),
-            withdrawal_entry(at(8), "2.0", "initiated"),
-            withdrawal_entry(at(1), "3.0", "finalized"),
+            DelegatorHistoryUpdate::mock_withdrawal(at(1), "1.5", "initiated"),
+            DelegatorHistoryUpdate::mock_withdrawal(at(8), "2.0", "initiated"),
+            DelegatorHistoryUpdate::mock_withdrawal(at(1), "3.0", "finalized"),
             DelegatorHistoryUpdate {
                 time: at(0),
                 hash: "0x0".to_string(),

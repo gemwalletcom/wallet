@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import enum Gemstone.GemDelegationDestination
 import enum Gemstone.GemStakeAction
 import struct Gemstone.GemStakeActionItem
 import enum Gemstone.GemStakeInfoRow
@@ -37,7 +36,7 @@ public final class StakeSceneViewModel {
     public let assetQuery: ObservableQuery<AssetRequest>
 
     public var delegations: [Delegation] {
-        delegationsQuery.value
+        service.sortedDelegations(delegations: delegationsQuery.value.map { $0.toGem() }).map { Delegation(core: $0) }
     }
 
     public var validators: [DelegationValidator] {
@@ -117,9 +116,7 @@ public final class StakeSceneViewModel {
     }
 
     private var lockTimeValue: String {
-        let now = Date.now
-        let date = now.addingTimeInterval(TimeInterval(service.lockTimeSeconds(chain: chain.chain.rawValue)))
-        return Self.lockTimeFormatter.string(from: now, to: date) ?? .empty
+        Self.lockTimeFormatter.string(from: TimeInterval(service.lockTimeSeconds(chain: chain.chain.rawValue))) ?? .empty
     }
 
     var lockTimeInfoSheet: InfoSheetType {
@@ -135,14 +132,8 @@ public final class StakeSceneViewModel {
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch delegation.destination {
-        case let .withdraw(transfer): transfer
-        case .details: delegation.delegation
-        }
-    }
-
-    private func destination(for delegation: Delegation) -> GemDelegationDestination {
-        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.toGem())
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
@@ -153,7 +144,6 @@ public final class StakeSceneViewModel {
                 delegation: delegation,
                 asset: asset,
                 currency: currency,
-                destination: destination(for: delegation),
             )
         }
 

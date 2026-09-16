@@ -85,7 +85,7 @@ api_client_guard!(PermissionFiatTransactionsRead, ApiClientScope::FiatTransactio
 mod tests {
     use rocket::http::{Header, Status};
     use rocket::local::asynchronous::Client;
-    use rocket::{Build, Rocket, get, routes};
+    use rocket::{get, routes};
 
     use gem_auth::{AUTHORIZATION_HEADER, BEARER_PREFIX};
 
@@ -96,13 +96,9 @@ mod tests {
         "ok"
     }
 
-    fn rocket() -> Rocket<Build> {
-        rocket::build().mount("/", routes![protected_client])
-    }
-
     #[rocket::async_test]
     async fn test_api_client_missing_authorization_returns_unauthorized() {
-        let client = Client::tracked(rocket()).await.unwrap();
+        let client = Client::tracked(rocket::build().mount("/", routes![protected_client])).await.unwrap();
 
         let response = client.get("/protected-client").dispatch().await;
 
@@ -111,7 +107,7 @@ mod tests {
 
     #[rocket::async_test]
     async fn test_api_client_invalid_authorization_format_returns_unauthorized() {
-        let client = Client::tracked(rocket()).await.unwrap();
+        let client = Client::tracked(rocket::build().mount("/", routes![protected_client])).await.unwrap();
 
         let response = client.get("/protected-client").header(Header::new(AUTHORIZATION_HEADER, "Basic secret")).dispatch().await;
 
@@ -120,7 +116,7 @@ mod tests {
 
     #[rocket::async_test]
     async fn test_api_client_without_database_returns_internal_server_error() {
-        let client = Client::tracked(rocket()).await.unwrap();
+        let client = Client::tracked(rocket::build().mount("/", routes![protected_client])).await.unwrap();
 
         let response = client
             .get("/protected-client")

@@ -4,13 +4,13 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectClient
 import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
 import com.gemwallet.android.application.wallet_connect.WalletConnectSession
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionNamespace
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockWallet
-import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
+import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
+import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.wallet.core.primitives.WalletConnection
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -24,19 +24,11 @@ import org.junit.Test
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemSessionApproval
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.WalletConnectionSession
-import uniffi.gemstone.WalletConnectionState
 
 class WalletConnectCoordinatorTest {
 
     private val wallet = mockWallet(id = "wallet-1")
-    private val metadata = ApplicationMetadata(
-        name = "Uniswap",
-        description = "Swap",
-        url = "https://app.uniswap.org",
-        icon = "https://app.uniswap.org/icon.png",
-        source = ApplicationMetadataSource.WalletConnect,
-    )
+    private val metadata = mockApplicationMetadata()
     private val settledSession = WalletConnectSession(
         topic = "topic-1",
         expiry = 1_800_000_000,
@@ -44,17 +36,7 @@ class WalletConnectCoordinatorTest {
         namespaces = mapOf("eip155" to WalletConnectSessionNamespace(chains = listOf("eip155:1"), methods = emptyList(), events = emptyList(), accounts = listOf("eip155:1:0xabc"))),
         redirect = null,
     )
-    private val proposal = WalletConnectSessionProposal(
-        name = metadata.name,
-        description = metadata.description,
-        url = metadata.url,
-        icons = listOf(metadata.icon),
-        requiredNamespaces = emptyMap(),
-        optionalNamespaces = emptyMap(),
-        pairingTopic = "pairing",
-        proposerPublicKey = "proposer",
-        properties = null,
-    )
+    private val proposal = mockWalletConnectSessionProposal()
 
     private val clientEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 8)
     private val client = mockk<WalletConnectClient>(relaxed = true) {
@@ -73,15 +55,7 @@ class WalletConnectCoordinatorTest {
         every { sessionApproval(any()) } returns GemSessionApproval(chains = emptyList(), accounts = emptyList(), methods = emptyList(), events = emptyList())
         every { configSessionProperties(any(), any(), any()) } returns emptyMap()
         every { session(any(), any(), any(), any()) } answers {
-            WalletConnectionSession(
-                id = firstArg(),
-                sessionId = firstArg(),
-                state = WalletConnectionState.ACTIVE,
-                chains = listOf("ethereum"),
-                createdAt = 0L,
-                expireAt = arg<Long>(2) * 1000,
-                metadata = metadata.toGem(),
-            )
+            mockWalletConnectionSession(id = firstArg(), sessionId = firstArg(), expireAt = arg<Long>(2) * 1000).toGem()
         }
         coEvery { addConnection(any()) } answers { stored += firstArg<uniffi.gemstone.WalletConnection>().toPrimitives() }
     }

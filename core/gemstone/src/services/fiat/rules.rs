@@ -52,9 +52,9 @@ pub fn parse_amount(text: &str) -> FiatAmountInput {
         return FiatAmountInput::Empty;
     }
     match normalized.parse::<f64>() {
-        Ok(value) if value > 0.0 => FiatAmountInput::Value(value),
-        Ok(_) => FiatAmountInput::Empty,
-        Err(_) => FiatAmountInput::Invalid,
+        Ok(value) if value > 0.0 && value.fract() == 0.0 => FiatAmountInput::Value(value),
+        Ok(value) if value <= 0.0 => FiatAmountInput::Empty,
+        Ok(_) | Err(_) => FiatAmountInput::Invalid,
     }
 }
 
@@ -134,41 +134,14 @@ mod tests {
     use super::*;
     use crate::config::fiat_config::get_fiat_config;
     use num_bigint::BigInt;
-    use primitives::{Asset, Chain, FiatProvider, FiatProviderName};
-
-    fn quote(value: u32) -> FiatQuote {
-        let asset = Asset::from_chain(Chain::Ethereum);
-        let crypto_amount = value as f64 / 10f64.powi(asset.decimals);
-        FiatQuote::new(
-            "quote".to_string(),
-            asset,
-            FiatProvider {
-                id: FiatProviderName::Transak,
-                name: "Provider".to_string(),
-                image_url: None,
-                priority: None,
-                threshold_bps: None,
-                enabled: true,
-                buy_enabled: true,
-                sell_enabled: true,
-                payment_methods: vec![],
-            },
-            FiatQuoteType::Sell,
-            100.0,
-            "USD".to_string(),
-            crypto_amount,
-            BigUint::from(value),
-            10,
-            vec![],
-        )
-    }
+    use primitives::{Asset, Chain, FiatProviderName};
 
     #[test]
     fn test_row_prices_a_buy_off_the_asset_price_and_a_sell_off_the_quote() {
-        let mut buy = quote(1);
-        buy.quote_type = FiatQuoteType::Buy;
-        buy.crypto_amount = 2.0;
-        buy.fiat_amount = 100.0;
+        let buy = FiatQuote {
+            crypto_amount: 2.0,
+            ..FiatQuote::mock(FiatProviderName::Transak)
+        };
 
         assert_eq!(quote_row(&buy, Some(30.0)).fiat_amount.value, 60.0);
         assert_eq!(quote_row(&buy, Some(0.0)).fiat_amount.value, 100.0);
@@ -185,9 +158,10 @@ mod tests {
 
     #[test]
     fn test_row_names_the_rate_it_prices_and_has_none_when_the_quote_buys_nothing() {
-        let mut quote = quote(1);
-        quote.crypto_amount = 4.0;
-        quote.fiat_amount = 100.0;
+        let mut quote = FiatQuote {
+            crypto_amount: 4.0,
+            ..FiatQuote::mock(FiatProviderName::Transak)
+        };
         assert_eq!(
             quote_row(&quote, None).rate,
             Some(GemAssetRate {
@@ -203,15 +177,29 @@ mod tests {
 
     #[test]
     fn test_quote_value_is_derived_from_the_amount_and_the_asset_precision() {
-        assert_eq!(quote_value(&quote(200)), Some(BigUint::from(200u32)));
-        let mut whole = quote(1);
-        whole.crypto_amount = 1.5;
+        let quote = FiatQuote {
+            asset: Asset::from_chain(Chain::Ethereum),
+            crypto_amount: 200.0 / 10f64.powi(18),
+            ..FiatQuote::mock(FiatProviderName::Transak)
+        };
+        assert_eq!(quote_value(&quote), Some(BigUint::from(200u32)));
+        let whole = FiatQuote { crypto_amount: 1.5, ..quote };
         assert_eq!(quote_value(&whole), Some(BigUint::from(1_500_000_000_000_000_000u64)));
     }
 
     #[test]
     fn test_amount_check_orders_range_before_balance() {
         let config = get_fiat_config();
+        let two_hundred = FiatQuote {
+            asset: Asset::from_chain(Chain::Ethereum),
+            quote_type: FiatQuoteType::Sell,
+            crypto_amount: 200.0 / 10f64.powi(18),
+            ..FiatQuote::mock(FiatProviderName::Transak)
+        };
+        let hundred = FiatQuote {
+            crypto_amount: 100.0 / 10f64.powi(18),
+            ..two_hundred.clone()
+        };
         assert_eq!(
             amount_check(&config, FiatQuoteType::Buy, 4.99, None, &BigUint::ZERO, Currency::USD),
             GemFiatAmountCheck::BelowMinimum {
@@ -219,19 +207,19 @@ mod tests {
             }
         );
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Sell, 10_001.0, Some(&quote(1)), &BigUint::ZERO, Currency::USD),
+            amount_check(&config, FiatQuoteType::Sell, 10_001.0, Some(&hundred), &BigUint::ZERO, Currency::USD),
             GemFiatAmountCheck::AboveMaximum {
                 maximum: GemFormattedNumber::currency(10_000.0, Currency::USD, GemCurrencyStyle::Currency)
             }
         );
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(200)), &BigUint::from(100u32), Currency::USD),
+            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&two_hundred), &BigUint::from(100u32), Currency::USD),
             GemFiatAmountCheck::InsufficientBalance {
                 requirement: GemBalanceRequirement::new(BigInt::from(200), BigInt::from(100))
             }
         );
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(100)), &BigUint::from(100u32), Currency::USD),
+            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&hundred), &BigUint::from(100u32), Currency::USD),
             GemFiatAmountCheck::Valid
         );
         assert_eq!(
@@ -239,23 +227,34 @@ mod tests {
             GemFiatAmountCheck::Valid
         );
         assert_eq!(
-            amount_check(&config, FiatQuoteType::Buy, 100.0, Some(&quote(200)), &BigUint::ZERO, Currency::USD),
+            amount_check(&config, FiatQuoteType::Buy, 100.0, Some(&two_hundred), &BigUint::ZERO, Currency::USD),
             GemFiatAmountCheck::Valid
         );
     }
 
     #[test]
-    fn test_parse_amount_accepts_a_decimal_comma_and_treats_zero_as_empty() {
-        assert!(matches!(parse_amount(" 12,5 "), FiatAmountInput::Value(value) if value == 12.5));
+    fn test_parse_amount_takes_whole_amounts_only_and_treats_zero_as_empty() {
         assert!(matches!(parse_amount("1 000"), FiatAmountInput::Value(value) if value == 1000.0));
+        assert!(matches!(parse_amount(" 12 "), FiatAmountInput::Value(value) if value == 12.0));
         assert!(matches!(parse_amount(""), FiatAmountInput::Empty));
         assert!(matches!(parse_amount("0"), FiatAmountInput::Empty));
+        assert!(matches!(parse_amount(" 12,5 "), FiatAmountInput::Invalid));
+        assert!(matches!(parse_amount("12.5"), FiatAmountInput::Invalid));
         assert!(matches!(parse_amount("abc"), FiatAmountInput::Invalid));
     }
 
     #[test]
     fn test_selected_quote_prefers_the_chosen_provider_and_falls_back_to_the_first() {
-        let quotes = vec![quote(1), quote(2)];
+        let quotes = vec![
+            FiatQuote {
+                value: BigUint::from(1u32),
+                ..FiatQuote::mock(FiatProviderName::Transak)
+            },
+            FiatQuote {
+                value: BigUint::from(2u32),
+                ..FiatQuote::mock(FiatProviderName::Transak)
+            },
+        ];
         assert_eq!(selected_quote(&quotes, None).map(|quote| quote.value), Some(BigUint::from(1u32)));
         assert_eq!(selected_quote(&quotes, Some(FiatProviderName::Transak)).map(|quote| quote.value), Some(BigUint::from(1u32)));
         assert_eq!(selected_quote(&quotes, Some(FiatProviderName::Banxa)).map(|quote| quote.value), Some(BigUint::from(1u32)));

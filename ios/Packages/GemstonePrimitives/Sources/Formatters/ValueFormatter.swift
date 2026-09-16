@@ -3,7 +3,6 @@
 import BigInt
 import Foundation
 import Formatters
-import func Gemstone.abbreviationThreshold
 import func Gemstone.dustThreshold
 import func Gemstone.dustThresholdPlaces
 import enum Gemstone.GemValueStyle
@@ -54,7 +53,7 @@ public struct ValueFormatter: Sendable {
 
 private extension ValueFormatter {
     var abbreviatedFormatter: AbbreviatedFormatter {
-        AbbreviatedFormatter(locale: locale, threshold: Decimal(abbreviationThreshold()))
+        AbbreviatedFormatter(locale: locale)
     }
 
     var formattedDustThreshold: String {

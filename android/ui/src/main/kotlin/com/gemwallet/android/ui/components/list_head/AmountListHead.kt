@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.HideToggle
@@ -61,7 +61,6 @@ import com.gemwallet.android.ui.components.isHidden
 import com.gemwallet.android.ui.components.mask
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
@@ -98,7 +97,7 @@ fun AmountListHead(
     iconPlaceholder: String? = null,
     changedValue: String? = null,
     changedPercentages: String? = null,
-    changeState: ValueDirection = ValueDirection.None,
+    changeState: GemValueTone = GemValueTone.NEUTRAL,
     onClick: (() -> Unit)? = null,
     onSubtitleClick: (() -> Unit)? = null,
     actions: (@Composable () -> Unit)? = null,

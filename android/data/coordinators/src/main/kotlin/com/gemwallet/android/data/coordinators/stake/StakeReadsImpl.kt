@@ -6,7 +6,6 @@ import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneStakeStore
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
@@ -20,18 +19,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemStakeService
 import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
-
-class SyncStakeDelegationsImpl(
-    private val stakeService: GemStakeService,
-) : SyncStakeDelegations {
-
-    override suspend fun sync(chain: Chain) = withContext(Dispatchers.IO) {
-        stakeService.sync(chain.string)
-    }
-}
 
 class GetValidatorsImpl(
     private val stakeStore: GemstoneStakeStore,
@@ -47,11 +36,14 @@ class GetValidatorsImpl(
 
 class GetDelegationsImpl(
     private val stakeStore: GemstoneStakeStore,
+    private val stakeService: GemStakeServiceInterface,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : GetDelegations {
 
     override fun invoke(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType): Flow<List<Delegation>> =
         stakeStore.observeDelegations(walletId, assetId, providerType)
-            .map { delegations -> delegations.sortedByDescending { it.base.balance } }
+            .map { delegations -> stakeService.sortedDelegations(delegations.map { it.toGem() }).map { it.toPrimitives() } }
+            .flowOn(ioDispatcher)
 }
 
 class GetDelegationImpl(

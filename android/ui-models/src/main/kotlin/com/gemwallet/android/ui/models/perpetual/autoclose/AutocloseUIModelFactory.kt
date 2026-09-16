@@ -3,12 +3,13 @@ package com.gemwallet.android.ui.models.perpetual.autoclose
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.PriceChangeCalculator
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import uniffi.gemstone.GemAutocloseEstimator
 import uniffi.gemstone.GemAutocloseField
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.domains.price.toValueDirection
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualPositionData
@@ -57,18 +58,19 @@ object AutocloseUIModelFactory {
             type = field.tpslType.toPrimitives(),
             isProfit = isProfit,
             pnlText = pnlText(pnl, roe, estimator.hasSize()),
-            pnlDirection = roe?.toValueDirection() ?: ValueDirection.None,
+            pnlDirection = roe?.tone() ?: GemValueTone.NEUTRAL,
             percentSuggestions = estimator.percentSuggestions().map { it.toInt() },
             validation = if (showErrors) field.validation else AutocloseValidation.VALID,
         )
     }
 
+    private val priceChangeCalculator = PriceChangeCalculator()
+
     private fun pnlText(pnl: Double?, roe: Double?, hasSize: Boolean): String {
         if (pnl == null || roe == null) return "-"
         val percentText = roe.formatAsPercentage(style = GemPercentageStyle.SIGNED)
         if (!hasSize) return percentText
-        val sign = if (pnl >= 0.0) "+" else "-"
-        val amount = currencyFormatter.string(abs(pnl))
-        return "$sign$amount ($percentText)"
+        val amount = priceChangeCalculator.sign(pnl).format(currencyFormatter.string(abs(pnl)))
+        return priceChangeCalculator.pnlText(amount, percentText)
     }
 }

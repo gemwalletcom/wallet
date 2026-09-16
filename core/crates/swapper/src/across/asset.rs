@@ -2,13 +2,14 @@ use crate::{SwapperError, eth_address};
 use alloy_primitives::Address;
 use gem_evm::across::deployment::AcrossDeployment;
 use gem_tron::address::TronAddress;
-use primitives::{AssetId, Chain};
+use primitives::{AssetId, Chain, EVMChain};
 
 pub(in crate::across) fn across_asset_id(asset: &AssetId) -> Option<AssetId> {
-    match asset.chain {
-        Chain::Tron => Some(asset.clone()),
-        _ => eth_address::convert_native_to_weth(asset),
+    if asset.chain == Chain::Tron || !asset.is_native() {
+        return Some(asset.clone());
     }
+    let wrapped = EVMChain::from_chain(asset.chain)?.weth_contract()?;
+    Some(AssetId::from_token(asset.chain, wrapped))
 }
 
 pub(in crate::across) fn parse_address(chain: Chain, address: &str) -> Result<Address, SwapperError> {

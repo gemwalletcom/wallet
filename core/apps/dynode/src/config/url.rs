@@ -28,16 +28,15 @@ impl Url {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::testkit::config as testkit;
+    use super::*;
 
     #[test]
     fn host_parsing() {
-        assert_eq!(testkit::url("https://alpha.example.test/status").host(), "alpha.example.test");
-        assert_eq!(testkit::url("http://127.0.0.1:8545").host(), "127.0.0.1");
-        assert_eq!(testkit::url("rpc.provider.local").host(), "rpc.provider.local");
-        assert_eq!(testkit::url("  https://example.com  ").host(), "example.com");
-        assert_eq!(testkit::url("wss://node.example.com:443/ws").host(), "node.example.com");
-        assert_eq!(testkit::url("https://fallback.example.com:8080/path").host(), "fallback.example.com");
+        assert_eq!(Url::mock("https://alpha.example.test/status").host(), "alpha.example.test");
+        assert_eq!(Url::mock("http://127.0.0.1:8545").host(), "127.0.0.1");
+        assert_eq!(Url::mock("rpc.provider.local").host(), "rpc.provider.local");
+        assert_eq!(Url::mock("  https://example.com  ").host(), "example.com");
+        assert_eq!(Url::mock("wss://node.example.com:443/ws").host(), "node.example.com");
+        assert_eq!(Url::mock("https://fallback.example.com:8080/path").host(), "fallback.example.com");
     }
 }

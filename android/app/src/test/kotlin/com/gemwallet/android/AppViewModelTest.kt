@@ -14,11 +14,10 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
-import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockAppUpdateOffer
+import com.gemwallet.android.testkit.mockWalletMulticoin
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.navigation.WalletRootRoute
-import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -57,13 +56,7 @@ class AppViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private val wallet = mockWallet(id = "multicoin_0xabc", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
-
-    private fun offer(required: Boolean, channel: AppUpdateChannel = AppUpdateChannel.Store) = AppUpdateOffer(
-        version = "2.0.0",
-        isRequired = required,
-        channel = channel,
-    )
+    private val wallet = mockWalletMulticoin()
 
     private fun viewModel(
         current: com.wallet.core.primitives.Wallet? = null,
@@ -120,7 +113,7 @@ class AppViewModelTest {
 
     @Test
     fun `an update outside the store is never offered`() = runTest(dispatcher) {
-        val model = viewModel(update = offer(required = false, channel = AppUpdateChannel.InAppApk))
+        val model = viewModel(update = mockAppUpdateOffer(channel = AppUpdateChannel.InAppApk))
 
         model.startDestinationState.first { it != null }
 
@@ -130,7 +123,7 @@ class AppViewModelTest {
     @Test
     fun `a required update cannot be skipped or dismissed`() = runTest(dispatcher) {
         val skip: SkipAppUpdate = mockk(relaxed = true)
-        val model = viewModel(update = offer(required = true), skip = skip)
+        val model = viewModel(update = mockAppUpdateOffer(isRequired = true), skip = skip)
         val offered = model.uiState.first { it.update != null }
         assertNotNull(offered.update)
 
@@ -144,7 +137,7 @@ class AppViewModelTest {
     @Test
     fun `an optional update is remembered as skipped`() = runTest(dispatcher) {
         val skip: SkipAppUpdate = mockk(relaxed = true)
-        val model = viewModel(update = offer(required = false), skip = skip)
+        val model = viewModel(update = mockAppUpdateOffer(), skip = skip)
         model.uiState.first { it.update != null }
 
         model.onSkip().join()

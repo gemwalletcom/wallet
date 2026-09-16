@@ -197,7 +197,10 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun period(period: ChartPeriod) {
-        viewModelScope.launch(Dispatchers.IO) { service.setChartPeriod(period.toGem()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatchingCancellable { service.setChartPeriod(period.toGem()) }
+                .onFailure { Log.e(TAG, "storing the chart period failed", it) }
+        }
         this.period.update { period }
     }
 

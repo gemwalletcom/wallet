@@ -33,7 +33,7 @@ import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.features.perpetual.localization.stringRes
@@ -266,7 +266,7 @@ fun PreviewPerpetualMarketScene() {
                     override val leverage: String = "10x"
                     override val marginAmount: String = "$10,000.00"
                     override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
-                    override val pnlState: ValueDirection = ValueDirection.Up
+                    override val pnlState: GemValueTone = GemValueTone.POSITIVE
                 },
                 object : PerpetualPositionDataAggregate {
                     override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
@@ -282,7 +282,7 @@ fun PreviewPerpetualMarketScene() {
                     override val leverage: String = "20x"
                     override val marginAmount: String = "$5,000.00"
                     override val pnlWithPercentage: String = "-$180.00 (-3.60%)"
-                    override val pnlState: ValueDirection = ValueDirection.Down
+                    override val pnlState: GemValueTone = GemValueTone.NEGATIVE
                 }
             ),
             unpinnedPerpetuals = listOf(

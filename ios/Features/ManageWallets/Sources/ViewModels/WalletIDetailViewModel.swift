@@ -96,10 +96,7 @@ extension WalletDetailViewModel {
     }
 
     func delete() async throws {
-        switch try await service.delete(wallet) {
-        case .walletsRemaining: break
-        case .lastWalletDeleted: preferences.reload()
-        }
+        preferences.reload(after: try await service.delete(wallet))
     }
 
     func onSelectImage() {

@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemBalanceResource
+import func Gemstone.balanceResourceRows
 import BigInt
 import Formatters
 import Foundation
@@ -75,13 +77,17 @@ public struct BalanceViewModel: Sendable {
     }
 
     public var energyText: String {
-        guard let metadata = balance.metadata else { return "" }
-        return "\(metadata.energyAvailable) / \(metadata.energyTotal)"
+        resourceText(.energy)
     }
 
     public var bandwidthText: String {
-        guard let metadata = balance.metadata else { return "" }
-        return "\(metadata.bandwidthAvailable) / \(metadata.bandwidthTotal)"
+        resourceText(.bandwidth)
+    }
+
+    private func resourceText(_ resource: GemBalanceResource) -> String {
+        balanceResourceRows(metadata: balance.metadata?.toGem())
+            .first { $0.resource == resource }?
+            .text ?? ""
     }
 
     var total: BigInt {

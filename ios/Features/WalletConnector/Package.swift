@@ -11,6 +11,10 @@ let package = Package(
             name: "WalletConnector",
             targets: ["WalletConnector"],
         ),
+        .library(
+            name: "WalletConnectorTestKit",
+            targets: ["WalletConnectorTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
@@ -44,16 +48,30 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "WalletConnectorTestKit",
+            dependencies: [
+                "WalletConnector",
+                "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                .product(name: "WalletConnectorService", package: "FeatureServices"),
+                .product(name: "WalletConnectorServiceTestKit", package: "FeatureServices"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "WalletConnectorTests",
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StoreTestKit", package: "Store"),
-                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "WalletConnectorService", package: "FeatureServices"),
                 .product(name: "WalletConnectorServiceTestKit", package: "FeatureServices"),
                 "WalletConnector",
+                "WalletConnectorTestKit",
                 "Gemstone",
                 "GemstonePrimitives",
                 "Primitives",

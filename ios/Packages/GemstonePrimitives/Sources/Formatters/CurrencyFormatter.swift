@@ -2,7 +2,6 @@
 
 import Foundation
 import Formatters
-import func Gemstone.abbreviationThreshold
 import enum Gemstone.GemCurrencyStyle
 import Primitives
 
@@ -41,7 +40,7 @@ public struct CurrencyFormatter: Sendable, Hashable {
 
 private extension CurrencyFormatter {
     var abbreviatedFormatter: AbbreviatedFormatter {
-        AbbreviatedFormatter(locale: locale, threshold: Decimal(abbreviationThreshold()))
+        AbbreviatedFormatter(locale: locale)
     }
 
     func currencyString(_ value: Double) -> String {

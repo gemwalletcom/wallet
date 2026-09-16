@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.domains.asset.assetConfig
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -16,7 +17,7 @@ import uniffi.gemstone.GemAssetRow
 import uniffi.gemstone.GemNetworkAssetCounts
 import uniffi.gemstone.GemNetworkAssetSections
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
-import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireChain
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -46,7 +47,7 @@ class NetworkAssetsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val chain: Chain = Chain.entries.first { it.string == savedStateHandle.get<String>(RouteArgument.Chain.key) }
+    private val chain: Chain = savedStateHandle.requireChain()
 
     val title: String = context.getString(R.string.assets_title)
 
@@ -87,10 +88,16 @@ class NetworkAssetsViewModel @Inject constructor(
     }
 
     private fun groups(active: List<AssetInfo>, hidden: List<AssetInfo>): NetworkAssetGroups {
-        val (pinned, unpinned) = active.tokens().partition { it.metadata.isPinned }
+        val tokens = active.tokens()
+        val sections = assetConfig.assetSections(
+            ids = tokens.map { it.asset.id.toIdentifier() },
+            pinnedIds = tokens.filter { it.metadata.isPinned }.map { it.asset.id.toIdentifier() },
+            showsPopular = false,
+        )
+        val byId = tokens.associateBy { it.asset.id.toIdentifier() }
         return NetworkAssetGroups(
-            pinned = pinned.toAssetInfoDataAggregates(row.title),
-            unpinned = unpinned.toAssetInfoDataAggregates(row.title),
+            pinned = sections.pinned.mapNotNull(byId::get).toAssetInfoDataAggregates(row.title),
+            unpinned = sections.assets.mapNotNull(byId::get).toAssetInfoDataAggregates(row.title),
             hidden = hidden.tokens().toAssetInfoDataAggregates(row.title),
             isLoaded = true,
         )

@@ -9,17 +9,11 @@ import PrimitivesTestKit
 import StoreTestKit
 import Testing
 @testable import WalletConnector
+import WalletConnectorTestKit
 import WalletConnectorServiceTestKit
 
 @MainActor
 struct ConnectionsViewModelTests {
-    private func model(
-        connector: WalletConnectorServiceMock = WalletConnectorServiceMock(),
-        service: GemWalletConnectServiceMock = GemWalletConnectServiceMock(),
-    ) -> ConnectionsViewModel {
-        ConnectionsViewModel(connector: connector, service: service)
-    }
-
     @Test
     func theSectionsComeFromCore() {
         let service = GemWalletConnectServiceMock()
@@ -27,7 +21,7 @@ struct ConnectionsViewModelTests {
         service.connectionSectionsValue = [
             GemConnectionSection(title: "Active", connections: [GemConnection(connection: connection.toGem(), row: service.connectionRowValue)]),
         ]
-        let model = model(service: service)
+        let model = ConnectionsViewModel.mock(service: service)
         model.query.value = [connection]
 
         #expect(model.sections.map(\.title) == ["Active"])
@@ -36,7 +30,7 @@ struct ConnectionsViewModelTests {
 
     @Test
     func noConnectionsMeanNoSections() {
-        let model = model()
+        let model = ConnectionsViewModel.mock()
 
         #expect(model.sections.isEmpty)
         #expect(model.connections.isEmpty)
@@ -46,7 +40,7 @@ struct ConnectionsViewModelTests {
     func theDetailsSceneReadsCore() {
         let service = GemWalletConnectServiceMock()
         service.connectionDetailRows = [.wallet, .date]
-        let model = model(service: service)
+        let model = ConnectionsViewModel.mock(service: service)
 
         let details = model.connectionSceneModel(connection: .mock())
 
@@ -55,7 +49,7 @@ struct ConnectionsViewModelTests {
 
     @Test
     func scanningOpensTheScanner() {
-        let model = model()
+        let model = ConnectionsViewModel.mock()
 
         model.onScan()
 
@@ -64,7 +58,7 @@ struct ConnectionsViewModelTests {
 
     @Test
     func aScannedUriPairsAndShowsTheConnectorBar() async {
-        let model = model()
+        let model = ConnectionsViewModel.mock()
 
         model.onHandleScan("wc:topic@2")
         await settle { model.isPresentingConnectorBar }
@@ -75,7 +69,7 @@ struct ConnectionsViewModelTests {
 
     @Test
     func aFailedPairHidesTheBarAndShowsTheError() async {
-        let model = model(connector: WalletConnectorServiceMock(pairError: AnyError("bad uri")))
+        let model = ConnectionsViewModel.mock(connector: WalletConnectorServiceMock(pairError: AnyError("bad uri")))
 
         model.onHandleScan("nonsense")
         await settle { model.isPresentingAlertMessage != nil }
@@ -86,7 +80,7 @@ struct ConnectionsViewModelTests {
 
     @Test
     func aFailedDisconnectShowsTheError() async {
-        let model = model(connector: WalletConnectorServiceMock(disconnectError: AnyError("no session")))
+        let model = ConnectionsViewModel.mock(connector: WalletConnectorServiceMock(disconnectError: AnyError("no session")))
 
         model.onSelectDisconnect(.mock())
         await settle { model.isPresentingAlertMessage != nil }
@@ -96,7 +90,7 @@ struct ConnectionsViewModelTests {
 
     @Test
     func hidingTheBarClearsIt() {
-        let model = model()
+        let model = ConnectionsViewModel.mock()
         model.isPresentingConnectorBar = true
 
         model.hideConnectionBar()

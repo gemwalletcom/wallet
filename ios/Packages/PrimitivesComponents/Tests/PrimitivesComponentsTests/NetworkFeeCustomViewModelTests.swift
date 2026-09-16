@@ -5,45 +5,20 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import Testing
 
 @MainActor
 struct NetworkFeeCustomViewModelTests {
-    private func model(
-        chain: Chain = .ethereum,
-        feeAsset: Asset = .mockEthereum(),
-        unitType: FeeUnitType = .gwei,
-        decimals: Int = 9,
-        initialRate: BigInt? = nil,
-        baseFee: BigInt? = BigInt(21000),
-        baseTotal: BigInt? = BigInt(1_000_000_000),
-        normalTotal: BigInt? = BigInt(2_000_000_000),
-        onSelect: @escaping @MainActor (BigInt) -> Void = { _ in },
-    ) -> NetworkFeeCustomViewModel {
-        NetworkFeeCustomViewModel(
-            chain: chain,
-            feeAsset: feeAsset,
-            feeAssetPrice: nil,
-            currency: .usd,
-            unitType: unitType,
-            decimals: decimals,
-            baseFee: baseFee,
-            baseTotal: baseTotal,
-            normalTotal: normalTotal,
-            initialRate: initialRate,
-            onSelect: onSelect,
-        )
-    }
-
     @Test
     func anInitialRateFillsTheField() {
-        #expect(model(initialRate: BigInt(3_000_000_000)).input == "3")
-        #expect(model(initialRate: nil).input.isEmpty)
+        #expect(NetworkFeeCustomViewModel.mock(initialRate: BigInt(3_000_000_000)).input == "3")
+        #expect(NetworkFeeCustomViewModel.mock(initialRate: nil).input.isEmpty)
     }
 
     @Test
     func anEmptyFieldCannotBeConfirmed() {
-        let model = model()
+        let model = NetworkFeeCustomViewModel.mock()
 
         #expect(model.isConfirmEnabled == false)
         #expect(model.value == nil || model.value?.isEmpty == false)
@@ -51,7 +26,7 @@ struct NetworkFeeCustomViewModelTests {
 
     @Test
     func aBitcoinRateBelowTheMinimumIsRejectedWithItsOwnMessage() {
-        let model = model(chain: .bitcoin, feeAsset: .mock(), unitType: .satVb, decimals: 0, baseFee: BigInt(200), baseTotal: BigInt(200), normalTotal: BigInt(400))
+        let model = NetworkFeeCustomViewModel.mock(chain: .bitcoin, feeAsset: .mock(), unitType: .satVb, decimals: 0, baseFee: BigInt(200), baseTotal: BigInt(200), normalTotal: BigInt(400))
         model.input = "0"
 
         #expect(model.isConfirmEnabled == false)
@@ -63,7 +38,7 @@ struct NetworkFeeCustomViewModelTests {
 
     @Test
     func aRateOverTheMaximumIsRejectedWithItsOwnMessage() {
-        let model = model()
+        let model = NetworkFeeCustomViewModel.mock()
         model.input = "100"
 
         #expect(model.isConfirmEnabled == false)
@@ -73,7 +48,7 @@ struct NetworkFeeCustomViewModelTests {
     @Test
     func aReasonableRateConfirms() {
         let recorder = RateRecorder()
-        let model = model(onSelect: { recorder.record($0) })
+        let model = NetworkFeeCustomViewModel.mock(onSelect: { recorder.record($0) })
         model.input = "5"
 
         model.confirm()
@@ -86,7 +61,7 @@ struct NetworkFeeCustomViewModelTests {
     @Test
     func confirmingAnInvalidRateSendsNothing() {
         let recorder = RateRecorder()
-        let model = model(onSelect: { recorder.record($0) })
+        let model = NetworkFeeCustomViewModel.mock(onSelect: { recorder.record($0) })
         model.input = ""
 
         model.confirm()
@@ -96,7 +71,7 @@ struct NetworkFeeCustomViewModelTests {
 
     @Test
     func theFieldOnlyAcceptsWhatTheDecimalsAllow() {
-        let model = model()
+        let model = NetworkFeeCustomViewModel.mock()
 
         #expect(model.sanitize("1.2345678901234") == "1.234567890")
         #expect(model.sanitize("abc") == "")
@@ -104,8 +79,8 @@ struct NetworkFeeCustomViewModelTests {
 
     @Test
     func thePlaceholderShowsTheBaseTotal() {
-        #expect(model().placeholder.isNotEmpty)
-        #expect(model(baseTotal: nil).placeholder.isEmpty)
+        #expect(NetworkFeeCustomViewModel.mock().placeholder.isNotEmpty)
+        #expect(NetworkFeeCustomViewModel.mock(baseTotal: nil).placeholder.isEmpty)
     }
 }
 

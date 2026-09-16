@@ -3,10 +3,12 @@ use std::collections::HashMap;
 
 #[cfg(test)]
 use crate::models::{Trace, TraceAction, TraceResponse, TransactionMessage};
-#[cfg(all(test, feature = "chain_integration_tests"))]
+#[cfg(test)]
 use crate::rpc::client::TonClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_client::ReqwestClient;
+#[cfg(test)]
+use gem_client::testkit::MockClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
@@ -62,6 +64,16 @@ impl TraceResponse {
 
     pub fn mock_jetton_transfer() -> Self {
         serde_json::from_str(include_str!("../../testdata/jetton_transfer_trace.json")).unwrap()
+    }
+}
+
+#[cfg(test)]
+impl TonClient<MockClient> {
+    pub fn mock_with_get(expected_path: &'static str, response: &'static [u8]) -> Self {
+        TonClient::new(MockClient::new().with_get(move |path| {
+            assert_eq!(path, expected_path);
+            Ok(response.to_vec())
+        }))
     }
 }
 

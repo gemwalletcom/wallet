@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -18,19 +18,13 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.features.settings.networks.presents.localization.string
-import com.gemwallet.android.features.settings.networks.presents.localization.stringRes
-import uniffi.gemstone.GemNodeRow
-import uniffi.gemstone.GemNodeSelection
-import uniffi.gemstone.GemNodeStatusState
-import uniffi.gemstone.GemNodeSubtitle
-import uniffi.gemstone.GemNodeRowTitle
-import uniffi.gemstone.Latency
-import uniffi.gemstone.LatencyType
+import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyTone
+import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyUIModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUIModel
 
 @Composable
 internal fun NodeItem(
-    model: GemNodeRow,
+    model: NodeRowUIModel,
     listPosition: ListPosition,
     isDeleteRevealed: Boolean,
     onDeleteReveal: () -> Unit,
@@ -40,23 +34,23 @@ internal fun NodeItem(
 ) {
     val content: @Composable (ListPosition) -> Unit = { position ->
         ListItem(
-            modifier = Modifier.clickable(onClick = { onSelect(model.node.url) }),
+            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
             title = {
                 ListItemTitleText(
-                    text = model.title.string(),
+                    text = model.title,
                     titleBadge = {
-                        LatencyStatusBadge(status = model.latencyStatus)
+                        LatencyStatusBadge(latency = model.latency)
                     },
                 )
             },
             subtitle = {
                 ListItemSupportText(
-                    text = model.subtitleText(),
+                    text = model.subtitle,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             },
             listPosition = position,
-            trailing = if (model.node.isSelected) {
+            trailing = if (model.isSelected) {
                 @Composable {
                     SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
                 }
@@ -86,34 +80,18 @@ internal fun NodeItem(
     )
 }
 
-@Composable
-private fun GemNodeRow.subtitleText(): String {
-    val value = when (val subtitle = subtitle) {
-        is GemNodeSubtitle.LatestBlock -> subtitle.value
-    }
-
-    return "${stringResource(subtitle.stringRes())}: $value"
-}
-
 @Preview
 @Composable
 fun NodeItemPreview() {
     WalletTheme {
-        val status = GemNodeStatusState.Result(
-            latestBlockNumber = 123902302938UL,
-            latency = Latency(LatencyType.FAST, 440.0),
-        )
         NodeItem(
-            model = GemNodeRow(
-                node = GemNodeSelection(
-                    url = "https://some.url.eth",
-                    host = "some.url.eth",
-                    isSelected = true,
-                    gemNodeFlag = null,
-                ),
-                title = GemNodeRowTitle.Host("some.url.eth"),
-                subtitle = status.subtitle(),
-                latencyStatus = status.latencyStatus(),
+            model = NodeRowUIModel(
+                url = "https://some.url.eth",
+                host = "some.url.eth",
+                title = "some.url.eth",
+                subtitle = "Latest block: 123902302938",
+                latency = LatencyUIModel(text = "440 ms", tone = LatencyTone.Fast),
+                isSelected = true,
                 canDelete = true,
             ),
             listPosition = ListPosition.Middle,

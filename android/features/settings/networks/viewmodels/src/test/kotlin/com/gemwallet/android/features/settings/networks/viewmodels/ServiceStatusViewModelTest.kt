@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
+import android.content.Context
+import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyTone
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -25,6 +27,10 @@ import uniffi.gemstone.LatencyType
 class ServiceStatusViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val context = mockk<Context> {
+        every { getString(any()) } returns "Error"
+        every { getString(any(), *anyVararg()) } returns "10 ms"
+    }
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -42,20 +48,21 @@ class ServiceStatusViewModelTest {
 
     @Test
     fun `every endpoint starts loading`() = runTest(dispatcher) {
-        val viewModel = ServiceStatusViewModel(service(emptyMap()))
+        val viewModel = ServiceStatusViewModel(service(emptyMap()), context)
 
         assertEquals(listOf("api", "node"), viewModel.uiState.value.rows.map { it.id })
-        assertEquals(listOf(GemLatencyStatus.Loading, GemLatencyStatus.Loading), viewModel.uiState.value.rows.map { it.statusState })
+        assertEquals(listOf(LatencyTone.Loading, LatencyTone.Loading), viewModel.uiState.value.rows.map { it.latency.tone })
     }
 
     @Test
     fun `each endpoint keeps its own answer`() = runTest(dispatcher) {
         val reachable = GemLatencyStatus.Result(Latency(LatencyType.FAST, 10.0))
-        val viewModel = ServiceStatusViewModel(service(mapOf("api" to reachable)))
+        val viewModel = ServiceStatusViewModel(service(mapOf("api" to reachable)), context)
 
         viewModel.fetch()
         advanceUntilIdle()
 
-        assertEquals(listOf(reachable, GemLatencyStatus.Error), viewModel.uiState.value.rows.map { it.statusState })
+        assertEquals(listOf(LatencyTone.Fast, LatencyTone.Error), viewModel.uiState.value.rows.map { it.latency.tone })
+        assertEquals(listOf("10 ms", "Error"), viewModel.uiState.value.rows.map { it.latency.text })
     }
 }

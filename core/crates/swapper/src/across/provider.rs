@@ -591,13 +591,12 @@ impl Swapper for Across {
 
 #[cfg(test)]
 mod tests {
+    use super::super::testkit::{TEST_FILL_DEADLINE, mock_v3_relay_data};
     use super::*;
-    use crate::alien::mock::{MockFn, ProviderMock};
+    use crate::alien::mock::ProviderMock;
     use gem_evm::multicall3::IMulticall3;
     use num_bigint::BigUint;
     use primitives::{asset_constants::*, swap::SwapQuoteDataType};
-
-    const TEST_FILL_DEADLINE: u32 = 1_700_000_000 + DEFAULT_FILL_TIMEOUT;
 
     #[test]
     fn test_is_supported_route() {
@@ -652,59 +651,11 @@ mod tests {
         assert!(Across::is_supported_route(&AssetId::from(Chain::Robinhood, None), &eth));
     }
 
-    fn provider_with_tron_allowance(allowance: &str) -> Across {
-        let response = format!(r#"{{"constant_result":["{allowance}"]}}"#);
-        Across::new(Arc::new(ProviderMock {
-            response: MockFn(Box::new(move |_| response.clone())),
-        }))
-    }
-
-    fn tron_quote(provider: &Across) -> (Quote, V3RelayData) {
-        let relay_data = V3RelayData {
-            depositor: parse_address(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC").unwrap(),
-            recipient: eth_address::parse_str("0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7").unwrap(),
-            exclusiveRelayer: Address::ZERO,
-            inputToken: parse_address(Chain::Tron, TRON_USDT_TOKEN_ID).unwrap(),
-            outputToken: eth_address::parse_str(ETHEREUM_USDT_TOKEN_ID).unwrap(),
-            inputAmount: U256::from(10_000_000),
-            outputAmount: U256::from(9_990_000),
-            originChainId: U256::from(AcrossDeployment::deployment_by_chain(&Chain::Tron).unwrap().chain_id),
-            depositId: u32::MAX,
-            fillDeadline: TEST_FILL_DEADLINE,
-            exclusivityDeadline: 0,
-            message: Bytes::new(),
-        };
-        let request = QuoteRequest {
-            from_asset: TRON_USDT_ASSET_ID.clone().into(),
-            to_asset: ETHEREUM_USDT_ASSET_ID.clone().into(),
-            wallet_address: "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC".to_string(),
-            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: BigUint::from(10000000u64),
-            options: Options::default(),
-        };
-        let quote = Quote {
-            from_value: request.value.clone(),
-            min_from_value: None,
-            to_value: BigUint::from(9990000u64),
-            data: ProviderData {
-                provider: provider.provider().clone(),
-                slippage_bps: request.options.slippage.bps,
-                routes: vec![Route {
-                    input: TRON_USDT_ASSET_ID.clone(),
-                    output: ETHEREUM_USDT_ASSET_ID.clone(),
-                    route_data: HexEncode(relay_data.abi_encode()),
-                }],
-            },
-            request,
-            eta_in_seconds: Some(120),
-        };
-        (quote, relay_data)
-    }
-
     #[tokio::test]
     async fn test_direct_quote_data_maps_tron_approval() {
-        let provider = provider_with_tron_allowance("0");
-        let (quote, relay_data) = tron_quote(&provider);
+        let provider = Across::new(Arc::new(ProviderMock::mock_tron_constant_result("0")));
+        let relay_data = mock_v3_relay_data();
+        let quote = Quote::mock_across_tron();
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
         let expected_data = V3SpokePoolInterface::depositV3Call {
             depositor: relay_data.depositor,
@@ -740,8 +691,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_direct_quote_data_skips_tron_approval_when_allowance_covers_amount() {
-        let provider = provider_with_tron_allowance("989680");
-        let (quote, _) = tron_quote(&provider);
+        let provider = Across::new(Arc::new(ProviderMock::mock_tron_constant_result("989680")));
+        let quote = Quote::mock_across_tron();
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
         assert_eq!(quote_data.approval, None);

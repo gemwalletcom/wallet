@@ -5,7 +5,6 @@ import enum Gemstone.TransactionInputType
 import Foundation
 import GemstonePrimitives
 import Primitives
-import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferData
 
 struct TransferDataViewModel {
@@ -15,16 +14,8 @@ struct TransferDataViewModel {
         data.inputType
     }
 
-    var recipient: GemRecipient {
-        data.recipient
-    }
-
     var asset: Asset {
         data.asset
-    }
-
-    var memo: String? {
-        recipient.memo
     }
 
     var chain: Chain {

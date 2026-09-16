@@ -2,21 +2,16 @@ package com.gemwallet.android.features.bridge.viewmodels
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
-import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
-import com.gemwallet.android.application.wallet_connect.values.WalletConnectPairingProposal
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
-import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockGemConnectionRow
+import com.gemwallet.android.testkit.mockWalletConnectPairingProposal
+import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
+import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
+import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
+import com.gemwallet.android.testkit.mockWalletMulticoin
 import com.gemwallet.android.ui.models.ButtonState
-import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletConnectionSessionProposal
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -28,6 +23,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -36,7 +32,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
@@ -57,62 +52,22 @@ class ProposalSceneViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private val main = mockWallet(
-        id = "multicoin_0xabc",
-        name = "Main Wallet",
-        accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")),
-    )
+    private val main = mockWalletMulticoin()
 
-    private val secondary = mockWallet(
-        id = "multicoin_0xdef",
-        name = "Second Wallet",
-        accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xdef")),
-    )
+    private val secondary = mockWalletMulticoin(address = "0xdef", name = "Second Wallet")
 
-    private val metadata = ApplicationMetadata(
-        name = "Uniswap",
-        description = "Swap",
-        url = "https://app.uniswap.org",
-        icon = "https://app.uniswap.org/icon.png",
-        source = ApplicationMetadataSource.WalletConnect,
-    )
+    private val proposal = mockWalletConnectSessionProposal()
 
-    private val proposal = WalletConnectSessionProposal(
-        name = "Uniswap",
-        description = "Swap",
-        url = "https://app.uniswap.org",
-        icons = emptyList(),
-        requiredNamespaces = emptyMap(),
-        optionalNamespaces = emptyMap(),
-        proposerPublicKey = "key",
-        pairingTopic = "pairing",
-        properties = null,
-    )
-
-    private val verifyContext = WalletConnectVerifyContext(
-        origin = "https://app.uniswap.org",
-        validation = WalletConnectValidation.Valid,
-        isScam = false,
-    )
+    private val verifyContext = mockWalletConnectVerifyContext()
 
     private fun service(): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         every { shouldProcessMessage(any()) } returns true
-        every { connectionRow(any()) } returns GemConnectionRow(
-            title = "Uniswap",
-            host = "app.uniswap.org",
-            initial = "U",
-            iconUrl = null,
-        )
+        every { connectionRow(any()) } returns mockGemConnectionRow(iconUrl = null)
     }
 
     private fun proposals(): PrepareSessionProposal = mockk {
-        coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any(), any()) } returns WalletConnectPairingProposal(
-            proposal = WalletConnectionSessionProposal(
-                defaultWallet = main,
-                wallets = listOf(main, secondary),
-                metadata = metadata,
-            ),
-            verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
+        coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any(), any()) } returns mockWalletConnectPairingProposal(
+            mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary)),
         )
     }
 
@@ -125,6 +80,7 @@ class ProposalSceneViewModelTest {
         prepareSessionProposal = prepare,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
+        ioDispatcher = dispatcher,
     ).also { models.add(it) }
 
     @Test
@@ -166,6 +122,7 @@ class ProposalSceneViewModelTest {
         viewModel(approve = approve, prepare = prepare).onProposal(proposal, verifyContext) { notified.complete(it) }
 
         assertEquals(BridgeRequestError.MaliciousSession, notified.await())
+        advanceUntilIdle()
         verify { approve.rejectConnection(proposal, any(), any(), any()) }
     }
 

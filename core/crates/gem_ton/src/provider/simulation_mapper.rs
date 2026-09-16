@@ -109,15 +109,11 @@ mod tests {
     use super::*;
     use serde_json::Value;
 
-    fn signer() -> Address {
-        Address::parse("0:33a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf").unwrap()
-    }
-
     #[test]
     fn test_map_simulation_result_surfaces_execution_failure() {
         let response = serde_json::from_str(include_str!("../../testdata/emulate_ton_connect_failed_response.json")).unwrap();
 
-        let result = map_simulation_result(&signer(), response);
+        let result = map_simulation_result(&Address::parse("0:33a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf").unwrap(), response);
 
         assert_eq!(result.warnings, vec![SimulationWarning::execution_error("TON transaction aborted")]);
         assert!(result.balance_changes.is_empty());

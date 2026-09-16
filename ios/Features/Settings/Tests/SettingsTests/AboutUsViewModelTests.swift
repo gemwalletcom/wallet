@@ -7,19 +7,13 @@ import GemstoneServicesTestKit
 import Primitives
 import Testing
 @testable import Settings
+import SettingsTestKit
 
 @MainActor
 struct AboutUsViewModelTests {
-    private func model(
-        service: GemAppUpdateServiceMock = GemAppUpdateServiceMock(),
-        preferences: ObservablePreferences = .mock(),
-    ) -> AboutUsViewModel {
-        AboutUsViewModel(preferences: preferences, service: service)
-    }
-
     @Test
     func theSectionsComeFromCore() {
-        let model = model()
+        let model = AboutUsViewModel.mock()
 
         #expect(model.sections.isNotEmpty)
         #expect(model.sections.count > 1)
@@ -28,7 +22,7 @@ struct AboutUsViewModelTests {
     @Test
     func aNewerReleaseIsOffered() async {
         let service = GemAppUpdateServiceMock(newest: Gemstone.Release(version: "99.0.0", store: .appStore, upgradeRequired: false))
-        let model = model(service: service)
+        let model = AboutUsViewModel.mock(service: service)
 
         await model.load()
 
@@ -37,7 +31,7 @@ struct AboutUsViewModelTests {
 
     @Test
     func noReleaseMeansNothingToOffer() async {
-        let model = model()
+        let model = AboutUsViewModel.mock()
 
         await model.load()
 
@@ -49,7 +43,7 @@ struct AboutUsViewModelTests {
     func aFailedCheckOffersNothing() async {
         let service = GemAppUpdateServiceMock()
         service.newestError = AnyError("offline")
-        let model = model(service: service)
+        let model = AboutUsViewModel.mock(service: service)
 
         await model.load()
 
@@ -60,7 +54,7 @@ struct AboutUsViewModelTests {
     func theDeveloperMenuItemFollowsThePreference() {
         let preferences = ObservablePreferences.mock()
         preferences.isDeveloperEnabled = false
-        let model = model(preferences: preferences)
+        let model = AboutUsViewModel.mock(preferences: preferences)
         let offTitle = model.contextDevTitle
 
         model.toggleDeveloperMode()
@@ -72,7 +66,7 @@ struct AboutUsViewModelTests {
 
     @Test
     func theVersionReadsAsVersionAndBuild() {
-        let model = model()
+        let model = AboutUsViewModel.mock()
 
         #expect(model.versionTextValue.contains("("))
         #expect(model.versionTextValue.hasSuffix(")"))

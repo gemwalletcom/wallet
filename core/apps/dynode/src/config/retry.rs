@@ -58,11 +58,11 @@ impl RetryConfig {
 
 #[cfg(test)]
 mod tests {
-    use crate::testkit::config as testkit;
+    use super::*;
 
     #[test]
     fn test_should_retry_on_error_message() {
-        let config = testkit::retry_config(true, vec![], vec!["daily request limit", "rate limit"]);
+        let config = RetryConfig::mock_with_errors(vec![], vec!["daily request limit", "rate limit"]);
 
         assert!(config.errors.matches_message("daily request limit reached - upgrade your account"));
         assert!(config.errors.matches_message("rate limit exceeded"));
@@ -73,32 +73,35 @@ mod tests {
 
     #[test]
     fn test_should_retry_on_error_message_empty() {
-        let config = testkit::retry_config(true, vec![], vec![]);
+        let config = RetryConfig::mock();
 
         assert!(!config.errors.matches_message("daily request limit reached"));
     }
 
     #[test]
     fn test_matches_status() {
-        let config = testkit::retry_config(true, vec![401, 403, 429], vec![]);
+        let config = RetryConfig::mock_with_errors(vec![401, 403, 429], vec![]);
         assert!(config.errors.matches_status(429));
         assert!(!config.errors.matches_status(500));
     }
 
     #[test]
     fn test_matches_message_case_and_whitespace() {
-        let config = testkit::retry_config(true, vec![], vec![" Rate Limit ", "", "rate limit"]);
+        let config = RetryConfig::mock_with_errors(vec![], vec![" Rate Limit ", "", "rate limit"]);
         assert!(config.errors.matches_message("rate limit exceeded"));
         assert!(!config.errors.matches_message("unrelated error"));
     }
 
     #[test]
     fn test_effective_max_attempts() {
-        let config_zero = testkit::retry_config(true, vec![], vec![]);
+        let config_zero = RetryConfig::mock();
         assert_eq!(config_zero.effective_max_attempts(5), 5);
         assert_eq!(config_zero.effective_max_attempts(10), 10);
 
-        let config_limited = testkit::retry_config_with_attempts(true, 3, vec![], vec![]);
+        let config_limited = RetryConfig {
+            max_attempts: 3,
+            ..RetryConfig::mock()
+        };
         assert_eq!(config_limited.effective_max_attempts(5), 3);
         assert_eq!(config_limited.effective_max_attempts(2), 2);
     }

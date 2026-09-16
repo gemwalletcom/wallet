@@ -5,7 +5,6 @@ import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -65,7 +64,7 @@ class AmountEarnProvider(
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         val current = assetInfo.filterNotNull().first()
-        val type = earnType.value ?: throw AmountError.NoValidatorSelected
+        val type = checkNotNull(earnType.value) { "earn action requires a type" }
         return service.earnTransferData(current.asset.toGem(), type, amount.atomicValue, isMax)
     }
 }

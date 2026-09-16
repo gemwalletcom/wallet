@@ -61,6 +61,7 @@ import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.GemServiceStatusInterface
 import uniffi.gemstone.serviceStatusTimeout
@@ -306,4 +307,8 @@ object GatewayModule {
 
     @Provides
     fun provideGemChartServiceInterface(service: GemChartService): GemChartServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun providePaymentServiceInterface(service: GemPaymentService): GemPaymentServiceInterface = service
 }

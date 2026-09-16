@@ -114,8 +114,6 @@ public struct NetworkFeeSceneViewModel {
         NetworkFeeCustomViewModel(
             chain: feeAsset.chain,
             feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            currency: currency,
             unitType: unitType,
             decimals: unitDecimals,
             baseFee: feeAmount,
@@ -123,6 +121,7 @@ public struct NetworkFeeSceneViewModel {
             normalTotal: feeRates?.normalTotal ?? feeRates?.selectedTotal,
             initialRate: selection.customGasPrice(),
             onSelect: { onSelect?(.custom(gasPrice: $0)) },
+            display: display(for:),
         )
     }
 

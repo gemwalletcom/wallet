@@ -61,17 +61,6 @@ fn request(method: HyperliquidMethod, subscription: HyperliquidSubscription) -> 
 mod tests {
     use super::*;
 
-    fn candle(symbol: &str) -> HyperliquidSubscription {
-        HyperliquidSubscription::Candle {
-            symbol: symbol.to_string(),
-            interval: "30m".to_string(),
-        }
-    }
-
-    fn account_state() -> HyperliquidSubscription {
-        HyperliquidSubscription::AccountState { address: "0xabc".to_string() }
-    }
-
     fn subscriptions(requests: &[HyperliquidRequest]) -> Vec<(HyperliquidMethod, HyperliquidSubscription)> {
         requests.iter().map(|request| (request.method, request.subscription.clone())).collect()
     }
@@ -80,13 +69,16 @@ mod tests {
     fn test_subscribe_before_connect_is_sent_once_on_connect() {
         let mut state = WebSocketSubscriptions::new();
 
-        assert!(state.subscribe(candle("UNI")).is_empty());
+        assert!(state.subscribe(HyperliquidSubscription::mock_candle("UNI")).is_empty());
 
-        let connected = state.connected(vec![account_state()]);
+        let connected = state.connected(vec![HyperliquidSubscription::mock_account_state()]);
 
         assert_eq!(
             subscriptions(&connected),
-            vec![(HyperliquidMethod::Subscribe, account_state()), (HyperliquidMethod::Subscribe, candle("UNI")),]
+            vec![
+                (HyperliquidMethod::Subscribe, HyperliquidSubscription::mock_account_state()),
+                (HyperliquidMethod::Subscribe, HyperliquidSubscription::mock_candle("UNI")),
+            ]
         );
     }
 
@@ -95,22 +87,28 @@ mod tests {
         let mut state = WebSocketSubscriptions::new();
         state.connected(vec![]);
 
-        assert_eq!(subscriptions(&state.subscribe(candle("UNI"))), vec![(HyperliquidMethod::Subscribe, candle("UNI"))]);
-        assert!(state.subscribe(candle("UNI")).is_empty());
+        assert_eq!(
+            subscriptions(&state.subscribe(HyperliquidSubscription::mock_candle("UNI"))),
+            vec![(HyperliquidMethod::Subscribe, HyperliquidSubscription::mock_candle("UNI"))]
+        );
+        assert!(state.subscribe(HyperliquidSubscription::mock_candle("UNI")).is_empty());
     }
 
     #[test]
     fn test_reconnect_resends_everything_once() {
         let mut state = WebSocketSubscriptions::new();
-        state.connected(vec![account_state()]);
-        state.subscribe(candle("UNI"));
+        state.connected(vec![HyperliquidSubscription::mock_account_state()]);
+        state.subscribe(HyperliquidSubscription::mock_candle("UNI"));
 
         state.disconnected();
-        let reconnected = state.connected(vec![account_state()]);
+        let reconnected = state.connected(vec![HyperliquidSubscription::mock_account_state()]);
 
         assert_eq!(
             subscriptions(&reconnected),
-            vec![(HyperliquidMethod::Subscribe, account_state()), (HyperliquidMethod::Subscribe, candle("UNI")),]
+            vec![
+                (HyperliquidMethod::Subscribe, HyperliquidSubscription::mock_account_state()),
+                (HyperliquidMethod::Subscribe, HyperliquidSubscription::mock_candle("UNI")),
+            ]
         );
     }
 
@@ -118,10 +116,10 @@ mod tests {
     fn test_unsubscribe_while_disconnected_drops_it_from_the_next_connect() {
         let mut state = WebSocketSubscriptions::new();
         state.connected(vec![]);
-        state.subscribe(candle("UNI"));
+        state.subscribe(HyperliquidSubscription::mock_candle("UNI"));
 
         state.disconnected();
-        assert!(state.unsubscribe(&candle("UNI")).is_empty());
+        assert!(state.unsubscribe(&HyperliquidSubscription::mock_candle("UNI")).is_empty());
 
         assert!(state.connected(vec![]).is_empty());
     }
@@ -130,30 +128,36 @@ mod tests {
     fn test_unsubscribe_is_sent_once() {
         let mut state = WebSocketSubscriptions::new();
         state.connected(vec![]);
-        state.subscribe(candle("UNI"));
+        state.subscribe(HyperliquidSubscription::mock_candle("UNI"));
 
-        assert_eq!(subscriptions(&state.unsubscribe(&candle("UNI"))), vec![(HyperliquidMethod::Unsubscribe, candle("UNI"))]);
-        assert!(state.unsubscribe(&candle("UNI")).is_empty());
+        assert_eq!(
+            subscriptions(&state.unsubscribe(&HyperliquidSubscription::mock_candle("UNI"))),
+            vec![(HyperliquidMethod::Unsubscribe, HyperliquidSubscription::mock_candle("UNI"))]
+        );
+        assert!(state.unsubscribe(&HyperliquidSubscription::mock_candle("UNI")).is_empty());
     }
 
     #[test]
     fn test_connected_without_disconnect_resends_for_the_new_connection() {
         let mut state = WebSocketSubscriptions::new();
-        state.subscribe(candle("UNI"));
-        state.connected(vec![account_state()]);
+        state.subscribe(HyperliquidSubscription::mock_candle("UNI"));
+        state.connected(vec![HyperliquidSubscription::mock_account_state()]);
 
-        let reconnected = state.connected(vec![account_state()]);
+        let reconnected = state.connected(vec![HyperliquidSubscription::mock_account_state()]);
 
         assert_eq!(
             subscriptions(&reconnected),
-            vec![(HyperliquidMethod::Subscribe, account_state()), (HyperliquidMethod::Subscribe, candle("UNI"))]
+            vec![
+                (HyperliquidMethod::Subscribe, HyperliquidSubscription::mock_account_state()),
+                (HyperliquidMethod::Subscribe, HyperliquidSubscription::mock_candle("UNI"))
+            ]
         );
     }
 
     #[test]
     fn test_account_subscriptions_are_not_kept_across_reconnect() {
         let mut state = WebSocketSubscriptions::new();
-        state.connected(vec![account_state()]);
+        state.connected(vec![HyperliquidSubscription::mock_account_state()]);
 
         state.disconnected();
 

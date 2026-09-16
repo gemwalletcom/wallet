@@ -66,6 +66,7 @@ android {
 dependencies {
     implementation(project(":gemcore"))
     testFixturesImplementation(project(":gemcore"))
+    testFixturesImplementation(testFixtures(project(":gemcore")))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -75,6 +76,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     testImplementation(libs.junit)
+    testImplementation(testFixtures(project(":gemcore")))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.junit.runner)
     androidTestImplementation(libs.room.testing)

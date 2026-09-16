@@ -17,7 +17,6 @@ import WalletConnectorService
 struct SettingsNavigationView: View {
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.walletConnector) private var walletConnector
-    @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.navigationPresenter) private var presenter
@@ -110,7 +109,7 @@ struct SettingsNavigationView: View {
             PreferencesScene(model: viewModelFactory.preferencesScene())
         }
         .navigationDestination(for: Scenes.Appearance.self) { _ in
-            AppearanceScene(model: AppearanceViewModel(preferences: observablePreferences))
+            AppearanceScene(model: viewModelFactory.appearanceScene())
         }
         .navigationDestination(for: Scenes.Referral.self) { scene in
             if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {

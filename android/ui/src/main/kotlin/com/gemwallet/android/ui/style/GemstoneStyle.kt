@@ -1,5 +1,7 @@
 package com.gemwallet.android.ui.style
 
+import uniffi.gemstone.GemEmptyStateImage
+import com.gemwallet.android.ui.components.empty.EmptyStateImage
 import androidx.annotation.DrawableRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -69,4 +71,16 @@ fun WalletConnectionVerificationStatus.color(): Color = when (verificationLevel(
     GemVerificationLevel.VERIFIED -> MaterialTheme.colorScheme.tertiary
     GemVerificationLevel.UNVERIFIED -> pendingColor
     GemVerificationLevel.SUSPICIOUS -> MaterialTheme.colorScheme.error
+}
+
+fun GemEmptyStateImage.image(): EmptyStateImage = when (this) {
+    GemEmptyStateImage.NFTS -> EmptyStateImage.Drawable(R.drawable.empty_nfts)
+    GemEmptyStateImage.PRICE_ALERTS -> EmptyStateImage.Drawable(R.drawable.empty_notifications)
+    GemEmptyStateImage.CONTACTS -> EmptyStateImage.Drawable(R.drawable.empty_contacts)
+    GemEmptyStateImage.ACTIVITY -> EmptyStateImage.Drawable(R.drawable.empty_activity)
+    GemEmptyStateImage.STAKE -> EmptyStateImage.Drawable(R.drawable.empty_stake)
+    GemEmptyStateImage.WALLET_CONNECT -> EmptyStateImage.Drawable(R.drawable.empty_dapps)
+    GemEmptyStateImage.NOTIFICATIONS -> EmptyStateImage.Drawable(R.drawable.empty_notifications)
+    GemEmptyStateImage.SEARCH -> EmptyStateImage.Vector(AppIcons.Search)
+    GemEmptyStateImage.WALLET -> EmptyStateImage.Vector(AppIcons.Wallet)
 }

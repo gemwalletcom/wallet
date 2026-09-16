@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
-import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.ButtonState
@@ -134,7 +133,6 @@ class RecipientViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val memoErrorState = MutableStateFlow<RecipientError>(RecipientError.None)
 
     val buttonState: StateFlow<ButtonState> = addressInput.isValid
         .map { buttonState(enabled = it) }

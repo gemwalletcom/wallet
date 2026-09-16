@@ -5,13 +5,14 @@ import GemstoneServicesTestKit
 import Primitives
 import PrimitivesComponents
 @testable import Swap
+import SwapTestKit
 import Testing
 
 @MainActor
 struct SwapSlippageViewModelTests {
     @Test
     func initAuto() {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum), chain: .ethereum, slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel.mock(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum))
 
         #expect(model.isAuto)
         #expect(model.inputModel.text.isEmpty)
@@ -27,7 +28,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func initManual() {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .manual(bps: 50)) { _ in }
+        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 50))
 
         #expect(model.isAuto == false)
         #expect(model.selectedBps == 50)
@@ -37,7 +38,7 @@ struct SwapSlippageViewModelTests {
     @Test
     func confirmAuto() {
         var applied: SwapSlippage?
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .manual(bps: 50)) { applied = $0 }
+        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 50)) { applied = $0 }
         model.isAuto = true
         model.confirm()
 
@@ -51,7 +52,7 @@ struct SwapSlippageViewModelTests {
     ] as [(String, UInt32)])
     func confirmAppliesManualValue(input: String, expected: UInt32) {
         var applied: SwapSlippage?
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .auto) { applied = $0 }
+        let model = SwapSlippageViewModel.mock { applied = $0 }
         model.isAuto = false
         model.inputModel.text = input
         model.confirm()
@@ -62,7 +63,7 @@ struct SwapSlippageViewModelTests {
 
     @Test(arguments: [("25", GemSlippageCheck.aboveMaximum), ("0.05", .belowMinimum)] as [(String, GemSlippageCheck)])
     func rejectedInputShowsErrorAndDisablesConfirm(input: String, check: GemSlippageCheck) {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(slippageCheck: check), chain: .ethereum, slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel.mock(service: GemSwapQuoteServiceMock(slippageCheck: check), slippage: .manual(bps: 100))
         model.isAuto = false
         model.inputModel.text = input
 
@@ -73,7 +74,7 @@ struct SwapSlippageViewModelTests {
 
     @Test(arguments: ["", "0", "0.", "abc"])
     func incompleteInputDisablesConfirmWithoutError(input: String) {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum), chain: .ethereum, slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel.mock(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum), slippage: .manual(bps: 100))
         model.isAuto = false
         model.inputModel.text = input
 
@@ -83,7 +84,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func confirmEnabledState() {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .manual(bps: 100)) { _ in }
+        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 100))
         #expect(model.isConfirmEnabled)
 
         model.inputModel.text = "5"
@@ -96,7 +97,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func suggestionsProvideExpectedValues() {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel.mock()
 
         #expect(model.suggestions.map(\.title) == ["0.3%", "0.5%", "3%"])
         #expect(model.suggestions.map(\.inputValue) == ["0.3", "0.5", "3"])
@@ -104,7 +105,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func onSelectSuggestionUpdatesInput() {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .auto) { _ in }
+        let model = SwapSlippageViewModel.mock()
         model.isAuto = false
         model.onSelect(suggestion: model.suggestions[2])
 
@@ -117,7 +118,7 @@ struct SwapSlippageViewModelTests {
         (UInt32(300), true),
     ] as [(UInt32, Bool)])
     func highSlippageWarnsButKeepsConfirmEnabled(bps: UInt32, expected: Bool) {
-        let model = SwapSlippageViewModel(service: GemSwapQuoteServiceMock(), chain: .ethereum, slippage: .manual(bps: bps)) { _ in }
+        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: bps))
 
         #expect((model.warningText != nil) == expected)
         #expect(model.errorText == nil)

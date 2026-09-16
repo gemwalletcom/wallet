@@ -289,24 +289,13 @@ mod tests {
 
     use super::*;
 
-    fn rules() -> PriceAlertRules {
-        PriceAlertRules {
-            notification_cooldown: StdDuration::from_secs(86_400),
-            price_change_threshold: 5.0,
-            rank_divisor: 5.0,
-            milestones: vec![],
-        }
-    }
-
-    fn rates() -> Vec<FiatRate> {
-        vec![
-            FiatRate { symbol: Currency::USD, rate: 1.0 },
-            FiatRate {
-                symbol: Currency::EUR,
-                rate: 0.86,
-            },
-        ]
-    }
+    const TEST_RATES: [FiatRate; 2] = [
+        FiatRate { symbol: Currency::USD, rate: 1.0 },
+        FiatRate {
+            symbol: Currency::EUR,
+            rate: 0.86,
+        },
+    ];
 
     #[test]
     fn test_get_price_alert_type() {
@@ -318,18 +307,21 @@ mod tests {
         let over_unknown = PriceAlert::new_price(asset_id.clone(), Currency::JPY, 71_000.0, PriceAlertDirection::Up);
         let auto = PriceAlert::new_auto(asset_id, Currency::EUR);
 
-        assert_eq!(PriceAlertClient::get_price_alert_type(&over, &price_data, &rates(), &rules()), None);
+        assert_eq!(PriceAlertClient::get_price_alert_type(&over, &price_data, &TEST_RATES, &PriceAlertRules::mock()), None);
         assert_eq!(
-            PriceAlertClient::get_price_alert_type(&under, &price_data, &rates(), &rules()),
+            PriceAlertClient::get_price_alert_type(&under, &price_data, &TEST_RATES, &PriceAlertRules::mock()),
             Some(AlertResult::new(PriceAlertType::PriceDown))
         );
         assert_eq!(
-            PriceAlertClient::get_price_alert_type(&over_usd, &price_data, &rates(), &rules()),
+            PriceAlertClient::get_price_alert_type(&over_usd, &price_data, &TEST_RATES, &PriceAlertRules::mock()),
             Some(AlertResult::new(PriceAlertType::PriceUp))
         );
-        assert_eq!(PriceAlertClient::get_price_alert_type(&over_unknown, &price_data, &rates(), &rules()), None);
         assert_eq!(
-            PriceAlertClient::get_price_alert_type(&auto, &PriceData::mock_with(78_987.0, 6.0), &[], &rules()),
+            PriceAlertClient::get_price_alert_type(&over_unknown, &price_data, &TEST_RATES, &PriceAlertRules::mock()),
+            None
+        );
+        assert_eq!(
+            PriceAlertClient::get_price_alert_type(&auto, &PriceData::mock_with(78_987.0, 6.0), &[], &PriceAlertRules::mock()),
             Some(AlertResult::new(PriceAlertType::PriceChangesUp))
         );
     }
@@ -353,9 +345,9 @@ mod tests {
         };
 
         assert_eq!(target.currency(), &Currency::EUR);
-        assert_eq!(target.clone().with_rates(&rates()).unwrap().price, price.with_rate(0.86));
+        assert_eq!(target.clone().with_rates(&TEST_RATES).unwrap().price, price.with_rate(0.86));
         assert_eq!(automatic.currency(), &Currency::USD);
-        assert_eq!(automatic.with_rates(&rates()).unwrap().price, price);
+        assert_eq!(automatic.with_rates(&TEST_RATES).unwrap().price, price);
         assert!(target.with_rates(&[]).is_err());
     }
 

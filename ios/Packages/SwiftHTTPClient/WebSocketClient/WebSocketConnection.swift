@@ -169,8 +169,11 @@ public actor WebSocketConnection: WebSocketConnectable {
     private func startConnection() {
         state = .connecting
 
-        guard let request = try? configuration.requestProvider.makeRequest() else {
-            scheduleReconnect(with: WebSocketError.notConnected)
+        let request: URLRequest
+        do {
+            request = try configuration.requestProvider.makeRequest()
+        } catch {
+            scheduleReconnect(with: error)
             return
         }
         let connectionId = UUID()

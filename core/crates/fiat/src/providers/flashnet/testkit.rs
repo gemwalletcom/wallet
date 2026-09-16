@@ -5,6 +5,7 @@ use gem_client::ReqwestClient;
 use crate::{FiatWebhookRequest, hmac_signature::generate_hmac_signature_hex};
 
 use super::client::FlashnetClient;
+use super::model::{FlashnetRoute, FlashnetRouteAsset};
 
 const TEST_API_KEY: &str = "test_api_key";
 const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
@@ -39,5 +40,19 @@ impl FiatWebhookRequest {
             String::new(),
         )
         .unwrap()
+    }
+}
+
+impl FlashnetRoute {
+    pub fn mock(chain: &str, asset: &str, contract_address: Option<&str>) -> Self {
+        Self {
+            source_chain: "lightning".to_string(),
+            source_asset: "BTC".to_string(),
+            destination: FlashnetRouteAsset {
+                chain: chain.to_string(),
+                asset: asset.to_string(),
+                contract_address: contract_address.map(|address| address.to_string()),
+            },
+        }
     }
 }

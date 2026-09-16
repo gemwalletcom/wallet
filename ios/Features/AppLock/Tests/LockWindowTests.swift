@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstoneServices
+import GemstoneServicesTestKit
 @testable import AppLock
+import AppLockTestKit
 import SwiftUI
 import Testing
 
@@ -49,12 +51,9 @@ struct LockWindowTests {
 
     @Test
     func interruptedUnlockKeepsLockVisible() async {
-        let service = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        service.errorToThrow = BiometryAuthenticationError.cancelledBySystem
-        let manager = LockWindowMock(lockModel: LockSceneViewModel(service: service))
+        let service = BiometryAuthenticationMock()
+        service.authenticateError = BiometryAuthenticationError.cancelledBySystem
+        let manager = LockWindowMock.mock(service: service)
         manager.toggleLock(show: true)
 
         await manager.lockModel.startUnlock()?.value
@@ -87,7 +86,7 @@ struct LockWindowTests {
 
     @Test
     func backgroundSchedulesAutoLock() {
-        let manager = LockWindowMock.mock(lockPeriod: .oneMinute)
+        let manager = LockWindowMock.mock(service: BiometryAuthenticationMock(lockPeriod: .oneMinute))
         manager.lockModel.state = .unlocked
         manager.lockModel.backgroundedAt = nil
 
@@ -100,7 +99,7 @@ struct LockWindowTests {
 
     @Test
     func autoLockDisabledResetsState() {
-        let manager = LockWindowMock.mock(isAuthEnabled: false)
+        let manager = LockWindowMock.mock(service: BiometryAuthenticationMock(requiresAuthentication: false))
         manager.lockModel.state = .locked
         manager.setPhase(phase: .active)
 
@@ -120,7 +119,7 @@ struct LockWindowTests {
 
     @Test
     func overlayVisibleWhenPrivacySwitchDisabled() {
-        let manager = LockWindowMock.mock(isPrivacyLockEnabled: false)
+        let manager = LockWindowMock.mock(service: BiometryAuthenticationMock(isPrivacyLockEnabled: false))
         manager.toggleLock(show: true)
 
         #expect(manager.overlayWindow?.alpha == 1)
@@ -129,7 +128,7 @@ struct LockWindowTests {
 
     @Test
     func overlayVisibleWhenPrivacySwitchEnabled() {
-        let manager = LockWindowMock.mock(isPrivacyLockEnabled: true)
+        let manager = LockWindowMock.mock(service: BiometryAuthenticationMock(isPrivacyLockEnabled: true))
         manager.toggleLock(show: true)
 
         #expect(manager.overlayWindow?.alpha == 1)
@@ -138,7 +137,7 @@ struct LockWindowTests {
 
     @Test
     func secondPresentKeepsOverlayIfConditionsUnchanged() {
-        let manager = LockWindowMock.mock(isPrivacyLockEnabled: false)
+        let manager = LockWindowMock.mock(service: BiometryAuthenticationMock(isPrivacyLockEnabled: false))
         manager.toggleLock(show: true)
         manager.toggleLock(show: false)
         manager.toggleLock(show: true)
@@ -150,8 +149,7 @@ struct LockWindowTests {
 
     @Test
     func noOverlayWhenAuthenticationDisabled() {
-        let manager = LockWindowMock.mock(isAuthEnabled: false,
-                                                 isPrivacyLockEnabled: true)
+        let manager = LockWindowMock.mock(service: BiometryAuthenticationMock(requiresAuthentication: false, isPrivacyLockEnabled: true))
 
         #expect(manager.isPrivacyLockVisible == false)
         #expect(manager.overlayWindow == nil)

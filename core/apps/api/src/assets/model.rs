@@ -1,10 +1,11 @@
 use crate::params::{QueryLimitParam, SearchQueryParam};
-use primitives::Chain;
+use primitives::{Chain, asset_score::AssetRank};
 use rocket::FromForm;
 use std::str::FromStr;
 
 const MIN_LIST_SEARCH_QUERY_LENGTH: usize = 2;
 const STRICT_RANK_QUERY_LENGTH: usize = 16;
+const STRICT_RANK_THRESHOLD: i32 = 5;
 
 #[derive(FromForm)]
 pub struct SearchParams<'r> {
@@ -48,8 +49,12 @@ impl SearchRequest {
         }
     }
 
-    pub fn rank_threshold(&self) -> u32 {
-        if self.query.len() < STRICT_RANK_QUERY_LENGTH { 15 } else { 5 }
+    pub fn rank_threshold(&self) -> i32 {
+        if self.query.len() < STRICT_RANK_QUERY_LENGTH {
+            AssetRank::Trivial.threshold()
+        } else {
+            STRICT_RANK_THRESHOLD
+        }
     }
 
     pub fn should_search_lists(&self) -> bool {

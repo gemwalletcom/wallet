@@ -35,7 +35,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -80,7 +80,7 @@ fun PriceAlertTargetScene(
     asset: Asset? = null,
     assetPriceFormatted: String = "",
     assetPriceChangeFormatted: String = "",
-    assetValueDirection: ValueDirection = ValueDirection.None,
+    assetValueDirection: GemValueTone = GemValueTone.NEUTRAL,
     buttonState: ButtonState,
     snackbar: SnackbarHostState? = null,
     onType: (PriceAlertNotificationType) -> Unit,

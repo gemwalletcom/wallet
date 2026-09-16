@@ -9,11 +9,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
 import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -58,7 +59,7 @@ class AmountViewModel @Inject constructor(
         private set
 
     val amountInputType = MutableStateFlow(GemAmountInputType.ASSET)
-    val amountError = MutableStateFlow<AmountError>(AmountError.None)
+    val amountError = MutableStateFlow<Throwable?>(null)
 
     val currency: Currency = service.getCurrency().toPrimitives()
     private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
@@ -110,7 +111,7 @@ class AmountViewModel @Inject constructor(
 
     init {
         entry
-            .onEach { amountError.value = it?.error?.toAmountError() ?: AmountError.None }
+            .onEach { amountError.value = it?.error }
             .launchIn(viewModelScope)
 
         combine(provider.input.filterNotNull(), provider.assetInfo.filterNotNull()) { input, current -> if (input.canChangeValue) null else maxAmountText(current.asset, input.maxEntry().value) }
@@ -126,12 +127,13 @@ class AmountViewModel @Inject constructor(
     fun onMaxAmount() {
         val current = provider.assetInfo.value ?: return
         val max = provider.input.value?.maxEntry() ?: return
+        val text = maxAmountText(current.asset, max.value) ?: return
         amountInputType.value = max.inputType
-        updateAmount(maxAmountText(current.asset, max.value))
+        updateAmount(text)
     }
 
-    private fun maxAmountText(asset: Asset, value: BigInteger): String =
-        Crypto(value).value(asset.decimals).stripTrailingZeros().toPlainString()
+    private fun maxAmountText(asset: Asset, value: BigInteger): String? =
+        numberFormat().inputText(value.toString(), asset.decimals.toUInt())
 
     fun switchInputType() {
         amountInputType.update { it.toggled() }
@@ -140,21 +142,19 @@ class AmountViewModel @Inject constructor(
 
     fun onNext(onConfirm: (GemTransferData) -> Unit) {
         viewModelScope.launch {
-            if (amount.isEmpty()) {
-                amountError.value = AmountError.Required
-                return@launch
-            }
             val entry = entry.value ?: return@launch
             entry.error?.let {
-                amountError.value = it.toAmountError()
+                amountError.value = it
                 return@launch
             }
             val value = entry.value ?: return@launch
             try {
-                amountError.value = AmountError.None
+                amountError.value = null
                 onConfirm(provider.buildTransfer(Crypto(value), entry.isMax))
+            } catch (err: CancellationException) {
+                throw err
             } catch (err: Throwable) {
-                amountError.value = AmountError.Unknown(err.message.orEmpty())
+                amountError.value = err
             }
         }
     }

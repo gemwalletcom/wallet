@@ -1153,6 +1153,7 @@ pub struct CoreListItem {
 pub struct Delegation {
     pub base: DelegationBase,
     pub validator: DelegationValidator,
+    pub price: Option<Price>,
 }
 
 #[uniffi::remote(Record)]

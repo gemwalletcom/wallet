@@ -1,5 +1,9 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.gemwallet.android.features.settings.networks.viewmodels.localization.string
+import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusRowUiModel
@@ -19,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ServiceStatusViewModel @Inject constructor(
     private val serviceStatus: GemServiceStatusInterface,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val endpoints = serviceStatus.getEndpoints()
 
@@ -40,7 +45,7 @@ class ServiceStatusViewModel @Inject constructor(
                             current.copy(
                                 rows = current.rows.map {
                                     if (it.id == endpoint.url) {
-                                        endpoint.toRow(statusState)
+                                        endpoint.toRow(statusState, context)
                                     } else {
                                         it
                                     }
@@ -55,10 +60,13 @@ class ServiceStatusViewModel @Inject constructor(
     }
 
     private fun loadingRows(): List<ServiceStatusRowUiModel> {
-        return endpoints.map { it.toRow(GemLatencyStatus.Loading) }
+        return endpoints.map { it.toRow(GemLatencyStatus.Loading, context) }
     }
 }
 
-private fun GemServiceEndpoint.toRow(statusState: GemLatencyStatus): ServiceStatusRowUiModel {
-    return ServiceStatusRowUiModel(endpoint = this, statusState = statusState)
-}
+private fun GemServiceEndpoint.toRow(statusState: GemLatencyStatus, context: Context): ServiceStatusRowUiModel = ServiceStatusRowUiModel(
+    id = url,
+    title = title(endpointType.string(context)),
+    host = host,
+    latency = statusState.uiModel(context),
+)

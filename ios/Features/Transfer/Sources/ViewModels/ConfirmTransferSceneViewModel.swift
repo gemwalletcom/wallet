@@ -8,7 +8,7 @@ import Components
 import Foundation
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmLoadOptions
-import func Gemstone.walletRow
+import enum Gemstone.GemConfirmRowContent
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmSimulationState
 import enum Gemstone.GemExecuteResult
@@ -42,6 +42,7 @@ public final class ConfirmTransferSceneViewModel {
     private(set) var button: GemConfirmButton
     private(set) var feeRow: GemConfirmFeeRow
     private(set) var feeRates: GemFeeRateRows?
+    private(set) var rowContents: [GemConfirmRowContent]
 
     public var isPresentingSheet: ConfirmTransferSheetType?
 
@@ -78,8 +79,8 @@ public final class ConfirmTransferSceneViewModel {
         button = screen.button()
         feeRow = screen.feeRow()
         feeRates = state.feeRateRows(selection: feeSelection)
+        rowContents = confirmation.rowContents(addressName: state.addressName?.toGem())
     }
-
 
     var preloadSelection: ConfirmPreloadSelection {
         ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection)
@@ -181,16 +182,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     }
 
     private var detailItems: [ConfirmTransferItem] {
-        request.data.confirmRows().map { row in
-            switch row {
-            case .app: .app
-            case .sender: .sender
-            case .recipient: .recipient
-            case .network: .network
-            case .memo: .memo
-            case .details: .details
-            }
-        }
+        rowContents.map(\.item)
     }
 
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
@@ -199,22 +191,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmHeaderViewModel(request: request, state: state, currency: confirmation.currency)
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarningModels)
-        case .app:
-            ConfirmAppViewModel(transfer: request.data)
-        case .sender:
-            ConfirmSenderViewModel(row: walletRow(wallet: wallet.toGem()))
-        case .network:
-            ConfirmNetworkViewModel(transfer: request.data)
-        case .recipient:
-            ConfirmRecipientViewModel(
-                destination: request.data.destination()?.withAddressName(addressName: state.addressName?.toGem()),
-                chain: dataModel.chain,
-                memo: dataModel.recipient.memo,
-                addressName: state.addressName,
-                addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
-            )
-        case .memo:
-            ConfirmMemoViewModel(transfer: request.data)
+        case .app, .sender, .network, .recipient, .memo:
+            ConfirmRowViewModel(content: rowContents.first { $0.item == item })
         case .details:
             detailsViewModel
         case .payload:
@@ -312,6 +290,7 @@ extension ConfirmTransferSceneViewModel {
         button = screen.button()
         feeRow = screen.feeRow()
         feeRates = state.feeRateRows(selection: feeSelection)
+        rowContents = confirmation.rowContents(addressName: state.addressName?.toGem())
         guard let error = state.transactionError else { return }
         switch error {
         case .confirm:

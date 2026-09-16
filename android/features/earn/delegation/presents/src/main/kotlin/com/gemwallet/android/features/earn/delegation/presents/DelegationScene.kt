@@ -25,7 +25,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.earn.delegation.presents.localization.stringRes
-import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationRow
 import com.gemwallet.android.features.earn.delegation.presents.components.DelegationState
 import com.gemwallet.android.features.earn.delegation.presents.components.StakeApr
@@ -101,15 +100,7 @@ fun DelegationScene(
             itemsPositioned(actions) { position, item ->
                 PropertyItem(
                     action = item.stringRes(),
-                    onClick = {
-                        when (item) {
-                            GemDelegationAction.REDELEGATE -> viewModel.onRedelegate(onAmount)
-                            GemDelegationAction.STAKE -> viewModel.onStake(onAmount)
-                            GemDelegationAction.UNSTAKE -> viewModel.onUnstake(onAmount, onConfirm)
-                            GemDelegationAction.WITHDRAW -> viewModel.onWithdraw(onAmount, onConfirm)
-                            GemDelegationAction.DEPOSIT -> viewModel.onDeposit(onAmount)
-                        }
-                    },
+                    onClick = { viewModel.onAction(item, onAmount, onConfirm) },
                     listPosition = position,
                 )
             }

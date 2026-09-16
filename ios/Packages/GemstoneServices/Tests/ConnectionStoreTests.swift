@@ -12,16 +12,12 @@ import Testing
 struct ConnectionStoreTests {
     @Test
     func connectionsBindToTheirWallets() async throws {
-        let db = DB.mockWithChains([.ethereum])
-        let walletStore = WalletStore(db: db)
         let walletA = Wallet.mock(id: .multicoin(address: "0xa"), name: "Wallet A", accounts: [.mock(chain: .ethereum)])
         let walletB = Wallet.mock(id: .multicoin(address: "0xb"), name: "Wallet B", accounts: [.mock(chain: .ethereum)])
-        try walletStore.addWallet(walletA)
-        try walletStore.addWallet(walletB)
-        let store = GemstoneConnectionStore(store: ConnectionStore(db: db))
+        let store = try GemstoneConnectionStore(store: .mock(db: .mockWithWallets([walletA, walletB])))
 
-        try await store.addConnection(connection: WalletConnection(session: .mock(id: "a", sessionId: "a"), wallet: walletA).toGem())
-        try await store.addConnection(connection: WalletConnection(session: .mock(id: "b", sessionId: "b"), wallet: walletB).toGem())
+        try await store.addConnection(connection: WalletConnection.mock(session: .mock(id: "a", sessionId: "a"), wallet: walletA).toGem())
+        try await store.addConnection(connection: WalletConnection.mock(session: .mock(id: "b", sessionId: "b"), wallet: walletB).toGem())
 
         let connectionA = try #require(try await store.getConnection(sessionId: "a").map { $0.toPrimitives() })
         let connectionB = try #require(try await store.getConnection(sessionId: "b").map { $0.toPrimitives() })
@@ -33,11 +29,9 @@ struct ConnectionStoreTests {
 
     @Test
     func updatesAndDeletesSessions() async throws {
-        let db = DB.mockWithChains([.ethereum])
         let wallet = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
-        try WalletStore(db: db).addWallet(wallet)
-        let store = GemstoneConnectionStore(store: ConnectionStore(db: db))
-        try await store.addConnection(connection: WalletConnection(session: .mock(id: "a", sessionId: "a", chains: [.ethereum]), wallet: wallet).toGem())
+        let store = try GemstoneConnectionStore(store: .mock(db: .mockWithWallets([wallet])))
+        try await store.addConnection(connection: WalletConnection.mock(session: .mock(id: "a", sessionId: "a", chains: [.ethereum]), wallet: wallet).toGem())
 
         try await store.updateSession(session: WalletConnectionSession.mock(id: "a", sessionId: "a", chains: [.ethereum, .solana]).toGem())
         let sessions = try await store.getSessions().map { $0.toPrimitives() }

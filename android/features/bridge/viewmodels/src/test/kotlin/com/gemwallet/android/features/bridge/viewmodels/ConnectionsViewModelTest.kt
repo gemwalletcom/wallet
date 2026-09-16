@@ -6,15 +6,11 @@ import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletCo
 import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockGemConnectionRow
+import com.gemwallet.android.testkit.mockWalletConnectionSession
+import com.gemwallet.android.testkit.mockWalletMulticoin
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnection
-import com.wallet.core.primitives.WalletConnectionSession
-import com.wallet.core.primitives.WalletConnectionState
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -25,6 +21,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -36,7 +33,6 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConnection
 import uniffi.gemstone.GemConnectionDetails
-import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemConnectionSection
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
@@ -56,34 +52,10 @@ class ConnectionsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private val wallet = mockWallet(
-        id = "multicoin_0xabc",
-        name = "Main Wallet",
-        accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")),
-    )
-
-    private val metadata = ApplicationMetadata(
-        name = "Uniswap",
-        description = "Swap",
-        url = "https://app.uniswap.org",
-        icon = "https://app.uniswap.org/icon.png",
-        source = ApplicationMetadataSource.WalletConnect,
-    )
-
     private val connection = WalletConnection(
-        session = WalletConnectionSession(
-            id = "connection-1",
-            sessionId = "session-1",
-            state = WalletConnectionState.Active,
-            chains = listOf(Chain.Ethereum),
-            createdAt = 0,
-            expireAt = 0,
-            metadata = metadata,
-        ),
-        wallet = wallet,
+        session = mockWalletConnectionSession(id = "connection-1", sessionId = "session-1"),
+        wallet = mockWalletMulticoin(),
     )
-
-    private val row = GemConnectionRow(title = "Uniswap", host = "app.uniswap.org", initial = "U", iconUrl = null)
 
     @Test
     fun `the sections come from Core`() = runTest(dispatcher) {
@@ -94,7 +66,7 @@ class ConnectionsViewModelTest {
         val connections: GetWalletConnections = mockk {
             every { observeConnections() } returns flowOf(listOf(connection))
         }
-        val model = ConnectionsViewModel(connections, mockk(relaxed = true), service).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connections, mockk(relaxed = true), service, dispatcher).also { scopes.add(it) }
 
         assertEquals(sections, model.sections.first { it.isNotEmpty() })
     }
@@ -105,10 +77,10 @@ class ConnectionsViewModelTest {
         val connections: GetWalletConnections = mockk {
             every { observeConnections() } returns flowOf(emptyList())
         }
-        val model = ConnectionsViewModel(connections, pair, mockk(relaxed = true)).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connections, pair, mockk(relaxed = true), dispatcher).also { scopes.add(it) }
 
         model.addPairing("wc:topic@2", onSuccess = {}, onError = {})
-        model.sections.first()
+        advanceUntilIdle()
 
         verify { pair.pair(uri = "wc:topic@2", onSuccess = any(), onError = any()) }
     }
@@ -116,7 +88,7 @@ class ConnectionsViewModelTest {
     @Test
     fun `the details come from Core for the connection the route names`() = runTest(dispatcher) {
         val details = GemConnectionDetails(
-            connection = GemConnection(connection = connection.toGem(), row = row),
+            connection = GemConnection(connection = connection.toGem(), row = mockGemConnectionRow(iconUrl = null)),
             rows = emptyList(),
             wallet = "Main Wallet",
             date = 0,

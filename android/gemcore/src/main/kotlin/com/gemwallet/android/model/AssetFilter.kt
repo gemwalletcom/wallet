@@ -9,7 +9,10 @@ sealed interface AssetFilter {
     data object HasBalance : AssetFilter
     data object HasAvailableBalance : AssetFilter
     data class ChainsOrAssetIds(val chains: List<Chain>, val ids: List<String>) : AssetFilter
+    data class Chains(val chains: List<Chain>) : AssetFilter
 }
+
+fun Collection<AssetFilter>.chains(): List<Chain> = filterIsInstance<AssetFilter.Chains>().flatMap { it.chains }
 
 fun Collection<AssetFilter>.chainsOrAssetIds(): AssetFilter.ChainsOrAssetIds? = filterIsInstance<AssetFilter.ChainsOrAssetIds>()
     .takeIf { it.isNotEmpty() }

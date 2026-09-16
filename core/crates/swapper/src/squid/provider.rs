@@ -193,26 +193,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SwapperQuoteAsset, models::Options};
-    use primitives::swap::Slippage;
-
-    fn mock_request_with_slippage(slippage: Slippage) -> QuoteRequest {
-        QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
-            wallet_address: "osmo1tkvyjqeq204rmrrz3w4hcrs336qahsfwn8m0ye".to_string(),
-            destination_address: "cosmos1tkvyjqeq204rmrrz3w4hcrs336qahsfwmugljt".to_string(),
-            value: BigUint::from(10000000u64),
-            options: Options::new_with_slippage(slippage),
-        }
-    }
 
     #[test]
     fn test_build_route_request_auto_slippage() {
-        let request = mock_request_with_slippage(Slippage {
-            bps: 100,
-            mode: SlippageMode::Auto,
-        });
+        let mut request = QuoteRequest::mock_osmosis_to_cosmos();
+        request.options.slippage.mode = SlippageMode::Auto;
         let route_request = Squid::<RpcClient>::build_route_request(&request, "10000000", true).unwrap();
 
         assert_eq!(route_request.slippage_config.map(|c| c.auto_mode), Some(1));
@@ -221,10 +206,8 @@ mod tests {
 
     #[test]
     fn test_build_route_request_exact_slippage() {
-        let request = mock_request_with_slippage(Slippage {
-            bps: 150,
-            mode: SlippageMode::Exact,
-        });
+        let mut request = QuoteRequest::mock_osmosis_to_cosmos();
+        request.options.slippage.bps = 150;
         let route_request = Squid::<RpcClient>::build_route_request(&request, "10000000", true).unwrap();
 
         assert_eq!(route_request.slippage_config, None);
@@ -234,30 +217,16 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
+    use super::super::testkit::{TEST_COSMOS_ADDRESS, TEST_OSMOSIS_ADDRESS};
     use super::*;
     use crate::{SwapperQuoteAsset, models::Options};
-    use primitives::swap::{Slippage, SwapStatus};
-
-    const OSMOSIS_ADDRESS: &str = "osmo1tkvyjqeq204rmrrz3w4hcrs336qahsfwn8m0ye";
-    const COSMOS_ADDRESS: &str = "cosmos1tkvyjqeq204rmrrz3w4hcrs336qahsfwmugljt";
-
-    fn create_provider() -> Squid<RpcClient> {
-        let provider = Arc::new(crate::NativeProvider::default());
-        Squid::new(provider)
-    }
+    use primitives::swap::SwapStatus;
 
     #[tokio::test]
     async fn test_squid_osmo_to_atom() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = create_provider();
+        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
 
-        let request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
-            wallet_address: OSMOSIS_ADDRESS.to_string(),
-            destination_address: COSMOS_ADDRESS.to_string(),
-            value: BigUint::from(10000000u64),
-            options: Options::new_with_slippage(100.into()),
-        };
+        let request = QuoteRequest::mock_osmosis_to_cosmos();
 
         let quote = squid.get_quote(&request).await?;
         println!(
@@ -278,13 +247,13 @@ mod swap_integration_tests {
 
     #[tokio::test]
     async fn test_squid_atom_to_osmo() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = create_provider();
+        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
 
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
-            wallet_address: COSMOS_ADDRESS.to_string(),
-            destination_address: OSMOSIS_ADDRESS.to_string(),
+            wallet_address: TEST_COSMOS_ADDRESS.to_string(),
+            destination_address: TEST_OSMOSIS_ADDRESS.to_string(),
             value: BigUint::from(1000000u64),
             options: Options::new_with_slippage(100.into()),
         };
@@ -308,7 +277,7 @@ mod swap_integration_tests {
 
     #[tokio::test]
     async fn test_squid_swap_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = create_provider();
+        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
         let result = squid
             .get_swap_result(Chain::Cosmos, "D68723CEADAB65795B176FAE0B84B0ED5923DA9AAEC69502F8D30554431250A9")
             .await?;
@@ -319,18 +288,9 @@ mod swap_integration_tests {
 
     #[tokio::test]
     async fn test_squid_exact_slippage_quote_and_data_succeed() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = create_provider();
-        let request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
-            wallet_address: OSMOSIS_ADDRESS.to_string(),
-            destination_address: COSMOS_ADDRESS.to_string(),
-            value: BigUint::from(10000000u64),
-            options: Options::new_with_slippage(Slippage {
-                bps: 2000,
-                mode: SlippageMode::Exact,
-            }),
-        };
+        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
+        let mut request = QuoteRequest::mock_osmosis_to_cosmos();
+        request.options.slippage.bps = 2000;
 
         let quote = squid.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::ZERO);

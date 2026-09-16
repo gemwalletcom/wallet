@@ -8,12 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class DeleteWalletImpl @Inject constructor(
-    private val walletService: GemWalletService,
+    private val walletService: GemWalletServiceInterface,
     private val userConfig: UserConfig,
 ) : DeleteWallet {
 

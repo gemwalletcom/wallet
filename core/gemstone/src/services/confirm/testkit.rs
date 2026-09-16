@@ -3,13 +3,16 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, DelegationBase, DelegationValidator, StakeProviderType, Transaction, Wallet, WalletId};
 
-use super::{GemConfirmData, GemConfirmInput, GemConfirmService, GemConfirmTransferService, GemTransactionSigner};
+use super::{
+    GemConfirmData, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransactionSigner, SendInput,
+};
 use crate::GemstoneError;
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
-use crate::gateway::{EmptyPreferences, GemGateway};
+use crate::gateway::GemGateway;
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::assets::{GemAssetStore, GemAssetsService, config::GemAssetConfigService};
-use crate::services::balance::{GemAssetBalance, GemBalanceRecord, GemBalanceService, GemBalanceStore};
+use crate::services::balance::testkit::MemoryBalanceStore;
+use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -20,12 +23,12 @@ use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
 use crate::services::stake::{GemStakeService, GemStakeStore};
 use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService, testkit::MemoryTransactionStateStore};
+use crate::services::transfer::GemTransferData;
 use crate::services::transfer::{GemRecentActivityService, testkit::MemoryRecentActivityStore};
-use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore};
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
 use crate::services::{GemScanService, GemSimulationService};
-use crate::testkit::TestAlienProvider;
+use crate::testkit::{EmptyPreferences, TestAlienProvider};
 use num_bigint::BigInt;
 use primitives::{Account, FeePriority, GasPriceType, TransactionInputType};
 
@@ -64,10 +67,17 @@ impl ConfirmTestkit {
             preferences.clone(),
             session.clone(),
         ));
-        let balances = Arc::new(MemoryBalanceStore {
-            wallet_id: wallet.id,
-            requests: Mutex::new(Vec::new()),
-        });
+        let balances = Arc::new(MemoryBalanceStore::with_balances(
+            wallet.id.clone(),
+            wallet
+                .accounts
+                .iter()
+                .map(|account| GemAssetBalance {
+                    asset_id: AssetId::from_chain(account.chain),
+                    ..GemAssetBalance::mock_with_available(100)
+                })
+                .collect(),
+        ));
         let balance = Arc::new(GemBalanceService::new(
             gateway.clone(),
             wallets,
@@ -117,41 +127,6 @@ impl ConfirmTestkit {
             preferences,
         ));
         Self { service, confirm, balances }
-    }
-}
-
-pub struct MemoryBalanceStore {
-    wallet_id: WalletId,
-    pub requests: Mutex<Vec<WalletId>>,
-}
-
-#[async_trait]
-impl GemBalanceStore for MemoryBalanceStore {
-    async fn get_available_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-        self.requests.lock().unwrap().push(wallet_id.clone());
-        if wallet_id != self.wallet_id {
-            return Ok(Vec::new());
-        }
-        Ok(asset_ids
-            .into_iter()
-            .map(|asset_id| GemAssetBalance {
-                asset_id,
-                available: 100u32.into(),
-                ..GemAssetBalance::mock()
-            })
-            .collect())
-    }
-    async fn update_balances(&self, _: WalletId, _: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
-        panic!("unexpected balance write")
-    }
-    async fn get_enabled_asset_ids(&self, _: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-        panic!("unexpected enabled assets read")
-    }
-    async fn set_assets_enabled(&self, _: WalletId, _: Vec<AssetId>, _: bool) -> Result<(), GemServiceError> {
-        panic!("unexpected asset enable")
-    }
-    async fn set_asset_pinned(&self, _: WalletId, _: AssetId, _: bool) -> Result<(), GemServiceError> {
-        panic!("unexpected asset pin")
     }
 }
 
@@ -232,33 +207,82 @@ impl GemTransactionStatusService for UnusedTransactionStatus {
     }
 }
 
-pub(super) fn confirm_data(chain: Chain, input_type: TransactionInputType, from: &str) -> GemConfirmData {
-    GemConfirmData {
-        additional_fees: vec![],
-        input: GemConfirmInput {
-            from: Account::mock(chain, from),
-            transfer: GemTransferData {
-                input_type,
-                recipient: GemRecipient {
-                    address: "recipient".to_string(),
-                    name: None,
-                    memo: Some("memo".to_string()),
-                    references: vec![],
+impl GemConfirmData {
+    pub fn mock(chain: Chain, input_type: TransactionInputType) -> Self {
+        GemConfirmData {
+            additional_fees: vec![],
+            input: GemConfirmInput {
+                from: Account::mock(chain, "sender"),
+                transfer: GemTransferData {
+                    use_max_amount: true,
+                    ..GemTransferData::mock(input_type)
                 },
-                value: BigInt::from(10),
-                use_max_amount: true,
             },
-        },
-        fee: GemTransactionLoadFee {
-            fee: BigInt::ZERO,
-            gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(5) },
-            gas_limit: BigInt::from(21_000),
-            options: Default::default(),
-            fee_asset: AssetId::from_chain(Chain::Solana),
-        },
-        selected_priority: FeePriority::Normal,
-        fee_rates: vec![],
-        metadata: GemTransactionLoadMetadata::None,
-        simulation: None,
+            fee: GemTransactionLoadFee {
+                gas_price_type: GasPriceType::regular(5),
+                fee_asset: AssetId::from_chain(Chain::Solana),
+                ..GemTransactionLoadFee::mock(0)
+            },
+            selected_priority: FeePriority::Normal,
+            fee_rates: vec![],
+            metadata: GemTransactionLoadMetadata::None,
+            simulation: None,
+        }
+    }
+}
+
+impl SendInput {
+    pub fn mock(chain: Chain, input_type: TransactionInputType) -> Self {
+        SendInput {
+            wallet: Wallet {
+                id: WalletId::Multicoin("wallet".to_string()),
+                ..Wallet::mock_with_accounts(vec![Account::mock(chain, "sender")])
+            },
+            confirm: GemConfirmData::mock(chain, input_type),
+            value: BigInt::from(9),
+            network_fee: BigInt::from(1),
+            simulation: None,
+        }
+    }
+}
+
+impl GemConfirmMetadata {
+    pub fn mock(asset_id: &AssetId, available: u64) -> Self {
+        let balance = GemAssetBalance {
+            asset_id: asset_id.clone(),
+            ..GemAssetBalance::mock_with_available(available)
+        };
+        GemConfirmMetadata {
+            asset_balance: balance.clone(),
+            fee_asset_balance: balance,
+            prices: vec![],
+        }
+    }
+}
+
+impl GemConfirmSimulationState {
+    pub fn mock() -> Self {
+        GemConfirmSimulationState {
+            chain: Chain::Ethereum,
+            result: None,
+            warnings: vec![],
+            simulation: None,
+            address_names: vec![],
+        }
+    }
+}
+
+impl GemConfirmLoad {
+    pub fn mock() -> Self {
+        let eth = Asset::mock_eth();
+        GemConfirmLoad {
+            sender: Account::mock(Chain::Ethereum, "sender"),
+            metadata: GemConfirmMetadata::mock(&eth.id, 0),
+            fee_asset: eth,
+            fee_assets: vec![],
+            simulation: GemConfirmSimulationState::mock(),
+            address_name: None,
+            preload: None,
+        }
     }
 }

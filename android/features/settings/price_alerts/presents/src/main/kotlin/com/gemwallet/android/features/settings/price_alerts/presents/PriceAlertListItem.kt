@@ -14,7 +14,7 @@ import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PriceInfo
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.features.settings.price_alerts.presents.localization.string
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.models.ListPosition
@@ -23,7 +23,7 @@ internal fun priceAlertSupport(item: PriceAlertDataAggregate): (@Composable () -
     PriceInfo(
         price = item.prefix.string(),
         changes = item.suffix.string(),
-        state = item.priceDirection.toValueDirection(),
+        state = item.priceDirection.tone(),
         style = MaterialTheme.typography.bodyMedium,
     )
 }

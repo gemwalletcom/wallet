@@ -192,10 +192,6 @@ impl GemAddAssetService {
 mod session_tests {
     use super::*;
 
-    fn asset() -> Asset {
-        Asset::from_chain(Chain::Ethereum)
-    }
-
     #[test]
     fn test_a_token_is_searched_only_with_a_chain_and_an_address() {
         let session = GemAddAssetSession::new(Some(Chain::Ethereum));
@@ -208,7 +204,7 @@ mod session_tests {
 
     #[test]
     fn test_a_new_address_drops_the_token_found_for_the_previous_one() {
-        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(asset());
+        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Asset::mock());
         assert!(found.view_state().can_add);
 
         let retyped = found.on_address("0xdef".to_string());
@@ -218,7 +214,7 @@ mod session_tests {
 
     #[test]
     fn test_switching_chain_starts_over() {
-        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(asset());
+        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Asset::mock());
 
         assert_eq!(found.on_chain(Some(Chain::SmartChain)).view_state().phase, GemAddAssetPhase::Idle);
     }

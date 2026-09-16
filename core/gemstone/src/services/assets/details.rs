@@ -23,7 +23,6 @@ use super::{GemAssetDetails, GemAssetDetailsInput, GemAssetsService, rules};
 pub enum GemAssetRefreshStep {
     AddPrices,
     SyncAsset,
-    SyncAssociations,
     UpdateBalances,
     SyncTransactions,
 }
@@ -93,21 +92,12 @@ impl GemAssetDetailsService {
         };
         record(&mut failures, GemAssetRefreshStep::AddPrices, self.stream.add_prices(vec![asset_id.clone()])).await;
 
-        let associations = match self.assets.sync_asset(asset_id.clone()).await {
-            Ok(asset) => asset.associations.into_iter().map(|association| association.asset_id).collect(),
-            Err(error) => {
-                failures.push(GemAssetRefreshFailure::new(GemAssetRefreshStep::SyncAsset, error.to_string()));
-                Vec::new()
-            }
-        };
-        if !associations.is_empty() {
-            record(
-                &mut failures,
-                GemAssetRefreshStep::SyncAssociations,
-                self.assets.sync_missing_assets(associations).map_ok(|_| ()),
-            )
-            .await;
-        }
+        record(
+            &mut failures,
+            GemAssetRefreshStep::SyncAsset,
+            self.assets.sync_asset_associations(asset_id.clone()).map_ok(|_| ()),
+        )
+        .await;
 
         record_both(
             &mut failures,
@@ -190,7 +180,7 @@ mod tests {
     use futures::executor::block_on;
     use primitives::Chain;
 
-    use super::super::details_testkit::AssetDetailsTestkit;
+    use super::super::testkit::AssetDetailsTestkit;
     use super::*;
 
     #[test]

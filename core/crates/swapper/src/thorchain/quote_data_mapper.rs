@@ -58,32 +58,21 @@ pub fn map_quote_data(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::thorchain::{THORChainNetwork, chain::ChainName};
     use num_bigint::BigUint;
     use primitives::{Chain, asset_constants::ETHEREUM_USDC_TOKEN_ID, swap::ApprovalData};
-
-    fn asset(chain: Chain, token_id: Option<String>) -> THORChainAsset {
-        THORChainAsset {
-            chain: ChainName::from_chain(THORChainNetwork::Thorchain, chain).unwrap(),
-            symbol: "TEST".to_string(),
-            token_id,
-            decimals: 18,
-        }
-    }
-
-    fn route_data(router: Option<String>, inbound: &str) -> RouteData {
-        RouteData {
-            router_address: router,
-            inbound_address: inbound.to_string(),
-        }
-    }
 
     #[test]
     fn evm_router() {
         let usdc_eth = ETHEREUM_USDC_TOKEN_ID.to_string();
         let result = map_quote_data(
-            &asset(Chain::Ethereum, Some(usdc_eth.clone())),
-            &route_data(Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()), "0x1234567890123456789012345678901234567890"),
+            &THORChainAsset {
+                token_id: Some(usdc_eth.clone()),
+                ..THORChainAsset::mock(Chain::Ethereum)
+            },
+            &RouteData {
+                router_address: Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()),
+                inbound_address: "0x1234567890123456789012345678901234567890".to_string(),
+            },
             Some(usdc_eth),
             BigUint::from(1000000u64),
             "memo".to_string(),
@@ -101,8 +90,11 @@ mod tests {
     #[test]
     fn evm_native() {
         let result = map_quote_data(
-            &asset(Chain::Ethereum, None),
-            &route_data(Some("0xrouter".to_string()), "0xinbound"),
+            &THORChainAsset::mock(Chain::Ethereum),
+            &RouteData {
+                router_address: Some("0xrouter".to_string()),
+                inbound_address: "0xinbound".to_string(),
+            },
             None,
             BigUint::from(1000u64),
             "memo".to_string(),
@@ -120,8 +112,11 @@ mod tests {
     #[test]
     fn non_evm() {
         let result = map_quote_data(
-            &asset(Chain::Bitcoin, None),
-            &route_data(None, "bc1q"),
+            &THORChainAsset::mock(Chain::Bitcoin),
+            &RouteData {
+                router_address: None,
+                inbound_address: "bc1q".to_string(),
+            },
             None,
             BigUint::from(1_000u64),
             "memo".to_string(),
@@ -139,8 +134,11 @@ mod tests {
     #[test]
     fn zcash_native() {
         let result = map_quote_data(
-            &asset(Chain::Zcash, None),
-            &route_data(None, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML"),
+            &THORChainAsset::mock(Chain::Zcash),
+            &RouteData {
+                router_address: None,
+                inbound_address: "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML".to_string(),
+            },
             None,
             BigUint::from(10000000u64),
             "=:b:bc1qdestination:0/1/0:g1:50".to_string(),
@@ -161,8 +159,14 @@ mod tests {
         let approval = Some(ApprovalData::make(&usdc_eth, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146", BigUint::from(2000u64), false));
 
         let result = map_quote_data(
-            &asset(Chain::Ethereum, Some(usdc_eth.clone())),
-            &route_data(Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()), "0x1234567890123456789012345678901234567890"),
+            &THORChainAsset {
+                token_id: Some(usdc_eth.clone()),
+                ..THORChainAsset::mock(Chain::Ethereum)
+            },
+            &RouteData {
+                router_address: Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()),
+                inbound_address: "0x1234567890123456789012345678901234567890".to_string(),
+            },
             Some(usdc_eth),
             BigUint::from(1000000u64),
             "memo".to_string(),
@@ -189,8 +193,11 @@ mod tests {
     #[test]
     fn evm_native_without_approval() {
         let result = map_quote_data(
-            &asset(Chain::Ethereum, None),
-            &route_data(Some("0xrouter".to_string()), "0xinbound"),
+            &THORChainAsset::mock(Chain::Ethereum),
+            &RouteData {
+                router_address: Some("0xrouter".to_string()),
+                inbound_address: "0xinbound".to_string(),
+            },
             None,
             BigUint::from(1000u64),
             "memo".to_string(),

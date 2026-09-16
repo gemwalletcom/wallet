@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemNftServiceInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 
@@ -32,7 +33,7 @@ class GetListNftImpl(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAssetNftImpl(
-    private val nftService: GemNftService,
+    private val nftService: GemNftServiceInterface,
     private val nftStore: GemstoneNftStore,
 ) : GetAssetNft {
 

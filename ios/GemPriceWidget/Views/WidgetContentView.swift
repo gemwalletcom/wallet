@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import GemstonePrimitives
 import Style
 import SwiftUI
 import WidgetKit
@@ -22,26 +23,13 @@ struct WidgetContentView: View {
             case .systemSmall:
                 if let bitcoin = viewModel.prices.first {
                     SmallCoinView(
-                        model: CoinPriceRowViewModel(
-                            coin: bitcoin,
-                            currencyFormatter: PriceWidgetFormatter(
-                                style: .abbreviated,
-                                currencyCode: viewModel.entry.currency,
-                            ),
-                            percentFormatter: PercentFormatter(),
-                        ),
+                        model: CoinPriceRowViewModel(coin: bitcoin),
                     )
                 }
             default:
                 ForEach(viewModel.prices) { coin in
                     CoinPriceRow(
-                        model: CoinPriceRowViewModel(
-                            coin: coin,
-                            currencyFormatter: PriceWidgetFormatter(
-                                currencyCode: viewModel.entry.currency,
-                            ),
-                            percentFormatter: PercentFormatter(),
-                        ),
+                        model: CoinPriceRowViewModel(coin: coin),
                     )
                 }
             }

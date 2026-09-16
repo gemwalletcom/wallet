@@ -105,30 +105,18 @@ impl GemChartSession {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn chart(points: usize) -> GemChart {
-        GemChart {
-            base_value: 1.0,
-            current: None,
-            values: (0..points)
-                .map(|index| primitives::ChartDateValue {
-                    date: chrono::DateTime::from_timestamp(index as i64, 0).unwrap(),
-                    value: index as f64,
-                })
-                .collect(),
-        }
-    }
+    use primitives::ChartDateValue;
 
     #[test]
     fn test_a_chart_with_no_points_reads_as_no_data_not_as_a_failure() {
-        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(0));
+        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![]));
 
         assert_eq!(session.view_state().phase, GemChartPhase::NoData);
     }
 
     #[test]
     fn test_selecting_the_same_period_keeps_the_chart_it_already_loaded() {
-        let loaded = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(2));
+        let loaded = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]));
 
         assert_eq!(loaded.on_select_period(ChartPeriod::Day), loaded, "reselecting a period is not a reload");
         assert_eq!(loaded.on_select_period(ChartPeriod::Week).view_state().phase, GemChartPhase::Loading);
@@ -136,7 +124,9 @@ mod tests {
 
     #[test]
     fn test_a_refresh_keeps_the_visible_chart_and_marks_itself_refreshing() {
-        let refreshing = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(2)).on_refresh();
+        let refreshing = GemChartSession::new(ChartPeriod::Day, Currency::USD)
+            .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]))
+            .on_refresh();
         let state = refreshing.view_state();
 
         assert!(state.is_refreshing);
@@ -151,7 +141,9 @@ mod tests {
     fn test_a_failure_after_a_load_keeps_the_chart_and_a_first_failure_reports_it() {
         let error = GemServiceError::Core { msg: "offline".to_string() };
         let first = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_failed(error.clone());
-        let after_load = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(chart(2)).on_failed(error);
+        let after_load = GemChartSession::new(ChartPeriod::Day, Currency::USD)
+            .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]))
+            .on_failed(error);
 
         assert!(matches!(first.view_state().phase, GemChartPhase::Failed { .. }));
         assert!(matches!(after_load.view_state().phase, GemChartPhase::Data { .. }));

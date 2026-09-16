@@ -27,8 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.ui.components.list_item.color
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.chart.CandleUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.ChartAxisTick
@@ -83,9 +83,9 @@ fun GemCandlestickChart(
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
 
-    val upColor = ValueDirection.Up.color()
-    val downColor = ValueDirection.Down.color()
-    val flatColor = ValueDirection.None.color()
+    val upColor = GemValueTone.POSITIVE.color()
+    val downColor = GemValueTone.NEGATIVE.color()
+    val flatColor = GemValueTone.NEUTRAL.color()
     val axisLabelColor = MaterialTheme.colorScheme.secondary
     val gridGuidelineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.13f)
     val selectionAccentColor = MaterialTheme.colorScheme.primary
@@ -233,9 +233,9 @@ private fun referenceColors(): (GemPerpetualChartLineKind) -> Color {
 }
 
 private fun candleColor(candle: CandleUIModel, up: Color, down: Color, flat: Color): Color = when (candle.direction) {
-    ValueDirection.Up -> up
-    ValueDirection.Down -> down
-    ValueDirection.None -> flat
+    GemValueTone.POSITIVE -> up
+    GemValueTone.NEGATIVE -> down
+    GemValueTone.NEUTRAL, GemValueTone.PLAIN -> flat
 }
 
 private fun DrawScope.drawYAxis(

@@ -41,10 +41,6 @@ public struct PerpetualPositionViewModel {
         AssetIdViewModel(assetId: data.perpetual.assetId).assetImage
     }
 
-    public var nameText: String {
-        data.perpetual.name
-    }
-
     public var symbolText: String {
         row.title
     }

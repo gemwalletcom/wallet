@@ -39,13 +39,9 @@ mod tests {
 
     const CONTRACT: &str = "0x1111111111111111111111111111111111111111";
 
-    fn call(data: &str, block: &str) -> JsonRpcCall {
-        JsonRpcCall::mock_with_params(1, ETH_CALL, serde_json::json!([{ "to": CONTRACT, "data": data }, block]))
-    }
-
     #[test]
     fn test_decode_contract_calls() {
-        let call = call("0x1698ee820000", "latest");
+        let call = JsonRpcCall::mock_eth_call(CONTRACT, "0x1698ee820000");
         let calls = EvmContractCallDecoder.decode_contract_calls(ContractRequest::JsonRpc(&call)).unwrap();
 
         assert_eq!(
@@ -59,8 +55,8 @@ mod tests {
 
     #[test]
     fn test_rejects_unsupported_calls() {
-        let pending = call("0x1698ee820000", "pending");
-        let short_data = call("0x1698", "latest");
+        let pending = JsonRpcCall::mock_with_params(1, ETH_CALL, serde_json::json!([{ "to": CONTRACT, "data": "0x1698ee820000" }, "pending"]));
+        let short_data = JsonRpcCall::mock_eth_call(CONTRACT, "0x1698");
         let extra_field = JsonRpcCall::mock_with_params(1, ETH_CALL, serde_json::json!([{ "to": CONTRACT, "data": "0x1698ee82", "value": "0x1" }, "latest"]));
 
         assert!(EvmContractCallDecoder.decode_contract_calls(ContractRequest::JsonRpc(&pending)).is_none());

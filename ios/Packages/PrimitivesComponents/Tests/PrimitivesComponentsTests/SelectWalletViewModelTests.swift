@@ -2,28 +2,16 @@
 
 import Components
 import Gemstone
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import Testing
 
 struct SelectWalletViewModelTests {
-    private func row(_ id: String, isPinned: Bool = false) -> GemWalletRow {
-        GemWalletRow(
-            id: id,
-            name: id,
-            subtitle: .address(value: id),
-            placeholder: .multicoin,
-            showsWatchBadge: false,
-            isPinned: isPinned,
-            hasAvatar: false,
-            imageUrl: nil,
-        )
-    }
-
     @Test
     func pinnedWalletsGetTheirOwnSection() throws {
-        let pinned = row("a", isPinned: true)
-        let model = SelectWalletViewModel(rows: [pinned, row("b"), row("c")], selectedRow: pinned)
+        let pinned = GemWalletRow.mock(id: "a", isPinned: true)
+        let model = SelectWalletViewModel(rows: [pinned, .mock(id: "b"), .mock(id: "c")], selectedRow: pinned)
 
         guard case let .data(.section(sections)) = model.state else {
             Issue.record("expected sections, got \(model.state)")
@@ -37,8 +25,8 @@ struct SelectWalletViewModelTests {
 
     @Test
     func withNoPinnedWalletThereIsOneSection() {
-        let first = row("a")
-        let model = SelectWalletViewModel(rows: [first, row("b")], selectedRow: first)
+        let first = GemWalletRow.mock(id: "a")
+        let model = SelectWalletViewModel(rows: [first, .mock(id: "b")], selectedRow: first)
 
         guard case let .data(.section(sections)) = model.state else {
             Issue.record("expected sections, got \(model.state)")

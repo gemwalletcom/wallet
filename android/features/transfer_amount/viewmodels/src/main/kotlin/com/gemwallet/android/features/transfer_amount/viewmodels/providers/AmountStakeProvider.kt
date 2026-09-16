@@ -6,7 +6,6 @@ import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.stake.hasRewards
-import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -172,10 +171,8 @@ class AmountStakeProvider(
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         val current = assetInfo.filterNotNull().first()
-        val confirmed = selected.value?.confirmed(selectedResource.value) ?: throw missingSelection()
+        val confirmed = checkNotNull(selected.value?.confirmed(selectedResource.value)) { "stake action requires a selection" }
         return service.stakeTransferData(current.asset.toGem(), confirmed.stakeType(), amount.atomicValue, isMax)
     }
 
-    private fun missingSelection(): AmountError =
-        if (delegationIdentity != null) AmountError.NoDelegationSelected else AmountError.NoValidatorSelected
 }

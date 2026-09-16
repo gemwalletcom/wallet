@@ -13,6 +13,8 @@ pub mod tvm;
 pub mod address;
 pub mod constants;
 pub mod models;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 
 pub use address::{Address, validate_address};
 pub use primitives::AddressError;

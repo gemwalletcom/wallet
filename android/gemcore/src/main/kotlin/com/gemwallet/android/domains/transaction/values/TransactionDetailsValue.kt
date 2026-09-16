@@ -1,6 +1,6 @@
 package com.gemwallet.android.domains.transaction.values
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemSwapProgressState
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.AssetPriceValue
@@ -112,7 +112,7 @@ sealed interface TransactionDetailsValue {
 
     class Network(val data: Asset) : TransactionDetailsValue
 
-    class Pnl(val value: String, val direction: ValueDirection) : TransactionDetailsValue
+    class Pnl(val value: String, val direction: GemValueTone) : TransactionDetailsValue
 
     class Price(val data: String) : TransactionDetailsValue
 

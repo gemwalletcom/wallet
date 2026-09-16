@@ -27,37 +27,34 @@ mod tests {
     use crate::models::signing::{Memo, Operation, StellarAssetData, StellarTransaction};
     use crate::signer::signing::sign_transaction;
     use gem_encoding::decode_base64;
-    use primitives::{Address, Asset, AssetId, AssetType, Chain, TransactionFee, TransactionLoadInput, TransactionLoadMetadata};
+    use primitives::{Address, Asset, AssetId, AssetType, Chain, TransactionFee, TransactionInputType, TransactionLoadMetadata};
     use signer::Ed25519KeyPair;
 
     const PRIVATE_KEY: &str = "59a313f46ef1c23a9e4f71cea10fc0c56a2a6bb8a4b9ea3d5348823e5a478722";
     const SENDER: &str = "GAE2SZV4VLGBAPRYRFV2VY7YYLYGYIP5I7OU7BSP6DJT7GAZ35OKFDYI";
     const DESTINATION: &str = "GDCYBNRRPIHLHG7X7TKPUPAZ7WVUXCN3VO7WCCK64RIFV5XM5V5K4A52";
 
-    fn metadata(sequence: u64, is_destination_address_exist: bool) -> TransactionLoadMetadata {
-        TransactionLoadMetadata::Stellar {
-            sequence,
-            is_destination_address_exist,
-        }
-    }
-
     #[test]
     fn test_sign_stellar_transactions() {
         let key = hex::decode(PRIVATE_KEY).unwrap();
 
         // Native transfer with memo
-        let input = SignerInput::new(
-            TransactionLoadInput::mock_transfer(
-                Asset::from_chain(Chain::Stellar),
+        let mut input = SignerInput {
+            fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Stellar),
+                },
                 SENDER,
                 DESTINATION,
                 "10000000",
-                1000,
-                Some("Hello, world!"),
-                metadata(2, true),
-            ),
-            TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
-        );
+                TransactionLoadMetadata::Stellar {
+                    sequence: 2,
+                    is_destination_address_exist: true,
+                },
+            )
+        };
+        input.input.memo = Some("Hello, world!".to_string());
         let signed = StellarChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(
             signed,
@@ -65,10 +62,21 @@ mod tests {
         );
 
         // Transfer to non-existent destination (creates account)
-        let input = SignerInput::new(
-            TransactionLoadInput::mock_transfer(Asset::from_chain(Chain::Stellar), SENDER, DESTINATION, "10000000", 1000, None, metadata(2, false)),
-            TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
-        );
+        let input = SignerInput {
+            fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Stellar),
+                },
+                SENDER,
+                DESTINATION,
+                "10000000",
+                TransactionLoadMetadata::Stellar {
+                    sequence: 2,
+                    is_destination_address_exist: false,
+                },
+            )
+        };
         let signed = StellarChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(
             signed,
@@ -84,18 +92,19 @@ mod tests {
             7,
             AssetType::TOKEN,
         );
-        let input = SignerInput::new(
-            TransactionLoadInput::mock_transfer(
-                mobi,
+        let input = SignerInput {
+            fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer { asset: mobi },
                 "GDFEKJIFKUZP26SESUHZONAUJZMBSODVN2XBYN4KAGNHB7LX2OIXLPUL",
                 "GA3ISGYIE2ZTH3UAKEKBVHBPKUSL3LT4UQ6C5CUGP2IM5F467O267KI7",
                 "12000000",
-                1000,
-                None,
-                metadata(144098454883270661, true),
-            ),
-            TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
-        );
+                TransactionLoadMetadata::Stellar {
+                    sequence: 144098454883270661,
+                    is_destination_address_exist: true,
+                },
+            )
+        };
         let signed = StellarChainSigner
             .sign_token_transfer(&input, &hex::decode("3c0635f8638605aed6e461cf3fa2d508dd895df1a1655ff92c79bfbeaf88d4b9").unwrap())
             .unwrap();
@@ -131,10 +140,21 @@ mod tests {
 
         let signed = StellarChainSigner
             .sign_transfer(
-                &SignerInput::new(
-                    TransactionLoadInput::mock_transfer(Asset::from_chain(Chain::Stellar), SENDER, DESTINATION, "10000000", 1000, None, metadata(2, true)),
-                    TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
-                ),
+                &SignerInput {
+                    fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
+                    ..SignerInput::mock_with_input_type(
+                        TransactionInputType::Transfer {
+                            asset: Asset::from_chain(Chain::Stellar),
+                        },
+                        SENDER,
+                        DESTINATION,
+                        "10000000",
+                        TransactionLoadMetadata::Stellar {
+                            sequence: 2,
+                            is_destination_address_exist: true,
+                        },
+                    )
+                },
                 &transfer_key,
             )
             .unwrap();

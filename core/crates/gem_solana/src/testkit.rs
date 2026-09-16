@@ -1,6 +1,15 @@
 use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
 
-use crate::{AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Message, MessageHeader, Pubkey, VersionedTransaction, models::EpochInfo, siws::SiwsMessage};
+use num_bigint::BigUint;
+
+use crate::{
+    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Message, MessageHeader, Pubkey, VersionedTransaction,
+    models::{
+        BlockTransaction, EpochInfo, Info, Meta, Parsed, StakeDelegation, StakeInfo, TokenAccountData, TokenAccountInfo, TokenAccountInfoData, TokenAmount, TokenBalance,
+        Transaction, TransactionMessage,
+    },
+    siws::SiwsMessage,
+};
 
 pub(crate) const TEST_BLOCKHASH: [u8; 32] = [1; 32];
 
@@ -58,6 +67,18 @@ pub(crate) fn mock_transaction(programs: &[(&str, Vec<u8>)]) -> VersionedTransac
     mock_transaction_with_accounts(account_keys, instructions)
 }
 
+#[cfg(feature = "signer")]
+pub(crate) fn mock_legacy_transaction() -> VersionedTransaction {
+    mock_transaction_with_accounts(
+        vec![Pubkey::new([1; 32]), Pubkey::new([2; 32])],
+        vec![CompiledInstruction {
+            program_id_index: 1,
+            accounts: vec![0],
+            data: vec![],
+        }],
+    )
+}
+
 pub(crate) fn mock_transaction_with_accounts(account_keys: Vec<Pubkey>, instructions: Vec<CompiledInstruction>) -> VersionedTransaction {
     VersionedTransaction::Legacy {
         signatures: vec![],
@@ -90,6 +111,71 @@ impl EpochInfo {
             epoch: 200,
             slot_index,
             slots_in_epoch: 432000,
+        }
+    }
+}
+
+impl TokenBalance {
+    pub fn mock(mint: &str, owner: &str, amount: u64) -> Self {
+        Self {
+            account_index: 0,
+            mint: mint.to_string(),
+            owner: owner.to_string(),
+            ui_token_amount: TokenAmount {
+                amount: BigUint::from(amount),
+                decimals: 6,
+            },
+        }
+    }
+}
+
+impl TokenAccountInfo {
+    pub fn mock_stake(activation_epoch: u64, deactivation_epoch: u64) -> Self {
+        Self {
+            pubkey: "stake1".to_string(),
+            account: TokenAccountData {
+                data: Parsed {
+                    parsed: Info {
+                        info: TokenAccountInfoData {
+                            mint: None,
+                            token_amount: None,
+                            stake: Some(StakeInfo {
+                                delegation: StakeDelegation {
+                                    activation_epoch,
+                                    deactivation_epoch,
+                                    stake: "1000000".to_string(),
+                                    voter: "validator1".to_string(),
+                                },
+                            }),
+                        },
+                    },
+                },
+                owner: "owner1".to_string(),
+                lamports: 1000000,
+            },
+        }
+    }
+}
+
+impl BlockTransaction {
+    pub fn mock(account_keys: &[&str], pre_balances: Vec<u64>, post_balances: Vec<u64>) -> Self {
+        Self {
+            meta: Meta {
+                err: None,
+                fee: 5000,
+                pre_balances,
+                post_balances,
+                pre_token_balances: vec![],
+                post_token_balances: vec![],
+                loaded_addresses: None,
+            },
+            transaction: Transaction {
+                message: TransactionMessage {
+                    account_keys: account_keys.iter().map(|key| key.to_string()).collect(),
+                    instructions: vec![],
+                },
+                signatures: vec![],
+            },
         }
     }
 }

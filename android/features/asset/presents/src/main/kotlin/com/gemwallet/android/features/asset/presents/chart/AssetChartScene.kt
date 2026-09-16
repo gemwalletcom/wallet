@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.features.asset.presents.localization.stringRes
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AllTimeUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartSectionUIModel
@@ -39,7 +39,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -191,7 +191,7 @@ private fun AllTimeProperty(currency: Currency, item: AllTimeUIModel, position: 
             val rowScope = this
             Column(horizontalAlignment = Alignment.End) {
                 with(rowScope) { PropertyDataText(CurrencyFormatter(currency = currency).string(item.value)) }
-                ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toValueDirection().color())
+                ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.tone().color())
             }
         },
     )

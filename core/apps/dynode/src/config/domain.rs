@@ -54,59 +54,38 @@ impl ChainConfig {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
-
     use super::*;
-    use crate::testkit::config as testkit;
-
-    fn make_chain_config(poll_interval: Option<u64>) -> ChainConfig {
-        ChainConfig {
-            chain: primitives::Chain::Ethereum,
-            poll_interval_seconds: poll_interval,
-            latency: None,
-            overrides: None,
-            allowlist: None,
-            urls: vec![],
-        }
-    }
-
-    fn make_chain_config_with_overrides(overrides: Vec<Override>) -> ChainConfig {
-        ChainConfig {
-            chain: primitives::Chain::Ethereum,
-            poll_interval_seconds: None,
-            latency: None,
-            overrides: Some(overrides),
-            allowlist: None,
-            urls: vec![testkit::url("https://example.com")],
-        }
-    }
-
-    fn make_monitoring_config(interval: u64) -> MonitoringConfig {
-        MonitoringConfig {
-            interval: Duration::from_secs(interval),
-            ..testkit::monitoring_config()
-        }
-    }
 
     #[test]
     fn monitoring_interval_uses_chain_override() {
-        let chain_config = make_chain_config(Some(20));
-        let config = make_monitoring_config(45);
+        let chain_config = ChainConfig {
+            poll_interval_seconds: Some(20),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        let config = MonitoringConfig {
+            interval: Duration::from_secs(45),
+            ..MonitoringConfig::mock()
+        };
         assert_eq!(chain_config.monitoring_interval(&config), Duration::from_secs(20));
     }
 
     #[test]
     fn monitoring_interval_uses_global_fallback() {
-        let chain_config = make_chain_config(None);
-        let config = make_monitoring_config(45);
+        let chain_config = ChainConfig::mock(Chain::Ethereum);
+        let config = MonitoringConfig {
+            interval: Duration::from_secs(45),
+            ..MonitoringConfig::mock()
+        };
         assert_eq!(chain_config.monitoring_interval(&config), Duration::from_secs(45));
     }
 
     #[test]
     fn monitoring_latency_uses_chain_override() {
-        let mut chain_config = make_chain_config(None);
-        chain_config.latency = Some(Duration::from_secs(3));
-        let mut config = make_monitoring_config(45);
+        let chain_config = ChainConfig {
+            latency: Some(Duration::from_secs(3)),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        let mut config = MonitoringConfig::mock();
         config.trigger.latency = Some(Duration::from_secs(1));
 
         assert_eq!(chain_config.monitoring_latency(&config), Some(Duration::from_secs(3)));
@@ -114,8 +93,8 @@ mod tests {
 
     #[test]
     fn monitoring_latency_uses_global_fallback() {
-        let chain_config = make_chain_config(None);
-        let mut config = make_monitoring_config(45);
+        let chain_config = ChainConfig::mock(Chain::Ethereum);
+        let mut config = MonitoringConfig::mock();
         config.trigger.latency = Some(Duration::from_secs(1));
 
         assert_eq!(chain_config.monitoring_latency(&config), Some(Duration::from_secs(1)));
@@ -123,30 +102,36 @@ mod tests {
 
     #[test]
     fn resolve_url_without_override() {
-        let chain_config = make_chain_config(None);
-        let base_url = testkit::url("https://example.com/rpc");
+        let chain_config = ChainConfig::mock(Chain::Ethereum);
+        let base_url = Url::mock("https://example.com/rpc");
         assert_eq!(chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url, "https://example.com/rpc");
     }
 
     #[test]
     fn resolve_url_with_rpc_method_override() {
-        let chain_config = make_chain_config_with_overrides(vec![Override {
-            rpc_method: Some("eth_sendTransaction".to_string()),
-            path: None,
-            url: "https://tx-relay.example.com".to_string(),
-        }]);
-        let base_url = testkit::url("https://example.com/rpc");
+        let chain_config = ChainConfig {
+            overrides: Some(vec![Override {
+                rpc_method: Some("eth_sendTransaction".to_string()),
+                path: None,
+                url: "https://tx-relay.example.com".to_string(),
+            }]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        let base_url = Url::mock("https://example.com/rpc");
         assert_eq!(chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url, "https://tx-relay.example.com");
     }
 
     #[test]
     fn resolve_url_with_rpc_method_and_path_override() {
-        let chain_config = make_chain_config_with_overrides(vec![Override {
-            rpc_method: Some("eth_sendTransaction".to_string()),
-            path: None,
-            url: "https://tx-relay.example.com/tx/submit".to_string(),
-        }]);
-        let base_url = testkit::url("https://example.com/rpc");
+        let chain_config = ChainConfig {
+            overrides: Some(vec![Override {
+                rpc_method: Some("eth_sendTransaction".to_string()),
+                path: None,
+                url: "https://tx-relay.example.com/tx/submit".to_string(),
+            }]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        let base_url = Url::mock("https://example.com/rpc");
         assert_eq!(
             chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url,
             "https://tx-relay.example.com/tx/submit"
@@ -155,23 +140,29 @@ mod tests {
 
     #[test]
     fn resolve_url_without_matching_override() {
-        let chain_config = make_chain_config_with_overrides(vec![Override {
-            rpc_method: Some("eth_sendTransaction".to_string()),
-            path: None,
-            url: "https://tx-relay.example.com".to_string(),
-        }]);
-        let base_url = testkit::url("https://example.com/rpc");
+        let chain_config = ChainConfig {
+            overrides: Some(vec![Override {
+                rpc_method: Some("eth_sendTransaction".to_string()),
+                path: None,
+                url: "https://tx-relay.example.com".to_string(),
+            }]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        let base_url = Url::mock("https://example.com/rpc");
         assert_eq!(chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url, "https://example.com/rpc");
     }
 
     #[test]
     fn resolve_url_with_wildcard_override() {
-        let chain_config = make_chain_config_with_overrides(vec![Override {
-            rpc_method: None,
-            path: None,
-            url: "https://fallback.example.com/v2/rpc".to_string(),
-        }]);
-        let base_url = testkit::url("https://example.com/rpc");
+        let chain_config = ChainConfig {
+            overrides: Some(vec![Override {
+                rpc_method: None,
+                path: None,
+                url: "https://fallback.example.com/v2/rpc".to_string(),
+            }]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        let base_url = Url::mock("https://example.com/rpc");
         assert_eq!(
             chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url,
             "https://fallback.example.com/v2/rpc"
@@ -180,25 +171,31 @@ mod tests {
 
     #[test]
     fn resolve_url_with_path_override() {
-        let chain_config = make_chain_config_with_overrides(vec![Override {
-            rpc_method: None,
-            path: Some("/api/v1/block".to_string()),
-            url: "https://api.example.com/v2/block".to_string(),
-        }]);
-        let base_url = testkit::url("https://example.com");
+        let chain_config = ChainConfig {
+            overrides: Some(vec![Override {
+                rpc_method: None,
+                path: Some("/api/v1/block".to_string()),
+                url: "https://api.example.com/v2/block".to_string(),
+            }]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        let base_url = Url::mock("https://example.com");
         assert_eq!(chain_config.resolve_url(&base_url, None, Some("/api/v1/block")).url, "https://api.example.com/v2/block");
     }
 
     #[test]
     fn resolve_url_preserves_headers() {
-        let chain_config = make_chain_config_with_overrides(vec![Override {
-            rpc_method: Some("eth_sendTransaction".to_string()),
-            path: None,
-            url: "https://tx-relay.example.com".to_string(),
-        }]);
+        let chain_config = ChainConfig {
+            overrides: Some(vec![Override {
+                rpc_method: Some("eth_sendTransaction".to_string()),
+                path: None,
+                url: "https://tx-relay.example.com".to_string(),
+            }]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
         let base_url = Url {
-            url: "https://example.com/rpc".to_string(),
             headers: Some(std::collections::HashMap::from([("x-api-key".to_string(), "test123".to_string())])),
+            ..Url::mock("https://example.com/rpc")
         };
         let resolved = chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None);
         assert_eq!(resolved.headers.as_ref().unwrap().get("x-api-key").unwrap(), "test123");

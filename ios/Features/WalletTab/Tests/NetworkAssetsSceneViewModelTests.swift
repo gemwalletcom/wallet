@@ -8,23 +8,13 @@ import PrimitivesTestKit
 import StoreTestKit
 import Testing
 @testable import WalletTab
+import WalletTabTestKit
 
 @MainActor
 struct NetworkAssetsSceneViewModelTests {
-    private func token(pinned: Bool = false) -> AssetData {
-        AssetData.mock(asset: .mock(id: .mock(.ethereum), type: .erc20), metadata: .mock(isPinned: pinned))
-    }
-
-    private func model(
-        service: GemWalletHomeServiceMock = GemWalletHomeServiceMock(),
-        onManageAssets: @escaping () -> Void = {},
-    ) -> NetworkAssetsSceneViewModel {
-        NetworkAssetsSceneViewModel(wallet: .mock(), chain: .ethereum, service: service, onManageAssets: onManageAssets)
-    }
-
     @Test
     func anEmptyNetworkShowsOnlyTheEmptyState() {
-        let model = model()
+        let model = NetworkAssetsSceneViewModel.mock()
 
         #expect(model.showEmpty)
         #expect(model.showPinned == false)
@@ -34,8 +24,8 @@ struct NetworkAssetsSceneViewModelTests {
 
     @Test
     func theNativeAssetIsNeverListed() {
-        let model = model()
-        model.activeQuery.value = [AssetData.mock(asset: .mock(id: .mock(.ethereum), type: .native)), token()]
+        let model = NetworkAssetsSceneViewModel.mock()
+        model.activeQuery.value = [.mock(asset: .mockEthereum()), .mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))]
 
         #expect(model.active.count == 1)
         #expect(model.showUnpinned)
@@ -44,8 +34,12 @@ struct NetworkAssetsSceneViewModelTests {
 
     @Test
     func pinnedAndUnpinnedSplitOnTheirMetadata() {
-        let model = model()
-        model.activeQuery.value = [token(pinned: true), token(), token()]
+        let model = NetworkAssetsSceneViewModel.mock()
+        model.activeQuery.value = [
+            .mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: true)),
+            .mock(asset: .mockTronUSDT(), metadata: .mock(isPinned: false)),
+            .mock(asset: .mockSolanaUSDC(), metadata: .mock(isPinned: false)),
+        ]
 
         #expect(model.pinned.count == 1)
         #expect(model.unpinned.count == 2)
@@ -55,8 +49,8 @@ struct NetworkAssetsSceneViewModelTests {
 
     @Test
     func hiddenAssetsComeFromTheirOwnQuery() {
-        let model = model()
-        model.hiddenQuery.value = [token()]
+        let model = NetworkAssetsSceneViewModel.mock()
+        model.hiddenQuery.value = [.mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))]
 
         #expect(model.showHidden)
         #expect(model.showEmpty == false)
@@ -65,9 +59,10 @@ struct NetworkAssetsSceneViewModelTests {
 
     @Test
     func updatingBalancesAsksForEveryListedAsset() async {
-        let model = model()
-        model.activeQuery.value = [token()]
-        model.hiddenQuery.value = [token()]
+        let model = NetworkAssetsSceneViewModel.mock()
+        let token = AssetData.mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))
+        model.activeQuery.value = [token]
+        model.hiddenQuery.value = [token]
 
         await model.updateBalances()
 
@@ -77,7 +72,7 @@ struct NetworkAssetsSceneViewModelTests {
     @Test
     func pinningAndEnablingGoStraightToCore() async throws {
         let service = GemWalletHomeServiceMock()
-        let model = model(service: service)
+        let model = NetworkAssetsSceneViewModel.mock(service: service)
         let assetId = AssetId.mock(.ethereum)
 
         try await model.setAssetPinned(assetId, pinned: true)
@@ -89,7 +84,7 @@ struct NetworkAssetsSceneViewModelTests {
 
     @Test
     func copyingAnAddressShowsTheToast() {
-        let model = model()
+        let model = NetworkAssetsSceneViewModel.mock()
 
         model.onCopyAddress("copied")
 
@@ -99,7 +94,7 @@ struct NetworkAssetsSceneViewModelTests {
     @Test
     func managingAssetsCallsBack() {
         var calls = 0
-        let model = model(onManageAssets: { calls += 1 })
+        let model = NetworkAssetsSceneViewModel.mock(onManageAssets: { calls += 1 })
 
         model.onSelectManageAssets()
 

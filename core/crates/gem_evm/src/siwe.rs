@@ -100,33 +100,11 @@ impl SiweMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::siwe_mock::mock_siwe_message;
-
-    fn sample_message() -> String {
-        [
-            "login.xyz wants you to sign in with your Ethereum account:",
-            "0x6dD7802E6d44bE89a789C4bD60bD511B68F41c7c",
-            "",
-            "Sign in with Ethereum to the app.",
-            "",
-            "URI: https://login.xyz",
-            "Version: 1",
-            "Chain ID: 1",
-            "Nonce: 8hK9pX32",
-            "Issued At: 2024-04-01T12:00:00Z",
-            "Expiration Time: 2024-04-02T12:00:00Z",
-            "Not Before: 2024-04-01T11:00:00Z",
-            "Request ID: abc-123",
-            "Resources:",
-            "- https://example.com/terms",
-            "- https://example.com/privacy",
-        ]
-        .join("\n")
-    }
+    use crate::testkit::siwe_mock::{mock_siwe_message, mock_siwe_message_full};
 
     #[test]
     fn parses_valid_message() {
-        let message = sample_message();
+        let message = mock_siwe_message_full();
         let result = SiweMessage::try_parse(&message);
         assert!(result.is_some());
         let siwe = result.unwrap();
@@ -142,7 +120,7 @@ mod tests {
 
     #[test]
     fn parses_message_with_explicit_scheme() {
-        let message = sample_message().replacen(
+        let message = mock_siwe_message_full().replacen(
             "login.xyz wants you to sign in with your Ethereum account:",
             "https://login.xyz wants you to sign in with your Ethereum account:",
             1,
@@ -153,7 +131,7 @@ mod tests {
 
     #[test]
     fn parses_message_with_port() {
-        let message = sample_message().replacen(
+        let message = mock_siwe_message_full().replacen(
             "login.xyz wants you to sign in with your Ethereum account:",
             "login.xyz:8080 wants you to sign in with your Ethereum account:",
             1,
@@ -171,7 +149,7 @@ mod tests {
 
     #[test]
     fn errors_on_chain_mismatch() {
-        let message = sample_message();
+        let message = mock_siwe_message_full();
         let siwe = SiweMessage::try_parse(&message).unwrap();
         let err = siwe.validate(Chain::Polygon).unwrap_err();
         assert!(err.contains("mismatch"));
@@ -179,7 +157,7 @@ mod tests {
 
     #[test]
     fn errors_on_origin_mismatch() {
-        let message = sample_message();
+        let message = mock_siwe_message_full();
         let tampered = message.replace("https://login.xyz", "https://malicious.xyz");
         let siwe = SiweMessage::try_parse(&tampered).unwrap();
         let err = siwe.validate(Chain::Ethereum).unwrap_err();
@@ -210,7 +188,7 @@ mod tests {
 
     #[test]
     fn ignores_port_when_matching_origin() {
-        let message = sample_message().replacen(
+        let message = mock_siwe_message_full().replacen(
             "login.xyz wants you to sign in with your Ethereum account:",
             "login.xyz:8080 wants you to sign in with your Ethereum account:",
             1,

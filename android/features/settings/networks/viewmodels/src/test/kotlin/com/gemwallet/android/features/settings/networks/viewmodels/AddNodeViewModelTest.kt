@@ -1,5 +1,9 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
+import android.content.Context
+import com.gemwallet.android.features.settings.networks.viewmodels.models.AddNodeUIModel
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.models.ButtonState
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
@@ -13,11 +17,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAddNodeException
-import uniffi.gemstone.GemAddNodePhase
 import uniffi.gemstone.GemAddNodeSession
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemNodeCheck
@@ -28,6 +30,10 @@ import uniffi.gemstone.LatencyType
 class AddNodeViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val context = mockk<Context> {
+        every { getString(any()) } returns "Error"
+        every { getString(any(), *anyVararg()) } returns "Error"
+    }
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -52,50 +58,51 @@ class AddNodeViewModelTest {
 
     @Test
     fun `an untouched form is idle`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { check })
+        val viewModel = AddNodeViewModel(service { check }, dispatcher, context)
 
         viewModel.init(Chain.Ethereum)
         advanceUntilIdle()
 
-        assertEquals(GemAddNodePhase.Idle, viewModel.uiModel.value.state?.phase)
-        assertEquals(Chain.Ethereum, viewModel.uiModel.value.chain)
+        assertEquals(AddNodeUIModel(chain = Chain.Ethereum), viewModel.uiModel.value)
     }
 
     @Test
     fun `a node that answers is ready to import`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { check })
+        val viewModel = AddNodeViewModel(service { check }, dispatcher, context)
         viewModel.init(Chain.Ethereum)
 
         viewModel.url.value = "https://node"
         viewModel.onUrlChange()
         advanceUntilIdle()
 
-        assertEquals(GemAddNodePhase.Ready(check), viewModel.uiModel.value.state?.phase)
-        assertTrue(viewModel.uiModel.value.state?.canImport == true)
+        val model = viewModel.uiModel.value
+        assertEquals(ButtonState.Enabled, model.buttonState)
+        assertEquals("1", model.checks.first { it.title == R.string.nodes_import_node_chain_id }.value)
+        assertEquals(true, model.checks.first { it.title == R.string.nodes_import_node_in_sync }.isInSync)
     }
 
     @Test
     fun `a rejected network id is reported and cannot be imported`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { throw GemAddNodeException.InvalidNetworkId() })
+        val viewModel = AddNodeViewModel(service { throw GemAddNodeException.InvalidNetworkId() }, dispatcher, context)
         viewModel.init(Chain.Ethereum)
 
         viewModel.url.value = "https://node"
         viewModel.onUrlChange()
         advanceUntilIdle()
 
-        assertTrue(viewModel.uiModel.value.state?.phase is GemAddNodePhase.Failed)
-        assertEquals(false, viewModel.uiModel.value.state?.canImport)
+        assertEquals("Error", viewModel.uiModel.value.errorText)
+        assertEquals(ButtonState.Disabled, viewModel.uiModel.value.buttonState)
     }
 
     @Test
     fun `clearing the field stops asking`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { check })
+        val viewModel = AddNodeViewModel(service { check }, dispatcher, context)
         viewModel.init(Chain.Ethereum)
 
         viewModel.url.value = ""
         viewModel.onUrlChange()
         advanceUntilIdle()
 
-        assertEquals(GemAddNodePhase.Idle, viewModel.uiModel.value.state?.phase)
+        assertEquals(AddNodeUIModel(chain = Chain.Ethereum), viewModel.uiModel.value)
     }
 }

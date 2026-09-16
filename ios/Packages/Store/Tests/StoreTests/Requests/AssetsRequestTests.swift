@@ -176,7 +176,7 @@ struct AssetsRequestTests {
         let priceStore = PriceStore(db: db)
         let fiatRateStore = FiatRateStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
+        try fiatRateStore.add([.mock()])
 
         let assets = [AssetBasic].mock()
         try priceStore.updatePrices(assets.map {
@@ -216,7 +216,7 @@ struct AssetsRequestTests {
         let fiatRateStore = FiatRateStore(db: db)
         let balanceStore = BalanceStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
+        try fiatRateStore.add([.mock()])
 
         try priceStore.updatePrices([.mock(assetId: AssetId(chain: .tron), price: 100, priceChangePercentage24h: 100)])
 
@@ -233,16 +233,5 @@ struct AssetsRequestTests {
 
             #expect(assets.first?.asset.id == AssetId(chain: .bitcoin))
         }
-    }
-}
-
-extension AssetsRequest {
-    static func mock(
-        walletId: WalletId = .mock(),
-        scope: AssetsRequestScope = .wallet,
-        searchBy: String = "",
-        filters: [AssetsRequestFilter] = [],
-    ) -> AssetsRequest {
-        AssetsRequest(walletId: walletId, scope: scope, searchBy: searchBy, filters: filters)
     }
 }

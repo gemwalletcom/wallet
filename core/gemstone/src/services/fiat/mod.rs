@@ -3,6 +3,8 @@ pub mod quote;
 pub mod rules;
 pub mod session;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;

@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemPrecision
 import android.icu.text.CompactDecimalFormat
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemValueStyle
@@ -42,7 +43,7 @@ class ValueFormatter(
 
     fun rounded(value: BigDecimal): BigDecimal = value.rounded(precision(value.abs()), ROUNDING_MODE)
 
-    private fun precision(magnitude: BigDecimal): Precision = style.precision(magnitude.toDouble()).toPrecision()
+    private fun precision(magnitude: BigDecimal): GemPrecision = style.precision(magnitude.toDouble())
 
     private fun abbreviated(decimal: BigDecimal): String {
         val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)

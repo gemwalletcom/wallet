@@ -8,17 +8,14 @@ import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 @testable import Support
+import SupportTestKit
 import Testing
 
 @MainActor
 struct SupportChatSceneViewModelTests {
-    private func model(service: GemSupportServiceMock = GemSupportServiceMock(), typing: ObservableSupportTyping = ObservableSupportTyping()) -> SupportChatSceneViewModel {
-        SupportChatSceneViewModel(service: service, typing: typing)
-    }
-
     @Test
     func anEmptyChatSaysSo() {
-        let model = model()
+        let model = SupportChatSceneViewModel.mock()
 
         #expect(model.isEmpty)
         #expect(model.days.isEmpty)
@@ -26,7 +23,7 @@ struct SupportChatSceneViewModelTests {
 
     @Test
     func theDaysGroupTheStoredMessages() {
-        let model = model()
+        let model = SupportChatSceneViewModel.mock()
         model.query.value = [.mock(id: "a"), .mock(id: "b")]
 
         #expect(model.isEmpty == false)
@@ -36,7 +33,7 @@ struct SupportChatSceneViewModelTests {
     @Test
     func loadingSyncsFromTheLastAgentMessage() async {
         let service = GemSupportServiceMock()
-        let model = model(service: service)
+        let model = SupportChatSceneViewModel.mock(service: service)
         model.query.value = [
             .mock(id: "a", sender: .user, createdAt: Date(timeIntervalSince1970: 100)),
             .mock(id: "b", sender: .agent(.mock()), createdAt: Date(timeIntervalSince1970: 200)),
@@ -51,7 +48,7 @@ struct SupportChatSceneViewModelTests {
     @Test
     func aChatWithNoAgentReplySyncsFromTheStart() async {
         let service = GemSupportServiceMock()
-        let model = model(service: service)
+        let model = SupportChatSceneViewModel.mock(service: service)
         model.query.value = [.mock(id: "a", sender: .user)]
 
         await model.load()
@@ -63,7 +60,7 @@ struct SupportChatSceneViewModelTests {
     func aFailedSyncLeavesNoAlert() async {
         let service = GemSupportServiceMock()
         service.syncError = AnyError("offline")
-        let model = model(service: service)
+        let model = SupportChatSceneViewModel.mock(service: service)
 
         await model.load()
 
@@ -73,7 +70,7 @@ struct SupportChatSceneViewModelTests {
     @Test
     func sendingTextReachesTheService() async {
         let service = GemSupportServiceMock()
-        let model = model(service: service)
+        let model = SupportChatSceneViewModel.mock(service: service)
 
         model.sendText("hello")
         await settle { !service.sentTexts.isEmpty }
@@ -86,7 +83,7 @@ struct SupportChatSceneViewModelTests {
     func aFailedSendShowsTheError() async {
         let service = GemSupportServiceMock()
         service.sendError = AnyError("message rejected")
-        let model = model(service: service)
+        let model = SupportChatSceneViewModel.mock(service: service)
 
         model.sendText("hello")
         await settle { model.isPresentingAlertMessage != nil }
@@ -97,7 +94,7 @@ struct SupportChatSceneViewModelTests {
     @Test
     func retryingSendsTheMessageAgain() async {
         let service = GemSupportServiceMock()
-        let model = model(service: service)
+        let model = SupportChatSceneViewModel.mock(service: service)
 
         model.retry(.mock(id: "failed", status: .failed))
         await settle { !service.retriedMessageIds.isEmpty }
@@ -108,8 +105,8 @@ struct SupportChatSceneViewModelTests {
     @Test
     func openingAnImagePreviewAsksForTheLocalFile() async {
         let service = GemSupportServiceMock()
-        let model = model(service: service)
-        let image = SupportMessageImage(id: "img", url: "https://gemwallet.com/a.png", thumbnailUrl: nil, fileName: nil, fileSize: nil, width: nil, height: nil)
+        let model = SupportChatSceneViewModel.mock(service: service)
+        let image = SupportMessageImage.mock(url: "https://gemwallet.com/a.png")
 
         model.openPreview(image)
         await settle { model.previewURL != nil }
@@ -121,8 +118,8 @@ struct SupportChatSceneViewModelTests {
     @Test
     func anImageWithNoUsableUrlIsIgnored() async {
         let service = GemSupportServiceMock()
-        let model = model(service: service)
-        let image = SupportMessageImage(id: "img", url: "", thumbnailUrl: nil, fileName: nil, fileSize: nil, width: nil, height: nil)
+        let model = SupportChatSceneViewModel.mock(service: service)
+        let image = SupportMessageImage.mock(url: "")
 
         model.openPreview(image)
         await settle { false }
@@ -135,7 +132,7 @@ struct SupportChatSceneViewModelTests {
     func leavingTheSceneClearsTheTypingAgent() {
         let typing = ObservableSupportTyping()
         typing.update(SupportTyping(status: .on, agent: .mock(name: "Gemma")))
-        let model = model(typing: typing)
+        let model = SupportChatSceneViewModel.mock(typing: typing)
 
         #expect(model.typingAgentName == "Gemma")
 

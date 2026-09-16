@@ -170,14 +170,6 @@ pub fn visible_statuses(nodes: &[GemNodeSelection], statuses: &HashMap<String, G
 mod tests {
     use super::*;
 
-    fn node(url: &str, priority: i32) -> Node {
-        Node {
-            url: url.to_string(),
-            status: NodeState::Active,
-            priority,
-        }
-    }
-
     #[test]
     fn test_latency_status_keeps_the_latency_and_drops_the_block_number() {
         let latency = primitives::Latency::from_milliseconds(440);
@@ -214,31 +206,29 @@ mod tests {
 
     #[test]
     fn test_merge_nodes_keeps_defaults_first_and_drops_duplicate_urls() {
-        let merged = merge_nodes(vec![node("https://a", 1)], vec![node("https://a", 5), node("https://b", 2)]);
+        let merged = merge_nodes(vec![Node::mock("https://a", 1)], vec![Node::mock("https://a", 5), Node::mock("https://b", 2)]);
 
         assert_eq!(merged.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(), vec!["https://a", "https://b"]);
         assert_eq!(merged[0].priority, 1);
-        assert!(is_default_node("https://a", &[node("https://a", 1)]));
-        assert!(!is_default_node("https://b", &[node("https://a", 1)]));
+        assert!(is_default_node("https://a", &[Node::mock("https://a", 1)]));
+        assert!(!is_default_node("https://b", &[Node::mock("https://a", 1)]));
     }
 
     #[test]
     fn test_selected_node_falls_back_when_url_is_missing() {
-        let nodes = vec![node("https://a", 1), node("https://b", 2)];
+        let nodes = vec![Node::mock("https://a", 1), Node::mock("https://b", 2)];
 
-        assert_eq!(selected_node(Some("https://b".to_string()), nodes.clone(), node("https://f", 0)).url, "https://b");
-        assert_eq!(selected_node(Some("https://c".to_string()), nodes.clone(), node("https://f", 0)).url, "https://f");
-        assert_eq!(selected_node(None, nodes, node("https://f", 0)).url, "https://f");
+        assert_eq!(selected_node(Some("https://b".to_string()), nodes.clone(), Node::mock("https://f", 0)).url, "https://b");
+        assert_eq!(selected_node(Some("https://c".to_string()), nodes.clone(), Node::mock("https://f", 0)).url, "https://f");
+        assert_eq!(selected_node(None, nodes, Node::mock("https://f", 0)).url, "https://f");
     }
 
     #[test]
     fn test_a_gem_node_titles_by_flag_and_any_other_by_host() {
         use super::super::model::GemNodeRowTitle;
         let plain = GemNodeSelection {
-            url: "https://rpc.example.com".into(),
             host: "rpc.example.com".into(),
-            is_selected: false,
-            gem_node_flag: None,
+            ..GemNodeSelection::mock("https://rpc.example.com")
         };
         let gem = GemNodeSelection {
             gem_node_flag: Some("\u{1f1fa}\u{1f1f8}".into()),
@@ -255,22 +245,14 @@ mod tests {
 
     #[test]
     fn test_only_a_finished_status_has_a_latest_block() {
-        use primitives::Latency;
         assert_eq!(GemNodeStatusState::Loading.latest_block(), None);
         assert_eq!(GemNodeStatusState::Error.latest_block(), None);
-        assert_eq!(
-            GemNodeStatusState::Result {
-                latest_block_number: 42,
-                latency: Latency::from_milliseconds(10),
-            }
-            .latest_block(),
-            Some(42)
-        );
+        assert_eq!(GemNodeStatusState::mock_result(42).latest_block(), Some(42));
     }
 
     #[test]
     fn test_node_selections_marks_the_url_and_not_the_host() {
-        let nodes = vec![node("https://rpc.example.com/one", 1), node("https://rpc.example.com/two", 2)];
+        let nodes = vec![Node::mock("https://rpc.example.com/one", 1), Node::mock("https://rpc.example.com/two", 2)];
         let selections = node_selections(nodes, "https://rpc.example.com/two");
         let selected = selections.iter().filter(|selection| selection.is_selected).map(|selection| selection.url.as_str());
 
@@ -286,7 +268,10 @@ mod tests {
         let chain = Chain::Ethereum;
 
         assert_eq!(chain_node(chain, None, vec![]).url, NodeRegion::Us.url(chain));
-        assert_eq!(chain_node(chain, Some("https://custom".to_string()), vec![node("https://custom", 1)]).url, "https://custom");
+        assert_eq!(
+            chain_node(chain, Some("https://custom".to_string()), vec![Node::mock("https://custom", 1)]).url,
+            "https://custom"
+        );
         assert!(default_nodes(chain).iter().any(|node| node.url == NodeRegion::Eu.url(chain)));
     }
 
@@ -316,12 +301,12 @@ mod tests {
     #[test]
     fn test_only_added_nodes_can_be_deleted_and_defaults_sort_first() {
         let default_url = NodeRegion::Us.url(Chain::Ethereum);
-        let added = node("https://added.example", 1);
+        let added = Node::mock("https://added.example", 1);
 
         assert!(!can_delete_node(Chain::Ethereum, &default_url));
         assert!(can_delete_node(Chain::Ethereum, &added.url));
 
-        let sorted = sorted_nodes(Chain::Ethereum, vec![added.clone(), node(&default_url, 3)]);
+        let sorted = sorted_nodes(Chain::Ethereum, vec![added.clone(), Node::mock(&default_url, 3)]);
         assert_eq!(
             sorted.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(),
             vec![default_url.as_str(), added.url.as_str()]

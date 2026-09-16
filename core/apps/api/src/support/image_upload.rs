@@ -90,10 +90,6 @@ mod tests {
     use super::*;
     use primitives::{ImageType, MIME_TYPE_PNG};
 
-    fn config() -> SupportImageUploadConfig {
-        SupportImageUploadConfig::new(&["jpeg".to_string(), "jpg".to_string(), "png".to_string()]).unwrap()
-    }
-
     fn jpeg_bytes() -> Vec<u8> {
         let mut data = vec![0xFF, 0xD8, 0xFF];
         data.resize(MIN_SUPPORT_IMAGE_BYTES, 0);
@@ -108,7 +104,7 @@ mod tests {
 
     #[test]
     fn validates_supported_image_upload() {
-        let image = validate_support_image_upload(&config(), Some("proof.png".to_string()), &ContentType::PNG, png_bytes()).unwrap();
+        let image = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.png".to_string()), &ContentType::PNG, png_bytes()).unwrap();
 
         assert_eq!(image.file_name, "proof.png");
         assert_eq!(image.content_type, MIME_TYPE_PNG);
@@ -116,7 +112,7 @@ mod tests {
 
     #[test]
     fn validates_jpg_upload() {
-        let image = validate_support_image_upload(&config(), Some("proof.jpg".to_string()), &ContentType::JPEG, jpeg_bytes()).unwrap();
+        let image = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.jpg".to_string()), &ContentType::JPEG, jpeg_bytes()).unwrap();
 
         assert_eq!(image.file_name, "proof.jpg");
         assert_eq!(image.content_type, ImageType::Jpg.mime_type());
@@ -124,21 +120,27 @@ mod tests {
 
     #[test]
     fn rejects_html_filename() {
-        let error = validate_support_image_upload(&config(), Some("proof.html".to_string()), &ContentType::PNG, png_bytes()).unwrap_err();
+        let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.html".to_string()), &ContentType::PNG, png_bytes()).unwrap_err();
 
         assert_eq!(error, ApiError::BadRequest("Image filename extension is not supported".to_string()));
     }
 
     #[test]
     fn rejects_tiny_image_upload() {
-        let error = validate_support_image_upload(&config(), Some("proof.png".to_string()), &ContentType::PNG, b"\x89PNG\r\n\x1A\n".to_vec()).unwrap_err();
+        let error = validate_support_image_upload(
+            &SupportImageUploadConfig::mock(),
+            Some("proof.png".to_string()),
+            &ContentType::PNG,
+            b"\x89PNG\r\n\x1A\n".to_vec(),
+        )
+        .unwrap_err();
 
         assert_eq!(error, ApiError::BadRequest("Image upload is too small".to_string()));
     }
 
     #[test]
     fn rejects_mismatched_content_type() {
-        let error = validate_support_image_upload(&config(), Some("proof.jpg".to_string()), &ContentType::JPEG, png_bytes()).unwrap_err();
+        let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.jpg".to_string()), &ContentType::JPEG, png_bytes()).unwrap_err();
 
         assert_eq!(error, ApiError::BadRequest("Image content does not match Content-Type".to_string()));
     }
@@ -148,7 +150,7 @@ mod tests {
         let mut data = b"<html></html>".to_vec();
         data.resize(MIN_SUPPORT_IMAGE_BYTES, b' ');
 
-        let error = validate_support_image_upload(&config(), Some("proof.png".to_string()), &ContentType::PNG, data).unwrap_err();
+        let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.png".to_string()), &ContentType::PNG, data).unwrap_err();
 
         assert_eq!(error, ApiError::BadRequest("Image upload is not a valid image".to_string()));
     }

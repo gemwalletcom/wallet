@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import uniffi.gemstone.GemConnection
+import uniffi.gemstone.DocsUrl
 
 @Composable
 fun ConnectionsScene(
@@ -63,7 +64,7 @@ fun ConnectionsScene(
         title = stringResource(id = R.string.wallet_connect_title),
         snackbar = snackbar,
         actions = {
-            DocsInfoButton(AppUrl.walletConnect)
+            DocsInfoButton(AppUrl.docs(DocsUrl.WalletConnect))
         },
         onClose = onCancel,
     ) {

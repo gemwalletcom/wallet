@@ -2,6 +2,7 @@
 
 import GemstonePrimitivesTestKit
 @testable import Contacts
+import ContactsTestKit
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -11,7 +12,7 @@ import Testing
 struct ManageContactAddressViewModelTests {
     @Test
     func buttonStateAddMode() {
-        let model = ManageContactAddressViewModel.mock(mode: .add)
+        let model = ManageContactAddressViewModel.mock()
 
         #expect(model.buttonState == .disabled)
 
@@ -33,7 +34,7 @@ struct ManageContactAddressViewModelTests {
 
     @Test
     func memoFieldFollowsTheChain() {
-        let model = ManageContactAddressViewModel.mock(mode: .add)
+        let model = ManageContactAddressViewModel.mock()
 
         model.addressInputModel.chain = .bitcoin
         #expect(model.fields == [.network, .address])
@@ -44,7 +45,7 @@ struct ManageContactAddressViewModelTests {
 
     @Test
     func nameResolveState() {
-        let model = ManageContactAddressViewModel.mock(mode: .add)
+        let model = ManageContactAddressViewModel.mock()
         model.addressInputModel.text = "john"
 
         model.addressInputModel.nameRecordViewModel.state = .loading(name: "john")
@@ -58,18 +59,5 @@ struct ManageContactAddressViewModelTests {
 
         model.onSelectChain(.bitcoin)
         #expect(model.addressInputModel.nameRecordViewModel.state == .none)
-    }
-}
-
-// MARK: - Mock
-
-extension ManageContactAddressViewModel {
-    static func mock(mode: Mode) -> ManageContactAddressViewModel {
-        ManageContactAddressViewModel(
-            service: GemManageContactServiceMock(),
-            nameService: GemNameServiceMock(),
-            mode: mode,
-            onComplete: { _ in },
-        )
     }
 }

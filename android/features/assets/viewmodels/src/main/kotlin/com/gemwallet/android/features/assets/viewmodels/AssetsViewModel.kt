@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.domains.asset.assetConfig
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -51,8 +52,13 @@ class AssetsViewModel @Inject constructor(
     )
 
     private fun groups(items: List<AssetInfoDataAggregate>): AssetGroups {
-        val (pinned, unpinned) = items.partition { it.pinned }
-        return AssetGroups(pinned = pinned, unpinned = unpinned)
+        val sections = assetConfig.assetSections(
+            ids = items.map { it.asset.id.toIdentifier() },
+            pinnedIds = items.filter { it.pinned }.map { it.asset.id.toIdentifier() },
+            showsPopular = false,
+        )
+        val byId = items.associateBy { it.asset.id.toIdentifier() }
+        return AssetGroups(pinned = sections.pinned.mapNotNull(byId::get), unpinned = sections.assets.mapNotNull(byId::get))
     }
 
     val isLoadingAssets = MutableStateFlow(false)

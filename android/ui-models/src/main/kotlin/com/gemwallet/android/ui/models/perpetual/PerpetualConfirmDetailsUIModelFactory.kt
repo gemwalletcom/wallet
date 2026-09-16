@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.models.perpetual
 import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.formatPnlWithPercentage
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
@@ -23,7 +23,7 @@ object PerpetualConfirmDetailsUIModelFactory {
             pnl = data.pnl?.let { value ->
                 PerpetualConfirmDetailsUIModel.Pnl(
                     text = formatPnlWithPercentage(value, data.marginAmount),
-                    direction = value.toValueDirection(),
+                    direction = value.tone(),
                 )
             },
             marginText = currencyFormatter.string(data.marginAmount),

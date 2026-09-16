@@ -294,11 +294,9 @@ fn validator_pool_rate(epoch: &proto::Epoch, pool_id: &str) -> Option<f64> {
 mod tests {
     use super::*;
     use crate::provider::staking_mapper;
+    use crate::rpc::proto::testkit::TEST_VALIDATOR_ADDRESS;
 
     const APY: f64 = 0.01484661182599185;
-    const POOL_ID: &str = "pool";
-    const SCALE: u64 = 1_000_000_000_000_000;
-    const VALIDATOR_ADDRESS: &str = "validator";
 
     #[test]
     fn test_map_validator_apys_from_grpc_epoch_snapshots() {
@@ -309,30 +307,8 @@ mod tests {
         .unwrap();
 
         assert_eq!(validators.apys.len(), 1);
-        assert_eq!(validators.apys[0].address, VALIDATOR_ADDRESS);
+        assert_eq!(validators.apys[0].address, TEST_VALIDATOR_ADDRESS);
         assert!((validators.apys[0].apy - APY).abs() < 0.000000000001);
         assert!((staking_mapper::map_staking_apy(validators).unwrap() - APY * 100.0).abs() < 0.000000001);
-    }
-
-    impl proto::Epoch {
-        fn mock_with_validator_rate(epoch: u64, rate: f64) -> Self {
-            Self {
-                epoch,
-                system_state: Some(proto::service::SystemState {
-                    validators: Some(proto::service::ValidatorSet {
-                        active_validators: vec![proto::service::Validator {
-                            address: Some(VALIDATOR_ADDRESS.to_string()),
-                            staking_pool: Some(proto::service::StakingPool {
-                                id: Some(POOL_ID.to_string()),
-                                sui_balance: Some(SCALE),
-                                pool_token_balance: Some((SCALE as f64 * rate).round() as u64),
-                            }),
-                        }],
-                    }),
-                    parameters: None,
-                }),
-                ..Default::default()
-            }
-        }
     }
 }

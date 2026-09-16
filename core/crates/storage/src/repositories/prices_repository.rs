@@ -238,12 +238,6 @@ mod tests {
     use super::*;
     use primitives::HOUR;
 
-    fn aged(provider: PriceProvider, seconds_ago: i64) -> PriceRow {
-        let mut row = PriceRow::mock(provider, "x");
-        row.last_updated_at = (Utc::now() - chrono::Duration::seconds(seconds_ago)).naive_utc();
-        row
-    }
-
     #[test]
     fn test_primary_price() {
         let providers = vec![
@@ -253,13 +247,13 @@ mod tests {
         ];
         let max_age = HOUR;
 
-        let fresh = vec![aged(PriceProvider::Coingecko, 60), aged(PriceProvider::Pyth, 60)];
+        let fresh = vec![PriceRow::mock_with_age(PriceProvider::Coingecko, 60), PriceRow::mock_with_age(PriceProvider::Pyth, 60)];
         assert_eq!(primary_price(&providers, &fresh, max_age).unwrap().provider.0, PriceProvider::Coingecko);
 
-        let stale_primary = vec![aged(PriceProvider::Coingecko, 7200), aged(PriceProvider::Pyth, 60)];
+        let stale_primary = vec![PriceRow::mock_with_age(PriceProvider::Coingecko, 7200), PriceRow::mock_with_age(PriceProvider::Pyth, 60)];
         assert_eq!(primary_price(&providers, &stale_primary, max_age).unwrap().provider.0, PriceProvider::Pyth);
 
-        let only_disabled = vec![aged(PriceProvider::Jupiter, 60)];
+        let only_disabled = vec![PriceRow::mock_with_age(PriceProvider::Jupiter, 60)];
         assert!(primary_price(&providers, &only_disabled, max_age).is_none());
 
         assert!(primary_price(&providers, &[], max_age).is_none());

@@ -12,16 +12,17 @@ import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.toGem
@@ -31,6 +32,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Delegation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -56,7 +58,6 @@ class StakeViewModel @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
     private val getDelegations: GetDelegations,
     private val getValidators: GetValidators,
-    private val syncStakeDelegations: SyncStakeDelegations,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
@@ -149,7 +150,7 @@ class StakeViewModel @Inject constructor(
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
                 emit(true)
-                runCatchingCancellable { syncStakeDelegations.sync(assetInfo.asset.id.chain) }
+                runCatchingCancellable { withContext(Dispatchers.IO) { stakeService.sync(assetInfo.asset.id.chain.string) } }
                     .onFailure { Log.e(TAG, "stake delegations sync failed", it) }
                 emit(false)
                 sync.update { false }
@@ -165,13 +166,15 @@ class StakeViewModel @Inject constructor(
     fun onDelegation(
         delegation: Delegation,
         onOpenDetail: (String, String) -> Unit,
+        onAmount: AmountTransactionAction,
         onConfirm: ConfirmTransactionAction,
     ) {
         val walletType = walletType.value ?: return
         val assetInfo = assetInfo.value ?: return
         when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            is GemDelegationDestination.Withdraw -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Confirm -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
         }
     }
 

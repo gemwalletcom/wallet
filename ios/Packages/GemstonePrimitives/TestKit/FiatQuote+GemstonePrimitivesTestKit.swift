@@ -9,7 +9,10 @@ import enum Gemstone.FiatProviderName
 import struct Gemstone.FiatQuote
 import enum Gemstone.FiatQuoteType
 import struct Gemstone.GemAssetRate
+import struct Gemstone.GemFiatQuoteRequest
 import struct Gemstone.GemFiatQuoteRow
+import struct Gemstone.GemFiatQuotesResult
+import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -62,7 +65,7 @@ public extension GemFiatQuoteRow {
         providerImageUrl: String? = nil,
         cryptoAmount: Double = 0,
         fiatAmount: Double = 0,
-        rate: GemAssetRate? = nil,
+        rate: Double? = nil,
     ) -> GemFiatQuoteRow {
         GemFiatQuoteRow(
             quoteId: quoteId,
@@ -71,7 +74,22 @@ public extension GemFiatQuoteRow {
             providerImageUrl: providerImageUrl,
             cryptoAmount: formattedAmount(value: cryptoAmount, symbol: "BTC", style: .auto),
             fiatAmount: formattedCurrency(value: fiatAmount, code: "USD", style: .fiat),
-            rate: rate,
+            rate: rate.map { GemAssetRate(baseSymbol: "BTC", quoteSymbol: "USD", value: formattedCurrency(value: $0, code: "USD", style: .currency)) },
+        )
+    }
+}
+
+public extension GemFiatQuotesResult {
+    static func mock(
+        quotes: [FiatQuote] = [],
+        amount: Double = 50,
+        type: FiatQuoteType = .buy,
+        error: GemServiceError? = nil,
+    ) -> GemFiatQuotesResult {
+        GemFiatQuotesResult(
+            request: GemFiatQuoteRequest(quoteType: type, amount: amount),
+            quotes: quotes,
+            error: error,
         )
     }
 }

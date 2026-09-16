@@ -43,17 +43,18 @@ impl TronGridMapper {
 mod tests {
     use super::*;
 
-    fn transaction(transaction_id: &str, block_timestamp: u64) -> TronGridTransaction {
-        TronGridTransaction {
-            transaction_id: transaction_id.to_string(),
-            block_timestamp,
-        }
-    }
-
     #[test]
     fn test_map_transaction_requests() {
-        let transactions = vec![transaction("native", 30), transaction("duplicate", 20), transaction("oldest-native", 5)];
-        let trc20_transactions = vec![transaction("incoming-token", 40), transaction("duplicate", 20), transaction("older-token", 10)];
+        let transactions = vec![
+            TronGridTransaction::mock("native", 30),
+            TronGridTransaction::mock("duplicate", 20),
+            TronGridTransaction::mock("oldest-native", 5),
+        ];
+        let trc20_transactions = vec![
+            TronGridTransaction::mock("incoming-token", 40),
+            TronGridTransaction::mock("duplicate", 20),
+            TronGridTransaction::mock("older-token", 10),
+        ];
 
         let requests = TronGridMapper::map_transaction_requests(transactions, trc20_transactions, 4);
 

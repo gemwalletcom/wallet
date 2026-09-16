@@ -128,54 +128,27 @@ fn relative_distance(current: f64, target: f64) -> Option<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PerpetualTriggerOrder};
-
-    fn config() -> PerpetualPositionClassifierConfig {
-        PerpetualPositionClassifierConfig {
-            trigger_bps: 100,
-            liquidation_bps: 600,
-            concurrency: 3,
-        }
-    }
-
-    fn position() -> PerpetualPosition {
-        PerpetualPosition {
-            id: "1".to_string(),
-            perpetual_id: PerpetualId::new(PerpetualProvider::Hypercore, "BTC"),
-            asset_id: AssetId::from_token(Chain::HyperCore, "perpetual::BTC"),
-            size: 1.0,
-            size_value: 100.0,
-            leverage: 5,
-            entry_price: 100.0,
-            liquidation_price: Some(95.0),
-            margin_type: PerpetualMarginType::Cross,
-            direction: PerpetualDirection::Long,
-            margin_amount: 20.0,
-            take_profit: None,
-            stop_loss: None,
-            pnl: 0.0,
-            funding: None,
-        }
-    }
+    use primitives::{PerpetualOrderType, PerpetualTriggerOrder};
 
     #[test]
     fn test_near_liquidation() {
-        assert!(is_priority_position(&position(), config()));
+        assert!(is_priority_position(&PerpetualPosition::mock(), PerpetualPositionClassifierConfig::mock()));
     }
 
     #[test]
     fn test_near_auto_close() {
-        let mut position = position();
-        position.liquidation_price = Some(50.0);
-        position.take_profit = Some(PerpetualTriggerOrder {
-            price: 100.5,
-            order_type: PerpetualOrderType::Limit,
-            order_id: "1".to_string(),
-        });
+        let position = PerpetualPosition {
+            liquidation_price: Some(50.0),
+            take_profit: Some(PerpetualTriggerOrder {
+                price: 100.5,
+                order_type: PerpetualOrderType::Limit,
+                order_id: "1".to_string(),
+            }),
+            ..PerpetualPosition::mock()
+        };
         let config = PerpetualPositionClassifierConfig {
-            trigger_bps: 100,
             liquidation_bps: 100,
-            concurrency: 3,
+            ..PerpetualPositionClassifierConfig::mock()
         };
 
         assert!(is_priority_position(&position, config));
@@ -183,17 +156,18 @@ mod tests {
 
     #[test]
     fn test_not_priority_when_far() {
-        let mut position = position();
-        position.liquidation_price = Some(50.0);
-        position.stop_loss = Some(PerpetualTriggerOrder {
-            price: 80.0,
-            order_type: PerpetualOrderType::Market,
-            order_id: "2".to_string(),
-        });
+        let position = PerpetualPosition {
+            liquidation_price: Some(50.0),
+            stop_loss: Some(PerpetualTriggerOrder {
+                price: 80.0,
+                order_type: PerpetualOrderType::Market,
+                order_id: "2".to_string(),
+            }),
+            ..PerpetualPosition::mock()
+        };
         let config = PerpetualPositionClassifierConfig {
-            trigger_bps: 100,
             liquidation_bps: 100,
-            concurrency: 3,
+            ..PerpetualPositionClassifierConfig::mock()
         };
 
         assert!(!is_priority_position(&position, config));

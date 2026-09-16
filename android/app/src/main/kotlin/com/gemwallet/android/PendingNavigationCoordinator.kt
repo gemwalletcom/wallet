@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import uniffi.gemstone.Deeplink
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 
@@ -40,7 +41,7 @@ class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
     private val paymentNavigation: PaymentNavigation,
     private val assetNavigation: AssetNavigation,
-    private val deeplinkService: GemDeeplinkService,
+    private val deeplinkService: GemDeeplinkServiceInterface,
 ) {
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)

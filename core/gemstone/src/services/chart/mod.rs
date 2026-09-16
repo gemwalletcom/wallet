@@ -1,6 +1,8 @@
 pub mod model;
 pub mod rules;
 pub mod session;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 

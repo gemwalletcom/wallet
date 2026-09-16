@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
+import com.gemwallet.android.ui.style.color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.price.values.PriceValue
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
@@ -121,7 +122,7 @@ fun assetPriceSupport(price: PriceValue?): (@Composable () -> Unit)? {
 fun PriceInfo(
     price: String,
     changes: String,
-    state: ValueDirection,
+    state: GemValueTone,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     isHighlightPercentage: Boolean = false,
@@ -219,7 +220,7 @@ private fun BalanceInfo(
 fun PriceInfo(
     priceValue: String,
     changedPercentages: String,
-    state: ValueDirection,
+    state: GemValueTone,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.secondary,
     style: TextStyle = MaterialTheme.typography.bodyLarge,

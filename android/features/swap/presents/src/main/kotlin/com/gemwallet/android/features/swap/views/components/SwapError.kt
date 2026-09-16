@@ -13,24 +13,16 @@ import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.features.swap.localization.text
-import uniffi.gemstone.GemSwapErrorDisplay
 
 @Composable
 internal fun SwapError(state: SwapUiState) {
     var isShowInfoSheet by remember { mutableStateOf(false) }
-    val error = state.error ?: return
-
-    val infoSheetEntity = when (error) {
-        is GemSwapErrorDisplay.NoQuote -> InfoSheetEntity.NoQuoteInfo
-        is GemSwapErrorDisplay.NotSupportedAsset,
-        is GemSwapErrorDisplay.MinimumAmount,
-        is GemSwapErrorDisplay.AmountTooSmall -> null
-    }
+    val errorText = state.errorText ?: return
+    val infoSheetEntity = state.errorInfo
 
     WarningItem(
         title = stringResource(R.string.errors_error_occurred),
-        message = error.text(),
+        message = errorText,
         color = MaterialTheme.colorScheme.error,
         position = ListPosition.Single,
         onClick = infoSheetEntity?.let { { isShowInfoSheet = true } },

@@ -74,10 +74,6 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    val cappedAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(pinned, unpinned) { pinned, unpinned ->
-        unpinned.take((resultsLimit() - pinned.size).coerceAtLeast(0))
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = when (scope) {
         is WalletSearchTag.List ->
@@ -95,7 +91,7 @@ class AssetsResultsViewModel @Inject constructor(
     }
 
     val state: StateFlow<UIState> = combine(
-        pinned, cappedAssets, previewPerpetuals, isFetching,
+        pinned, unpinned, previewPerpetuals, isFetching,
     ) { pinned, assets, perpetuals, fetching ->
         when {
             pinned.isNotEmpty() || assets.isNotEmpty() || perpetuals.isNotEmpty() -> UIState.Idle

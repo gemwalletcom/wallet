@@ -94,17 +94,14 @@ mod tests {
         testkit::{TEST_PRIVATE_KEY, mock_signer},
     };
 
-    fn input(data: &str) -> SignerInput {
-        let signer = mock_signer();
-        let mut input = TransactionLoadInput::mock_sign_data(Chain::Ton, data, TransferDataOutputType::EncodedTransaction);
-        input.sender_address = signer.address().encode_non_bounceable();
-        input.metadata = TransactionLoadMetadata::mock_ton(1);
-        let fee = input.default_fee();
-        SignerInput::new(input, fee)
-    }
-
     fn sign(data: &str) -> Result<String, SignerError> {
-        TonChainSigner.sign_data(&input(data), &hex::decode(TEST_PRIVATE_KEY).unwrap())
+        let input = TransactionLoadInput {
+            sender_address: mock_signer().address().encode_non_bounceable(),
+            metadata: TransactionLoadMetadata::mock_ton(1),
+            ..TransactionLoadInput::mock_sign_data(Chain::Ton, data, TransferDataOutputType::EncodedTransaction)
+        };
+        let fee = input.default_fee();
+        TonChainSigner.sign_data(&SignerInput::new(input, fee), &hex::decode(TEST_PRIVATE_KEY).unwrap())
     }
 
     #[test]

@@ -5,6 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
+testkit = []
 rpc = [
     "dep:async-trait",
     "dep:gem_client",

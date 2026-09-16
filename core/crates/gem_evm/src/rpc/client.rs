@@ -36,6 +36,10 @@ impl<C: Client + Clone> EthereumClient<C> {
         Self { chain, client }
     }
 
+    pub fn for_chain(client: JsonRpcClient<C>, chain: Chain) -> Option<Self> {
+        EVMChain::from_chain(chain).map(|evm_chain| Self::new(client, evm_chain))
+    }
+
     pub fn get_chain(&self) -> Chain {
         self.chain.to_chain()
     }

@@ -1,4 +1,6 @@
 pub mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
@@ -66,15 +68,10 @@ pub fn about_sections() -> Vec<GemAboutSection> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::services::preferences::testkit::MemoryPreferencesStore;
-
-    fn service() -> GemSettingsService {
-        GemSettingsService::new(Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))))
-    }
 
     #[test]
     fn test_the_preferences_screen_flags_the_selected_currency_beside_its_rows() {
-        let state = service().preferences(Currency::GBP, false);
+        let state = GemSettingsService::mock().preferences(Currency::GBP, false);
 
         assert_eq!(state.currency.text(), "\u{1f1ec}\u{1f1e7} GBP");
         assert_eq!(state.sections, rules::preferences_sections(false));
@@ -82,7 +79,7 @@ mod tests {
 
     #[test]
     fn test_the_perpetual_defaults_the_screen_shows_are_the_ones_it_last_wrote() {
-        let service = service();
+        let service = GemSettingsService::mock();
         let written = GemPerpetualDefaults {
             leverage: 7,
             take_profit_percent: 30,

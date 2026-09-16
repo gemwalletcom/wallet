@@ -143,14 +143,8 @@ mod tests {
             (HeaderName::from_static("api-secret"), HeaderValue::from_static("another-provider-secret")),
         ]);
         let endpoint = Endpoint {
-            name: "key_1".to_string(),
-            url: Url::parse("https://tonapi.io").unwrap(),
-            host: "tonapi.io".to_string(),
-            client: Client::new(),
-            query: HashMap::new(),
-            proxy_available: None,
             headers: HeaderMap::from_iter([(AUTHORIZATION, HeaderValue::from_static("Bearer upstream"))]),
-            throttle: None,
+            ..Endpoint::mock("https://tonapi.io")
         };
         let result = endpoint.request_headers(&inbound, &HashSet::from([ACCEPT, AUTHORIZATION]));
         assert_eq!(

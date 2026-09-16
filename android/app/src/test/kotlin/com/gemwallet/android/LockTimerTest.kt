@@ -2,11 +2,10 @@ package com.gemwallet.android
 
 import android.text.format.DateUtils
 import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
+import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +57,7 @@ class LockTimerTest {
         val timer = lockTimer(
             authRequired = true,
             lockIntervalMinutes = 0,
-            activeRequest = activeWalletConnectRequest(sessionProposalEvent()),
+            activeRequest = activeWalletConnectRequest(WalletConnectEvent.SessionProposal(mockWalletConnectSessionProposal(), mockWalletConnectVerifyContext())),
         )
         timer.setPausedAt(0L)
 
@@ -67,7 +66,7 @@ class LockTimerTest {
 
     @Test
     fun shouldRelock_returnsTrueWhenWalletConnectRequestFinished() = runTest {
-        val activeRequest = activeWalletConnectRequest(sessionProposalEvent())
+        val activeRequest = activeWalletConnectRequest(WalletConnectEvent.SessionProposal(mockWalletConnectSessionProposal(), mockWalletConnectVerifyContext()))
         activeRequest.finish()
         val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0, activeRequest = activeRequest)
         timer.setPausedAt(0L)
@@ -89,24 +88,5 @@ class LockTimerTest {
     private fun activeWalletConnectRequest(vararg events: WalletConnectEvent) = ActiveWalletConnectRequest(
         events = flowOf(*events),
         scope = CoroutineScope(UnconfinedTestDispatcher()),
-    )
-
-    private fun sessionProposalEvent() = WalletConnectEvent.SessionProposal(
-        proposal = WalletConnectSessionProposal(
-            name = "Dapp",
-            description = "",
-            url = "https://dapp.test",
-            icons = emptyList(),
-            requiredNamespaces = emptyMap(),
-            optionalNamespaces = emptyMap(),
-            pairingTopic = "pairing",
-            proposerPublicKey = "key",
-            properties = null,
-        ),
-        verifyContext = WalletConnectVerifyContext(
-            origin = "https://dapp.test",
-            validation = WalletConnectValidation.Valid,
-            isScam = false,
-        ),
     )
 }

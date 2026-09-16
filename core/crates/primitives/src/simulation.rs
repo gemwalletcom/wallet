@@ -334,20 +334,27 @@ mod tests {
 
     #[test]
     fn test_has_critical_warning() {
-        let result = |severities: Vec<SimulationSeverity>| SimulationResult {
-            warnings: severities
-                .into_iter()
-                .map(|severity| SimulationWarning::new(severity, SimulationWarningType::ValidationError, None))
-                .collect(),
-            balance_changes: vec![],
-            payload: vec![],
-            header: None,
+        let warning = SimulationWarning::mock(SimulationWarningType::ValidationError);
+        let critical = SimulationWarning {
+            severity: SimulationSeverity::Critical,
+            ..warning.clone()
         };
 
-        assert!(!result(vec![]).has_critical_warning());
-        assert!(!result(vec![SimulationSeverity::Warning]).has_critical_warning());
-        assert!(result(vec![SimulationSeverity::Critical]).has_critical_warning());
-        assert!(result(vec![SimulationSeverity::Warning, SimulationSeverity::Critical]).has_critical_warning());
+        for (warnings, expected) in [
+            (vec![], false),
+            (vec![warning.clone()], false),
+            (vec![critical.clone()], true),
+            (vec![warning, critical], true),
+        ] {
+            assert_eq!(
+                SimulationResult {
+                    warnings,
+                    ..SimulationResult::default()
+                }
+                .has_critical_warning(),
+                expected
+            );
+        }
     }
 
     #[test]
@@ -356,20 +363,8 @@ mod tests {
         let header = AssetId::from_chain(Chain::Solana);
         let simulation = SimulationResult {
             balance_changes: vec![
-                SimulationBalanceChange {
-                    asset_id: changed.clone(),
-                    value: BigInt::from(1i64),
-                    name: None,
-                    symbol: None,
-                    decimals: 0,
-                },
-                SimulationBalanceChange {
-                    asset_id: changed.clone(),
-                    value: BigInt::from(2i64),
-                    name: None,
-                    symbol: None,
-                    decimals: 0,
-                },
+                SimulationBalanceChange::mock(changed.clone(), BigInt::from(1i64), 0),
+                SimulationBalanceChange::mock(changed.clone(), BigInt::from(2i64), 0),
             ],
             header: Some(SimulationHeader {
                 asset_id: header.clone(),
@@ -385,18 +380,29 @@ mod tests {
 
     #[test]
     fn test_valid_header_requires_a_readable_value() {
-        let simulation = |value: Option<BigUint>, is_unlimited: bool| SimulationResult {
-            header: Some(SimulationHeader {
-                asset_id: AssetId::from_chain(Chain::Ethereum),
-                value,
-                is_unlimited,
-            }),
-            ..SimulationResult::default()
+        let header = SimulationHeader {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            value: Some(BigUint::from(1000u32)),
+            is_unlimited: false,
         };
+        let unlimited = SimulationHeader {
+            value: None,
+            is_unlimited: true,
+            ..header.clone()
+        };
+        let unreadable = SimulationHeader { value: None, ..header.clone() };
 
-        assert!(simulation(Some(BigUint::from(1000u32)), false).valid_header().is_some());
-        assert!(simulation(None, true).valid_header().is_some());
-        assert!(simulation(None, false).valid_header().is_none());
+        for (header, expected) in [(header, true), (unlimited, true), (unreadable, false)] {
+            assert_eq!(
+                SimulationResult {
+                    header: Some(header),
+                    ..SimulationResult::default()
+                }
+                .valid_header()
+                .is_some(),
+                expected
+            );
+        }
         assert!(SimulationResult::default().valid_header().is_none());
     }
 
@@ -433,30 +439,20 @@ mod tests {
     fn externally_owned_spender_warning_suppresses_secondary_approval_warning() {
         let result = SimulationResult::new(
             vec![
-                SimulationWarning::new(
-                    SimulationSeverity::Warning,
-                    SimulationWarningType::PermitApproval(SimulationWarningApproval {
-                        asset_id: "ethereum_0x123".into(),
-                        value: Some(BigInt::from(100)),
-                    }),
-                    None,
-                ),
-                SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None),
+                SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(100))))),
+                SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender),
             ],
             Vec::<SimulationPayloadField>::new(),
         );
 
-        assert_eq!(
-            result.warnings,
-            vec![SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,)]
-        );
+        assert_eq!(result.warnings, vec![SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender)]);
     }
 
     #[test]
     fn critical_validation_warning_suppresses_externally_owned_spender_warning() {
         let result = SimulationResult::new(
             vec![
-                SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None),
+                SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender),
                 SimulationWarning::new(
                     SimulationSeverity::Critical,
                     SimulationWarningType::ValidationError,
@@ -479,14 +475,9 @@ mod tests {
     #[test]
     fn approval_simulation_requires_spender_verification() {
         let result = SimulationResult::new(
-            vec![SimulationWarning::new(
-                SimulationSeverity::Warning,
-                SimulationWarningType::PermitApproval(SimulationWarningApproval {
-                    asset_id: "ethereum_0x123".into(),
-                    value: Some(BigInt::from(100)),
-                }),
-                None,
-            )],
+            vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(
+                BigInt::from(100),
+            ))))],
             vec![],
         );
 
@@ -497,14 +488,7 @@ mod tests {
     fn validation_warning_suppresses_secondary_warnings() {
         let result = SimulationResult::new(
             vec![
-                SimulationWarning::new(
-                    SimulationSeverity::Warning,
-                    SimulationWarningType::PermitApproval(SimulationWarningApproval {
-                        asset_id: "ethereum_0x123".into(),
-                        value: Some(BigInt::from(100)),
-                    }),
-                    None,
-                ),
+                SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(100))))),
                 SimulationWarning::new(
                     SimulationSeverity::Critical,
                     SimulationWarningType::ValidationError,
@@ -527,27 +511,13 @@ mod tests {
     #[test]
     fn unlimited_warning_wins_when_present() {
         let result = SimulationResult::new(
-            vec![SimulationWarning::new(
-                SimulationSeverity::Warning,
-                SimulationWarningType::PermitApproval(SimulationWarningApproval {
-                    asset_id: "ethereum_0x123".into(),
-                    value: None,
-                }),
-                None,
-            )],
+            vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(None)))],
             Vec::<SimulationPayloadField>::new(),
         );
 
         assert_eq!(
             result.warnings,
-            vec![SimulationWarning::new(
-                SimulationSeverity::Warning,
-                SimulationWarningType::PermitApproval(SimulationWarningApproval {
-                    asset_id: "ethereum_0x123".into(),
-                    value: None,
-                }),
-                None,
-            )]
+            vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(None)))]
         );
     }
 
@@ -555,36 +525,15 @@ mod tests {
     fn unlimited_secondary_warning_suppresses_redundant_token_approval_warning() {
         let result = SimulationResult::new(
             vec![
-                SimulationWarning::new(
-                    SimulationSeverity::Warning,
-                    SimulationWarningType::TokenApproval(SimulationWarningApproval {
-                        asset_id: "ethereum_0x123".into(),
-                        value: Some(BigInt::from(1000)),
-                    }),
-                    None,
-                ),
-                SimulationWarning::new(
-                    SimulationSeverity::Warning,
-                    SimulationWarningType::TokenApproval(SimulationWarningApproval {
-                        asset_id: "ethereum_0x123".into(),
-                        value: None,
-                    }),
-                    None,
-                ),
+                SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(Some(BigInt::from(1000))))),
+                SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(None))),
             ],
             Vec::<SimulationPayloadField>::new(),
         );
 
         assert_eq!(
             result.warnings,
-            vec![SimulationWarning::new(
-                SimulationSeverity::Warning,
-                SimulationWarningType::TokenApproval(SimulationWarningApproval {
-                    asset_id: "ethereum_0x123".into(),
-                    value: None,
-                }),
-                None,
-            )]
+            vec![SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(None)))]
         );
     }
 

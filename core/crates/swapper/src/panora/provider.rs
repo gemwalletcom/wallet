@@ -135,8 +135,9 @@ mod tests {
     const TEST_WALLET: &str = "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef";
     const QUOTE_RESPONSE: &str = include_str!("testdata/quote_response.json");
 
-    fn quote_request() -> QuoteRequest {
-        QuoteRequest {
+    #[test]
+    fn test_build_request() {
+        let request = QuoteRequest {
             from_asset: SwapperQuoteAsset {
                 id: Chain::Aptos.as_ref().to_string(),
                 symbol: "APT".to_string(),
@@ -156,12 +157,7 @@ mod tests {
                 slippage: 100.into(),
                 use_max_amount: false,
             },
-        }
-    }
-
-    #[test]
-    fn test_build_request() {
-        let request = quote_request();
+        };
         let referral = default_referral_fees().aptos;
 
         let built = Panora::<RpcClient>::build_request(&request, "80000000").unwrap();

@@ -10,7 +10,7 @@ import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
-import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.GemBalanceResource
 import uniffi.gemstone.GemRecipientSection
 import uniffi.gemstone.GemHeaderButtonKind
 import com.wallet.core.primitives.Asset
@@ -85,14 +85,12 @@ fun GemWalletSubtitle.string(): String = when (this) {
     is GemWalletSubtitle.Address -> value
 }
 
-@Composable
-fun GemAddNodeFailure.string(): String = stringResource(
-    when (this) {
-        GemAddNodeFailure.INVALID_URL -> R.string.errors_invalid_url
-        GemAddNodeFailure.INVALID_NETWORK_ID -> R.string.errors_invalid_network_id
-        GemAddNodeFailure.UNAVAILABLE -> R.string.errors_error_occurred
-    }
-)
+@StringRes
+fun GemAddNodeFailure.stringRes(): Int = when (this) {
+    GemAddNodeFailure.INVALID_URL -> R.string.errors_invalid_url
+    GemAddNodeFailure.INVALID_NETWORK_ID -> R.string.errors_invalid_network_id
+    GemAddNodeFailure.UNAVAILABLE -> R.string.errors_error_occurred
+}
 
 @Composable
 fun GemDelegationStatus.stateText(): String = stringResource(
@@ -295,37 +293,36 @@ fun GemTransactionRowSubtitle.prefixRes(): Int? = when (this) {
     GemTransactionRowSubtitle.None -> null
 }
 
-@Composable
-fun GemEmptyStateText.text(symbol: String): String = when (this) {
-    GemEmptyStateText.NFTS_TITLE -> stringResource(R.string.nft_state_empty_title)
-    GemEmptyStateText.NFTS_DESCRIPTION -> stringResource(R.string.nft_state_empty_description)
-    GemEmptyStateText.PRICE_ALERTS_TITLE -> stringResource(R.string.price_alerts_state_empty_title)
-    GemEmptyStateText.PRICE_ALERTS_DESCRIPTION -> stringResource(R.string.price_alerts_state_empty_description)
-    GemEmptyStateText.CONTACTS_TITLE -> stringResource(R.string.contacts_state_empty_title)
-    GemEmptyStateText.CONTACTS_DESCRIPTION -> stringResource(R.string.contacts_state_empty_description)
-    GemEmptyStateText.ASSET_TITLE -> stringResource(R.string.asset_state_empty_title)
-    GemEmptyStateText.ASSET_DESCRIPTION -> stringResource(R.string.asset_state_empty_description, symbol)
-    GemEmptyStateText.ACTIVITY_TITLE -> stringResource(R.string.activity_state_empty_title)
-    GemEmptyStateText.ACTIVITY_DESCRIPTION -> stringResource(R.string.activity_state_empty_description)
-    GemEmptyStateText.STAKE_TITLE -> stringResource(R.string.stake_state_empty_title)
-    GemEmptyStateText.STAKE_DESCRIPTION -> stringResource(R.string.stake_state_empty_description, symbol)
-    GemEmptyStateText.EARN_TITLE -> stringResource(R.string.earn_state_empty_title)
-    GemEmptyStateText.EARN_DESCRIPTION -> stringResource(R.string.earn_state_empty_description, symbol)
-    GemEmptyStateText.WALLET_CONNECT_TITLE -> stringResource(R.string.wallet_connect_no_active_connections)
-    GemEmptyStateText.WALLET_CONNECT_DESCRIPTION -> stringResource(R.string.wallet_connect_state_empty_description)
-    GemEmptyStateText.RECENTS_TITLE -> stringResource(R.string.recent_activity_state_empty_title)
-    GemEmptyStateText.RECENTS_DESCRIPTION -> stringResource(R.string.recent_activity_state_empty_description)
-    GemEmptyStateText.NOTIFICATIONS_TITLE -> stringResource(R.string.notifications_inapp_state_empty_title)
-    GemEmptyStateText.NOTIFICATIONS_DESCRIPTION -> stringResource(R.string.notifications_inapp_state_empty_description)
-    GemEmptyStateText.WATCH_WALLET_TITLE -> stringResource(R.string.wallet_watch_empty_state_title)
-    GemEmptyStateText.WATCH_WALLET_DESCRIPTION -> stringResource(R.string.info_watch_wallet_description)
-    GemEmptyStateText.NO_ASSETS_FOUND_TITLE -> stringResource(R.string.assets_no_assets_found)
-    GemEmptyStateText.SEARCH_DESCRIPTION -> stringResource(R.string.search_state_empty_description)
-    GemEmptyStateText.SEARCH_ASSETS_DESCRIPTION -> stringResource(R.string.assets_state_empty_search_description)
-    GemEmptyStateText.SEARCH_ACTIVITY_TITLE -> stringResource(R.string.activity_state_empty_search_title)
-    GemEmptyStateText.SEARCH_ACTIVITY_DESCRIPTION -> stringResource(R.string.activity_state_empty_search_description)
-    GemEmptyStateText.SEARCH_NETWORKS_TITLE -> stringResource(R.string.networks_state_empty_search_title)
-    GemEmptyStateText.SEARCH_PERPETUALS_TITLE -> stringResource(R.string.perpetuals_empty_state_no_markets_found)
+fun GemEmptyStateText.text(context: Context, symbol: String): String = when (this) {
+    GemEmptyStateText.NFTS_TITLE -> context.getString(R.string.nft_state_empty_title)
+    GemEmptyStateText.NFTS_DESCRIPTION -> context.getString(R.string.nft_state_empty_description)
+    GemEmptyStateText.PRICE_ALERTS_TITLE -> context.getString(R.string.price_alerts_state_empty_title)
+    GemEmptyStateText.PRICE_ALERTS_DESCRIPTION -> context.getString(R.string.price_alerts_state_empty_description)
+    GemEmptyStateText.CONTACTS_TITLE -> context.getString(R.string.contacts_state_empty_title)
+    GemEmptyStateText.CONTACTS_DESCRIPTION -> context.getString(R.string.contacts_state_empty_description)
+    GemEmptyStateText.ASSET_TITLE -> context.getString(R.string.asset_state_empty_title)
+    GemEmptyStateText.ASSET_DESCRIPTION -> context.getString(R.string.asset_state_empty_description, symbol)
+    GemEmptyStateText.ACTIVITY_TITLE -> context.getString(R.string.activity_state_empty_title)
+    GemEmptyStateText.ACTIVITY_DESCRIPTION -> context.getString(R.string.activity_state_empty_description)
+    GemEmptyStateText.STAKE_TITLE -> context.getString(R.string.stake_state_empty_title)
+    GemEmptyStateText.STAKE_DESCRIPTION -> context.getString(R.string.stake_state_empty_description, symbol)
+    GemEmptyStateText.EARN_TITLE -> context.getString(R.string.earn_state_empty_title)
+    GemEmptyStateText.EARN_DESCRIPTION -> context.getString(R.string.earn_state_empty_description, symbol)
+    GemEmptyStateText.WALLET_CONNECT_TITLE -> context.getString(R.string.wallet_connect_no_active_connections)
+    GemEmptyStateText.WALLET_CONNECT_DESCRIPTION -> context.getString(R.string.wallet_connect_state_empty_description)
+    GemEmptyStateText.RECENTS_TITLE -> context.getString(R.string.recent_activity_state_empty_title)
+    GemEmptyStateText.RECENTS_DESCRIPTION -> context.getString(R.string.recent_activity_state_empty_description)
+    GemEmptyStateText.NOTIFICATIONS_TITLE -> context.getString(R.string.notifications_inapp_state_empty_title)
+    GemEmptyStateText.NOTIFICATIONS_DESCRIPTION -> context.getString(R.string.notifications_inapp_state_empty_description)
+    GemEmptyStateText.WATCH_WALLET_TITLE -> context.getString(R.string.wallet_watch_empty_state_title)
+    GemEmptyStateText.WATCH_WALLET_DESCRIPTION -> context.getString(R.string.info_watch_wallet_description)
+    GemEmptyStateText.NO_ASSETS_FOUND_TITLE -> context.getString(R.string.assets_no_assets_found)
+    GemEmptyStateText.SEARCH_DESCRIPTION -> context.getString(R.string.search_state_empty_description)
+    GemEmptyStateText.SEARCH_ASSETS_DESCRIPTION -> context.getString(R.string.assets_state_empty_search_description)
+    GemEmptyStateText.SEARCH_ACTIVITY_TITLE -> context.getString(R.string.activity_state_empty_search_title)
+    GemEmptyStateText.SEARCH_ACTIVITY_DESCRIPTION -> context.getString(R.string.activity_state_empty_search_description)
+    GemEmptyStateText.SEARCH_NETWORKS_TITLE -> context.getString(R.string.networks_state_empty_search_title)
+    GemEmptyStateText.SEARCH_PERPETUALS_TITLE -> context.getString(R.string.perpetuals_empty_state_no_markets_found)
 }
 
 @StringRes
@@ -387,16 +384,14 @@ fun GemCandleTooltipRow.stringRes(): Int = when (this) {
 }
 
 @StringRes
-fun GemContactAddressField.stringRes(): Int = when (this) {
-    GemContactAddressField.NETWORK -> R.string.transfer_network
-    GemContactAddressField.ADDRESS -> R.string.common_address
-    GemContactAddressField.MEMO -> R.string.transfer_memo
-}
-
-@StringRes
 fun GemRecipientSection.stringRes(): Int = when (this) {
     is GemRecipientSection.Pinned -> R.string.common_pinned
     is GemRecipientSection.Contacts -> R.string.contacts_title
     is GemRecipientSection.Wallets -> R.string.transfer_recipient_my_wallets
     is GemRecipientSection.ViewWallets -> R.string.transfer_recipient_view_wallets
+}
+
+fun GemBalanceResource.titleRes(): Int = when (this) {
+    GemBalanceResource.ENERGY -> R.string.stake_resource_energy
+    GemBalanceResource.BANDWIDTH -> R.string.stake_resource_bandwidth
 }

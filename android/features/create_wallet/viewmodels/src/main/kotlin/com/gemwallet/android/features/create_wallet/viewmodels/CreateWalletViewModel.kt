@@ -32,6 +32,8 @@ class CreateWalletViewModel @Inject constructor(
     private val state = MutableStateFlow(CreateWalletViewModelState())
     val uiState = state.asStateFlow()
 
+    fun phraseVerificationWords(words: List<String>): List<String> = service.phraseVerificationWords(words)
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             state.update { it.copy(defaultName = service.defaultWalletName(null)) }

@@ -8,6 +8,7 @@ import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import Onboarding
+import OnboardingTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -106,7 +107,7 @@ struct SetupWalletViewModelTests {
     @Test
     func theSceneStartsFromTheWalletName() {
         let wallet = Primitives.Wallet.mock(name: "Imported")
-        let model = SetupWalletViewModel(wallet: wallet, service: GemWalletService.mock(), onSelectImage: { _ in }, onComplete: { _ in })
+        let model = SetupWalletViewModel.mock(wallet: wallet)
 
         #expect(model.nameInput == "Imported")
         #expect(model.title.isNotEmpty)
@@ -114,12 +115,7 @@ struct SetupWalletViewModelTests {
 
     @Test
     func renamingAWalletThatIsGoneShowsTheError() async {
-        let model = SetupWalletViewModel(
-            wallet: .mock(id: .multicoin(address: "0xmissing")),
-            service: GemWalletService.mock(),
-            onSelectImage: { _ in },
-            onComplete: { _ in },
-        )
+        let model = SetupWalletViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
         model.nameInput = "Renamed"
 
         await model.onChangeWalletName()
@@ -131,7 +127,7 @@ struct SetupWalletViewModelTests {
     func finishingHandsBackTheWallet() {
         let recorder = WalletRecorder()
         let wallet = Primitives.Wallet.mock(name: "Imported")
-        let model = SetupWalletViewModel(wallet: wallet, service: GemWalletService.mock(), onSelectImage: { _ in }, onComplete: { recorder.record($0) })
+        let model = SetupWalletViewModel.mock(wallet: wallet, onComplete: { recorder.record($0) })
 
         model.onComplete()
         model.onSelectImage()

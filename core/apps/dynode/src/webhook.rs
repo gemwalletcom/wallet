@@ -114,7 +114,7 @@ impl Target for WebhookTarget {
 #[cfg(test)]
 mod tests {
     use primitives::Chain;
-    use reqwest::{Method, header::HeaderMap};
+    use reqwest::Method;
 
     use super::*;
 
@@ -122,16 +122,7 @@ mod tests {
     fn test_extract_payload() {
         let client = DynodeBroadcastWebhookClient::disabled();
         let providers = BroadcastProviders::from_chains([Chain::HyperCore]);
-        let request = ProxyRequest::new(
-            Method::POST,
-            HeaderMap::new(),
-            br#"{"action":{"type":"updateLeverage"},"nonce":123}"#.to_vec(),
-            "/exchange".into(),
-            "/exchange".into(),
-            "example.com".into(),
-            "agent".into(),
-            Chain::HyperCore,
-        );
+        let request = ProxyRequest::mock(Chain::HyperCore, Method::POST, "/exchange", br#"{"action":{"type":"updateLeverage"},"nonce":123}"#);
         let response = br#"{"status":"ok","response":{"type":"default"}}"#;
         assert_eq!(
             client.extract_payload(&request, response, &providers),

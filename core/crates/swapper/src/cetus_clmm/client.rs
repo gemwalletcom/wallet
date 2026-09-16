@@ -431,26 +431,6 @@ mod tests {
     use primitives::asset_constants::SUI_USDC_TOKEN_ID;
     use std::sync::Arc;
 
-    fn inspect_result_many(per_command: Vec<Vec<u8>>) -> InspectResult {
-        InspectResult {
-            effects: gem_sui::models::InspectEffects {
-                gas_used: gem_sui::models::InspectGasUsed {
-                    computation_cost: 0,
-                    storage_cost: 0,
-                    storage_rebate: 0,
-                },
-            },
-            events: serde_json::Value::Null,
-            error: None,
-            results: per_command
-                .into_iter()
-                .map(|bytes| gem_sui::models::InspectCommandResult {
-                    return_values: vec![(bytes, "CalculatedSwapResult".into())],
-                })
-                .collect(),
-        }
-    }
-
     fn calc_swap_bytes(amount_out: u64, current_sqrt: u128, after_sqrt: u128, is_exceed: bool) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(66);
         bytes.extend_from_slice(&997_500_u64.to_le_bytes());
@@ -533,7 +513,23 @@ mod tests {
         let bytes_a = calc_swap_bytes(100_000, current, after, false);
         let bytes_b = calc_swap_bytes(200_000, current, after, true);
         let bytes_c = calc_swap_bytes(300_000, current, after, false);
-        let result = inspect_result_many(vec![bytes_a, bytes_b, bytes_c]);
+        let result = InspectResult {
+            effects: gem_sui::models::InspectEffects {
+                gas_used: gem_sui::models::InspectGasUsed {
+                    computation_cost: 0,
+                    storage_cost: 0,
+                    storage_rebate: 0,
+                },
+            },
+            events: serde_json::Value::Null,
+            error: None,
+            results: [bytes_a, bytes_b, bytes_c]
+                .into_iter()
+                .map(|bytes| gem_sui::models::InspectCommandResult {
+                    return_values: vec![(bytes, "CalculatedSwapResult".into())],
+                })
+                .collect(),
+        };
 
         assert_eq!(quote_result_at(&result, 0).unwrap().amount_out, 100_000);
         assert!(!quote_result_at(&result, 0).unwrap().is_exceed);

@@ -2,9 +2,22 @@ use std::collections::HashMap;
 
 use crate::services::collections::{missing, unique};
 
-use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, Chain, TotalFiatValue};
+use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
 
-use super::model::{GemAssetBalance, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
+use super::model::{GemAssetBalance, GemBalanceRecord, GemBalanceResource, GemBalanceResourceRow, GemBalanceUpdate, GemBalanceUpdateType};
+
+#[uniffi::export]
+pub fn balance_resource_rows(metadata: Option<BalanceMetadata>) -> Vec<GemBalanceResourceRow> {
+    let Some(metadata) = metadata else { return Vec::new() };
+    let row = |resource, available: u32, total: u32| GemBalanceResourceRow {
+        resource,
+        text: format!("{available} / {total}"),
+    };
+    vec![
+        row(GemBalanceResource::Energy, metadata.energy_available, metadata.energy_total),
+        row(GemBalanceResource::Bandwidth, metadata.bandwidth_available, metadata.bandwidth_total),
+    ]
+}
 
 pub fn total_fiat_value(balances: &[AssetFiatValue]) -> TotalFiatValue {
     BalanceCalculator::total_fiat_value(balances)
@@ -146,50 +159,90 @@ pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_a_tron_resource_reads_available_over_total() {
+        assert!(balance_resource_rows(None).is_empty(), "a chain with no resources has no rows");
+        let rows = balance_resource_rows(Some(BalanceMetadata {
+            votes: 0,
+            energy_available: 100,
+            energy_total: 250,
+            bandwidth_available: 5,
+            bandwidth_total: 600,
+        }));
+        assert_eq!(
+            rows,
+            vec![
+                GemBalanceResourceRow {
+                    resource: GemBalanceResource::Energy,
+                    text: "100 / 250".to_string()
+                },
+                GemBalanceResourceRow {
+                    resource: GemBalanceResource::Bandwidth,
+                    text: "5 / 600".to_string()
+                },
+            ]
+        );
+    }
+
     use super::*;
     use num_bigint::BigUint;
 
     #[test]
     fn test_changed_balances_keeps_only_what_differs_from_the_stored_row() {
-        let asset_id = AssetId::from_chain(Chain::Ethereum);
-        let stored = GemAssetBalance {
-            asset_id: asset_id.clone(),
-            available: BigUint::from(10u32),
-            ..GemAssetBalance::mock()
-        };
-        let value = |amount: u32| BigUint::from(amount);
-        let token = |available: u32, is_active: bool| GemBalanceUpdate {
-            asset_id: asset_id.clone(),
-            update_type: GemBalanceUpdateType::Token { available: value(available) },
-            is_active,
-        };
+        let stored = GemAssetBalance::mock_with_available(10);
 
         assert!(
-            changed_balances(vec![stored.clone()], vec![token(10, true)]).is_empty(),
+            changed_balances(
+                vec![stored.clone()],
+                vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(10u32) })]
+            )
+            .is_empty(),
             "same value and state is not a change"
         );
-        assert_eq!(changed_balances(vec![stored.clone()], vec![token(11, true)]).len(), 1, "a new value is");
-        assert_eq!(changed_balances(vec![stored.clone()], vec![token(10, false)]).len(), 1, "so is an activation change alone");
-        assert_eq!(changed_balances(vec![], vec![token(10, true)]).len(), 1, "a balance with no stored row is always written");
+        assert_eq!(
+            changed_balances(
+                vec![stored.clone()],
+                vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(11u32) })]
+            )
+            .len(),
+            1,
+            "a new value is"
+        );
+        assert_eq!(
+            changed_balances(
+                vec![stored.clone()],
+                vec![GemBalanceUpdate {
+                    is_active: false,
+                    ..GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(10u32) })
+                }]
+            )
+            .len(),
+            1,
+            "so is an activation change alone"
+        );
+        assert_eq!(
+            changed_balances(vec![], vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(10u32) })]).len(),
+            1,
+            "a balance with no stored row is always written"
+        );
 
-        let stake = GemBalanceUpdate {
-            asset_id: asset_id.clone(),
-            update_type: GemBalanceUpdateType::Stake {
-                staked: value(0),
-                pending: value(0),
-                rewards: value(0),
-                locked: value(0),
-                frozen: value(0),
-                metadata: None,
-            },
-            is_active: true,
-        };
+        let stake = GemBalanceUpdate::mock(GemBalanceUpdateType::Stake {
+            staked: BigUint::ZERO,
+            pending: BigUint::ZERO,
+            rewards: BigUint::ZERO,
+            locked: BigUint::ZERO,
+            frozen: BigUint::ZERO,
+            metadata: None,
+        });
         assert!(
             changed_balances(vec![stored.clone()], vec![stake.clone()]).is_empty(),
             "a stake update leaves the coin's available alone and compares its own fields"
         );
 
-        let folded = changed_balances(vec![stored], vec![token(11, true), stake]);
+        let folded = changed_balances(
+            vec![stored],
+            vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(11u32) }), stake],
+        );
         assert_eq!(folded.len(), 1, "two updates for one asset fold into one row");
         assert_eq!(folded[0].available, BigUint::from(11u32));
     }
@@ -197,15 +250,21 @@ mod tests {
 
     #[test]
     fn test_pnl_shows_only_for_a_funded_wallet_that_moved() {
-        let total = |value: f64, pnl_amount: f64| TotalFiatValue {
-            value,
-            pnl_amount,
+        assert!(shows_pnl(&TotalFiatValue {
+            value: 20.0,
+            pnl_amount: 1.0,
             pnl_percentage: 0.0,
-        };
-
-        assert!(shows_pnl(&total(20.0, 1.0)));
-        assert!(!shows_pnl(&total(20.0, 0.0)));
-        assert!(!shows_pnl(&total(0.0, 1.0)));
+        }));
+        assert!(!shows_pnl(&TotalFiatValue {
+            value: 20.0,
+            pnl_amount: 0.0,
+            pnl_percentage: 0.0,
+        }));
+        assert!(!shows_pnl(&TotalFiatValue {
+            value: 0.0,
+            pnl_amount: 1.0,
+            pnl_percentage: 0.0,
+        }));
     }
 
     #[test]
@@ -281,32 +340,35 @@ mod tests {
 
     #[test]
     fn test_a_chain_that_fails_never_holds_back_the_chains_that_answered() {
-        let coin = |chain: Chain| (BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(chain), BigUint::from(1u32)));
-
         let (balances, failure) = published_balances(vec![
-            Ok(vec![coin(Chain::Bitcoin)]),
+            Ok(vec![(BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32)))]),
             Err("ethereum is offline"),
-            Ok(vec![coin(Chain::Solana)]),
+            Ok(vec![(BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Solana), BigUint::from(1u32)))]),
             Err("cosmos is offline"),
         ]);
 
         assert_eq!(
             balances,
-            vec![coin(Chain::Bitcoin), coin(Chain::Solana)],
+            vec![
+                (BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32))),
+                (BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Solana), BigUint::from(1u32)))
+            ],
             "every chain that answered is published in one batch"
         );
         assert_eq!(failure, Some("ethereum is offline"), "the caller hears about the first failure in request order");
 
-        let (balances, failure) = published_balances::<&str>(vec![Ok(vec![coin(Chain::Bitcoin)])]);
+        let (balances, failure) = published_balances::<&str>(vec![Ok(vec![(
+            BalanceKind::Coin,
+            AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32)),
+        )])]);
         assert_eq!(balances.len(), 1);
         assert_eq!(failure, None);
     }
 
     #[test]
     fn test_chain_balances_tags_every_balance_with_its_kind() {
-        let balance = |asset_id: AssetId| AssetBalance::new(asset_id, BigUint::from(1u32));
-        let coin = balance(AssetId::from_chain(Chain::Ethereum));
-        let token = balance(AssetId::from_token(Chain::Ethereum, "0x1234"));
+        let coin = AssetBalance::new(AssetId::from_chain(Chain::Ethereum), BigUint::from(1u32));
+        let token = AssetBalance::new(AssetId::from_token(Chain::Ethereum, "0x1234"), BigUint::from(1u32));
 
         let balances = chain_balances(vec![coin.clone()], Vec::new(), vec![token.clone()], Vec::new());
 

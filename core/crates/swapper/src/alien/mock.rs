@@ -25,6 +25,14 @@ impl ProviderMock {
             response: MockFn(Box::new(move |_| string.clone())),
         }
     }
+
+    pub fn mock_json_rpc_result(result: &str) -> Self {
+        Self::new(format!(r#"{{"id":1,"jsonrpc":"2.0","result":"{result}"}}"#))
+    }
+
+    pub fn mock_tron_constant_result(result: &str) -> Self {
+        Self::new(format!(r#"{{"constant_result":["{result}"]}}"#))
+    }
 }
 
 #[async_trait]

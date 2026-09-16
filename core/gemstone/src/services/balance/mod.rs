@@ -204,167 +204,103 @@ impl GemBalanceService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api::GemApiClient;
-    use crate::gateway::{EmptyPreferences, GemGateway};
-    use crate::services::assets::testkit::MemoryAssetStore;
-    use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
-    use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
-    use crate::services::stream::testkit::SubscriptionTestkit;
-    use crate::services::wallet::testkit::MemoryWalletStore;
-    use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
-    use crate::testkit::TestAlienProvider;
-    use async_trait::async_trait;
+    use crate::services::assets::rules::{default_asset_basic, default_balances};
     use futures::executor::block_on;
-    use primitives::{Account, Chain, WalletType};
-    use std::sync::Mutex;
-
-    struct MemoryBalanceStore {
-        rows: Mutex<Vec<AssetId>>,
-        updates: Mutex<usize>,
-    }
-
-    #[async_trait]
-    impl GemBalanceStore for MemoryBalanceStore {
-        async fn get_available_balances(&self, _wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-            Ok(self
-                .rows
-                .lock()
-                .unwrap()
-                .iter()
-                .filter(|id| asset_ids.contains(id))
-                .cloned()
-                .map(GemAssetBalance::zero)
-                .collect())
-        }
-        async fn update_balances(&self, _wallet_id: WalletId, _balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
-            *self.updates.lock().unwrap() += 1;
-            Ok(())
-        }
-        async fn get_enabled_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-            Ok(Vec::new())
-        }
-        async fn set_assets_enabled(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>, _enabled: bool) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn set_asset_pinned(&self, _wallet_id: WalletId, _asset_id: AssetId, _pinned: bool) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-    }
-
-    fn service(rows: Vec<AssetId>) -> (GemBalanceService, Arc<MemoryAssetStore>, Arc<MemoryBalanceStore>) {
-        let provider = Arc::new(TestAlienProvider::with_status(503));
-        let preferences_store = Arc::new(MemoryPreferencesStore::default());
-        let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
-        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
-        let wallets = Arc::new(MemoryWalletStore::default());
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore { current: Mutex::new(None) }),
-            wallets.clone(),
-        ));
-        let asset_store = Arc::new(MemoryAssetStore::default());
-        let assets = Arc::new(GemAssetsService::new(
-            Arc::new(GemApiClient::new(provider)),
-            gateway.clone(),
-            asset_store.clone(),
-            Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
-            preferences,
-            session,
-        ));
-        let store = Arc::new(MemoryBalanceStore {
-            rows: Mutex::new(rows),
-            updates: Mutex::new(0),
-        });
-        let service = GemBalanceService::new(
-            gateway,
-            wallets,
-            asset_store.clone(),
-            store.clone(),
-            assets,
-            Arc::new(SubscriptionTestkit::new(&[], &[]).service),
-        );
-        (service, asset_store, store)
-    }
-
-    fn wallet() -> Wallet {
-        Wallet {
-            wallet_type: WalletType::Multicoin,
-            ..Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Cosmos, Chain::Ethereum], "address"))
-        }
-    }
+    use primitives::Chain;
+    use testkit::{BalanceTestkit, MemoryBalanceStore};
 
     #[test]
     fn test_setup_of_a_new_wallet_adds_every_default_balance() {
         block_on(async {
-            let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet());
-            let (service, asset_store, _) = service(Vec::new());
+            let wallet = Wallet::mock_with_chains(&[Chain::Cosmos, Chain::Ethereum]);
+            let (enabled, disabled) = default_balances(&wallet);
+            let testkit = BalanceTestkit::new(MemoryBalanceStore::default());
 
-            service.setup_wallet(wallet()).await.unwrap();
+            testkit.service.setup_wallet(wallet.clone()).await.unwrap();
 
-            let added = asset_store.added_balances.lock().unwrap();
+            let added = testkit.assets.added_balances.lock().unwrap();
             assert_eq!(added.len(), 2);
-            assert_eq!(added[0], (wallet().id, enabled, true));
-            assert_eq!(added[1], (wallet().id, disabled, false));
+            assert_eq!(added[0], (wallet.id.clone(), enabled, true));
+            assert_eq!(added[1], (wallet.id, disabled, false));
         });
     }
 
     #[test]
     fn test_setup_of_a_complete_wallet_writes_nothing() {
         block_on(async {
-            let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet());
-            let (service, asset_store, store) = service([enabled, disabled].concat());
+            let wallet = Wallet::mock_with_chains(&[Chain::Cosmos, Chain::Ethereum]);
+            let (enabled, disabled) = default_balances(&wallet);
+            let rows = [enabled, disabled].concat().into_iter().map(GemAssetBalance::zero).collect();
+            let testkit = BalanceTestkit::new(MemoryBalanceStore::with_balances(wallet.id.clone(), rows));
 
-            service.setup_wallet(wallet()).await.unwrap();
+            testkit.service.setup_wallet(wallet).await.unwrap();
 
-            assert!(asset_store.added_balances.lock().unwrap().is_empty());
-            assert_eq!(*store.updates.lock().unwrap(), 0);
+            assert!(testkit.assets.added_balances.lock().unwrap().is_empty());
+            assert!(testkit.balances.balance_writes.lock().unwrap().is_empty());
         });
     }
 
     #[test]
     fn test_a_balance_update_creates_only_the_rows_it_lacks() {
         block_on(async {
+            let wallet = Wallet::mock_with_chains(&[Chain::Cosmos, Chain::Ethereum]);
             let ethereum = AssetId::from_chain(Chain::Ethereum);
             let cosmos = AssetId::from_chain(Chain::Cosmos);
-            let (service, asset_store, store) = service(vec![ethereum.clone()]);
-            asset_store
+            let testkit = BalanceTestkit::new(MemoryBalanceStore::with_balances(wallet.id.clone(), vec![GemAssetBalance::zero(ethereum.clone())]));
+            testkit
+                .assets
                 .save_assets(vec![
-                    crate::services::assets::rules::default_asset_basic(Asset::from_chain(Chain::Ethereum)),
-                    crate::services::assets::rules::default_asset_basic(Asset::from_chain(Chain::Cosmos)),
+                    default_asset_basic(Asset::from_chain(Chain::Ethereum)),
+                    default_asset_basic(Asset::from_chain(Chain::Cosmos)),
                 ])
                 .await
                 .unwrap();
-            let update = |asset_id: AssetId| GemBalanceUpdate {
-                asset_id,
-                update_type: GemBalanceUpdateType::Token {
-                    available: num_bigint::BigUint::ZERO,
-                },
-                is_active: true,
-            };
+            let update = GemBalanceUpdate::mock(GemBalanceUpdateType::Token {
+                available: num_bigint::BigUint::ZERO,
+            });
 
-            service.update_balances(wallet().id, vec![update(ethereum), update(cosmos.clone())]).await.unwrap();
+            testkit
+                .service
+                .update_balances(
+                    wallet.id.clone(),
+                    vec![
+                        GemBalanceUpdate {
+                            asset_id: ethereum,
+                            ..update.clone()
+                        },
+                        GemBalanceUpdate {
+                            asset_id: cosmos.clone(),
+                            ..update
+                        },
+                    ],
+                )
+                .await
+                .unwrap();
 
-            assert_eq!(*asset_store.added_balances.lock().unwrap(), vec![(wallet().id, vec![cosmos], false)]);
-            assert_eq!(*store.updates.lock().unwrap(), 1);
+            assert_eq!(*testkit.assets.added_balances.lock().unwrap(), vec![(wallet.id, vec![cosmos], false)]);
+            assert_eq!(testkit.balances.balance_writes.lock().unwrap().len(), 1);
         });
     }
 
     #[test]
     fn test_setup_adds_only_the_balances_the_wallet_lacks() {
         block_on(async {
-            let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet());
+            let wallet = Wallet::mock_with_chains(&[Chain::Cosmos, Chain::Ethereum]);
+            let (enabled, disabled) = default_balances(&wallet);
             let missing_enabled = enabled[0].clone();
             let missing_disabled = disabled[0].clone();
             let rows = [enabled, disabled]
                 .concat()
                 .into_iter()
                 .filter(|id| id != &missing_enabled && id != &missing_disabled)
+                .map(GemAssetBalance::zero)
                 .collect();
-            let (service, asset_store, _) = service(rows);
+            let testkit = BalanceTestkit::new(MemoryBalanceStore::with_balances(wallet.id.clone(), rows));
 
-            service.setup_wallet(wallet()).await.unwrap();
+            testkit.service.setup_wallet(wallet.clone()).await.unwrap();
 
-            let added = asset_store.added_balances.lock().unwrap();
-            assert_eq!(*added, vec![(wallet().id, vec![missing_enabled], true), (wallet().id, vec![missing_disabled], false)]);
+            let added = testkit.assets.added_balances.lock().unwrap();
+            assert_eq!(*added, vec![(wallet.id.clone(), vec![missing_enabled], true), (wallet.id, vec![missing_disabled], false)]);
         });
     }
 }

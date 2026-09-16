@@ -203,7 +203,7 @@ fun ConfirmScreen(
                         listPosition = listPosition,
                     )
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
-                    is ConfirmProperty.Network -> PropertyNetworkItem(item.data, listPosition)
+                    is ConfirmProperty.Network -> PropertyNetworkItem(chain = item.chain, value = item.name, listPosition = listPosition)
                     is ConfirmProperty.Source -> PropertyItem(
                         title = { PropertyTitleText(R.string.common_wallet) },
                         data = {

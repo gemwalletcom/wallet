@@ -59,14 +59,12 @@ class SettingsViewModel @Inject constructor(
 
     fun enableNotifications() {
         viewModelScope.launch(Dispatchers.IO) {
-            userConfig.stopAskNotifications()
             switchPushEnabled.switchPushEnabled(true)
         }
     }
 
     fun disableNotifications() {
         viewModelScope.launch(Dispatchers.IO) {
-            userConfig.stopAskNotifications()
             switchPushEnabled.switchPushEnabled(false)
         }
     }

@@ -2,11 +2,13 @@ use std::sync::{Arc, Mutex};
 
 use primitives::{Transaction, TransactionId, TransactionState, WalletId};
 
-use super::{GemPendingTransaction, GemTransactionStateStore, GemTransactionStateUpdate};
+use super::tracker::GemTransactionUpdater;
+use super::{GemPendingTransaction, GemTransactionStateResult, GemTransactionStateStore, GemTransactionStateUpdate};
 use crate::services::error::GemServiceError;
 
 #[derive(Default)]
 pub struct MemoryTransactionStateStore {
+    pub pending: Mutex<Vec<GemPendingTransaction>>,
     pub states: Mutex<Vec<(TransactionId, TransactionState)>>,
     pub updates: Mutex<Vec<(TransactionId, GemTransactionStateUpdate)>>,
     pub hash_updates: Mutex<Vec<(TransactionId, TransactionId)>>,
@@ -25,11 +27,11 @@ impl MemoryTransactionStateStore {
 #[async_trait::async_trait]
 impl GemTransactionStateStore for MemoryTransactionStateStore {
     async fn get_pending_transactions(&self) -> Result<Vec<GemPendingTransaction>, GemServiceError> {
-        Ok(Vec::new())
+        Ok(self.pending.lock().unwrap().clone())
     }
 
-    async fn get_transaction(&self, _wallet_id: WalletId, _transaction_id: TransactionId) -> Result<Option<GemPendingTransaction>, GemServiceError> {
-        Ok(None)
+    async fn get_transaction(&self, _wallet_id: WalletId, transaction_id: TransactionId) -> Result<Option<GemPendingTransaction>, GemServiceError> {
+        Ok(self.pending.lock().unwrap().iter().find(|pending| pending.transaction.id == transaction_id).cloned())
     }
 
     async fn add_transactions(&self, _wallet_id: WalletId, _transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
@@ -68,5 +70,33 @@ impl GemTransactionStateStore for MemoryTransactionStateStore {
         entry.1 = update.state;
         self.updates.lock().unwrap().push((transaction_id, update));
         Ok(true)
+    }
+}
+
+#[derive(Default)]
+pub struct TestTransactionUpdater {
+    pub results: Mutex<Vec<Result<Option<GemTransactionStateResult>, GemServiceError>>>,
+    pub requested: Mutex<Vec<TransactionId>>,
+}
+
+#[async_trait::async_trait]
+impl GemTransactionUpdater for TestTransactionUpdater {
+    async fn update(&self, _wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
+        self.requested.lock().unwrap().push(transaction.id.clone());
+        let mut results = self.results.lock().unwrap();
+        if results.is_empty() {
+            return Ok(None);
+        }
+        results.remove(0)
+    }
+}
+
+impl GemTransactionStateResult {
+    pub fn mock(transaction_id: TransactionId, state: TransactionState) -> Self {
+        Self {
+            transaction_id,
+            state,
+            failures: Vec::new(),
+        }
     }
 }

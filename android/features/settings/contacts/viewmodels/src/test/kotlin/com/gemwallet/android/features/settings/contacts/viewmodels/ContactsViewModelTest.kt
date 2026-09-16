@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
+import android.content.Context
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.wallet.core.primitives.Contact
 import io.mockk.coEvery
@@ -34,7 +35,7 @@ class ContactsViewModelTest {
     private val contact = Contact(id = "1", name = "Alice", description = null, imageUrl = null, createdAt = 0L, updatedAt = 0L)
 
     private fun model(service: GemContactServiceInterface): ContactsViewModel =
-        ContactsViewModel(mockk<GetContacts>(relaxed = true) { every { getContacts() } returns flowOf(emptyList()) }, service)
+        ContactsViewModel(mockk<GetContacts>(relaxed = true) { every { getContacts() } returns flowOf(emptyList()) }, service, mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" })
 
     @Test
     fun `a deleted contact leaves no error`() = runTest(dispatcher) {
@@ -46,7 +47,7 @@ class ContactsViewModelTest {
         Thread.sleep(50)
         advanceUntilIdle()
 
-        assertNull(model.error.value)
+        assertNull(model.errorText.value)
     }
 
     @Test
@@ -58,14 +59,14 @@ class ContactsViewModelTest {
 
         model.deleteContact(contact)
         repeat(200) {
-            if (model.error.value != null) return@repeat
+            if (model.errorText.value != null) return@repeat
             Thread.sleep(2)
         }
         advanceUntilIdle()
 
-        assertNotNull(model.error.value)
+        assertNotNull(model.errorText.value)
 
         model.clearError()
-        assertNull(model.error.value)
+        assertNull(model.errorText.value)
     }
 }

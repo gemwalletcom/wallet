@@ -77,17 +77,7 @@ pub fn calculate_apy(staking_config: &StakingConfig) -> f64 {
 mod tests {
     use super::*;
 
-    fn mock_stake(active: u32, inactive: u32, pending_inactive: u32) -> DelegationPoolStake {
-        DelegationPoolStake {
-            active: BigUint::from(active),
-            inactive: BigUint::from(inactive),
-            pending_inactive: BigUint::from(pending_inactive),
-        }
-    }
-
-    fn mock_lockup_secs() -> u64 {
-        1700000000
-    }
+    const LOCKUP_SECS: u64 = 1700000000;
 
     #[test]
     fn test_calculate_apy() {
@@ -113,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_map_delegations_active() {
-        let delegations = map_delegations(vec![("pool".to_string(), mock_stake(1000, 0, 0))], mock_lockup_secs());
+        let delegations = map_delegations(vec![("pool".to_string(), DelegationPoolStake::mock(1000, 0, 0))], LOCKUP_SECS);
 
         assert_eq!(delegations.len(), 1);
         assert_eq!(delegations[0].state, DelegationState::Active);
@@ -123,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_map_delegations_pending_inactive() {
-        let delegations = map_delegations(vec![("pool".to_string(), mock_stake(0, 0, 300))], mock_lockup_secs());
+        let delegations = map_delegations(vec![("pool".to_string(), DelegationPoolStake::mock(0, 0, 300))], LOCKUP_SECS);
 
         assert_eq!(delegations.len(), 1);
         assert_eq!(delegations[0].state, DelegationState::Deactivating);
@@ -133,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_map_delegations_inactive() {
-        let delegations = map_delegations(vec![("pool".to_string(), mock_stake(0, 200, 0))], mock_lockup_secs());
+        let delegations = map_delegations(vec![("pool".to_string(), DelegationPoolStake::mock(0, 200, 0))], LOCKUP_SECS);
 
         assert_eq!(delegations.len(), 1);
         assert_eq!(delegations[0].state, DelegationState::AwaitingWithdrawal);
@@ -143,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_map_delegations_multiple_states() {
-        let delegations = map_delegations(vec![("pool".to_string(), mock_stake(1000, 200, 300))], mock_lockup_secs());
+        let delegations = map_delegations(vec![("pool".to_string(), DelegationPoolStake::mock(1000, 200, 300))], LOCKUP_SECS);
 
         assert_eq!(delegations.len(), 3);
     }

@@ -51,7 +51,7 @@ impl ProviderType {
             SwapperProvider::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
             SwapperProvider::Thorchain => SwapProviderMode::OmniChain(vec![Chain::Thorchain, Chain::Tron]),
             SwapperProvider::NearIntents => SwapProviderMode::OmniChain(vec![Chain::Near, Chain::Tron]),
-            SwapperProvider::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain]),
+            SwapperProvider::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain, Chain::Arc]),
             SwapperProvider::Across => SwapProviderMode::Bridge,
             SwapperProvider::Hyperliquid => SwapProviderMode::OmniChain(vec![Chain::HyperCore, Chain::Hyperliquid]),
         }

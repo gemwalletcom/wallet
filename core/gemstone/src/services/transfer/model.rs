@@ -62,7 +62,7 @@ pub struct GemTransferData {
     pub use_max_amount: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemTransferOutput {
     pub output_type: TransferDataOutputType,
     pub output_action: TransferDataOutputAction,
@@ -104,7 +104,7 @@ pub enum GemConfirmTitle {
     PerpetualModify,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GemConfirmRow {
     App,
     Sender,
@@ -129,31 +129,46 @@ mod tests {
 
     #[test]
     fn test_transfer_identifier_separates_transfers_by_chain_recipient_and_value() {
-        let transfer = |address: &str, value: i32| GemTransferData {
-            input_type: TransactionInputType::Transfer {
+        let transfer = GemTransferData {
+            recipient: GemRecipient::address("bc1q".to_string()),
+            value: 10.into(),
+            ..GemTransferData::mock(TransactionInputType::Transfer {
                 asset: primitives::Asset::from_chain(primitives::Chain::Bitcoin),
-            },
-            recipient: GemRecipient::address(address.to_string()),
-            value: value.into(),
-            use_max_amount: false,
+            })
         };
 
-        assert_eq!(transfer("bc1q", 10).identifier(), "bitcoin-bc1q-10");
-        assert_ne!(transfer("bc1q", 10).identifier(), transfer("bc1q", 11).identifier());
-        assert_ne!(transfer("bc1q", 10).identifier(), transfer("bc1r", 10).identifier());
+        assert_eq!(transfer.identifier(), "bitcoin-bc1q-10");
+        assert_ne!(
+            transfer.identifier(),
+            GemTransferData {
+                value: 11.into(),
+                ..transfer.clone()
+            }
+            .identifier()
+        );
+        assert_ne!(
+            transfer.identifier(),
+            GemTransferData {
+                recipient: GemRecipient::address("bc1r".to_string()),
+                ..transfer.clone()
+            }
+            .identifier()
+        );
     }
 
     #[test]
     fn test_recipient_identifier_separates_a_named_recipient_from_a_bare_address() {
-        let recipient = |name: Option<&str>, address: &str, memo: Option<&str>| GemRecipient {
-            address: address.to_string(),
-            name: name.map(str::to_string),
-            memo: memo.map(str::to_string),
-            references: Vec::new(),
-        };
+        let named = GemRecipient::named("0xabc".to_string(), "Alice".to_string());
 
-        assert_eq!(recipient(Some("Alice"), "0xabc", Some("order 7")).identifier(), "Alice_0xabc_order 7");
-        assert_eq!(recipient(None, "0xabc", None).identifier(), "_0xabc_");
-        assert_ne!(recipient(Some("Alice"), "0xabc", None).identifier(), recipient(None, "0xabc", None).identifier());
+        assert_eq!(
+            GemRecipient {
+                memo: Some("order 7".to_string()),
+                ..named.clone()
+            }
+            .identifier(),
+            "Alice_0xabc_order 7"
+        );
+        assert_eq!(GemRecipient::address("0xabc".to_string()).identifier(), "_0xabc_");
+        assert_ne!(named.identifier(), GemRecipient::address("0xabc".to_string()).identifier());
     }
 }

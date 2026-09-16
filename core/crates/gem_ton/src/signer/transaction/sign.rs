@@ -119,14 +119,9 @@ mod tests {
     const TRUST_WALLET_PRIVATE_KEY: &str = "63474e5fe9511f1526a50567ce142befc343e71a49b865ac3908f58667319cb8";
     const SENDER_TOKEN_ADDRESS: &str = "EQAlgB03OjJKdXrlwZiGJD5snSzPKF2VL5bErJn_cqJANGH9";
 
-    fn test_signer() -> TonSigner {
-        let private_key = hex::decode(TEST_TON_PRIVATE_KEY).unwrap();
-        TonSigner::new(&private_key).unwrap()
-    }
-
     #[test]
     fn test_sign_transfer() {
-        let signer = test_signer();
+        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
         let address = signer.address().encode();
 
         let input = SignerInput::mock_with_input_type(
@@ -146,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_sign_token_transfer() {
-        let signer = test_signer();
+        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
         let address = signer.address().encode();
 
         let asset = Asset::new(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID), String::new(), String::new(), 8, AssetType::TOKEN);
@@ -165,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_sign_nft_transfer() {
-        let signer = test_signer();
+        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
         let mut input = SignerInput::mock_ton(
             TransactionInputType::TransferNft {
                 asset: Asset::from_chain(Chain::Ton),
@@ -188,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_sign_nft_transfer_validates_contract_address() {
-        let signer = test_signer();
+        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
 
         let mut nft_asset = NFTAsset::mock_ton();
         nft_asset.contract_address = None;
@@ -223,7 +218,7 @@ mod tests {
 
     #[test]
     fn test_sign_swap_uses_custom_payload_transfer() {
-        let signer = test_signer();
+        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
         let mut swap_data = SwapData::mock_with_provider(primitives::SwapProvider::StonfiV2);
         swap_data.data.to = SENDER_TOKEN_ADDRESS.to_string();
         swap_data.data.value = BigUint::from(241000000u64);

@@ -97,6 +97,11 @@ public final class EarnSceneViewModel {
         positionModels.isNotEmpty
     }
 
+    func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
+    }
+
     var showEmptyState: Bool {
         !hasPositions && !viewState.isLoading
     }

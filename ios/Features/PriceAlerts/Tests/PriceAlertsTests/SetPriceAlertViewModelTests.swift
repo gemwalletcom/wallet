@@ -1,7 +1,7 @@
-import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import PriceAlerts
+import PriceAlertsTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -123,19 +123,5 @@ private final class MessageRecorder: @unchecked Sendable {
 
     func record(_ message: String) {
         messages.append(message)
-    }
-}
-
-private extension SetPriceAlertViewModel {
-    static func mock(
-        service: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
-        onComplete: @escaping (String) -> Void = { _ in },
-    ) -> SetPriceAlertViewModel {
-        SetPriceAlertViewModel(
-            walletId: WalletId.mock(),
-            asset: .mock(),
-            service: service,
-            onComplete: onComplete,
-        )
     }
 }

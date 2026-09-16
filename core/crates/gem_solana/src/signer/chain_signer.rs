@@ -95,7 +95,8 @@ impl ChainSigner for SolanaChainSigner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::signer::testkit::{DOUBLE_SIG_TX, EXPECTED_MESSAGE_HEX, SINGLE_SIG_TX, mock_legacy_transaction};
+    use crate::signer::testkit::{DOUBLE_SIG_TX, EXPECTED_MESSAGE_HEX, SINGLE_SIG_TX};
+    use crate::testkit::mock_legacy_transaction;
     use crate::{SignatureBytes, VersionedTransaction};
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;

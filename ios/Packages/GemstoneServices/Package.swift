@@ -74,7 +74,7 @@ let package = Package(
                 "GemstoneServicesTestKit",
                 "GemstonePrimitives",
                 "Keychain",
-                .product(name: "WebSocketClient", package: "SwiftHTTPClient"),
+                .product(name: "WebSocketClientTestKit", package: "SwiftHTTPClient"),
             ],
             path: "Tests",
             resources: [.process("Resources")],

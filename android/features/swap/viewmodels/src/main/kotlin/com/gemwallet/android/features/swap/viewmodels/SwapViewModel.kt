@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import kotlinx.coroutines.CancellationException
@@ -30,10 +32,10 @@ import com.gemwallet.android.features.swap.viewmodels.models.QuoteState
 import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
 import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
-import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.toAssetPriceValue
 import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -88,6 +90,7 @@ class SwapViewModel @Inject constructor(
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(swapQuoteService.newSession())
@@ -224,11 +227,14 @@ class SwapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val uiState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
+    private val viewState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
             val available = pay?.balance?.balance?.available ?: BigInteger.ZERO
             val atomic = pay?.let { Crypto(value, it.asset.decimals).atomicValue } ?: BigInteger.ZERO
-            createSwapUiState(quoteSession.viewState(atomic, available, pay?.asset?.toGem()))
+            quoteSession.viewState(atomic, available, pay?.asset?.toGem())
         }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val uiState = viewState.map { state -> state?.let { createSwapUiState(it, context) } ?: SwapUiState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
 
     init {
@@ -295,11 +301,10 @@ class SwapViewModel @Inject constructor(
 
     fun onSelectPercent(percent: Int) {
         val asset = payAsset.value ?: return
-        val value = asset.balance.balance.available.multiplyByPercent(percent)
+        val value = swapQuoteService.amountForPercent(asset.balance.balance.available, percent.toUInt())
+        val text = numberFormat().inputText(value.toString(), asset.asset.decimals.toUInt()) ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(
-            Crypto(value).value(asset.asset.decimals).stripTrailingZeros().toPlainString()
-        )
+        payValue.setTextAndPlaceCursorAtEnd(text)
     }
 
     fun refresh() {
@@ -317,7 +322,7 @@ class SwapViewModel @Inject constructor(
         if (state.buttonState != ButtonState.Enabled) {
             return
         }
-        when (val action = state.buttonAction) {
+        when (val action = viewState.value?.buttonAction ?: return) {
             GemSwapButtonAction.Swap -> {
                 if (swapDetails.value?.shouldShowPriceImpactWarning == true) {
                     onShowPriceImpactWarning()
@@ -381,8 +386,9 @@ class SwapViewModel @Inject constructor(
 
     private fun setPayValue(amount: BigInteger) {
         val asset = payAsset.value?.asset ?: return
+        val text = numberFormat().inputText(amount.toString(), asset.decimals.toUInt()) ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).stripTrailingZeros().toPlainString())
+        payValue.setTextAndPlaceCursorAtEnd(text)
     }
 
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {

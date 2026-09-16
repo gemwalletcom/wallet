@@ -28,12 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.features.settings.networks.presents.localization.stringRes
+import com.gemwallet.android.features.settings.networks.viewmodels.models.ExplorerRowUIModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworkSectionUIModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUIModel
 import com.gemwallet.android.ui.R
-import uniffi.gemstone.GemChainSettingsSection
-import uniffi.gemstone.GemExplorerRow
-import uniffi.gemstone.GemNodeRow
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -54,7 +53,7 @@ internal fun NetworkScene(
     val chain = state.chain ?: return
     var isShowAddSource by remember { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
-    var nodeDelete by remember { mutableStateOf<GemNodeRow?>(null) }
+    var nodeDelete by remember { mutableStateOf<NodeRowUIModel?>(null) }
 
     Scene(
         title = chain.networkName(),
@@ -74,16 +73,16 @@ internal fun NetworkScene(
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 state.sections.forEach { section ->
-                    item { SubheaderItem(section.stringRes()) }
+                    item { SubheaderItem(section.title) }
                     when (section) {
-                        GemChainSettingsSection.NODES -> itemsIndexed(state.nodeRows, key = { _, item -> item.node.url }) { index, node ->
+                        is NetworkSectionUIModel.Nodes -> itemsIndexed(section.rows, key = { _, item -> item.url }) { index, node ->
                             NodeItem(
                                 model = node,
-                                listPosition = ListPosition.getPosition(index, state.nodeRows.size),
-                                isDeleteRevealed = revealedNodeId == node.node.url,
-                                onDeleteReveal = { revealedNodeId = node.node.url },
+                                listPosition = ListPosition.getPosition(index, section.rows.size),
+                                isDeleteRevealed = revealedNodeId == node.url,
+                                onDeleteReveal = { revealedNodeId = node.url },
                                 onDeleteCollapse = {
-                                    if (revealedNodeId == node.node.url) {
+                                    if (revealedNodeId == node.url) {
                                         revealedNodeId = null
                                     }
                                 },
@@ -98,7 +97,7 @@ internal fun NetworkScene(
                                 },
                             )
                         }
-                        GemChainSettingsSection.EXPLORER -> itemsPositioned(state.blockExplorers) { position, item ->
+                        is NetworkSectionUIModel.Explorers -> itemsPositioned(section.rows) { position, item ->
                             BlockExplorerItem(item, position) { onAction(NetworkAction.SelectBlockExplorer(it)) }
                         }
                     }
@@ -124,9 +123,9 @@ internal fun NetworkScene(
 
     nodeDelete?.let { pendingNode ->
         ConfirmNodeDeleteDialog(
-            nodeName = pendingNode.node.host,
+            nodeName = pendingNode.host,
             onConfirm = {
-                onAction(NetworkAction.DeleteNode(pendingNode.node.url))
+                onAction(NetworkAction.DeleteNode(pendingNode.url))
                 nodeDelete = null
             },
             onDismiss = { nodeDelete = null },
@@ -136,7 +135,7 @@ internal fun NetworkScene(
 
 @Composable
 private fun BlockExplorerItem(
-    explorer: GemExplorerRow,
+    explorer: ExplorerRowUIModel,
     listPosition: ListPosition,
     onSelect: (String) -> Unit,
 ) {

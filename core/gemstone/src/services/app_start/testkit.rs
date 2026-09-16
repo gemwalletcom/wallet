@@ -4,7 +4,6 @@ use primitives::Wallet;
 
 use super::GemAppStartService;
 use crate::api::{GemApiClient, GemDeviceApiClient};
-use crate::gateway::EmptyPreferences;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::MemoryBannerStore;
@@ -16,7 +15,7 @@ use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::subscription::GemSubscriptionService;
 use crate::services::wallet::testkit::{OTHER_PHRASE, PHRASE, WalletTestkit};
 use crate::services::wallet_configuration::GemWalletConfigurationService;
-use crate::testkit::TestAlienProvider;
+use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 pub struct AppStartTestkit {
     pub service: GemAppStartService,

@@ -9,6 +9,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -52,7 +53,7 @@ class ReceiveViewModelTest {
     }
 
     private val bitcoin = mockAsset()
-    private val ethereum = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val ethereum = mockAssetEthereum()
     private val wallet = mockWallet(
         id = "multicoin_0xabc",
         accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1q"), mockAccount(chain = Chain.Ethereum, address = "0xabc")),
@@ -82,6 +83,7 @@ class ReceiveViewModelTest {
         val model = receiveModel(service)
 
         assertEquals(listOf(bitcoin.id, ethereum.id), model.networkAssetIds.first { it.size == 2 })
+        coVerify { service.syncNetworkAssetIds(bitcoin.id.toIdentifier(), wallet.toGem()) }
         assertEquals(listOf(GemReceiveWarning.NO_MEMO_REQUIRED), model.warnings(Chain.Bitcoin))
         assertEquals(emptyList<GemReceiveWarning>(), model.warnings(Chain.Ethereum))
     }

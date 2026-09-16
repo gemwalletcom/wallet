@@ -137,8 +137,6 @@ impl NodeHealthEvaluator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::config::metrics_config;
-    use crate::testkit::config::url;
 
     #[test]
     fn test_probe_order() {
@@ -152,20 +150,24 @@ mod tests {
     #[tokio::test]
     async fn test_switch_if_current() {
         let chain_config = ChainConfig {
-            chain: Chain::Ethereum,
-            poll_interval_seconds: None,
-            latency: None,
-            overrides: None,
-            allowlist: None,
-            urls: vec![url("https://a"), url("https://b"), url("https://c")],
+            urls: vec![Url::mock("https://a"), Url::mock("https://b"), Url::mock("https://c")],
+            ..ChainConfig::mock(Chain::Ethereum)
         };
-        let nodes = Arc::new(RwLock::new(HashMap::from([(chain_config.chain, url("https://a"))])));
-        let evaluator = NodeHealthEvaluator::new(chain_config, None, NodeCheckRequest::Basic, nodes, Arc::new(Metrics::new(metrics_config())));
+        let nodes = Arc::new(RwLock::new(HashMap::from([(chain_config.chain, Url::mock("https://a"))])));
+        let evaluator = NodeHealthEvaluator::new(chain_config, None, NodeCheckRequest::Basic, nodes, Arc::new(Metrics::mock()));
 
-        assert!(evaluator.switch_if_current(&url("https://a"), &url("https://b"), &NodeSwitchReason::PreferredNode).await);
-        assert_eq!(*evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap(), url("https://b"));
+        assert!(
+            evaluator
+                .switch_if_current(&Url::mock("https://a"), &Url::mock("https://b"), &NodeSwitchReason::PreferredNode)
+                .await
+        );
+        assert_eq!(*evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap(), Url::mock("https://b"));
 
-        assert!(!evaluator.switch_if_current(&url("https://a"), &url("https://c"), &NodeSwitchReason::PreferredNode).await);
-        assert_eq!(*evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap(), url("https://b"));
+        assert!(
+            !evaluator
+                .switch_if_current(&Url::mock("https://a"), &Url::mock("https://c"), &NodeSwitchReason::PreferredNode)
+                .await
+        );
+        assert_eq!(*evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap(), Url::mock("https://b"));
     }
 }
