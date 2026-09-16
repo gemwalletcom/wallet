@@ -2,8 +2,8 @@ use gem_evm::address::ethereum_address_checksum;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType,
-    WalletConnectCAIP2, WalletConnectCAIP19, payment_decoder::is_payment_host,
+    AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType,
+    TransferDataOutputType, WalletConnectCAIP2, WalletConnectCAIP19, payment_decoder::is_payment_host,
 };
 use std::str::FromStr;
 use url::Url;
@@ -80,7 +80,9 @@ pub(super) fn map_transaction(quote: &Quote, action: PaymentAction, invoice: Pay
             (send.data, transaction_type, send.recipient, TransferDataOutputType::EncodedTransaction, None)
         }
         PaymentAction::Sign(sign) => (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, None),
-        PaymentAction::ApproveAndSign { approval, sign } => (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, Some(approval)),
+        PaymentAction::ApproveAndSign { approval, sign } => {
+            (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, Some(approval))
+        }
     };
 
     PaymentTransaction {

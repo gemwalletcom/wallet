@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use futures::lock::Mutex;
 use primitives::currency::Currency;
-use primitives::{AssetId, BlockExplorerLink, Chain, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
+use primitives::{
+    AssetId, BlockExplorerLink, Chain, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet,
+};
 
 use super::rules::preload_simulation;
 use super::{GemAcquireAssetFlow, GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmScreen, GemConfirmTransferService, GemExecuteResult, GemTransferAmountResult};
@@ -153,8 +155,8 @@ mod tests {
     use futures::executor::block_on;
     use num_bigint::BigInt;
     use primitives::{
-        Account, Asset, AssetId, Chain, FeePriority, PaymentInvoice, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra,
-        Wallet, WalletId,
+        Account, Asset, AssetId, Chain, FeePriority, PaymentInvoice, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType,
+        TransferDataExtra, Wallet, WalletId,
     };
 
     use super::super::testkit::ConfirmTestkit;

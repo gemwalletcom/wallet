@@ -98,7 +98,9 @@ mod tests {
     use crate::{SignatureBytes, VersionedTransaction};
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{Chain, ChainSigner, PaymentInvoice, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
+    use primitives::{
+        Chain, ChainSigner, PaymentInvoice, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType,
+    };
 
     #[test]
     fn test_deserialize_single_signature_transaction() {

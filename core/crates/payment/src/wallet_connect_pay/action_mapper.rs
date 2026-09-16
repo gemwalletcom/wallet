@@ -100,7 +100,8 @@ fn validate_chain(quote: &Quote, action: &WalletRpcAction) -> Result<(), Payment
 }
 
 fn get_value(transaction: &WCEthereumTransaction) -> Result<BigUint, PaymentError> {
-    biguint_from_hex_str(transaction.value.as_deref().unwrap_or_default()).map_err(|error| PaymentError::invalid_request(format!("Invalid payment value: {error}")))
+    biguint_from_hex_str(transaction.value.as_deref().unwrap_or_default())
+        .map_err(|error| PaymentError::invalid_request(format!("Invalid payment value: {error}")))
 }
 
 #[cfg(test)]
@@ -133,8 +134,9 @@ mod tests {
         );
         assert!(map_actions(&polygon_quote(1_001), std::slice::from_ref(&send)).is_err(), "the value must match the quote");
         assert!(map_actions(&quote, &[WalletRpcAction { chain_id: "eip155".to_string(), ..send.clone() }]).is_err());
+        let ethereum = Quote::mock(AssetId::from_chain(Chain::Ethereum), 1_000);
         assert!(
-            map_actions(&quote, &[WalletRpcAction::mock_send(&Quote::mock(AssetId::from_chain(Chain::Ethereum), 1_000), TEST_EVM_RECIPIENT, "0x3e8", "0xabcd")]).is_err(),
+            map_actions(&quote, &[WalletRpcAction::mock_send(&ethereum, TEST_EVM_RECIPIENT, "0x3e8", "0xabcd")]).is_err(),
             "another chain"
         );
         let mut other_chain = send.clone();

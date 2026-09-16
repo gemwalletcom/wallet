@@ -5,8 +5,8 @@ use num_bigint::BigInt;
 use num_traits::Num;
 use primitives::swap::SwapQuoteDataType;
 use primitives::{
-    AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType, decode_hex, fee::FeePriority,
-    fee::GasPriceType,
+    AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType, decode_hex,
+    fee::FeePriority, fee::GasPriceType,
 };
 
 use crate::constants::TRANSFER_GAS_LIMIT;

@@ -14,8 +14,8 @@ use number_formatter::BigNumberFormatter;
 use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentUpdate, WalletConnectPayAuth};
 use primitives::TransactionInputType;
 use primitives::{
-    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentURLDecoder, PaymentVerification, Transaction,
-    TransactionChange, TransactionState, TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex,
+    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentURLDecoder, PaymentVerification,
+    Transaction, TransactionChange, TransactionState, TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex,
 };
 use uuid::Uuid;
 
@@ -31,7 +31,7 @@ pub enum GemPaymentError {
 impl From<GemServiceError> for GemPaymentError {
     fn from(error: GemServiceError) -> Self {
         match error {
-            GemServiceError::InvalidInput { msg } | GemServiceError::NotFound { msg } | GemServiceError::Unsupported { msg } => Self::InvalidRequest { reason: msg },
+            GemServiceError::InvalidInput { msg } | GemServiceError::NotFound { msg } | GemServiceError::Unsupported { msg } => Self::invalid_request(msg),
             error => Self::Network { reason: error.to_string() },
         }
     }
@@ -109,7 +109,12 @@ impl GemPaymentService {
         self.payments.confirm(&invoice.link, &quote.id, action_results).await
     }
 
-    pub(crate) async fn quote_transfer_data(&self, invoice: GemPaymentInvoice, asset_id: AssetId, verification: PaymentVerification) -> Result<GemTransferData, GemPaymentError> {
+    pub(crate) async fn quote_transfer_data(
+        &self,
+        invoice: GemPaymentInvoice,
+        asset_id: AssetId,
+        verification: PaymentVerification,
+    ) -> Result<GemTransferData, GemPaymentError> {
         let asset = self.assets.ensure_token_asset(asset_id).await?;
         quote_transfer_data(invoice, asset, verification)
     }
