@@ -184,7 +184,6 @@ extension ReceiveViewModel {
                 let account = try wallet.account(for: asset.chain)
                 assetModel = AssetViewModel(asset: asset)
                 address = account.address
-                renderedImage = await generateQRCode()
                 await enableAsset()
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
@@ -201,6 +200,7 @@ extension ReceiveViewModel {
     }
 
     func onLoadImage() async {
+        renderedImage = nil
         renderedImage = await generateQRCode()
     }
 }

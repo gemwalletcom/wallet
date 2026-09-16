@@ -3,8 +3,8 @@
 import Components
 import Gemstone
 import GemstonePrimitives
-import Localization
 import GemstonePrimitivesTestKit
+import Localization
 import Primitives
 import PrimitivesTestKit
 import SwiftUI
@@ -32,7 +32,9 @@ struct ReceiveViewModelTests {
     private func settle(until condition: () -> Bool = { false }) async {
         for _ in 0 ..< 200 {
             await Task.yield()
-            if condition() { return }
+            if condition() {
+                return
+            }
             try? await Task.sleep(for: .milliseconds(5))
         }
     }
@@ -124,6 +126,7 @@ struct ReceiveViewModelTests {
 
         #expect(service.requestedAssetIds == [ethereum.id.identifier])
         #expect(model.assetModel.asset.chain == .ethereum)
+        #expect(model.address == "0xabc")
         #expect(service.enabledAssetIds == [ethereum.id.identifier])
     }
 
