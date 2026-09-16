@@ -216,13 +216,14 @@ fn payment_record_hash(link: &PaymentLink) -> String {
 
 fn payment_transaction_update(hash: &str, update: PaymentUpdate) -> TransactionUpdate {
     match update.status {
-        PaymentStatus::Succeeded => {
-            let relayed = update.transaction_id.filter(|transaction_id| transaction_id != hash);
-            TransactionUpdate::new(
-                TransactionState::Confirmed,
-                relayed.map(|new| TransactionChange::HashChange { old: hash.to_string(), new }).into_iter().collect(),
-            )
-        }
+        PaymentStatus::Succeeded => TransactionUpdate::new(
+            TransactionState::Confirmed,
+            update
+                .transaction_id
+                .map(|new| TransactionChange::HashChange { old: hash.to_string(), new })
+                .into_iter()
+                .collect(),
+        ),
         PaymentStatus::Failed | PaymentStatus::Expired | PaymentStatus::Cancelled => TransactionUpdate::new_state(TransactionState::Failed),
         PaymentStatus::RequiresAction | PaymentStatus::Processing => TransactionUpdate::new_state(TransactionState::Pending),
     }
@@ -441,7 +442,6 @@ mod tests {
             )
         );
         assert_eq!(update(PaymentStatus::Succeeded, None), TransactionUpdate::new_state(TransactionState::Confirmed));
-        assert_eq!(update(PaymentStatus::Succeeded, Some("pay_1")), TransactionUpdate::new_state(TransactionState::Confirmed));
         assert_eq!(update(PaymentStatus::Processing, None), TransactionUpdate::new_state(TransactionState::Pending));
         assert_eq!(update(PaymentStatus::RequiresAction, None), TransactionUpdate::new_state(TransactionState::Pending));
         assert_eq!(update(PaymentStatus::Failed, None), TransactionUpdate::new_state(TransactionState::Failed));

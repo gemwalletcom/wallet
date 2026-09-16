@@ -16,7 +16,6 @@ pub(super) enum PaymentAction {
 #[derive(Debug, Clone, PartialEq)]
 pub(super) struct PaymentSend {
     pub recipient: String,
-    pub value: BigUint,
     pub data: String,
 }
 

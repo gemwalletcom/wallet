@@ -198,7 +198,6 @@ mod tests {
             &quote(AssetId::from_chain(Chain::Polygon)),
             PaymentAction::Send(PaymentSend {
                 recipient: TEST_EVM_RECIPIENT.to_string(),
-                value: BigUint::from(1_000_000u32),
                 data: String::new(),
             }),
             PaymentInvoice::mock(),

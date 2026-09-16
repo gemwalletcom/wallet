@@ -25,9 +25,6 @@ pub(super) fn map_actions(quote: &Quote, actions: &[WalletRpcAction]) -> Result<
 }
 
 fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, PaymentError> {
-    if !quote.asset_id.is_native() {
-        return Err(PaymentError::invalid_request("Payment asks to send a coin for a token quote"));
-    }
     let transaction = get_transaction(quote, action)?;
     let value = get_value(&transaction)?;
     if value != quote.value {
@@ -35,13 +32,12 @@ fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, Paym
     }
     Ok(PaymentSend {
         recipient: transaction.to,
-        value,
         data: transaction.data.unwrap_or_default(),
     })
 }
 
 fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, PaymentError> {
-    let token = get_quote_token(quote)?;
+    let token = quote.asset_id.token_id.as_deref().unwrap_or_default();
     validate_chain(quote, action)?;
     let signer = action.params.at(0).and_then(Value::string).map_err(PaymentError::invalid_request)?;
     if !signer.eq_ignore_ascii_case(&quote.account.address) {
@@ -64,7 +60,7 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, Paym
 }
 
 fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData, PaymentError> {
-    let token = get_quote_token(quote)?;
+    let token = quote.asset_id.token_id.as_deref().unwrap_or_default();
     let transaction = get_transaction(quote, action)?;
     if get_value(&transaction)? != BigUint::ZERO {
         return Err(PaymentError::invalid_request("Payment approval sends value"));
@@ -76,10 +72,6 @@ fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData,
         EvmTransactionKind::TokenApproval(approval) => Ok(approval),
         EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => Err(PaymentError::invalid_request("Payment approval is not a token approval")),
     }
-}
-
-fn get_quote_token(quote: &Quote) -> Result<&str, PaymentError> {
-    quote.asset_id.token_id.as_deref().ok_or_else(|| PaymentError::invalid_request("Payment asks to sign for a coin quote"))
 }
 
 fn get_transaction(quote: &Quote, action: &WalletRpcAction) -> Result<WCEthereumTransaction, PaymentError> {
@@ -136,12 +128,10 @@ mod tests {
             map_actions(&quote, std::slice::from_ref(&send)).unwrap(),
             PaymentAction::Send(PaymentSend {
                 recipient: TEST_EVM_RECIPIENT.to_string(),
-                value: BigUint::from(1_000u32),
                 data: "0xabcd".to_string(),
             })
         );
         assert!(map_actions(&polygon_quote(1_001), std::slice::from_ref(&send)).is_err(), "the value must match the quote");
-        assert!(map_actions(&usdt_quote(1_000), std::slice::from_ref(&send)).is_err(), "a token quote is not paid by sending a coin");
         assert!(map_actions(&quote, &[WalletRpcAction { chain_id: "eip155".to_string(), ..send.clone() }]).is_err());
         assert!(
             map_actions(&quote, &[WalletRpcAction::mock_send(&Quote::mock(AssetId::from_chain(Chain::Ethereum), 1_000), TEST_EVM_RECIPIENT, "0x3e8", "0xabcd")]).is_err(),
