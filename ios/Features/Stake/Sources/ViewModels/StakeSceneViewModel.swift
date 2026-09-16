@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import enum Gemstone.GemDelegationDestination
 import enum Gemstone.GemStakeAction
 import struct Gemstone.GemStakeActionItem
 import enum Gemstone.GemStakeInfoRow
@@ -135,14 +134,11 @@ public final class StakeSceneViewModel {
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch delegation.destination {
-        case let .withdraw(transfer): transfer
+        switch service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem()) {
         case .details: delegation.delegation
+        case let .confirm(transfer): transfer
+        case let .amount(asset, input): AmountInput(type: input.map(), asset: asset.toPrimitives())
         }
-    }
-
-    private func destination(for delegation: Delegation) -> GemDelegationDestination {
-        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.toGem())
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
@@ -153,7 +149,6 @@ public final class StakeSceneViewModel {
                 delegation: delegation,
                 asset: asset,
                 currency: currency,
-                destination: destination(for: delegation),
             )
         }
 

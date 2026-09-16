@@ -199,7 +199,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let validators: [Gemstone.DelegationValidator]
     private let lockTime: UInt64
     private let minStake: Gemstone.GemBigInt
-    private let changesAmountOnUnstake: Bool
     private let freezes: Bool
     private let wholeAmounts: Bool
 
@@ -211,7 +210,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         validators: [Gemstone.DelegationValidator] = [],
         lockTime: UInt64 = 0,
         minStake: Gemstone.GemBigInt = 0,
-        changesAmountOnUnstake: Bool = false,
         freezes: Bool = false,
         wholeAmounts: Bool = false,
     ) {
@@ -222,7 +220,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.validators = validators
         self.lockTime = lockTime
         self.minStake = minStake
-        self.changesAmountOnUnstake = changesAmountOnUnstake
         self.freezes = freezes
         self.wholeAmounts = wholeAmounts
     }
@@ -233,10 +230,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func minStakeAmount(chain _: Gemstone.Chain) -> Gemstone.GemBigInt {
         minStake
-    }
-
-    public func canChangeAmountOnUnstake(chain _: Gemstone.Chain) -> Bool {
-        changesAmountOnUnstake
     }
 
     public func earnApr(providers: [Gemstone.DelegationValidator], assetApr: Double?) -> Double {
@@ -261,6 +254,15 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func delegationDestination(walletType _: Gemstone.WalletType, asset _: Gemstone.Asset, delegation _: Gemstone.Delegation) -> GemDelegationDestination {
+        .details
+    }
+
+    public func delegationActionDestination(
+        asset _: Gemstone.Asset,
+        delegation _: Gemstone.Delegation,
+        action _: Gemstone.GemDelegationAction,
+        validators _: [Gemstone.DelegationValidator],
+    ) -> GemDelegationDestination {
         .details
     }
 
